@@ -5,7 +5,6 @@
     - [Table of contents](#table-of-contents)
     - [Introduction](#introduction)
         - [See website](#see-website)
-    - [Language choice](#language-choice)
     - [Getting started](#getting-started)
             - [Pre-requirements](#pre-requirements)
     - [Client for your relayer's API](#client-for-your-relayers-api)
@@ -25,24 +24,6 @@ Launch a 0x relayer in under a minute with Launch Kit. This repository contains 
 Fork this repository to get started!
 
 ### [See website](https://0xproject.com/launch-kit)
-
-## Language choice
-
-`0x-launch-kit-backend` ships with 2 codebases, one in Typescript and another in Javascript. Although the Javascript is auto-generated from the Typescript, we made sure the Javascript generated is readable.
-
-Before you start using `0x-launch-kit-backend`, choose whether you want your codebase to be in Typescript or Javascript.
-
-**If you want to work in Javascript:**
-
--   delete the `ts` directory
--   delete all scripts from `package.json` that end with `:ts`
-
-Note: If you also wish to build and use the Docker image, please update the command in the Dockerfile to `CMD [ "forever", "js/index.js" ]`
-
-**If you want to work in Typescript:**
-
--   delete the `js` directory
--   delete all scripts from `package.json` that end with `:js`
 
 ## Getting started
 
