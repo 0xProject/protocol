@@ -1,0 +1,27 @@
+{
+  "name": "test-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "sites/*"
+  ],
+  "scripts": {
+    "build": "./turbo-prerun.sh && turbo run build",
+    "build:no-diff": "./turbo-prerun.sh && turbo run build:no-diff",
+    "dev": "./turbo-prerun.sh && turbo run dev --parallel",
+    "lint": "./turbo-prerun.sh && turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "eslint-config-custom": "*",
+    "prettier": "latest",
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "packageManager": "yarn@1.22.19"
+}

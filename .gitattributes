@@ -1,0 +1,4 @@
+./yarn.lock -diff linguist-generated=true
+
+# https://www.aleksandrhovhannisyan.com/blog/crlf-vs-lf-normalizing-line-endings-in-git/#a-simple-gitattributes-config
+* text=auto

@@ -1,0 +1,151 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    name: Build, Lint, and Test
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    # To use Remote Caching, uncomment the next lines and follow the steps below.
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Add foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Build (no-diff)
+        run: |
+          yarn build:no-diff
+          git diff --exit-code
+
+      # Todo: Test/Lint
+
+      - name: Comment commit
+        uses: ./packages/workspace-commit-comment-action
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get app hashes
+        id: app-hashes
+        uses: ./packages/workspace-hash-action
+        with:
+          dir: apps
+    outputs:
+      matrix: ${{ steps.app-hashes.outputs.workspace-hashes }}
+  build_images:
+    env:
+      REPOSITORY_URI: 883408475785.dkr.ecr.us-east-1.amazonaws.com/apps
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    # TODO (rhinodavid): Consider separating this into a reusable workflow
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#creating-a-reusable-workflow
+    name: Build image ${{ matrix.package-id }}
+    needs: build_and_test
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package-id: ${{ fromJson(needs.build_and_test.outputs.matrix) }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Get workspace name and hash
+        id: get-workspace-name-and-hash
+        run: |
+          echo "WORKSPACE_NAME=$(echo '${{ matrix.package-id }}' | cut -d '@' -f 1)" >> $GITHUB_ENV
+          echo "WORKSPACE_HASH=$(echo '${{ matrix.package-id }}' | cut -d '@' -f 2)" >> $GITHUB_ENV
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::883408475785:role/github-actions
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Check for existing images
+        id: check-for-image
+        run: ./.github/scripts/check-for-image.sh
+        shell: bash
+
+      - if: ${{ steps.check-for-image.outputs.image-exists == true }}
+        name: Skip building image
+        run: |
+          echo "### :rocket: An image exists for ${{ env.WORKSPACE_NAME }} @ ${{ env.WORKSPACE_HASH }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Access this image at" >> $GITHUB_STEP_SUMMARY
+          echo "\`${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - if: ${{ steps.check-for-image.outputs.image-exists == false }}
+        name: Build and push image
+        uses: docker/build-push-action@v3
+        with:
+          build-args: |
+            WORKSPACE_NAME=${{ env.WORKSPACE_NAME }}
+            TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM=${{ secrets.TURBO_TEAM }}
+          file: ./.github/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}
+            ${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}
+
+      - if: ${{ steps.check-for-image.outputs.image-exists == false }}
+        name: Built image message
+        run: |
+          echo "### :floppy_disk: An image was built for ${{ env.WORKSPACE_NAME}} @ ${{ env.WORKSPACE_HASH }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Access this image at" >> $GITHUB_STEP_SUMMARY
+          echo "\`${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "or" >> $GITHUB_STEP_SUMMARY
+          echo "\`${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+      - name: Comment on the PR that the docker image was built
+        if: github.event_name == 'pull_request' && steps.check-for-image.outputs.image-exists == false
+        uses: thollander/actions-comment-pull-request@v2.3.1
+        with:
+          message: |
+            ### :floppy_disk: An image was built for ${{ env.WORKSPACE_NAME}} @ ${{ env.WORKSPACE_HASH }}
+            Access this image at
+            `${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}`
+            or
+            `${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}`

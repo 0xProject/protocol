@@ -1,0 +1,37 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "dist/**",
+        "__build__/**",
+        "lib/**",
+        "test/generated-*/**",
+        ".svelte-kit/**",
+        ".vercel/**"
+      ]
+    },
+    "foundry-demo#build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "out/**",
+        "lib/**"
+      ],
+      "env": ["TURBO_VERSION_FORGE"]
+    },
+    "build:no-diff": {
+      "dependsOn": ["^build:no-diff"]
+    },
+    "dev": {
+      "cache": false
+    },
+    "lint": {
+      "outputs": []
+    },
+    "test:ci": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**/*.tsx?", "(test|__tests__)/**/*.tsx?"]
+    }
+  }
+}

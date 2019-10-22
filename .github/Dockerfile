@@ -1,0 +1,65 @@
+# Inspired by https://turbo.build/repo/docs/handbook/deploying-with-docker#the-problem
+FROM node:16-alpine AS builder
+
+ARG WORKSPACE_NAME
+ENV WORKSPACE_NAME=$WORKSPACE_NAME
+
+RUN apk add --no-cache libc6-compat
+RUN apk update
+
+WORKDIR /app
+RUN yarn global add turbo
+COPY . .
+RUN turbo prune --scope=${WORKSPACE_NAME} --docker
+RUN yarn cache clean
+
+# Add lockfile and package.json's of isolated subworkspace
+FROM node:16-alpine AS installer
+RUN apk add --no-cache libc6-compat git
+RUN apk update
+WORKDIR /app
+
+# First install the dependencies (as they change less often)
+COPY .gitignore .gitignore
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/yarn.lock ./yarn.lock
+RUN yarn install --frozen-lockfile
+
+# Build the project
+COPY --from=builder /app/out/full/ .
+COPY turbo.json turbo.json
+
+ARG TURBO_TEAM
+ENV TURBO_TEAM=$TURBO_TEAM
+
+ARG TURBO_TOKEN
+ENV TURBO_TOKEN=$TURBO_TOKEN
+
+ARG WORKSPACE_NAME
+ENV WORKSPACE_NAME=$WORKSPACE_NAME
+
+# https://turbo.build/repo/docs/core-concepts/monorepos/filtering#include-dependencies-of-matched-workspaces
+RUN yarn turbo run build --filter=${WORKSPACE_NAME}...
+
+RUN yarn cache clean
+
+FROM node:16-alpine AS runner
+
+RUN apk update && \
+    apk upgrade && \
+    apk add ca-certificates libc6-compat && \
+    ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
+
+WORKDIR /app
+
+# Don't run production as root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodejsuser
+USER nodejsuser
+COPY --from=installer /app/ .
+
+# TODO (rhinodavid): We could add enhancements here to only
+# copy the build files
+
+# Expect this to be overridden by 0x-main-infra
+CMD yarn turbo start --filter=$WORKSPACE_NAME
