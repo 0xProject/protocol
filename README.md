@@ -1,15 +1,18 @@
-<img src="launch_kit_banner.png">
-
+# 0x-api
 ## Table of contents
 
--   [Introduction](#introduction)
--   [Language choice](#language-choice)
--   [Getting started](#getting-started)
--   [Client for your relayers API](#client-for-your-relayers-api)
--   [Commands](#commands)
--   [Database](#database)
--   [Deployment](#deployment)
--   [Legal Disclaimer](#legal-disclaimer)
+- [0x-api](#0x-api)
+    - [Table of contents](#table-of-contents)
+    - [Introduction](#introduction)
+        - [See website](#see-website)
+    - [Language choice](#language-choice)
+    - [Getting started](#getting-started)
+            - [Pre-requirements](#pre-requirements)
+    - [Client for your relayer's API](#client-for-your-relayers-api)
+    - [Commands](#commands)
+    - [Database](#database)
+    - [Deployment](#deployment)
+    - [Legal Disclaimer](#legal-disclaimer)
 
 ## Introduction
 
