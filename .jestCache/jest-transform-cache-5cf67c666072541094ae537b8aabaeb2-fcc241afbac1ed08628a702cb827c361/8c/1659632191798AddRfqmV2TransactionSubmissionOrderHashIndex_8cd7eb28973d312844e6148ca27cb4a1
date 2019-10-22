@@ -1,0 +1,20 @@
+1849c1cae99af6caff67a88f69cfddfa
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddRfqmV2TransactionSubmissionOrderHashIndex1659632191798 = void 0;
+const typeorm_1 = require("typeorm");
+const types_1 = require("../src/entities/types");
+const orderHashIndex = new typeorm_1.TableIndex({
+    name: `rfqm_v2_transaction_submissions_order_hash_index`,
+    columnNames: ['order_hash'],
+});
+class AddRfqmV2TransactionSubmissionOrderHashIndex1659632191798 {
+    async up(queryRunner) {
+        await queryRunner.createIndex(types_1.RfqTables.RfqmV2TransactionSubmissions, orderHashIndex);
+    }
+    async down(queryRunner) {
+        await queryRunner.dropIndex(types_1.RfqTables.RfqmV2TransactionSubmissions, orderHashIndex);
+    }
+}
+exports.AddRfqmV2TransactionSubmissionOrderHashIndex1659632191798 = AddRfqmV2TransactionSubmissionOrderHashIndex1659632191798;
+//# sourceMappingURL=1659632191798-AddRfqmV2TransactionSubmissionOrderHashIndex.js.map

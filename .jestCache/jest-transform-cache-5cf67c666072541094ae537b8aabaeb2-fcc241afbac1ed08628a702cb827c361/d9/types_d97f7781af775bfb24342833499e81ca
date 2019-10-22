@@ -1,0 +1,140 @@
+5f93b3b5147b60e1c4f7a4acaa066bb5
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RfqmOrderTypes = exports.SubmissionContextStatus = exports.RfqmTransactionSubmissionStatus = exports.RfqmTransactionSubmissionType = exports.UnresolvedRfqmJobStatuses = exports.JobFailureReason = exports.RfqmJobStatus = exports.RfqTables = void 0;
+var RfqTables;
+(function (RfqTables) {
+    RfqTables["RfqmV2Quotes"] = "rfqm_v2_quotes";
+    RfqTables["RfqmV2Jobs"] = "rfqm_v2_jobs";
+    RfqTables["RfqmV2TransactionSubmissions"] = "rfqm_v2_transaction_submissions";
+})(RfqTables = exports.RfqTables || (exports.RfqTables = {}));
+var RfqmJobStatus;
+(function (RfqmJobStatus) {
+    // Transaction has been enqueued and will be processed once a worker is available
+    RfqmJobStatus["PendingEnqueued"] = "pending_enqueued";
+    // Transaction has passed initial validation. Last look will be executed and transaction will be submitted if last look is accepted.
+    RfqmJobStatus["PendingProcessing"] = "pending_processing";
+    // For v1 orders, the last look has been approved. For v2 orders, the market maker has signed the order.
+    RfqmJobStatus["PendingLastLookAccepted"] = "pending_last_look_accepted";
+    // Transaction has passed initial verification and has been submitted to the mem pool
+    RfqmJobStatus["PendingSubmitted"] = "pending_submitted";
+    // Eth Call made before transaction submission was unsuccessful
+    RfqmJobStatus["FailedEthCallFailed"] = "failed_eth_call_failed";
+    // Transaction has expired prior to eth call or worker is not available to make an eth call
+    RfqmJobStatus["FailedExpired"] = "failed_expired";
+    // Market Maker declined the last look
+    RfqmJobStatus["FailedLastLookDeclined"] = "failed_last_look_declined";
+    // [RFQM v2] Balance checks executed before obtaining market maker signature failed
+    RfqmJobStatus["FailedPresignValidationFailed"] = "failed_presign_validation_failed";
+    // Transaction was reverted more than 3 blocks ago
+    RfqmJobStatus["FailedRevertedConfirmed"] = "failed_reverted_confirmed";
+    // Transaction was reverted less than 3 blocks ago
+    RfqmJobStatus["FailedRevertedUnconfirmed"] = "failed_reverted_unconfirmed";
+    // Obtaining the market maker's signature for a v2 order failed.
+    // This is NOT a status for the case where the market maker intentionally declined to sign.
+    RfqmJobStatus["FailedSignFailed"] = "failed_sign_failed";
+    // Submitting the transaction to the network was unsuccessful
+    RfqmJobStatus["FailedSubmitFailed"] = "failed_submit_failed";
+    // Transaction does not contain call data
+    RfqmJobStatus["FailedValidationNoCallData"] = "failed_validation_no_call_data";
+    // Transaction does not include a maker URI
+    RfqmJobStatus["FailedValidationNoMakerUri"] = "failed_validation_no_maker_uri";
+    // Job has been submitted with no taker signuature
+    RfqmJobStatus["FailedValidationNoTakerSignature"] = "failed_validation_no_taker_signature";
+    // Transaction does not contain an order
+    RfqmJobStatus["FailedValidationNoOrder"] = "failed_validation_no_order";
+    // Transaction does not contain a fee
+    RfqmJobStatus["FailedValidationNoFee"] = "failed_validation_no_fee";
+    // Transaction has succeeded with 3 subsequent blocks
+    RfqmJobStatus["SucceededConfirmed"] = "succeeded_confirmed";
+    // Transaction was successfully mined and filled
+    RfqmJobStatus["SucceededUnconfirmed"] = "succeeded_unconfirmed";
+})(RfqmJobStatus = exports.RfqmJobStatus || (exports.RfqmJobStatus = {}));
+// From https://0xproject.quip.com/ixNbA6mmn1KT/Error-reason-on-RFQm-zerog-status
+var JobFailureReason;
+(function (JobFailureReason) {
+    JobFailureReason["TransactionSimulationFailed"] = "transaction_simulation_failed";
+    JobFailureReason["OrderExpired"] = "order_expired";
+    JobFailureReason["LastLookDeclined"] = "last_look_declined";
+    JobFailureReason["TransactionReverted"] = "transaction_reverted";
+    JobFailureReason["MarketMakerSignatureError"] = "market_maker_sigature_error";
+    JobFailureReason["InvalidBalance"] = "invalid_balance";
+    JobFailureReason["InternalError"] = "internal_error";
+})(JobFailureReason = exports.JobFailureReason || (exports.JobFailureReason = {}));
+/**
+ * Determines whether or not a given `RfqmJobStatus` indicates
+ * the associated job has been processed to completion or not.
+ *
+ * Returns `true` if the status indicates the associated job is
+ * resolved and should not be retried; returns `false` if the
+ * associated job is in an incomplete state and should be retried.
+ */
+function isJobResolved(status) {
+    switch (status) {
+        case RfqmJobStatus.FailedEthCallFailed:
+        case RfqmJobStatus.FailedExpired:
+        case RfqmJobStatus.FailedLastLookDeclined:
+        case RfqmJobStatus.FailedPresignValidationFailed:
+        case RfqmJobStatus.FailedRevertedConfirmed:
+        case RfqmJobStatus.FailedSignFailed:
+        case RfqmJobStatus.FailedSubmitFailed:
+        case RfqmJobStatus.FailedValidationNoCallData:
+        case RfqmJobStatus.FailedValidationNoFee:
+        case RfqmJobStatus.FailedValidationNoMakerUri:
+        case RfqmJobStatus.FailedValidationNoOrder:
+        case RfqmJobStatus.FailedValidationNoTakerSignature:
+        case RfqmJobStatus.SucceededConfirmed:
+            return true;
+        case RfqmJobStatus.FailedRevertedUnconfirmed:
+        case RfqmJobStatus.PendingEnqueued:
+        case RfqmJobStatus.PendingLastLookAccepted:
+        case RfqmJobStatus.PendingProcessing:
+        case RfqmJobStatus.PendingSubmitted:
+        case RfqmJobStatus.SucceededUnconfirmed:
+            return false;
+        default:
+            ((_x) => {
+                throw new Error('unreachable');
+            })(status);
+    }
+}
+/**
+ * `RfqmJobStatus` values which should be considered incomplete
+ * and should be retried.
+ */
+exports.UnresolvedRfqmJobStatuses = Object.values(RfqmJobStatus).filter((v) => !isJobResolved(v));
+var RfqmTransactionSubmissionType;
+(function (RfqmTransactionSubmissionType) {
+    RfqmTransactionSubmissionType["Trade"] = "trade";
+    RfqmTransactionSubmissionType["Approval"] = "approval";
+})(RfqmTransactionSubmissionType = exports.RfqmTransactionSubmissionType || (exports.RfqmTransactionSubmissionType = {}));
+var RfqmTransactionSubmissionStatus;
+(function (RfqmTransactionSubmissionStatus) {
+    RfqmTransactionSubmissionStatus["DroppedAndReplaced"] = "dropped_and_replaced";
+    RfqmTransactionSubmissionStatus["Presubmit"] = "presubmit";
+    RfqmTransactionSubmissionStatus["RevertedConfirmed"] = "reverted_confirmed";
+    RfqmTransactionSubmissionStatus["RevertedUnconfirmed"] = "reverted_unconfirmed";
+    RfqmTransactionSubmissionStatus["Submitted"] = "submitted";
+    RfqmTransactionSubmissionStatus["SucceededConfirmed"] = "succeeded_confirmed";
+    RfqmTransactionSubmissionStatus["SucceededUnconfirmed"] = "succeeded_unconfirmed";
+})(RfqmTransactionSubmissionStatus = exports.RfqmTransactionSubmissionStatus || (exports.RfqmTransactionSubmissionStatus = {}));
+/**
+ * `SubmissionContext` contains multiple submissions with different gas prices. `SubmissionContextStatus`
+ * is the collective status of all submissions contained within the submission context. It marks the final result of a
+ * submission action which may contain several submission attempts.
+ */
+var SubmissionContextStatus;
+(function (SubmissionContextStatus) {
+    SubmissionContextStatus["FailedExpired"] = "failed_expired";
+    SubmissionContextStatus["FailedRevertedConfirmed"] = "failed_reverted_confirmed";
+    SubmissionContextStatus["FailedRevertedUnconfirmed"] = "failed_reverted_unconfirmed";
+    SubmissionContextStatus["PendingSubmitted"] = "pending_submitted";
+    SubmissionContextStatus["SucceededConfirmed"] = "succeeded_confirmed";
+    SubmissionContextStatus["SucceededUnconfirmed"] = "succeeded_unconfirmed";
+})(SubmissionContextStatus = exports.SubmissionContextStatus || (exports.SubmissionContextStatus = {}));
+var RfqmOrderTypes;
+(function (RfqmOrderTypes) {
+    RfqmOrderTypes["V4Rfq"] = "v4Rfq";
+    RfqmOrderTypes["Otc"] = "otc";
+})(RfqmOrderTypes = exports.RfqmOrderTypes || (exports.RfqmOrderTypes = {}));
+//# sourceMappingURL=types.js.map

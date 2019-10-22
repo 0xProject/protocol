@@ -1,0 +1,23 @@
+5c095d24b3785736e201b830529d9540
+{
+    "id": "/feeModelConfigurationSchema",
+    "properties": {
+        "chainId": {
+            "type": "number"
+        },
+        "tokenA": {
+            "type": "string"
+        },
+        "tokenB": {
+            "type": "string"
+        },
+        "marginRakeRatio": {
+            "type": "number"
+        },
+        "tradeSizeBps": {
+            "type": "number"
+        }
+    },
+    "required": ["chainId", "tokenA", "tokenB", "marginRakeRatio", "tradeSizeBps"],
+    "type": "object"
+}

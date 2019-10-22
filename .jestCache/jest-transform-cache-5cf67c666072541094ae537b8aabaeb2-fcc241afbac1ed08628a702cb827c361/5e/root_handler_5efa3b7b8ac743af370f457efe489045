@@ -1,0 +1,11 @@
+7f08c14100a92e53f77c5350e1b2c9bd
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.rootHandler = void 0;
+const rootHandler = (_req, res) => {
+    res.send({
+        message: 'This is the root of the 0x API. Visit https://0x.org/docs/api for documentation.',
+    });
+};
+exports.rootHandler = rootHandler;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9oYW5kbGVycy9yb290X2hhbmRsZXIudHMiLCJtYXBwaW5ncyI6Ijs7O0FBRU8sTUFBTSxXQUFXLEdBQUcsQ0FBQyxJQUFxQixFQUFFLEdBQXFCLEVBQUUsRUFBRTtJQUN4RSxHQUFHLENBQUMsSUFBSSxDQUFDO1FBQ0wsT0FBTyxFQUFFLGtGQUFrRjtLQUM5RixDQUFDLENBQUM7QUFDUCxDQUFDLENBQUM7QUFKVyxRQUFBLFdBQVcsZUFJdEIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9oYW5kbGVycy9yb290X2hhbmRsZXIudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0ICogYXMgZXhwcmVzcyBmcm9tICdleHByZXNzJztcblxuZXhwb3J0IGNvbnN0IHJvb3RIYW5kbGVyID0gKF9yZXE6IGV4cHJlc3MuUmVxdWVzdCwgcmVzOiBleHByZXNzLlJlc3BvbnNlKSA9PiB7XG4gICAgcmVzLnNlbmQoe1xuICAgICAgICBtZXNzYWdlOiAnVGhpcyBpcyB0aGUgcm9vdCBvZiB0aGUgMHggQVBJLiBWaXNpdCBodHRwczovLzB4Lm9yZy9kb2NzL2FwaSBmb3IgZG9jdW1lbnRhdGlvbi4nLFxuICAgIH0pO1xufTtcbiJdLCJ2ZXJzaW9uIjozfQ==

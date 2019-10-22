@@ -1,0 +1,28 @@
+799de84b90ca00d3fcdd623685a1bf17
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddTypeToTransactionSubmission1657316661200 = void 0;
+const typeorm_1 = require("typeorm");
+// This column definition is used to initialize all the previous values in this table to 'trade'
+const transactionSubmissionTypeIntermediate = new typeorm_1.TableColumn({
+    name: 'type',
+    type: 'varchar',
+    isNullable: false,
+    default: "'trade'", // temporary default, note the single quotes
+});
+const transactionSubmissionType = new typeorm_1.TableColumn({
+    name: 'type',
+    type: 'varchar',
+    isNullable: false,
+});
+class AddTypeToTransactionSubmission1657316661200 {
+    async up(queryRunner) {
+        await queryRunner.addColumn('rfqm_v2_transaction_submissions', transactionSubmissionTypeIntermediate);
+        await queryRunner.changeColumn('rfqm_v2_transaction_submissions', transactionSubmissionTypeIntermediate, transactionSubmissionType);
+    }
+    async down(queryRunner) {
+        await queryRunner.dropColumn('rfqm_v2_transaction_submissions', transactionSubmissionType);
+    }
+}
+exports.AddTypeToTransactionSubmission1657316661200 = AddTypeToTransactionSubmission1657316661200;
+//# sourceMappingURL=1657316661200-addTypeToTransactionSubmission.js.map

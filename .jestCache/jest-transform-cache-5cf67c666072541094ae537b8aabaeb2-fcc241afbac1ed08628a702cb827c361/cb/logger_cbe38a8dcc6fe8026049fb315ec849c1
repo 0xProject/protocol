@@ -1,0 +1,42 @@
+c977bc46193973df0eee3ccf647982db
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createSwapId = exports.logger = void 0;
+const api_utils_1 = require("@0x/api-utils");
+const crypto_1 = require("crypto");
+const config_1 = require("./config");
+exports.logger = (0, api_utils_1.pino)({
+    formatters: {
+        level: (label) => ({
+            level: label,
+        }),
+    },
+    level: config_1.LOG_LEVEL,
+    timestamp: config_1.LOGGER_INCLUDE_TIMESTAMP,
+});
+/**
+ * Converts the parameters of a swap request into a 16-character ID
+ * which can be used in logging to associate price and quote requests.
+ *
+ * Used SHA1 because apparently it's the fastest:
+ * https://medium.com/@chris_72272/what-is-the-fastest-node-js-hashing-algorithm-c15c1a0e164e
+ *
+ * `takerAddress` is an optional parameter so it's easy to put a price request
+ * into the function. However, if `takerAddress` is not present, the function returns
+ * `null`. The reasoning for this is so two common trades by different takers
+ * (e.x.: sell 1 WMATIC for USDC) aren't given the same ID.
+ */
+function createSwapId(parameters) {
+    var _a, _b, _c, _d;
+    const { takerAddress } = parameters;
+    if (!takerAddress) {
+        return null;
+    }
+    const idLength = 16;
+    return (0, crypto_1.createHash)('sha1')
+        .update(`${(_b = (_a = parameters.buyAmount) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : ''}${parameters.buyToken}${(_d = (_c = parameters.sellAmount) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : ''}${parameters.sellToken}${parameters.takerAddress}`)
+        .digest('hex')
+        .slice(0, idLength);
+}
+exports.createSwapId = createSwapId;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9sb2dnZXIudHMiLCJtYXBwaW5ncyI6Ijs7O0FBQUEsNkNBQXFDO0FBRXJDLG1DQUFvQztBQUVwQyxxQ0FBK0Q7QUFFbEQsUUFBQSxNQUFNLEdBQUcsSUFBQSxnQkFBSSxFQUFDO0lBQ3ZCLFVBQVUsRUFBRTtRQUNSLEtBQUssRUFBRSxDQUFDLEtBQUssRUFBRSxFQUFFLENBQUMsQ0FBQztZQUNmLEtBQUssRUFBRSxLQUFLO1NBQ2YsQ0FBQztLQUNMO0lBQ0QsS0FBSyxFQUFFLGtCQUFTO0lBQ2hCLFNBQVMsRUFBRSxpQ0FBd0I7Q0FDdEMsQ0FBQyxDQUFDO0FBRUg7Ozs7Ozs7Ozs7O0dBV0c7QUFDSCxTQUFnQixZQUFZLENBQUMsVUFPNUI7O0lBQ0csTUFBTSxFQUFFLFlBQVksRUFBRSxHQUFHLFVBQVUsQ0FBQztJQUNwQyxJQUFJLENBQUMsWUFBWSxFQUFFO1FBQ2YsT0FBTyxJQUFJLENBQUM7S0FDZjtJQUNELE1BQU0sUUFBUSxHQUFHLEVBQUUsQ0FBQztJQUNwQixPQUFPLElBQUEsbUJBQVUsRUFBQyxNQUFNLENBQUM7U0FDcEIsTUFBTSxDQUNILEdBQUcsTUFBQSxNQUFBLFVBQVUsQ0FBQyxTQUFTLDBDQUFFLFFBQVEsRUFBRSxtQ0FBSSxFQUFFLEdBQUcsVUFBVSxDQUFDLFFBQVEsR0FBRyxNQUFBLE1BQUEsVUFBVSxDQUFDLFVBQVUsMENBQUUsUUFBUSxFQUFFLG1DQUFJLEVBQUUsR0FDckcsVUFBVSxDQUFDLFNBQ2YsR0FBRyxVQUFVLENBQUMsWUFBWSxFQUFFLENBQy9CO1NBQ0EsTUFBTSxDQUFDLEtBQUssQ0FBQztTQUNiLEtBQUssQ0FBQyxDQUFDLEVBQUUsUUFBUSxDQUFDLENBQUM7QUFDNUIsQ0FBQztBQXJCRCxvQ0FxQkMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9sb2dnZXIudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgcGlubyB9IGZyb20gJ0AweC9hcGktdXRpbHMnO1xuaW1wb3J0IHsgQmlnTnVtYmVyIH0gZnJvbSAnQDB4L3V0aWxzJztcbmltcG9ydCB7IGNyZWF0ZUhhc2ggfSBmcm9tICdjcnlwdG8nO1xuXG5pbXBvcnQgeyBMT0dHRVJfSU5DTFVERV9USU1FU1RBTVAsIExPR19MRVZFTCB9IGZyb20gJy4vY29uZmlnJztcblxuZXhwb3J0IGNvbnN0IGxvZ2dlciA9IHBpbm8oe1xuICAgIGZvcm1hdHRlcnM6IHtcbiAgICAgICAgbGV2ZWw6IChsYWJlbCkgPT4gKHtcbiAgICAgICAgICAgIGxldmVsOiBsYWJlbCxcbiAgICAgICAgfSksXG4gICAgfSxcbiAgICBsZXZlbDogTE9HX0xFVkVMLFxuICAgIHRpbWVzdGFtcDogTE9HR0VSX0lOQ0xVREVfVElNRVNUQU1QLFxufSk7XG5cbi8qKlxuICogQ29udmVydHMgdGhlIHBhcmFtZXRlcnMgb2YgYSBzd2FwIHJlcXVlc3QgaW50byBhIDE2LWNoYXJhY3RlciBJRFxuICogd2hpY2ggY2FuIGJlIHVzZWQgaW4gbG9nZ2luZyB0byBhc3NvY2lhdGUgcHJpY2UgYW5kIHF1b3RlIHJlcXVlc3RzLlxuICpcbiAqIFVzZWQgU0hBMSBiZWNhdXNlIGFwcGFyZW50bHkgaXQncyB0aGUgZmFzdGVzdDpcbiAqIGh0dHBzOi8vbWVkaXVtLmNvbS9AY2hyaXNfNzIyNzIvd2hhdC1pcy10aGUtZmFzdGVzdC1ub2RlLWpzLWhhc2hpbmctYWxnb3JpdGhtLWMxNWMxYTBlMTY0ZVxuICpcbiAqIGB0YWtlckFkZHJlc3NgIGlzIGFuIG9wdGlvbmFsIHBhcmFtZXRlciBzbyBpdCdzIGVhc3kgdG8gcHV0IGEgcHJpY2UgcmVxdWVzdFxuICogaW50byB0aGUgZnVuY3Rpb24uIEhvd2V2ZXIsIGlmIGB0YWtlckFkZHJlc3NgIGlzIG5vdCBwcmVzZW50LCB0aGUgZnVuY3Rpb24gcmV0dXJuc1xuICogYG51bGxgLiBUaGUgcmVhc29uaW5nIGZvciB0aGlzIGlzIHNvIHR3byBjb21tb24gdHJhZGVzIGJ5IGRpZmZlcmVudCB0YWtlcnNcbiAqIChlLnguOiBzZWxsIDEgV01BVElDIGZvciBVU0RDKSBhcmVuJ3QgZ2l2ZW4gdGhlIHNhbWUgSUQuXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBjcmVhdGVTd2FwSWQocGFyYW1ldGVyczoge1xuICAgIGJ1eUFtb3VudD86IEJpZ051bWJlcjtcbiAgICBidXlUb2tlbjogc3RyaW5nO1xuICAgIHNlbGxBbW91bnQ/OiBCaWdOdW1iZXI7XG4gICAgc2VsbFRva2VuOiBzdHJpbmc7XG4gICAgLy8gSWYgYSB0YWtlciBhZGRyZXNzIGlzIG5vdCBwcm92aWRlZCwgdGhlIGZ1bmN0aW9uIHJldHVybnMgYG51bGxgLlxuICAgIHRha2VyQWRkcmVzcz86IHN0cmluZztcbn0pOiBzdHJpbmcgfCBudWxsIHtcbiAgICBjb25zdCB7IHRha2VyQWRkcmVzcyB9ID0gcGFyYW1ldGVycztcbiAgICBpZiAoIXRha2VyQWRkcmVzcykge1xuICAgICAgICByZXR1cm4gbnVsbDtcbiAgICB9XG4gICAgY29uc3QgaWRMZW5ndGggPSAxNjtcbiAgICByZXR1cm4gY3JlYXRlSGFzaCgnc2hhMScpXG4gICAgICAgIC51cGRhdGUoXG4gICAgICAgICAgICBgJHtwYXJhbWV0ZXJzLmJ1eUFtb3VudD8udG9TdHJpbmcoKSA/PyAnJ30ke3BhcmFtZXRlcnMuYnV5VG9rZW59JHtwYXJhbWV0ZXJzLnNlbGxBbW91bnQ/LnRvU3RyaW5nKCkgPz8gJyd9JHtcbiAgICAgICAgICAgICAgICBwYXJhbWV0ZXJzLnNlbGxUb2tlblxuICAgICAgICAgICAgfSR7cGFyYW1ldGVycy50YWtlckFkZHJlc3N9YCxcbiAgICAgICAgKVxuICAgICAgICAuZGlnZXN0KCdoZXgnKVxuICAgICAgICAuc2xpY2UoMCwgaWRMZW5ndGgpO1xufVxuIl0sInZlcnNpb24iOjN9

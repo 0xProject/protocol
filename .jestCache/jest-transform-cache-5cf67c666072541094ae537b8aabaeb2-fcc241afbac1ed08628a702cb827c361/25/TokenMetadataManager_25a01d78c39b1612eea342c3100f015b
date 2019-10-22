@@ -1,0 +1,38 @@
+0a8f753ac1dd98c87a4d3bb4e49a3002
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TokenMetadataManager = void 0;
+const token_metadata_1 = require("@0x/token-metadata");
+const logger_1 = require("../logger");
+class TokenMetadataManager {
+    constructor(_chainId, _blockchainUtils) {
+        this._chainId = _chainId;
+        this._blockchainUtils = _blockchainUtils;
+        this._tokenDecimalsCache = new Map();
+    }
+    /**
+     * Utility function to get the decimals for an ERC20 token by its address.
+     * First checks 0x/token-metadata for the information, and if not present,
+     * queries the data from the blockchain.
+     *
+     * Uses an in-memory cache to store previously-fetched values.
+     *
+     * Throws if there is a problem fetching the data from on chain.
+     */
+    async getTokenDecimalsAsync(tokenAddress) {
+        const localMetadata = (0, token_metadata_1.getTokenMetadataIfExists)(tokenAddress, this._chainId);
+        if (localMetadata) {
+            return localMetadata.decimals;
+        }
+        const cachedDecimals = this._tokenDecimalsCache.get(tokenAddress);
+        if (cachedDecimals) {
+            return cachedDecimals;
+        }
+        const onchainDecimals = await this._blockchainUtils.getTokenDecimalsAsync(tokenAddress);
+        logger_1.logger.info({ tokenAddress, decimals: onchainDecimals, cacheSize: this._tokenDecimalsCache.size }, 'Token decimals fetched from blockchain');
+        this._tokenDecimalsCache.set(tokenAddress, onchainDecimals);
+        return onchainDecimals;
+    }
+}
+exports.TokenMetadataManager = TokenMetadataManager;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy91dGlscy9Ub2tlbk1ldGFkYXRhTWFuYWdlci50cyIsIm1hcHBpbmdzIjoiOzs7QUFBQSx1REFBOEQ7QUFDOUQsc0NBQW1DO0FBR25DLE1BQWEsb0JBQW9CO0lBRzdCLFlBQW9DLFFBQWdCLEVBQW1CLGdCQUFvQztRQUF2RSxhQUFRLEdBQVIsUUFBUSxDQUFRO1FBQW1CLHFCQUFnQixHQUFoQixnQkFBZ0IsQ0FBb0I7UUFGMUYsd0JBQW1CLEdBQXdCLElBQUksR0FBRyxFQUFFLENBQUM7SUFFd0MsQ0FBQztJQUUvRzs7Ozs7Ozs7T0FRRztJQUNJLEtBQUssQ0FBQyxxQkFBcUIsQ0FBQyxZQUFvQjtRQUNuRCxNQUFNLGFBQWEsR0FBRyxJQUFBLHlDQUF3QixFQUFDLFlBQVksRUFBRSxJQUFJLENBQUMsUUFBUSxDQUFDLENBQUM7UUFDNUUsSUFBSSxhQUFhLEVBQUU7WUFDZixPQUFPLGFBQWEsQ0FBQyxRQUFRLENBQUM7U0FDakM7UUFDRCxNQUFNLGNBQWMsR0FBRyxJQUFJLENBQUMsbUJBQW1CLENBQUMsR0FBRyxDQUFDLFlBQVksQ0FBQyxDQUFDO1FBQ2xFLElBQUksY0FBYyxFQUFFO1lBQ2hCLE9BQU8sY0FBYyxDQUFDO1NBQ3pCO1FBQ0QsTUFBTSxlQUFlLEdBQUcsTUFBTSxJQUFJLENBQUMsZ0JBQWdCLENBQUMscUJBQXFCLENBQUMsWUFBWSxDQUFDLENBQUM7UUFDeEYsZUFBTSxDQUFDLElBQUksQ0FDUCxFQUFFLFlBQVksRUFBRSxRQUFRLEVBQUUsZUFBZSxFQUFFLFNBQVMsRUFBRSxJQUFJLENBQUMsbUJBQW1CLENBQUMsSUFBSSxFQUFFLEVBQ3JGLHdDQUF3QyxDQUMzQyxDQUFDO1FBQ0YsSUFBSSxDQUFDLG1CQUFtQixDQUFDLEdBQUcsQ0FBQyxZQUFZLEVBQUUsZUFBZSxDQUFDLENBQUM7UUFDNUQsT0FBTyxlQUFlLENBQUM7SUFDM0IsQ0FBQztDQUNKO0FBL0JELG9EQStCQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvVXNlcnMvZGF2aWR3YWxzaC9jb2RlLWxvY2FsLzB4LXJmcS1hcGkvc3JjL3V0aWxzL1Rva2VuTWV0YWRhdGFNYW5hZ2VyLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IGdldFRva2VuTWV0YWRhdGFJZkV4aXN0cyB9IGZyb20gJ0AweC90b2tlbi1tZXRhZGF0YSc7XG5pbXBvcnQgeyBsb2dnZXIgfSBmcm9tICcuLi9sb2dnZXInO1xuaW1wb3J0IHsgUmZxQmxvY2tjaGFpblV0aWxzIH0gZnJvbSAnLi9yZnFfYmxvY2tjaGFpbl91dGlscyc7XG5cbmV4cG9ydCBjbGFzcyBUb2tlbk1ldGFkYXRhTWFuYWdlciB7XG4gICAgcHJpdmF0ZSByZWFkb25seSBfdG9rZW5EZWNpbWFsc0NhY2hlOiBNYXA8c3RyaW5nLCBudW1iZXI+ID0gbmV3IE1hcCgpO1xuXG4gICAgcHVibGljIGNvbnN0cnVjdG9yKHByaXZhdGUgcmVhZG9ubHkgX2NoYWluSWQ6IG51bWJlciwgcHJpdmF0ZSByZWFkb25seSBfYmxvY2tjaGFpblV0aWxzOiBSZnFCbG9ja2NoYWluVXRpbHMpIHt9XG5cbiAgICAvKipcbiAgICAgKiBVdGlsaXR5IGZ1bmN0aW9uIHRvIGdldCB0aGUgZGVjaW1hbHMgZm9yIGFuIEVSQzIwIHRva2VuIGJ5IGl0cyBhZGRyZXNzLlxuICAgICAqIEZpcnN0IGNoZWNrcyAweC90b2tlbi1tZXRhZGF0YSBmb3IgdGhlIGluZm9ybWF0aW9uLCBhbmQgaWYgbm90IHByZXNlbnQsXG4gICAgICogcXVlcmllcyB0aGUgZGF0YSBmcm9tIHRoZSBibG9ja2NoYWluLlxuICAgICAqXG4gICAgICogVXNlcyBhbiBpbi1tZW1vcnkgY2FjaGUgdG8gc3RvcmUgcHJldmlvdXNseS1mZXRjaGVkIHZhbHVlcy5cbiAgICAgKlxuICAgICAqIFRocm93cyBpZiB0aGVyZSBpcyBhIHByb2JsZW0gZmV0Y2hpbmcgdGhlIGRhdGEgZnJvbSBvbiBjaGFpbi5cbiAgICAgKi9cbiAgICBwdWJsaWMgYXN5bmMgZ2V0VG9rZW5EZWNpbWFsc0FzeW5jKHRva2VuQWRkcmVzczogc3RyaW5nKTogUHJvbWlzZTxudW1iZXI+IHtcbiAgICAgICAgY29uc3QgbG9jYWxNZXRhZGF0YSA9IGdldFRva2VuTWV0YWRhdGFJZkV4aXN0cyh0b2tlbkFkZHJlc3MsIHRoaXMuX2NoYWluSWQpO1xuICAgICAgICBpZiAobG9jYWxNZXRhZGF0YSkge1xuICAgICAgICAgICAgcmV0dXJuIGxvY2FsTWV0YWRhdGEuZGVjaW1hbHM7XG4gICAgICAgIH1cbiAgICAgICAgY29uc3QgY2FjaGVkRGVjaW1hbHMgPSB0aGlzLl90b2tlbkRlY2ltYWxzQ2FjaGUuZ2V0KHRva2VuQWRkcmVzcyk7XG4gICAgICAgIGlmIChjYWNoZWREZWNpbWFscykge1xuICAgICAgICAgICAgcmV0dXJuIGNhY2hlZERlY2ltYWxzO1xuICAgICAgICB9XG4gICAgICAgIGNvbnN0IG9uY2hhaW5EZWNpbWFscyA9IGF3YWl0IHRoaXMuX2Jsb2NrY2hhaW5VdGlscy5nZXRUb2tlbkRlY2ltYWxzQXN5bmModG9rZW5BZGRyZXNzKTtcbiAgICAgICAgbG9nZ2VyLmluZm8oXG4gICAgICAgICAgICB7IHRva2VuQWRkcmVzcywgZGVjaW1hbHM6IG9uY2hhaW5EZWNpbWFscywgY2FjaGVTaXplOiB0aGlzLl90b2tlbkRlY2ltYWxzQ2FjaGUuc2l6ZSB9LFxuICAgICAgICAgICAgJ1Rva2VuIGRlY2ltYWxzIGZldGNoZWQgZnJvbSBibG9ja2NoYWluJyxcbiAgICAgICAgKTtcbiAgICAgICAgdGhpcy5fdG9rZW5EZWNpbWFsc0NhY2hlLnNldCh0b2tlbkFkZHJlc3MsIG9uY2hhaW5EZWNpbWFscyk7XG4gICAgICAgIHJldHVybiBvbmNoYWluRGVjaW1hbHM7XG4gICAgfVxufVxuIl0sInZlcnNpb24iOjN9

@@ -1,0 +1,39 @@
+f6d199d85fd93a278f248a4f601bceab
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CreateRfqmWorkerHeartbeatTable1624695890253 = void 0;
+const typeorm_1 = require("typeorm");
+const TABLE_NAME = 'rfqm_worker_heartbeats';
+const rfqmWorkerHeartbeatTable = new typeorm_1.Table({
+    name: TABLE_NAME,
+    columns: [
+        { name: 'address', type: 'varchar', isPrimary: false },
+        { name: 'timestamp', type: 'timestamptz', default: 'NOW()' },
+        { name: 'balance', type: 'bigint' },
+        { name: 'index', type: 'int' },
+    ],
+});
+class CreateRfqmWorkerHeartbeatTable1624695890253 {
+    async up(queryRunner) {
+        await queryRunner.createTable(rfqmWorkerHeartbeatTable);
+        // Update timestamp on every write
+        await queryRunner.query(`
+            CREATE OR REPLACE FUNCTION update_timestamp_column()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    NEW.timestamp = now();
+                    RETURN NEW;
+                END;
+            $$ language 'plpgsql';
+        `);
+        await queryRunner.query(`
+            CREATE TRIGGER update_heartbeat_timestamp BEFORE UPDATE ON ${TABLE_NAME} FOR EACH ROW EXECUTE PROCEDURE update_timestamp_column();
+        `);
+    }
+    async down(queryRunner) {
+        await queryRunner.query(`DROP TRIGGER IF EXISTS update_heartbeat_timestamp on ${TABLE_NAME}`);
+        await queryRunner.dropTable(rfqmWorkerHeartbeatTable);
+    }
+}
+exports.CreateRfqmWorkerHeartbeatTable1624695890253 = CreateRfqmWorkerHeartbeatTable1624695890253;
+//# sourceMappingURL=1624695890253-CreateRfqmWorkerHeartbeatTable.js.map

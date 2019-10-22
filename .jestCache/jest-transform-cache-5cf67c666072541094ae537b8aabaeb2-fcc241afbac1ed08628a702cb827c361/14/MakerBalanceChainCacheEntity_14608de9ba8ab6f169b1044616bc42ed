@@ -1,0 +1,43 @@
+9497501ef2fbed5c0837107d60d609b5
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MakerBalanceChainCacheEntity = void 0;
+const typeorm_1 = require("typeorm");
+const transformers_1 = require("./transformers");
+// A table of cached erc20 balances for RFQT market makers
+let MakerBalanceChainCacheEntity = class MakerBalanceChainCacheEntity {
+};
+__decorate([
+    (0, typeorm_1.PrimaryColumn)({ name: 'token_address', type: 'varchar' }),
+    __metadata("design:type", String)
+], MakerBalanceChainCacheEntity.prototype, "tokenAddress", void 0);
+__decorate([
+    (0, typeorm_1.PrimaryColumn)({ name: 'maker_address', type: 'varchar' }),
+    __metadata("design:type", String)
+], MakerBalanceChainCacheEntity.prototype, "makerAddress", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'time_first_seen', type: 'timestamptz' }),
+    __metadata("design:type", Date)
+], MakerBalanceChainCacheEntity.prototype, "timeFirstSeen", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'balance', type: 'varchar', nullable: true, transformer: transformers_1.BigNumberTransformer }),
+    __metadata("design:type", Object)
+], MakerBalanceChainCacheEntity.prototype, "balance", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'time_of_sample', type: 'timestamptz', nullable: true }),
+    __metadata("design:type", Object)
+], MakerBalanceChainCacheEntity.prototype, "timeOfSample", void 0);
+MakerBalanceChainCacheEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'maker_balance_chain_cache' })
+], MakerBalanceChainCacheEntity);
+exports.MakerBalanceChainCacheEntity = MakerBalanceChainCacheEntity;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9lbnRpdGllcy9NYWtlckJhbGFuY2VDaGFpbkNhY2hlRW50aXR5LnRzIiwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7OztBQUNBLHFDQUF3RDtBQUV4RCxpREFBc0Q7QUFFdEQsMERBQTBEO0FBRTFELElBQWEsNEJBQTRCLEdBQXpDLE1BQWEsNEJBQTRCO0NBZXhDLENBQUE7QUFiRztJQURDLElBQUEsdUJBQWEsRUFBQyxFQUFFLElBQUksRUFBRSxlQUFlLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxDQUFDOztrRUFDN0I7QUFHN0I7SUFEQyxJQUFBLHVCQUFhLEVBQUMsRUFBRSxJQUFJLEVBQUUsZUFBZSxFQUFFLElBQUksRUFBRSxTQUFTLEVBQUUsQ0FBQzs7a0VBQzdCO0FBRzdCO0lBREMsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLGlCQUFpQixFQUFFLElBQUksRUFBRSxhQUFhLEVBQUUsQ0FBQzs4QkFDbEMsSUFBSTttRUFBQztBQUc1QjtJQURDLElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxTQUFTLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLFdBQVcsRUFBRSxtQ0FBb0IsRUFBRSxDQUFDOzs2REFDOUQ7QUFHbEM7SUFEQyxJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsZ0JBQWdCLEVBQUUsSUFBSSxFQUFFLGFBQWEsRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLENBQUM7O2tFQUN0QztBQWR6Qiw0QkFBNEI7SUFEeEMsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLDJCQUEyQixFQUFFLENBQUM7R0FDakMsNEJBQTRCLENBZXhDO0FBZlksb0VBQTRCIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9Vc2Vycy9kYXZpZHdhbHNoL2NvZGUtbG9jYWwvMHgtcmZxLWFwaS9zcmMvZW50aXRpZXMvTWFrZXJCYWxhbmNlQ2hhaW5DYWNoZUVudGl0eS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBCaWdOdW1iZXIgfSBmcm9tICdAMHgvdXRpbHMnO1xuaW1wb3J0IHsgQ29sdW1uLCBFbnRpdHksIFByaW1hcnlDb2x1bW4gfSBmcm9tICd0eXBlb3JtJztcblxuaW1wb3J0IHsgQmlnTnVtYmVyVHJhbnNmb3JtZXIgfSBmcm9tICcuL3RyYW5zZm9ybWVycyc7XG5cbi8vIEEgdGFibGUgb2YgY2FjaGVkIGVyYzIwIGJhbGFuY2VzIGZvciBSRlFUIG1hcmtldCBtYWtlcnNcbkBFbnRpdHkoeyBuYW1lOiAnbWFrZXJfYmFsYW5jZV9jaGFpbl9jYWNoZScgfSlcbmV4cG9ydCBjbGFzcyBNYWtlckJhbGFuY2VDaGFpbkNhY2hlRW50aXR5IHtcbiAgICBAUHJpbWFyeUNvbHVtbih7IG5hbWU6ICd0b2tlbl9hZGRyZXNzJywgdHlwZTogJ3ZhcmNoYXInIH0pXG4gICAgcHVibGljIHRva2VuQWRkcmVzcz86IHN0cmluZztcblxuICAgIEBQcmltYXJ5Q29sdW1uKHsgbmFtZTogJ21ha2VyX2FkZHJlc3MnLCB0eXBlOiAndmFyY2hhcicgfSlcbiAgICBwdWJsaWMgbWFrZXJBZGRyZXNzPzogc3RyaW5nO1xuXG4gICAgQENvbHVtbih7IG5hbWU6ICd0aW1lX2ZpcnN0X3NlZW4nLCB0eXBlOiAndGltZXN0YW1wdHonIH0pXG4gICAgcHVibGljIHRpbWVGaXJzdFNlZW4/OiBEYXRlO1xuXG4gICAgQENvbHVtbih7IG5hbWU6ICdiYWxhbmNlJywgdHlwZTogJ3ZhcmNoYXInLCBudWxsYWJsZTogdHJ1ZSwgdHJhbnNmb3JtZXI6IEJpZ051bWJlclRyYW5zZm9ybWVyIH0pXG4gICAgcHVibGljIGJhbGFuY2U/OiBCaWdOdW1iZXIgfCBudWxsO1xuXG4gICAgQENvbHVtbih7IG5hbWU6ICd0aW1lX29mX3NhbXBsZScsIHR5cGU6ICd0aW1lc3RhbXB0eicsIG51bGxhYmxlOiB0cnVlIH0pXG4gICAgcHVibGljIHRpbWVPZlNhbXBsZT86IERhdGUgfCBudWxsO1xufVxuIl0sInZlcnNpb24iOjN9

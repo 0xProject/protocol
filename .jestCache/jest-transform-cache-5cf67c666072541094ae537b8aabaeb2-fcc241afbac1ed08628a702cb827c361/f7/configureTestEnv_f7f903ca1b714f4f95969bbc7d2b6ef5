@@ -1,0 +1,14 @@
+d9c9e3e4550f6c5f1e49d7bf8df56c8a
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+const dotenv_1 = require("dotenv");
+// Use the custom .env file
+(0, dotenv_1.config)({ path: './test/test_env' });
+// Use chai as promied
+chai.use(chaiAsPromised);
+// Silence calls to `logger` in code under test.
+// Comment out this line to see logger output.
+process.env.LOG_LEVEL = 'silent';
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3Rlc3QvY29uZmlndXJlVGVzdEVudi50cyIsIm1hcHBpbmdzIjoiOztBQUFBLDZCQUE2QjtBQUM3QixtREFBbUQ7QUFDbkQsbUNBQWdDO0FBRWhDLDJCQUEyQjtBQUMzQixJQUFBLGVBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxpQkFBaUIsRUFBRSxDQUFDLENBQUM7QUFFcEMsc0JBQXNCO0FBQ3RCLElBQUksQ0FBQyxHQUFHLENBQUMsY0FBYyxDQUFDLENBQUM7QUFFekIsZ0RBQWdEO0FBQ2hELDhDQUE4QztBQUM5QyxPQUFPLENBQUMsR0FBRyxDQUFDLFNBQVMsR0FBRyxRQUFRLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3Rlc3QvY29uZmlndXJlVGVzdEVudi50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgKiBhcyBjaGFpIGZyb20gJ2NoYWknO1xuaW1wb3J0ICogYXMgY2hhaUFzUHJvbWlzZWQgZnJvbSAnY2hhaS1hcy1wcm9taXNlZCc7XG5pbXBvcnQgeyBjb25maWcgfSBmcm9tICdkb3RlbnYnO1xuXG4vLyBVc2UgdGhlIGN1c3RvbSAuZW52IGZpbGVcbmNvbmZpZyh7IHBhdGg6ICcuL3Rlc3QvdGVzdF9lbnYnIH0pO1xuXG4vLyBVc2UgY2hhaSBhcyBwcm9taWVkXG5jaGFpLnVzZShjaGFpQXNQcm9taXNlZCk7XG5cbi8vIFNpbGVuY2UgY2FsbHMgdG8gYGxvZ2dlcmAgaW4gY29kZSB1bmRlciB0ZXN0LlxuLy8gQ29tbWVudCBvdXQgdGhpcyBsaW5lIHRvIHNlZSBsb2dnZXIgb3V0cHV0LlxucHJvY2Vzcy5lbnYuTE9HX0xFVkVMID0gJ3NpbGVudCc7XG4iXSwidmVyc2lvbiI6M30=

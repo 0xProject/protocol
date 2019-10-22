@@ -1,0 +1,20 @@
+0ccac751d735dc7ec4bae56f8388ef50
+{
+    "id": "/SubmitRequestSchema",
+    "properties": {
+        "orderHash": {
+            "$ref": "/hexSchema"
+        },
+        "order": {
+            "$ref": "/v4RfqOrderSchema"
+        },
+        "takerTokenFillAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "fee": {
+            "$ref": "/feeSchema"
+        }
+    },
+    "required": ["orderHash", "order", "fee", "takerTokenFillAmount"],
+    "type": "object"
+}

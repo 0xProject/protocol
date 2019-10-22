@@ -1,0 +1,15 @@
+ETHEREUM_RPC_URL=http://ganache:8545
+CHAIN_ID=1337
+RFQT_API_KEY_WHITELIST_JSON='["koolApiKey1","koolApikey2"]'
+RFQT_MAKER_ASSET_OFFERINGS='{"https://mock-rfqt1.club":[["0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c","0x0b1ba0af832d7c05fd64161e0db78e85978e8082"]]}'
+RFQM_MAKER_ASSET_OFFERINGS='{"https://mock-rfqm1.club":[["0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c","0x0b1ba0af832d7c05fd64161e0db78e85978e8082"]]}'
+META_TXN_RELAY_ADDRESS=0x9eFCa436873b55a0d6AEa260f92DE50150360dca
+META_TXN_RELAY_PRIVATE_KEY=82b9c3b8d45f608badd8fda250a0d95088381540e850734519b659e1e1ac3e71
+META_TXN_RATE_LIMITER_CONFIG='{"api_key":{"daily":{"allowedDailyLimit": 1}}}'
+NODE_ENV=test
+ETH_GAS_STATION_API_URL=https://ethgasstation.api.0x.org/api/ethgasAPI.json
+ALT_RFQ_MM_ENDPOINT=https://altrfq.com
+ALT_RFQ_MM_API_KEY=averysecurekey
+ALT_RFQ_MM_PROFILE=acoolprofile
+ETH_GAS_STATION_API_URL=https://gas.api.0x.org/source/median?output=eth_gas_station
+INTEGRATORS_ACL='[{"integratorId":"test-integrator-id-1","label":"Test Integrator 1","rfqt":true,"rfqm":true,"plp":false,"apiKeys":["test-api-key-1","test-api-key-2"], "whitelistIntegratorUrls":["http://foo.bar"]},{"integratorId":"test-integrator-id-2","label":"Test Integrator 2","rfqt":false,"rfqm":true,"plp":false,"apiKeys":["test-api-key-3"]}]'

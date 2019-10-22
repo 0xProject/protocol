@@ -1,0 +1,40 @@
+86615408820670dafe0722e5b5b4908e
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.bigNumberToProto = exports.protoToBigNumber = void 0;
+const utils_1 = require("@0x/utils");
+/**
+ * Converts a BigNumberJs proto to an instance of bignumber.js `BigNumber`.
+ * See: https://mikemcl.github.io/bignumber.js/#instance-properties
+ */
+function protoToBigNumber(proto) {
+    var _a;
+    // Proto uses an `int64` which is generated to a `bigint`, but bignumber.js uses
+    // `number`. This probably masks some big problems with bignumber.js, but we'll
+    // let that sleeping dog lie.
+    const c = proto.c.map((x) => Number(x));
+    const result = new utils_1.BigNumber({
+        c,
+        e: (_a = proto.e) !== null && _a !== void 0 ? _a : null,
+        s: proto.s ? 1 : proto.s === false ? -1 : null,
+        _isBigNumber: true,
+    });
+    if (!utils_1.BigNumber.isBigNumber(result)) {
+        throw new Error(`Unable to create BigNumber from proto: ${JSON.stringify(proto)}`);
+    }
+    return result;
+}
+exports.protoToBigNumber = protoToBigNumber;
+/**
+ * Converts a bignumber.js to its proto representation.
+ * See: https://mikemcl.github.io/bignumber.js/#instance-properties
+ */
+function bigNumberToProto(n) {
+    var _a, _b;
+    const c = (_b = (_a = n.c) === null || _a === void 0 ? void 0 : _a.map((n) => BigInt(n))) !== null && _b !== void 0 ? _b : [];
+    const s = n.s === 1 ? true : n.s === -1 ? false : null;
+    const e = n.e;
+    return { c, e, s };
+}
+exports.bigNumberToProto = bigNumberToProto;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy91dGlscy9Qcm90b1V0aWxzLnRzIiwibWFwcGluZ3MiOiI7OztBQUFBLHFDQUFzQztBQUd0Qzs7O0dBR0c7QUFDSCxTQUFnQixnQkFBZ0IsQ0FBQyxLQUFrQjs7SUFDL0MsZ0ZBQWdGO0lBQ2hGLCtFQUErRTtJQUMvRSw2QkFBNkI7SUFDN0IsTUFBTSxDQUFDLEdBQUcsS0FBSyxDQUFDLENBQUMsQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLEVBQUUsRUFBRSxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO0lBQ3hDLE1BQU0sTUFBTSxHQUFHLElBQUksaUJBQVMsQ0FBQztRQUN6QixDQUFDO1FBQ0QsQ0FBQyxFQUFFLE1BQUEsS0FBSyxDQUFDLENBQUMsbUNBQUksSUFBSTtRQUNsQixDQUFDLEVBQUUsS0FBSyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxLQUFLLEtBQUssQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUk7UUFDOUMsWUFBWSxFQUFFLElBQUk7S0FDckIsQ0FBQyxDQUFDO0lBQ0gsSUFBSSxDQUFDLGlCQUFTLENBQUMsV0FBVyxDQUFDLE1BQU0sQ0FBQyxFQUFFO1FBQ2hDLE1BQU0sSUFBSSxLQUFLLENBQUMsMENBQTBDLElBQUksQ0FBQyxTQUFTLENBQUMsS0FBSyxDQUFDLEVBQUUsQ0FBQyxDQUFDO0tBQ3RGO0lBQ0QsT0FBTyxNQUFNLENBQUM7QUFDbEIsQ0FBQztBQWZELDRDQWVDO0FBRUQ7OztHQUdHO0FBQ0gsU0FBZ0IsZ0JBQWdCLENBQUMsQ0FBWTs7SUFDekMsTUFBTSxDQUFDLEdBQUcsTUFBQSxNQUFBLENBQUMsQ0FBQyxDQUFDLDBDQUFFLEdBQUcsQ0FBQyxDQUFDLENBQUMsRUFBRSxFQUFFLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxDQUFDLG1DQUFJLEVBQUUsQ0FBQztJQUMzQyxNQUFNLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQztJQUN2RCxNQUFNLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxDQUFDO0lBQ2QsT0FBTyxFQUFFLENBQUMsRUFBRSxDQUFDLEVBQUUsQ0FBQyxFQUFFLENBQUM7QUFDdkIsQ0FBQztBQUxELDRDQUtDIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9Vc2Vycy9kYXZpZHdhbHNoL2NvZGUtbG9jYWwvMHgtcmZxLWFwaS9zcmMvdXRpbHMvUHJvdG9VdGlscy50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBCaWdOdW1iZXIgfSBmcm9tICdAMHgvdXRpbHMnO1xyXG5pbXBvcnQgeyBCaWdOdW1iZXJKcyB9IGZyb20gJy4uL3Byb3RvLXRzL2JpZ19udW1iZXJfanMucGInO1xyXG5cclxuLyoqXHJcbiAqIENvbnZlcnRzIGEgQmlnTnVtYmVySnMgcHJvdG8gdG8gYW4gaW5zdGFuY2Ugb2YgYmlnbnVtYmVyLmpzIGBCaWdOdW1iZXJgLlxyXG4gKiBTZWU6IGh0dHBzOi8vbWlrZW1jbC5naXRodWIuaW8vYmlnbnVtYmVyLmpzLyNpbnN0YW5jZS1wcm9wZXJ0aWVzXHJcbiAqL1xyXG5leHBvcnQgZnVuY3Rpb24gcHJvdG9Ub0JpZ051bWJlcihwcm90bzogQmlnTnVtYmVySnMpOiBCaWdOdW1iZXIge1xyXG4gICAgLy8gUHJvdG8gdXNlcyBhbiBgaW50NjRgIHdoaWNoIGlzIGdlbmVyYXRlZCB0byBhIGBiaWdpbnRgLCBidXQgYmlnbnVtYmVyLmpzIHVzZXNcclxuICAgIC8vIGBudW1iZXJgLiBUaGlzIHByb2JhYmx5IG1hc2tzIHNvbWUgYmlnIHByb2JsZW1zIHdpdGggYmlnbnVtYmVyLmpzLCBidXQgd2UnbGxcclxuICAgIC8vIGxldCB0aGF0IHNsZWVwaW5nIGRvZyBsaWUuXHJcbiAgICBjb25zdCBjID0gcHJvdG8uYy5tYXAoKHgpID0+IE51bWJlcih4KSk7XHJcbiAgICBjb25zdCByZXN1bHQgPSBuZXcgQmlnTnVtYmVyKHtcclxuICAgICAgICBjLFxyXG4gICAgICAgIGU6IHByb3RvLmUgPz8gbnVsbCxcclxuICAgICAgICBzOiBwcm90by5zID8gMSA6IHByb3RvLnMgPT09IGZhbHNlID8gLTEgOiBudWxsLFxyXG4gICAgICAgIF9pc0JpZ051bWJlcjogdHJ1ZSxcclxuICAgIH0pO1xyXG4gICAgaWYgKCFCaWdOdW1iZXIuaXNCaWdOdW1iZXIocmVzdWx0KSkge1xyXG4gICAgICAgIHRocm93IG5ldyBFcnJvcihgVW5hYmxlIHRvIGNyZWF0ZSBCaWdOdW1iZXIgZnJvbSBwcm90bzogJHtKU09OLnN0cmluZ2lmeShwcm90byl9YCk7XHJcbiAgICB9XHJcbiAgICByZXR1cm4gcmVzdWx0O1xyXG59XHJcblxyXG4vKipcclxuICogQ29udmVydHMgYSBiaWdudW1iZXIuanMgdG8gaXRzIHByb3RvIHJlcHJlc2VudGF0aW9uLlxyXG4gKiBTZWU6IGh0dHBzOi8vbWlrZW1jbC5naXRodWIuaW8vYmlnbnVtYmVyLmpzLyNpbnN0YW5jZS1wcm9wZXJ0aWVzXHJcbiAqL1xyXG5leHBvcnQgZnVuY3Rpb24gYmlnTnVtYmVyVG9Qcm90byhuOiBCaWdOdW1iZXIpOiBCaWdOdW1iZXJKcyB7XHJcbiAgICBjb25zdCBjID0gbi5jPy5tYXAoKG4pID0+IEJpZ0ludChuKSkgPz8gW107XHJcbiAgICBjb25zdCBzID0gbi5zID09PSAxID8gdHJ1ZSA6IG4ucyA9PT0gLTEgPyBmYWxzZSA6IG51bGw7XHJcbiAgICBjb25zdCBlID0gbi5lO1xyXG4gICAgcmV0dXJuIHsgYywgZSwgcyB9O1xyXG59XHJcbiJdLCJ2ZXJzaW9uIjozfQ==

@@ -1,0 +1,8 @@
+61567c62b8341c36ad5b758f642ee5c5
+{
+    "id": "/chainConfigurationsSchema",
+    "type": "array",
+    "items": {
+        "$ref": "/chainConfigurationSchema"
+    }
+}

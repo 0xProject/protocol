@@ -1,0 +1,33 @@
+{
+    "id": "/MetaTransactionQuoteRequestSchema",
+    "properties": {
+        "sellToken": {
+            "type": "string"
+        },
+        "buyToken": {
+            "type": "string"
+        },
+        "sellAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "buyAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "takerAddress": {
+            "$ref": "/addressSchema"
+        },
+        "slippagePercentage": {
+            "$ref": "/numberSchema"
+        }
+    },
+    "required": ["sellToken", "buyToken", "takerAddress"],
+    "oneOf": [
+        {
+            "required": ["sellAmount"]
+        },
+        {
+            "required": ["buyAmount"]
+        }
+    ],
+    "type": "object"
+}

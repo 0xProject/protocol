@@ -1,0 +1,17 @@
+f768985a084c806116498df6236499f2
+{
+    "id": "/SignResponseSchema",
+    "properties": {
+        "fee": {
+            "$ref": "/feeSchema"
+        },
+        "makerSignature": {
+            "$ref": "/v4SignatureSchema"
+        },
+        "proceedWithFill": {
+            "type": "boolean"
+        }
+    },
+    "required": ["proceedWithFill"],
+    "type": "object"
+}

@@ -1,0 +1,182 @@
+{
+    "name": "0x-api",
+    "version": "1.15.0",
+    "description": "0x API",
+    "repository": "git@github.com:0xProject/0x-api.git",
+    "author": "Francesco Agosti <francesco@0x.org>",
+    "license": "Apache-2.0",
+    "scripts": {
+        "install": "[ -f node_modules/ganache-core/typings/index.d.ts ] && sed -ie 's!import { Provider as Web3Provider } from \"web3/providers\";!import { Web3EthereumProvider as Web3Provider } from \"web3-providers\";!' node_modules/ganache-core/typings/index.d.ts || exit 0 # see https://github.com/trufflesuite/ganache-core/issues/465#issuecomment-610005598",
+        "clean": "yarn clean:ts && yarn clean:docker",
+        "clean:ts": "shx rm -rf lib",
+        "build": "tsc -p tsconfig.json",
+        "db:migrate": "./node_modules/.bin/typeorm migration:run --config ./lib/src/ormconfig.js ",
+        "db:migration:create": "./node_modules/.bin/typeorm migration:create --config ./lib/src/ormconfig.js ",
+        "db:migration:generate": "./node_modules/.bin/typeorm migration:generate --config ./lib/src/ormconfig.js ",
+        "db:revert": "./node_modules/.bin/typeorm migration:revert --config ./lib/src/ormconfig.js ",
+        "integration-test": "mocha --require source-map-support/register --require make-promises-safe 'lib/integration-test/**/*_test.js' --timeout 200000 --exit",
+        "test": "yarn test:rest && yarn test:rfqt && yarn test:rfqm",
+        "test:rest": "env-cmd -f ./test/test_env mocha --exclude lib/test/meta_transaction_test.js --require source-map-support/register --require make-promises-safe 'lib/test/**/!(rfqm*|rfqt*)_test.js' --timeout 200000 --exit --bail",
+        "test:rfqt": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/rfqt_*.js' --timeout 200000 --exit --bail",
+        "test:rfqm": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/rfqm_*.js' --timeout 200000 --exit --bail",
+        "dev": "nodemon -r dotenv/config src/index.ts | pino-pretty",
+        "dev:service:http": "nodemon -r dotenv/config src/runners/http_service_runner.ts | pino-pretty",
+        "dev:service:sra_http": "nodemon -r dotenv/config src/runners/http_sra_service_runner.ts | pino-pretty",
+        "dev:service:swap_http": "nodemon -r dotenv/config src/runners/http_swap_service_runner.ts | pino-pretty",
+        "dev:service:meta_transaction_http": "nodemon -r dotenv/config src/runners/http_meta_transaction_service_runner.ts | pino-pretty",
+        "dev:service:rfqm_worker": "nodemon -r dotenv/config src/runners/rfqm_worker_runner.ts | pino-pretty",
+        "dev:service:rfqm_http": "nodemon -r dotenv/config src/runners/http_rfqm_service_runner.ts | pino-pretty",
+        "dev:service:order_watcher": "nodemon -r dotenv/config src/runners/order_watcher_service_runner.ts | pino-pretty",
+        "dev:service:transaction_watcher": "nodemon -r dotenv/config src/runners/transaction_watcher_signer_service_runner.ts | pino-pretty",
+        "watch": "tsc -w",
+        "fix": "tslint --project . --format stylish --fix && yarn prettier",
+        "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
+        "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",
+        "start": "node -r dotenv/config lib/src/index.js",
+        "start:service:http": "node -r dotenv/config lib/src/runners/http_service_runner.js",
+        "start:service:sra_http": "node -r dotenv/config lib/src/runners/http_sra_service_runner.js",
+        "start:service:swap_http": "node -r dotenv/config lib/src/runners/http_swap_service_runner.js",
+        "start:service:meta_transaction_http": "node -r dotenv/config lib/src/runners/http_meta_transaction_service_runner.js",
+        "start:service:rfqm_worker": "node -r dotenv/config lib/src/runners/rfqm_worker_runner.js",
+        "start:service:rfqm_http": "node -r dotenv/config lib/src/runners/http_rfqm_service_runner.js",
+        "start:service:order_watcher": "node -r dotenv/config lib/src/runners/order_watcher_service_runner.js",
+        "start:service:transaction_watcher": "node -r dotenv/config lib/src/runners/transaction_watcher_signer_service_runner.js",
+        "start:service:rfq_maker_balance_cache": "node -r dotenv/config lib/src/runners/rfq_maker_balance_cache_runner.js",
+        "start:service:signer": "node -r dotenv/config lib/src/runners/signer_runner.js",
+        "lint": "tslint --project . --format stylish && yarn prettier:ci",
+        "release": "curl -v -H \"Accept: application/vnd.github.everest-preview+json\" -H \"Authorization: token ${GITHUB_TOKEN}\" https://api.github.com/repos/0xProject/0x-api/dispatches -d '{ \"event_type\": \"semantic-release\" }'"
+    },
+    "config": {
+        "prettier_target": "{.,test/**/*,integration-test/**/*,src/**/*,migrations/*}.{ts,tsx,json,md}"
+    },
+    "release": {
+        "plugins": [
+            "@semantic-release/commit-analyzer",
+            "@semantic-release/release-notes-generator",
+            [
+                "@semantic-release/npm",
+                {
+                    "npmPublish": false
+                }
+            ],
+            "@semantic-release/github",
+            "@semantic-release/changelog",
+            "@semantic-release/git",
+            [
+                "@semantic-release/exec",
+                {
+                    "prepareCmd": "docker build -t 0xorg/0x-api ."
+                }
+            ],
+            [
+                "semantic-release-docker",
+                {
+                    "name": "0xorg/0x-api"
+                }
+            ],
+            [
+                "semantic-release-slack-bot",
+                {
+                    "notifyOnSuccess": true,
+                    "notifyOnFail": true,
+                    "markdownReleaseNotes": true,
+                    "onSuccessTemplate": {
+                        "text": "Version $npm_package_version of $package_name has been released. The deployment must be approved at https://github.com/0xProject/0x-main-infra/pulls. $release_notes"
+                    },
+                    "onFailTemplate": {
+                        "text": "Releasing $package_name with version $npm_package_version failed."
+                    }
+                }
+            ]
+        ]
+    },
+    "devDependencies": {
+        "@0x/contracts-erc20": "^3.3.20",
+        "@0x/contracts-test-utils": "^5.4.11",
+        "@0x/dev-utils": "^4.2.10",
+        "@0x/migrations": "^8.1.8",
+        "@0x/tslint-config": "^4.1.4",
+        "@0x/typescript-typings": "^5.2.1",
+        "@balancer-labs/sor": "^0.3.0",
+        "@semantic-release/changelog": "^5.0.1",
+        "@semantic-release/exec": "^5.0.0",
+        "@semantic-release/git": "^9.0.0",
+        "@types/dotenv": "^6.1.1",
+        "@types/express": "^4.17.1",
+        "@types/lodash": "^4.14.137",
+        "@types/mocha": "^5.2.7",
+        "@types/node-fetch": "^2.5.8",
+        "@types/redis": "^2.8.32",
+        "@types/rimraf": "^3.0.0",
+        "@types/sinon": "^9.0.8",
+        "@types/supertest": "^2.0.8",
+        "@types/uuid": "^7.0.2",
+        "@types/uuid-validate": "^0.0.1",
+        "@types/web3": "^1.0.19",
+        "@types/ws": "^6.0.2",
+        "@types/zen-observable": "^0.8.1",
+        "axios-mock-adapter": "^1.19.0",
+        "env-cmd": "^10.1.0",
+        "make-promises-safe": "^5.1.0",
+        "mocha": "^6.2.2",
+        "nodemon": "^1.19.4",
+        "pino-pretty": "^3.2.2",
+        "prettier": "^2.3.1",
+        "rimraf": "^3.0.2",
+        "semantic-release-docker": "^2.2.0",
+        "semantic-release-slack-bot": "^1.6.1",
+        "shx": "^0.3.2",
+        "sinon": "^9.2.1",
+        "supertest": "^4.0.2",
+        "ts-mock-imports": "^1.3.0",
+        "ts-mockito": "^2.6.1",
+        "ts-node": "^9.0.0",
+        "tslint": "^6.1.3",
+        "typescript": "^4.4.0"
+    },
+    "dependencies": {
+        "@0x/api-utils": "^0.0.1",
+        "@0x/assert": "^3.0.30",
+        "@0x/asset-swapper": "^16.29.2",
+        "@0x/contract-addresses": "^6.7.0",
+        "@0x/contract-wrappers": "^13.18.0",
+        "@0x/contracts-zero-ex": "^0.29.1",
+        "@0x/json-schemas": "^6.4.0",
+        "@0x/order-utils": "^10.4.28",
+        "@0x/protocol-utils": "^1.9.2",
+        "@0x/quote-server": "^6.0.6",
+        "@0x/subproviders": "~6.5.4",
+        "@0x/token-metadata": "^0.1.5",
+        "@0x/types": "^3.3.4",
+        "@0x/utils": "^6.4.4",
+        "@0x/web3-wrapper": "^7.6.1",
+        "@ethersproject/hdnode": "^5.2.0",
+        "aws-sdk": "^2.908.0",
+        "axios": "^0.21.1",
+        "body-parser": "^1.19.0",
+        "debug": "^4.1.1",
+        "delay": "^4.4.0",
+        "dotenv": "^8.1.0",
+        "elastic-apm-node": "^3.7.0",
+        "ethereum-types": "^3.5.0",
+        "ethers": "~5.4.5",
+        "express": "^4.17.1",
+        "express-async-handler": "^1.1.4",
+        "http-status-codes": "^1.3.2",
+        "json-rpc-error": "^2.0.0",
+        "jsonschema": "^1.2.5",
+        "kafkajs": "^1.15.0",
+        "lodash": "^4.17.15",
+        "node-fetch": "^2.6.1",
+        "pg": "^8.5.0",
+        "prom-client": "^12.0.0",
+        "redis": "^2.8.0",
+        "retry-axios": "^2.1.2",
+        "sqs-producer": "^2.1.0",
+        "typeorm": "0.2.29",
+        "uuid": "^7.0.3",
+        "uuid-validate": "^0.0.3",
+        "ws": "^7.4.6",
+        "zen-observable": "^0.8.15"
+    }
+}

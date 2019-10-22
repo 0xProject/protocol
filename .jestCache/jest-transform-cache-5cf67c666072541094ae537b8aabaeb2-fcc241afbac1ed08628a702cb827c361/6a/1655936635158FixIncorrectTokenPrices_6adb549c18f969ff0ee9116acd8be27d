@@ -1,0 +1,23 @@
+ddb58782afda7ed8d09c93fa23b1d310
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FixIncorrectTokenPrices1655936635158 = void 0;
+/**
+ * This script was originally used to fix incorrect token prices. The content has been removed as
+ * we only need to run it one time in production, while the script cause problems when running migration
+ * from an empty DB. The migration file is kept as a placeholder as the original code had been executed
+ * in production DB.
+ *
+ * For the original script, see PR https://github.com/0xProject/0x-rfq-api/pull/272
+ *
+ */
+class FixIncorrectTokenPrices1655936635158 {
+    async up(_queryRunner) {
+        // no-op
+    }
+    async down(_queryRunner) {
+        // no-op
+    }
+}
+exports.FixIncorrectTokenPrices1655936635158 = FixIncorrectTokenPrices1655936635158;
+//# sourceMappingURL=1655936635158-FixIncorrectTokenPrices.js.map

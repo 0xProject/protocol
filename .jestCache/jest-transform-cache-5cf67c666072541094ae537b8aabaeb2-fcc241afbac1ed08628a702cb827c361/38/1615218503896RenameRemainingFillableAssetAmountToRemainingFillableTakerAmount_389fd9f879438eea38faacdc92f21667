@@ -1,0 +1,19 @@
+b729ce2ba13530138068e2e1aa481394
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount1615218503896 = void 0;
+class RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount1615218503896 {
+    constructor() {
+        this.name = 'RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount1615218503896';
+    }
+    async up(queryRunner) {
+        await queryRunner.query(`ALTER TABLE "signed_orders_v4" RENAME COLUMN "remaining_fillable_taker_asset_amount" TO "remaining_fillable_taker_amount"`);
+        await queryRunner.query(`ALTER TABLE "persistent_signed_orders_v4" RENAME COLUMN "remaining_fillable_taker_asset_amount" TO "remaining_fillable_taker_amount"`);
+    }
+    async down(queryRunner) {
+        await queryRunner.query(`ALTER TABLE "persistent_signed_orders_v4" RENAME COLUMN "remaining_fillable_taker_amount" TO "remaining_fillable_taker_asset_amount"`);
+        await queryRunner.query(`ALTER TABLE "signed_orders_v4" RENAME COLUMN "remaining_fillable_taker_amount" TO "remaining_fillable_taker_asset_amount"`);
+    }
+}
+exports.RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount1615218503896 = RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount1615218503896;
+//# sourceMappingURL=1615218503896-RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount.js.map

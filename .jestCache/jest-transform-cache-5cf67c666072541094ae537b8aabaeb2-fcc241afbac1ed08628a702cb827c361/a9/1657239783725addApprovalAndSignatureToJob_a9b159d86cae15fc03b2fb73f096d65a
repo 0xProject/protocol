@@ -1,0 +1,27 @@
+e7f79b8c1047da3b45520369a778a301
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.addApprovalAndSignatureToJob1657239783725 = void 0;
+const typeorm_1 = require("typeorm");
+const approval = new typeorm_1.TableColumn({
+    name: 'approval',
+    type: 'jsonb',
+    isNullable: true,
+    default: null,
+});
+const approvalSignature = new typeorm_1.TableColumn({
+    name: 'approval_signature',
+    type: 'jsonb',
+    isNullable: true,
+    default: null,
+});
+class addApprovalAndSignatureToJob1657239783725 {
+    async up(queryRunner) {
+        await queryRunner.addColumns('rfqm_v2_jobs', [approval, approvalSignature]);
+    }
+    async down(queryRunner) {
+        await queryRunner.dropColumns('rfqm_v2_jobs', [approval, approvalSignature]);
+    }
+}
+exports.addApprovalAndSignatureToJob1657239783725 = addApprovalAndSignatureToJob1657239783725;
+//# sourceMappingURL=1657239783725-addApprovalAndSignatureToJob.js.map

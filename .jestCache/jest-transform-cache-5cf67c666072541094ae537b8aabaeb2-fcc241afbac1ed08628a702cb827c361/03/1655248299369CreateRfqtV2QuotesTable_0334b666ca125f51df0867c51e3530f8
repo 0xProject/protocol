@@ -1,0 +1,34 @@
+14dceec23321217631022ce9aa05e53a
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CreateRfqtV2QuotesTable1655248299369 = void 0;
+const typeorm_1 = require("typeorm");
+class CreateRfqtV2QuotesTable1655248299369 {
+    constructor() {
+        this.name = 'CreateRfqtV2QuotesTable1655248299369';
+    }
+    async up(queryRunner) {
+        await queryRunner.createTable(new typeorm_1.Table({
+            name: 'rfqt_v2_quotes',
+            columns: [
+                { name: 'order_hash', type: 'varchar', isPrimary: true },
+                { name: 'created_at', type: 'timestamptz', default: 'NOW()' },
+                { name: 'chain_id', type: 'integer' },
+                { name: 'integrator_id', type: 'varchar' },
+                { name: 'maker_id', type: 'varchar' },
+                { name: 'maker_uri', type: 'varchar' },
+                { name: 'fee', type: 'jsonb' },
+                { name: 'order', type: 'jsonb' },
+                { name: 'affiliate_address', type: 'varchar', isNullable: true },
+            ],
+        }));
+        const createdAtIndex = new typeorm_1.TableIndex({ name: `rfqt_v2_quotes_created_at_idx`, columnNames: ['created_at'] });
+        await queryRunner.createIndex('rfqt_v2_quotes', createdAtIndex);
+    }
+    async down(queryRunner) {
+        await queryRunner.query(`DROP INDEX "rfqt_v2_quotes_created_at_idx"`);
+        await queryRunner.query(`DROP TABLE "rfqt_v2_quotes"`);
+    }
+}
+exports.CreateRfqtV2QuotesTable1655248299369 = CreateRfqtV2QuotesTable1655248299369;
+//# sourceMappingURL=1655248299369-CreateRfqtV2QuotesTable.js.map

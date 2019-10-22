@@ -1,0 +1,49 @@
+eb535afbbb1b8204b1bbced625a94112
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.toUniqueArray = exports.toPairString = void 0;
+/**
+ * Transforms a "pair string" of format "0x1-0x2" into
+ * a two-element array ["0x1", "0x2"]. Ensures the result
+ * array is sorted and converted to lower case.
+ */
+function fromPairString(k) {
+    const a = k.split('-');
+    if (a.length !== 2) {
+        throw new Error();
+    }
+    // type coercion is there because TypeScript thinks
+    // `sort` might change the array length
+    return [a[0].toLowerCase(), a[1].toLowerCase()].sort();
+}
+/**
+ * Transforms two token addresses into a "pair string" of the format
+ * "0x1-0x2".
+ */
+function toPairString(tokenA, tokenB) {
+    return [tokenA, tokenB]
+        .map((str) => str.toLowerCase())
+        .sort()
+        .join('-');
+}
+exports.toPairString = toPairString;
+/**
+ * Transforms an array of "0x1-0x2" pair strings into an array
+ * of two-element arrays. Removes duplicate pairs.
+ *
+ * Example:
+ * const pairs = [
+ *  "0x1-0x2",
+ *  "0x2-0x1",
+ *  "0x3-0x4",
+ * ];
+ * toUniqueArray(pairs); // [["0x1", "0x2"], ["0x3", "0x4"]]
+ */
+function toUniqueArray(pairs) {
+    return Array.from(pairs.reduce((result, pair) => {
+        result.add(fromPairString(pair).sort());
+        return result;
+    }, new Set()));
+}
+exports.toUniqueArray = toUniqueArray;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9jb3JlL3BhaXJfdXRpbHMudHMiLCJtYXBwaW5ncyI6Ijs7O0FBQUE7Ozs7R0FJRztBQUNILFNBQVMsY0FBYyxDQUFDLENBQVM7SUFDN0IsTUFBTSxDQUFDLEdBQUcsQ0FBQyxDQUFDLEtBQUssQ0FBQyxHQUFHLENBQUMsQ0FBQztJQUN2QixJQUFJLENBQUMsQ0FBQyxNQUFNLEtBQUssQ0FBQyxFQUFFO1FBQ2hCLE1BQU0sSUFBSSxLQUFLLEVBQUUsQ0FBQztLQUNyQjtJQUNELG1EQUFtRDtJQUNuRCx1Q0FBdUM7SUFDdkMsT0FBTyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxXQUFXLEVBQUUsRUFBRSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsV0FBVyxFQUFFLENBQUMsQ0FBQyxJQUFJLEVBQXNCLENBQUM7QUFDL0UsQ0FBQztBQUVEOzs7R0FHRztBQUNILFNBQWdCLFlBQVksQ0FBQyxNQUFjLEVBQUUsTUFBYztJQUN2RCxPQUFPLENBQUMsTUFBTSxFQUFFLE1BQU0sQ0FBQztTQUNsQixHQUFHLENBQUMsQ0FBQyxHQUFHLEVBQUUsRUFBRSxDQUFDLEdBQUcsQ0FBQyxXQUFXLEVBQUUsQ0FBQztTQUMvQixJQUFJLEVBQUU7U0FDTixJQUFJLENBQUMsR0FBRyxDQUFDLENBQUM7QUFDbkIsQ0FBQztBQUxELG9DQUtDO0FBRUQ7Ozs7Ozs7Ozs7O0dBV0c7QUFDSCxTQUFnQixhQUFhLENBQUMsS0FBZTtJQUN6QyxPQUFPLEtBQUssQ0FBQyxJQUFJLENBQ2IsS0FBSyxDQUFDLE1BQU0sQ0FBQyxDQUFDLE1BQU0sRUFBRSxJQUFJLEVBQUUsRUFBRTtRQUMxQixNQUFNLENBQUMsR0FBRyxDQUFDLGNBQWMsQ0FBQyxJQUFJLENBQUMsQ0FBQyxJQUFJLEVBQUUsQ0FBQyxDQUFDO1FBQ3hDLE9BQU8sTUFBTSxDQUFDO0lBQ2xCLENBQUMsRUFBRSxJQUFJLEdBQUcsRUFBb0IsQ0FBQyxDQUNsQyxDQUFDO0FBQ04sQ0FBQztBQVBELHNDQU9DIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9Vc2Vycy9kYXZpZHdhbHNoL2NvZGUtbG9jYWwvMHgtcmZxLWFwaS9zcmMvY29yZS9wYWlyX3V0aWxzLnRzIl0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogVHJhbnNmb3JtcyBhIFwicGFpciBzdHJpbmdcIiBvZiBmb3JtYXQgXCIweDEtMHgyXCIgaW50b1xuICogYSB0d28tZWxlbWVudCBhcnJheSBbXCIweDFcIiwgXCIweDJcIl0uIEVuc3VyZXMgdGhlIHJlc3VsdFxuICogYXJyYXkgaXMgc29ydGVkIGFuZCBjb252ZXJ0ZWQgdG8gbG93ZXIgY2FzZS5cbiAqL1xuZnVuY3Rpb24gZnJvbVBhaXJTdHJpbmcoazogc3RyaW5nKTogW3N0cmluZywgc3RyaW5nXSB7XG4gICAgY29uc3QgYSA9IGsuc3BsaXQoJy0nKTtcbiAgICBpZiAoYS5sZW5ndGggIT09IDIpIHtcbiAgICAgICAgdGhyb3cgbmV3IEVycm9yKCk7XG4gICAgfVxuICAgIC8vIHR5cGUgY29lcmNpb24gaXMgdGhlcmUgYmVjYXVzZSBUeXBlU2NyaXB0IHRoaW5rc1xuICAgIC8vIGBzb3J0YCBtaWdodCBjaGFuZ2UgdGhlIGFycmF5IGxlbmd0aFxuICAgIHJldHVybiBbYVswXS50b0xvd2VyQ2FzZSgpLCBhWzFdLnRvTG93ZXJDYXNlKCldLnNvcnQoKSBhcyBbc3RyaW5nLCBzdHJpbmddO1xufVxuXG4vKipcbiAqIFRyYW5zZm9ybXMgdHdvIHRva2VuIGFkZHJlc3NlcyBpbnRvIGEgXCJwYWlyIHN0cmluZ1wiIG9mIHRoZSBmb3JtYXRcbiAqIFwiMHgxLTB4MlwiLlxuICovXG5leHBvcnQgZnVuY3Rpb24gdG9QYWlyU3RyaW5nKHRva2VuQTogc3RyaW5nLCB0b2tlbkI6IHN0cmluZyk6IHN0cmluZyB7XG4gICAgcmV0dXJuIFt0b2tlbkEsIHRva2VuQl1cbiAgICAgICAgLm1hcCgoc3RyKSA9PiBzdHIudG9Mb3dlckNhc2UoKSlcbiAgICAgICAgLnNvcnQoKVxuICAgICAgICAuam9pbignLScpO1xufVxuXG4vKipcbiAqIFRyYW5zZm9ybXMgYW4gYXJyYXkgb2YgXCIweDEtMHgyXCIgcGFpciBzdHJpbmdzIGludG8gYW4gYXJyYXlcbiAqIG9mIHR3by1lbGVtZW50IGFycmF5cy4gUmVtb3ZlcyBkdXBsaWNhdGUgcGFpcnMuXG4gKlxuICogRXhhbXBsZTpcbiAqIGNvbnN0IHBhaXJzID0gW1xuICogIFwiMHgxLTB4MlwiLFxuICogIFwiMHgyLTB4MVwiLFxuICogIFwiMHgzLTB4NFwiLFxuICogXTtcbiAqIHRvVW5pcXVlQXJyYXkocGFpcnMpOyAvLyBbW1wiMHgxXCIsIFwiMHgyXCJdLCBbXCIweDNcIiwgXCIweDRcIl1dXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiB0b1VuaXF1ZUFycmF5KHBhaXJzOiBzdHJpbmdbXSk6IFtzdHJpbmcsIHN0cmluZ11bXSB7XG4gICAgcmV0dXJuIEFycmF5LmZyb20oXG4gICAgICAgIHBhaXJzLnJlZHVjZSgocmVzdWx0LCBwYWlyKSA9PiB7XG4gICAgICAgICAgICByZXN1bHQuYWRkKGZyb21QYWlyU3RyaW5nKHBhaXIpLnNvcnQoKSk7XG4gICAgICAgICAgICByZXR1cm4gcmVzdWx0O1xuICAgICAgICB9LCBuZXcgU2V0PFtzdHJpbmcsIHN0cmluZ10+KCkpLFxuICAgICk7XG59XG4iXSwidmVyc2lvbiI6M30=

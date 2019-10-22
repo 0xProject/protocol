@@ -1,0 +1,26 @@
+efa64777d91e3d6f0bbd9e3b4ed0361c
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FixHeartbeatIndexToInclueAddressAndChainId1647641978453 = void 0;
+const TABLE_NAME = 'rfqm_worker_heartbeats';
+/**
+ * Manually remove the old primary key and create a new one with both
+ * 'address' and 'chainId'.
+ *
+ * The previous migration added `chain_id` as part of the primary key,
+ * but after some investigation it seems this does not happen if the
+ * table already has data in it.
+ */
+class FixHeartbeatIndexToInclueAddressAndChainId1647641978453 {
+    async up(queryRunner) {
+        await queryRunner.clearTable(TABLE_NAME);
+        await queryRunner.dropPrimaryKey(TABLE_NAME);
+        await queryRunner.createPrimaryKey(TABLE_NAME, ['address', 'chain_id']);
+    }
+    async down(_queryRunner) {
+        // a no-op since the table state is ill-defined from the previous
+        // migration depending on whether or not there was data in the table
+    }
+}
+exports.FixHeartbeatIndexToInclueAddressAndChainId1647641978453 = FixHeartbeatIndexToInclueAddressAndChainId1647641978453;
+//# sourceMappingURL=1647641978453-FixHeartbeatIndexToInclueAddressAndChainId.js.map

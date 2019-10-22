@@ -1,0 +1,22 @@
+20df463bdab5a7fe288ec9cd9ca647f3
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddRfqmAffiliateAddressField1625865121323 = void 0;
+const typeorm_1 = require("typeorm");
+const AffiliateAddressColumn = new typeorm_1.TableColumn({
+    name: 'affiliate_address',
+    type: 'varchar',
+    isNullable: true,
+});
+class AddRfqmAffiliateAddressField1625865121323 {
+    async up(queryRunner) {
+        await queryRunner.addColumn('rfqm_quotes', AffiliateAddressColumn);
+        await queryRunner.addColumn('rfqm_jobs', AffiliateAddressColumn);
+    }
+    async down(queryRunner) {
+        await queryRunner.dropColumn('rfqm_quotes', AffiliateAddressColumn);
+        await queryRunner.dropColumn('rfqm_jobs', AffiliateAddressColumn);
+    }
+}
+exports.AddRfqmAffiliateAddressField1625865121323 = AddRfqmAffiliateAddressField1625865121323;
+//# sourceMappingURL=1625865121323-AddRfqmAffiliateAddressField.js.map

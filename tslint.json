@@ -1,0 +1,11 @@
+{
+    "extends": ["@0x/tslint-config"],
+    "rules": {
+        "custom-no-magic-numbers": [true, -1, 0, 1, 2, 10],
+        "no-unnecessary-type-assertion": false,
+        "arrow-parens": false
+    },
+    "linterOptions": {
+        "exclude": ["./migrations/*"]
+    }
+}

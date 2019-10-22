@@ -1,0 +1,22 @@
+433818b4cfe8a8876f19e6c9a9d2a0e8
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DropRfqmStatusReasonColumn1623716682037 = void 0;
+const typeorm_1 = require("typeorm");
+class DropRfqmStatusReasonColumn1623716682037 {
+    constructor() {
+        this.name = 'DropRfqmStatusReasonColumn1623716682037';
+    }
+    async up(queryRunner) {
+        await queryRunner.dropColumn('rfqm_jobs', 'status_reason');
+    }
+    async down(queryRunner) {
+        await queryRunner.addColumn('rfqm_jobs', new typeorm_1.TableColumn({
+            isNullable: true,
+            name: 'status_reason',
+            type: 'varchar',
+        }));
+    }
+}
+exports.DropRfqmStatusReasonColumn1623716682037 = DropRfqmStatusReasonColumn1623716682037;
+//# sourceMappingURL=1623716682037-DropRfqmStatusReasonColumn.js.map

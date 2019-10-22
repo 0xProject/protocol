@@ -1,0 +1,14 @@
+{
+    "zeroExTransaction": {
+        "data": "0x8bc8efb30000000000....000",
+        "expirationTimeSeconds": "1575621999",
+        "gasPrice": "40000000000",
+        "salt": "84600256652032767068910894384158368235126046291971295360305950487667423829238",
+        "signerAddress": "0x14e2f1f157e7dd4057d02817436d628a37120fd1",
+        "domain": {
+            "chainId": 1,
+            "verifyingContract": "0x61935cbdd02287b511119ddb11aeb42f1593b7ef"
+        }
+    },
+    "zeroExTransactionHash": "0x9606db8b8594b902acc079651f3e7690fd7594612b4241d095a1dbbb692a98e7"
+}

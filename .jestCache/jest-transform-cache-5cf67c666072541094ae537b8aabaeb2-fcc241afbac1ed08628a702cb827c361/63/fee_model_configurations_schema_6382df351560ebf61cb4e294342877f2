@@ -1,0 +1,8 @@
+b13ac935d29a013796953971113a1ef7
+{
+    "id": "/feeModelConfigurationsSchema",
+    "type": "array",
+    "items": {
+        "$ref": "/feeModelConfigurationSchema"
+    }
+}

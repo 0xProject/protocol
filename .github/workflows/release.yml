@@ -1,0 +1,63 @@
+name: Release
+on: 
+    repository_dispatch:
+        types: [semantic-release]
+    schedule:
+        - cron: '* 17 * * 1'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '11.x'
+      - name: Install dependencies
+        run: yarn install
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v2
+        id: semantic_release
+        with:
+          semantic_version: '17.0.7'
+          branch: 'master'
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+            @semantic-release/exec
+            semantic-release-docker
+            semantic-release-slack-bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SLACK_WEBHOOK: ${{ secrets.RELEASE_SLACK_WEBHOOK }}
+          SEMANTIC_RELEASE_PACKAGE: 0x-api
+          DEBUG: true
+      - uses: actions/checkout@v2
+        with:
+            token: ${{ secrets.PAT }}
+            repository: 0xProject/0x-main-infra
+      - name: Update API Deployment
+        run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ github.sha }}"/g' env/0x-api/**/*.yml
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3.5.0
+        with:
+            token: ${{ secrets.PAT }}
+            commit-message: "[0xApi][prod|kovan|staging] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
+            title: "[0xApi][prod|kovan|staging] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
+            reviewers: dekz
+            labels: 0xApi, prod, kovan, staging
+            branch: "0xApi-${{ github.ref }}"
+            body: |
+              Triggered by ${{ github.event_name }} in https://github.com/${{ github.repository }}, by ${{ github.actor }}
+              Git SHA: https://github.com/${{ github.repository }}/commits/${{ github.sha }}
+              Git ref: ${{ github.ref }}
+              New Version: ${{ steps.semantic_release.outputs.new_release_version }}
+      - name: Check outputs
+        run: |
+            echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
+            echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+

@@ -1,0 +1,22 @@
+version: '3'
+services:
+    ganache:
+        image: '0xorg/ganache-cli:6.5.10'
+        ports:
+            - '8545:8545'
+        environment:
+            VERSION: 8.0.1
+            CHAIN_ID: 1337
+            NETWORK_ID: 1337
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=api
+            - POSTGRES_PASSWORD=api
+            - POSTGRES_DB=api
+        ports:
+            - '5432:5432'
+    redis:
+        image: redis:6.0
+        ports:
+            - '6379:6379'

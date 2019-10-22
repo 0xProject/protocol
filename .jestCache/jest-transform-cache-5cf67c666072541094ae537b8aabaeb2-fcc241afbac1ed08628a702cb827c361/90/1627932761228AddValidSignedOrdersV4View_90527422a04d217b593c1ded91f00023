@@ -1,0 +1,18 @@
+1aa8db441918fa09ac5d87c3851741e8
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddValidSignedOrdersV4View1627932761228 = void 0;
+class AddValidSignedOrdersV4View1627932761228 {
+    async up(queryRunner) {
+        await queryRunner.query(`
+            CREATE VIEW valid_signed_orders_v4
+            AS SELECT * FROM signed_orders_v4
+            WHERE invalid_since IS NULL
+        `);
+    }
+    async down(queryRunner) {
+        await queryRunner.query(`DROP VIEW valid_signed_orders_v4`);
+    }
+}
+exports.AddValidSignedOrdersV4View1627932761228 = AddValidSignedOrdersV4View1627932761228;
+//# sourceMappingURL=1627932761228-AddValidSignedOrdersV4View.js.map

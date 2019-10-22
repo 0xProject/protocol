@@ -1,0 +1,60 @@
+a83de4712e50f6595043a445e3d21e64
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RfqMakerUpdateTimeHash = void 0;
+const typeorm_1 = require("typeorm");
+/**
+ * A materialized view for a hash of all makers' last update time for each chain.
+ * The materialized view will be updated immidiately after table `rfq_maker_pairs` is updated.
+ * The hashes (one per chain) are used by RfqMakerManger to determine whether a refresh is needed.
+ * The expression of ViewEntity is duplicated with the corresponding mirgation file, and is only used when
+ * `synchronize` is set to `true` which is the case when running some test cases.
+ */
+let RfqMakerUpdateTimeHash = class RfqMakerUpdateTimeHash {
+    // TypeORM runs a validation check where it calls this initializer with no argument.
+    // With no default `opts`, `opts` will be undefined and the validation will throw,
+    // therefore, add this hacky default.
+    // tslint:disable-next-line no-object-literal-type-assertion
+    constructor(opts = {}) {
+        this.chainId = opts.chainId;
+        this.hash = opts.hash;
+    }
+};
+__decorate([
+    (0, typeorm_1.ViewColumn)({ name: 'chain_id' }),
+    __metadata("design:type", Number)
+], RfqMakerUpdateTimeHash.prototype, "chainId", void 0);
+__decorate([
+    (0, typeorm_1.ViewColumn)({ name: 'hash' }),
+    __metadata("design:type", String)
+], RfqMakerUpdateTimeHash.prototype, "hash", void 0);
+RfqMakerUpdateTimeHash = __decorate([
+    (0, typeorm_1.ViewEntity)({
+        name: 'rfq_maker_pairs_update_time_hashes',
+        expression: `
+        SELECT
+            encode(
+                digest(
+                    array_agg(
+                        updated_at ORDER BY updated_at NULLS FIRST
+                    )::text,
+                'sha256'),
+            'hex') AS hash,
+            chain_id
+        FROM rfq_maker_pairs
+        GROUP BY chain_id
+    `,
+    }),
+    __metadata("design:paramtypes", [Object])
+], RfqMakerUpdateTimeHash);
+exports.RfqMakerUpdateTimeHash = RfqMakerUpdateTimeHash;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9lbnRpdGllcy9SZnFNYWtlclVwZGF0ZVRpbWVIYXNoLnRzIiwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7OztBQUFBLHFDQUFpRDtBQUtqRDs7Ozs7O0dBTUc7QUFpQkgsSUFBYSxzQkFBc0IsR0FBbkMsTUFBYSxzQkFBc0I7SUFPL0Isb0ZBQW9GO0lBQ3BGLGtGQUFrRjtJQUNsRixxQ0FBcUM7SUFDckMsNERBQTREO0lBQzVELFlBQVksT0FBbUMsRUFBZ0M7UUFDM0UsSUFBSSxDQUFDLE9BQU8sR0FBRyxJQUFJLENBQUMsT0FBTyxDQUFDO1FBQzVCLElBQUksQ0FBQyxJQUFJLEdBQUcsSUFBSSxDQUFDLElBQUksQ0FBQztJQUMxQixDQUFDO0NBQ0osQ0FBQTtBQWJHO0lBREMsSUFBQSxvQkFBVSxFQUFDLEVBQUUsSUFBSSxFQUFFLFVBQVUsRUFBRSxDQUFDOzt1REFDVjtBQUd2QjtJQURDLElBQUEsb0JBQVUsRUFBQyxFQUFFLElBQUksRUFBRSxNQUFNLEVBQUUsQ0FBQzs7b0RBQ1Q7QUFMWCxzQkFBc0I7SUFoQmxDLElBQUEsb0JBQVUsRUFBQztRQUNSLElBQUksRUFBRSxvQ0FBb0M7UUFDMUMsVUFBVSxFQUFFOzs7Ozs7Ozs7Ozs7S0FZWDtLQUNKLENBQUM7O0dBQ1csc0JBQXNCLENBZWxDO0FBZlksd0RBQXNCIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9Vc2Vycy9kYXZpZHdhbHNoL2NvZGUtbG9jYWwvMHgtcmZxLWFwaS9zcmMvZW50aXRpZXMvUmZxTWFrZXJVcGRhdGVUaW1lSGFzaC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBWaWV3Q29sdW1uLCBWaWV3RW50aXR5IH0gZnJvbSAndHlwZW9ybSc7XG5cbmV4cG9ydCB0eXBlIFJmcU1ha2VyVXBkYXRlVGltZUhhc2hPcHRzID0gUGljazxSZnFNYWtlclVwZGF0ZVRpbWVIYXNoLCAnaGFzaCcgfCAnY2hhaW5JZCc+ICZcbiAgICBQYXJ0aWFsPFJmcU1ha2VyVXBkYXRlVGltZUhhc2g+O1xuXG4vKipcbiAqIEEgbWF0ZXJpYWxpemVkIHZpZXcgZm9yIGEgaGFzaCBvZiBhbGwgbWFrZXJzJyBsYXN0IHVwZGF0ZSB0aW1lIGZvciBlYWNoIGNoYWluLlxuICogVGhlIG1hdGVyaWFsaXplZCB2aWV3IHdpbGwgYmUgdXBkYXRlZCBpbW1pZGlhdGVseSBhZnRlciB0YWJsZSBgcmZxX21ha2VyX3BhaXJzYCBpcyB1cGRhdGVkLlxuICogVGhlIGhhc2hlcyAob25lIHBlciBjaGFpbikgYXJlIHVzZWQgYnkgUmZxTWFrZXJNYW5nZXIgdG8gZGV0ZXJtaW5lIHdoZXRoZXIgYSByZWZyZXNoIGlzIG5lZWRlZC5cbiAqIFRoZSBleHByZXNzaW9uIG9mIFZpZXdFbnRpdHkgaXMgZHVwbGljYXRlZCB3aXRoIHRoZSBjb3JyZXNwb25kaW5nIG1pcmdhdGlvbiBmaWxlLCBhbmQgaXMgb25seSB1c2VkIHdoZW5cbiAqIGBzeW5jaHJvbml6ZWAgaXMgc2V0IHRvIGB0cnVlYCB3aGljaCBpcyB0aGUgY2FzZSB3aGVuIHJ1bm5pbmcgc29tZSB0ZXN0IGNhc2VzLlxuICovXG5AVmlld0VudGl0eSh7XG4gICAgbmFtZTogJ3JmcV9tYWtlcl9wYWlyc191cGRhdGVfdGltZV9oYXNoZXMnLFxuICAgIGV4cHJlc3Npb246IGBcbiAgICAgICAgU0VMRUNUXG4gICAgICAgICAgICBlbmNvZGUoXG4gICAgICAgICAgICAgICAgZGlnZXN0KFxuICAgICAgICAgICAgICAgICAgICBhcnJheV9hZ2coXG4gICAgICAgICAgICAgICAgICAgICAgICB1cGRhdGVkX2F0IE9SREVSIEJZIHVwZGF0ZWRfYXQgTlVMTFMgRklSU1RcbiAgICAgICAgICAgICAgICAgICAgKTo6dGV4dCxcbiAgICAgICAgICAgICAgICAnc2hhMjU2JyksXG4gICAgICAgICAgICAnaGV4JykgQVMgaGFzaCxcbiAgICAgICAgICAgIGNoYWluX2lkXG4gICAgICAgIEZST00gcmZxX21ha2VyX3BhaXJzXG4gICAgICAgIEdST1VQIEJZIGNoYWluX2lkXG4gICAgYCxcbn0pXG5leHBvcnQgY2xhc3MgUmZxTWFrZXJVcGRhdGVUaW1lSGFzaCB7XG4gICAgQFZpZXdDb2x1bW4oeyBuYW1lOiAnY2hhaW5faWQnIH0pXG4gICAgcHVibGljIGNoYWluSWQ6IG51bWJlcjtcblxuICAgIEBWaWV3Q29sdW1uKHsgbmFtZTogJ2hhc2gnIH0pXG4gICAgcHVibGljIGhhc2g6IHN0cmluZztcblxuICAgIC8vIFR5cGVPUk0gcnVucyBhIHZhbGlkYXRpb24gY2hlY2sgd2hlcmUgaXQgY2FsbHMgdGhpcyBpbml0aWFsaXplciB3aXRoIG5vIGFyZ3VtZW50LlxuICAgIC8vIFdpdGggbm8gZGVmYXVsdCBgb3B0c2AsIGBvcHRzYCB3aWxsIGJlIHVuZGVmaW5lZCBhbmQgdGhlIHZhbGlkYXRpb24gd2lsbCB0aHJvdyxcbiAgICAvLyB0aGVyZWZvcmUsIGFkZCB0aGlzIGhhY2t5IGRlZmF1bHQuXG4gICAgLy8gdHNsaW50OmRpc2FibGUtbmV4dC1saW5lIG5vLW9iamVjdC1saXRlcmFsLXR5cGUtYXNzZXJ0aW9uXG4gICAgY29uc3RydWN0b3Iob3B0czogUmZxTWFrZXJVcGRhdGVUaW1lSGFzaE9wdHMgPSB7fSBhcyBSZnFNYWtlclVwZGF0ZVRpbWVIYXNoT3B0cykge1xuICAgICAgICB0aGlzLmNoYWluSWQgPSBvcHRzLmNoYWluSWQ7XG4gICAgICAgIHRoaXMuaGFzaCA9IG9wdHMuaGFzaDtcbiAgICB9XG59XG4iXSwidmVyc2lvbiI6M30=

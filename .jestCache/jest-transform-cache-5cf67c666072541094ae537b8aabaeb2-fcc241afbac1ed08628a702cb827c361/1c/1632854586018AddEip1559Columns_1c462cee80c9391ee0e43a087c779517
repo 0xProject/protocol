@@ -1,0 +1,20 @@
+5a4d076e72c78b19dc3cd43860fb7605
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddEip1559Columns1632854586018 = void 0;
+const typeorm_1 = require("typeorm");
+const columns = ['max_fee_per_gas', 'max_priority_fee_per_gas'].map((name) => new typeorm_1.TableColumn({
+    name,
+    type: 'numeric',
+    isNullable: true,
+}));
+class AddEip1559Columns1632854586018 {
+    async up(queryRunner) {
+        await Promise.all(columns.map((column) => queryRunner.addColumn('rfqm_transaction_submissions', column)));
+    }
+    async down(queryRunner) {
+        await Promise.all(columns.map((column) => queryRunner.dropColumn('rfqm_transaction_submissions', column)));
+    }
+}
+exports.AddEip1559Columns1632854586018 = AddEip1559Columns1632854586018;
+//# sourceMappingURL=1632854586018-AddEip1559Columns.js.map

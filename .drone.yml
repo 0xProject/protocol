@@ -1,0 +1,85 @@
+name: 0x-api-pipeline-sha
+kind: pipeline
+type: kubernetes
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish-sha
+    image: plugins/ecr
+    settings:
+      repo:
+        from_secret: ecr_repo
+      registry:
+        from_secret: ecr_registry
+      region: us-east-1
+      tags:
+        - ${DRONE_COMMIT_SHA}
+trigger:
+  branch:
+    exclude:
+      - freeze/*
+  event:
+    exclude:
+    - pull_request
+node_selector:
+  drone-builds: true
+---
+name: 0x-api-pipeline
+kind: pipeline
+type: kubernetes
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish  
+    image: plugins/ecr
+    settings:
+      repo:
+        from_secret: ecr_repo
+      registry:
+        from_secret: ecr_registry
+      region: us-east-1
+      tags:
+        - latest
+
+trigger:
+  branch:
+  - master
+  event:
+    include:
+      - push
+node_selector:
+  drone-builds: true
+---
+name: 0x-api-pipeline-frozen
+kind: pipeline
+type: kubernetes
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish-frozen
+    image: plugins/ecr
+    settings:
+      repo:
+        from_secret: ecr_repo
+      registry:
+        from_secret: ecr_registry
+      region: us-east-1
+      tags:
+        - ${DRONE_BRANCH##freeze/}-${DRONE_COMMIT_SHA}
+trigger:
+  branch:
+  - freeze/*
+  event:
+    include:
+      - push
+node_selector:
+  drone-builds: true

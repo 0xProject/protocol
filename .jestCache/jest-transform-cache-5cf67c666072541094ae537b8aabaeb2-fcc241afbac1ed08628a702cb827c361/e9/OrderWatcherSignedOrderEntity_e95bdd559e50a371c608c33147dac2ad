@@ -1,0 +1,116 @@
+4e5b7a9eb2210fa2548293282bb52711
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OrderWatcherSignedOrderEntity = void 0;
+const typeorm_1 = require("typeorm");
+// This should only be used in tests to set the state of `signed_orders_v4`.
+// In production, we only care about valid orders, so use
+// `ValidSignedOrderV4Entity` instead.
+let OrderWatcherSignedOrderEntity = class OrderWatcherSignedOrderEntity {
+    constructor(opts = {}) {
+        this.hash = opts.hash;
+        this.makerToken = opts.makerToken;
+        this.takerToken = opts.takerToken;
+        this.makerAmount = opts.makerAmount;
+        this.takerAmount = opts.takerAmount;
+        this.maker = opts.maker;
+        this.taker = opts.taker;
+        this.pool = opts.pool;
+        this.expiry = opts.expiry;
+        this.salt = opts.salt;
+        this.verifyingContract = opts.verifyingContract;
+        this.takerTokenFeeAmount = opts.takerTokenFeeAmount;
+        this.sender = opts.sender;
+        this.feeRecipient = opts.feeRecipient;
+        this.signature = opts.signature;
+        this.remainingFillableTakerAmount = opts.remainingFillableTakerAmount;
+        this.signature = opts.signature;
+    }
+};
+__decorate([
+    (0, typeorm_1.PrimaryColumn)({ name: 'hash', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "hash", void 0);
+__decorate([
+    (0, typeorm_1.Index)(),
+    (0, typeorm_1.Column)({ name: 'maker_token', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "makerToken", void 0);
+__decorate([
+    (0, typeorm_1.Index)(),
+    (0, typeorm_1.Column)({ name: 'taker_token', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "takerToken", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'maker_amount', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "makerAmount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'taker_amount', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "takerAmount", void 0);
+__decorate([
+    (0, typeorm_1.Index)(),
+    (0, typeorm_1.Column)({ name: 'maker', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "maker", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'taker', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "taker", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'pool', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "pool", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'expiry', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "expiry", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'salt', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "salt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'verifying_contract', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "verifyingContract", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'taker_token_fee_amount', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "takerTokenFeeAmount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'sender', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "sender", void 0);
+__decorate([
+    (0, typeorm_1.Index)(),
+    (0, typeorm_1.Column)({ name: 'fee_recipient', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "feeRecipient", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'signature', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "signature", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'remaining_fillable_taker_amount', type: 'varchar' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "remainingFillableTakerAmount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'created_at', type: 'timestamptz', default: () => 'now()' }),
+    __metadata("design:type", String)
+], OrderWatcherSignedOrderEntity.prototype, "createdAt", void 0);
+OrderWatcherSignedOrderEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'signed_orders_v4' }),
+    __metadata("design:paramtypes", [Object])
+], OrderWatcherSignedOrderEntity);
+exports.OrderWatcherSignedOrderEntity = OrderWatcherSignedOrderEntity;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9lbnRpdGllcy9PcmRlcldhdGNoZXJTaWduZWRPcmRlckVudGl0eS50cyIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7QUFBQSxxQ0FBK0Q7QUFFL0QsNEVBQTRFO0FBQzVFLHlEQUF5RDtBQUN6RCxzQ0FBc0M7QUFFdEMsSUFBYSw2QkFBNkIsR0FBMUMsTUFBYSw2QkFBNkI7SUF3RHRDLFlBQ0ksT0FpQkksRUFBRTtRQUVOLElBQUksQ0FBQyxJQUFJLEdBQUcsSUFBSSxDQUFDLElBQUksQ0FBQztRQUN0QixJQUFJLENBQUMsVUFBVSxHQUFHLElBQUksQ0FBQyxVQUFVLENBQUM7UUFDbEMsSUFBSSxDQUFDLFVBQVUsR0FBRyxJQUFJLENBQUMsVUFBVSxDQUFDO1FBQ2xDLElBQUksQ0FBQyxXQUFXLEdBQUcsSUFBSSxDQUFDLFdBQVcsQ0FBQztRQUNwQyxJQUFJLENBQUMsV0FBVyxHQUFHLElBQUksQ0FBQyxXQUFXLENBQUM7UUFDcEMsSUFBSSxDQUFDLEtBQUssR0FBRyxJQUFJLENBQUMsS0FBSyxDQUFDO1FBQ3hCLElBQUksQ0FBQyxLQUFLLEdBQUcsSUFBSSxDQUFDLEtBQUssQ0FBQztRQUN4QixJQUFJLENBQUMsSUFBSSxHQUFHLElBQUksQ0FBQyxJQUFJLENBQUM7UUFDdEIsSUFBSSxDQUFDLE1BQU0sR0FBRyxJQUFJLENBQUMsTUFBTSxDQUFDO1FBQzFCLElBQUksQ0FBQyxJQUFJLEdBQUcsSUFBSSxDQUFDLElBQUksQ0FBQztRQUN0QixJQUFJLENBQUMsaUJBQWlCLEdBQUcsSUFBSSxDQUFDLGlCQUFpQixDQUFDO1FBQ2hELElBQUksQ0FBQyxtQkFBbUIsR0FBRyxJQUFJLENBQUMsbUJBQW1CLENBQUM7UUFDcEQsSUFBSSxDQUFDLE1BQU0sR0FBRyxJQUFJLENBQUMsTUFBTSxDQUFDO1FBQzFCLElBQUksQ0FBQyxZQUFZLEdBQUcsSUFBSSxDQUFDLFlBQVksQ0FBQztRQUN0QyxJQUFJLENBQUMsU0FB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QTlGWSxzRUFBNkIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL1VzZXJzL2Rhdmlkd2Fsc2gvY29kZS1sb2NhbC8weC1yZnEtYXBpL3NyYy9lbnRpdGllcy9PcmRlcldhdGNoZXJTaWduZWRPcmRlckVudGl0eS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBDb2x1bW4sIEVudGl0eSwgSW5kZXgsIFByaW1hcnlDb2x1bW4gfSBmcm9tICd0eXBlb3JtJztcblxuLy8gVGhpcyBzaG91bGQgb25seSBiZSB1c2VkIGluIHRlc3RzIHRvIHNldCB0aGUgc3RhdGUgb2YgYHNpZ25lZF9vcmRlcnNfdjRgLlxuLy8gSW4gcHJvZHVjdGlvbiwgd2Ugb25seSBjYXJlIGFib3V0IHZhbGlkIG9yZGVycywgc28gdXNlXG4vLyBgVmFsaWRTaWduZWRPcmRlclY0RW50aXR5YCBpbnN0ZWFkLlxuQEVudGl0eSh7IG5hbWU6ICdzaWduZWRfb3JkZXJzX3Y0JyB9KVxuZXhwb3J0IGNsYXNzIE9yZGVyV2F0Y2hlclNpZ25lZE9yZGVyRW50aXR5IHtcbiAgICBAUHJpbWFyeUNvbHVtbih7IG5hbWU6ICdoYXNoJywgdHlwZTogJ3ZhcmNoYXInIH0pXG4gICAgcHVibGljIGhhc2g/OiBzdHJpbmc7XG5cbiAgICBASW5kZXgoKVxuICAgIEBDb2x1bW4oeyBuYW1lOiAnbWFrZXJfdG9rZW4nLCB0eXBlOiAndmFyY2hhcicgfSlcbiAgICBwdWJsaWMgbWFrZXJUb2tlbj86IHN0cmluZztcblxuICAgIEBJbmRleCgpXG4gICAgQENvbHVtbih7IG5hbWU6ICd0YWtlcl90b2tlbicsIHR5cGU6ICd2YXJjaGFyJyB9KVxuICAgIHB1YmxpYyB0YWtlclRva2VuPzogc3RyaW5nO1xuXG4gICAgQENvbHVtbih7IG5hbWU6ICdtYWtlcl9hbW91bnQnLCB0eXBlOiAndmFyY2hhcicgfSlcbiAgICBwdWJsaWMgbWFrZXJBbW91bnQ/OiBzdHJpbmc7XG5cbiAgICBAQ29sdW1uKHsgbmFtZTogJ3Rha2VyX2Ftb3VudCcsIHR5cGU6ICd2YXJjaGFyJyB9KVxuICAgIHB1YmxpYyB0YWtlckFtb3VudD86IHN0cmluZztcblxuICAgIEBJbmRleCgpXG4gICAgQENvbHVtbih7IG5hbWU6ICdtYWtlcicsIHR5cGU6ICd2YXJjaGFyJyB9KVxuICAgIHB1YmxpYyBtYWtlcj86IHN0cmluZztcblxuICAgIEBDb2x1bW4oeyBuYW1lOiAndGFrZXInLCB0eXBlOiAndmFyY2hhcicgfSlcbiAgICBwdWJsaWMgdGFrZXI/OiBzdHJpbmc7XG5cbiAgICBAQ29sdW1uKHsgbmFtZTogJ3Bvb2wnLCB0eXBlOiAndmFyY2hhcicgfSlcbiAgICBwdWJsaWMgcG9vbD86IHN0cmluZztcblxuICAgIEBDb2x1bW4oeyBuYW1lOiAnZXhwaXJ5JywgdHlwZTogJ3ZhcmNoYXInIH0pXG4gICAgcHVibGljIGV4cGlyeT86IHN0cmluZztcblxuICAgIEBDb2x1bW4oeyBuYW1lOiAnc2FsdCcsIHR5cGU6ICd2YXJjaGFyJyB9KVxuICAgIHB1YmxpYyBzYWx0Pzogc3RyaW5nO1xuXG4gICAgQENvbHVtbih7IG5hbWU6ICd2ZXJpZnlpbmdfY29udHJhY3QnLCB0eXBlOiAndmFyY2hhcicgfSlcbiAgICBwdWJsaWMgdmVyaWZ5aW5nQ29udHJhY3Q/OiBzdHJpbmc7XG5cbiAgICBAQ29sdW1uKHsgbmFtZTogJ3Rha2VyX3Rva2VuX2ZlZV9hbW91bnQnLCB0eXBlOiAndmFyY2hhcicgfSlcbiAgICBwdWJsaWMgdGFrZXJUb2tlbkZlZUFtb3VudD86IHN0cmluZztcblxuICAgIEBDb2x1bW4oeyBuYW1lOiAnc2VuZGVyJywgdHlwZTogJ3ZhcmNoYXInIH0pXG4gICAgcHVibGljIHNlbmRlcj86IHN0cmluZztcblxuICAgIEBJbmRleCgpXG4gICAgQENvbHVtbih7IG5hbWU6ICdmZWVfcmVjaXBpZW50JywgdHlwZTogJ3ZhcmNoYXInIH0pXG4gICAgcHVibGljIGZlZVJlY2lwaWVudD86IHN0cmluZztcblxuICAgIEBDb2x1bW4oeyBuYW1lOiAnc2lnbmF0dXJlJywgdHlwZTogJ3ZhcmNoYXInIH0pXG4gICAgcHVibGljIHNpZ25hdHVyZT86IHN0cmluZztcblxuICAgIEBDb2x1bW4oeyBuYW1lOiAncmVtYWluaW5nX2ZpbGxhYmxlX3Rha2VyX2Ftb3VudCcsIHR5cGU6ICd2YXJjaGFyJyB9KVxuICAgIHB1YmxpYyByZW1haW5pbmdGaWxsYWJsZVRha2VyQW1vdW50Pzogc3RyaW5nO1xuXG4gICAgQENvbHVtbih7IG5hbWU6ICdjcmVhdGVkX2F0JywgdHlwZTogJ3RpbWVzdGFtcHR6JywgZGVmYXVsdDogKCkgPT4gJ25vdygpJyB9KVxuICAgIHB1YmxpYyBjcmVhdGVkQXQ/OiBzdHJpbmc7XG5cbiAgICBjb25zdHJ1Y3RvcihcbiAgICAgICAgb3B0czoge1xuICAgICAgICAgICAgaGFzaD86IHN0cmluZztcbiAgICAgICAgICAgIG1ha2VyVG9rZW4/OiBzdHJpbmc7XG4gICAgICAgICAgICB0YWtlclRva2VuPzogc3RyaW5nO1xuICAgICAgICAgICAgbWFrZXJBbW91bnQ/OiBzdHJpbmc7XG4gICAgICAgICAgICB0YWtlckFtb3VudD86IHN0cmluZztcbiAgICAgICAgICAgIG1ha2VyPzogc3RyaW5nO1xuICAgICAgICAgICAgdGFrZXI/OiBzdHJpbmc7XG4gICAgICAgICAgICBwb29sPzogc3RyaW5nO1xuICAgICAgICAgICAgZXhwaXJ5Pzogc3RyaW5nO1xuICAgICAgICAgICAgc2FsdD86IHN0cmluZztcbiAgICAgICAgICAgIHZlcmlmeWluZ0NvbnRyYWN0Pzogc3RyaW5nO1xuICAgICAgICAgICAgdGFrZXJUb2tlbkZlZUFtb3VudD86IHN0cmluZztcbiAgICAgICAgICAgIHNlbmRlcj86IHN0cmluZztcbiAgICAgICAgICAgIGZlZVJlY2lwaWVudD86IHN0cmluZztcbiAgICAgICAgICAgIHNpZ25hdHVyZT86IHN0cmluZztcbiAgICAgICAgICAgIHJlbWFpbmluZ0ZpbGxhYmxlVGFrZXJBbW91bnQ/OiBzdHJpbmc7XG4gICAgICAgIH0gPSB7fSxcbiAgICApIHtcbiAgICAgICAgdGhpcy5oYXNoID0gb3B0cy5oYXNoO1xuICAgICAgICB0aGlzLm1ha2VyVG9rZW4gPSBvcHRzLm1ha2VyVG9rZW47XG4gICAgICAgIHRoaXMudGFrZXJUb2tlbiA9IG9wdHMudGFrZXJUb2tlbjtcbiAgICAgICAgdGhpcy5tYWtlckFtb3VudCA9IG9wdHMubWFrZXJBbW91bnQ7XG4gICAgICAgIHRoaXMudGFrZXJBbW91bnQgPSBvcHRzLnRha2VyQW1vdW50O1xuICAgICAgICB0aGlzLm1ha2VyID0gb3B0cy5tYWtlcjtcbiAgICAgICAgdGhpcy50YWtlciA9IG9wdHMudGFrZXI7XG4gICAgICAgIHRoaXMucG9vbCA9IG9wdHMucG9vbDtcbiAgICAgICAgdGhpcy5leHBpcnkgPSBvcHRzLmV4cGlyeTtcbiAgICAgICAgdGhpcy5zYWx0ID0gb3B0cy5zYWx0O1xuICAgICAgICB0aGlzLnZlcmlmeWluZ0NvbnRyYWN0ID0gb3B0cy52ZXJpZnlpbmdDb250cmFjdDtcbiAgICAgICAgdGhpcy50YWtlclRva2VuRmVlQW1vdW50ID0gb3B0cy50YWtlclRva2VuRmVlQW1vdW50O1xuICAgICAgICB0aGlzLnNlbmRlciA9IG9wdHMuc2VuZGVyO1xuICAgICAgICB0aGlzLmZlZVJlY2lwaWVudCA9IG9wdHMuZmVlUmVjaXBpZW50O1xuICAgICAgICB0aGlzLnNpZ25hdHVyZSA9IG9wdHMuc2lnbmF0dXJlO1xuICAgICAgICB0aGlzLnJlbWFpbmluZ0ZpbGxhYmxlVGFrZXJBbW91bnQgPSBvcHRzLnJlbWFpbmluZ0ZpbGxhYmxlVGFrZXJBbW91bnQ7XG4gICAgICAgIHRoaXMuc2lnbmF0dXJlID0gb3B0cy5zaWduYXR1cmU7XG4gICAgfVxufVxuIl0sInZlcnNpb24iOjN9

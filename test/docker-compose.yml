@@ -1,0 +1,22 @@
+version: '3'
+services:
+    ganache:
+        image: '0xorg/ganache-cli:6.4.1'
+        ports:
+            - '8545:8545'
+        environment:
+            VERSION: 8.0.1
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=api
+            - POSTGRES_PASSWORD=api
+            - POSTGRES_DB=api
+        # persist the postgres data to disk so we don't lose it
+        # on rebuilds.
+        ports:
+            - '5432:5432'
+    redis:
+        image: redis:6.0
+        ports:
+            - '6379:6379'

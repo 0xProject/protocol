@@ -1,0 +1,24 @@
+670809d3a505e9a6419e027d8e5e48a2
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PopulateRfqMakerPairsTable1639527388617 = void 0;
+/**
+ * This migration was originally used to populate `rfq_maker_pairs` table as we move pairs info from
+ * config files to DB. But the code logic does not work any more as we move more maker config info,
+ * such as rfqmUri and rfqtUri, to DB.
+ * So we removed the migration logic but keep the migration file as a placeholder as the original code
+ * had been executed in DB prod.
+ */
+class PopulateRfqMakerPairsTable1639527388617 {
+    constructor() {
+        this.name = 'PopulateRfqMakerPairsTable1639527388617';
+    }
+    async up(_queryRunner) {
+        // no-op
+    }
+    async down(_queryRunner) {
+        // no-op
+    }
+}
+exports.PopulateRfqMakerPairsTable1639527388617 = PopulateRfqMakerPairsTable1639527388617;
+//# sourceMappingURL=1639527388617-PopulateRfqMakerPairsTable.js.map

@@ -1,0 +1,60 @@
+{
+    "id": "/sraOrdersQuerySchema",
+    "type": "object",
+    "properties": {
+        "makerToken": {
+            "$ref": "/hexSchema"
+        },
+        "takerToken": {
+            "$ref": "/hexSchema"
+        },
+        "makerAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "takerAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "maker": {
+            "$ref": "/addressSchema"
+        },
+        "taker": {
+            "$ref": "/addressSchema"
+        },
+        "pool": {
+            "$ref": "/hexSchema"
+        },
+        "expiry": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "salt": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "chainId": {
+            "type": "number"
+        },
+        "verifyingContract": {
+            "$ref": "/addressSchema"
+        },
+        "takerTokenFeeAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "sender": {
+            "$ref": "/addressSchema"
+        },
+        "feeRecipient": {
+            "$ref": "/addressSchema"
+        },
+        "remainingFillableTakerAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "hash": {
+            "$ref": "/hexSchema"
+        },
+        "trader": {
+            "$ref": "/addressSchema"
+        },
+        "unfillable": {
+            "enum": ["true", "false"]
+        }
+    }
+}

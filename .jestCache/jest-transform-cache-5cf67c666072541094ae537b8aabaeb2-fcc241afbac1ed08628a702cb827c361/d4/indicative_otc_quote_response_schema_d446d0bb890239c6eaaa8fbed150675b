@@ -1,0 +1,26 @@
+e60062c0f5874be326998771e3ba97ae
+{
+    "id": "/IndicativeQuoteResponseSchema",
+    "properties": {
+        "maker": {
+            "$ref": "/addressSchema"
+        },
+        "makerToken": {
+            "$ref": "/addressSchema"
+        },
+        "takerToken": {
+            "$ref": "/addressSchema"
+        },
+        "makerAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "takerAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "expiry": {
+            "$ref": "/wholeNumberSchema"
+        }
+    },
+    "required": ["maker", "makerToken", "takerToken", "makerAmount", "takerAmount", "expiry"],
+    "type": "object"
+}

@@ -1,0 +1,39 @@
+5d99ac8a80ed153808513b5d15d288f9
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddWorkerAddressLastLookResultToRfqmJobs1623452505377 = void 0;
+const typeorm_1 = require("typeorm");
+const targetTable = 'rfqm_jobs';
+const isCompletedColumn = new typeorm_1.TableColumn({
+    name: 'is_completed',
+    type: 'boolean',
+    default: false,
+    isNullable: false,
+});
+const workerAddressColumn = new typeorm_1.TableColumn({
+    name: 'worker_address',
+    type: 'varchar',
+    isNullable: true,
+});
+const lastLookResultColumn = new typeorm_1.TableColumn({
+    name: 'last_look_result',
+    type: 'boolean',
+    isNullable: true,
+});
+const isCompletedIndex = new typeorm_1.TableIndex({ name: `rfqm_jobs_is_completed_index`, columnNames: ['is_completed'] });
+class AddWorkerAddressLastLookResultToRfqmJobs1623452505377 {
+    async up(queryRunner) {
+        await queryRunner.addColumn(targetTable, isCompletedColumn);
+        await queryRunner.addColumn(targetTable, workerAddressColumn);
+        await queryRunner.addColumn(targetTable, lastLookResultColumn);
+        await queryRunner.createIndex(targetTable, isCompletedIndex);
+    }
+    async down(queryRunner) {
+        await queryRunner.dropIndex(targetTable, isCompletedIndex);
+        await queryRunner.dropColumn(targetTable, isCompletedColumn);
+        await queryRunner.dropColumn(targetTable, workerAddressColumn);
+        await queryRunner.dropColumn(targetTable, lastLookResultColumn);
+    }
+}
+exports.AddWorkerAddressLastLookResultToRfqmJobs1623452505377 = AddWorkerAddressLastLookResultToRfqmJobs1623452505377;
+//# sourceMappingURL=1623452505377-AddWorkerAddressLastLookResultToRfqmJobs.js.map
