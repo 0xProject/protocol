@@ -2,8 +2,6 @@
 
 ## Table of contents
 
-- [0x-api](#0x-api)
-    - [Table of contents](#table-of-contents)
     - [Introduction](#introduction)
     - [Getting started](#getting-started)
             - [Pre-requirements](#pre-requirements)
