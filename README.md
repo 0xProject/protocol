@@ -2,13 +2,13 @@
 
 ## Table of contents
 
-    - [Introduction](#introduction)
-    - [Getting started](#getting-started)
-            - [Pre-requirements](#pre-requirements)
-    - [Commands](#commands)
-    - [Database](#database)
-    - [Deployment](#deployment)
-    - [Legal Disclaimer](#legal-disclaimer)
+- [Introduction](#introduction)
+- [Getting started](#getting-started)
+        - [Pre-requirements](#pre-requirements)
+- [Commands](#commands)
+- [Database](#database)
+- [Deployment](#deployment)
+- [Legal Disclaimer](#legal-disclaimer)
 
 ## Introduction
 
