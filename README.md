@@ -1,13 +1,12 @@
 # 0x-api
+
 ## Table of contents
 
 - [0x-api](#0x-api)
     - [Table of contents](#table-of-contents)
     - [Introduction](#introduction)
-        - [See website](#see-website)
     - [Getting started](#getting-started)
             - [Pre-requirements](#pre-requirements)
-    - [Client for your relayer's API](#client-for-your-relayers-api)
     - [Commands](#commands)
     - [Database](#database)
     - [Deployment](#deployment)
@@ -15,15 +14,6 @@
 
 ## Introduction
 
-Launch a 0x relayer in under a minute with Launch Kit. This repository contains an open-source, free-to-use 0x relayer template that you can use as a starting point for your own project.
-
--   Quickly launch a market for your community token
--   Seemlessly create an in-game marketplace for digital items and collectibles
--   Enable trading of any ERC-20 or ERC-721 asset
-
-Fork this repository to get started!
-
-### [See website](https://0xproject.com/launch-kit)
 
 ## Getting started
 
@@ -31,9 +21,9 @@ Fork this repository to get started!
 
 -   [Node.js](https://nodejs.org/en/download/) > v8.x
 -   [Yarn](https://yarnpkg.com/en/) > v1.x
--   [0x Mesh](https://github.com/0xProject/0x-mesh) > v5.0.1 for v3. Docker image `0xorg/mesh:5.0.1-beta-0xv3` or greater
+-   [Docker](https://www.docker.com/products/docker-desktop) > 19.x
 
-To develop ontop of `0x-launch-kit`, follow the following instructions:
+To develop ontop of `0x-api`, follow the following instructions:
 
 1. Fork this repository
 
@@ -63,7 +53,7 @@ To develop ontop of `0x-launch-kit`, follow the following instructions:
     yarn
     ```
 
-7. Build the project [This step is for Typescript users only]
+7. Build the project
 
     ```sh
     yarn build
@@ -75,59 +65,21 @@ To develop ontop of `0x-launch-kit`, follow the following instructions:
     yarn watch
     ```
 
-    **Note:** There isn't currently a build step when working on the Javascript codebase because we assume `0x-launch-kit` will be running on Node.js > v8.0. If you want this project to work in an environment that doesn't support many of the latest Javascript features, you will need to add a transpiler (e.g [Babel](https://babeljs.io/)) to this project.
-
-8. Start the relayer
+8. Run an instance of [0x Mesh](https://github.com/0xProject/0x-mesh) > v5.0.1 for v3. Docker image `0xorg/mesh:5.0.1-beta-0xv3` or greater.
+   
+9.  Start the relayer
 
     ```sh
     yarn start
     ```
 
-    OR
-
-    ```sh
-    yarn start:js
-    ```
-
-## Client for your relayer's API
-
-Since the `0x-launch-kit-backend` relayer adheres to V3 of the [Standard Relayer API Specification](https://github.com/0xProject/standard-relayer-api/), you can use [0x Connect](https://0xproject.com/docs/connect) (an HTTP/Websocket client) to make calls to your relayer (e.g submit an order, get all orders, etc...)
-
-Learn how to use 0x Connect to interact with your `0x-launch-kit` relayer in [this tutorial](https://0xproject.com/wiki#Find,-Submit,-Fill-Order-From-Relayer).
-
-To quickly check if your relayer is up-and-running, send it this CURL request from the command-line:
-
-```sh
-curl http://localhost:3000/v3/orders
-```
-
-If everything is working as expected, you should see this response:
-
-```
-{
-    "total": 0,
-    "page": 0,
-    "perPage": 20,
-    "records": []
-}
-```
-
-Since no orders have been added to your relayer yet, the `records` array is empty.
-
 ## Commands
-
-Typescript project commands:
 
 -   `yarn build` - Build the code
 -   `yarn lint` - Lint the code
 -   `yarn start` - Starts the relayer
 -   `yarn watch` - Watch the source code and rebuild on change
 -   `yarn prettier` - Auto-format the code
-
-Javascript project commands:
-
--   `yarn start:js` - Start the relayer
--   `yarn prettier:js` - Auto-format the code
 
 ## Database
 
@@ -136,30 +88,6 @@ This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it eas
 Because we want to support both Javascript and Typescript codebases, we don't use `TypeORM`'s [decorators](https://github.com/typeorm/typeorm/blob/master/docs/decorator-reference.md) (since they don't transpile nicely into readable Javascript). TypeORM shines with decorators however, so you might want to use them if you're going to be working in Typescript.
 
 ## Deployment
-
-`0x-launch-kit` ships as a docker container. First, install Docker ([mac](https://docs.docker.com/docker-for-mac/install/), [windows](https://docs.docker.com/docker-for-windows/install/)). To build the image run:
-
-```sh
-docker build -t 0x-launch-kit-backend .
-```
-
-You can check that the image was built by running:
-
-```sh
-docker images
-```
-
-And launch it with
-
-```sh
-docker run -p 3000:3000 -d 0x-launch-kit-backend
-```
-
-Check that it's working by running
-
-```
-curl http://localhost:3000/v3/asset_pairs
-```
 
 ## Legal Disclaimer
 
