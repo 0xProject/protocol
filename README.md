@@ -66,13 +66,13 @@ To develop ontop of `0x-launch-kit`, follow the following instructions:
 7. Build the project [This step is for Typescript users only]
 
     ```sh
-    yarn build:ts
+    yarn build
     ```
 
     or build & watch:
 
     ```sh
-    yarn watch:ts
+    yarn watch
     ```
 
     **Note:** There isn't currently a build step when working on the Javascript codebase because we assume `0x-launch-kit` will be running on Node.js > v8.0. If you want this project to work in an environment that doesn't support many of the latest Javascript features, you will need to add a transpiler (e.g [Babel](https://babeljs.io/)) to this project.
@@ -80,7 +80,7 @@ To develop ontop of `0x-launch-kit`, follow the following instructions:
 8. Start the relayer
 
     ```sh
-    yarn start:ts
+    yarn start
     ```
 
     OR
@@ -118,11 +118,11 @@ Since no orders have been added to your relayer yet, the `records` array is empt
 
 Typescript project commands:
 
--   `yarn build:ts` - Build the code
--   `yarn lint:ts` - Lint the code
--   `yarn start:ts` - Starts the relayer
--   `yarn watch:ts` - Watch the source code and rebuild on change
--   `yarn prettier:ts` - Auto-format the code
+-   `yarn build` - Build the code
+-   `yarn lint` - Lint the code
+-   `yarn start` - Starts the relayer
+-   `yarn watch` - Watch the source code and rebuild on change
+-   `yarn prettier` - Auto-format the code
 
 Javascript project commands:
 

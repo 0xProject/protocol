@@ -8,7 +8,7 @@ import * as path from 'path';
 
 import { NULL_BYTES } from './constants';
 
-const metadataPath = path.join(__dirname, '../../metadata.json');
+const metadataPath = path.join(__dirname, '../metadata.json');
 enum EnvVarType {
     Port,
     NetworkId,
