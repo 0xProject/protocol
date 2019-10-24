@@ -70,9 +70,11 @@ typings/
 .next
 
 # compiled ts sources
-ts/lib
+lib
 
 # sqlite DB
 db/database.sqlite
+
+0x_mesh
 
 TODO.txt

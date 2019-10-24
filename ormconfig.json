@@ -4,8 +4,8 @@
     "synchronize": true,
     "logging": true,
     "logger": "debug",
-    "entities": ["ts/lib/entity/**/*.js", "js/entity/**/*.js"],
+    "entities": ["lib/entity/**/*.js"],
     "cli": {
-        "entitiesDir": "ts/lib/entity"
+        "entitiesDir": "lib/entity"
     }
 }

@@ -10,7 +10,7 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "sourceMap": false,
-        "typeRoots": ["../node_modules/@0x/typescript-typings/types", "../node_modules/@types"],
+        "typeRoots": ["./node_modules/@0x/typescript-typings/types", "./node_modules/@types"],
         "noUnusedParameters": true
     },
     "include": ["src"]
