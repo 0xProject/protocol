@@ -33,9 +33,9 @@ To develop ontop of `0x-api`, follow the following instructions:
 
 4. Open the `.env` file and edit the following fields. Defaults are defined in `config.ts`/`config.js`. The bash environment takes precedence over the `.env` file. If you run `source .env`, changes to the `.env` file will have no effect until you unset the colliding variables.
 
-    - `NETWORK_ID` -- the network you'd like your relayer to run on (e.g: `1` -> mainnet, `42` -> Kovan, 3 -> Ropsten, etc...). Defaults to `42`
+    - `NETWORK_ID` -- the network you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, 3 -> Ropsten, etc...). Defaults to `42`
     - `MESH_ENDPOINT` -- the url pointing to the 0x Mesh node. Defaults to `ws://localhost:60557`
-    - `FEE_RECIPIENT` -- The Ethereum address which should be specified as the fee recipient in orders your relayer accepts. Defaults to a fake address that helps the 0x core team use anonymous, already public data to understand Launch Kit developer usage. Defaults to an auto-generated address
+    - `FEE_RECIPIENT` -- The Ethereum address which should be specified as the fee recipient in orders your API accepts. Defaults to a fake address that helps the 0x core team use anonymous, already public data to understand Launch Kit developer usage. Defaults to an auto-generated address
     - `MAKER_FEE_ASSET_DATA` -- The maker fee token asset data. Defaults to `0x`, i.e no fee
     - `MAKER_FEE_UNIT_AMOUNT` -- The flat maker fee amount you'd like to receive for filled orders hosted by you. Defaults to `0`
     - `MAKER_FEE_ASSET_DATA` -- The taker fee token asset data. Defaults to `0x`, i.e no fee
@@ -63,9 +63,14 @@ To develop ontop of `0x-api`, follow the following instructions:
     yarn watch
     ```
 
+    or develop:
+    ```sh
+    yarn dev
+    ```
+
 8. Run an instance of [0x Mesh](https://github.com/0xProject/0x-mesh) > v5.0.1 for v3. Docker image `0xorg/mesh:5.0.1-beta-0xv3` or greater.
    
-9.  Start the relayer
+9.  Start the API
 
     ```sh
     yarn start
@@ -75,7 +80,8 @@ To develop ontop of `0x-api`, follow the following instructions:
 
 -   `yarn build` - Build the code
 -   `yarn lint` - Lint the code
--   `yarn start` - Starts the relayer
+-   `yarn start` - Starts the API
+-   `yarn dev` - Starts the API in dev-mode
 -   `yarn watch` - Watch the source code and rebuild on change
 -   `yarn prettier` - Auto-format the code
 

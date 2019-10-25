@@ -2,7 +2,7 @@
     "compilerOptions": {
         "module": "commonjs",
         "lib": ["es2017", "dom"],
-        "target": "es5",
+        "target": "es6",
         "outDir": "lib",
         "strict": true,
         "downlevelIteration": true,
@@ -13,5 +13,5 @@
         "typeRoots": ["./node_modules/@0x/typescript-typings/types", "./node_modules/@types"],
         "noUnusedParameters": true
     },
-    "include": ["src"]
+    "include": ["src/**/*.ts"]
 }
