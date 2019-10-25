@@ -4,9 +4,9 @@ import * as _ from 'lodash';
 import { getDBConnection } from '../db_connection';
 import { MeshUtils } from '../mesh_utils';
 import { SignedOrderModel } from '../models/SignedOrderModel';
+import { deserializeOrder, serializeOrder } from '../orderbook_utils';
 import { APIOrderWithMetaData, OrderWatcherLifeCycleEvents } from '../types';
 
-import { deserializeOrder, serializeOrder } from './orderbook_utils';
 
 // tslint:disable-next-line:no-var-requires
 const d = require('debug')('orderbook');

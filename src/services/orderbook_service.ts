@@ -8,8 +8,6 @@ import { getDBConnection } from '../db_connection';
 import { ValidationError } from '../errors';
 import { MeshUtils } from '../mesh_utils';
 import { SignedOrderModel } from '../models/SignedOrderModel';
-import { paginate } from '../paginator';
-
 import {
     compareAskOrder,
     compareBidOrder,
@@ -17,7 +15,8 @@ import {
     deserializeOrderToAPIOrder,
     includesTokenAddress,
     signedOrderToAssetPair,
-} from './orderbook_utils';
+    } from '../orderbook_utils';
+import { paginate } from '../paginator';
 
 export class OrderBookService {
     private readonly _meshClient: WSClient;
