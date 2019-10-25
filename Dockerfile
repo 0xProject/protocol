@@ -20,4 +20,4 @@ COPY . .
 RUN yarn build
 
 EXPOSE 3000
-CMD [ "./node_modules/.bin/forever", "ts/lib/index.js" ]
+CMD [ "./node_modules/.bin/forever", "lib/index.js" ]
