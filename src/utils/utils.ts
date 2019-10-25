@@ -2,7 +2,7 @@ import { Schema, SchemaValidator } from '@0x/json-schemas';
 import { ValidationError as SchemaValidationError } from 'jsonschema';
 import * as _ from 'lodash';
 
-import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from './errors';
+import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from '../errors';
 
 const schemaValidator = new SchemaValidator();
 

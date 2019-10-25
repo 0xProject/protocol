@@ -4,46 +4,30 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 
-import { FEE_RECIPIENT, MAX_PER_PAGE, WHITELISTED_TOKENS } from './config';
-import { DEFAULT_PAGE, DEFAULT_PER_PAGE } from './constants';
+import { FEE_RECIPIENT, WHITELISTED_TOKENS } from './config';
 import { NotFoundError, ValidationError, ValidationErrorCodes } from './errors';
-import { fixedFeeStrategy } from './fee_strategy';
-import { paginate } from './paginator';
 import { OrderBookService } from './services/orderbook_service';
-import { utils } from './utils';
-
-const parsePaginationConfig = (req: express.Request): { page: number; perPage: number } => {
-    const page = req.query.page === undefined ? DEFAULT_PAGE : Number(req.query.page);
-    const perPage = req.query.perPage === undefined ? DEFAULT_PER_PAGE : Number(req.query.perPage);
-    if (perPage > MAX_PER_PAGE) {
-        throw new ValidationError([
-            {
-                field: 'perPage',
-                code: ValidationErrorCodes.ValueOutOfRange,
-                reason: `perPage should be less or equal to ${MAX_PER_PAGE}`,
-            },
-        ]);
-    }
-    return { page, perPage };
-};
+import { orderUtils } from './utils/order_utils';
+import { paginationUtils } from './utils/pagination_utils';
+import { utils } from './utils/utils';
 
 export class Handlers {
     private readonly _orderBook: OrderBookService;
     public static feeRecipients(req: express.Request, res: express.Response): void {
-        const { page, perPage } = parsePaginationConfig(req);
+        const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const normalizedFeeRecipient = FEE_RECIPIENT.toLowerCase();
         const feeRecipients = [normalizedFeeRecipient];
-        const paginatedFeeRecipients = paginate(feeRecipients, page, perPage);
+        const paginatedFeeRecipients = paginationUtils.paginate(feeRecipients, page, perPage);
         res.status(HttpStatus.OK).send(paginatedFeeRecipients);
     }
     public static orderConfig(req: express.Request, res: express.Response): void {
         utils.validateSchema(req.body, schemas.orderConfigRequestSchema);
-        const orderConfigResponse = fixedFeeStrategy.getOrderConfig(req.body);
+        const orderConfigResponse = orderUtils.getOrderConfig(req.body);
         res.status(HttpStatus.OK).send(orderConfigResponse);
     }
     public static async assetPairsAsync(req: express.Request, res: express.Response): Promise<void> {
         utils.validateSchema(req.query, schemas.assetPairsRequestOptsSchema);
-        const { page, perPage } = parsePaginationConfig(req);
+        const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const assetPairs = await OrderBookService.getAssetPairsAsync(
             page,
             perPage,
@@ -65,13 +49,13 @@ export class Handlers {
     }
     public async ordersAsync(req: express.Request, res: express.Response): Promise<void> {
         utils.validateSchema(req.query, schemas.ordersRequestOptsSchema);
-        const { page, perPage } = parsePaginationConfig(req);
+        const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const paginatedOrders = await this._orderBook.getOrdersAsync(page, perPage, req.query);
         res.status(HttpStatus.OK).send(paginatedOrders);
     }
     public async orderbookAsync(req: express.Request, res: express.Response): Promise<void> {
         utils.validateSchema(req.query, schemas.orderBookRequestSchema);
-        const { page, perPage } = parsePaginationConfig(req);
+        const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const baseAssetData = req.query.baseAssetData;
         const quoteAssetData = req.query.quoteAssetData;
         const orderbookResponse = await this._orderBook.getOrderBookAsync(page, perPage, baseAssetData, quoteAssetData);

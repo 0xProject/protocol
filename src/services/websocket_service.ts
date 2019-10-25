@@ -13,7 +13,6 @@ import * as http from 'http';
 import * as WebSocket from 'ws';
 
 import { MalformedJSONError, NotImplementedError } from '../errors';
-import { MeshUtils } from '../mesh_utils';
 import { generateError } from '../middleware/error_handling';
 import {
     MessageChannels,
@@ -22,7 +21,8 @@ import {
     UpdateOrdersChannelMessageWithChannel,
     WebsocketSRAOpts,
 } from '../types';
-import { utils } from '../utils';
+import { meshUtils } from '../utils/mesh_utils';
+import { utils } from '../utils/utils';
 
 interface WrappedWebSocket extends WebSocket {
     isAlive: boolean;
@@ -115,7 +115,7 @@ export class WebsocketService {
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
         this._meshClient = meshClient;
         this._meshClient
-            .subscribeToOrdersAsync(e => this.orderUpdate(MeshUtils.orderInfosToApiOrders(e)))
+            .subscribeToOrdersAsync(e => this.orderUpdate(meshUtils.orderInfosToApiOrders(e)))
             .then(subscriptionId => (this._meshSubscriptionId = subscriptionId));
     }
     public destroy(): void {
