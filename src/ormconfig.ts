@@ -1,6 +1,6 @@
 import { ConnectionOptions } from 'typeorm';
 
-import { signedOrderEntity } from './entity';
+import { signedOrderEntity } from './entities';
 
 const entities = [signedOrderEntity];
 
