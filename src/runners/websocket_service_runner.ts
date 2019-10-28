@@ -5,7 +5,7 @@ import 'reflect-metadata';
 import * as config from '../config';
 import { initDBConnectionAsync } from '../db_connection';
 import { WebsocketService } from '../services/websocket_service';
-import { utils } from '../utils';
+import { utils } from '../utils/utils';
 
 /**
  * This service handles websocket updates using a subscription from Mesh.

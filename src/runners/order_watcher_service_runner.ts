@@ -4,7 +4,7 @@ import 'reflect-metadata';
 import * as config from '../config';
 import { initDBConnectionAsync } from '../db_connection';
 import { OrderWatcherService } from '../services/order_watcher_service';
-import { utils } from '../utils';
+import { utils } from '../utils/utils';
 
 /**
  * This service is a simple writer from the Mesh events. On order discovery

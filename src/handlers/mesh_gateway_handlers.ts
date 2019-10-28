@@ -4,14 +4,14 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 
-import { FEE_RECIPIENT, WHITELISTED_TOKENS } from './config';
-import { NotFoundError, ValidationError, ValidationErrorCodes } from './errors';
-import { OrderBookService } from './services/orderbook_service';
-import { orderUtils } from './utils/order_utils';
-import { paginationUtils } from './utils/pagination_utils';
-import { utils } from './utils/utils';
+import { FEE_RECIPIENT, WHITELISTED_TOKENS } from '../config';
+import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
+import { OrderBookService } from '../services/orderbook_service';
+import { orderUtils } from '../utils/order_utils';
+import { paginationUtils } from '../utils/pagination_utils';
+import { utils } from '../utils/utils';
 
-export class Handlers {
+export class MeshGatewayHandlers {
     private readonly _orderBook: OrderBookService;
     public static feeRecipients(req: express.Request, res: express.Response): void {
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
