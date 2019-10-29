@@ -1,14 +1,10 @@
 // tslint:disable:custom-no-magic-numbers
 import { BigNumber } from '0x.js';
 import { assert } from '@0x/assert';
-import * as crypto from 'crypto';
-import * as fs from 'fs';
 import * as _ from 'lodash';
-import * as path from 'path';
 
-import { NULL_BYTES } from './constants';
+import { NULL_ADDRESS, NULL_BYTES } from './constants';
 
-const metadataPath = path.join(__dirname, '../metadata.json');
 enum EnvVarType {
     Port,
     NetworkId,
@@ -42,7 +38,7 @@ export const MESH_ENDPOINT = _.isEmpty(process.env.MESH_ENDPOINT)
     : assertEnvVarType('MESH_ENDPOINT', process.env.MESH_ENDPOINT, EnvVarType.Url);
 // The fee recipient for orders
 export const FEE_RECIPIENT = _.isEmpty(process.env.FEE_RECIPIENT)
-    ? getDefaultFeeRecipient()
+    ? NULL_ADDRESS
     : assertEnvVarType('FEE_RECIPIENT', process.env.FEE_RECIPIENT, EnvVarType.FeeRecipient);
 // A flat fee that should be charged to the order maker
 export const MAKER_FEE_UNIT_AMOUNT = _.isEmpty(process.env.MAKER_FEE_UNIT_AMOUNT)
@@ -115,15 +111,4 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
         default:
             throw new Error(`Unrecognised EnvVarType: ${expectedType} encountered for variable ${name}.`);
     }
-}
-function getDefaultFeeRecipient(): string {
-    const metadata = JSON.parse(fs.readFileSync(metadataPath).toString());
-    const existingDefault: string = metadata.DEFAULT_FEE_RECIPIENT;
-    const newDefault: string = existingDefault || `0xabcabc${crypto.randomBytes(17).toString('hex')}`;
-    if (_.isEmpty(existingDefault)) {
-        const metadataCopy = JSON.parse(JSON.stringify(metadata));
-        metadataCopy.DEFAULT_FEE_RECIPIENT = newDefault;
-        fs.writeFileSync(metadataPath, JSON.stringify(metadataCopy));
-    }
-    return newDefault;
 }
