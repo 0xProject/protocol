@@ -15,7 +15,7 @@ export class HttpService {
         app.use(cors());
         app.use(bodyParser.json());
         app.use(urlParamsParsing);
-        app.use(createMeshGatewayRouter(orderBook));
+        app.use('/mesh_gateway/', createMeshGatewayRouter(orderBook));
         app.use(errorHandler);
     }
 }
