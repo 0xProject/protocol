@@ -8,6 +8,7 @@
     "scripts": {
         "clean": "shx rm -rf lib",
         "build": "tsc",
+        "dev": "nodemon -r dotenv/config src/index.ts",
         "watch": "tsc -w",
         "prettier": "prettier --write 'src/**/*.ts' --config .prettierrc",
         "start": "node -r dotenv/config lib/index.js",
@@ -25,8 +26,10 @@
         "@types/web3": "^1.0.19",
         "@types/web3-provider-engine": "^14.0.0",
         "@types/ws": "^6.0.2",
+        "nodemon": "^1.19.4",
         "prettier": "^1.18.2",
         "shx": "^0.3.2",
+        "ts-node": "^8.4.1",
         "tslint": "^5.19.0",
         "typescript": "3.0.1"
     },

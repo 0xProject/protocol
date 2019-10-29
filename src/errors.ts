@@ -1,10 +1,10 @@
 // tslint:disable:max-classes-per-file
-export abstract class RelayerBaseError extends Error {
+export abstract class APIBaseError extends Error {
     public abstract statusCode: number;
-    public isRelayerError = true;
+    public isAPIError = true;
 }
 
-export abstract class BadRequestError extends RelayerBaseError {
+export abstract class BadRequestError extends APIBaseError {
     public statusCode = 400;
     public abstract generalErrorCode: GeneralErrorCodes;
 }
@@ -49,11 +49,11 @@ export class NotImplementedError extends BadRequestError {
     public generalErrorCode = GeneralErrorCodes.NotImplemented;
 }
 
-export class NotFoundError extends RelayerBaseError {
+export class NotFoundError extends APIBaseError {
     public statusCode = 404;
 }
 
-export class InternalServerError extends RelayerBaseError {
+export class InternalServerError extends APIBaseError {
     public statusCode = 500;
 }
 
