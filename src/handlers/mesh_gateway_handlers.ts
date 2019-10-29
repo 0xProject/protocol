@@ -9,7 +9,7 @@ import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors'
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
-import { utils } from '../utils/utils';
+import { schemaUtils } from '../utils/schema_utils';
 
 export class MeshGatewayHandlers {
     private readonly _orderBook: OrderBookService;
@@ -21,12 +21,12 @@ export class MeshGatewayHandlers {
         res.status(HttpStatus.OK).send(paginatedFeeRecipients);
     }
     public static orderConfig(req: express.Request, res: express.Response): void {
-        utils.validateSchema(req.body, schemas.orderConfigRequestSchema);
+        schemaUtils.validateSchema(req.body, schemas.orderConfigRequestSchema);
         const orderConfigResponse = orderUtils.getOrderConfig(req.body);
         res.status(HttpStatus.OK).send(orderConfigResponse);
     }
     public static async assetPairsAsync(req: express.Request, res: express.Response): Promise<void> {
-        utils.validateSchema(req.query, schemas.assetPairsRequestOptsSchema);
+        schemaUtils.validateSchema(req.query, schemas.assetPairsRequestOptsSchema);
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const assetPairs = await OrderBookService.getAssetPairsAsync(
             page,
@@ -48,13 +48,13 @@ export class MeshGatewayHandlers {
         this._orderBook = orderBook;
     }
     public async ordersAsync(req: express.Request, res: express.Response): Promise<void> {
-        utils.validateSchema(req.query, schemas.ordersRequestOptsSchema);
+        schemaUtils.validateSchema(req.query, schemas.ordersRequestOptsSchema);
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const paginatedOrders = await this._orderBook.getOrdersAsync(page, perPage, req.query);
         res.status(HttpStatus.OK).send(paginatedOrders);
     }
     public async orderbookAsync(req: express.Request, res: express.Response): Promise<void> {
-        utils.validateSchema(req.query, schemas.orderBookRequestSchema);
+        schemaUtils.validateSchema(req.query, schemas.orderBookRequestSchema);
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const baseAssetData = req.query.baseAssetData;
         const quoteAssetData = req.query.quoteAssetData;
@@ -62,7 +62,7 @@ export class MeshGatewayHandlers {
         res.status(HttpStatus.OK).send(orderbookResponse);
     }
     public async postOrderAsync(req: express.Request, res: express.Response): Promise<void> {
-        utils.validateSchema(req.body, schemas.signedOrderSchema);
+        schemaUtils.validateSchema(req.body, schemas.signedOrderSchema);
         const signedOrder = unmarshallOrder(req.body);
         if (WHITELISTED_TOKENS !== '*') {
             const allowedTokens: string[] = WHITELISTED_TOKENS;
