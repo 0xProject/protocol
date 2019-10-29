@@ -6,7 +6,7 @@ import {
     ErrorBodyWithHTTPStatusCode,
     GeneralErrorCodes,
     generalErrorCodeToReason,
-    RelayerBaseError,
+    APIBaseError,
     ValidationError,
 } from '../errors';
 
@@ -15,7 +15,7 @@ import {
  */
 export function generateError(err: Error): ErrorBodyWithHTTPStatusCode {
     if ((err as any).isRelayerError) {
-        const relayerError = err as RelayerBaseError;
+        const relayerError = err as APIBaseError;
         const statusCode = relayerError.statusCode;
         if (relayerError.statusCode === HttpStatus.BAD_REQUEST) {
             const badRequestError = relayerError as BadRequestError;
