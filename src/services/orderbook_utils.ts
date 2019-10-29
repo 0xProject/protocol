@@ -5,7 +5,7 @@ import { errorUtils } from '@0x/utils';
 
 import { DEFAULT_ERC20_TOKEN_PRECISION, NETWORK_ID } from '../config';
 import { MAX_TOKEN_SUPPLY_POSSIBLE } from '../constants';
-import { SignedOrderModel } from '../models/SignedOrderModel';
+import { SignedOrderEntity } from '../entity';
 import { APIOrderWithMetaData } from '../types';
 
 const DEFAULT_ERC721_ASSET = {
@@ -64,7 +64,7 @@ export const includesTokenAddress = (assetData: string, tokenAddress: string): b
     return false;
 };
 
-export const deserializeOrder = (signedOrderModel: Required<SignedOrderModel>): SignedOrder => {
+export const deserializeOrder = (signedOrderModel: Required<SignedOrderEntity>): SignedOrder => {
     const signedOrder: SignedOrder = {
         signature: signedOrderModel.signature,
         senderAddress: signedOrderModel.senderAddress,
@@ -87,7 +87,7 @@ export const deserializeOrder = (signedOrderModel: Required<SignedOrderModel>): 
     return signedOrder;
 };
 
-export const deserializeOrderToAPIOrder = (signedOrderModel: Required<SignedOrderModel>): APIOrder => {
+export const deserializeOrderToAPIOrder = (signedOrderModel: Required<SignedOrderEntity>): APIOrder => {
     const order = deserializeOrder(signedOrderModel);
     const apiOrder: APIOrder = {
         order,
@@ -99,9 +99,9 @@ export const deserializeOrderToAPIOrder = (signedOrderModel: Required<SignedOrde
     return apiOrder;
 };
 
-export const serializeOrder = (apiOrder: APIOrderWithMetaData): SignedOrderModel => {
+export const serializeOrder = (apiOrder: APIOrderWithMetaData): SignedOrderEntity => {
     const signedOrder = apiOrder.order;
-    const signedOrderModel = new SignedOrderModel({
+    const signedOrderModel = new SignedOrderEntity({
         signature: signedOrder.signature,
         senderAddress: signedOrder.senderAddress,
         makerAddress: signedOrder.makerAddress,

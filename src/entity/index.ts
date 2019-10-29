@@ -1,1 +1,1 @@
-export { signedOrderEntity } from './SignedOrderEntity';
+export { SignedOrderEntity } from './SignedOrderEntity';
