@@ -23,35 +23,31 @@
 
 To develop ontop of `0x-api`, follow the following instructions:
 
-1. Fork this repository
+1. Clone the repo.
+   
+2. Create an `.env` file and copy the content from the `.env_example` file. Defaults are defined in `config.ts`/`config.js`. The bash environment takes precedence over the `.env` file. If you run `source .env`, changes to the `.env` file will have no effect until you unset the colliding variables.
 
-2. Clone your fork of this repository
+    **Required**
+    - `NETWORK_ID` -- the network you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, 3 -> Ropsten, etc...). Defaults to `42` in the API, but required for `docker-compose up`.
+    - `ETHEREUM_RPC_URL` -- the URL used to issue JSON RPC requests.
 
-3. Open the `config.ts`/`config.js` file (depending on the language you've chosen above) and edit the whitelisted tokens:
 
-    - `WHITELISTED_TOKENS` -- Which tokens you would like to host orderbooks for.
-
-4. Open the `.env` file and edit the following fields. Defaults are defined in `config.ts`/`config.js`. The bash environment takes precedence over the `.env` file. If you run `source .env`, changes to the `.env` file will have no effect until you unset the colliding variables.
-
-    - `NETWORK_ID` -- the network you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, 3 -> Ropsten, etc...). Defaults to `42`
+    **Optional**
     - `MESH_ENDPOINT` -- the url pointing to the 0x Mesh node. Defaults to `ws://localhost:60557`
     - `FEE_RECIPIENT` -- The Ethereum address which should be specified as the fee recipient in orders your API accepts. Defaults to a fake address that helps the 0x core team use anonymous, already public data to understand Launch Kit developer usage. Defaults to an auto-generated address
     - `MAKER_FEE_ASSET_DATA` -- The maker fee token asset data. Defaults to `0x`, i.e no fee
     - `MAKER_FEE_UNIT_AMOUNT` -- The flat maker fee amount you'd like to receive for filled orders hosted by you. Defaults to `0`
     - `MAKER_FEE_ASSET_DATA` -- The taker fee token asset data. Defaults to `0x`, i.e no fee
     - `TAKER_FEE_UNIT_AMOUNT` -- The flat taker fee you'd like to receive for filled orders hosted by you. Defaults to `0`
+    - `POSTGRES_URI` -- A URI of a running postgres instance. Defaults to `postgresql://api:api@localhost/api` which is what is spun up by `docker-compose up`.
 
-[Instructions for using Launch Kit with Ganache](https://hackmd.io/-rC79gYWRyG7h6M9jUf5qA)
-
-5. Make sure you have [Yarn](https://yarnpkg.com/en/) installed.
-
-6. Install the dependencies:
+3. Install the dependencies:
 
     ```sh
     yarn
     ```
 
-7. Build the project
+4. Build the project
 
     ```sh
     yarn build
@@ -63,17 +59,18 @@ To develop ontop of `0x-api`, follow the following instructions:
     yarn watch
     ```
 
-    or develop:
-    ```sh
-    yarn dev
-    ```
 
-8. Run an instance of [0x Mesh](https://github.com/0xProject/0x-mesh) > v5.0.1 for v3. Docker image `0xorg/mesh:5.0.1-beta-0xv3` or greater.
+5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file.
    
-9.  Start the API
+6.  Start the API
 
     ```sh
     yarn start
+    ```
+
+    For development:
+    ```sh
+    yarn dev
     ```
 
 ## Commands
@@ -87,9 +84,7 @@ To develop ontop of `0x-api`, follow the following instructions:
 
 ## Database
 
-This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it easier for anyone to switch out the backing database used by this project. By default, this project uses an [SQLite](https://sqlite.org/docs.html) database.
-
-Because we want to support both Javascript and Typescript codebases, we don't use `TypeORM`'s [decorators](https://github.com/typeorm/typeorm/blob/master/docs/decorator-reference.md) (since they don't transpile nicely into readable Javascript). TypeORM shines with decorators however, so you might want to use them if you're going to be working in Typescript.
+This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it easier for anyone to switch out the backing database used by this project. By default, this project uses an [PostgreSQL](https://www.postgresql.org/) database.
 
 ## Deployment
 

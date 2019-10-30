@@ -1,6 +1,6 @@
 import { ConnectionOptions } from 'typeorm';
 
-import { POSTGRES_URL } from './config';
+import { POSTGRES_URI } from './config';
 import { SignedOrderEntity } from './entities';
 
 const entities = [
@@ -9,7 +9,7 @@ const entities = [
 
 export const config: ConnectionOptions = {
     type: 'postgres',
-    url: POSTGRES_URL,
+    url: POSTGRES_URI,
     entities,
     synchronize: true,
     logging: true,
