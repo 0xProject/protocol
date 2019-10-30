@@ -3,7 +3,7 @@ import { BigNumber } from '0x.js';
 import { assert } from '@0x/assert';
 import * as _ from 'lodash';
 
-import { NULL_ADDRESS, NULL_BYTES } from './constants';
+import { DEFAULT_LOCAL_POSTGRES_URL, NULL_ADDRESS, NULL_BYTES } from './constants';
 
 enum EnvVarType {
     Port,
@@ -56,6 +56,10 @@ export const MAKER_FEE_ASSET_DATA = _.isEmpty(process.env.MAKER_FEE_ASSET_DATA)
 export const TAKER_FEE_ASSET_DATA = _.isEmpty(process.env.TAKER_FEE_ASSET_DATA)
     ? NULL_BYTES
     : assertEnvVarType('TAKER_FEE_ASSET_DATA', process.env.TAKER_FEE_ASSET_DATA, EnvVarType.FeeAssetData);
+
+export const POSTGRES_URL = _.isEmpty(process.env.POSTGRES_URL)
+    ? DEFAULT_LOCAL_POSTGRES_URL
+    : assertEnvVarType('POSTGRES_URL', process.env.POSTGRES_URL, EnvVarType.Url);
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
