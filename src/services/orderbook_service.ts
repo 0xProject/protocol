@@ -15,11 +15,11 @@ export class OrderBookService {
     private readonly _meshClient: WSClient;
     public static async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
         const connection = getDBConnection();
-        const signedOrderModelIfExists = await connection.manager.findOne(SignedOrderEntity, orderHash);
-        if (signedOrderModelIfExists === undefined) {
+        const signedOrderEntityIfExists = await connection.manager.findOne(SignedOrderEntity, orderHash);
+        if (signedOrderEntityIfExists === undefined) {
             return undefined;
         } else {
-            const deserializedOrder = orderUtils.deserializeOrderToAPIOrder(signedOrderModelIfExists as Required<
+            const deserializedOrder = orderUtils.deserializeOrderToAPIOrder(signedOrderEntityIfExists as Required<
                 SignedOrderEntity
             >);
             return deserializedOrder;
@@ -32,11 +32,11 @@ export class OrderBookService {
         assetDataB: string,
     ): Promise<PaginatedCollection<AssetPairsItem>> {
         const connection = getDBConnection();
-        const SignedOrderEntities = (await connection.manager.find(SignedOrderEntity)) as Array<
+        const signedOrderEntities = (await connection.manager.find(SignedOrderEntity)) as Array<
             Required<SignedOrderEntity>
         >;
 
-        const assetPairsItems: AssetPairsItem[] = SignedOrderEntities
+        const assetPairsItems: AssetPairsItem[] = signedOrderEntities
             .map(orderUtils.deserializeOrder)
             .map(orderUtils.signedOrderToAssetPair);
         let nonPaginatedFilteredAssetPairs: AssetPairsItem[];
@@ -109,10 +109,10 @@ export class OrderBookService {
             takerFeeAssetData: ordersFilterParams.takerFeeAssetData,
         };
         const filterObject = _.pickBy(filterObjectWithValuesIfExist, _.identity.bind(_));
-        const SignedOrderEntities = (await connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
+        const signedOrderEntities = (await connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
             Required<SignedOrderEntity>
         >;
-        let apiOrders = _.map(SignedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
+        let apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
         // Post-filters
         apiOrders = apiOrders
             .filter(
