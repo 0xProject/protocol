@@ -1,9 +1,9 @@
 import { ConnectionOptions } from 'typeorm';
 
-import { signedOrderEntity } from './entity';
+import { SignedOrderEntity } from './entity';
 
 const entities = [
-    signedOrderEntity,
+    SignedOrderEntity,
 ];
 
 export const config: ConnectionOptions = {

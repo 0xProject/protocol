@@ -2,8 +2,8 @@ import { WSClient } from '@0x/mesh-rpc-client';
 import * as _ from 'lodash';
 
 import { getDBConnection } from '../db_connection';
+import { SignedOrderEntity } from '../entity';
 import { MeshUtils } from '../mesh_utils';
-import { SignedOrderModel } from '../models/SignedOrderModel';
 import { APIOrderWithMetaData, OrderWatcherLifeCycleEvents } from '../types';
 
 import { deserializeOrder, serializeOrder } from './orderbook_utils';
@@ -40,7 +40,7 @@ export class OrderWatcherService {
                 // tslint:disable-next-line:custom-no-magic-numbers
                 const chunks = _.chunk(orderHashes, 999);
                 for (const chunk of chunks) {
-                    await connection.manager.delete(SignedOrderModel, chunk);
+                    await connection.manager.delete(SignedOrderEntity, chunk);
                 }
                 break;
             }
@@ -64,8 +64,8 @@ export class OrderWatcherService {
     public async syncOrderbookAsync(): Promise<void> {
         d('SYNC orderbook with Mesh');
         const connection = getDBConnection();
-        const signedOrderModels = (await connection.manager.find(SignedOrderModel)) as Array<
-            Required<SignedOrderModel>
+        const signedOrderModels = (await connection.manager.find(SignedOrderEntity)) as Array<
+            Required<SignedOrderEntity>
         >;
         const signedOrders = signedOrderModels.map(deserializeOrder);
         // Sync the order watching service state locally

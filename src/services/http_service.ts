@@ -3,7 +3,6 @@ import * as cors from 'cors';
 import * as asyncHandler from 'express-async-handler';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
-import 'reflect-metadata';
 
 import { Handlers } from '../handlers';
 import { errorHandler } from '../middleware/error_handling';
