@@ -24,4 +24,4 @@ import { WebsocketService } from '../services/websocket_service';
     const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
     // tslint:disable-next-line:no-unused-expression
     new WebsocketService(server, meshClient);
-})().catch(logger.info);
+})().catch(logger.error);
