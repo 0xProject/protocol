@@ -1,0 +1,29 @@
+version: '3'
+services:
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=api
+            - POSTGRES_PASSWORD=api
+            - POSTGRES_DB=api
+        # persist the postgres data to disk so we don't lose it
+        # on rebuilds.
+        volumes:
+            - ./postgres:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+    mesh:
+        image: 0xorg/mesh:0xV3
+        restart: always
+        environment:
+            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
+            ETHEREUM_NETWORK_ID: '${NETWORK_ID}'
+            USE_BOOTSTRAP_LIST: 'true'
+            VERBOSITY: 3
+            PRIVATE_KEY_PATH: ''
+            BLOCK_POLLING_INTERVAL: '5s'
+            P2P_LISTEN_PORT: '60557'
+        volumes:
+          - ./0x_mesh:/usr/mesh/0x_mesh
+        ports:
+            - '60557:60557'
