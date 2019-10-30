@@ -2,7 +2,6 @@ import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
-import 'reflect-metadata';
 
 import { errorHandler } from '../middleware/error_handling';
 import { urlParamsParsing } from '../middleware/url_params_parsing';

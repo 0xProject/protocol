@@ -1,8 +1,10 @@
 import { ConnectionOptions } from 'typeorm';
 
-import { signedOrderEntity } from './entities';
+import { SignedOrderEntity } from './entities';
 
-const entities = [signedOrderEntity];
+const entities = [
+    SignedOrderEntity,
+];
 
 export const config: ConnectionOptions = {
     type: 'sqlite',

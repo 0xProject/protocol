@@ -1,6 +1,5 @@
 import { WSClient } from '@0x/mesh-rpc-client';
 import * as express from 'express';
-import 'reflect-metadata';
 
 import * as config from './config';
 import { initDBConnectionAsync } from './db_connection';

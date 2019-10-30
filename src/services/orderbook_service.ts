@@ -5,8 +5,8 @@ import { AssetPairsItem, OrdersRequestOpts } from '@0x/types';
 import * as _ from 'lodash';
 
 import { getDBConnection } from '../db_connection';
+import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
-import { SignedOrderModel } from '../models/SignedOrderModel';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
@@ -15,12 +15,12 @@ export class OrderBookService {
     private readonly _meshClient: WSClient;
     public static async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
         const connection = getDBConnection();
-        const signedOrderModelIfExists = await connection.manager.findOne(SignedOrderModel, orderHash);
+        const signedOrderModelIfExists = await connection.manager.findOne(SignedOrderEntity, orderHash);
         if (signedOrderModelIfExists === undefined) {
             return undefined;
         } else {
             const deserializedOrder = orderUtils.deserializeOrderToAPIOrder(signedOrderModelIfExists as Required<
-                SignedOrderModel
+                SignedOrderEntity
             >);
             return deserializedOrder;
         }
@@ -32,11 +32,11 @@ export class OrderBookService {
         assetDataB: string,
     ): Promise<PaginatedCollection<AssetPairsItem>> {
         const connection = getDBConnection();
-        const signedOrderModels = (await connection.manager.find(SignedOrderModel)) as Array<
-            Required<SignedOrderModel>
+        const SignedOrderEntities = (await connection.manager.find(SignedOrderEntity)) as Array<
+            Required<SignedOrderEntity>
         >;
 
-        const assetPairsItems: AssetPairsItem[] = signedOrderModels
+        const assetPairsItems: AssetPairsItem[] = SignedOrderEntities
             .map(orderUtils.deserializeOrder)
             .map(orderUtils.signedOrderToAssetPair);
         let nonPaginatedFilteredAssetPairs: AssetPairsItem[];
@@ -69,16 +69,16 @@ export class OrderBookService {
         quoteAssetData: string,
     ): Promise<OrderbookResponse> {
         const connection = getDBConnection();
-        const bidSignedOrderModels = (await connection.manager.find(SignedOrderModel, {
+        const bidSignedOrderEntities = (await connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: baseAssetData, makerAssetData: quoteAssetData },
-        })) as Array<Required<SignedOrderModel>>;
-        const askSignedOrderModels = (await connection.manager.find(SignedOrderModel, {
+        })) as Array<Required<SignedOrderEntity>>;
+        const askSignedOrderEntities = (await connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: quoteAssetData, makerAssetData: baseAssetData },
-        })) as Array<Required<SignedOrderModel>>;
-        const bidApiOrders: APIOrder[] = bidSignedOrderModels
+        })) as Array<Required<SignedOrderEntity>>;
+        const bidApiOrders: APIOrder[] = bidSignedOrderEntities
             .map(orderUtils.deserializeOrderToAPIOrder)
             .sort((orderA, orderB) => orderUtils.compareBidOrder(orderA.order, orderB.order));
-        const askApiOrders: APIOrder[] = askSignedOrderModels
+        const askApiOrders: APIOrder[] = askSignedOrderEntities
             .map(orderUtils.deserializeOrderToAPIOrder)
             .sort((orderA, orderB) => orderUtils.compareAskOrder(orderA.order, orderB.order));
         const paginatedBidApiOrders = paginationUtils.paginate(bidApiOrders, page, perPage);
@@ -109,10 +109,10 @@ export class OrderBookService {
             takerFeeAssetData: ordersFilterParams.takerFeeAssetData,
         };
         const filterObject = _.pickBy(filterObjectWithValuesIfExist, _.identity.bind(_));
-        const signedOrderModels = (await connection.manager.find(SignedOrderModel, { where: filterObject })) as Array<
-            Required<SignedOrderModel>
+        const SignedOrderEntities = (await connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
+            Required<SignedOrderEntity>
         >;
-        let apiOrders = _.map(signedOrderModels, orderUtils.deserializeOrderToAPIOrder);
+        let apiOrders = _.map(SignedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
         // Post-filters
         apiOrders = apiOrders
             .filter(

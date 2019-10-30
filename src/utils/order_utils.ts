@@ -13,7 +13,7 @@ import {
     TAKER_FEE_UNIT_AMOUNT,
 } from '../config';
 import { MAX_TOKEN_SUPPLY_POSSIBLE, NULL_ADDRESS } from '../constants';
-import { SignedOrderModel } from '../models/SignedOrderModel';
+import { SignedOrderEntity } from '../entities';
 import { APIOrderWithMetaData } from '../types';
 
 const DEFAULT_ERC721_ASSET = {
@@ -92,42 +92,42 @@ export const orderUtils = {
         }
         return false;
     },
-    deserializeOrder: (signedOrderModel: Required<SignedOrderModel>): SignedOrder => {
+    deserializeOrder: (signedOrderEntity: Required<SignedOrderEntity>): SignedOrder => {
         const signedOrder: SignedOrder = {
-            signature: signedOrderModel.signature,
-            senderAddress: signedOrderModel.senderAddress,
-            makerAddress: signedOrderModel.makerAddress,
-            takerAddress: signedOrderModel.takerAddress,
-            makerFee: new BigNumber(signedOrderModel.makerFee),
-            takerFee: new BigNumber(signedOrderModel.takerFee),
-            makerAssetAmount: new BigNumber(signedOrderModel.makerAssetAmount),
-            takerAssetAmount: new BigNumber(signedOrderModel.takerAssetAmount),
-            makerAssetData: signedOrderModel.makerAssetData,
-            takerAssetData: signedOrderModel.takerAssetData,
-            salt: new BigNumber(signedOrderModel.salt),
-            exchangeAddress: signedOrderModel.exchangeAddress,
-            feeRecipientAddress: signedOrderModel.feeRecipientAddress,
-            expirationTimeSeconds: new BigNumber(signedOrderModel.expirationTimeSeconds),
-            makerFeeAssetData: signedOrderModel.makerFeeAssetData,
-            takerFeeAssetData: signedOrderModel.takerFeeAssetData,
+            signature: signedOrderEntity.signature,
+            senderAddress: signedOrderEntity.senderAddress,
+            makerAddress: signedOrderEntity.makerAddress,
+            takerAddress: signedOrderEntity.takerAddress,
+            makerFee: new BigNumber(signedOrderEntity.makerFee),
+            takerFee: new BigNumber(signedOrderEntity.takerFee),
+            makerAssetAmount: new BigNumber(signedOrderEntity.makerAssetAmount),
+            takerAssetAmount: new BigNumber(signedOrderEntity.takerAssetAmount),
+            makerAssetData: signedOrderEntity.makerAssetData,
+            takerAssetData: signedOrderEntity.takerAssetData,
+            salt: new BigNumber(signedOrderEntity.salt),
+            exchangeAddress: signedOrderEntity.exchangeAddress,
+            feeRecipientAddress: signedOrderEntity.feeRecipientAddress,
+            expirationTimeSeconds: new BigNumber(signedOrderEntity.expirationTimeSeconds),
+            makerFeeAssetData: signedOrderEntity.makerFeeAssetData,
+            takerFeeAssetData: signedOrderEntity.takerFeeAssetData,
             chainId: NETWORK_ID,
         };
         return signedOrder;
     },
-    deserializeOrderToAPIOrder: (signedOrderModel: Required<SignedOrderModel>): APIOrder => {
-        const order = orderUtils.deserializeOrder(signedOrderModel);
+    deserializeOrderToAPIOrder: (signedOrderEntity: Required<SignedOrderEntity>): APIOrder => {
+        const order = orderUtils.deserializeOrder(signedOrderEntity);
         const apiOrder: APIOrder = {
             order,
             metaData: {
-                orderHash: signedOrderModel.hash,
-                remainingFillableTakerAssetAmount: signedOrderModel.remainingFillableTakerAssetAmount,
+                orderHash: signedOrderEntity.hash,
+                remainingFillableTakerAssetAmount: signedOrderEntity.remainingFillableTakerAssetAmount,
             },
         };
         return apiOrder;
     },
-    serializeOrder: (apiOrder: APIOrderWithMetaData): SignedOrderModel => {
+    serializeOrder: (apiOrder: APIOrderWithMetaData): SignedOrderEntity => {
         const signedOrder = apiOrder.order;
-        const signedOrderModel = new SignedOrderModel({
+        const signedOrderEntity = new SignedOrderEntity({
             signature: signedOrder.signature,
             senderAddress: signedOrder.senderAddress,
             makerAddress: signedOrder.makerAddress,
@@ -147,7 +147,7 @@ export const orderUtils = {
             hash: apiOrder.metaData.orderHash,
             remainingFillableTakerAssetAmount: apiOrder.metaData.remainingFillableTakerAssetAmount.toString(),
         });
-        return signedOrderModel;
+        return signedOrderEntity;
     },
     signedOrderToAssetPair: (signedOrder: SignedOrder): AssetPairsItem => {
         return {
