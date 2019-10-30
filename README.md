@@ -34,7 +34,7 @@ To develop ontop of `0x-api`, follow the following instructions:
 
     **Optional**
     - `MESH_WEBSOCKET_URI` -- the url pointing to the 0x Mesh node. Defaults to `ws://localhost:60557`
-    - `FEE_RECIPIENT` -- The Ethereum address which should be specified as the fee recipient in orders your API accepts. Defaults to a fake address that helps the 0x core team use anonymous, already public data to understand Launch Kit developer usage. Defaults to an auto-generated address
+    - `FEE_RECIPIENT_ADDRESS` -- The Ethereum address which should be specified as the fee recipient in orders your API accepts. Defaults to a fake address that helps the 0x core team use anonymous, already public data to understand Launch Kit developer usage. Defaults to an auto-generated address
     - `MAKER_FEE_ASSET_DATA` -- The maker fee token asset data. Defaults to `0x`, i.e no fee
     - `MAKER_FEE_UNIT_AMOUNT` -- The flat maker fee amount you'd like to receive for filled orders hosted by you. Defaults to `0`
     - `MAKER_FEE_ASSET_DATA` -- The taker fee token asset data. Defaults to `0x`, i.e no fee
