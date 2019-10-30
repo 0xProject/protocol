@@ -13,7 +13,7 @@ import { utils } from '../utils/utils';
 (async () => {
     await initDBConnectionAsync();
     utils.log(`Order Watching Service started!\nConfig: ${JSON.stringify(config, null, 2)}`);
-    const meshClient = new WSClient(config.MESH_ENDPOINT);
+    const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
     const orderWatcherService = new OrderWatcherService(meshClient);
     await orderWatcherService.syncOrderbookAsync();
 })().catch(utils.log);

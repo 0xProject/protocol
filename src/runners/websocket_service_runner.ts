@@ -21,7 +21,7 @@ import { utils } from '../utils/utils';
             )}`,
         );
     });
-    const meshClient = new WSClient(config.MESH_ENDPOINT);
+    const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
     // tslint:disable-next-line:no-unused-expression
     new WebsocketService(server, meshClient);
 })().catch(utils.log);

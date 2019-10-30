@@ -33,9 +33,9 @@ export const NETWORK_ID = _.isEmpty(process.env.NETWORK_ID)
     : assertEnvVarType('NETWORK_ID', process.env.NETWORK_ID, EnvVarType.NetworkId);
 
 // Mesh Endpoint
-export const MESH_ENDPOINT = _.isEmpty(process.env.MESH_ENDPOINT)
+export const MESH_WEBSOCKET_URI = _.isEmpty(process.env.MESH_WEBSOCKET_URI)
     ? 'ws://localhost:60557'
-    : assertEnvVarType('MESH_ENDPOINT', process.env.MESH_ENDPOINT, EnvVarType.Url);
+    : assertEnvVarType('MESH_WEBSOCKET_URI', process.env.MESH_WEBSOCKET_URI, EnvVarType.Url);
 // The fee recipient for orders
 export const FEE_RECIPIENT = _.isEmpty(process.env.FEE_RECIPIENT)
     ? NULL_ADDRESS
