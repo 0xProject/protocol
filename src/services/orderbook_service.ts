@@ -71,13 +71,13 @@ export class OrderBookService {
         quoteAssetData: string,
     ): Promise<OrderbookResponse> {
         const connection = getDBConnection();
-        const bidSignedOrderEntitys = (await connection.manager.find(SignedOrderEntity, {
+        const bidSignedOrderEntities = (await connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: baseAssetData, makerAssetData: quoteAssetData },
         })) as Array<Required<SignedOrderEntity>>;
         const askSignedOrderEntitys = (await connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: quoteAssetData, makerAssetData: baseAssetData },
         })) as Array<Required<SignedOrderEntity>>;
-        const bidApiOrders: APIOrder[] = bidSignedOrderEntitys
+        const bidApiOrders: APIOrder[] = bidSignedOrderEntities
             .map(deserializeOrderToAPIOrder)
             .sort((orderA, orderB) => compareBidOrder(orderA.order, orderB.order));
         const askApiOrders: APIOrder[] = askSignedOrderEntitys
