@@ -45,3 +45,9 @@ export enum MessageChannels {
 export interface UpdateOrdersChannelMessageWithChannel extends UpdateOrdersChannelMessage {
     channel: MessageChannels;
 }
+
+export interface AddedRemovedUpdate {
+    added: APIOrderWithMetaData[];
+    removed: APIOrderWithMetaData[];
+    updated: APIOrderWithMetaData[];
+}

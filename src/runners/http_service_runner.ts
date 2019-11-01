@@ -5,7 +5,7 @@ import * as config from '../config';
 import { initDBConnectionAsync } from '../db_connection';
 import { HttpService } from '../services/http_service';
 import { OrderBookService } from '../services/orderbook_service';
-import { utils } from '../utils';
+import { utils } from '../utils/utils';
 
 /**
  * This service handles the HTTP requests. This involves fetching from the database

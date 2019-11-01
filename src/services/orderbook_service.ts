@@ -5,29 +5,21 @@ import { AssetPairsItem, OrdersRequestOpts } from '@0x/types';
 import * as _ from 'lodash';
 
 import { getDBConnection } from '../db_connection';
-import { SignedOrderEntity } from '../entity';
+import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
-import { MeshUtils } from '../mesh_utils';
-import { paginate } from '../paginator';
-
-import {
-    compareAskOrder,
-    compareBidOrder,
-    deserializeOrder,
-    deserializeOrderToAPIOrder,
-    includesTokenAddress,
-    signedOrderToAssetPair,
-} from './orderbook_utils';
+import { meshUtils } from '../utils/mesh_utils';
+import { orderUtils } from '../utils/order_utils';
+import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService {
     private readonly _meshClient: WSClient;
     public static async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
         const connection = getDBConnection();
-        const signedOrderModelIfExists = await connection.manager.findOne(SignedOrderEntity, orderHash);
-        if (signedOrderModelIfExists === undefined) {
+        const signedOrderEntityIfExists = await connection.manager.findOne(SignedOrderEntity, orderHash);
+        if (signedOrderEntityIfExists === undefined) {
             return undefined;
         } else {
-            const deserializedOrder = deserializeOrderToAPIOrder(signedOrderModelIfExists as Required<
+            const deserializedOrder = orderUtils.deserializeOrderToAPIOrder(signedOrderEntityIfExists as Required<
                 SignedOrderEntity
             >);
             return deserializedOrder;
@@ -40,11 +32,13 @@ export class OrderBookService {
         assetDataB: string,
     ): Promise<PaginatedCollection<AssetPairsItem>> {
         const connection = getDBConnection();
-        const signedOrderModels = (await connection.manager.find(SignedOrderEntity)) as Array<
+        const signedOrderEntities = (await connection.manager.find(SignedOrderEntity)) as Array<
             Required<SignedOrderEntity>
         >;
 
-        const assetPairsItems: AssetPairsItem[] = signedOrderModels.map(deserializeOrder).map(signedOrderToAssetPair);
+        const assetPairsItems: AssetPairsItem[] = signedOrderEntities
+            .map(orderUtils.deserializeOrder)
+            .map(orderUtils.signedOrderToAssetPair);
         let nonPaginatedFilteredAssetPairs: AssetPairsItem[];
         if (assetDataA === undefined && assetDataB === undefined) {
             nonPaginatedFilteredAssetPairs = assetPairsItems;
@@ -60,7 +54,11 @@ export class OrderBookService {
             nonPaginatedFilteredAssetPairs = assetPairsItems.filter(containsAssetData);
         }
         const uniqueNonPaginatedFilteredAssetPairs = _.uniqWith(nonPaginatedFilteredAssetPairs, _.isEqual.bind(_));
-        const paginatedFilteredAssetPairs = paginate(uniqueNonPaginatedFilteredAssetPairs, page, perPage);
+        const paginatedFilteredAssetPairs = paginationUtils.paginate(
+            uniqueNonPaginatedFilteredAssetPairs,
+            page,
+            perPage,
+        );
         return paginatedFilteredAssetPairs;
     }
     // tslint:disable-next-line:prefer-function-over-method
@@ -74,17 +72,17 @@ export class OrderBookService {
         const bidSignedOrderEntities = (await connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: baseAssetData, makerAssetData: quoteAssetData },
         })) as Array<Required<SignedOrderEntity>>;
-        const askSignedOrderEntitys = (await connection.manager.find(SignedOrderEntity, {
+        const askSignedOrderEntities = (await connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: quoteAssetData, makerAssetData: baseAssetData },
         })) as Array<Required<SignedOrderEntity>>;
         const bidApiOrders: APIOrder[] = bidSignedOrderEntities
-            .map(deserializeOrderToAPIOrder)
-            .sort((orderA, orderB) => compareBidOrder(orderA.order, orderB.order));
-        const askApiOrders: APIOrder[] = askSignedOrderEntitys
-            .map(deserializeOrderToAPIOrder)
-            .sort((orderA, orderB) => compareAskOrder(orderA.order, orderB.order));
-        const paginatedBidApiOrders = paginate(bidApiOrders, page, perPage);
-        const paginatedAskApiOrders = paginate(askApiOrders, page, perPage);
+            .map(orderUtils.deserializeOrderToAPIOrder)
+            .sort((orderA, orderB) => orderUtils.compareBidOrder(orderA.order, orderB.order));
+        const askApiOrders: APIOrder[] = askSignedOrderEntities
+            .map(orderUtils.deserializeOrderToAPIOrder)
+            .sort((orderA, orderB) => orderUtils.compareAskOrder(orderA.order, orderB.order));
+        const paginatedBidApiOrders = paginationUtils.paginate(bidApiOrders, page, perPage);
+        const paginatedAskApiOrders = paginationUtils.paginate(askApiOrders, page, perPage);
         return {
             bids: paginatedBidApiOrders,
             asks: paginatedAskApiOrders,
@@ -111,10 +109,10 @@ export class OrderBookService {
             takerFeeAssetData: ordersFilterParams.takerFeeAssetData,
         };
         const filterObject = _.pickBy(filterObjectWithValuesIfExist, _.identity.bind(_));
-        const signedOrderModels = (await connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
+        const signedOrderEntities = (await connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
             Required<SignedOrderEntity>
         >;
-        let apiOrders = _.map(signedOrderModels, deserializeOrderToAPIOrder);
+        let apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
         // Post-filters
         apiOrders = apiOrders
             .filter(
@@ -128,13 +126,19 @@ export class OrderBookService {
                 // makerAssetAddress
                 apiOrder =>
                     ordersFilterParams.makerAssetAddress === undefined ||
-                    includesTokenAddress(apiOrder.order.makerAssetData, ordersFilterParams.makerAssetAddress),
+                    orderUtils.includesTokenAddress(
+                        apiOrder.order.makerAssetData,
+                        ordersFilterParams.makerAssetAddress,
+                    ),
             )
             .filter(
                 // takerAssetAddress
                 apiOrder =>
                     ordersFilterParams.takerAssetAddress === undefined ||
-                    includesTokenAddress(apiOrder.order.takerAssetData, ordersFilterParams.takerAssetAddress),
+                    orderUtils.includesTokenAddress(
+                        apiOrder.order.takerAssetData,
+                        ordersFilterParams.takerAssetAddress,
+                    ),
             )
             .filter(
                 // makerAssetProxyId
@@ -150,7 +154,7 @@ export class OrderBookService {
                     assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.takerAssetData).assetProxyId ===
                         ordersFilterParams.takerAssetProxyId,
             );
-        const paginatedApiOrders = paginate(apiOrders, page, perPage);
+        const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
         return paginatedApiOrders;
     }
     constructor(meshClient: WSClient) {
@@ -162,7 +166,7 @@ export class OrderBookService {
             throw new ValidationError([
                 {
                     field: 'signedOrder',
-                    code: MeshUtils.rejectedCodeToSRACode(rejected[0].status.code),
+                    code: meshUtils.rejectedCodeToSRACode(rejected[0].status.code),
                     reason: `${rejected[0].status.code}: ${rejected[0].status.message}`,
                 },
             ]);

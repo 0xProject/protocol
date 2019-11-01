@@ -7,7 +7,7 @@ import { HttpService } from './services/http_service';
 import { OrderWatcherService } from './services/order_watcher_service';
 import { OrderBookService } from './services/orderbook_service';
 import { WebsocketService } from './services/websocket_service';
-import { utils } from './utils';
+import { utils } from './utils/utils';
 
 (async () => {
     await initDBConnectionAsync();
