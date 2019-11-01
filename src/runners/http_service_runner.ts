@@ -27,4 +27,4 @@ import { OrderBookService } from '../services/orderbook_service';
     const orderBookService = new OrderBookService(meshClient);
     // tslint:disable-next-line:no-unused-expression
     new HttpService(app, orderBookService);
-})().catch(logger.error);
+})().catch(error => logger.error(error));
