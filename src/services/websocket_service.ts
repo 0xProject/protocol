@@ -22,7 +22,7 @@ import {
     WebsocketSRAOpts,
 } from '../types';
 import { meshUtils } from '../utils/mesh_utils';
-import { utils } from '../utils/utils';
+import { schemaUtils } from '../utils/schema_utils';
 
 interface WrappedWebSocket extends WebSocket {
     isAlive: boolean;
@@ -179,7 +179,7 @@ export class WebsocketService {
             throw new MalformedJSONError();
         }
 
-        utils.validateSchema(message, schemas.relayerApiOrdersChannelSubscribeSchema);
+        schemaUtils.validateSchema(message, schemas.relayerApiOrdersChannelSubscribeSchema);
         const { requestId, payload, type } = message;
         switch (type) {
             case MessageTypes.Subscribe:

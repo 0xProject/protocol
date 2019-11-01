@@ -3,17 +3,17 @@ import * as express from 'express';
 
 import * as config from './config';
 import { initDBConnectionAsync } from './db_connection';
+import { logger } from './logger';
 import { HttpService } from './services/http_service';
 import { OrderWatcherService } from './services/order_watcher_service';
 import { OrderBookService } from './services/orderbook_service';
 import { WebsocketService } from './services/websocket_service';
-import { utils } from './utils/utils';
 
 (async () => {
     await initDBConnectionAsync();
     const app = express();
     const server = app.listen(config.HTTP_PORT, () => {
-        utils.log(
+        logger.info(
             `Standard relayer API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(
                 config,
                 null,
@@ -29,4 +29,4 @@ import { utils } from './utils/utils';
     const orderBookService = new OrderBookService(meshClient);
     // tslint:disable-next-line:no-unused-expression
     new HttpService(app, orderBookService);
-})().catch(utils.log);
+})().catch(logger.error);

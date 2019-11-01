@@ -3,8 +3,8 @@ import * as express from 'express';
 
 import * as config from '../config';
 import { initDBConnectionAsync } from '../db_connection';
+import { logger } from '../logger';
 import { WebsocketService } from '../services/websocket_service';
-import { utils } from '../utils/utils';
 
 /**
  * This service handles websocket updates using a subscription from Mesh.
@@ -13,7 +13,7 @@ import { utils } from '../utils/utils';
     await initDBConnectionAsync();
     const app = express();
     const server = app.listen(config.HTTP_PORT, () => {
-        utils.log(
+        logger.info(
             `Standard relayer API (WS) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(
                 config,
                 null,
@@ -24,4 +24,4 @@ import { utils } from '../utils/utils';
     const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
     // tslint:disable-next-line:no-unused-expression
     new WebsocketService(server, meshClient);
-})().catch(utils.log);
+})().catch(logger.error);

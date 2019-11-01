@@ -2,8 +2,8 @@ import { WSClient } from '@0x/mesh-rpc-client';
 
 import * as config from '../config';
 import { initDBConnectionAsync } from '../db_connection';
+import { logger } from '../logger';
 import { OrderWatcherService } from '../services/order_watcher_service';
-import { utils } from '../utils/utils';
 
 /**
  * This service is a simple writer from the Mesh events. On order discovery
@@ -12,8 +12,8 @@ import { utils } from '../utils/utils';
  */
 (async () => {
     await initDBConnectionAsync();
-    utils.log(`Order Watching Service started!\nConfig: ${JSON.stringify(config, null, 2)}`);
+    logger.info(`Order Watching Service started!\nConfig: ${JSON.stringify(config, null, 2)}`);
     const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
     const orderWatcherService = new OrderWatcherService(meshClient);
     await orderWatcherService.syncOrderbookAsync();
-})().catch(utils.log);
+})().catch(logger.error);
