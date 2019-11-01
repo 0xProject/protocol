@@ -16,4 +16,4 @@ import { OrderWatcherService } from '../services/order_watcher_service';
     const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
     const orderWatcherService = new OrderWatcherService(meshClient);
     await orderWatcherService.syncOrderbookAsync();
-})().catch(logger.error);
+})().catch(error => logger.error(error));

@@ -29,4 +29,4 @@ import { WebsocketService } from './services/websocket_service';
     const orderBookService = new OrderBookService(meshClient);
     // tslint:disable-next-line:no-unused-expression
     new HttpService(app, orderBookService);
-})().catch(logger.error);
+})().catch(logger.error.bind(logger));
