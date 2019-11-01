@@ -1,5 +1,6 @@
 import { ConnectionOptions } from 'typeorm';
 
+import { POSTGRES_URI } from './config';
 import { SignedOrderEntity } from './entities';
 
 const entities = [
@@ -7,8 +8,8 @@ const entities = [
 ];
 
 export const config: ConnectionOptions = {
-    type: 'sqlite',
-    database: 'db/database.sqlite',
+    type: 'postgres',
+    url: POSTGRES_URI,
     entities,
     synchronize: true,
     logging: true,

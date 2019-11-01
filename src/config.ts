@@ -3,7 +3,7 @@ import { BigNumber } from '0x.js';
 import { assert } from '@0x/assert';
 import * as _ from 'lodash';
 
-import { NULL_ADDRESS, NULL_BYTES } from './constants';
+import { DEFAULT_LOCAL_POSTGRES_URI, NULL_ADDRESS, NULL_BYTES } from './constants';
 
 enum EnvVarType {
     Port,
@@ -33,13 +33,13 @@ export const NETWORK_ID = _.isEmpty(process.env.NETWORK_ID)
     : assertEnvVarType('NETWORK_ID', process.env.NETWORK_ID, EnvVarType.NetworkId);
 
 // Mesh Endpoint
-export const MESH_ENDPOINT = _.isEmpty(process.env.MESH_ENDPOINT)
+export const MESH_WEBSOCKET_URI = _.isEmpty(process.env.MESH_WEBSOCKET_URI)
     ? 'ws://localhost:60557'
-    : assertEnvVarType('MESH_ENDPOINT', process.env.MESH_ENDPOINT, EnvVarType.Url);
+    : assertEnvVarType('MESH_WEBSOCKET_URI', process.env.MESH_WEBSOCKET_URI, EnvVarType.Url);
 // The fee recipient for orders
-export const FEE_RECIPIENT = _.isEmpty(process.env.FEE_RECIPIENT)
+export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
     ? NULL_ADDRESS
-    : assertEnvVarType('FEE_RECIPIENT', process.env.FEE_RECIPIENT, EnvVarType.FeeRecipient);
+    : assertEnvVarType('FEE_RECIPIENT_ADDRESS', process.env.FEE_RECIPIENT_ADDRESS, EnvVarType.FeeRecipient);
 // A flat fee that should be charged to the order maker
 export const MAKER_FEE_UNIT_AMOUNT = _.isEmpty(process.env.MAKER_FEE_UNIT_AMOUNT)
     ? new BigNumber(0)
@@ -56,6 +56,10 @@ export const MAKER_FEE_ASSET_DATA = _.isEmpty(process.env.MAKER_FEE_ASSET_DATA)
 export const TAKER_FEE_ASSET_DATA = _.isEmpty(process.env.TAKER_FEE_ASSET_DATA)
     ? NULL_BYTES
     : assertEnvVarType('TAKER_FEE_ASSET_DATA', process.env.TAKER_FEE_ASSET_DATA, EnvVarType.FeeAssetData);
+
+export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
+    ? DEFAULT_LOCAL_POSTGRES_URI
+    : assertEnvVarType('POSTGRES_URI', process.env.POSTGRES_URI, EnvVarType.Url);
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;

@@ -5,7 +5,7 @@ import { errorUtils } from '@0x/utils';
 
 import {
     DEFAULT_ERC20_TOKEN_PRECISION,
-    FEE_RECIPIENT,
+    FEE_RECIPIENT_ADDRESS,
     MAKER_FEE_ASSET_DATA,
     MAKER_FEE_UNIT_AMOUNT,
     NETWORK_ID,
@@ -156,7 +156,7 @@ export const orderUtils = {
         };
     },
     getOrderConfig: (_order: Partial<OrderConfigRequest>): OrderConfigResponse => {
-        const normalizedFeeRecipient = FEE_RECIPIENT.toLowerCase();
+        const normalizedFeeRecipient = FEE_RECIPIENT_ADDRESS.toLowerCase();
         const orderConfigResponse: OrderConfigResponse = {
             senderAddress: NULL_ADDRESS,
             feeRecipientAddress: normalizedFeeRecipient,

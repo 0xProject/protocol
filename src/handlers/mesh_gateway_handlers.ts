@@ -4,7 +4,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 
-import { FEE_RECIPIENT, WHITELISTED_TOKENS } from '../config';
+import { FEE_RECIPIENT_ADDRESS, WHITELISTED_TOKENS } from '../config';
 import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
@@ -15,7 +15,7 @@ export class MeshGatewayHandlers {
     private readonly _orderBook: OrderBookService;
     public static feeRecipients(req: express.Request, res: express.Response): void {
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
-        const normalizedFeeRecipient = FEE_RECIPIENT.toLowerCase();
+        const normalizedFeeRecipient = FEE_RECIPIENT_ADDRESS.toLowerCase();
         const feeRecipients = [normalizedFeeRecipient];
         const paginatedFeeRecipients = paginationUtils.paginate(feeRecipients, page, perPage);
         res.status(HttpStatus.OK).send(paginatedFeeRecipients);
