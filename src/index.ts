@@ -45,5 +45,4 @@ process.on('unhandledRejection', err => {
     if (err) {
         logger.error(err);
     }
-    process.exit(1);
 });
