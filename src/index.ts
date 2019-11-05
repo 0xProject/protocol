@@ -14,19 +14,36 @@ import { WebsocketService } from './services/websocket_service';
     const app = express();
     const server = app.listen(config.HTTP_PORT, () => {
         logger.info(
-            `Standard relayer API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(
+            `API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(
                 config,
                 null,
                 2,
             )}`,
         );
     });
-    const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
-    const orderWatcherService = new OrderWatcherService(meshClient);
-    await orderWatcherService.syncOrderbookAsync();
-    // tslint:disable-next-line:no-unused-expression
-    new WebsocketService(server, meshClient);
+    let meshClient: WSClient | undefined;
+    try {
+        meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
+        const orderWatcherService = new OrderWatcherService(meshClient);
+        await orderWatcherService.syncOrderbookAsync();
+        // tslint:disable-next-line:no-unused-expression
+        new WebsocketService(server, meshClient);
+    } catch (err) {
+        logger.error(err);
+    }
     const orderBookService = new OrderBookService(meshClient);
     // tslint:disable-next-line:no-unused-expression
     new HttpService(app, orderBookService);
-})().catch(logger.error.bind(logger));
+})().catch(error => logger.error(error));
+
+process.on('uncaughtException', err => {
+    logger.error(err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', err => {
+    if (err) {
+        logger.error(err);
+    }
+    process.exit(1);
+});
