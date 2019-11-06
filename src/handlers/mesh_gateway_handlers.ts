@@ -5,7 +5,7 @@ import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 
 import { FEE_RECIPIENT_ADDRESS, WHITELISTED_TOKENS } from '../config';
-import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
+import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
@@ -69,7 +69,11 @@ export class MeshGatewayHandlers {
             validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.makerAssetData, 'makerAssetData');
             validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.takerAssetData, 'takerAssetData');
         }
-        await this._orderBook.addOrderAsync(signedOrder);
+        try {
+            await this._orderBook.addOrderAsync(signedOrder);
+        } catch (err) {
+            throw new InternalServerError();
+        }
         res.status(HttpStatus.OK).send();
     }
 }

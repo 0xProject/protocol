@@ -14,11 +14,11 @@ import {
  * Wraps an Error with a JSON human readable reason and status code.
  */
 export function generateError(err: Error): ErrorBodyWithHTTPStatusCode {
-    if ((err as any).isRelayerError) {
-        const relayerError = err as APIBaseError;
-        const statusCode = relayerError.statusCode;
-        if (relayerError.statusCode === HttpStatus.BAD_REQUEST) {
-            const badRequestError = relayerError as BadRequestError;
+    if ((err as any).isAPIError) {
+        const apiError = err as APIBaseError;
+        const statusCode = apiError.statusCode;
+        if (apiError.statusCode === HttpStatus.BAD_REQUEST) {
+            const badRequestError = apiError as BadRequestError;
             if (badRequestError.generalErrorCode === GeneralErrorCodes.ValidationError) {
                 const validationError = badRequestError as ValidationError;
                 return {
@@ -42,7 +42,7 @@ export function generateError(err: Error): ErrorBodyWithHTTPStatusCode {
             return {
                 statusCode,
                 errorBody: {
-                    reason: HttpStatus.getStatusText(relayerError.statusCode),
+                    reason: HttpStatus.getStatusText(apiError.statusCode),
                 },
             };
         }
@@ -70,7 +70,7 @@ export function errorHandler(
     if (res.headersSent) {
         return next(err);
     }
-    if ((err as any).isRelayerError || (err as any).statusCode) {
+    if ((err as any).isAPIError || (err as any).statusCode) {
         const { statusCode, errorBody } = generateError(err);
         res.status(statusCode).send(errorBody);
         return;

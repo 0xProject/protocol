@@ -174,5 +174,6 @@ export class OrderBookService {
             }
             // Order Watcher Service will handle persistence
         }
+        throw new Error('Could not add order to mesh.');
     }
 }

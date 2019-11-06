@@ -309,20 +309,6 @@
     jsonschema "^1.2.0"
     lodash.values "^4.3.0"
 
-"@0x/mesh-rpc-client@6.0.0-beta-v3":
-  version "6.0.0-beta-v3"
-  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-6.0.0-beta-v3.tgz#782d5ed76a8492e7283d3b56894c7d55593c3ef6"
-  integrity sha512-KnYoxbEmnBetH6moerYIqMRO/faDS5URzJPy9xuf/7km0lcrgcUmWNUbBsEmXs9WbSjrQ/2p2BXGQGezfZ013g==
-  dependencies:
-    "@0x/assert" "2.2.0-beta.0"
-    "@0x/order-utils" "8.5.0-beta.0"
-    "@0x/types" "2.5.0-beta.0"
-    "@0x/typescript-typings" "4.4.0-beta.0"
-    "@0x/utils" "^4.6.0-beta.0"
-    "@0x/web3-providers-fork" "0.0.7"
-    uuid "^3.3.2"
-    websocket "^1.0.29"
-
 "@0x/mesh-rpc-client@^4.0.1-beta":
   version "4.0.1-beta"
   resolved "https://registry.yarnpkg.com/@0x/mesh-rpc-client/-/mesh-rpc-client-4.0.1-beta.tgz#14db219ea398af5232811e63b7a1e5ca1de19a88"
@@ -333,6 +319,20 @@
     "@0x/types" "^2.4.1"
     "@0x/typescript-typings" "^4.2.4"
     "@0x/utils" "^4.4.2"
+    "@0x/web3-providers-fork" "0.0.7"
+    uuid "^3.3.2"
+    websocket "^1.0.29"
+
+"@0x/mesh-rpc-client@^6.0.0-beta-v3":
+  version "6.0.0-beta-v3"
+  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-6.0.0-beta-v3.tgz#782d5ed76a8492e7283d3b56894c7d55593c3ef6"
+  integrity sha512-KnYoxbEmnBetH6moerYIqMRO/faDS5URzJPy9xuf/7km0lcrgcUmWNUbBsEmXs9WbSjrQ/2p2BXGQGezfZ013g==
+  dependencies:
+    "@0x/assert" "2.2.0-beta.0"
+    "@0x/order-utils" "8.5.0-beta.0"
+    "@0x/types" "2.5.0-beta.0"
+    "@0x/typescript-typings" "4.4.0-beta.0"
+    "@0x/utils" "^4.6.0-beta.0"
     "@0x/web3-providers-fork" "0.0.7"
     uuid "^3.3.2"
     websocket "^1.0.29"
