@@ -23,7 +23,12 @@ import { OrderBookService } from '../services/orderbook_service';
             )}`,
         );
     });
-    const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
+    let meshClient;
+    try {
+        meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
+    } catch (err) {
+        logger.error(err);
+    }
     const orderBookService = new OrderBookService(meshClient);
     // tslint:disable-next-line:no-unused-expression
     new HttpService(app, orderBookService);

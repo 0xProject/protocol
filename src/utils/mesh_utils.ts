@@ -69,7 +69,7 @@ export const meshUtils = {
             case RejectedCode.OrderHasInvalidSignature: {
                 return ValidationErrorCodes.InvalidSignatureOrHash;
             }
-            case RejectedCode.OrderForIncorrectNetwork: {
+            case RejectedCode.OrderForIncorrectChain: {
                 return ValidationErrorCodes.InvalidAddress;
             }
             default:

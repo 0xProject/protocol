@@ -12,7 +12,7 @@ import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService {
-    private readonly _meshClient: WSClient;
+    private readonly _meshClient?: WSClient;
     public static async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
         const connection = getDBConnection();
         const signedOrderEntityIfExists = await connection.manager.findOne(SignedOrderEntity, orderHash);
@@ -157,20 +157,23 @@ export class OrderBookService {
         const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
         return paginatedApiOrders;
     }
-    constructor(meshClient: WSClient) {
+    constructor(meshClient?: WSClient) {
         this._meshClient = meshClient;
     }
     public async addOrderAsync(signedOrder: SignedOrder): Promise<void> {
-        const { rejected } = await this._meshClient.addOrdersAsync([signedOrder]);
-        if (rejected.length !== 0) {
-            throw new ValidationError([
-                {
-                    field: 'signedOrder',
-                    code: meshUtils.rejectedCodeToSRACode(rejected[0].status.code),
-                    reason: `${rejected[0].status.code}: ${rejected[0].status.message}`,
-                },
-            ]);
+        if (this._meshClient) {
+            const { rejected } = await this._meshClient.addOrdersAsync([signedOrder]);
+            if (rejected.length !== 0) {
+                throw new ValidationError([
+                    {
+                        field: 'signedOrder',
+                        code: meshUtils.rejectedCodeToSRACode(rejected[0].status.code),
+                        reason: `${rejected[0].status.code}: ${rejected[0].status.message}`,
+                    },
+                ]);
+            }
+            // Order Watcher Service will handle persistence
         }
-        // Order Watcher Service will handle persistence
+        throw new Error('Could not add order to mesh.');
     }
 }

@@ -65,8 +65,6 @@ export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
 export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
-// Address used when simulating transfers from the maker as part of 0x order validation
-export const DEFAULT_TAKER_SIMULATION_ADDRESS = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
     let returnValue;

@@ -323,9 +323,10 @@
     uuid "^3.3.2"
     websocket "^1.0.29"
 
-"@0x/mesh-rpc-client@^5.0.0-beta-v3":
-  version "5.0.0-beta-v3"
-  resolved "https://registry.yarnpkg.com/@0x/mesh-rpc-client/-/mesh-rpc-client-5.0.0-beta-v3.tgz#3344dd9e0b24a1c072918e6037b6e7f86a55fc37"
+"@0x/mesh-rpc-client@^6.0.0-beta-v3":
+  version "6.0.0-beta-v3"
+  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-6.0.0-beta-v3.tgz#782d5ed76a8492e7283d3b56894c7d55593c3ef6"
+  integrity sha512-KnYoxbEmnBetH6moerYIqMRO/faDS5URzJPy9xuf/7km0lcrgcUmWNUbBsEmXs9WbSjrQ/2p2BXGQGezfZ013g==
   dependencies:
     "@0x/assert" "2.2.0-beta.0"
     "@0x/order-utils" "8.5.0-beta.0"
