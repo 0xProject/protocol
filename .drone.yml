@@ -33,3 +33,10 @@ steps:
       region: us-east-1
       tags:
         - latest
+
+trigger:
+  branch:
+  - master
+  event:
+    include:
+      - push
