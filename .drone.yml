@@ -1,0 +1,35 @@
+name: trident-pipeline
+kind: pipeline
+type: docker
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish  
+    image: plugins/ecr
+    settings:
+      repo: ${ECR_REPO}
+      registry: ${ECR_REGISTRY}
+      region: us-east-1
+      tags:
+        - ${DRONE_COMMIT_SHA}
+---
+name: trident-pipeline
+kind: pipeline
+type: docker
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish  
+    image: plugins/ecr
+    settings:
+      repo: ${ECR_REPO}
+      registry: ${ECR_REGISTRY}
+      region: us-east-1
+      tags:
+        - latest
