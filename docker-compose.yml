@@ -22,7 +22,6 @@ services:
             VERBOSITY: 3
             PRIVATE_KEY_PATH: ''
             BLOCK_POLLING_INTERVAL: '5s'
-            P2P_LISTEN_PORT: '60557'
         volumes:
           - ./0x_mesh:/usr/mesh/0x_mesh
         ports:

@@ -24,8 +24,6 @@ import { WebsocketService } from './services/websocket_service';
     let meshClient: WSClient | undefined;
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
-        const orderWatcherService = new OrderWatcherService(meshClient);
-        await orderWatcherService.syncOrderbookAsync();
         // tslint:disable-next-line:no-unused-expression
         new WebsocketService(server, meshClient);
     } catch (err) {
@@ -34,6 +32,10 @@ import { WebsocketService } from './services/websocket_service';
     const orderBookService = new OrderBookService(meshClient);
     // tslint:disable-next-line:no-unused-expression
     new HttpService(app, orderBookService);
+    if (meshClient) {
+        const orderWatcherService = new OrderWatcherService(meshClient);
+        await orderWatcherService.syncOrderbookAsync();
+    }
 })().catch(error => logger.error(error));
 
 process.on('uncaughtException', err => {
