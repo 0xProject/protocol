@@ -28,7 +28,7 @@ To develop ontop of `0x-api`, follow the following instructions:
 2. Create an `.env` file and copy the content from the `.env_example` file. Defaults are defined in `config.ts`/`config.js`. The bash environment takes precedence over the `.env` file. If you run `source .env`, changes to the `.env` file will have no effect until you unset the colliding variables.
 
     **Required**
-    - `NETWORK_ID` -- the network you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, 3 -> Ropsten, etc...). Defaults to `42` in the API, but required for `docker-compose up`.
+    - `CHAIN_ID` -- the chain id you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, 3 -> Ropsten, etc...). Defaults to `42` in the API, but required for `docker-compose up`.
     - `ETHEREUM_RPC_URL` -- the URL used to issue JSON RPC requests.
 
 
@@ -84,7 +84,7 @@ To develop ontop of `0x-api`, follow the following instructions:
 
 ## Database
 
-This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it easier for anyone to switch out the backing database used by this project. By default, this project uses an [PostgreSQL](https://www.postgresql.org/) database.
+This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it easier for anyone to switch out the backing database used by this project. By default, this project uses a [PostgreSQL](https://www.postgresql.org/) database.
 
 ## Deployment
 

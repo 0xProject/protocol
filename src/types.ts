@@ -25,7 +25,8 @@ export interface APIOrderWithMetaData extends APIOrder {
 }
 
 export interface WebsocketSRAOpts {
-    pongInterval?: number;
+    pongInterval: number;
+    path: string;
 }
 
 export interface OrderChannelRequest {

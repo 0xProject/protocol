@@ -13,15 +13,16 @@ services:
         ports:
             - "5432:5432"
     mesh:
-        image: 0xorg/mesh:0xV3
+        image: 0xorg/mesh:7.0.0-beta-0xv3
         restart: always
         environment:
             ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
-            ETHEREUM_NETWORK_ID: '${NETWORK_ID}'
+            ETHEREUM_CHAIN_ID: '${CHAIN_ID}'
             USE_BOOTSTRAP_LIST: 'true'
             VERBOSITY: 3
             PRIVATE_KEY_PATH: ''
             BLOCK_POLLING_INTERVAL: '5s'
+            RPC_ADDR: '0.0.0.0:60557'
         volumes:
           - ./0x_mesh:/usr/mesh/0x_mesh
         ports:

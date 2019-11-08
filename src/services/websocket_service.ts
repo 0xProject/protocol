@@ -31,6 +31,7 @@ interface WrappedWebSocket extends WebSocket {
 
 const DEFAULT_OPTS: WebsocketSRAOpts = {
     pongInterval: 5000,
+    path: '/',
 };
 
 type ALL_SUBSCRIPTION_OPTS = 'ALL_SUBSCRIPTION_OPTS';
@@ -105,12 +106,12 @@ export class WebsocketService {
         // takerAssetProxyId?: string;
         return false;
     }
-    constructor(server: http.Server, meshClient: WSClient, opts?: WebsocketSRAOpts) {
-        const wsOpts = {
+    constructor(server: http.Server, meshClient: WSClient, opts?: Partial<WebsocketSRAOpts>) {
+        const wsOpts: WebsocketSRAOpts = {
             ...DEFAULT_OPTS,
             ...opts,
         };
-        this._server = new WebSocket.Server({ server });
+        this._server = new WebSocket.Server({ server,  path: wsOpts.path });
         this._server.on('connection', this._processConnection.bind(this));
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
         this._meshClient = meshClient;
