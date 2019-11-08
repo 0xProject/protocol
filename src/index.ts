@@ -2,6 +2,7 @@ import { WSClient } from '@0x/mesh-rpc-client';
 import * as express from 'express';
 
 import * as config from './config';
+import { MESH_GATEWAY_PATH } from './constants';
 import { initDBConnectionAsync } from './db_connection';
 import { logger } from './logger';
 import { HttpService } from './services/http_service';
@@ -25,7 +26,7 @@ import { WebsocketService } from './services/websocket_service';
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
         // tslint:disable-next-line:no-unused-expression
-        new WebsocketService(server, meshClient);
+        new WebsocketService(server, meshClient, { path: MESH_GATEWAY_PATH });
     } catch (err) {
         logger.error(err);
     }
