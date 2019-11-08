@@ -4,7 +4,6 @@ import * as cors from 'cors';
 import * as core from 'express-serve-static-core';
 
 import { errorHandler } from '../middleware/error_handling';
-import { urlParamsParsing } from '../middleware/url_params_parsing';
 import { createMeshGatewayRouter } from '../routers/mesh_gateway_router';
 import { OrderBookService } from '../services/orderbook_service';
 
@@ -13,7 +12,6 @@ export class HttpService {
     constructor(app: core.Express, orderBook: OrderBookService) {
         app.use(cors());
         app.use(bodyParser.json());
-        app.use(urlParamsParsing);
         app.use('/mesh_gateway/', createMeshGatewayRouter(orderBook));
         app.use(errorHandler);
     }

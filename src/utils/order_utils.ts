@@ -4,11 +4,11 @@ import { Asset, AssetPairsItem, AssetProxyId } from '@0x/types';
 import { errorUtils } from '@0x/utils';
 
 import {
+    CHAIN_ID,
     DEFAULT_ERC20_TOKEN_PRECISION,
     FEE_RECIPIENT_ADDRESS,
     MAKER_FEE_ASSET_DATA,
     MAKER_FEE_UNIT_AMOUNT,
-    NETWORK_ID,
     TAKER_FEE_ASSET_DATA,
     TAKER_FEE_UNIT_AMOUNT,
 } from '../config';
@@ -109,8 +109,8 @@ export const orderUtils = {
             feeRecipientAddress: signedOrderEntity.feeRecipientAddress,
             expirationTimeSeconds: new BigNumber(signedOrderEntity.expirationTimeSeconds),
             makerFeeAssetData: signedOrderEntity.makerFeeAssetData,
+            chainId: CHAIN_ID,
             takerFeeAssetData: signedOrderEntity.takerFeeAssetData,
-            chainId: NETWORK_ID,
         };
         return signedOrder;
     },

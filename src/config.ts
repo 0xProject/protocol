@@ -7,7 +7,7 @@ import { DEFAULT_LOCAL_POSTGRES_URI, NULL_ADDRESS, NULL_BYTES } from './constant
 
 enum EnvVarType {
     Port,
-    NetworkId,
+    ChainId,
     FeeRecipient,
     UnitAmount,
     Url,
@@ -28,9 +28,9 @@ export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
     ? 3000
     : assertEnvVarType('HTTP_PORT', process.env.HTTP_PORT, EnvVarType.Port);
 // Default network id to use when not specified
-export const NETWORK_ID = _.isEmpty(process.env.NETWORK_ID)
+export const CHAIN_ID = _.isEmpty(process.env.CHAIN_ID)
     ? 42
-    : assertEnvVarType('NETWORK_ID', process.env.NETWORK_ID, EnvVarType.NetworkId);
+    : assertEnvVarType('CHAIN_ID', process.env.CHAIN_ID, EnvVarType.ChainId);
 
 // Mesh Endpoint
 export const MESH_WEBSOCKET_URI = _.isEmpty(process.env.MESH_WEBSOCKET_URI)
@@ -80,7 +80,7 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be between 0 to 65535, found ${value}.`);
             }
             return returnValue;
-        case EnvVarType.NetworkId:
+        case EnvVarType.ChainId:
             try {
                 returnValue = parseInt(value, 10);
             } catch (err) {
