@@ -27,7 +27,7 @@ export const WHITELISTED_TOKENS: string[] | '*' = _.isEmpty(process.env.WHITELIS
 export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
     ? 3000
     : assertEnvVarType('HTTP_PORT', process.env.HTTP_PORT, EnvVarType.Port);
-// Default network id to use when not specified
+// Default chain id to use when not specified
 export const CHAIN_ID = _.isEmpty(process.env.CHAIN_ID)
     ? 42
     : assertEnvVarType('CHAIN_ID', process.env.CHAIN_ID, EnvVarType.ChainId);
