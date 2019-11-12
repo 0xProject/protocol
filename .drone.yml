@@ -1,4 +1,4 @@
-name: trident-pipeline
+name: 0x-api-pipeline
 kind: pipeline
 type: docker
 
@@ -16,7 +16,7 @@ steps:
       tags:
         - ${DRONE_COMMIT_SHA}
 ---
-name: trident-pipeline
+name: 0x-api-pipeline
 kind: pipeline
 type: docker
 
