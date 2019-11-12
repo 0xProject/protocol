@@ -13,7 +13,7 @@ services:
         ports:
             - "5432:5432"
     mesh:
-        image: 0xorg/mesh:7.0.0-beta-0xv3
+        image: 0xorg/mesh:7.0.1-beta-0xv3
         restart: always
         environment:
             ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
