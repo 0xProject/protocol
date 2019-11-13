@@ -10,8 +10,10 @@ steps:
   - name: publish-sha
     image: plugins/ecr
     settings:
-      repo: ${ECR_REPO}
-      registry: ${ECR_REGISTRY}
+      repo:
+        from_secret: ecr_repo
+      registry:
+        from_secret: ecr_registry
       region: us-east-1
       tags:
         - ${DRONE_COMMIT_SHA}
@@ -28,8 +30,10 @@ steps:
   - name: publish  
     image: plugins/ecr
     settings:
-      repo: ${ECR_REPO}
-      registry: ${ECR_REGISTRY}
+      repo:
+        from_secret: ecr_repo
+      registry:
+        from_secret: ecr_registry
       region: us-east-1
       tags:
         - latest
