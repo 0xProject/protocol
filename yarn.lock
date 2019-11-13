@@ -323,10 +323,10 @@
     uuid "^3.3.2"
     websocket "^1.0.29"
 
-"@0x/mesh-rpc-client@^7.0.1-beta-0xv3":
-  version "7.0.1-beta-0xv3"
-  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-7.0.1-beta-0xv3.tgz#8a7cefb762d711a4212868f61e1df42fdade5eb0"
-  integrity sha512-/Tb2g4jRy2udD+fuU1iRTM+sk62FkDC683v+Wod+ENcfnwJhUVrBSjKvaVhutbVHBmZEMaXzvaeB/fpaORIf6w==
+"@0x/mesh-rpc-client@^7.0.2-beta-0xv3":
+  version "7.0.2-beta-0xv3"
+  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-7.0.2-beta-0xv3.tgz#864daf49ecb5c4c7a8f64ab64c0c9f535176043d"
+  integrity sha512-nLQd3N36r+4auF3hsX+F+bJ2Vm4Lp48N64s2cyTS7Hnn2cBMzqUCsU6zniZbOB09sp+397RLooPtfMJMpiNVSQ==
   dependencies:
     "@0x/assert" "2.2.0-beta.0"
     "@0x/order-utils" "8.5.0-beta.0"
