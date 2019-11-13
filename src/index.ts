@@ -36,6 +36,8 @@ import { WebsocketService } from './services/websocket_service';
     if (meshClient) {
         const orderWatcherService = new OrderWatcherService(meshClient);
         await orderWatcherService.syncOrderbookAsync();
+    } else {
+        logger.warn('API starting without a connection to mesh');
     }
 })().catch(error => logger.error(error));
 
