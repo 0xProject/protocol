@@ -29,8 +29,7 @@ export const meshUtils = {
         const validationResults: ValidationResults = { accepted: [], rejected: [] };
         const chunks = _.chunk(orders, batchSize);
         for (const chunk of chunks) {
-            // TODO: remove pinned arg once https://github.com/0xProject/0x-mesh/pull/514 is published.
-            const results = await meshClient.addOrdersAsync(chunk, { pinned: true } as any);
+            const results = await meshClient.addOrdersAsync(chunk);
             validationResults.accepted = [...validationResults.accepted, ...results.accepted];
             validationResults.rejected = [...validationResults.rejected, ...results.rejected];
         }

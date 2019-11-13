@@ -162,8 +162,7 @@ export class OrderBookService {
     }
     public async addOrderAsync(signedOrder: SignedOrder): Promise<void> {
         if (this._meshClient) {
-            // TODO: remove pinned arg once https://github.com/0xProject/0x-mesh/pull/514 is published.
-            const { rejected } = await this._meshClient.addOrdersAsync([signedOrder], { pinned: true } as any);
+            const { rejected } = await this._meshClient.addOrdersAsync([signedOrder]);
             if (rejected.length !== 0) {
                 throw new ValidationError([
                     {
