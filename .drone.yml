@@ -1,4 +1,4 @@
-name: 0x-api-pipeline
+name: 0x-api-pipeline-sha
 kind: pipeline
 type: docker
 
