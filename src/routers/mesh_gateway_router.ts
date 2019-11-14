@@ -1,7 +1,5 @@
 import * as express from 'express';
 import * as asyncHandler from 'express-async-handler';
-// tslint:disable-next-line:no-implicit-dependencies
-import 'reflect-metadata';
 
 import { MeshGatewayHandlers } from '../handlers/mesh_gateway_handlers';
 import { OrderBookService } from '../services/orderbook_service';
