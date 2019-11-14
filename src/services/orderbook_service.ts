@@ -173,6 +173,7 @@ export class OrderBookService {
                 ]);
             }
             // Order Watcher Service will handle persistence
+            return;
         }
         throw new Error('Could not add order to mesh.');
     }

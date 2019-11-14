@@ -40,6 +40,7 @@ To develop ontop of `0x-api`, follow the following instructions:
     - `MAKER_FEE_ASSET_DATA` -- The taker fee token asset data. Defaults to `0x`, i.e no fee
     - `TAKER_FEE_UNIT_AMOUNT` -- The flat taker fee you'd like to receive for filled orders hosted by you. Defaults to `0`
     - `POSTGRES_URI` -- A URI of a running postgres instance. Defaults to `postgresql://api:api@localhost/api` which is what is spun up by `docker-compose up`.
+    - `WHITELIST_ALL_TOKENS` -- A boolean determining whether all tokens should be allowed to be posted. Defaults to `false`.
 
 3. Install the dependencies:
 
