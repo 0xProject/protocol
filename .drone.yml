@@ -1,0 +1,46 @@
+name: 0x-api-pipeline-sha
+kind: pipeline
+type: docker
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish-sha
+    image: plugins/ecr
+    settings:
+      repo:
+        from_secret: ecr_repo
+      registry:
+        from_secret: ecr_registry
+      region: us-east-1
+      tags:
+        - ${DRONE_COMMIT_SHA}
+---
+name: 0x-api-pipeline
+kind: pipeline
+type: docker
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish  
+    image: plugins/ecr
+    settings:
+      repo:
+        from_secret: ecr_repo
+      registry:
+        from_secret: ecr_registry
+      region: us-east-1
+      tags:
+        - latest
+
+trigger:
+  branch:
+  - master
+  event:
+    include:
+      - push
