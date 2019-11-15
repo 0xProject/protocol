@@ -72,7 +72,7 @@ export const stakingHandlers = {
         ]
     }
     */
-    getStakingPools: async (req: express.Request, res: express.Response): Promise<void> => {
+    getStakingPoolsAsync: async (_req: express.Request, res: express.Response): Promise<void> => {
         res.status(HttpStatus.OK).send('OK');
     },
 };

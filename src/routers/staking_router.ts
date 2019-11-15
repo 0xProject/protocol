@@ -5,7 +5,7 @@ import { stakingHandlers } from '../handlers/staking_handlers';
 
 export const createStakingRouter = (): express.Router => {
     const router = express.Router();
-    router.get('staking_pools', asyncHandler(stakingHandlers.getStakingPools));
+    router.get('staking_pools', asyncHandler(stakingHandlers.getStakingPoolsAsync));
     return router;
 };
 
