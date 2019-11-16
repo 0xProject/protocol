@@ -4,7 +4,7 @@ import * as express from 'express';
 import * as config from '../config';
 import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
-import { HttpService } from '../services/http_service';
+import { MeshGatewayHttpService } from '../services/mesh_gateway_http_service';
 import { OrderBookService } from '../services/orderbook_service';
 
 /**
@@ -31,5 +31,5 @@ import { OrderBookService } from '../services/orderbook_service';
     }
     const orderBookService = new OrderBookService(connection, meshClient);
     // tslint:disable-next-line:no-unused-expression
-    new HttpService(app, orderBookService);
+    new MeshGatewayHttpService(app, orderBookService);
 })().catch(error => logger.error(error));

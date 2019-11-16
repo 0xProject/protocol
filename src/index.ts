@@ -5,7 +5,7 @@ import * as config from './config';
 import { MESH_GATEWAY_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
 import { logger } from './logger';
-import { HttpService } from './services/http_service';
+import { MeshGatewayHttpService } from './services/mesh_gateway_http_service';
 import { OrderWatcherService } from './services/order_watcher_service';
 import { OrderBookService } from './services/orderbook_service';
 import { WebsocketService } from './services/websocket_service';
@@ -32,7 +32,7 @@ import { WebsocketService } from './services/websocket_service';
     }
     const orderBookService = new OrderBookService(connection, meshClient);
     // tslint:disable-next-line:no-unused-expression
-    new HttpService(app, orderBookService);
+    new MeshGatewayHttpService(app, orderBookService);
     if (meshClient) {
         const orderWatcherService = new OrderWatcherService(connection, meshClient);
         await orderWatcherService.syncOrderbookAsync();
