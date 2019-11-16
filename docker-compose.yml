@@ -27,3 +27,12 @@ services:
           - ./0x_mesh:/usr/mesh/0x_mesh
         ports:
             - '60557:60557'
+    events-pipeline:
+        depends_on: 
+            - postgres
+        image: 0xorg/event-pipeline@sha256:d6d5b6b59818793e8fbb5077e84ef6530eec47816a454149b1f3aca8cadffc4b
+        restart: always
+        environment:
+            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
+            CHAIN_ID: '${CHAIN_ID}'
+            POSTGRES_URI: 'postgresql://api:api@postgres/api'
