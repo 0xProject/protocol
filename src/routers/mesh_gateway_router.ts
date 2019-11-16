@@ -11,7 +11,7 @@ export const createMeshGatewayRouter = (orderBook: OrderBookService): express.Ro
      * GET AssetPairs endpoint retrieves a list of available asset pairs and the information required to trade them.
      * http://sra-spec.s3-website-us-east-1.amazonaws.com/#operation/getAssetPairs
      */
-    router.get('/asset_pairs', asyncHandler(MeshGatewayHandlers.assetPairsAsync.bind(MeshGatewayHandlers)));
+    router.get('/asset_pairs', asyncHandler(handlers.assetPairsAsync.bind(handlers)));
     /**
      * GET Orders endpoint retrieves a list of orders given query parameters.
      * http://sra-spec.s3-website-us-east-1.amazonaws.com/#operation/getOrders
@@ -41,6 +41,6 @@ export const createMeshGatewayRouter = (orderBook: OrderBookService): express.Ro
      * GET Order endpoint retrieves the order by order hash.
      * http://sra-spec.s3-website-us-east-1.amazonaws.com/#operation/getOrder
      */
-    router.get('/order/:orderHash', asyncHandler(MeshGatewayHandlers.getOrderByHashAsync.bind(MeshGatewayHandlers)));
+    router.get('/order/:orderHash', asyncHandler(handlers.getOrderByHashAsync.bind(handlers)));
     return router;
 };

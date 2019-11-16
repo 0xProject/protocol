@@ -1,7 +1,7 @@
 import { WSClient } from '@0x/mesh-rpc-client';
 
 import * as config from '../config';
-import { initDBConnectionAsync } from '../db_connection';
+import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
 import { OrderWatcherService } from '../services/order_watcher_service';
 
@@ -11,9 +11,9 @@ import { OrderWatcherService } from '../services/order_watcher_service';
  * for syncing the database with Mesh on start or after a disconnect.
  */
 (async () => {
-    await initDBConnectionAsync();
+    const connection = await getDBConnectionAsync();
     logger.info(`Order Watching Service started!\nConfig: ${JSON.stringify(config, null, 2)}`);
     const meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
-    const orderWatcherService = new OrderWatcherService(meshClient);
+    const orderWatcherService = new OrderWatcherService(connection, meshClient);
     await orderWatcherService.syncOrderbookAsync();
 })().catch(error => logger.error(error));

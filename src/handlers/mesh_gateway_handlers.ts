@@ -25,10 +25,13 @@ export class MeshGatewayHandlers {
         const orderConfigResponse = orderUtils.getOrderConfig(req.body);
         res.status(HttpStatus.OK).send(orderConfigResponse);
     }
-    public static async assetPairsAsync(req: express.Request, res: express.Response): Promise<void> {
+    constructor(orderBook: OrderBookService) {
+        this._orderBook = orderBook;
+    }
+    public async assetPairsAsync(req: express.Request, res: express.Response): Promise<void> {
         schemaUtils.validateSchema(req.query, schemas.assetPairsRequestOptsSchema);
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
-        const assetPairs = await OrderBookService.getAssetPairsAsync(
+        const assetPairs = await this._orderBook.getAssetPairsAsync(
             page,
             perPage,
             req.query.assetDataA,
@@ -36,16 +39,13 @@ export class MeshGatewayHandlers {
         );
         res.status(HttpStatus.OK).send(assetPairs);
     }
-    public static async getOrderByHashAsync(req: express.Request, res: express.Response): Promise<void> {
-        const orderIfExists = await OrderBookService.getOrderByHashIfExistsAsync(req.params.orderHash);
+    public async getOrderByHashAsync(req: express.Request, res: express.Response): Promise<void> {
+        const orderIfExists = await this._orderBook.getOrderByHashIfExistsAsync(req.params.orderHash);
         if (orderIfExists === undefined) {
             throw new NotFoundError();
         } else {
             res.status(HttpStatus.OK).send(orderIfExists);
         }
-    }
-    constructor(orderBook: OrderBookService) {
-        this._orderBook = orderBook;
     }
     public async ordersAsync(req: express.Request, res: express.Response): Promise<void> {
         schemaUtils.validateSchema(req.query, schemas.ordersRequestOptsSchema);
