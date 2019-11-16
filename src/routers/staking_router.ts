@@ -1,12 +1,12 @@
 import * as express from 'express';
 import * as asyncHandler from 'express-async-handler';
 
-import { stakingHandlers } from '../handlers/staking_handlers';
+import { StakingHandlers } from '../handlers/staking_handlers';
+import { StakingDataService } from '../services/staking_data_service';
 
-export const createStakingRouter = (): express.Router => {
+export const createStakingRouter = (stakingDataService: StakingDataService): express.Router => {
     const router = express.Router();
-    router.get('staking_pools', asyncHandler(stakingHandlers.getStakingPoolsAsync));
+    const handlers = new StakingHandlers(stakingDataService);
+    router.get('/pools', asyncHandler(handlers.getStakingPoolsAsync.bind(handlers)));
     return router;
 };
-
-export const stakingRouter = createStakingRouter();

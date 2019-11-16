@@ -68,7 +68,7 @@ import { Connection } from 'typeorm';
 //         ...
 //     ]
 // }
-export class StakingService {
+export class StakingDataService {
     private readonly _connection: Connection;
     constructor(connection: Connection) {
         this._connection = connection;

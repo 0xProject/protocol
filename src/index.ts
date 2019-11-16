@@ -8,6 +8,8 @@ import { logger } from './logger';
 import { MeshGatewayHttpService } from './services/mesh_gateway_http_service';
 import { OrderWatcherService } from './services/order_watcher_service';
 import { OrderBookService } from './services/orderbook_service';
+import { StakingDataService } from './services/staking_data_service';
+import { StakingHttpService } from './services/staking_http_service';
 import { WebsocketService } from './services/websocket_service';
 
 (async () => {
@@ -22,6 +24,9 @@ import { WebsocketService } from './services/websocket_service';
             )}`,
         );
     });
+    const stakingDataService = new StakingDataService(connection);
+    // tslint:disable-next-line:no-unused-expression
+    new StakingHttpService(app, stakingDataService);
     let meshClient: WSClient | undefined;
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
