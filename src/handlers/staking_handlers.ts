@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { StakingDataService } from '../services/staking_data_service';
+import { StakingPoolsResponse } from '../types';
 
 export class StakingHandlers {
     private readonly _stakingDataService: StakingDataService;
@@ -15,7 +16,7 @@ export class StakingHandlers {
             this._stakingDataService.getNextEpochAsync(),
             this._stakingDataService.getStakingPoolsWithStatsAsync(),
         ]);
-        const response = {
+        const response: StakingPoolsResponse = {
             currentEpoch,
             nextEpoch,
             stakingPools,

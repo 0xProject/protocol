@@ -130,9 +130,15 @@ export interface EpochPoolStats {
     poolId: number;
     zrxStaked: number;
     operatorShare: number;
-    stakeRatio?: number;
     makerAddresses: string[];
     protocolFeesGeneratedInEth: number;
+    stakeRatio?: number;
+}
+
+export interface StakingPoolsResponse {
+    currentEpoch: Epoch;
+    nextEpoch: Epoch;
+    stakingPools: PoolWithStats[];
 }
 
 export interface ObjectMap<T> {
