@@ -1,4 +1,4 @@
-import { Epoch, Pool, RawEpoch, RawPool } from '../types';
+import { Epoch, EpochPoolStats, Pool, RawEpoch, RawEpochPoolStats, RawPool } from '../types';
 
 export const stakingUtils = {
     getEpochFromRaw: (rawEpoch: RawEpoch): Epoch => {
@@ -49,5 +49,26 @@ export const stakingUtils = {
     },
     getPoolsFromRaw: (rawPools: RawPool[]): Pool[] => {
         return rawPools.map(stakingUtils.getPoolFromRaw);
+    },
+    getEpochPoolStatsFromRaw: (rawEpochPoolStats: RawEpochPoolStats): EpochPoolStats => {
+        const {
+            pool_id,
+            maker_addresses,
+            operator_share,
+            zrx_staked,
+            protocol_fees,
+            approximate_stake_ratio,
+        } = rawEpochPoolStats;
+        return {
+            poolId: Number(pool_id),
+            zrxStaked: Number(zrx_staked || 0),
+            operatorShare: Number(operator_share),
+            stakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : undefined,
+            makerAddresses: maker_addresses,
+            protocolFeesGeneratedInEth: Number(protocol_fees || 0),
+        };
+    },
+    getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
+        return rawEpochPoolsStats.map(stakingUtils.getEpochPoolStatsFromRaw);
     },
 };

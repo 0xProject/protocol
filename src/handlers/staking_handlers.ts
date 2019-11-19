@@ -13,7 +13,7 @@ export class StakingHandlers {
         ] = await Promise.all([
             this._stakingDataService.getCurrentEpochAsync(),
             this._stakingDataService.getNextEpochAsync(),
-            this._stakingDataService.getStakingPoolsAsync(),
+            this._stakingDataService.getStakingPoolsWithStatsAsync(),
         ]);
         const response = {
             currentEpoch,

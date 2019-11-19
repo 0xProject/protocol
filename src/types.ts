@@ -107,3 +107,34 @@ export interface Pool {
     createdAt: TransactionDate;
     metaData: PoolMetadata;
 }
+
+export interface PoolWithStats extends Pool {
+    currentEpochStats: EpochPoolStats;
+    nextEpochStats: EpochPoolStats;
+}
+
+export interface RawEpochPoolStats {
+    pool_id: string;
+    maker_addresses: string[];
+    operator_share: string;
+    zrx_staked?: string;
+    total_staked?: string;
+    share_of_stake?: string;
+    protocol_fees?: string;
+    total_protocol_fees?: string;
+    share_of_fees?: string;
+    approximate_stake_ratio?: string;
+}
+
+export interface EpochPoolStats {
+    poolId: number;
+    zrxStaked: number;
+    operatorShare: number;
+    stakeRatio?: number;
+    makerAddresses: string[];
+    protocolFeesGeneratedInEth: number;
+}
+
+export interface ObjectMap<T> {
+    [key: string]: T;
+}
