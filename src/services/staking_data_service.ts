@@ -52,43 +52,44 @@ export class StakingDataService {
         const nextEpochPoolStatsMap = utils.arrayToMapWithId(nextEpochPoolStats, 'poolId');
         return pools.map(pool => ({
             ...pool,
-            currentEpochStats: currentEpochPoolStatsMap[pool.poolId] || {},
-            nextEpochStats: nextEpochPoolStatsMap[pool.poolId] || {},
+            currentEpochStats: currentEpochPoolStatsMap[pool.poolId],
+            nextEpochStats: nextEpochPoolStatsMap[pool.poolId],
         }));
     }
 }
 
 const currentEpocStatsQuery = `
     WITH
-        current_epoch_beginning_status AS (
-            SELECT
-                esps.*
-            FROM staking.epoch_start_pool_status esps
-            JOIN staking.current_epoch ce ON ce.epoch_id = esps.epoch_id
-        )
-        , current_epoch_fills_by_pool AS (
-            SELECT
-                ce.epoch_id
-                , cebs.pool_id
-                , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
-            FROM events.fill_events fe
-            LEFT JOIN current_epoch_beginning_status cebs ON fe.maker_address = ANY(cebs.maker_addresses)
-            JOIN staking.current_epoch ce
-                ON fe.block_number > ce.starting_block_number
-                OR (fe.block_number = ce.starting_block_number AND fe.transaction_index >= ce.starting_transaction_index)
-            WHERE
-                -- fees not accruing to a pool do not count
-                pool_id IS NOT NULL
-            GROUP BY 1,2
-        )
+    current_epoch_beginning_status AS (
         SELECT
-            cebs.pool_id
-            , cebs.zrx_delegated AS zrx_staked
-            , cebs.operator_share AS operator_share
-            , cebs.maker_addresses AS maker_addresses
-            , fbp.protocol_fees AS protocol_fees_generated_in_eth
-        FROM current_epoch_beginning_status cebs
-        LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.epoch_id = cebs.epoch_id AND fbp.pool_id = cebs.pool_id;
+            esps.*
+        FROM staking.epoch_start_pool_status esps
+        JOIN staking.current_epoch ce ON ce.epoch_id = esps.epoch_id
+    )
+    , current_epoch_fills_by_pool AS (
+        SELECT
+            ce.epoch_id
+            , cebs.pool_id
+            , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
+        FROM events.fill_events fe
+        LEFT JOIN current_epoch_beginning_status cebs ON fe.maker_address = ANY(cebs.maker_addresses)
+        JOIN staking.current_epoch ce
+            ON fe.block_number > ce.starting_block_number
+            OR (fe.block_number = ce.starting_block_number AND fe.transaction_index >= ce.starting_transaction_index)
+        WHERE
+            -- fees not accruing to a pool do not count
+            pool_id IS NOT NULL
+        GROUP BY 1,2
+    )
+    SELECT
+        pce.pool_id
+        , cebs.zrx_delegated AS zrx_staked
+        , cebs.operator_share AS operator_share
+        , cebs.maker_addresses AS maker_addresses
+        , fbp.protocol_fees AS protocol_fees_generated_in_eth
+    FROM events.staking_pool_created_events pce
+    LEFT JOIN current_epoch_beginning_status cebs ON cebs.pool_id = pce.pool_id
+    LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.epoch_id = cebs.epoch_id AND fbp.pool_id = cebs.pool_id;
 `;
 const nextEpochStatsQuery = `
     WITH
