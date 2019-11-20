@@ -61,7 +61,7 @@ To develop ontop of `0x-api`, follow the following instructions:
     ```
 
 
-5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file.
+5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file. On start-up, the events-pipeline container will crash and restart until Postgres is up.
    
 6.  Start the API
 
