@@ -58,6 +58,7 @@ export class StakingDataService {
     }
 }
 
+// TODO: current epoch query does not calculate the stake ratio
 const currentEpocStatsQuery = `
     WITH
     current_epoch_beginning_status AS (
