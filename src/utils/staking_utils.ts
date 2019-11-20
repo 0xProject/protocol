@@ -13,7 +13,7 @@ export const stakingUtils = {
             epochStart: {
                 blockNumber: parseInt(starting_block_number, 10),
                 txHash: starting_transaction_hash,
-                timestamp: starting_block_timestamp ? parseInt(starting_block_timestamp, 10) : undefined,
+                timestamp: starting_block_timestamp || undefined,
             },
         };
     },
@@ -38,12 +38,12 @@ export const stakingUtils = {
                 txHash: created_at_transaction_hash,
             },
             metaData: {
-                name,
-                bio,
-                location,
+                name: name || undefined,
+                bio: bio || undefined,
+                location: location || undefined,
                 isVerified: verified === 'true',
-                logoUrl: logo_url,
-                websiteUrl: website,
+                logoUrl: logo_url || undefined,
+                websiteUrl: website || undefined,
             },
         };
     },

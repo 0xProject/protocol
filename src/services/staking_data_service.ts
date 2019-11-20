@@ -22,7 +22,7 @@ export class StakingDataService {
         const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(`SELECT
             ce.epoch_id + 1 AS epoch_id
             , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
-            , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_timestamp
+            , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_block_timestamp
         FROM staking.current_epoch ce
         CROSS JOIN staking.current_params cp;`));
         if (!rawEpoch) {
@@ -52,8 +52,8 @@ export class StakingDataService {
         const nextEpochPoolStatsMap = utils.arrayToMapWithId(nextEpochPoolStats, 'poolId');
         return pools.map(pool => ({
             ...pool,
-            currentEpochStats: currentEpochPoolStatsMap[pool.poolId],
-            nextEpochStats: nextEpochPoolStatsMap[pool.poolId],
+            currentEpochStats: currentEpochPoolStatsMap[pool.poolId] || {},
+            nextEpochStats: nextEpochPoolStatsMap[pool.poolId] || {},
         }));
     }
 }

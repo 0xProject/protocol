@@ -69,7 +69,7 @@ export interface RawEpoch {
 export interface TransactionDate {
     blockNumber: number;
     txHash: string;
-    timestamp?: number;
+    timestamp?: string;
 }
 
 export interface Epoch {
