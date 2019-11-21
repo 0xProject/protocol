@@ -132,7 +132,7 @@ export interface EpochPoolStats {
     operatorShare: number;
     makerAddresses: string[];
     protocolFeesGeneratedInEth: number;
-    stakeRatio: number;
+    approximateStakeRatio: number;
 }
 
 export interface StakingPoolsResponse {

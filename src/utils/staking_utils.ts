@@ -63,7 +63,7 @@ export const stakingUtils = {
             poolId: pool_id,
             zrxStaked: Number(zrx_staked || 0),
             operatorShare: Number(operator_share),
-            stakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
+            approximateStakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
             makerAddresses: maker_addresses || [],
             protocolFeesGeneratedInEth: Number(protocol_fees || 0),
         };
