@@ -11,7 +11,7 @@ export class StakingDataService {
         this._connection = connection;
     }
     public async getCurrentEpochAsync(): Promise<Epoch> {
-        const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(`SELECT * FROM staking.current_epoch;`));
+        const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(currentEpochQuery));
         if (!rawEpoch) {
             throw new Error('Could not find the current epoch.');
         }
@@ -19,12 +19,7 @@ export class StakingDataService {
         return epoch;
     }
     public async getNextEpochAsync(): Promise<Epoch> {
-        const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(`SELECT
-            ce.epoch_id + 1 AS epoch_id
-            , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
-            , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_block_timestamp
-        FROM staking.current_epoch ce
-        CROSS JOIN staking.current_params cp;`));
+        const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(nextEpochQuery));
         if (!rawEpoch) {
             throw new Error('Could not find the next current epoch.');
         }
@@ -32,7 +27,7 @@ export class StakingDataService {
         return epoch;
     }
     public async getStakingPoolsAsync(): Promise<Pool[]> {
-        const rawPools: RawPool[] = await this._connection.query(`SELECT * FROM staking.pool_info;`);
+        const rawPools: RawPool[] = await this._connection.query(stakingPoolsQuery);
         const pools = stakingUtils.getPoolsFromRaw(rawPools);
         return pools;
     }
@@ -43,7 +38,7 @@ export class StakingDataService {
             rawNextEpochPoolStats,
         ] = await Promise.all([
             this.getStakingPoolsAsync(),
-            this._connection.query(currentEpocStatsQuery),
+            this._connection.query(currentEpochStatsQuery),
             this._connection.query(nextEpochStatsQuery),
         ]);
         const currentEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawCurrentEpochPoolStats);
@@ -58,8 +53,20 @@ export class StakingDataService {
     }
 }
 
+const currentEpochQuery = `SELECT * FROM staking.current_epoch;`;
+
+const nextEpochQuery = `
+    SELECT
+    ce.epoch_id + 1 AS epoch_id
+    , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
+    , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_block_timestamp
+    FROM staking.current_epoch ce
+    CROSS JOIN staking.current_params cp;`;
+
+const stakingPoolsQuery = `SELECT * FROM staking.pool_info;`;
+
 // TODO: current epoch query does not calculate the stake ratio
-const currentEpocStatsQuery = `
+const currentEpochStatsQuery = `
     WITH
     current_epoch_beginning_status AS (
         SELECT
