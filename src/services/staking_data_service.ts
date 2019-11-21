@@ -65,7 +65,6 @@ const nextEpochQuery = `
 
 const stakingPoolsQuery = `SELECT * FROM staking.pool_info;`;
 
-// TODO: current epoch query does not calculate the stake ratio
 const currentEpochStatsQuery = `
     WITH
     current_epoch_beginning_status AS (
@@ -89,15 +88,34 @@ const currentEpochStatsQuery = `
             pool_id IS NOT NULL
         GROUP BY 1,2
     )
+    , total_staked AS (
+        SELECT
+            SUM(zrx_delegated) AS total_staked
+        FROM current_epoch_beginning_status
+    )
+    , total_fees AS (
+        SELECT
+            SUM(protocol_fees) AS total_protocol_fees
+        FROM current_epoch_fills_by_pool
+    )
     SELECT
         pce.pool_id
-        , cebs.zrx_delegated AS zrx_staked
-        , cebs.operator_share AS operator_share
         , cebs.maker_addresses AS maker_addresses
+        , cebs.operator_share AS operator_share
+        , cebs.zrx_delegated AS zrx_staked
+        , ts.total_staked
+        , cebs.zrx_delegated / ts.total_staked AS share_of_stake
         , fbp.protocol_fees AS protocol_fees_generated_in_eth
+        , tf.total_protocol_fees
+        , fbp.protocol_fees / tf.total_protocol_fees AS share_of_fees
+        , (cebs.zrx_delegated / ts.total_staked)
+            / (fbp.protocol_fees / tf.total_protocol_fees)
+            AS approximate_stake_ratio
     FROM events.staking_pool_created_events pce
     LEFT JOIN current_epoch_beginning_status cebs ON cebs.pool_id = pce.pool_id
-    LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.epoch_id = cebs.epoch_id AND fbp.pool_id = cebs.pool_id;
+    LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.epoch_id = cebs.epoch_id AND fbp.pool_id = cebs.pool_id
+    CROSS JOIN total_staked ts
+    CROSS JOIN total_fees tf;
 `;
 const nextEpochStatsQuery = `
     WITH
