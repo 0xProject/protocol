@@ -9,7 +9,7 @@ import { createMeshGatewayRouter } from '../routers/mesh_gateway_router';
 import { OrderBookService } from '../services/orderbook_service';
 
 // tslint:disable-next-line:no-unnecessary-class
-export class HttpService {
+export class MeshGatewayHttpService {
     constructor(app: core.Express, orderBook: OrderBookService) {
         app.use(cors());
         app.use(bodyParser.json());

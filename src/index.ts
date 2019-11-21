@@ -3,15 +3,17 @@ import * as express from 'express';
 
 import * as config from './config';
 import { MESH_GATEWAY_PATH } from './constants';
-import { initDBConnectionAsync } from './db_connection';
+import { getDBConnectionAsync } from './db_connection';
 import { logger } from './logger';
-import { HttpService } from './services/http_service';
+import { MeshGatewayHttpService } from './services/mesh_gateway_http_service';
 import { OrderWatcherService } from './services/order_watcher_service';
 import { OrderBookService } from './services/orderbook_service';
+import { StakingDataService } from './services/staking_data_service';
+import { StakingHttpService } from './services/staking_http_service';
 import { WebsocketService } from './services/websocket_service';
 
 (async () => {
-    await initDBConnectionAsync();
+    const connection = await getDBConnectionAsync();
     const app = express();
     const server = app.listen(config.HTTP_PORT, () => {
         logger.info(
@@ -22,6 +24,9 @@ import { WebsocketService } from './services/websocket_service';
             )}`,
         );
     });
+    const stakingDataService = new StakingDataService(connection);
+    // tslint:disable-next-line:no-unused-expression
+    new StakingHttpService(app, stakingDataService);
     let meshClient: WSClient | undefined;
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
@@ -30,11 +35,11 @@ import { WebsocketService } from './services/websocket_service';
     } catch (err) {
         logger.error(err);
     }
-    const orderBookService = new OrderBookService(meshClient);
+    const orderBookService = new OrderBookService(connection, meshClient);
     // tslint:disable-next-line:no-unused-expression
-    new HttpService(app, orderBookService);
+    new MeshGatewayHttpService(app, orderBookService);
     if (meshClient) {
-        const orderWatcherService = new OrderWatcherService(meshClient);
+        const orderWatcherService = new OrderWatcherService(connection, meshClient);
         await orderWatcherService.syncOrderbookAsync();
     } else {
         logger.warn('API starting without a connection to mesh');

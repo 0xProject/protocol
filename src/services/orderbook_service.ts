@@ -3,8 +3,8 @@ import { APIOrder, OrderbookResponse, PaginatedCollection } from '@0x/connect';
 import { WSClient } from '@0x/mesh-rpc-client';
 import { AssetPairsItem, OrdersRequestOpts } from '@0x/types';
 import * as _ from 'lodash';
+import { Connection } from 'typeorm';
 
-import { getDBConnection } from '../db_connection';
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
 import { meshUtils } from '../utils/mesh_utils';
@@ -13,9 +13,9 @@ import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService {
     private readonly _meshClient?: WSClient;
-    public static async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
-        const connection = getDBConnection();
-        const signedOrderEntityIfExists = await connection.manager.findOne(SignedOrderEntity, orderHash);
+    private readonly _connection: Connection;
+    public async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
+        const signedOrderEntityIfExists = await this._connection.manager.findOne(SignedOrderEntity, orderHash);
         if (signedOrderEntityIfExists === undefined) {
             return undefined;
         } else {
@@ -25,14 +25,13 @@ export class OrderBookService {
             return deserializedOrder;
         }
     }
-    public static async getAssetPairsAsync(
+    public async getAssetPairsAsync(
         page: number,
         perPage: number,
         assetDataA: string,
         assetDataB: string,
     ): Promise<PaginatedCollection<AssetPairsItem>> {
-        const connection = getDBConnection();
-        const signedOrderEntities = (await connection.manager.find(SignedOrderEntity)) as Array<
+        const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity)) as Array<
             Required<SignedOrderEntity>
         >;
 
@@ -68,11 +67,10 @@ export class OrderBookService {
         baseAssetData: string,
         quoteAssetData: string,
     ): Promise<OrderbookResponse> {
-        const connection = getDBConnection();
-        const bidSignedOrderEntities = (await connection.manager.find(SignedOrderEntity, {
+        const bidSignedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: baseAssetData, makerAssetData: quoteAssetData },
         })) as Array<Required<SignedOrderEntity>>;
-        const askSignedOrderEntities = (await connection.manager.find(SignedOrderEntity, {
+        const askSignedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: { takerAssetData: quoteAssetData, makerAssetData: baseAssetData },
         })) as Array<Required<SignedOrderEntity>>;
         const bidApiOrders: APIOrder[] = bidSignedOrderEntities
@@ -95,7 +93,6 @@ export class OrderBookService {
         perPage: number,
         ordersFilterParams: OrdersRequestOpts,
     ): Promise<PaginatedCollection<APIOrder>> {
-        const connection = getDBConnection();
         // Pre-filters
         const filterObjectWithValuesIfExist: Partial<SignedOrder> = {
             exchangeAddress: ordersFilterParams.exchangeAddress,
@@ -109,7 +106,7 @@ export class OrderBookService {
             takerFeeAssetData: ordersFilterParams.takerFeeAssetData,
         };
         const filterObject = _.pickBy(filterObjectWithValuesIfExist, _.identity.bind(_));
-        const signedOrderEntities = (await connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
+        const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
             Required<SignedOrderEntity>
         >;
         let apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
@@ -157,8 +154,9 @@ export class OrderBookService {
         const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
         return paginatedApiOrders;
     }
-    constructor(meshClient?: WSClient) {
+    constructor(connection: Connection, meshClient?: WSClient) {
         this._meshClient = meshClient;
+        this._connection = connection;
     }
     public async addOrderAsync(signedOrder: SignedOrder): Promise<void> {
         if (this._meshClient) {

@@ -2,17 +2,19 @@ import { WSClient } from '@0x/mesh-rpc-client';
 import * as express from 'express';
 
 import * as config from '../config';
-import { initDBConnectionAsync } from '../db_connection';
+import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
-import { HttpService } from '../services/http_service';
+import { MeshGatewayHttpService } from '../services/mesh_gateway_http_service';
 import { OrderBookService } from '../services/orderbook_service';
+import { StakingDataService } from '../services/staking_data_service';
+import { StakingHttpService } from '../services/staking_http_service';
 
 /**
  * This service handles the HTTP requests. This involves fetching from the database
  * as well as adding orders to mesh.
  */
 (async () => {
-    await initDBConnectionAsync();
+    const connection = await getDBConnectionAsync();
     const app = express();
     app.listen(config.HTTP_PORT, () => {
         logger.info(
@@ -23,13 +25,16 @@ import { OrderBookService } from '../services/orderbook_service';
             )}`,
         );
     });
+    const stakingDataService = new StakingDataService(connection);
+    // tslint:disable-next-line:no-unused-expression
+    new StakingHttpService(app, stakingDataService);
     let meshClient;
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
     } catch (err) {
         logger.error(err);
     }
-    const orderBookService = new OrderBookService(meshClient);
+    const orderBookService = new OrderBookService(connection, meshClient);
     // tslint:disable-next-line:no-unused-expression
-    new HttpService(app, orderBookService);
+    new MeshGatewayHttpService(app, orderBookService);
 })().catch(error => logger.error(error));
