@@ -102,7 +102,7 @@ export interface PoolMetadata {
 }
 
 export interface Pool {
-    poolId: number;
+    poolId: string;
     operatorAddress: string;
     createdAt: TransactionDate;
     metaData: PoolMetadata;
@@ -127,7 +127,7 @@ export interface RawEpochPoolStats {
 }
 
 export interface EpochPoolStats {
-    poolId: number;
+    poolId: string;
     zrxStaked: number;
     operatorShare: number;
     makerAddresses: string[];

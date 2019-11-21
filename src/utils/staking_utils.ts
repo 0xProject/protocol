@@ -31,7 +31,7 @@ export const stakingUtils = {
             name,
         } = rawPool;
         return {
-            poolId: parseInt(pool_id, 10),
+            poolId: pool_id,
             operatorAddress: operator,
             createdAt: {
                 blockNumber: parseInt(created_at_block_number, 10),
@@ -60,7 +60,7 @@ export const stakingUtils = {
             approximate_stake_ratio,
         } = rawEpochPoolStats;
         return {
-            poolId: Number(pool_id),
+            poolId: pool_id,
             zrxStaked: Number(zrx_staked || 0),
             operatorShare: Number(operator_share),
             stakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
