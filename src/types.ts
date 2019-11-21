@@ -137,7 +137,7 @@ export interface EpochPoolStats {
 
 export interface StakingPoolsResponse {
     currentEpoch: Epoch;
-    nextEpoch: Epoch;
+    approximateNextEpoch: Epoch;
     stakingPools: PoolWithStats[];
 }
 

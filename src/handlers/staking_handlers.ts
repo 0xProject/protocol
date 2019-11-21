@@ -9,7 +9,7 @@ export class StakingHandlers {
     public async getStakingPoolsAsync(_req: express.Request, res: express.Response): Promise<void> {
         const [
             currentEpoch,
-            nextEpoch,
+            approximateNextEpoch,
             stakingPools,
         ] = await Promise.all([
             this._stakingDataService.getCurrentEpochAsync(),
@@ -18,7 +18,7 @@ export class StakingHandlers {
         ]);
         const response: StakingPoolsResponse = {
             currentEpoch,
-            nextEpoch,
+            approximateNextEpoch,
             stakingPools,
         };
         res.status(HttpStatus.OK).send(response);
