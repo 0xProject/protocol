@@ -1,12 +1,12 @@
 import * as express from 'express';
 import * as asyncHandler from 'express-async-handler';
 
-import { MeshGatewayHandlers } from '../handlers/mesh_gateway_handlers';
+import { SRAHandlers } from '../handlers/sra_handlers';
 import { OrderBookService } from '../services/orderbook_service';
 
-export const createMeshGatewayRouter = (orderBook: OrderBookService): express.Router => {
+export const createSRARouter = (orderBook: OrderBookService): express.Router => {
     const router = express.Router();
-    const handlers = new MeshGatewayHandlers(orderBook);
+    const handlers = new SRAHandlers(orderBook);
     /**
      * GET AssetPairs endpoint retrieves a list of available asset pairs and the information required to trade them.
      * http://sra-spec.s3-website-us-east-1.amazonaws.com/#operation/getAssetPairs
@@ -26,12 +26,12 @@ export const createMeshGatewayRouter = (orderBook: OrderBookService): express.Ro
      * GET FeeRecepients endpoint retrieves a collection of all fee recipient addresses for a relayer.
      * http://sra-spec.s3-website-us-east-1.amazonaws.com/v3/fee_recipients
      */
-    router.get('/fee_recipients', MeshGatewayHandlers.feeRecipients.bind(MeshGatewayHandlers));
+    router.get('/fee_recipients', SRAHandlers.feeRecipients.bind(SRAHandlers));
     /**
      * POST Order config endpoint retrives the values for order fields that the relayer requires.
      * http://sra-spec.s3-website-us-east-1.amazonaws.com/#operation/getOrderConfig
      */
-    router.post('/order_config', MeshGatewayHandlers.orderConfig.bind(MeshGatewayHandlers));
+    router.post('/order_config', SRAHandlers.orderConfig.bind(SRAHandlers));
     /**
      * POST Order endpoint submits an order to the Relayer.
      * http://sra-spec.s3-website-us-east-1.amazonaws.com/#operation/postOrder

@@ -11,7 +11,7 @@ import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
-export class MeshGatewayHandlers {
+export class SRAHandlers {
     private readonly _orderBook: OrderBookService;
     public static feeRecipients(req: express.Request, res: express.Response): void {
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
