@@ -4,8 +4,8 @@ import * as express from 'express';
 import * as config from '../config';
 import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
-import { MeshGatewayHttpService } from '../services/mesh_gateway_http_service';
 import { OrderBookService } from '../services/orderbook_service';
+import { SRAHttpService } from '../services/sra_http_service';
 import { StakingDataService } from '../services/staking_data_service';
 import { StakingHttpService } from '../services/staking_http_service';
 
@@ -36,5 +36,5 @@ import { StakingHttpService } from '../services/staking_http_service';
     }
     const orderBookService = new OrderBookService(connection, meshClient);
     // tslint:disable-next-line:no-unused-expression
-    new MeshGatewayHttpService(app, orderBookService);
+    new SRAHttpService(app, orderBookService);
 })().catch(error => logger.error(error));

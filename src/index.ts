@@ -2,12 +2,12 @@ import { WSClient } from '@0x/mesh-rpc-client';
 import * as express from 'express';
 
 import * as config from './config';
-import { MESH_GATEWAY_PATH } from './constants';
+import { SRA_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
 import { logger } from './logger';
-import { MeshGatewayHttpService } from './services/mesh_gateway_http_service';
 import { OrderWatcherService } from './services/order_watcher_service';
 import { OrderBookService } from './services/orderbook_service';
+import { SRAHttpService } from './services/sra_http_service';
 import { StakingDataService } from './services/staking_data_service';
 import { StakingHttpService } from './services/staking_http_service';
 import { WebsocketService } from './services/websocket_service';
@@ -31,13 +31,13 @@ import { WebsocketService } from './services/websocket_service';
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
         // tslint:disable-next-line:no-unused-expression
-        new WebsocketService(server, meshClient, { path: MESH_GATEWAY_PATH });
+        new WebsocketService(server, meshClient, { path: SRA_PATH });
     } catch (err) {
         logger.error(err);
     }
     const orderBookService = new OrderBookService(connection, meshClient);
     // tslint:disable-next-line:no-unused-expression
-    new MeshGatewayHttpService(app, orderBookService);
+    new SRAHttpService(app, orderBookService);
     if (meshClient) {
         const orderWatcherService = new OrderWatcherService(connection, meshClient);
         await orderWatcherService.syncOrderbookAsync();
