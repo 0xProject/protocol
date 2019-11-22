@@ -8,5 +8,7 @@ export const DEFAULT_PER_PAGE = 20;
 export const ZERO = new BigNumber(0);
 export const MAX_TOKEN_SUPPLY_POSSIBLE = new BigNumber(2).pow(256); // tslint:disable-line custom-no-magic-numbers
 export const DEFAULT_LOCAL_POSTGRES_URI = 'postgresql://api:api@localhost/api';
-export const MESH_GATEWAY_PATH = '/mesh_gateway';
+
+// API namespaces
+export const SRA_PATH = '/sra';
 export const STAKING_PATH = '/staking';
