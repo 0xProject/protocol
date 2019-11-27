@@ -21,8 +21,9 @@ services:
             USE_BOOTSTRAP_LIST: 'true'
             VERBOSITY: 3
             PRIVATE_KEY_PATH: ''
-            BLOCK_POLLING_INTERVAL: '5s'
+            BLOCK_POLLING_INTERVAL: '2s'
             RPC_ADDR: '0.0.0.0:60557'
+            ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
         volumes:
           - ./0x_mesh:/usr/mesh/0x_mesh
         ports:
