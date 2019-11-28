@@ -10,6 +10,7 @@ import {
     WebsocketConnectionEventType,
 } from '@0x/types';
 import * as http from 'http';
+import * as _ from 'lodash';
 import * as WebSocket from 'ws';
 
 import { MalformedJSONError, NotImplementedError } from '../errors';
@@ -121,6 +122,7 @@ export class WebsocketService {
         this._server.on('connection', this._processConnection.bind(this));
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
         this._meshClient = meshClient;
+        // tslint:disable-next-line:no-floating-promises
         this._meshClient
             .subscribeToOrdersAsync(e => this.orderUpdate(meshUtils.orderInfosToApiOrders(e)))
             .then(subscriptionId => (this._meshSubscriptionId = subscriptionId));
@@ -191,7 +193,7 @@ export class WebsocketService {
         switch (type) {
             case MessageTypes.Subscribe:
                 ws.requestIds.add(requestId);
-                const subscriptionOpts = payload || 'ALL_SUBSCRIPTION_OPTS';
+                const subscriptionOpts = payload === undefined || _.isEmpty(payload) ? 'ALL_SUBSCRIPTION_OPTS' : payload;
                 this._requestIdToSubscriptionOpts.set(requestId, subscriptionOpts);
                 this._requestIdToSocket.set(requestId, ws);
                 break;
