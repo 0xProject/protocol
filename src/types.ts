@@ -120,8 +120,8 @@ export interface RawEpochPoolStats {
     zrx_staked?: string;
     total_staked?: string;
     share_of_stake?: string;
-    protocol_fees?: string;
-    total_protocol_fees?: string;
+    total_protocol_fees_generated_in_eth?: string;
+    seven_day_protocol_fees_generated_in_eth?: string;
     share_of_fees?: string;
     approximate_stake_ratio?: string;
 }
@@ -131,7 +131,8 @@ export interface EpochPoolStats {
     zrxStaked: number;
     operatorShare: number;
     makerAddresses: string[];
-    protocolFeesGeneratedInEth: number;
+    totalProtocolFeesGeneratedInEth: number;
+    sevenDayProtocolFeesGeneratedInEth: number;
     approximateStakeRatio: number;
 }
 

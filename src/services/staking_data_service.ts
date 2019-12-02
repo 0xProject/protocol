@@ -98,6 +98,19 @@ const currentEpochStatsQuery = `
             SUM(protocol_fees) AS total_protocol_fees
         FROM current_epoch_fills_by_pool
     )
+    , past_7d_fills_fills_by_pool AS (
+        SELECT
+            pi.pool_id
+            , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
+        FROM events.fill_events fe
+        LEFT JOIN events.blocks b ON b.block_number = fe.block_number
+        LEFT JOIN staking.pool_info pi ON fe.maker_address = ANY(pi.maker_addresses)
+        WHERE
+            -- fees not accruing to a pool do not count
+            pool_id IS NOT NULL
+            AND TO_TIMESTAMP(b.block_timestamp) > (CURRENT_TIMESTAMP - '7 days'::INTERVAL)
+        GROUP BY 1
+    )
     SELECT
         pce.pool_id
         , cebs.maker_addresses AS maker_addresses
@@ -105,8 +118,8 @@ const currentEpochStatsQuery = `
         , cebs.zrx_delegated AS zrx_staked
         , ts.total_staked
         , cebs.zrx_delegated / ts.total_staked AS share_of_stake
-        , fbp.protocol_fees AS protocol_fees_generated_in_eth
-        , tf.total_protocol_fees
+        , fbp.protocol_fees AS total_protocol_fees_generated_in_eth
+        , f.protocol_fees AS seven_day_protocol_fees_generated_in_eth
         , fbp.protocol_fees / tf.total_protocol_fees AS share_of_fees
         , (cebs.zrx_delegated / ts.total_staked)
             / (fbp.protocol_fees / tf.total_protocol_fees)
@@ -114,6 +127,7 @@ const currentEpochStatsQuery = `
     FROM events.staking_pool_created_events pce
     LEFT JOIN current_epoch_beginning_status cebs ON cebs.pool_id = pce.pool_id
     LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.epoch_id = cebs.epoch_id AND fbp.pool_id = cebs.pool_id
+    LEFT JOIN past_7d_fills_fills_by_pool f ON f.pool_id = pce.pool_id
     CROSS JOIN total_staked ts
     CROSS JOIN total_fees tf;
 `;
@@ -164,6 +178,19 @@ const nextEpochStatsQuery = `
                     AS operator_share
             FROM staking.operator_share_changes
         )
+        , past_7d_fills_fills_by_pool AS (
+            SELECT
+                pi.pool_id
+                , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
+            FROM events.fill_events fe
+            LEFT JOIN events.blocks b ON b.block_number = fe.block_number
+            LEFT JOIN staking.pool_info pi ON fe.maker_address = ANY(pi.maker_addresses)
+            WHERE
+                -- fees not accruing to a pool do not count
+                pool_id IS NOT NULL
+                AND TO_TIMESTAMP(b.block_timestamp) > (CURRENT_TIMESTAMP - '7 days'::INTERVAL)
+            GROUP BY 1
+        )
         SELECT
             pi.pool_id
             , pi.maker_addresses
@@ -172,6 +199,7 @@ const nextEpochStatsQuery = `
             , ts.total_staked
             , cs.zrx_staked / ts.total_staked AS share_of_stake
             , fbp.protocol_fees AS protocol_fees_generated_in_eth
+            , f.protocol_fees AS seven_day_protocol_fees_generated_in_eth
             , tr.total_protocol_fees
             , fbp.protocol_fees / tr.total_protocol_fees AS share_of_fees
             , (cs.zrx_staked / ts.total_staked)
@@ -181,6 +209,7 @@ const nextEpochStatsQuery = `
         LEFT JOIN operator_share os ON os.pool_id = pi.pool_id
         LEFT JOIN current_stake cs ON cs.pool_id = pi.pool_id
         LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.pool_id = pi.pool_id
+        LEFT JOIN past_7d_fills_fills_by_pool f ON f.pool_id = pi.pool_id
         CROSS JOIN total_staked ts
         CROSS JOIN total_rewards tr;
 `;
