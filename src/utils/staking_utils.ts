@@ -1,4 +1,4 @@
-import { Epoch, EpochPoolStats, Pool, RawEpoch, RawEpochPoolStats, RawPool } from '../types';
+import { Epoch, EpochPoolStats, Pool, PoolProtocolFeesGenerated, RawEpoch, RawEpochPoolStats, RawPool, RawPoolProtocolFeesGenerated } from '../types';
 
 export const stakingUtils = {
     getEpochFromRaw: (rawEpoch: RawEpoch): Epoch => {
@@ -57,7 +57,6 @@ export const stakingUtils = {
             operator_share,
             zrx_staked,
             total_protocol_fees_generated_in_eth,
-            seven_day_protocol_fees_generated_in_eth,
             approximate_stake_ratio,
         } = rawEpochPoolStats;
         return {
@@ -67,10 +66,22 @@ export const stakingUtils = {
             approximateStakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
             makerAddresses: maker_addresses || [],
             totalProtocolFeesGeneratedInEth: Number(total_protocol_fees_generated_in_eth || 0),
-            sevenDayProtocolFeesGeneratedInEth: Number(seven_day_protocol_fees_generated_in_eth || 0),
         };
     },
     getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
         return rawEpochPoolsStats.map(stakingUtils.getEpochPoolStatsFromRaw);
+    },
+    getPoolProtocolFeesGeneratedFromRaw: (rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated): PoolProtocolFeesGenerated => {
+        const {
+            pool_id,
+            seven_day_protocol_fees_generated_in_eth,
+        } = rawPoolProtocolFeesGenerated;
+        return {
+            poolId: pool_id,
+            sevenDayProtocolFeesGeneratedInEth: Number(seven_day_protocol_fees_generated_in_eth || 0),
+        };
+    },
+    getPoolsProtocolFeesGeneratedFromRaw: (rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[]): PoolProtocolFeesGenerated[] => {
+        return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
     },
 };
