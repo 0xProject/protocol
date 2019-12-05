@@ -36,17 +36,22 @@ export class StakingDataService {
             pools,
             rawCurrentEpochPoolStats,
             rawNextEpochPoolStats,
+            rawPoolProtocolFeesGenerated,
         ] = await Promise.all([
             this.getStakingPoolsAsync(),
             this._connection.query(currentEpochStatsQuery),
             this._connection.query(nextEpochStatsQuery),
+            this._connection.query(sevenDayProtocolFeesGeneratedQuery),
         ]);
         const currentEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawCurrentEpochPoolStats);
         const nextEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawNextEpochPoolStats);
+        const poolProtocolFeesGenerated = stakingUtils.getPoolsProtocolFeesGeneratedFromRaw(rawPoolProtocolFeesGenerated);
         const currentEpochPoolStatsMap = utils.arrayToMapWithId(currentEpochPoolStats, 'poolId');
         const nextEpochPoolStatsMap = utils.arrayToMapWithId(nextEpochPoolStats, 'poolId');
+        const poolProtocolFeesGeneratedMap = utils.arrayToMapWithId(poolProtocolFeesGenerated, 'poolId');
         return pools.map(pool => ({
             ...pool,
+            sevenDayProtocolFeesGeneratedInEth: poolProtocolFeesGeneratedMap[pool.poolId].sevenDayProtocolFeesGeneratedInEth,
             currentEpochStats: currentEpochPoolStatsMap[pool.poolId],
             nextEpochStats: nextEpochPoolStatsMap[pool.poolId],
         }));
@@ -64,6 +69,27 @@ const nextEpochQuery = `
     CROSS JOIN staking.current_params cp;`;
 
 const stakingPoolsQuery = `SELECT * FROM staking.pool_info;`;
+
+const sevenDayProtocolFeesGeneratedQuery = `
+    WITH pool_7d_fills AS (
+        SELECT
+            pi.pool_id
+            , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
+        FROM events.fill_events fe
+        LEFT JOIN events.blocks b ON b.block_number = fe.block_number
+        LEFT JOIN staking.pool_info pi ON fe.maker_address = ANY(pi.maker_addresses)
+        WHERE
+            -- fees not accruing to a pool do not count
+            pool_id IS NOT NULL
+            AND TO_TIMESTAMP(b.block_timestamp) > (CURRENT_TIMESTAMP - '7 days'::INTERVAL)
+        GROUP BY 1
+    )
+    SELECT
+        p.pool_id
+        , COALESCE(f.protocol_fees, 0) AS seven_day_protocol_fees_generated_in_eth
+    FROM events.staking_pool_created_events p
+    LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id;
+`;
 
 const currentEpochStatsQuery = `
     WITH
@@ -105,8 +131,7 @@ const currentEpochStatsQuery = `
         , cebs.zrx_delegated AS zrx_staked
         , ts.total_staked
         , cebs.zrx_delegated / ts.total_staked AS share_of_stake
-        , fbp.protocol_fees AS protocol_fees_generated_in_eth
-        , tf.total_protocol_fees
+        , fbp.protocol_fees AS total_protocol_fees_generated_in_eth
         , fbp.protocol_fees / tf.total_protocol_fees AS share_of_fees
         , (cebs.zrx_delegated / ts.total_staked)
             / (fbp.protocol_fees / tf.total_protocol_fees)
