@@ -1,8 +1,8 @@
-import { assetDataUtils, BigNumber, SignedOrder } from '0x.js';
 import { schemas } from '@0x/json-schemas';
+import { assetDataUtils, SignedOrder } from '@0x/order-utils';
+import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
-import * as _ from 'lodash';
 
 import { FEE_RECIPIENT_ADDRESS, WHITELISTED_TOKENS } from '../config';
 import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
@@ -76,12 +76,12 @@ export class SRAHandlers {
 
 function validateAssetDataIsWhitelistedOrThrow(allowedTokens: string[], assetData: string, field: string): void {
     const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
-    if (assetDataUtils.isMultiAssetData(decodedAssetData)) {
+    if (orderUtils.isMultiAssetData(decodedAssetData)) {
         for (const [, nestedAssetDataElement] of decodedAssetData.nestedAssetData.entries()) {
             validateAssetDataIsWhitelistedOrThrow(allowedTokens, nestedAssetDataElement, field);
         }
-    } else if (!assetDataUtils.isStaticCallAssetData(decodedAssetData)) {
-        if (!_.includes(allowedTokens, decodedAssetData.tokenAddress)) {
+    } else if (orderUtils.isTokenAssetData(decodedAssetData)) {
+        if (!allowedTokens.includes(decodedAssetData.tokenAddress)) {
             throw new ValidationError([
                 {
                     field,

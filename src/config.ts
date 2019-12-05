@@ -1,6 +1,6 @@
 // tslint:disable:custom-no-magic-numbers
-import { BigNumber } from '0x.js';
 import { assert } from '@0x/assert';
+import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { DEFAULT_LOCAL_POSTGRES_URI, DEFAULT_LOGGER_INCLUDE_TIMESTAMP, NULL_ADDRESS, NULL_BYTES } from './constants';
@@ -31,6 +31,9 @@ export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
 export const CHAIN_ID = _.isEmpty(process.env.CHAIN_ID)
     ? 42
     : assertEnvVarType('CHAIN_ID', process.env.CHAIN_ID, EnvVarType.ChainId);
+
+// Ethereum RPC Url
+export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.Url);
 
 // Mesh Endpoint
 export const MESH_WEBSOCKET_URI = _.isEmpty(process.env.MESH_WEBSOCKET_URI)

@@ -1,3 +1,4 @@
+import { SignedOrder } from '@0x/asset-swapper';
 import {
     AcceptedOrderInfo,
     OrderEvent,
@@ -5,7 +6,6 @@ import {
     OrderInfo,
     RejectedCode,
     RejectedOrderInfo,
-    SignedOrder,
     ValidationResults,
     WSClient,
 } from '@0x/mesh-rpc-client';
@@ -13,10 +13,8 @@ import * as _ from 'lodash';
 
 import { ZERO } from '../constants';
 import { ValidationErrorCodes } from '../errors';
+import { logger } from '../logger';
 import { AddedRemovedUpdate, APIOrderWithMetaData } from '../types';
-
-// tslint:disable-next-line:no-var-requires
-const d = require('debug')('MESH');
 
 export const meshUtils = {
     addOrdersToMeshAsync: async (
@@ -29,7 +27,7 @@ export const meshUtils = {
         const validationResults: ValidationResults = { accepted: [], rejected: [] };
         const chunks = _.chunk(orders, batchSize);
         for (const chunk of chunks) {
-            const results = await meshClient.addOrdersAsync(chunk);
+            const results = await meshClient.addOrdersAsync(chunk as any);
             validationResults.accepted = [...validationResults.accepted, ...results.accepted];
             validationResults.rejected = [...validationResults.rejected, ...results.rejected];
         }
@@ -47,7 +45,7 @@ export const meshUtils = {
             ? (orderEvent as OrderEvent).fillableTakerAssetAmount
             : ZERO;
         return {
-            order: orderEvent.signedOrder,
+            order: orderEvent.signedOrder as any,
             metaData: {
                 orderHash: orderEvent.orderHash,
                 remainingFillableTakerAssetAmount,
@@ -100,7 +98,7 @@ export const meshUtils = {
                     break;
                 }
                 default:
-                    d('Unknown Event', event.endState, event);
+                    logger.error('Unknown Mesh Event', event.endState, event);
                     break;
             }
         }

@@ -1,3 +1,7 @@
+import { ObjectMap } from '@0x/types';
+import { RevertError } from '@0x/utils';
+import * as HttpStatus from 'http-status-codes';
+
 // tslint:disable:max-classes-per-file
 
 // base class for all the named errors in this file
@@ -7,7 +11,7 @@ export abstract class APIBaseError extends Error {
 }
 
 export abstract class BadRequestError extends APIBaseError {
-    public statusCode = 400;
+    public statusCode = HttpStatus.BAD_REQUEST;
     public abstract generalErrorCode: GeneralErrorCodes;
 }
 
@@ -19,13 +23,19 @@ export interface ValidationErrorItem {
 
 export interface ErrorBodyWithHTTPStatusCode {
     statusCode: number;
-    errorBody: ErrorBody;
+    errorBody: ErrorBody | RevertReasonErrorBody;
 }
 
 export interface ErrorBody {
     reason: string;
     code?: number;
     validationErrors?: ValidationErrorItem[];
+}
+
+export interface RevertReasonErrorBody {
+    reason: string;
+    code?: number;
+    values: ObjectMap<any>;
 }
 
 export class ValidationError extends BadRequestError {
@@ -42,21 +52,34 @@ export class MalformedJSONError extends BadRequestError {
 }
 
 export class TooManyRequestsError extends BadRequestError {
-    public statusCode = 429;
+    public statusCode = HttpStatus.TOO_MANY_REQUESTS;
     public generalErrorCode = GeneralErrorCodes.Throttled;
 }
 
 export class NotImplementedError extends BadRequestError {
-    public statusCode = 501;
+    public statusCode = HttpStatus.NOT_IMPLEMENTED;
     public generalErrorCode = GeneralErrorCodes.NotImplemented;
 }
 
 export class NotFoundError extends APIBaseError {
-    public statusCode = 404;
+    public statusCode = HttpStatus.NOT_FOUND;
 }
 
 export class InternalServerError extends APIBaseError {
-    public statusCode = 500;
+    public statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+}
+
+export class RevertAPIError extends BadRequestError {
+    public statusCode = HttpStatus.BAD_REQUEST;
+    public generalErrorCode = GeneralErrorCodes.TransactionInvalid;
+    public name: string;
+    public values: ObjectMap<any>;
+    public isRevertError = true;
+    constructor(revertError: RevertError) {
+        super();
+        this.name = revertError.name;
+        this.values = revertError.values;
+    }
 }
 
 export enum GeneralErrorCodes {
@@ -65,6 +88,7 @@ export enum GeneralErrorCodes {
     OrderSubmissionDisabled = 102,
     Throttled = 103,
     NotImplemented = 104,
+    TransactionInvalid = 105,
 }
 
 export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = {
@@ -73,6 +97,7 @@ export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = 
     [GeneralErrorCodes.OrderSubmissionDisabled]: 'Order submission disabled',
     [GeneralErrorCodes.Throttled]: 'Throttled',
     [GeneralErrorCodes.NotImplemented]: 'Not Implemented',
+    [GeneralErrorCodes.TransactionInvalid]: 'Transaction Invalid',
 };
 
 export enum ValidationErrorCodes {

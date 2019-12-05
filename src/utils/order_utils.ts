@@ -1,7 +1,18 @@
-import { assetDataUtils, BigNumber, SignedOrder } from '0x.js';
 import { APIOrder, OrderConfigRequest, OrderConfigResponse } from '@0x/connect';
-import { Asset, AssetPairsItem, AssetProxyId } from '@0x/types';
-import { errorUtils } from '@0x/utils';
+import { assetDataUtils } from '@0x/order-utils';
+import {
+    Asset,
+    AssetData,
+    AssetPairsItem,
+    AssetProxyId,
+    ERC1155AssetData,
+    ERC20AssetData,
+    ERC721AssetData,
+    MultiAssetData,
+    SignedOrder,
+    StaticCallAssetData,
+} from '@0x/types';
+import { BigNumber, errorUtils } from '@0x/utils';
 
 import {
     CHAIN_ID,
@@ -38,9 +49,9 @@ const erc20AssetDataToAsset = (assetData: string): Asset => ({
 });
 
 const assetDataToAsset = (assetData: string): Asset => {
-    const assetProxyId = assetDataUtils.decodeAssetProxyId(assetData);
+    const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
     let asset: Asset;
-    switch (assetProxyId) {
+    switch (decodedAssetData.assetProxyId) {
         case AssetProxyId.ERC20:
             asset = erc20AssetDataToAsset(assetData);
             break;
@@ -48,12 +59,30 @@ const assetDataToAsset = (assetData: string): Asset => {
             asset = erc721AssetDataToAsset(assetData);
             break;
         default:
-            throw errorUtils.spawnSwitchErr('assetProxyId', assetProxyId);
+            throw errorUtils.spawnSwitchErr('assetProxyId', decodedAssetData.assetProxyId);
     }
     return asset;
 };
 
 export const orderUtils = {
+    isMultiAssetData: (decodedAssetData: AssetData): decodedAssetData is MultiAssetData => {
+        return decodedAssetData.assetProxyId === AssetProxyId.MultiAsset;
+    },
+    isStaticCallAssetData: (decodedAssetData: AssetData): decodedAssetData is StaticCallAssetData => {
+        return decodedAssetData.assetProxyId === AssetProxyId.StaticCall;
+    },
+    isTokenAssetData: (
+        decodedAssetData: AssetData,
+    ): decodedAssetData is ERC20AssetData | ERC1155AssetData | ERC721AssetData => {
+        switch (decodedAssetData.assetProxyId) {
+            case AssetProxyId.ERC1155:
+            case AssetProxyId.ERC721:
+            case AssetProxyId.ERC20:
+                return true;
+            default:
+                return false;
+        }
+    },
     compareAskOrder: (orderA: SignedOrder, orderB: SignedOrder): number => {
         const orderAPrice = orderA.takerAssetAmount.div(orderA.makerAssetAmount);
         const orderBPrice = orderB.takerAssetAmount.div(orderB.makerAssetAmount);
@@ -80,14 +109,14 @@ export const orderUtils = {
     },
     includesTokenAddress: (assetData: string, tokenAddress: string): boolean => {
         const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
-        if (assetDataUtils.isMultiAssetData(decodedAssetData)) {
+        if (orderUtils.isMultiAssetData(decodedAssetData)) {
             for (const [, nestedAssetDataElement] of decodedAssetData.nestedAssetData.entries()) {
                 if (orderUtils.includesTokenAddress(nestedAssetDataElement, tokenAddress)) {
                     return true;
                 }
             }
             return false;
-        } else if (!assetDataUtils.isStaticCallAssetData(decodedAssetData)) {
+        } else if (orderUtils.isTokenAssetData(decodedAssetData)) {
             return decodedAssetData.tokenAddress === tokenAddress;
         }
         return false;
