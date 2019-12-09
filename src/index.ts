@@ -4,7 +4,8 @@ import * as express from 'express';
 import * as config from './config';
 import { SRA_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
-import { logger, logMiddleware } from './logger';
+import { logger } from './logger';
+import { requestLogger } from './middleware/request_logger';
 import { OrderWatcherService } from './services/order_watcher_service';
 import { OrderBookService } from './services/orderbook_service';
 import { SRAHttpService } from './services/sra_http_service';
@@ -15,7 +16,7 @@ import { WebsocketService } from './services/websocket_service';
 (async () => {
     const connection = await getDBConnectionAsync();
     const app = express();
-    app.use(logMiddleware());
+    app.use(requestLogger());
     const server = app.listen(config.HTTP_PORT, () => {
         logger.info(
             `API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(
