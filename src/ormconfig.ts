@@ -3,9 +3,7 @@ import { ConnectionOptions } from 'typeorm';
 import { POSTGRES_URI } from './config';
 import { SignedOrderEntity } from './entities';
 
-const entities = [
-    SignedOrderEntity,
-];
+const entities = [SignedOrderEntity];
 
 export const config: ConnectionOptions = {
     type: 'postgres',

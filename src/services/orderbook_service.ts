@@ -106,9 +106,9 @@ export class OrderBookService {
             takerFeeAssetData: ordersFilterParams.takerFeeAssetData,
         };
         const filterObject = _.pickBy(filterObjectWithValuesIfExist, _.identity.bind(_));
-        const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, { where: filterObject })) as Array<
-            Required<SignedOrderEntity>
-        >;
+        const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
+            where: filterObject,
+        })) as Array<Required<SignedOrderEntity>>;
         let apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
         // Post-filters
         apiOrders = apiOrders

@@ -18,13 +18,7 @@ import { WebsocketService } from './services/websocket_service';
     const app = express();
     app.use(requestLogger());
     const server = app.listen(config.HTTP_PORT, () => {
-        logger.info(
-            `API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(
-                config,
-                null,
-                2,
-            )}`,
-        );
+        logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(config, null, 2)}`);
     });
     const stakingDataService = new StakingDataService(connection);
     // tslint:disable-next-line:no-unused-expression

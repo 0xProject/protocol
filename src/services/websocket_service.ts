@@ -118,7 +118,7 @@ export class WebsocketService {
             ...DEFAULT_OPTS,
             ...opts,
         };
-        this._server = new WebSocket.Server({ server,  path: wsOpts.path });
+        this._server = new WebSocket.Server({ server, path: wsOpts.path });
         this._server.on('connection', this._processConnection.bind(this));
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
         this._meshClient = meshClient;
@@ -193,7 +193,8 @@ export class WebsocketService {
         switch (type) {
             case MessageTypes.Subscribe:
                 ws.requestIds.add(requestId);
-                const subscriptionOpts = payload === undefined || _.isEmpty(payload) ? 'ALL_SUBSCRIPTION_OPTS' : payload;
+                const subscriptionOpts =
+                    payload === undefined || _.isEmpty(payload) ? 'ALL_SUBSCRIPTION_OPTS' : payload;
                 this._requestIdToSubscriptionOpts.set(requestId, subscriptionOpts);
                 this._requestIdToSocket.set(requestId, ws);
                 break;

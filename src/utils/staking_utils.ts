@@ -1,13 +1,17 @@
-import { Epoch, EpochPoolStats, Pool, PoolProtocolFeesGenerated, RawEpoch, RawEpochPoolStats, RawPool, RawPoolProtocolFeesGenerated } from '../types';
+import {
+    Epoch,
+    EpochPoolStats,
+    Pool,
+    PoolProtocolFeesGenerated,
+    RawEpoch,
+    RawEpochPoolStats,
+    RawPool,
+    RawPoolProtocolFeesGenerated,
+} from '../types';
 
 export const stakingUtils = {
     getEpochFromRaw: (rawEpoch: RawEpoch): Epoch => {
-        const {
-            epoch_id,
-            starting_transaction_hash,
-            starting_block_number,
-            starting_block_timestamp,
-        } = rawEpoch;
+        const { epoch_id, starting_transaction_hash, starting_block_number, starting_block_timestamp } = rawEpoch;
         return {
             epochId: parseInt(epoch_id, 10),
             epochStart: {
@@ -71,17 +75,18 @@ export const stakingUtils = {
     getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
         return rawEpochPoolsStats.map(stakingUtils.getEpochPoolStatsFromRaw);
     },
-    getPoolProtocolFeesGeneratedFromRaw: (rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated): PoolProtocolFeesGenerated => {
-        const {
-            pool_id,
-            seven_day_protocol_fees_generated_in_eth,
-        } = rawPoolProtocolFeesGenerated;
+    getPoolProtocolFeesGeneratedFromRaw: (
+        rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated,
+    ): PoolProtocolFeesGenerated => {
+        const { pool_id, seven_day_protocol_fees_generated_in_eth } = rawPoolProtocolFeesGenerated;
         return {
             poolId: pool_id,
             sevenDayProtocolFeesGeneratedInEth: Number(seven_day_protocol_fees_generated_in_eth || 0),
         };
     },
-    getPoolsProtocolFeesGeneratedFromRaw: (rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[]): PoolProtocolFeesGenerated[] => {
+    getPoolsProtocolFeesGeneratedFromRaw: (
+        rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[],
+    ): PoolProtocolFeesGenerated[] => {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
     },
 };
