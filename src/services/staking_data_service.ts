@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
-import { Epoch, Pool, PoolWithStats, RawEpoch, RawPool } from '../types';
+import { Epoch, Pool, PoolWithStats, RawDelegatorStaked, RawEpoch, RawPool } from '../types';
 import { stakingUtils } from '../utils/staking_utils';
 import { utils } from '../utils/utils';
 
@@ -58,6 +58,15 @@ export class StakingDataService {
             currentEpochStats: currentEpochPoolStatsMap[pool.poolId],
             nextEpochStats: nextEpochPoolStatsMap[pool.poolId],
         }));
+    }
+
+    public async getDelegatorAsync(delegator: string): Promise<any> {
+        const [rawCurrenEpochDelegatorStaked] = await Promise.all<RawDelegatorStaked>([
+            this._connection.query(currentEpochDelegatorStakedQuery, [delegator]),
+        ]);
+
+        console.log(rawCurrenEpochDelegatorStaked);
+        return rawCurrenEpochDelegatorStaked;
     }
 }
 
@@ -211,4 +220,27 @@ const nextEpochStatsQuery = `
         LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.pool_id = pi.pool_id
         CROSS JOIN total_staked ts
         CROSS JOIN total_rewards tr;
+`;
+
+const currentEpochDelegatorStakedQuery = `
+    WITH
+        delegator AS (
+            SELECT $1::text AS delegator
+        )
+        , zrx_deposited AS (
+            SELECT
+                staker
+                , SUM(amount) AS zrx_deposited
+            FROM staking.zrx_staking_contract_changes scc
+            JOIN delegator d ON d.delegator = scc.staker
+            JOIN staking.current_epoch ce ON
+                scc.block_number < ce.starting_block_number
+                OR (scc.block_number = ce.starting_block_number AND scc.transaction_index < ce.starting_transaction_index)
+            GROUP BY 1
+        )
+        SELECT
+            d.delegator
+            , COALESCE(zd.zrx_deposited,0) AS zrx_deposited
+        FROM delegator d
+        LEFT JOIN zrx_deposited zd ON zd.staker = d.delegator;
 `;

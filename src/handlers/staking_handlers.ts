@@ -19,6 +19,19 @@ export class StakingHandlers {
         };
         res.status(HttpStatus.OK).send(response);
     }
+
+    public async getDelegatorAsync(_req: express.Request, res: express.Response): Promise<void> {
+        const delegatorAddress = _req.params.id;
+
+        const [currentEpoch] = await Promise.all([this._stakingDataService.getDelegatorAsync(delegatorAddress)]);
+
+        const response = {
+            currentEpoch,
+        };
+
+        res.status(HttpStatus.OK).send(response);
+    }
+
     constructor(stakingDataService: StakingDataService) {
         this._stakingDataService = stakingDataService;
     }
