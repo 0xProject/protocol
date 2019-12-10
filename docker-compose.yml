@@ -31,7 +31,7 @@ services:
     events-pipeline:
         depends_on: 
             - postgres
-        image: 0xorg/event-pipeline@sha256:64973cc33aed67d3db613e51cb9da8677f937b215020f862eff9f6242035cee0
+        image: 0xorg/event-pipeline@sha256:058e730018a8bdc31b1fdd68935eeb27bc728a0db579b41436c138cf73e830e1
         restart: always
         environment:
             ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
