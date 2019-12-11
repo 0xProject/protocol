@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
-import { Epoch, Pool, PoolWithStats, RawEpoch, RawPool } from '../types';
+import { Epoch, OverallStakingStats, Pool, PoolWithStats, RawEpoch, RawOverallStakingStats, RawPool } from '../types';
 import { stakingUtils } from '../utils/staking_utils';
 import { utils } from '../utils/utils';
 
@@ -31,6 +31,14 @@ export class StakingDataService {
         const pools = stakingUtils.getPoolsFromRaw(rawPools);
         return pools;
     }
+    public async getOverallStakingStatsAsync(): Promise<OverallStakingStats> {
+        const rawOverallStats: RawOverallStakingStats | undefined = _.head(await this._connection.query(overallStatQuery));
+        if (!rawOverallStats) {
+            throw new Error('Could not find overall staking statistics.');
+        }
+        const allTimeOverallStats: OverallStakingStats = stakingUtils.getOverallStakingStatsFromRaw(rawOverallStats);
+        return allTimeOverallStats;
+    }
     public async getStakingPoolsWithStatsAsync(): Promise<PoolWithStats[]> {
         const [
             pools,
@@ -39,8 +47,8 @@ export class StakingDataService {
             rawPoolProtocolFeesGenerated,
         ] = await Promise.all([
             this.getStakingPoolsAsync(),
-            this._connection.query(currentEpochStatsQuery),
-            this._connection.query(nextEpochStatsQuery),
+            this._connection.query(currentEpochPoolStatsQuery),
+            this._connection.query(nextEpochPoolStatsQuery),
             this._connection.query(sevenDayProtocolFeesGeneratedQuery),
         ]);
         const currentEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawCurrentEpochPoolStats);
@@ -140,7 +148,7 @@ const sevenDayProtocolFeesGeneratedQuery = `
     LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id;
 `;
 
-const currentEpochStatsQuery = `
+const currentEpochPoolStatsQuery = `
     WITH
     current_epoch_beginning_status AS (
         SELECT
@@ -191,7 +199,7 @@ const currentEpochStatsQuery = `
     CROSS JOIN total_staked ts
     CROSS JOIN total_fees tf;
 `;
-const nextEpochStatsQuery = `
+const nextEpochPoolStatsQuery = `
     WITH
         current_stake AS (
             SELECT
@@ -257,4 +265,12 @@ const nextEpochStatsQuery = `
         LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.pool_id = pi.pool_id
         CROSS JOIN total_staked ts
         CROSS JOIN total_rewards tr;
+`;
+
+const overallStatQuery = `
+    SELECT SUM(
+        COALESCE(operator_reward,0)
+        + COALESCE(members_reward,0)
+    ) / 1e18 AS total_rewards_paid
+    FROM events.rewards_paid_events;
 `;

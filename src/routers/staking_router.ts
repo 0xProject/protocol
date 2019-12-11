@@ -9,5 +9,6 @@ export const createStakingRouter = (stakingDataService: StakingDataService): exp
     const handlers = new StakingHandlers(stakingDataService);
     router.get('/pools', asyncHandler(handlers.getStakingPoolsAsync.bind(handlers)));
     router.get('/epochs', asyncHandler(handlers.getStakingEpochsAsync.bind(handlers)));
+    router.get('/stats', asyncHandler(handlers.getStakingStatsAsync.bind(handlers)));
     return router;
 };

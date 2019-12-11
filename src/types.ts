@@ -152,12 +152,15 @@ export interface PoolProtocolFeesGenerated {
     sevenDayProtocolFeesGeneratedInEth: number;
 }
 
-export interface StakingPoolsResponse {
-    stakingPools: PoolWithStats[];
+export interface RawOverallStakingStats {
+    total_rewards_paid: string;
+}
+export interface OverallStakingStats {
+    totalRewardsPaid: number;
 }
 
-export interface AllTimeOverallStats {
-    totalRewardsPaid: number;
+export interface StakingPoolsResponse {
+    stakingPools: PoolWithStats[];
 }
 
 export interface StakingEpochsResponse {
@@ -165,7 +168,7 @@ export interface StakingEpochsResponse {
     nextEpoch: Epoch;
 }
 export interface StakingStatsResponse {
-    allTime: AllTimeOverallStats;
+    overall: OverallStakingStats;
 }
 
 export interface ObjectMap<T> {

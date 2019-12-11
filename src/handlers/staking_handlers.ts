@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { StakingDataService } from '../services/staking_data_service';
-import { StakingEpochsResponse, StakingPoolsResponse } from '../types';
+import { StakingEpochsResponse, StakingPoolsResponse, StakingStatsResponse } from '../types';
 
 export class StakingHandlers {
     private readonly _stakingDataService: StakingDataService;
@@ -21,6 +21,13 @@ export class StakingHandlers {
         const response: StakingEpochsResponse = {
             currentEpoch,
             nextEpoch,
+        };
+        res.status(HttpStatus.OK).send(response);
+    }
+    public async getStakingStatsAsync(_req: express.Request, res: express.Response): Promise<void> {
+        const overallStakingStats = await this._stakingDataService.getOverallStakingStatsAsync();
+        const response: StakingStatsResponse = {
+            overall: overallStakingStats,
         };
         res.status(HttpStatus.OK).send(response);
     }

@@ -1,10 +1,12 @@
 import {
     Epoch,
     EpochPoolStats,
+    OverallStakingStats,
     Pool,
     PoolProtocolFeesGenerated,
     RawEpoch,
     RawEpochPoolStats,
+    RawOverallStakingStats,
     RawPool,
     RawPoolProtocolFeesGenerated,
     TransactionDate,
@@ -112,5 +114,11 @@ export const stakingUtils = {
         rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[],
     ): PoolProtocolFeesGenerated[] => {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
+    },
+    getOverallStakingStatsFromRaw: (rawAllTimeOverallStats: RawOverallStakingStats): OverallStakingStats => {
+        const { total_rewards_paid } = rawAllTimeOverallStats;
+        return {
+            totalRewardsPaid: Number(total_rewards_paid || 0),
+        };
     },
 };
