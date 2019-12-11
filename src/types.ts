@@ -151,16 +151,27 @@ export interface StakingPoolsResponse {
     stakingPools: PoolWithStats[];
 }
 
-export interface RawDelegatorStaked {
+export interface RawDelegatorDeposited {
     delegator: string;
     zrx_deposited: number;
 }
 
-export interface RawDelegatorDelegated {
+export interface RawDelegatorStaked {
     delegator: string;
     zrx_staked_overall: number;
-    pool_id: number;
+    pool_id: string;
     zrx_staked_in_pool: number;
+}
+
+export interface PoolEpochDelegatorStats {
+    poolId: string;
+    zrxStaked: number;
+}
+
+export interface EpochDelegatorStats {
+    zrxDeposited: number;
+    zrxStaked: number;
+    poolData: PoolEpochDelegatorStats[];
 }
 
 export interface ObjectMap<T> {

@@ -2,7 +2,10 @@ import {
     Epoch,
     EpochPoolStats,
     Pool,
+    PoolEpochDelegatorStats,
     PoolProtocolFeesGenerated,
+    RawDelegatorDeposited,
+    RawDelegatorStaked,
     RawEpoch,
     RawEpochPoolStats,
     RawPool,
@@ -88,5 +91,25 @@ export const stakingUtils = {
         rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[],
     ): PoolProtocolFeesGenerated[] => {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
+    },
+
+    getZrxStakedFromRawDelegatorDeposited: (rawDelegatorDeposited: RawDelegatorDeposited[]): number => {
+        const resultRow: RawDelegatorDeposited | undefined = _.head(rawDelegatorDeposited);
+        return resultRow ? resultRow.zrx_deposited : 0;
+    },
+
+    getEpochDelegatorStatsFromRaw: (rawDelegatorStaked: RawDelegatorStaked[]) => {
+        const firstRow = _.head(rawDelegatorStaked);
+        const zrxStaked = firstRow ? firstRow.zrx_staked_overall : 0;
+
+        const poolData: PoolEpochDelegatorStats[] = rawDelegatorStaked.map(row => ({
+            poolId: row.pool_id,
+            zrxStaked: row.zrx_staked_in_pool || 0,
+        }));
+
+        return {
+            zrxStaked,
+            poolData,
+        };
     },
 };
