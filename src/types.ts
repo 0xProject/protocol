@@ -64,6 +64,9 @@ export interface RawEpoch {
     ending_transaction_index?: null;
     ending_block_number?: null;
     ending_block_timestamp?: null;
+    zrx_deposited?: string;
+    zrx_staked?: string;
+    protocol_fees_generated_in_eth?: string;
 }
 
 export interface TransactionDate {
@@ -75,6 +78,10 @@ export interface TransactionDate {
 export interface Epoch {
     epochId: number;
     epochStart: TransactionDate;
+    epochEnd?: TransactionDate;
+    zrxStaked: number;
+    zrxDeposited: number;
+    protocolFeesGeneratedInEth: number;
 }
 
 export interface RawPool {
@@ -146,9 +153,19 @@ export interface PoolProtocolFeesGenerated {
 }
 
 export interface StakingPoolsResponse {
-    currentEpoch: Epoch;
-    approximateNextEpoch: Epoch;
     stakingPools: PoolWithStats[];
+}
+
+export interface AllTimeOverallStats {
+    totalRewardsPaid: number;
+}
+
+export interface StakingEpochsResponse {
+    currentEpoch: Epoch;
+    nextEpoch: Epoch;
+}
+export interface StakingStatsResponse {
+    allTime: AllTimeOverallStats;
 }
 
 export interface ObjectMap<T> {

@@ -8,5 +8,6 @@ export const createStakingRouter = (stakingDataService: StakingDataService): exp
     const router = express.Router();
     const handlers = new StakingHandlers(stakingDataService);
     router.get('/pools', asyncHandler(handlers.getStakingPoolsAsync.bind(handlers)));
+    router.get('/epochs', asyncHandler(handlers.getStakingEpochsAsync.bind(handlers)));
     return router;
 };

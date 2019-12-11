@@ -61,15 +61,61 @@ export class StakingDataService {
     }
 }
 
-const currentEpochQuery = `SELECT * FROM staking.current_epoch;`;
+const currentEpochQuery = `
+    WITH zrx_staked AS (
+        SELECT
+            SUM(esps.zrx_delegated) AS zrx_staked
+        FROM staking.epoch_start_pool_status esps
+        JOIN staking.current_epoch ce ON ce.epoch_id = esps.epoch_id
+    )
+    , protocol_fees AS (
+        SELECT
+            SUM(protocol_fee_paid) / 1e18::NUMERIC AS protocol_fees_generated_in_eth
+        FROM events.fill_events fe
+        JOIN staking.current_epoch ce
+            ON fe.block_number > ce.starting_block_number
+            OR (fe.block_number = ce.starting_block_number AND fe.transaction_index > ce.starting_transaction_index)
+    )
+    , zrx_deposited AS (
+        SELECT
+            SUM(scc.amount) AS zrx_deposited
+        FROM staking.zrx_staking_contract_changes scc
+        JOIN staking.current_epoch ce
+            ON scc.block_number < ce.starting_block_number
+            OR (scc.block_number = ce.starting_block_number AND scc.transaction_index < ce.starting_transaction_index)
+    )
+    SELECT
+        ce.*
+        , zd.zrx_deposited
+        , zs.zrx_staked
+        , pf.protocol_fees_generated_in_eth
+    FROM staking.current_epoch ce
+    CROSS JOIN zrx_deposited zd
+    CROSS JOIN zrx_staked zs
+    CROSS JOIN protocol_fees pf;`;
 
 const nextEpochQuery = `
+    WITH
+    zrx_staked AS (
+        SELECT
+            SUM(amount) AS zrx_staked
+        FROM staking.zrx_staking_changes
+    )
+    , zrx_deposited AS (
+        SELECT
+            SUM(scc.amount) AS zrx_deposited
+        FROM staking.zrx_staking_contract_changes scc
+    )
     SELECT
-    ce.epoch_id + 1 AS epoch_id
-    , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
-    , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_block_timestamp
+        ce.epoch_id + 1 AS epoch_id
+        , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
+        , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_timestamp
+        , zd.zrx_deposited
+        , zs.zrx_staked
     FROM staking.current_epoch ce
-    CROSS JOIN staking.current_params cp;`;
+    CROSS JOIN staking.current_params cp
+    CROSS JOIN zrx_staked zs
+    CROSS JOIN zrx_deposited zd;`;
 
 const stakingPoolsQuery = `SELECT * FROM staking.pool_info;`;
 
