@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
-import { Epoch, Pool, PoolWithStats, RawEpoch, RawPool } from '../types';
+import { AllTimeStakingStats, Epoch, Pool, PoolWithStats, RawAllTimeStakingStats, RawEpoch, RawPool } from '../types';
 import { stakingUtils } from '../utils/staking_utils';
 import { utils } from '../utils/utils';
 
@@ -31,6 +31,14 @@ export class StakingDataService {
         const pools = stakingUtils.getPoolsFromRaw(rawPools);
         return pools;
     }
+    public async getAllTimeStakingStatsAsync(): Promise<AllTimeStakingStats> {
+        const rawAllTimeStats: RawAllTimeStakingStats | undefined = _.head(await this._connection.query(allTimeStatsQuery));
+        if (!rawAllTimeStats) {
+            throw new Error('Could not find allTime staking statistics.');
+        }
+        const allTimeAllTimeStats: AllTimeStakingStats = stakingUtils.getAllTimeStakingStatsFromRaw(rawAllTimeStats);
+        return allTimeAllTimeStats;
+    }
     public async getStakingPoolsWithStatsAsync(): Promise<PoolWithStats[]> {
         const [
             pools,
@@ -39,8 +47,8 @@ export class StakingDataService {
             rawPoolProtocolFeesGenerated,
         ] = await Promise.all([
             this.getStakingPoolsAsync(),
-            this._connection.query(currentEpochStatsQuery),
-            this._connection.query(nextEpochStatsQuery),
+            this._connection.query(currentEpochPoolStatsQuery),
+            this._connection.query(nextEpochPoolStatsQuery),
             this._connection.query(sevenDayProtocolFeesGeneratedQuery),
         ]);
         const currentEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawCurrentEpochPoolStats);
@@ -61,15 +69,61 @@ export class StakingDataService {
     }
 }
 
-const currentEpochQuery = `SELECT * FROM staking.current_epoch;`;
+const currentEpochQuery = `
+    WITH zrx_staked AS (
+        SELECT
+            SUM(esps.zrx_delegated) AS zrx_staked
+        FROM staking.epoch_start_pool_status esps
+        JOIN staking.current_epoch ce ON ce.epoch_id = esps.epoch_id
+    )
+    , protocol_fees AS (
+        SELECT
+            SUM(protocol_fee_paid) / 1e18::NUMERIC AS protocol_fees_generated_in_eth
+        FROM events.fill_events fe
+        JOIN staking.current_epoch ce
+            ON fe.block_number > ce.starting_block_number
+            OR (fe.block_number = ce.starting_block_number AND fe.transaction_index > ce.starting_transaction_index)
+    )
+    , zrx_deposited AS (
+        SELECT
+            SUM(scc.amount) AS zrx_deposited
+        FROM staking.zrx_staking_contract_changes scc
+        JOIN staking.current_epoch ce
+            ON scc.block_number < ce.starting_block_number
+            OR (scc.block_number = ce.starting_block_number AND scc.transaction_index < ce.starting_transaction_index)
+    )
+    SELECT
+        ce.*
+        , zd.zrx_deposited
+        , zs.zrx_staked
+        , pf.protocol_fees_generated_in_eth
+    FROM staking.current_epoch ce
+    CROSS JOIN zrx_deposited zd
+    CROSS JOIN zrx_staked zs
+    CROSS JOIN protocol_fees pf;`;
 
 const nextEpochQuery = `
+    WITH
+    zrx_staked AS (
+        SELECT
+            SUM(amount) AS zrx_staked
+        FROM staking.zrx_staking_changes
+    )
+    , zrx_deposited AS (
+        SELECT
+            SUM(scc.amount) AS zrx_deposited
+        FROM staking.zrx_staking_contract_changes scc
+    )
     SELECT
-    ce.epoch_id + 1 AS epoch_id
-    , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
-    , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_block_timestamp
+        ce.epoch_id + 1 AS epoch_id
+        , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
+        , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_timestamp
+        , zd.zrx_deposited
+        , zs.zrx_staked
     FROM staking.current_epoch ce
-    CROSS JOIN staking.current_params cp;`;
+    CROSS JOIN staking.current_params cp
+    CROSS JOIN zrx_staked zs
+    CROSS JOIN zrx_deposited zd;`;
 
 const stakingPoolsQuery = `SELECT * FROM staking.pool_info;`;
 
@@ -94,7 +148,7 @@ const sevenDayProtocolFeesGeneratedQuery = `
     LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id;
 `;
 
-const currentEpochStatsQuery = `
+const currentEpochPoolStatsQuery = `
     WITH
     current_epoch_beginning_status AS (
         SELECT
@@ -145,7 +199,7 @@ const currentEpochStatsQuery = `
     CROSS JOIN total_staked ts
     CROSS JOIN total_fees tf;
 `;
-const nextEpochStatsQuery = `
+const nextEpochPoolStatsQuery = `
     WITH
         current_stake AS (
             SELECT
@@ -211,4 +265,12 @@ const nextEpochStatsQuery = `
         LEFT JOIN current_epoch_fills_by_pool fbp ON fbp.pool_id = pi.pool_id
         CROSS JOIN total_staked ts
         CROSS JOIN total_rewards tr;
+`;
+
+const allTimeStatsQuery = `
+    SELECT SUM(
+        COALESCE(operator_reward,0)
+        + COALESCE(members_reward,0)
+    ) / 1e18 AS total_rewards_paid
+    FROM events.rewards_paid_events;
 `;

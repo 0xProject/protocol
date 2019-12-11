@@ -1,17 +1,39 @@
 import {
+    AllTimeStakingStats,
     Epoch,
     EpochPoolStats,
     Pool,
     PoolProtocolFeesGenerated,
+    RawAllTimeStakingStats,
     RawEpoch,
     RawEpochPoolStats,
     RawPool,
     RawPoolProtocolFeesGenerated,
+    TransactionDate,
 } from '../types';
 
 export const stakingUtils = {
     getEpochFromRaw: (rawEpoch: RawEpoch): Epoch => {
-        const { epoch_id, starting_transaction_hash, starting_block_number, starting_block_timestamp } = rawEpoch;
+        const {
+            epoch_id,
+            starting_transaction_hash,
+            starting_block_number,
+            starting_block_timestamp,
+            ending_transaction_hash,
+            ending_block_number,
+            ending_block_timestamp,
+            zrx_deposited,
+            zrx_staked,
+            protocol_fees_generated_in_eth,
+        } = rawEpoch;
+        let epochEnd: TransactionDate | undefined;
+        if (ending_transaction_hash && ending_block_number) {
+            epochEnd = {
+                blockNumber: parseInt(ending_block_number, 10),
+                txHash: ending_transaction_hash,
+                timestamp: ending_block_timestamp || undefined,
+            };
+        }
         return {
             epochId: parseInt(epoch_id, 10),
             epochStart: {
@@ -19,6 +41,10 @@ export const stakingUtils = {
                 txHash: starting_transaction_hash,
                 timestamp: starting_block_timestamp || undefined,
             },
+            epochEnd,
+            zrxDeposited: Number(zrx_deposited || 0),
+            zrxStaked: Number(zrx_staked || 0),
+            protocolFeesGeneratedInEth: Number(protocol_fees_generated_in_eth || 0),
         };
     },
     getPoolFromRaw: (rawPool: RawPool): Pool => {
@@ -88,5 +114,11 @@ export const stakingUtils = {
         rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[],
     ): PoolProtocolFeesGenerated[] => {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
+    },
+    getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {
+        const { total_rewards_paid } = rawAllTimeAllTimeStats;
+        return {
+            totalRewardsPaidInEth: Number(total_rewards_paid || 0),
+        };
     },
 };
