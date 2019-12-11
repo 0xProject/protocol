@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
-import { Epoch, OverallStakingStats, Pool, PoolWithStats, RawEpoch, RawOverallStakingStats, RawPool } from '../types';
+import { Epoch, AllTimeStakingStats, Pool, PoolWithStats, RawEpoch, RawAllTimeStakingStats, RawPool } from '../types';
 import { stakingUtils } from '../utils/staking_utils';
 import { utils } from '../utils/utils';
 
@@ -31,13 +31,13 @@ export class StakingDataService {
         const pools = stakingUtils.getPoolsFromRaw(rawPools);
         return pools;
     }
-    public async getOverallStakingStatsAsync(): Promise<OverallStakingStats> {
-        const rawOverallStats: RawOverallStakingStats | undefined = _.head(await this._connection.query(overallStatQuery));
-        if (!rawOverallStats) {
-            throw new Error('Could not find overall staking statistics.');
+    public async getAllTimeStakingStatsAsync(): Promise<AllTimeStakingStats> {
+        const rawAllTimeStats: RawAllTimeStakingStats | undefined = _.head(await this._connection.query(allTimeStatQuery));
+        if (!rawAllTimeStats) {
+            throw new Error('Could not find allTime staking statistics.');
         }
-        const allTimeOverallStats: OverallStakingStats = stakingUtils.getOverallStakingStatsFromRaw(rawOverallStats);
-        return allTimeOverallStats;
+        const allTimeAllTimeStats: AllTimeStakingStats = stakingUtils.getAllTimeStakingStatsFromRaw(rawAllTimeStats);
+        return allTimeAllTimeStats;
     }
     public async getStakingPoolsWithStatsAsync(): Promise<PoolWithStats[]> {
         const [
@@ -267,7 +267,7 @@ const nextEpochPoolStatsQuery = `
         CROSS JOIN total_rewards tr;
 `;
 
-const overallStatQuery = `
+const allTimeStatQuery = `
     SELECT SUM(
         COALESCE(operator_reward,0)
         + COALESCE(members_reward,0)

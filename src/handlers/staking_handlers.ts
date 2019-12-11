@@ -25,9 +25,9 @@ export class StakingHandlers {
         res.status(HttpStatus.OK).send(response);
     }
     public async getStakingStatsAsync(_req: express.Request, res: express.Response): Promise<void> {
-        const overallStakingStats = await this._stakingDataService.getOverallStakingStatsAsync();
+        const allTimeStakingStats = await this._stakingDataService.getAllTimeStakingStatsAsync();
         const response: StakingStatsResponse = {
-            overall: overallStakingStats,
+            allTime: allTimeStakingStats,
         };
         res.status(HttpStatus.OK).send(response);
     }
