@@ -267,7 +267,7 @@ const nextEpochPoolStatsQuery = `
         CROSS JOIN total_rewards tr;
 `;
 
-const allTimeStatQuery = `
+const allTimeStatsQuery = `
     SELECT SUM(
         COALESCE(operator_reward,0)
         + COALESCE(members_reward,0)
