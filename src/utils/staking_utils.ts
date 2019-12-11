@@ -119,7 +119,7 @@ export const stakingUtils = {
     ): AllTimeDelegatorPoolStats[] => {
         const poolData: AllTimeDelegatorPoolStats[] = rawDelegatorAllTimeStats.map(rawStats => ({
             poolId: rawStats.pool_id,
-            rewards: parseFloat(rawStats.reward) || 0,
+            rewardsInEth: parseFloat(rawStats.reward) || 0,
         }));
 
         return poolData;

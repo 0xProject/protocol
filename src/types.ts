@@ -181,14 +181,14 @@ export interface EpochDelegatorStats {
 
 export interface AllTimeDelegatorPoolStats {
     poolId: string;
-    rewards: number;
+    rewardsInEth: number;
 }
 
 export interface AllTimeDelegatorStats {
     poolData: AllTimeDelegatorPoolStats[];
 }
 
-export interface DelegatorResponse {
+export interface StakingDelegatorResponse {
     delegatorAddress: string;
     forCurrentEpoch: EpochDelegatorStats;
     forNextEpoch: EpochDelegatorStats;

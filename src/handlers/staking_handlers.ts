@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { StakingDataService } from '../services/staking_data_service';
-import { DelegatorResponse, StakingPoolsResponse } from '../types';
+import { StakingDelegatorResponse, StakingPoolsResponse } from '../types';
 
 export class StakingHandlers {
     private readonly _stakingDataService: StakingDataService;
@@ -29,7 +29,7 @@ export class StakingHandlers {
             this._stakingDataService.getDelegatorAllTimeStatsAsync(delegatorAddress),
         ]);
 
-        const response: DelegatorResponse = {
+        const response: StakingDelegatorResponse = {
             delegatorAddress,
             forCurrentEpoch,
             forNextEpoch,
