@@ -32,7 +32,7 @@ export class StakingDataService {
         return pools;
     }
     public async getAllTimeStakingStatsAsync(): Promise<AllTimeStakingStats> {
-        const rawAllTimeStats: RawAllTimeStakingStats | undefined = _.head(await this._connection.query(allTimeStatQuery));
+        const rawAllTimeStats: RawAllTimeStakingStats | undefined = _.head(await this._connection.query(allTimeStatsQuery));
         if (!rawAllTimeStats) {
             throw new Error('Could not find allTime staking statistics.');
         }
