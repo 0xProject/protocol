@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
-import { Epoch, AllTimeStakingStats, Pool, PoolWithStats, RawEpoch, RawAllTimeStakingStats, RawPool } from '../types';
+import { AllTimeStakingStats, Epoch, Pool, PoolWithStats, RawAllTimeStakingStats, RawEpoch, RawPool } from '../types';
 import { stakingUtils } from '../utils/staking_utils';
 import { utils } from '../utils/utils';
 

@@ -156,7 +156,7 @@ export interface RawAllTimeStakingStats {
     total_rewards_paid: string;
 }
 export interface AllTimeStakingStats {
-    totalRewardsPaid: number;
+    totalRewardsPaidInEth: number;
 }
 
 export interface StakingPoolsResponse {

@@ -1,12 +1,12 @@
 import {
+    AllTimeStakingStats,
     Epoch,
     EpochPoolStats,
-    AllTimeStakingStats,
     Pool,
     PoolProtocolFeesGenerated,
+    RawAllTimeStakingStats,
     RawEpoch,
     RawEpochPoolStats,
-    RawAllTimeStakingStats,
     RawPool,
     RawPoolProtocolFeesGenerated,
     TransactionDate,
@@ -118,7 +118,7 @@ export const stakingUtils = {
     getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {
         const { total_rewards_paid } = rawAllTimeAllTimeStats;
         return {
-            totalRewardsPaid: Number(total_rewards_paid || 0),
+            totalRewardsPaidInEth: Number(total_rewards_paid || 0),
         };
     },
 };
