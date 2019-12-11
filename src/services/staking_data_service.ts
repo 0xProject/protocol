@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
 import {
+    AllTimeDelegatorStats,
     Epoch,
     EpochDelegatorStats,
     Pool,
@@ -69,13 +70,13 @@ export class StakingDataService {
         }));
     }
 
-    public async getDelegatorCurrentEpochAsync(delegator: string): Promise<EpochDelegatorStats> {
+    public async getDelegatorCurrentEpochAsync(delegatorAddress: string): Promise<EpochDelegatorStats> {
         const [rawDelegatorDeposited, rawDelegatorStaked] = await Promise.all<
             RawDelegatorDeposited[],
             RawDelegatorStaked[]
         >([
-            this._connection.query(currentEpochDelegatorDepositedQuery, [delegator]),
-            this._connection.query(currentEpochDelegatorStakedQuery, [delegator]),
+            this._connection.query(currentEpochDelegatorDepositedQuery, [delegatorAddress]),
+            this._connection.query(currentEpochDelegatorStakedQuery, [delegatorAddress]),
         ]);
 
         const zrxDeposited = stakingUtils.getZrxStakedFromRawDelegatorDeposited(rawDelegatorDeposited);
@@ -88,13 +89,13 @@ export class StakingDataService {
         };
     }
 
-    public async getDelegatorNextEpochAsync(delegator: string): Promise<EpochDelegatorStats> {
+    public async getDelegatorNextEpochAsync(delegatorAddress: string): Promise<EpochDelegatorStats> {
         const [rawDelegatorDeposited, rawDelegatorStaked] = await Promise.all<
             RawDelegatorDeposited[],
             RawDelegatorStaked[]
         >([
-            this._connection.query(nextEpochDelegatorDepositedQuery, [delegator]),
-            this._connection.query(nextEpochDelegatorStakedQuery, [delegator]),
+            this._connection.query(nextEpochDelegatorDepositedQuery, [delegatorAddress]),
+            this._connection.query(nextEpochDelegatorStakedQuery, [delegatorAddress]),
         ]);
 
         const zrxDeposited = stakingUtils.getZrxStakedFromRawDelegatorDeposited(rawDelegatorDeposited);
@@ -103,6 +104,15 @@ export class StakingDataService {
         return {
             zrxDeposited,
             zrxStaked,
+            poolData,
+        };
+    }
+
+    public async getDelegatorAllTimeStatsAsync(delegatorAddress: string): Promise<AllTimeDelegatorStats> {
+        const rawDelegatorAllTimeStats = await this._connection.query(allTimeDelegatorStatsQuery, [delegatorAddress]);
+        const poolData = stakingUtils.getDelegatorAllTimeStatsFromRaw(rawDelegatorAllTimeStats);
+
+        return {
             poolData,
         };
     }
@@ -366,4 +376,14 @@ const nextEpochDelegatorStakedQuery = `
     FROM delegator d
     LEFT JOIN zrx_staked_by_pool zsbp ON zsbp.staker = d.delegator
     LEFT JOIN zrx_staked zs ON zs.staker = d.delegator;
+`;
+
+const allTimeDelegatorStatsQuery = `
+    SELECT
+        pool_id
+        , SUM(total_reward) AS reward
+    FROM staking.address_pool_epoch_rewards
+    WHERE
+        address = $1::text
+    GROUP BY 1;
 `;

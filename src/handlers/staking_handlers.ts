@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { StakingDataService } from '../services/staking_data_service';
-import { StakingPoolsResponse } from '../types';
+import { DelegatorResponse, StakingPoolsResponse } from '../types';
 
 export class StakingHandlers {
     private readonly _stakingDataService: StakingDataService;
@@ -23,10 +23,17 @@ export class StakingHandlers {
     public async getDelegatorAsync(_req: express.Request, res: express.Response): Promise<void> {
         const delegatorAddress = _req.params.id;
 
-        const [currentEpoch] = await Promise.all([this._stakingDataService.getDelegatorAsync(delegatorAddress)]);
+        const [forCurrentEpoch, forNextEpoch, allTime] = await Promise.all([
+            this._stakingDataService.getDelegatorCurrentEpochAsync(delegatorAddress),
+            this._stakingDataService.getDelegatorNextEpochAsync(delegatorAddress),
+            this._stakingDataService.getDelegatorAllTimeStatsAsync(delegatorAddress),
+        ]);
 
-        const response = {
-            currentEpoch,
+        const response: DelegatorResponse = {
+            delegatorAddress,
+            forCurrentEpoch,
+            forNextEpoch,
+            allTime,
         };
 
         res.status(HttpStatus.OK).send(response);
