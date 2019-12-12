@@ -99,6 +99,21 @@ export interface RawPool {
     name?: string;
 }
 
+export interface RawPoolEpochRewards {
+    epoch_id: number;
+    pool_id: string;
+    operator_reward: number;
+    members_reward: number;
+    total_reward: number;
+    // Fields below are available but not used in response
+    starting_block_timestamp: string;
+    starting_block_number: number;
+    starting_transaction_index: number;
+    ending_block_number?: number;
+    ending_timestamp?: string;
+    ending_transaction_hash?: string;
+}
+
 export interface PoolMetadata {
     isVerified: boolean;
     logoUrl?: string;
@@ -140,6 +155,13 @@ export interface EpochPoolStats {
     makerAddresses: string[];
     totalProtocolFeesGeneratedInEth: number;
     approximateStakeRatio: number;
+}
+
+export interface PoolEpochRewards {
+    epochId: number;
+    operatorReward: number;
+    membersReward: number;
+    totalReward: number;
 }
 
 export interface RawPoolProtocolFeesGenerated {

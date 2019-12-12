@@ -7,12 +7,14 @@ import {
     Epoch,
     EpochDelegatorStats,
     Pool,
+    PoolEpochRewards,
     PoolWithStats,
     RawAllTimeStakingStats,
     RawDelegatorDeposited,
     RawDelegatorStaked,
     RawEpoch,
     RawPool,
+    RawPoolEpochRewards,
 } from '../types';
 import { stakingUtils } from '../utils/staking_utils';
 import { utils } from '../utils/utils';
@@ -22,6 +24,7 @@ export class StakingDataService {
     constructor(connection: Connection) {
         this._connection = connection;
     }
+
     public async getCurrentEpochAsync(): Promise<Epoch> {
         const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(currentEpochQuery));
         if (!rawEpoch) {
@@ -30,6 +33,7 @@ export class StakingDataService {
         const epoch = stakingUtils.getEpochFromRaw(rawEpoch);
         return epoch;
     }
+
     public async getNextEpochAsync(): Promise<Epoch> {
         const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(nextEpochQuery));
         if (!rawEpoch) {
@@ -38,11 +42,21 @@ export class StakingDataService {
         const epoch = stakingUtils.getEpochFromRaw(rawEpoch);
         return epoch;
     }
+
     public async getStakingPoolsAsync(): Promise<Pool[]> {
         const rawPools: RawPool[] = await this._connection.query(stakingPoolsQuery);
         const pools = stakingUtils.getPoolsFromRaw(rawPools);
         return pools;
     }
+
+    public async getStakingPoolEpochRewardsAsync(poolId: string): Promise<PoolEpochRewards[]> {
+        const rawPoolEpochRewards: RawPoolEpochRewards[] = await this._connection.query(poolEpochRewardsQuery, [
+            poolId,
+        ]);
+        const poolEpochRewards = stakingUtils.getPoolEpochRewardsFromRaw(rawPoolEpochRewards);
+        return poolEpochRewards;
+    }
+
     public async getAllTimeStakingStatsAsync(): Promise<AllTimeStakingStats> {
         const rawAllTimeStats: RawAllTimeStakingStats | undefined = _.head(
             await this._connection.query(allTimeStatsQuery),
@@ -53,6 +67,7 @@ export class StakingDataService {
         const allTimeAllTimeStats: AllTimeStakingStats = stakingUtils.getAllTimeStakingStatsFromRaw(rawAllTimeStats);
         return allTimeAllTimeStats;
     }
+
     public async getStakingPoolsWithStatsAsync(): Promise<PoolWithStats[]> {
         const [
             pools,
@@ -207,6 +222,28 @@ const sevenDayProtocolFeesGeneratedQuery = `
         , COALESCE(f.protocol_fees, 0) AS seven_day_protocol_fees_generated_in_eth
     FROM events.staking_pool_created_events p
     LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id;
+`;
+
+const poolEpochRewardsQuery = `
+    SELECT
+        $1::text AS pool_id
+        , e.epoch_id AS epoch_id
+        , e.starting_block_timestamp
+        , e.starting_block_number
+        , e.starting_transaction_index
+        , e.ending_timestamp
+        , e.ending_block_number
+        , e.ending_transaction_hash
+        , COALESCE(rpe.operator_reward / 1e18,0) AS operator_reward
+        , COALESCE(rpe.members_reward / 1e18,0) AS members_reward
+        , COALESCE((rpe.operator_reward + rpe.members_reward) / 1e18,0) AS total_reward
+    FROM events.rewards_paid_events rpe
+    FULL JOIN staking.epochs e ON e.epoch_id = (rpe.epoch_id - 1)
+    WHERE
+        (
+            pool_id = $1
+            OR pool_id IS NULL
+        );
 `;
 
 const currentEpochPoolStatsQuery = `

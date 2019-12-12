@@ -13,6 +13,16 @@ export class StakingHandlers {
         };
         res.status(HttpStatus.OK).send(response);
     }
+    public async getStakingPoolByIdAsync(_req: express.Request, res: express.Response): Promise<void> {
+        const poolId = _req.params.id;
+        const epochRewards = await this._stakingDataService.getStakingPoolEpochRewardsAsync(poolId);
+
+        const response = {
+            epochRewards,
+        };
+
+        res.status(HttpStatus.OK).send(response);
+    }
     public async getStakingEpochsAsync(_req: express.Request, res: express.Response): Promise<void> {
         const [currentEpoch, nextEpoch] = await Promise.all([
             this._stakingDataService.getCurrentEpochAsync(),

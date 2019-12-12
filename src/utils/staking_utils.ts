@@ -7,6 +7,7 @@ import {
     EpochPoolStats,
     Pool,
     PoolEpochDelegatorStats,
+    PoolEpochRewards,
     PoolProtocolFeesGenerated,
     RawAllTimeDelegatorPoolsStats,
     RawAllTimeStakingStats,
@@ -15,6 +16,7 @@ import {
     RawEpoch,
     RawEpochPoolStats,
     RawPool,
+    RawPoolEpochRewards,
     RawPoolProtocolFeesGenerated,
     TransactionDate,
 } from '../types';
@@ -107,6 +109,14 @@ export const stakingUtils = {
     },
     getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
         return rawEpochPoolsStats.map(stakingUtils.getEpochPoolStatsFromRaw);
+    },
+    getPoolEpochRewardsFromRaw: (rawPoolEpochRewards: RawPoolEpochRewards[]): PoolEpochRewards[] => {
+        return rawPoolEpochRewards.map(epochReward => ({
+            epochId: Number(epochReward.epoch_id),
+            operatorReward: Number(epochReward.operator_reward || 0),
+            membersReward: Number(epochReward.members_reward || 0),
+            totalReward: Number(epochReward.total_reward || 0),
+        }));
     },
     getPoolProtocolFeesGeneratedFromRaw: (
         rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated,
