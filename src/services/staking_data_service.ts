@@ -178,7 +178,7 @@ const nextEpochQuery = `
     SELECT
         ce.epoch_id + 1 AS epoch_id
         , ce.starting_block_number + cp.epoch_duration_in_seconds::NUMERIC / 15::NUMERIC AS starting_block_number
-        , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_timestamp
+        , ce.starting_block_timestamp + ((cp.epoch_duration_in_seconds)::VARCHAR || ' seconds')::INTERVAL AS starting_block_timestamp
         , zd.zrx_deposited
         , zs.zrx_staked
     FROM staking.current_epoch ce
