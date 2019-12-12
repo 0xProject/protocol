@@ -1,10 +1,17 @@
+import * as _ from 'lodash';
+
 import {
+    AllTimeDelegatorPoolStats,
     AllTimeStakingStats,
     Epoch,
     EpochPoolStats,
     Pool,
+    PoolEpochDelegatorStats,
     PoolProtocolFeesGenerated,
+    RawAllTimeDelegatorPoolsStats,
     RawAllTimeStakingStats,
+    RawDelegatorDeposited,
+    RawDelegatorStaked,
     RawEpoch,
     RawEpochPoolStats,
     RawPool,
@@ -114,6 +121,34 @@ export const stakingUtils = {
         rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[],
     ): PoolProtocolFeesGenerated[] => {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
+    },
+    getZrxStakedFromRawDelegatorDeposited: (rawDelegatorDeposited: RawDelegatorDeposited[]): number => {
+        const resultRow: RawDelegatorDeposited | undefined = _.head(rawDelegatorDeposited);
+        return resultRow ? parseFloat(resultRow.zrx_deposited) : 0;
+    },
+    getDelegatorStakedFromRaw: (rawDelegatorStaked: RawDelegatorStaked[]) => {
+        const firstRow = _.head(rawDelegatorStaked);
+        const zrxStaked = (firstRow && parseFloat(firstRow.zrx_staked_overall)) || 0;
+
+        const poolData: PoolEpochDelegatorStats[] = rawDelegatorStaked.map(row => ({
+            poolId: row.pool_id,
+            zrxStaked: parseFloat(row.zrx_staked_in_pool) || 0,
+        }));
+
+        return {
+            zrxStaked,
+            poolData,
+        };
+    },
+    getDelegatorAllTimeStatsFromRaw: (
+        rawDelegatorAllTimeStats: RawAllTimeDelegatorPoolsStats[],
+    ): AllTimeDelegatorPoolStats[] => {
+        const poolData: AllTimeDelegatorPoolStats[] = rawDelegatorAllTimeStats.map(rawStats => ({
+            poolId: rawStats.pool_id,
+            rewardsInEth: parseFloat(rawStats.reward) || 0,
+        }));
+
+        return poolData;
     },
     getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {
         const { total_rewards_paid } = rawAllTimeAllTimeStats;

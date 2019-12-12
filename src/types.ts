@@ -163,6 +163,49 @@ export interface StakingPoolsResponse {
     stakingPools: PoolWithStats[];
 }
 
+export interface RawDelegatorDeposited {
+    delegator: string;
+    zrx_deposited: string;
+}
+
+export interface RawDelegatorStaked {
+    delegator: string;
+    zrx_staked_overall: string;
+    pool_id: string;
+    zrx_staked_in_pool: string;
+}
+
+export interface RawAllTimeDelegatorPoolsStats {
+    pool_id: string;
+    reward: string;
+}
+
+export interface PoolEpochDelegatorStats {
+    poolId: string;
+    zrxStaked: number;
+}
+
+export interface EpochDelegatorStats {
+    zrxDeposited: number;
+    zrxStaked: number;
+    poolData: PoolEpochDelegatorStats[];
+}
+
+export interface AllTimeDelegatorPoolStats {
+    poolId: string;
+    rewardsInEth: number;
+}
+
+export interface AllTimeDelegatorStats {
+    poolData: AllTimeDelegatorPoolStats[];
+}
+
+export interface StakingDelegatorResponse {
+    delegatorAddress: string;
+    forCurrentEpoch: EpochDelegatorStats;
+    forNextEpoch: EpochDelegatorStats;
+    allTime: AllTimeDelegatorStats;
+}
 export interface StakingEpochsResponse {
     currentEpoch: Epoch;
     nextEpoch: Epoch;
