@@ -137,12 +137,7 @@ export interface PoolWithStats extends Pool {
 }
 
 export interface PoolWithHistoricalStats extends Pool {
-    allTimeStats: {
-        operatorRewardInEth: number;
-        membersRewardInEth: number;
-        totalRewardInEth: number;
-        protocolFeesGeneratedInEth: number;
-    };
+    allTimeStats: AllTimePoolRewards;
     epochRewards: PoolEpochRewards[];
 }
 
@@ -199,7 +194,7 @@ export interface AllTimeStakingStats {
 
 export interface StakingPoolResponse {
     poolId: string;
-    stats: PoolWithHistoricalStats;
+    stakingPool: PoolWithHistoricalStats;
 }
 export interface StakingPoolsResponse {
     stakingPools: PoolWithStats[];
