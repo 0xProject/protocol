@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 
 import {
     AllTimeDelegatorPoolStats,
+    AllTimePoolRewards,
     AllTimeStakingStats,
     Epoch,
     EpochPoolStats,
@@ -10,6 +11,7 @@ import {
     PoolEpochRewards,
     PoolProtocolFeesGenerated,
     RawAllTimeDelegatorPoolsStats,
+    RawAllTimePoolRewards,
     RawAllTimeStakingStats,
     RawDelegatorDeposited,
     RawDelegatorStaked,
@@ -18,6 +20,7 @@ import {
     RawPool,
     RawPoolEpochRewards,
     RawPoolProtocolFeesGenerated,
+    RawPoolTotalProtocolFeesGenerated,
     TransactionDate,
 } from '../types';
 
@@ -113,9 +116,9 @@ export const stakingUtils = {
     getPoolEpochRewardsFromRaw: (rawPoolEpochRewards: RawPoolEpochRewards[]): PoolEpochRewards[] => {
         return rawPoolEpochRewards.map(epochReward => ({
             epochId: Number(epochReward.epoch_id),
-            operatorReward: Number(epochReward.operator_reward || 0),
-            membersReward: Number(epochReward.members_reward || 0),
-            totalReward: Number(epochReward.total_reward || 0),
+            operatorRewardInEth: Number(epochReward.operator_reward || 0),
+            membersRewardInEth: Number(epochReward.members_reward || 0),
+            totalRewardInEth: Number(epochReward.total_reward || 0),
         }));
     },
     getPoolProtocolFeesGeneratedFromRaw: (
@@ -159,6 +162,17 @@ export const stakingUtils = {
         }));
 
         return poolData;
+    },
+    getAlltimePoolRewards: (
+        rawAllTimePoolRewards: RawAllTimePoolRewards,
+        rawPoolsProtocolFeesGenerated: RawPoolTotalProtocolFeesGenerated,
+    ): AllTimePoolRewards => {
+        return {
+            operatorRewardInEth: Number(rawAllTimePoolRewards.operator_reward || 0),
+            membersRewardInEth: Number(rawAllTimePoolRewards.members_reward || 0),
+            totalRewardInEth: Number(rawAllTimePoolRewards.total_rewards || 0),
+            protocolFeesGeneratedInEth: Number(rawPoolsProtocolFeesGenerated.total_protocol_fees || 0),
+        };
     },
     getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {
         const { total_rewards_paid } = rawAllTimeAllTimeStats;

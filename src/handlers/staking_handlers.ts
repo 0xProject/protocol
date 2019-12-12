@@ -2,7 +2,13 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { StakingDataService } from '../services/staking_data_service';
-import { StakingDelegatorResponse, StakingEpochsResponse, StakingPoolsResponse, StakingStatsResponse } from '../types';
+import {
+    StakingDelegatorResponse,
+    StakingEpochsResponse,
+    StakingPoolResponse,
+    StakingPoolsResponse,
+    StakingStatsResponse,
+} from '../types';
 
 export class StakingHandlers {
     private readonly _stakingDataService: StakingDataService;
@@ -15,10 +21,19 @@ export class StakingHandlers {
     }
     public async getStakingPoolByIdAsync(_req: express.Request, res: express.Response): Promise<void> {
         const poolId = _req.params.id;
-        const epochRewards = await this._stakingDataService.getStakingPoolEpochRewardsAsync(poolId);
+        const [pool, epochRewards, allTimeStats] = await Promise.all([
+            this._stakingDataService.getStakingPoolAsync(poolId),
+            this._stakingDataService.getStakingPoolEpochRewardsAsync(poolId),
+            this._stakingDataService.getStakingPoolAllTimeRewardsAsync(poolId),
+        ]);
 
-        const response = {
-            epochRewards,
+        const response: StakingPoolResponse = {
+            poolId,
+            stats: {
+                ...pool,
+                allTimeStats,
+                epochRewards,
+            },
         };
 
         res.status(HttpStatus.OK).send(response);

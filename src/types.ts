@@ -100,16 +100,16 @@ export interface RawPool {
 }
 
 export interface RawPoolEpochRewards {
-    epoch_id: number;
+    epoch_id: string;
     pool_id: string;
-    operator_reward: number;
-    members_reward: number;
-    total_reward: number;
+    operator_reward: string;
+    members_reward: string;
+    total_reward: string;
     // Fields below are available but not used in response
     starting_block_timestamp: string;
-    starting_block_number: number;
-    starting_transaction_index: number;
-    ending_block_number?: number;
+    starting_block_number: string;
+    starting_transaction_index: string;
+    ending_block_number?: string;
     ending_timestamp?: string;
     ending_transaction_hash?: string;
 }
@@ -136,6 +136,16 @@ export interface PoolWithStats extends Pool {
     sevenDayProtocolFeesGeneratedInEth: number;
 }
 
+export interface PoolWithHistoricalStats extends Pool {
+    allTimeStats: {
+        operatorRewardInEth: number;
+        membersRewardInEth: number;
+        totalRewardInEth: number;
+        protocolFeesGeneratedInEth: number;
+    };
+    epochRewards: PoolEpochRewards[];
+}
+
 export interface RawEpochPoolStats {
     pool_id: string;
     maker_addresses: string[];
@@ -159,14 +169,20 @@ export interface EpochPoolStats {
 
 export interface PoolEpochRewards {
     epochId: number;
-    operatorReward: number;
-    membersReward: number;
-    totalReward: number;
+    operatorRewardInEth: number;
+    membersRewardInEth: number;
+    totalRewardInEth: number;
 }
 
 export interface RawPoolProtocolFeesGenerated {
     pool_id: string;
     seven_day_protocol_fees_generated_in_eth: string;
+}
+
+export interface RawPoolTotalProtocolFeesGenerated {
+    pool_id: string;
+    total_protocol_fees: string;
+    num_fills: string;
 }
 
 export interface PoolProtocolFeesGenerated {
@@ -181,6 +197,10 @@ export interface AllTimeStakingStats {
     totalRewardsPaidInEth: number;
 }
 
+export interface StakingPoolResponse {
+    poolId: string;
+    stats: PoolWithHistoricalStats;
+}
 export interface StakingPoolsResponse {
     stakingPools: PoolWithStats[];
 }
@@ -202,6 +222,13 @@ export interface RawAllTimeDelegatorPoolsStats {
     reward: string;
 }
 
+export interface RawAllTimePoolRewards {
+    pool_id: string;
+    operator_reward: string;
+    members_reward: string;
+    total_rewards: string;
+}
+
 export interface PoolEpochDelegatorStats {
     poolId: string;
     zrxStaked: number;
@@ -211,6 +238,13 @@ export interface EpochDelegatorStats {
     zrxDeposited: number;
     zrxStaked: number;
     poolData: PoolEpochDelegatorStats[];
+}
+
+export interface AllTimePoolRewards {
+    operatorRewardInEth: number;
+    membersRewardInEth: number;
+    totalRewardInEth: number;
+    protocolFeesGeneratedInEth: number;
 }
 
 export interface AllTimeDelegatorPoolStats {
