@@ -8,6 +8,8 @@ export const createStakingRouter = (stakingDataService: StakingDataService): exp
     const router = express.Router();
     const handlers = new StakingHandlers(stakingDataService);
     router.get('/pools', asyncHandler(handlers.getStakingPoolsAsync.bind(handlers)));
+    router.get('/epochs', asyncHandler(handlers.getStakingEpochsAsync.bind(handlers)));
+    router.get('/stats', asyncHandler(handlers.getStakingStatsAsync.bind(handlers)));
     router.get('/delegator/:id', asyncHandler(handlers.getDelegatorAsync.bind(handlers)));
     return router;
 };
