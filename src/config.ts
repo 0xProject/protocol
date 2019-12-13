@@ -3,7 +3,7 @@ import { BigNumber } from '0x.js';
 import { assert } from '@0x/assert';
 import * as _ from 'lodash';
 
-import { DEFAULT_LOCAL_POSTGRES_URI, NULL_ADDRESS, NULL_BYTES } from './constants';
+import { DEFAULT_LOCAL_POSTGRES_URI, DEFAULT_LOGGER_INCLUDE_TIMESTAMP, NULL_ADDRESS, NULL_BYTES } from './constants';
 
 enum EnvVarType {
     Port,
@@ -60,6 +60,10 @@ export const TAKER_FEE_ASSET_DATA = _.isEmpty(process.env.TAKER_FEE_ASSET_DATA)
 export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
     ? DEFAULT_LOCAL_POSTGRES_URI
     : assertEnvVarType('POSTGRES_URI', process.env.POSTGRES_URI, EnvVarType.Url);
+// Should the logger include time field in the output logs, defaults to true.
+export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIMESTAMP)
+    ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
+    : assertEnvVarType('LOGGER_INCLUDE_TIMESTAMP', process.env.LOGGER_INCLUDE_TIMESTAMP, EnvVarType.Boolean);
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
