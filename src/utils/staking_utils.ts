@@ -2,20 +2,25 @@ import * as _ from 'lodash';
 
 import {
     AllTimeDelegatorPoolStats,
+    AllTimePoolStats,
     AllTimeStakingStats,
     Epoch,
     EpochPoolStats,
     Pool,
     PoolEpochDelegatorStats,
+    PoolEpochRewards,
     PoolProtocolFeesGenerated,
     RawAllTimeDelegatorPoolsStats,
+    RawAllTimePoolRewards,
     RawAllTimeStakingStats,
     RawDelegatorDeposited,
     RawDelegatorStaked,
     RawEpoch,
     RawEpochPoolStats,
     RawPool,
+    RawPoolEpochRewards,
     RawPoolProtocolFeesGenerated,
+    RawPoolTotalProtocolFeesGenerated,
     TransactionDate,
 } from '../types';
 
@@ -108,6 +113,14 @@ export const stakingUtils = {
     getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
         return rawEpochPoolsStats.map(stakingUtils.getEpochPoolStatsFromRaw);
     },
+    getPoolEpochRewardsFromRaw: (rawPoolEpochRewards: RawPoolEpochRewards[]): PoolEpochRewards[] => {
+        return rawPoolEpochRewards.map(epochReward => ({
+            epochId: Number(epochReward.epoch_id),
+            operatorRewardsPaidInEth: Number(epochReward.operator_reward || 0),
+            membersRewardsPaidInEth: Number(epochReward.members_reward || 0),
+            totalRewardsPaidInEth: Number(epochReward.total_reward || 0),
+        }));
+    },
     getPoolProtocolFeesGeneratedFromRaw: (
         rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated,
     ): PoolProtocolFeesGenerated => {
@@ -149,6 +162,17 @@ export const stakingUtils = {
         }));
 
         return poolData;
+    },
+    getAlltimePoolRewards: (
+        rawAllTimePoolRewards: RawAllTimePoolRewards,
+        rawPoolsProtocolFeesGenerated: RawPoolTotalProtocolFeesGenerated,
+    ): AllTimePoolStats => {
+        return {
+            operatorRewardsPaidInEth: Number(rawAllTimePoolRewards.operator_reward || 0),
+            membersRewardsPaidInEth: Number(rawAllTimePoolRewards.members_reward || 0),
+            totalRewardsPaidInEth: Number(rawAllTimePoolRewards.total_rewards || 0),
+            protocolFeesGeneratedInEth: Number(rawPoolsProtocolFeesGenerated.total_protocol_fees || 0),
+        };
     },
     getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {
         const { total_rewards_paid } = rawAllTimeAllTimeStats;

@@ -2,7 +2,13 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { StakingDataService } from '../services/staking_data_service';
-import { StakingDelegatorResponse, StakingEpochsResponse, StakingPoolsResponse, StakingStatsResponse } from '../types';
+import {
+    StakingDelegatorResponse,
+    StakingEpochsResponse,
+    StakingPoolResponse,
+    StakingPoolsResponse,
+    StakingStatsResponse,
+} from '../types';
 
 export class StakingHandlers {
     private readonly _stakingDataService: StakingDataService;
@@ -11,6 +17,25 @@ export class StakingHandlers {
         const response: StakingPoolsResponse = {
             stakingPools,
         };
+        res.status(HttpStatus.OK).send(response);
+    }
+    public async getStakingPoolByIdAsync(req: express.Request, res: express.Response): Promise<void> {
+        const poolId = req.params.id;
+        const [pool, epochRewards, allTimeStats] = await Promise.all([
+            this._stakingDataService.getStakingPoolAsync(poolId),
+            this._stakingDataService.getStakingPoolEpochRewardsAsync(poolId),
+            this._stakingDataService.getStakingPoolAllTimeRewardsAsync(poolId),
+        ]);
+
+        const response: StakingPoolResponse = {
+            poolId,
+            stakingPool: {
+                ...pool,
+                allTimeStats,
+                epochRewards,
+            },
+        };
+
         res.status(HttpStatus.OK).send(response);
     }
     public async getStakingEpochsAsync(_req: express.Request, res: express.Response): Promise<void> {
@@ -32,8 +57,8 @@ export class StakingHandlers {
         res.status(HttpStatus.OK).send(response);
     }
 
-    public async getDelegatorAsync(_req: express.Request, res: express.Response): Promise<void> {
-        const delegatorAddress = _req.params.id;
+    public async getDelegatorAsync(req: express.Request, res: express.Response): Promise<void> {
+        const delegatorAddress = req.params.id;
 
         const [forCurrentEpoch, forNextEpoch, allTime] = await Promise.all([
             this._stakingDataService.getDelegatorCurrentEpochAsync(delegatorAddress),

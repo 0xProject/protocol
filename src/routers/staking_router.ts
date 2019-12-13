@@ -7,6 +7,7 @@ import { StakingDataService } from '../services/staking_data_service';
 export const createStakingRouter = (stakingDataService: StakingDataService): express.Router => {
     const router = express.Router();
     const handlers = new StakingHandlers(stakingDataService);
+    router.get('/pools/:id', asyncHandler(handlers.getStakingPoolByIdAsync.bind(handlers)));
     router.get('/pools', asyncHandler(handlers.getStakingPoolsAsync.bind(handlers)));
     router.get('/epochs', asyncHandler(handlers.getStakingEpochsAsync.bind(handlers)));
     router.get('/stats', asyncHandler(handlers.getStakingStatsAsync.bind(handlers)));
