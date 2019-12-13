@@ -1,4 +1,6 @@
 // tslint:disable:max-classes-per-file
+
+// base class for all the named errors in this file
 export abstract class APIBaseError extends Error {
     public abstract statusCode: number;
     public isAPIError = true;
