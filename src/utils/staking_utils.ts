@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 
 import {
     AllTimeDelegatorPoolStats,
-    AllTimePoolRewards,
+    AllTimePoolStats,
     AllTimeStakingStats,
     Epoch,
     EpochPoolStats,
@@ -116,9 +116,9 @@ export const stakingUtils = {
     getPoolEpochRewardsFromRaw: (rawPoolEpochRewards: RawPoolEpochRewards[]): PoolEpochRewards[] => {
         return rawPoolEpochRewards.map(epochReward => ({
             epochId: Number(epochReward.epoch_id),
-            operatorRewardInEth: Number(epochReward.operator_reward || 0),
-            membersRewardInEth: Number(epochReward.members_reward || 0),
-            totalRewardInEth: Number(epochReward.total_reward || 0),
+            operatorRewardsPaidInEth: Number(epochReward.operator_reward || 0),
+            membersRewardsPaidInEth: Number(epochReward.members_reward || 0),
+            totalRewardsPaidInEth: Number(epochReward.total_reward || 0),
         }));
     },
     getPoolProtocolFeesGeneratedFromRaw: (
@@ -166,11 +166,11 @@ export const stakingUtils = {
     getAlltimePoolRewards: (
         rawAllTimePoolRewards: RawAllTimePoolRewards,
         rawPoolsProtocolFeesGenerated: RawPoolTotalProtocolFeesGenerated,
-    ): AllTimePoolRewards => {
+    ): AllTimePoolStats => {
         return {
-            operatorRewardInEth: Number(rawAllTimePoolRewards.operator_reward || 0),
-            membersRewardInEth: Number(rawAllTimePoolRewards.members_reward || 0),
-            totalRewardInEth: Number(rawAllTimePoolRewards.total_rewards || 0),
+            operatorRewardsPaidInEth: Number(rawAllTimePoolRewards.operator_reward || 0),
+            membersRewardsPaidInEth: Number(rawAllTimePoolRewards.members_reward || 0),
+            totalRewardsPaidInEth: Number(rawAllTimePoolRewards.total_rewards || 0),
             protocolFeesGeneratedInEth: Number(rawPoolsProtocolFeesGenerated.total_protocol_fees || 0),
         };
     },

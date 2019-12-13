@@ -137,7 +137,7 @@ export interface PoolWithStats extends Pool {
 }
 
 export interface PoolWithHistoricalStats extends Pool {
-    allTimeStats: AllTimePoolRewards;
+    allTimeStats: AllTimePoolStats;
     epochRewards: PoolEpochRewards[];
 }
 
@@ -162,11 +162,14 @@ export interface EpochPoolStats {
     approximateStakeRatio: number;
 }
 
-export interface PoolEpochRewards {
+export interface RewardsStats {
+    operatorRewardsPaidInEth: number;
+    membersRewardsPaidInEth: number;
+    totalRewardsPaidInEth: number;
+}
+
+export interface PoolEpochRewards extends RewardsStats {
     epochId: number;
-    operatorRewardInEth: number;
-    membersRewardInEth: number;
-    totalRewardInEth: number;
 }
 
 export interface RawPoolProtocolFeesGenerated {
@@ -235,10 +238,7 @@ export interface EpochDelegatorStats {
     poolData: PoolEpochDelegatorStats[];
 }
 
-export interface AllTimePoolRewards {
-    operatorRewardInEth: number;
-    membersRewardInEth: number;
-    totalRewardInEth: number;
+export interface AllTimePoolStats extends RewardsStats {
     protocolFeesGeneratedInEth: number;
 }
 

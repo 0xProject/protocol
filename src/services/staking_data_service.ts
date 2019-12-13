@@ -4,7 +4,7 @@ import { Connection } from 'typeorm';
 import * as queries from '../queries/staking_queries';
 import {
     AllTimeDelegatorStats,
-    AllTimePoolRewards,
+    AllTimePoolStats,
     AllTimeStakingStats,
     Epoch,
     EpochDelegatorStats,
@@ -74,7 +74,7 @@ export class StakingDataService {
         return poolEpochRewards;
     }
 
-    public async getStakingPoolAllTimeRewardsAsync(poolId: string): Promise<AllTimePoolRewards> {
+    public async getStakingPoolAllTimeRewardsAsync(poolId: string): Promise<AllTimePoolStats> {
         const [rawAllTimePoolRewards, rawTotalPoolProtocolFeesGenerated] = await Promise.all<
             RawAllTimePoolRewards[],
             RawPoolTotalProtocolFeesGenerated[]
