@@ -164,14 +164,14 @@ export const stakingUtils = {
         return poolData;
     },
     getAlltimePoolRewards: (
-        rawAllTimePoolRewards: RawAllTimePoolRewards,
-        rawPoolsProtocolFeesGenerated: RawPoolTotalProtocolFeesGenerated,
+        rawAllTimePoolRewards?: RawAllTimePoolRewards,
+        rawPoolsProtocolFeesGenerated?: RawPoolTotalProtocolFeesGenerated,
     ): AllTimePoolStats => {
         return {
-            operatorRewardsPaidInEth: Number(rawAllTimePoolRewards.operator_reward || 0),
-            membersRewardsPaidInEth: Number(rawAllTimePoolRewards.members_reward || 0),
-            totalRewardsPaidInEth: Number(rawAllTimePoolRewards.total_rewards || 0),
-            protocolFeesGeneratedInEth: Number(rawPoolsProtocolFeesGenerated.total_protocol_fees || 0),
+            operatorRewardsPaidInEth: Number(_.get(rawAllTimePoolRewards, 'operator_reward', 0)),
+            membersRewardsPaidInEth: Number(_.get(rawAllTimePoolRewards, 'members_reward', 0)),
+            totalRewardsPaidInEth: Number(_.get(rawAllTimePoolRewards, 'total_rewards', 0)),
+            protocolFeesGeneratedInEth: Number(_.get(rawPoolsProtocolFeesGenerated, 'total_protocol_fees', 0)),
         };
     },
     getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {

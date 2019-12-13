@@ -84,14 +84,7 @@ export class StakingDataService {
         ]);
 
         const rawAllTimePoolRewardsHead = _.head(rawAllTimePoolRewards);
-        if (!rawAllTimePoolRewardsHead) {
-            throw new Error(`Could not find all time pool rewards for pool with pool_id ${poolId}`);
-        }
-
         const rawTotalPoolProtocolFeesGeneratedHead = _.head(rawTotalPoolProtocolFeesGenerated);
-        if (!rawTotalPoolProtocolFeesGeneratedHead) {
-            throw new Error(`Could not find total protocol fees for pool with pool_id ${poolId}`);
-        }
 
         const allTimePoolRewards = stakingUtils.getAlltimePoolRewards(
             rawAllTimePoolRewardsHead,
