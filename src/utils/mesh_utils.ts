@@ -45,6 +45,8 @@ export const meshUtils = {
             ? (orderEvent as OrderEvent).fillableTakerAssetAmount
             : ZERO;
         return {
+            // TODO remove the any when packages are all published and updated with latest types
+            // tslint:disable-next-line:no-unnecessary-type-assertion
             order: orderEvent.signedOrder as any,
             metaData: {
                 orderHash: orderEvent.orderHash,
@@ -75,9 +77,9 @@ export const meshUtils = {
         }
     },
     calculateAddedRemovedUpdated: (orderEvents: OrderEvent[]): AddedRemovedUpdate => {
-        const added = [];
-        const removed = [];
-        const updated = [];
+        const added: APIOrderWithMetaData[] = [];
+        const removed: APIOrderWithMetaData[] = [];
+        const updated: APIOrderWithMetaData[] = [];
         for (const event of orderEvents) {
             const apiOrder = meshUtils.orderInfoToAPIOrder(event);
             switch (event.endState) {

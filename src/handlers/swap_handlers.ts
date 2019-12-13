@@ -6,6 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import { CHAIN_ID } from '../config';
 import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, ETH_SYMBOL } from '../constants';
 import { InternalServerError, RevertAPIError, ValidationError, ValidationErrorCodes } from '../errors';
+import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { SwapService } from '../services/swap_service';
 import { GetSwapQuoteRequestParams } from '../types';
@@ -71,6 +72,7 @@ export class SwapHandlers {
                     },
                 ]);
             }
+            logger.info('Uncaught error', e);
             throw new InternalServerError(e.message);
         }
     }

@@ -4,7 +4,11 @@ import { BigNumber, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 
 import { CHAIN_ID } from '../config';
-import { DEFAULT_TOKEN_DECIMALS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
+import {
+    ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+    DEFAULT_TOKEN_DECIMALS,
+    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+} from '../constants';
 import { CalculateSwapQuoteParams, GetSwapQuoteResponse } from '../types';
 import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
 
@@ -35,19 +39,24 @@ export class SwapService {
             isETHSell,
             from,
         } = params;
+        const assetSwapperOpts = {
+            slippagePercentage,
+            gasPrice: providedGasPrice,
+            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+        };
         if (sellAmount !== undefined) {
             swapQuote = await this._swapQuoter.getMarketSellSwapQuoteAsync(
                 buyTokenAddress,
                 sellTokenAddress,
                 sellAmount,
-                { slippagePercentage, gasPrice: providedGasPrice },
+                assetSwapperOpts,
             );
         } else if (buyAmount !== undefined) {
             swapQuote = await this._swapQuoter.getMarketBuySwapQuoteAsync(
                 buyTokenAddress,
                 sellTokenAddress,
                 buyAmount,
-                { slippagePercentage, gasPrice: providedGasPrice },
+                assetSwapperOpts,
             );
         } else {
             throw new Error('sellAmount or buyAmount required');
@@ -56,7 +65,7 @@ export class SwapService {
             makerAssetAmount,
             totalTakerAssetAmount,
             protocolFeeInWeiAmount: protocolFee,
-        } = swapQuote.worstCaseQuoteInfo;
+        } = swapQuote.bestCaseQuoteInfo;
         const { orders, gasPrice } = swapQuote;
 
         // If ETH was specified as the token to sell then we use the Forwarder
