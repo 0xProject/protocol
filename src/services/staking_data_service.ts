@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
+import { NotFoundError } from '../errors';
 import * as queries from '../queries/staking_queries';
 import {
     AllTimeDelegatorStats,
@@ -59,7 +60,7 @@ export class StakingDataService {
         );
 
         if (!rawPool) {
-            throw new Error(`Could not find pool with pool_id ${poolId}`);
+            throw new NotFoundError(`Could not find pool with pool_id ${poolId}`);
         }
 
         const pool = stakingUtils.getPoolFromRaw(rawPool);
