@@ -126,7 +126,7 @@ export class StakingDataService {
             currentEpochStats: currentEpochPoolStats,
             nextEpochStats: nextEpochPoolStats,
             sevenDayProtocolFeesGeneratedInEth: pool7dProtocolFeesGenerated.sevenDayProtocolFeesGeneratedInEth,
-        }
+        };
     }
 
     public async getStakingPoolsWithStatsAsync(): Promise<PoolWithStats[]> {

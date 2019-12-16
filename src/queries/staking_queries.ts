@@ -533,3 +533,4 @@ export const allTimeStatsQuery = `;
     ) / 1e18; AS; total_rewards_paid;
     FROM; events.rewards_paid_events;
 `;
+// tslint:disable-next-line: max-file-line-count
