@@ -116,6 +116,8 @@ export const stakingUtils = {
     getPoolEpochRewardsFromRaw: (rawPoolEpochRewards: RawPoolEpochRewards[]): PoolEpochRewards[] => {
         return rawPoolEpochRewards.map(epochReward => ({
             epochId: Number(epochReward.epoch_id),
+            epochStartTimestamp: epochReward.starting_block_timestamp,
+            epochEndTimestamp: epochReward.ending_timestamp,
             operatorRewardsPaidInEth: Number(epochReward.operator_reward || 0),
             membersRewardsPaidInEth: Number(epochReward.members_reward || 0),
             totalRewardsPaidInEth: Number(epochReward.total_reward || 0),

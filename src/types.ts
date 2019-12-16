@@ -109,9 +109,9 @@ export interface RawPoolEpochRewards {
     starting_block_timestamp: string;
     starting_block_number: string;
     starting_transaction_index: string;
-    ending_block_number?: string;
-    ending_timestamp?: string;
-    ending_transaction_hash?: string;
+    ending_block_number: string;
+    ending_timestamp: string;
+    ending_transaction_hash: string;
 }
 
 export interface PoolMetadata {
@@ -136,7 +136,7 @@ export interface PoolWithStats extends Pool {
     sevenDayProtocolFeesGeneratedInEth: number;
 }
 
-export interface PoolWithHistoricalStats extends Pool {
+export interface PoolWithHistoricalStats extends PoolWithStats {
     allTimeStats: AllTimePoolStats;
     epochRewards: PoolEpochRewards[];
 }
@@ -170,6 +170,8 @@ export interface RewardsStats {
 
 export interface PoolEpochRewards extends RewardsStats {
     epochId: number;
+    epochStartTimestamp: string;
+    epochEndTimestamp: string;
 }
 
 export interface RawPoolProtocolFeesGenerated {

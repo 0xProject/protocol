@@ -104,6 +104,31 @@ export class StakingDataService {
         return allTimeAllTimeStats;
     }
 
+    public async getStakingPoolWithStatsAsync(poolId: string): Promise<PoolWithStats> {
+        const [
+            pool,
+            rawCurrentEpochPoolStats,
+            rawNextEpochPoolStats,
+            rawPoolSevenDayProtocolFeesGenerated,
+        ] = await Promise.all([
+            this.getStakingPoolAsync(poolId),
+            this._connection.query(queries.currentEpochPoolsStatsQuery, [poolId]),
+            this._connection.query(queries.nextEpochPoolStatsQuery, [poolId]),
+            this._connection.query(queries.poolSevenDayProtocolFeesGeneratedQuery, [poolId]),
+        ]);
+
+        const currentEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawCurrentEpochPoolStats);
+        const nextEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawNextEpochPoolStats);
+        const pool7dProtocolFeesGenerated = stakingUtils.getPoolProtocolFeesGeneratedFromRaw(rawPoolSevenDayProtocolFeesGenerated);
+
+        return {
+            ...pool,
+            currentEpochStats: currentEpochPoolStats,
+            nextEpochStats: nextEpochPoolStats,
+            sevenDayProtocolFeesGeneratedInEth: pool7dProtocolFeesGenerated.sevenDayProtocolFeesGeneratedInEth,
+        }
+    }
+
     public async getStakingPoolsWithStatsAsync(): Promise<PoolWithStats[]> {
         const [
             pools,
@@ -112,8 +137,8 @@ export class StakingDataService {
             rawPoolSevenDayProtocolFeesGenerated,
         ] = await Promise.all([
             this.getStakingPoolsAsync(),
-            this._connection.query(queries.currentEpochPoolStatsQuery),
-            this._connection.query(queries.nextEpochPoolStatsQuery),
+            this._connection.query(queries.currentEpochPoolsStatsQuery),
+            this._connection.query(queries.nextEpochPoolsStatsQuery),
             this._connection.query(queries.sevenDayProtocolFeesGeneratedQuery),
         ]);
         const currentEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawCurrentEpochPoolStats);
