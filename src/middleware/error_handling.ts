@@ -1,3 +1,4 @@
+import { RevertError } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
@@ -7,6 +8,8 @@ import {
     ErrorBodyWithHTTPStatusCode,
     GeneralErrorCodes,
     generalErrorCodeToReason,
+    InternalServerError,
+    RevertAPIError,
     ValidationError,
 } from '../errors';
 import { logger } from '../logger';
@@ -16,23 +19,28 @@ import { logger } from '../logger';
  */
 export function generateError(err: Error): ErrorBodyWithHTTPStatusCode {
     // handle named errors
-    if ((err as any).isAPIError) {
-        const apiError = err as APIBaseError;
-        const statusCode = apiError.statusCode;
-
+    if (isAPIError(err)) {
+        const statusCode = err.statusCode;
         // populate more information for BAD_REQUEST errors
-        if (apiError.statusCode === HttpStatus.BAD_REQUEST) {
-            const badRequestError = apiError as BadRequestError;
-
+        if (isBadRequestError(err)) {
+            const code = err.generalErrorCode;
             // populate validation error information
-            if (badRequestError.generalErrorCode === GeneralErrorCodes.ValidationError) {
-                const validationError = badRequestError as ValidationError;
+            if (isValidationError(err)) {
                 return {
                     statusCode,
                     errorBody: {
-                        code: badRequestError.generalErrorCode,
-                        reason: generalErrorCodeToReason[badRequestError.generalErrorCode],
-                        validationErrors: validationError.validationErrors,
+                        code,
+                        reason: generalErrorCodeToReason[code],
+                        validationErrors: err.validationErrors,
+                    },
+                };
+            } else if (isRevertAPIError(err)) {
+                return {
+                    statusCode,
+                    errorBody: {
+                        code,
+                        reason: err.name,
+                        values: err.values,
                     },
                 };
             } else {
@@ -40,8 +48,8 @@ export function generateError(err: Error): ErrorBodyWithHTTPStatusCode {
                 return {
                     statusCode,
                     errorBody: {
-                        code: badRequestError.generalErrorCode,
-                        reason: generalErrorCodeToReason[badRequestError.generalErrorCode],
+                        code,
+                        reason: generalErrorCodeToReason[code],
                     },
                 };
             }
@@ -51,7 +59,7 @@ export function generateError(err: Error): ErrorBodyWithHTTPStatusCode {
             return {
                 statusCode,
                 errorBody: {
-                    reason: HttpStatus.getStatusText(apiError.statusCode),
+                    reason: HttpStatus.getStatusText(statusCode),
                 },
             };
         }
@@ -87,7 +95,7 @@ export function errorHandler(
 
     // If the error is an internal error, log it with the stack!
     // All other error responses are logged as part of request logging
-    if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (isAPIError(err) && isInternalServerError(err)) {
         // hack (xianny): typeorm errors contain the SQL query which breaks the docker char limit and subsequently breaks log parsing
         if ((err as any).query) {
             (err as any).query = undefined;
@@ -95,4 +103,31 @@ export function errorHandler(
         logger.error(err);
         next(err);
     }
+}
+
+// tslint:disable-next-line:completed-docs
+export function isAPIError(error: Error): error is APIBaseError {
+    return (error as APIBaseError).isAPIError;
+}
+
+// tslint:disable-next-line:completed-docs
+export function isRevertError(error: Error): error is RevertError {
+    const { signature, selector } = error as RevertError;
+    return signature !== undefined && selector !== undefined;
+}
+
+function isBadRequestError(error: APIBaseError): error is BadRequestError {
+    return error.statusCode === HttpStatus.BAD_REQUEST;
+}
+
+function isInternalServerError(error: APIBaseError): error is InternalServerError {
+    return error.statusCode === HttpStatus.INTERNAL_SERVER_ERROR;
+}
+
+function isRevertAPIError(error: APIBaseError): error is RevertAPIError {
+    return (error as RevertAPIError).isRevertError;
+}
+
+function isValidationError(error: BadRequestError): error is ValidationError {
+    return error.generalErrorCode === GeneralErrorCodes.ValidationError;
 }

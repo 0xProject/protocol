@@ -4,6 +4,7 @@ import { assetDataUtils } from '@0x/order-utils';
 import {
     APIOrder,
     AssetProxyId,
+    ERC20AssetData,
     OrdersChannelMessageTypes,
     OrdersChannelSubscriptionOpts,
     SignedOrder,
@@ -23,6 +24,7 @@ import {
     WebsocketSRAOpts,
 } from '../types';
 import { meshUtils } from '../utils/mesh_utils';
+import { orderUtils } from '../utils/order_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
 interface WrappedWebSocket extends WebSocket {
@@ -56,14 +58,14 @@ export class WebsocketService {
     private static _decodedContractAndAssetData(assetData: string): { assetProxyId: string; data: string[] } {
         let data: string[] = [assetData];
         const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
-        if (assetDataUtils.isMultiAssetData(decodedAssetData)) {
+        if (orderUtils.isMultiAssetData(decodedAssetData)) {
             for (const nested of decodedAssetData.nestedAssetData) {
                 data = [...data, ...WebsocketService._decodedContractAndAssetData(nested).data];
             }
-        } else if (assetDataUtils.isStaticCallAssetData(decodedAssetData)) {
+        } else if (orderUtils.isStaticCallAssetData(decodedAssetData)) {
             // do nothing
         } else {
-            data = [...data, decodedAssetData.tokenAddress];
+            data = [...data, (decodedAssetData as ERC20AssetData).tokenAddress];
         }
         return { data, assetProxyId: decodedAssetData.assetProxyId };
     }

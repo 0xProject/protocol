@@ -3,18 +3,16 @@ import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
 import { SignedOrderEntity } from '../entities';
+import { logger } from '../logger';
 import { APIOrderWithMetaData, OrderWatcherLifeCycleEvents } from '../types';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
-
-// tslint:disable-next-line:no-var-requires
-const d = require('debug')('orderbook');
 
 export class OrderWatcherService {
     private readonly _meshClient: WSClient;
     private readonly _connection: Connection;
     public async syncOrderbookAsync(): Promise<void> {
-        d('SYNC orderbook with Mesh');
+        logger.info('OrderWatcherService syncing orderbook with Mesh');
         const signedOrderModels = (await this._connection.manager.find(SignedOrderEntity)) as Array<
             Required<SignedOrderEntity>
         >;
@@ -26,7 +24,11 @@ export class OrderWatcherService {
         // cannot validate the order we cannot keep the order around
         // Validate the local state and notify the order watcher of any missed orders
         const { accepted, rejected } = await meshUtils.addOrdersToMeshAsync(this._meshClient, signedOrders);
-        d(`SYNC ${rejected.length} rejected ${accepted.length} accepted ${signedOrders.length} sent`);
+        logger.info('OrderWatcherService sync', {
+            accepted: accepted.length,
+            rejected: rejected.length,
+            sent: signedOrders.length,
+        });
         // Remove all of the rejected orders
         if (rejected.length > 0) {
             await this._onOrderLifeCycleEventAsync(
@@ -41,7 +43,7 @@ export class OrderWatcherService {
                 meshUtils.orderInfosToApiOrders(orders),
             );
         }
-        d('SYNC complete');
+        logger.info('OrderWatcherService sync complete');
     }
     constructor(connection: Connection, meshClient: WSClient) {
         this._connection = connection;
@@ -53,7 +55,7 @@ export class OrderWatcherService {
             await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Added, added);
         });
         this._meshClient.onReconnected(async () => {
-            d('Reconnecting to Mesh');
+            logger.info('OrderWatcherService reconnecting to Mesh');
             await this.syncOrderbookAsync();
         });
     }

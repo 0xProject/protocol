@@ -1,6 +1,6 @@
-import { BigNumber } from '0x.js';
 import { AcceptedOrderInfo, RejectedOrderInfo } from '@0x/mesh-rpc-client';
-import { APIOrder, OrdersChannelSubscriptionOpts, UpdateOrdersChannelMessage } from '@0x/types';
+import { APIOrder, OrdersChannelSubscriptionOpts, SignedOrder, UpdateOrdersChannelMessage } from '@0x/types';
+import { BigNumber } from '@0x/utils';
 
 export enum OrderWatcherLifeCycleEvents {
     Added,
@@ -267,4 +267,51 @@ export interface StakingStatsResponse {
 
 export interface ObjectMap<T> {
     [key: string]: T;
+}
+
+export enum ChainId {
+    Mainnet = 1,
+    Kovan = 42,
+    Ganache = 1337,
+}
+
+export interface TokenMetadata {
+    symbol: string;
+    decimals: number;
+    tokenAddress: string;
+}
+
+export interface GetSwapQuoteResponse {
+    price: BigNumber;
+    to: string;
+    data: string;
+    gasPrice: BigNumber;
+    protocolFee: BigNumber;
+    orders: SignedOrder[];
+    makerAssetAmount: BigNumber;
+    totalTakerAssetAmount: BigNumber;
+    value: BigNumber;
+    gas?: BigNumber;
+    from?: string;
+}
+
+export interface GetSwapQuoteRequestParams {
+    takerAddress: string;
+    sellToken: string;
+    buyToken: string;
+    sellAmount?: BigNumber;
+    buyAmount?: BigNumber;
+    slippagePercentage?: number;
+    gasPrice?: BigNumber;
+}
+
+export interface CalculateSwapQuoteParams {
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    buyAmount: BigNumber | undefined;
+    sellAmount: BigNumber | undefined;
+    from: string | undefined;
+    isETHSell: boolean;
+    slippagePercentage?: number;
+    gasPrice?: BigNumber;
 }

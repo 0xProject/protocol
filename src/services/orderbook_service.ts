@@ -1,7 +1,7 @@
-import { assetDataUtils, SignedOrder } from '0x.js';
 import { APIOrder, OrderbookResponse, PaginatedCollection } from '@0x/connect';
 import { WSClient } from '@0x/mesh-rpc-client';
-import { AssetPairsItem, OrdersRequestOpts } from '@0x/types';
+import { assetDataUtils } from '@0x/order-utils';
+import { AssetPairsItem, OrdersRequestOpts, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
@@ -28,8 +28,8 @@ export class OrderBookService {
     public async getAssetPairsAsync(
         page: number,
         perPage: number,
-        assetDataA: string,
-        assetDataB: string,
+        assetDataA?: string,
+        assetDataB?: string,
     ): Promise<PaginatedCollection<AssetPairsItem>> {
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity)) as Array<
             Required<SignedOrderEntity>
@@ -159,16 +159,18 @@ export class OrderBookService {
         this._connection = connection;
     }
     public async addOrderAsync(signedOrder: SignedOrder): Promise<void> {
+        return this.addOrdersAsync([signedOrder]);
+    }
+    public async addOrdersAsync(signedOrders: SignedOrder[]): Promise<void> {
         if (this._meshClient) {
-            const { rejected } = await this._meshClient.addOrdersAsync([signedOrder]);
+            const { rejected } = await this._meshClient.addOrdersAsync(signedOrders as any);
             if (rejected.length !== 0) {
-                throw new ValidationError([
-                    {
-                        field: 'signedOrder',
-                        code: meshUtils.rejectedCodeToSRACode(rejected[0].status.code),
-                        reason: `${rejected[0].status.code}: ${rejected[0].status.message}`,
-                    },
-                ]);
+                const validationErrors = rejected.map((r, i) => ({
+                    field: `signedOrder[${i}]`,
+                    code: meshUtils.rejectedCodeToSRACode(r.status.code),
+                    reason: `${r.status.code}: ${r.status.message}`,
+                }));
+                throw new ValidationError(validationErrors);
             }
             // Order Watcher Service will handle persistence
             return;
