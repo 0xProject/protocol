@@ -13,6 +13,10 @@ import { schemaUtils } from '../utils/schema_utils';
 
 export class SRAHandlers {
     private readonly _orderBook: OrderBookService;
+    public static rootAsync(_req: express.Request, res: express.Response): void {
+        const message = `This is the root of the Standard Relayer API. Visit https://github.com/0xProject/standard-relayer-api/blob/master/http/v3.md for details about this API.`;
+        res.status(HttpStatus.OK).send({ message });
+    }
     public static feeRecipients(req: express.Request, res: express.Response): void {
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const normalizedFeeRecipient = FEE_RECIPIENT_ADDRESS.toLowerCase();
