@@ -380,10 +380,11 @@ export const allTimePoolRewardsQuery = `
     GROUP BY 1;
 `;
 
-export const allTimeStatsQuery = `;
-    SELECT; SUM(
-        COALESCE(operator_reward, 0)
-        + COALESCE(members_reward, 0),
-    ) / 1e18; AS; total_rewards_paid;
-    FROM; events.rewards_paid_events;
+export const allTimeStatsQuery = `
+    SELECT
+        SUM(
+            COALESCE(operator_reward, 0)
+            + COALESCE(members_reward, 0)
+        ) / 1e18 AS total_rewards_paid
+    FROM events.rewards_paid_events;
 `;
