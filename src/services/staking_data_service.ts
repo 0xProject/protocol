@@ -112,7 +112,7 @@ export class StakingDataService {
             rawPoolSevenDayProtocolFeesGenerated,
         ] = await Promise.all([
             this.getStakingPoolAsync(poolId),
-            this._connection.query(queries.currentEpochPoolsStatsQuery, [poolId]),
+            this._connection.query(queries.currentEpochPoolStatsQuery, [poolId]),
             this._connection.query(queries.nextEpochPoolStatsQuery, [poolId]),
             this._connection.query(queries.poolSevenDayProtocolFeesGeneratedQuery, [poolId]),
         ]);
