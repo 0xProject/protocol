@@ -9,9 +9,9 @@ import { InternalServerError, RevertAPIError, ValidationError, ValidationErrorCo
 import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { SwapService } from '../services/swap_service';
-import { GetSwapQuoteRequestParams } from '../types';
+import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
+import { ChainId, GetSwapQuoteRequestParams } from '../types';
 import { findTokenAddress } from '../utils/token_metadata_utils';
-
 export class SwapHandlers {
     private readonly _swapService: SwapService;
     constructor(swapService: SwapService) {
@@ -75,6 +75,14 @@ export class SwapHandlers {
             logger.info('Uncaught error', e);
             throw new InternalServerError(e.message);
         }
+    }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
+        const tokens = TokenMetadatasForChains.map(tm => ({
+            symbol: tm.symbol,
+            address: tm.tokenAddresses[CHAIN_ID as ChainId],
+        }));
+        res.status(HttpStatus.OK).send(tokens);
     }
 }
 
