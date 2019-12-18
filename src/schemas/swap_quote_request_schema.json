@@ -9,6 +9,12 @@
         },
         "takerAddress": {
             "$ref": "/addressSchema"
+        },
+        "gasPrice": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "slippage": {
+            "$ref": "/numberSchema"
         }
     },
     "required": ["sellToken", "buyToken"],

@@ -23,7 +23,6 @@ export const schemaUtils = {
 };
 
 function schemaValidationErrorToValidationErrorItem(schemaValidationError: SchemaValidationError): ValidationErrorItem {
-    console.log(schemaValidationError);
     if (
         [
             'type',
