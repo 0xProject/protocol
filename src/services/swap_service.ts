@@ -1,15 +1,24 @@
-import { ExtensionContractType, Orderbook, SwapQuoteConsumer, SwapQuoter } from '@0x/asset-swapper';
-import { SupportedProvider } from '@0x/order-utils';
+import {
+    ExtensionContractType,
+    MarketBuySwapQuote,
+    MarketSellSwapQuote,
+    Orderbook,
+    SignedOrder,
+    SwapQuoteConsumer,
+    SwapQuoter,
+} from '@0x/asset-swapper';
+import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { BigNumber, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 
-import { CHAIN_ID } from '../config';
+import { CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
 import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
     DEFAULT_TOKEN_DECIMALS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
 } from '../constants';
 import { CalculateSwapQuoteParams, GetSwapQuoteResponse } from '../types';
+import { orderUtils } from '../utils/order_utils';
 import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
 
 export class SwapService {
@@ -61,12 +70,13 @@ export class SwapService {
         } else {
             throw new Error('sellAmount or buyAmount required');
         }
+        const attributedSwapQuote = this._attributeSwapQuoteOrders(swapQuote);
         const {
             makerAssetAmount,
             totalTakerAssetAmount,
             protocolFeeInWeiAmount: protocolFee,
-        } = swapQuote.bestCaseQuoteInfo;
-        const { orders, gasPrice } = swapQuote;
+        } = attributedSwapQuote.bestCaseQuoteInfo;
+        const { orders, gasPrice } = attributedSwapQuote;
 
         // If ETH was specified as the token to sell then we use the Forwarder
         const extensionContractType = isETHSell ? ExtensionContractType.Forwarder : ExtensionContractType.None;
@@ -74,8 +84,12 @@ export class SwapService {
             calldataHexString: data,
             ethAmount: value,
             toAddress: to,
-        } = await this._swapQuoteConsumer.getCalldataOrThrowAsync(swapQuote, {
+        } = await this._swapQuoteConsumer.getCalldataOrThrowAsync(attributedSwapQuote, {
             useExtensionContract: extensionContractType,
+            extensionContractOpts: {
+                // Apply the Fee Recipient for the Forwarder
+                feeRecipient: FEE_RECIPIENT_ADDRESS,
+            },
         });
 
         let gas;
@@ -106,7 +120,7 @@ export class SwapService {
             protocolFee,
             makerAssetAmount,
             totalTakerAssetAmount,
-            orders,
+            orders: this._cleanSignedOrderFields(orders),
         };
         return apiSwapQuote;
     }
@@ -120,6 +134,55 @@ export class SwapService {
         throwIfRevertError(callResult);
         const gas = await estimateGasPromise;
         return new BigNumber(gas);
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    private _attributeSwapQuoteOrders(
+        swapQuote: MarketSellSwapQuote | MarketBuySwapQuote,
+    ): MarketSellSwapQuote | MarketBuySwapQuote {
+        // Where possible, attribute any fills of these orders to the Fee Recipient Address
+        const attributedOrders = swapQuote.orders.map(o => {
+            try {
+                const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData);
+                if (orderUtils.isBridgeAssetData(decodedAssetData)) {
+                    return {
+                        ...o,
+                        feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
+                    };
+                }
+                // tslint:disable-next-line:no-empty
+            } catch (err) {}
+            // Default to unmodified order
+            return o;
+        });
+        const attributedSwapQuote = {
+            ...swapQuote,
+            orders: attributedOrders,
+        };
+        return attributedSwapQuote;
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    private _cleanSignedOrderFields(orders: SignedOrder[]): SignedOrder[] {
+        return orders.map(o => ({
+            chainId: o.chainId,
+            exchangeAddress: o.exchangeAddress,
+            makerAddress: o.makerAddress,
+            takerAddress: o.takerAddress,
+            feeRecipientAddress: o.feeRecipientAddress,
+            senderAddress: o.senderAddress,
+            makerAssetAmount: o.makerAssetAmount,
+            takerAssetAmount: o.takerAssetAmount,
+            makerFee: o.makerFee,
+            takerFee: o.takerFee,
+            expirationTimeSeconds: o.expirationTimeSeconds,
+            salt: o.salt,
+            makerAssetData: o.makerAssetData,
+            takerAssetData: o.takerAssetData,
+            makerFeeAssetData: o.makerFeeAssetData,
+            takerFeeAssetData: o.takerFeeAssetData,
+            signature: o.signature,
+        }));
     }
 }
 

@@ -7,6 +7,7 @@ import {
     AssetProxyId,
     ERC1155AssetData,
     ERC20AssetData,
+    ERC20BridgeAssetData,
     ERC721AssetData,
     MultiAssetData,
     SignedOrder,
@@ -70,6 +71,9 @@ export const orderUtils = {
     },
     isStaticCallAssetData: (decodedAssetData: AssetData): decodedAssetData is StaticCallAssetData => {
         return decodedAssetData.assetProxyId === AssetProxyId.StaticCall;
+    },
+    isBridgeAssetData: (decodedAssetData: AssetData): decodedAssetData is ERC20BridgeAssetData => {
+        return decodedAssetData.assetProxyId === AssetProxyId.ERC20Bridge;
     },
     isTokenAssetData: (
         decodedAssetData: AssetData,
