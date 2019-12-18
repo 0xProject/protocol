@@ -10,7 +10,7 @@ import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { ChainId, GetSwapQuoteRequestParams } from '../types';
+import { GetSwapQuoteRequestParams } from '../types';
 import { findTokenAddress } from '../utils/token_metadata_utils';
 export class SwapHandlers {
     private readonly _swapService: SwapService;
@@ -80,7 +80,7 @@ export class SwapHandlers {
     public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
         const tokens = TokenMetadatasForChains.map(tm => ({
             symbol: tm.symbol,
-            address: tm.tokenAddresses[CHAIN_ID as ChainId],
+            address: tm.tokenAddresses[CHAIN_ID],
         }));
         res.status(HttpStatus.OK).send(tokens);
     }
