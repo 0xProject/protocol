@@ -11,7 +11,9 @@
         "experimentalDecorators": true,
         "sourceMap": false,
         "typeRoots": ["./node_modules/@0x/typescript-typings/types", "./node_modules/@types"],
-        "noUnusedParameters": true
+        "noUnusedParameters": true,
+        "resolveJsonModule": true
     },
-    "include": ["src/**/*.ts"]
+    "include": ["src/**/*.ts"],
+    "files": ["./src/schemas/swap_quote_request_schema.json"]
 }

@@ -8,8 +8,10 @@ import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, ETH_SYMBOL } from '../constants';
 import { InternalServerError, RevertAPIError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
+import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { GetSwapQuoteRequestParams } from '../types';
+import { schemaUtils } from '../utils/schema_utils';
 import { findTokenAddress } from '../utils/token_metadata_utils';
 
 export class SwapHandlers {
@@ -79,6 +81,8 @@ export class SwapHandlers {
 }
 
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
+    // HACK typescript typing does not allow this valid json-schema
+    schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
     const takerAddress = req.query.takerAddress;
     const sellToken = req.query.sellToken;
     const buyToken = req.query.buyToken;
