@@ -146,11 +146,13 @@ export const poolEpochRewardsQuery = `
         , COALESCE((rpe.operator_reward + rpe.members_reward) / 1e18,0) AS total_reward
     FROM events.rewards_paid_events rpe
     FULL JOIN staking.epochs e ON e.epoch_id = (rpe.epoch_id - 1)
+    LEFT JOIN staking.current_epoch ce ON ce.epoch_id = e.epoch_id
     WHERE
         (
             pool_id = $1
             OR pool_id IS NULL
-        );
+        )
+        AND ce.epoch_id IS NULL;
 `;
 
 export const currentEpochPoolsStatsQuery = `
