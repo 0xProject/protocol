@@ -117,15 +117,15 @@ export class StakingDataService {
             this._connection.query(queries.poolSevenDayProtocolFeesGeneratedQuery, [poolId]),
         ]);
 
-        const currentEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawCurrentEpochPoolStats);
-        const nextEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawNextEpochPoolStats);
-        const pool7dProtocolFeesGenerated = stakingUtils.getPoolProtocolFeesGeneratedFromRaw(rawPoolSevenDayProtocolFeesGenerated);
+        const currentEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawCurrentEpochPoolStats[0]);
+        const nextEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawNextEpochPoolStats[0]);
+        const pool7dProtocolFeesGenerated = stakingUtils.getPoolProtocolFeesGeneratedFromRaw(rawPoolSevenDayProtocolFeesGenerated[0]);
 
         return {
             ...pool,
+            sevenDayProtocolFeesGeneratedInEth: pool7dProtocolFeesGenerated.sevenDayProtocolFeesGeneratedInEth,
             currentEpochStats: currentEpochPoolStats,
             nextEpochStats: nextEpochPoolStats,
-            sevenDayProtocolFeesGeneratedInEth: pool7dProtocolFeesGenerated.sevenDayProtocolFeesGeneratedInEth,
         };
     }
 
