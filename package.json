@@ -40,7 +40,7 @@
         "@0x/assert": "^3.0.0",
         "@0x/asset-swapper": "^3.0.2",
         "@0x/connect": "^6.0.1",
-        "@0x/contract-addresses": "^4.0.0",
+        "@0x/contract-addresses": "^4.1.0",
         "@0x/contract-wrappers": "^13.0.0",
         "@0x/json-schemas": "^5.0.1",
         "@0x/mesh-rpc-client": "^7.2.1-beta-0xv3",

@@ -20,6 +20,7 @@ export function requestLogger(): core.RequestHandler {
                     headers: {
                         'user-agent': req.headers['user-agent'],
                         host: req.headers.host,
+                        referer: req.headers.referer,
                     },
                     body: req.body,
                     params: req.params,
