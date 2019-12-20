@@ -1,5 +1,5 @@
 import { SwapQuoterError } from '@0x/asset-swapper';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
@@ -10,10 +10,10 @@ import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
+import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { GetSwapQuoteRequestParams } from '../types';
 import { schemaUtils } from '../utils/schema_utils';
 import { findTokenAddress } from '../utils/token_metadata_utils';
-
 export class SwapHandlers {
     private readonly _swapService: SwapService;
     constructor(swapService: SwapService) {
@@ -77,6 +77,15 @@ export class SwapHandlers {
             logger.info('Uncaught error', e);
             throw new InternalServerError(e.message);
         }
+    }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
+        const tokens = TokenMetadatasForChains.map(tm => ({
+            symbol: tm.symbol,
+            address: tm.tokenAddresses[CHAIN_ID],
+        }));
+        const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
+        res.status(HttpStatus.OK).send({ tokens: filteredTokens });
     }
 }
 

@@ -8,5 +8,6 @@ export const createSwapRouter = (swapService: SwapService): express.Router => {
     const router = express.Router();
     const handlers = new SwapHandlers(swapService);
     router.get('/quote', asyncHandler(handlers.getSwapQuoteAsync.bind(handlers)));
+    router.get('/tokens', asyncHandler(handlers.getSwapTokensAsync.bind(handlers)));
     return router;
 };

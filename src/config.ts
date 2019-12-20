@@ -4,6 +4,8 @@ import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { DEFAULT_LOCAL_POSTGRES_URI, DEFAULT_LOGGER_INCLUDE_TIMESTAMP, NULL_ADDRESS, NULL_BYTES } from './constants';
+import { TokenMetadatasForChains } from './token_metadatas_for_networks';
+import { ChainId } from './types';
 
 enum EnvVarType {
     Port,
@@ -15,22 +17,20 @@ enum EnvVarType {
     Boolean,
     FeeAssetData,
 }
-// Whitelisted token addresses. Set to a '*' instead of an array to allow all tokens.
-export const WHITELISTED_TOKENS: string[] | '*' = _.isEmpty(process.env.WHITELIST_ALL_TOKENS)
-    ? [
-          '0x2002d3812f58e35f0ea1ffbf80a75a38c32175fa', // ZRX on Kovan
-          '0xd0a1e359811322d97991e03f863a0c30c2cf029c', // WETH on Kovan
-      ]
-    : assertEnvVarType('WHITELIST_ALL_TOKENS', process.env.WHITELIST_ALL_TOKENS, EnvVarType.WhitelistAllTokens);
 
 // Network port to listen on
 export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
     ? 3000
     : assertEnvVarType('HTTP_PORT', process.env.HTTP_PORT, EnvVarType.Port);
 // Default chain id to use when not specified
-export const CHAIN_ID = _.isEmpty(process.env.CHAIN_ID)
-    ? 42
+export const CHAIN_ID: ChainId = _.isEmpty(process.env.CHAIN_ID)
+    ? ChainId.Kovan
     : assertEnvVarType('CHAIN_ID', process.env.CHAIN_ID, EnvVarType.ChainId);
+
+// Whitelisted token addresses. Set to a '*' instead of an array to allow all tokens.
+export const WHITELISTED_TOKENS: string[] | '*' = _.isEmpty(process.env.WHITELIST_ALL_TOKENS)
+    ? TokenMetadatasForChains.map(tm => tm.tokenAddresses[CHAIN_ID])
+    : assertEnvVarType('WHITELIST_ALL_TOKENS', process.env.WHITELIST_ALL_TOKENS, EnvVarType.WhitelistAllTokens);
 
 // Ethereum RPC Url
 export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.Url);
