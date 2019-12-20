@@ -1,5 +1,5 @@
 import { SwapQuoterError } from '@0x/asset-swapper';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
@@ -82,7 +82,8 @@ export class SwapHandlers {
             symbol: tm.symbol,
             address: tm.tokenAddresses[CHAIN_ID],
         }));
-        res.status(HttpStatus.OK).send(tokens);
+        const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
+        res.status(HttpStatus.OK).send({ tokens: filteredTokens });
     }
 }
 
