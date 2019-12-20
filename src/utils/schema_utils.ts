@@ -1,6 +1,5 @@
 import { Schema, SchemaValidator } from '@0x/json-schemas';
 import { ValidationError as SchemaValidationError } from 'jsonschema';
-import * as _ from 'lodash';
 
 import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from '../errors';
 
@@ -9,38 +8,36 @@ const schemaValidator = new SchemaValidator();
 export const schemaUtils = {
     validateSchema(instance: any, schema: Schema): void {
         const validationResult = schemaValidator.validate(instance, schema);
-        if (_.isEmpty(validationResult.errors)) {
+        if (validationResult.errors.length === 0) {
             return;
         } else {
-            const validationErrorItems = _.map(
-                validationResult.errors,
-                (schemaValidationError: SchemaValidationError) =>
-                    schemaValidationErrorToValidationErrorItem(schemaValidationError),
+            const validationErrorItems = validationResult.errors.map((schemaValidationError: SchemaValidationError) =>
+                schemaValidationErrorToValidationErrorItem(schemaValidationError),
             );
             throw new ValidationError(validationErrorItems);
         }
+    },
+    addSchema(schema: Schema): void {
+        schemaValidator.addSchema(schema);
     },
 };
 
 function schemaValidationErrorToValidationErrorItem(schemaValidationError: SchemaValidationError): ValidationErrorItem {
     if (
-        _.includes(
-            [
-                'type',
-                'anyOf',
-                'allOf',
-                'oneOf',
-                'additionalProperties',
-                'minProperties',
-                'maxProperties',
-                'pattern',
-                'format',
-                'uniqueItems',
-                'items',
-                'dependencies',
-            ],
-            schemaValidationError.name,
-        )
+        [
+            'type',
+            'anyOf',
+            'allOf',
+            'oneOf',
+            'additionalProperties',
+            'minProperties',
+            'maxProperties',
+            'pattern',
+            'format',
+            'uniqueItems',
+            'items',
+            'dependencies',
+        ].includes(schemaValidationError.name)
     ) {
         return {
             field: schemaValidationError.property,
@@ -48,8 +45,7 @@ function schemaValidationErrorToValidationErrorItem(schemaValidationError: Schem
             reason: schemaValidationError.message,
         };
     } else if (
-        _.includes(
-            ['minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'maxItems', 'enum', 'const'],
+        ['minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'maxItems', 'enum', 'const'].includes(
             schemaValidationError.name,
         )
     ) {
