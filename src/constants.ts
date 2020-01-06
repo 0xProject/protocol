@@ -26,7 +26,8 @@ export const FIRST_PAGE = 1;
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     noConflicts: true,
     excludedSources: [],
-    numSamples: 8,
+    numSamples: 10,
+    runLimit: 4096,
     bridgeSlippage: 0.0005,
 };
 
