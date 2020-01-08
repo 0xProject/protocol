@@ -194,7 +194,7 @@ export class SwapService {
                 constant: true,
                 inputs: [],
                 name: 'decimals',
-                outputs: [{ name: '', type: 'uint256' }],
+                outputs: [{ name: '', type: 'uint8' }],
                 payable: false,
                 stateMutability: 'view',
                 type: 'function',
