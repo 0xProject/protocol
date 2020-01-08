@@ -39,30 +39,42 @@ const DEFAULT_ERC20_ASSET = {
     precision: DEFAULT_ERC20_TOKEN_PRECISION,
 };
 
-const erc721AssetDataToAsset = (assetData: string): Asset => ({
-    ...DEFAULT_ERC721_ASSET,
-    assetData,
-});
+const DEFAULT_ERC1155_ASSET = {
+    minAmount: new BigNumber(0),
+    maxAmount: MAX_TOKEN_SUPPLY_POSSIBLE,
+    precision: 0,
+};
 
-const erc20AssetDataToAsset = (assetData: string): Asset => ({
-    ...DEFAULT_ERC20_ASSET,
-    assetData,
-});
+const DEFAULT_MULTIASSET = {
+    minAmount: new BigNumber(0),
+    maxAmount: MAX_TOKEN_SUPPLY_POSSIBLE,
+    precision: 0,
+};
+
+const DEFAULT_STATIC_CALL = {
+    minAmount: new BigNumber(1),
+    maxAmount: MAX_TOKEN_SUPPLY_POSSIBLE,
+    precision: 0,
+};
+const proxyIdToDefaults: { [id: string]: Partial<Asset> } = {
+    [AssetProxyId.ERC20]: DEFAULT_ERC20_ASSET,
+    [AssetProxyId.ERC721]: DEFAULT_ERC721_ASSET,
+    [AssetProxyId.ERC1155]: DEFAULT_ERC1155_ASSET,
+    [AssetProxyId.MultiAsset]: DEFAULT_MULTIASSET,
+    [AssetProxyId.StaticCall]: DEFAULT_STATIC_CALL,
+    [AssetProxyId.ERC20Bridge]: DEFAULT_ERC20_ASSET,
+};
 
 const assetDataToAsset = (assetData: string): Asset => {
     const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
-    let asset: Asset;
-    switch (decodedAssetData.assetProxyId) {
-        case AssetProxyId.ERC20:
-            asset = erc20AssetDataToAsset(assetData);
-            break;
-        case AssetProxyId.ERC721:
-            asset = erc721AssetDataToAsset(assetData);
-            break;
-        default:
-            throw errorUtils.spawnSwitchErr('assetProxyId', decodedAssetData.assetProxyId);
+    const defaultAsset = proxyIdToDefaults[decodedAssetData.assetProxyId];
+    if (defaultAsset === undefined) {
+        throw errorUtils.spawnSwitchErr('assetProxyId', decodedAssetData.assetProxyId);
     }
-    return asset;
+    return {
+        ...defaultAsset,
+        assetData,
+    } as Asset; // tslint:disable-line:no-object-literal-type-assertion
 };
 
 export const orderUtils = {
