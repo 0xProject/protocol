@@ -13,6 +13,7 @@ import { StakingDataService } from '../services/staking_data_service';
 import { StakingHttpService } from '../services/staking_http_service';
 import { SwapHttpService } from '../services/swap_http_service';
 import { SwapService } from '../services/swap_service';
+import { WebsocketService } from '../services/websocket_service';
 import { OrderStoreDbAdapter } from '../utils/order_store_db_adapter';
 import { providerUtils } from '../utils/provider_utils';
 
@@ -35,7 +36,7 @@ process.on('unhandledRejection', err => {
     const connection = await getDBConnectionAsync();
     const app = express();
     app.use(requestLogger());
-    app.listen(config.HTTP_PORT, () => {
+    const server = app.listen(config.HTTP_PORT, () => {
         logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(config, null, 2)}`);
     });
     const stakingDataService = new StakingDataService(connection);
@@ -44,6 +45,8 @@ process.on('unhandledRejection', err => {
     let meshClient;
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
+        // tslint:disable-next-line:no-unused-expression
+        new WebsocketService(server, meshClient);
     } catch (err) {
         logger.error(err);
     }
