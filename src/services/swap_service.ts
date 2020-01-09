@@ -8,7 +8,7 @@ import {
     SwapQuoter,
 } from '@0x/asset-swapper';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
-import { BigNumber, RevertError } from '@0x/utils';
+import { AbiEncoder, BigNumber, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 
 import { CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
@@ -17,6 +17,7 @@ import {
     DEFAULT_TOKEN_DECIMALS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
 } from '../constants';
+import { logger } from '../logger';
 import { CalculateSwapQuoteParams, GetSwapQuoteResponse } from '../types';
 import { orderUtils } from '../utils/order_utils';
 import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
@@ -103,8 +104,8 @@ export class SwapService {
             });
         }
 
-        const buyTokenDecimals = findTokenDecimalsIfExists(buyTokenAddress, CHAIN_ID) || DEFAULT_TOKEN_DECIMALS;
-        const sellTokenDecimals = findTokenDecimalsIfExists(sellTokenAddress, CHAIN_ID) || DEFAULT_TOKEN_DECIMALS;
+        const buyTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(buyTokenAddress);
+        const sellTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(sellTokenAddress);
         const price = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals)
             .dividedBy(Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals))
             .decimalPlaces(sellTokenDecimals);
@@ -183,6 +184,32 @@ export class SwapService {
             takerFeeAssetData: o.takerFeeAssetData,
             signature: o.signature,
         }));
+    }
+    private async _fetchTokenDecimalsIfRequiredAsync(tokenAddress: string): Promise<number> {
+        // HACK(dekz): Our ERC20Wrapper does not have decimals as it is optional
+        // so we must encode this ourselves
+        let decimals = findTokenDecimalsIfExists(tokenAddress, CHAIN_ID);
+        if (!decimals) {
+            const decimalsEncoder = new AbiEncoder.Method({
+                constant: true,
+                inputs: [],
+                name: 'decimals',
+                outputs: [{ name: '', type: 'uint8' }],
+                payable: false,
+                stateMutability: 'view',
+                type: 'function',
+            });
+            const encodedCallData = decimalsEncoder.encode(tokenAddress);
+            try {
+                const result = await this._web3Wrapper.callAsync({ data: encodedCallData, to: tokenAddress });
+                decimals = decimalsEncoder.strictDecodeReturnValue<BigNumber>(result).toNumber();
+                logger.info(`Unmapped token decimals ${tokenAddress} ${decimals}`);
+            } catch (err) {
+                logger.error(`Error fetching token decimals ${tokenAddress}`);
+                decimals = DEFAULT_TOKEN_DECIMALS;
+            }
+        }
+        return decimals;
     }
 }
 
