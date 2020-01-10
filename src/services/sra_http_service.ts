@@ -12,9 +12,10 @@ import { OrderBookService } from './orderbook_service';
 // tslint:disable-next-line:no-unnecessary-class
 export class SRAHttpService {
     constructor(app: core.Express, orderBook: OrderBookService) {
+        const sraRouter = createSRARouter(orderBook);
         app.use(cors());
         app.use(bodyParser.json());
-        app.use(SRA_PATH, createSRARouter(orderBook));
+        app.use(SRA_PATH, sraRouter);
         app.use(errorHandler);
     }
 }
