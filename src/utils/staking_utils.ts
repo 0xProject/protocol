@@ -83,7 +83,7 @@ export const stakingUtils = {
                 name: name || undefined,
                 bio: bio || undefined,
                 location: location || undefined,
-                isVerified: verified === 'true',
+                isVerified: !!verified,
                 logoUrl: logo_url || undefined,
                 websiteUrl: website || undefined,
             },
