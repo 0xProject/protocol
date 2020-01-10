@@ -144,7 +144,7 @@ export interface PoolWithHistoricalStats extends PoolWithStats {
 export interface RawEpochPoolStats {
     pool_id: string;
     maker_addresses: string[];
-    operator_share: string;
+    operator_share?: string;
     zrx_staked?: string;
     total_staked?: string;
     share_of_stake?: string;
@@ -156,7 +156,7 @@ export interface RawEpochPoolStats {
 export interface EpochPoolStats {
     poolId: string;
     zrxStaked: number;
-    operatorShare: number;
+    operatorShare?: number;
     makerAddresses: string[];
     totalProtocolFeesGeneratedInEth: number;
     approximateStakeRatio: number;
