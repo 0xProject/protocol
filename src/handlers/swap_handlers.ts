@@ -4,16 +4,17 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { CHAIN_ID } from '../config';
-import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, ETH_SYMBOL } from '../constants';
+import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE } from '../constants';
 import { InternalServerError, RevertAPIError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { GetSwapQuoteRequestParams } from '../types';
+import { ChainId, GetSwapQuoteRequestParams } from '../types';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddress } from '../utils/token_metadata_utils';
+import { findTokenAddress, isETHSymbol } from '../utils/token_metadata_utils';
+
 export class SwapHandlers {
     private readonly _swapService: SwapService;
     constructor(swapService: SwapService) {
@@ -30,9 +31,9 @@ export class SwapHandlers {
             slippagePercentage,
             gasPrice,
         } = parseGetSwapQuoteRequestParams(req);
-        const isETHSell = sellToken === ETH_SYMBOL;
-        const sellTokenAddress = findTokenAddress(sellToken, CHAIN_ID);
-        const buyTokenAddress = findTokenAddress(buyToken, CHAIN_ID);
+        const isETHSell = isETHSymbol(sellToken);
+        const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
+        const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
         try {
             const swapQuote = await this._swapService.calculateSwapQuoteAsync({
                 buyTokenAddress,
@@ -56,12 +57,15 @@ export class SwapHandlers {
             }
             const errorMessage: string = e.message;
             // TODO AssetSwapper can throw raw Errors or InsufficientAssetLiquidityError
-            if (errorMessage.startsWith(SwapQuoterError.InsufficientAssetLiquidity)) {
+            if (
+                errorMessage.startsWith(SwapQuoterError.InsufficientAssetLiquidity) ||
+                errorMessage.startsWith('NO_OPTIMAL_PATH')
+            ) {
                 throw new ValidationError([
                     {
                         field: buyAmount ? 'buyAmount' : 'sellAmount',
                         code: ValidationErrorCodes.ValueOutOfRange,
-                        reason: e.message,
+                        reason: SwapQuoterError.InsufficientAssetLiquidity,
                     },
                 ]);
             }
@@ -88,6 +92,20 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send({ tokens: filteredTokens });
     }
 }
+
+const findTokenAddressOrThrowApiError = (address: string, field: string, chainId: ChainId): string => {
+    try {
+        return findTokenAddress(address, chainId);
+    } catch (e) {
+        throw new ValidationError([
+            {
+                field,
+                code: ValidationErrorCodes.ValueOutOfRange,
+                reason: e.message,
+            },
+        ]);
+    }
+};
 
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
     // HACK typescript typing does not allow this valid json-schema

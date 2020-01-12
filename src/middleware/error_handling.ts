@@ -120,12 +120,12 @@ function isBadRequestError(error: APIBaseError): error is BadRequestError {
     return error.statusCode === HttpStatus.BAD_REQUEST;
 }
 
-function isInternalServerError(error: APIBaseError): error is InternalServerError {
-    return error.statusCode === HttpStatus.INTERNAL_SERVER_ERROR;
-}
-
 function isRevertAPIError(error: APIBaseError): error is RevertAPIError {
     return (error as RevertAPIError).isRevertError;
+}
+
+function isInternalServerError(error: APIBaseError): error is InternalServerError {
+    return error.statusCode === HttpStatus.INTERNAL_SERVER_ERROR;
 }
 
 function isValidationError(error: BadRequestError): error is ValidationError {

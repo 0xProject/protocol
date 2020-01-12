@@ -298,9 +298,9 @@ export interface GetSwapQuoteResponse {
 }
 
 export interface GetSwapQuoteRequestParams {
-    takerAddress: string;
     sellToken: string;
     buyToken: string;
+    takerAddress?: string;
     sellAmount?: BigNumber;
     buyAmount?: BigNumber;
     slippagePercentage?: number;

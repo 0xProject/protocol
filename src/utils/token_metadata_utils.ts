@@ -15,8 +15,8 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
             tm => tm.tokenAddresses[chainId].toLowerCase() === tokenAddressOrSymbol.toLowerCase(),
         );
     } else {
-        const normalizedSymbol = tokenAddressOrSymbol === ETH_SYMBOL ? 'WETH' : tokenAddressOrSymbol;
-        entry = TokenMetadatasForChains.find(tm => tm.symbol === normalizedSymbol);
+        const normalizedSymbol = (isETHSymbol(tokenAddressOrSymbol) ? 'WETH' : tokenAddressOrSymbol).toLowerCase();
+        entry = TokenMetadatasForChains.find(tm => tm.symbol.toLowerCase() === normalizedSymbol);
     }
 
     if (entry) {
@@ -26,6 +26,15 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
             tokenAddress: entry.tokenAddresses[chainId],
         };
     }
+}
+
+/**
+ *  Returns true if this symbol represents ETH
+ *
+ * @param tokenSymbol the symbol of the token
+ */
+export function isETHSymbol(tokenSymbol: string): boolean {
+    return tokenSymbol.toLowerCase() === ETH_SYMBOL.toLowerCase();
 }
 
 /**
