@@ -11,12 +11,8 @@ import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 
-import { CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
-import {
-    ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-    DEFAULT_TOKEN_DECIMALS,
-    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
-} from '../constants';
+import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
+import { DEFAULT_TOKEN_DECIMALS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
 import { logger } from '../logger';
 import { CalculateSwapQuoteParams, GetSwapQuoteResponse } from '../types';
 import { orderUtils } from '../utils/order_utils';
