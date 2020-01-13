@@ -91,7 +91,7 @@ export interface RawPool {
     created_at_transaction_hash: string;
     created_at_transaction_index: string;
     maker_addresses: string[];
-    verified?: string;
+    verified?: boolean;
     logo_url?: string;
     location?: string;
     bio?: string;
