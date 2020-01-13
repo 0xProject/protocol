@@ -39,5 +39,5 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
 
 // API namespaces
 export const SRA_PATH = '/sra/v3';
-export const STAKING_PATH = '/staking/v0';
+export const STAKING_PATH = '/staking';
 export const SWAP_PATH = '/swap/v0';
