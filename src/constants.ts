@@ -1,8 +1,4 @@
-import { ERC20BridgeSource, SwapQuoteRequestOpts } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
-
-import { CHAIN_ID } from './config';
-import { ChainId } from './types';
 
 // tslint:disable:custom-no-magic-numbers
 
@@ -26,16 +22,6 @@ export const ETH_SYMBOL = 'ETH';
 export const ADDRESS_HEX_LENGTH = 42;
 export const DEFAULT_TOKEN_DECIMALS = 18;
 export const FIRST_PAGE = 1;
-export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
-    noConflicts: true,
-    excludedSources:
-        CHAIN_ID === ChainId.Mainnet
-            ? []
-            : [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap],
-    numSamples: 10,
-    runLimit: 4096,
-    bridgeSlippage: 0.0005,
-};
 
 // API namespaces
 export const SRA_PATH = '/sra/v3';

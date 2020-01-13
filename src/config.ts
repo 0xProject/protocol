@@ -1,5 +1,6 @@
 // tslint:disable:custom-no-magic-numbers
 import { assert } from '@0x/assert';
+import { ERC20BridgeSource, SwapQuoteRequestOpts } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -72,6 +73,17 @@ export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIM
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
 export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
+
+export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
+    noConflicts: true,
+    excludedSources:
+        CHAIN_ID === ChainId.Mainnet
+            ? []
+            : [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap],
+    numSamples: 10,
+    runLimit: 4096,
+    bridgeSlippage: 0.0005,
+};
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
     let returnValue;

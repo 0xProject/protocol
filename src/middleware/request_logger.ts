@@ -1,6 +1,7 @@
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
+import * as HttpStatus from 'http-status-codes';
 
 import { logger } from '../logger';
 /**
@@ -8,6 +9,12 @@ import { logger } from '../logger';
  */
 export function requestLogger(): core.RequestHandler {
     const handler = (req: express.Request, res: express.Response, next: core.NextFunction) => {
+        const origSend = res.send;
+        let cachedBody: any;
+        res.send = (body?: any): express.Response => {
+            cachedBody = body;
+            return origSend.bind(res)(body);
+        };
         const startTime = Date.now();
         function writeLog(): void {
             const responseTime = Date.now() - startTime;
@@ -29,6 +36,7 @@ export function requestLogger(): core.RequestHandler {
                 res: {
                     statusCode: res.statusCode,
                     statusMessage: res.statusMessage,
+                    errorBody: res.statusCode >= HttpStatus.BAD_REQUEST ? cachedBody : undefined,
                 },
                 responseTime,
                 timestamp: Date.now(),
