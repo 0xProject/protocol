@@ -89,7 +89,7 @@ export class SwapHandlers {
             address: tm.tokenAddresses[CHAIN_ID],
         }));
         const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
-        res.status(HttpStatus.OK).send({ tokens: filteredTokens });
+        res.status(HttpStatus.OK).send({ records: filteredTokens });
     }
 }
 
