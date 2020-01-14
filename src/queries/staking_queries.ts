@@ -77,7 +77,9 @@ export const poolSevenDayProtocolFeesGeneratedQuery = `
         p.pool_id
         , COALESCE(f.protocol_fees, 0) AS seven_day_protocol_fees_generated_in_eth
     FROM events.staking_pool_created_events p
-    LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id;
+    LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id
+    WHERE
+        p.pool_id = $1;
 `;
 
 export const sevenDayProtocolFeesGeneratedQuery = `
