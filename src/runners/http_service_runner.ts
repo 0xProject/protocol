@@ -7,6 +7,7 @@ import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
 import { requestLogger } from '../middleware/request_logger';
 import { OrderBookServiceOrderProvider } from '../order_book_service_order_provider';
+import { createRootRouter } from '../routers/root_router';
 import { OrderBookService } from '../services/orderbook_service';
 import { SRAHttpService } from '../services/sra_http_service';
 import { StakingDataService } from '../services/staking_data_service';
@@ -36,6 +37,7 @@ process.on('unhandledRejection', err => {
     const connection = await getDBConnectionAsync();
     const app = express();
     app.use(requestLogger());
+    app.use(createRootRouter());
     const server = app.listen(config.HTTP_PORT, () => {
         logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(config, null, 2)}`);
     });
