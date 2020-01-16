@@ -290,8 +290,8 @@ export interface GetSwapQuoteResponse {
     gasPrice: BigNumber;
     protocolFee: BigNumber;
     orders: SignedOrder[];
-    makerAssetAmount: BigNumber;
-    totalTakerAssetAmount: BigNumber;
+    buyAmount: BigNumber;
+    sellAmount: BigNumber;
     value: BigNumber;
     gas?: BigNumber;
     from?: string;

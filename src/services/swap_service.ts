@@ -102,9 +102,15 @@ export class SwapService {
 
         const buyTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(buyTokenAddress);
         const sellTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(sellTokenAddress);
-        const price = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals)
-            .dividedBy(Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals))
-            .decimalPlaces(sellTokenDecimals);
+        const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
+        const unitTakerAssetAMount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
+        const price = buyAmount === undefined ?
+            unitMakerAssetAmount
+                .dividedBy(unitTakerAssetAMount)
+                .decimalPlaces(sellTokenDecimals) :
+            unitTakerAssetAMount
+                .dividedBy(unitMakerAssetAmount)
+                .decimalPlaces(buyTokenDecimals);
 
         const apiSwapQuote: GetSwapQuoteResponse = {
             price,
@@ -115,8 +121,8 @@ export class SwapService {
             from,
             gasPrice,
             protocolFee,
-            makerAssetAmount,
-            totalTakerAssetAmount,
+            buyAmount: makerAssetAmount,
+            sellAmount: totalTakerAssetAmount,
             orders: this._cleanSignedOrderFields(orders),
         };
         return apiSwapQuote;
