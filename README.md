@@ -1,3 +1,5 @@
+![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png "0x API")
+
 # 0x-api
 
 ## Table of contents
