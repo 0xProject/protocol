@@ -4,8 +4,8 @@ import * as express from 'express';
 
 import * as config from '../config';
 import { getDBConnectionAsync } from '../db_connection';
-import { logger } from '../logger';
 import { rootHandler } from '../handlers/root_handler';
+import { logger } from '../logger';
 import { requestLogger } from '../middleware/request_logger';
 import { OrderBookServiceOrderProvider } from '../order_book_service_order_provider';
 import { OrderBookService } from '../services/orderbook_service';
