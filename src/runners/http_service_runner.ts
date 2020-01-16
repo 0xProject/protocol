@@ -4,6 +4,7 @@ import * as express from 'express';
 
 import * as config from '../config';
 import { getDBConnectionAsync } from '../db_connection';
+import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { requestLogger } from '../middleware/request_logger';
 import { OrderBookServiceOrderProvider } from '../order_book_service_order_provider';
@@ -36,6 +37,7 @@ process.on('unhandledRejection', err => {
     const connection = await getDBConnectionAsync();
     const app = express();
     app.use(requestLogger());
+    app.get('/', rootHandler);
     const server = app.listen(config.HTTP_PORT, () => {
         logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!\nConfig: ${JSON.stringify(config, null, 2)}`);
     });
