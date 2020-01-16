@@ -115,8 +115,8 @@ export class SwapService {
             from,
             gasPrice,
             protocolFee,
-            makerAssetAmount,
-            totalTakerAssetAmount,
+            buyAmount: makerAssetAmount,
+            sellAmount: totalTakerAssetAmount,
             orders: this._cleanSignedOrderFields(orders),
         };
         return apiSwapQuote;
