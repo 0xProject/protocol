@@ -18,7 +18,7 @@ export class OrderWatcherService {
         >;
         const signedOrders = signedOrderModels.map(orderUtils.deserializeOrder);
         // Sync the order watching service state locally
-        const orders = await this._meshClient.getOrdersAsync();
+        const { ordersInfos } = await this._meshClient.getOrdersAsync();
         // TODO(dekz): Mesh can reject due to InternalError or EthRPCRequestFailed.
         // in the future we can attempt to retry these a few times. Ultimately if we
         // cannot validate the order we cannot keep the order around
@@ -37,10 +37,10 @@ export class OrderWatcherService {
             );
         }
         // Sync the order watching service state locally
-        if (orders.length > 0) {
+        if (ordersInfos.length > 0) {
             await this._onOrderLifeCycleEventAsync(
                 OrderWatcherLifeCycleEvents.Added,
-                meshUtils.orderInfosToApiOrders(orders),
+                meshUtils.orderInfosToApiOrders(ordersInfos),
             );
         }
         logger.info('OrderWatcherService sync complete');
