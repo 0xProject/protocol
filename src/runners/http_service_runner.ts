@@ -3,6 +3,7 @@ import { WSClient } from '@0x/mesh-rpc-client';
 import * as express from 'express';
 
 import * as config from '../config';
+import { SRA_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -48,7 +49,7 @@ process.on('unhandledRejection', err => {
     try {
         meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
         // tslint:disable-next-line:no-unused-expression
-        new WebsocketService(server, meshClient);
+        new WebsocketService(server, meshClient, { path: SRA_PATH });
     } catch (err) {
         logger.error(err);
     }
