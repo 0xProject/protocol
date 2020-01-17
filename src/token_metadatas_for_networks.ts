@@ -625,4 +625,14 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        decimals: 6,
+        symbol: 'USDT',
+        name: 'Tether USD',
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
