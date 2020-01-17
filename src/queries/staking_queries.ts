@@ -104,11 +104,11 @@ export const sevenDayProtocolFeesGeneratedQuery = `
 `;
 
 export const poolTotalProtocolFeesGeneratedQuery = `
-     WITH
+    WITH
             fills_with_epochs AS (
                 SELECT
                     fe.*
-                    , e.epoch_id
+                    , COALESCE(e.epoch_id, ce.epoch_id) AS epoch_id
                 FROM events.fill_events fe
                 LEFT JOIN staking.epochs e ON
                     (
@@ -118,6 +118,11 @@ export const poolTotalProtocolFeesGeneratedQuery = `
                     AND (
                         e.ending_block_number > fe.block_number
                         OR (fe.block_number = e.ending_block_number AND fe.transaction_index < e.ending_transaction_index)
+                    )
+                LEFT JOIN staking.current_epoch ce ON
+                    (
+                        ce.starting_block_number < fe.block_number
+                        OR (fe.block_number = ce.starting_block_number AND fe.transaction_index > ce.starting_transaction_index)
                     )
             )
             SELECT
