@@ -1,4 +1,3 @@
-# 0x-api
 ![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png "0x API")
 
 ## Table of contents
