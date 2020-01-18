@@ -1,6 +1,5 @@
-![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png "0x API")
-
 # 0x-api
+![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png "0x API")
 
 ## Table of contents
 
@@ -89,7 +88,6 @@ To develop ontop of `0x-api`, follow the following instructions:
 
 This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it easier for anyone to switch out the backing database used by this project. By default, this project uses a [PostgreSQL](https://www.postgresql.org/) database.
 
-## Deployment
 
 ## Legal Disclaimer
 
