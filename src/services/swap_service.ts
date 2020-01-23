@@ -8,7 +8,7 @@ import {
     SwapQuoter,
 } from '@0x/asset-swapper';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
-import { AbiEncoder, BigNumber, RevertError } from '@0x/utils';
+import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 
 import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
@@ -91,11 +91,15 @@ export class SwapService {
 
         let gas;
         if (from) {
+            // Force a revert error if the takerAddress does not have enough ETH.
+            const txDataValue = extensionContractType === ExtensionContractType.Forwarder
+                ? BigNumber.min(value, await this._web3Wrapper.getBalanceInWeiAsync(from))
+                : value;
             gas = await this._estimateGasOrThrowRevertErrorAsync({
                 to,
                 data,
                 from,
-                value,
+                value: txDataValue,
                 gasPrice,
             });
         }
@@ -133,8 +137,7 @@ export class SwapService {
         // if the call fails the gas estimation will also fail, we can throw a more helpful
         // error message than gas estimation failure
         const estimateGasPromise = this._web3Wrapper.estimateGasAsync(txData);
-        const callResult = await this._web3Wrapper.callAsync(txData);
-        throwIfRevertError(callResult);
+        await this._throwIfCallIsRevertErrorAsync(txData);
         const gas = await estimateGasPromise;
         return new BigNumber(gas);
     }
@@ -213,16 +216,24 @@ export class SwapService {
         }
         return decimals;
     }
+    private async _throwIfCallIsRevertErrorAsync(txData: Partial<TxData>): Promise<void> {
+        let callResult;
+        let revertError;
+        try {
+            callResult = await this._web3Wrapper.callAsync(txData);
+        } catch (e) {
+            // RPCSubprovider can throw if .error exists on the response payload
+            // This `error` response occurs from Parity nodes (incl Alchemy) but not on INFURA (geth)
+            revertError = decodeThrownErrorAsRevertError(e);
+            throw revertError;
+        }
+        try {
+            revertError = RevertError.decode(callResult, false);
+        } catch (e) {
+            // No revert error
+        }
+        if (revertError) {
+            throw revertError;
+        }
+    }
 }
-
-const throwIfRevertError = (result: string): void => {
-    let revertError;
-    try {
-        revertError = RevertError.decode(result, false);
-    } catch (e) {
-        // No revert error
-    }
-    if (revertError) {
-        throw revertError;
-    }
-};
