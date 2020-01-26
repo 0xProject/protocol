@@ -1,4 +1,3 @@
-
 import * as express from 'express';
 
 export const rootHandler = (_req: express.Request, res: express.Response) => {

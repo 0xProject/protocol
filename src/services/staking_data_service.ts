@@ -120,7 +120,9 @@ export class StakingDataService {
 
         const currentEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawCurrentEpochPoolStats[0]);
         const nextEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawNextEpochPoolStats[0]);
-        const pool7dProtocolFeesGenerated = stakingUtils.getPoolProtocolFeesGeneratedFromRaw(rawPoolSevenDayProtocolFeesGenerated[0]);
+        const pool7dProtocolFeesGenerated = stakingUtils.getPoolProtocolFeesGeneratedFromRaw(
+            rawPoolSevenDayProtocolFeesGenerated[0],
+        );
 
         return {
             ...pool,

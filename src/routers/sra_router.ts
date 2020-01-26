@@ -4,7 +4,8 @@ import * as asyncHandler from 'express-async-handler';
 import { SRAHandlers } from '../handlers/sra_handlers';
 import { OrderBookService } from '../services/orderbook_service';
 
-export const createSRARouter = (orderBook: OrderBookService): express.Router => {
+// tslint:disable-next-line:completed-docs
+export function createSRARouter(orderBook: OrderBookService): express.Router {
     const router = express.Router();
     const handlers = new SRAHandlers(orderBook);
     // Link to docs in the root.
@@ -45,4 +46,4 @@ export const createSRARouter = (orderBook: OrderBookService): express.Router => 
      */
     router.get('/order/:orderHash', asyncHandler(handlers.getOrderByHashAsync.bind(handlers)));
     return router;
-};
+}

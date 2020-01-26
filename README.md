@@ -65,9 +65,16 @@ To get a local development version of `0x-api` running:
     yarn dev
     ```
 
+
+## Testing
+Run `docker-compose up` and wait for containers to start up.
+
+Then run `yarn test`. 
+
 ## Commands
 
 -   `yarn build` - Build the code
+-   `yarn test` - Test the code (must run docker-compose first)
 -   `yarn lint` - Lint the code
 -   `yarn start` - Starts the API
 -   `yarn dev` - Starts the API in dev-mode
