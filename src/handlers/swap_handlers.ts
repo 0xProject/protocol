@@ -87,6 +87,8 @@ export class SwapHandlers {
         const tokens = TokenMetadatasForChains.map(tm => ({
             symbol: tm.symbol,
             address: tm.tokenAddresses[CHAIN_ID],
+            name: tm.name,
+            decimals: tm.decimals,
         }));
         const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
         res.status(HttpStatus.OK).send({ records: filteredTokens });
