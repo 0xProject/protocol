@@ -5,6 +5,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { FEE_RECIPIENT_ADDRESS, WHITELISTED_TOKENS } from '../config';
+import { SRA_DOCS_URL } from '../constants';
 import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
@@ -14,7 +15,7 @@ import { schemaUtils } from '../utils/schema_utils';
 export class SRAHandlers {
     private readonly _orderBook: OrderBookService;
     public static rootAsync(_req: express.Request, res: express.Response): void {
-        const message = `This is the root of the Standard Relayer API. Visit https://0x.org/docs/api#sra for details about this API.`;
+        const message = `This is the root of the Standard Relayer API. Visit ${SRA_DOCS_URL} for details about this API.`;
         res.status(HttpStatus.OK).send({ message });
     }
     public static feeRecipients(req: express.Request, res: express.Response): void {
