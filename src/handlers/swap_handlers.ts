@@ -17,6 +17,10 @@ import { findTokenAddress, isETHSymbol } from '../utils/token_metadata_utils';
 
 export class SwapHandlers {
     private readonly _swapService: SwapService;
+    public static rootAsync(_req: express.Request, res: express.Response): void {
+        const message = `This is the root of the Swap API. Visit https://0x.org/docs/api#swap for details about this API.`;
+        res.status(HttpStatus.OK).send({ message });
+    }
     constructor(swapService: SwapService) {
         this._swapService = swapService;
     }
