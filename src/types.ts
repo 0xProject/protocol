@@ -149,7 +149,9 @@ export interface RawEpochPoolStats {
     total_staked?: string;
     share_of_stake?: string;
     total_protocol_fees_generated_in_eth?: string;
+    number_of_fills: string;
     share_of_fees?: string;
+    share_of_fills?: string;
     approximate_stake_ratio?: string;
 }
 
@@ -159,6 +161,7 @@ export interface EpochPoolStats {
     operatorShare?: number;
     makerAddresses: string[];
     totalProtocolFeesGeneratedInEth: number;
+    numberOfFills: number;
     approximateStakeRatio: number;
 }
 
@@ -177,17 +180,19 @@ export interface PoolEpochRewards extends RewardsStats {
 export interface RawPoolProtocolFeesGenerated {
     pool_id: string;
     seven_day_protocol_fees_generated_in_eth: string;
+    seven_day_number_of_fills: string;
 }
 
 export interface RawPoolTotalProtocolFeesGenerated {
     pool_id: string;
     total_protocol_fees: string;
-    num_fills: string;
+    number_of_fills: string;
 }
 
 export interface PoolProtocolFeesGenerated {
     poolId: string;
     sevenDayProtocolFeesGeneratedInEth: number;
+    sevenDayNumberOfFills: number;
 }
 
 export interface RawAllTimeStakingStats {
@@ -242,6 +247,7 @@ export interface EpochDelegatorStats {
 
 export interface AllTimePoolStats extends RewardsStats {
     protocolFeesGeneratedInEth: number;
+    numberOfFills: number;
 }
 
 export interface AllTimeDelegatorPoolStats {

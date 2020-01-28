@@ -99,6 +99,7 @@ export const stakingUtils = {
             operator_share,
             zrx_staked,
             total_protocol_fees_generated_in_eth,
+            number_of_fills,
             approximate_stake_ratio,
         } = rawEpochPoolStats;
         return {
@@ -108,6 +109,7 @@ export const stakingUtils = {
             approximateStakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
             makerAddresses: maker_addresses || [],
             totalProtocolFeesGeneratedInEth: Number(total_protocol_fees_generated_in_eth || 0),
+            numberOfFills: Number(number_of_fills || 0),
         };
     },
     getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
@@ -126,10 +128,11 @@ export const stakingUtils = {
     getPoolProtocolFeesGeneratedFromRaw: (
         rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated,
     ): PoolProtocolFeesGenerated => {
-        const { pool_id, seven_day_protocol_fees_generated_in_eth } = rawPoolProtocolFeesGenerated;
+        const { pool_id, seven_day_protocol_fees_generated_in_eth, seven_day_number_of_fills } = rawPoolProtocolFeesGenerated;
         return {
             poolId: pool_id,
             sevenDayProtocolFeesGeneratedInEth: Number(seven_day_protocol_fees_generated_in_eth || 0),
+            sevenDayNumberOfFills: Number(seven_day_number_of_fills || 0),
         };
     },
     getPoolsProtocolFeesGeneratedFromRaw: (
@@ -174,6 +177,7 @@ export const stakingUtils = {
             membersRewardsPaidInEth: Number(_.get(rawAllTimePoolRewards, 'members_reward', 0)),
             totalRewardsPaidInEth: Number(_.get(rawAllTimePoolRewards, 'total_rewards', 0)),
             protocolFeesGeneratedInEth: Number(_.get(rawPoolsProtocolFeesGenerated, 'total_protocol_fees', 0)),
+            numberOfFills: Number(_.get(rawPoolsProtocolFeesGenerated, 'number_of_fills', 0)),
         };
     },
     getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {

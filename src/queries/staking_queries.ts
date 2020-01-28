@@ -63,6 +63,7 @@ export const poolSevenDayProtocolFeesGeneratedQuery = `
         SELECT
             pi.pool_id
             , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
+            , COUNT(*) AS number_of_fills
         FROM events.fill_events fe
         LEFT JOIN events.blocks b ON b.block_number = fe.block_number
         LEFT JOIN staking.pool_info pi ON fe.maker_address = ANY(pi.maker_addresses)
@@ -76,6 +77,7 @@ export const poolSevenDayProtocolFeesGeneratedQuery = `
     SELECT
         p.pool_id
         , COALESCE(f.protocol_fees, 0) AS seven_day_protocol_fees_generated_in_eth
+        , COALESCE(f.number_of_fills,0) AS seven_day_number_of_fills
     FROM events.staking_pool_created_events p
     LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id
     WHERE
@@ -87,6 +89,7 @@ export const sevenDayProtocolFeesGeneratedQuery = `
         SELECT
             pi.pool_id
             , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
+            , COUNT(*) AS number_of_fills
         FROM events.fill_events fe
         LEFT JOIN events.blocks b ON b.block_number = fe.block_number
         LEFT JOIN staking.pool_info pi ON fe.maker_address = ANY(pi.maker_addresses)
@@ -99,6 +102,7 @@ export const sevenDayProtocolFeesGeneratedQuery = `
     SELECT
         p.pool_id
         , COALESCE(f.protocol_fees, 0) AS seven_day_protocol_fees_generated_in_eth
+        , COALESCE(f.number_of_fills,0) AS seven_day_number_of_fills
     FROM events.staking_pool_created_events p
     LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id;
 `;
@@ -128,7 +132,7 @@ export const poolTotalProtocolFeesGeneratedQuery = `
             SELECT
                 esps.pool_id
                 , SUM(fwe.protocol_fee_paid) / 1e18 AS total_protocol_fees
-                , COUNT(*) AS num_fills
+                , COUNT(*) AS number_of_fills
             FROM fills_with_epochs fwe
             LEFT JOIN staking.epoch_start_pool_status esps ON
                 fwe.maker_address = ANY(esps.maker_addresses)
@@ -174,6 +178,7 @@ export const currentEpochPoolsStatsQuery = `
         SELECT
             ce.epoch_id
             , cebs.pool_id
+            , COUNT(*) AS num_fills
             , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
         FROM events.fill_events fe
         LEFT JOIN current_epoch_beginning_status cebs ON fe.maker_address = ANY(cebs.maker_addresses)
@@ -193,6 +198,7 @@ export const currentEpochPoolsStatsQuery = `
     , total_fees AS (
         SELECT
             SUM(protocol_fees) AS total_protocol_fees
+            , SUM(num_fills) AS total_fills
         FROM current_epoch_fills_by_pool
     )
     SELECT
@@ -203,7 +209,9 @@ export const currentEpochPoolsStatsQuery = `
         , ts.total_staked
         , cebs.zrx_delegated / ts.total_staked AS share_of_stake
         , fbp.protocol_fees AS total_protocol_fees_generated_in_eth
+        , fbp.num_fills AS number_of_fills
         , fbp.protocol_fees / tf.total_protocol_fees AS share_of_fees
+        , fbp.num_fills::FLOAT / tf.total_fills::FLOAT AS share_of_fills
         , (cebs.zrx_delegated / ts.total_staked)
             / (fbp.protocol_fees / tf.total_protocol_fees)
             AS approximate_stake_ratio
@@ -226,6 +234,7 @@ export const currentEpochPoolStatsQuery = `
             SELECT
                 ce.epoch_id
                 , cebs.pool_id
+                , COUNT(*) AS num_fills
                 , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
             FROM events.fill_events fe
             LEFT JOIN current_epoch_beginning_status cebs ON fe.maker_address = ANY(cebs.maker_addresses)
@@ -245,6 +254,7 @@ export const currentEpochPoolStatsQuery = `
         , total_fees AS (
             SELECT
                 SUM(protocol_fees) AS total_protocol_fees
+                , SUM(num_fills) AS total_fills
             FROM current_epoch_fills_by_pool
         )
         SELECT
@@ -255,7 +265,9 @@ export const currentEpochPoolStatsQuery = `
             , ts.total_staked
             , cebs.zrx_delegated / ts.total_staked AS share_of_stake
             , fbp.protocol_fees AS total_protocol_fees_generated_in_eth
+            , fbp.num_fills AS number_of_fills
             , fbp.protocol_fees / tf.total_protocol_fees AS share_of_fees
+            , fbp.num_fills::FLOAT / tf.total_fills::FLOAT AS share_of_fills
             , (cebs.zrx_delegated / ts.total_staked)
                 / (fbp.protocol_fees / tf.total_protocol_fees)
                 AS approximate_stake_ratio
@@ -281,6 +293,7 @@ export const nextEpochPoolsStatsQuery = `
         , current_epoch_fills_by_pool AS (
             SELECT
                 pi.pool_id
+                , COUNT(*) AS num_fills
                 , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
             FROM events.fill_events fe
             LEFT JOIN staking.pool_info pi ON fe.maker_address = ANY(pi.maker_addresses)
@@ -300,6 +313,7 @@ export const nextEpochPoolsStatsQuery = `
         , total_rewards AS (
             SELECT
                 SUM(protocol_fees) AS total_protocol_fees
+                , SUM(num_fills) AS total_fills
             FROM current_epoch_fills_by_pool
         )
         , operator_share AS (
@@ -322,9 +336,8 @@ export const nextEpochPoolsStatsQuery = `
             , cs.zrx_staked
             , ts.total_staked
             , cs.zrx_staked / ts.total_staked AS share_of_stake
-            , fbp.protocol_fees AS protocol_fees_generated_in_eth
-            , tr.total_protocol_fees
-            , fbp.protocol_fees / tr.total_protocol_fees AS share_of_fees
+            , 0.00 AS total_protocol_fees_generated_in_eth
+            , 0 AS number_of_fills
             , (cs.zrx_staked / ts.total_staked)
                     / (fbp.protocol_fees / tr.total_protocol_fees)
                 AS approximate_stake_ratio
@@ -349,6 +362,7 @@ export const nextEpochPoolStatsQuery = `
         , current_epoch_fills_by_pool AS (
             SELECT
                 pi.pool_id
+                , COUNT(*) AS num_fills
                 , SUM(fe.protocol_fee_paid) / 1e18 AS protocol_fees
             FROM events.fill_events fe
             LEFT JOIN staking.pool_info pi ON fe.maker_address = ANY(pi.maker_addresses)
@@ -368,6 +382,7 @@ export const nextEpochPoolStatsQuery = `
         , total_rewards AS (
             SELECT
                 SUM(protocol_fees) AS total_protocol_fees
+                , SUM(num_fills) AS total_fills
             FROM current_epoch_fills_by_pool
         )
         , operator_share AS (
@@ -390,9 +405,8 @@ export const nextEpochPoolStatsQuery = `
             , cs.zrx_staked
             , ts.total_staked
             , cs.zrx_staked / ts.total_staked AS share_of_stake
-            , fbp.protocol_fees AS protocol_fees_generated_in_eth
-            , tr.total_protocol_fees
-            , fbp.protocol_fees / tr.total_protocol_fees AS share_of_fees
+            , 0.00 AS total_protocol_fees_generated_in_eth
+            , 0 AS number_of_fills
             , (cs.zrx_staked / ts.total_staked)
                     / (fbp.protocol_fees / tr.total_protocol_fees)
                 AS approximate_stake_ratio
