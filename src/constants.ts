@@ -27,3 +27,7 @@ export const FIRST_PAGE = 1;
 export const SRA_PATH = '/sra/v3';
 export const STAKING_PATH = '/staking';
 export const SWAP_PATH = '/swap/v0';
+
+// Docs
+export const SWAP_DOCS_URL = 'https://0x.org/docs/api#swap';
+export const SRA_DOCS_URL = 'https://0x.org/docs/api#sra';

@@ -4,7 +4,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { CHAIN_ID } from '../config';
-import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE } from '../constants';
+import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, SWAP_DOCS_URL } from '../constants';
 import { InternalServerError, RevertAPIError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
@@ -17,6 +17,10 @@ import { findTokenAddress, isETHSymbol } from '../utils/token_metadata_utils';
 
 export class SwapHandlers {
     private readonly _swapService: SwapService;
+    public static rootAsync(_req: express.Request, res: express.Response): void {
+        const message = `This is the root of the Swap API. Visit ${SWAP_DOCS_URL} for details about this API.`;
+        res.status(HttpStatus.OK).send({ message });
+    }
     constructor(swapService: SwapService) {
         this._swapService = swapService;
     }
@@ -87,6 +91,8 @@ export class SwapHandlers {
         const tokens = TokenMetadatasForChains.map(tm => ({
             symbol: tm.symbol,
             address: tm.tokenAddresses[CHAIN_ID],
+            name: tm.name,
+            decimals: tm.decimals,
         }));
         const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
         res.status(HttpStatus.OK).send({ records: filteredTokens });
