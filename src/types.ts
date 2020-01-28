@@ -149,7 +149,7 @@ export interface RawEpochPoolStats {
     total_staked?: string;
     share_of_stake?: string;
     total_protocol_fees_generated_in_eth?: string;
-    number_of_fills: string;
+    number_of_fills?: string;
     share_of_fees?: string;
     share_of_fills?: string;
     approximate_stake_ratio?: string;
