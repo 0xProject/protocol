@@ -10,6 +10,10 @@ steps:
   - name: publish-sha
     image: plugins/ecr
     settings:
+      access_key:
+        from_secret: aws_ecr_key
+      secret_key:
+        from_secret: aws_ecr_secret
       repo:
         from_secret: ecr_repo
       registry:
@@ -17,6 +21,10 @@ steps:
       region: us-east-1
       tags:
         - ${DRONE_COMMIT_SHA}
+trigger:
+  event:
+    exclude:
+    - pull_request
 ---
 name: 0x-api-pipeline
 kind: pipeline
