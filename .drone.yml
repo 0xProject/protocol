@@ -17,6 +17,10 @@ steps:
       region: us-east-1
       tags:
         - ${DRONE_COMMIT_SHA}
+trigger:
+  event:
+    exclude:
+    - pull_request
 ---
 name: 0x-api-pipeline
 kind: pipeline
