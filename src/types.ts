@@ -158,10 +158,13 @@ export interface RawEpochPoolStats {
 export interface EpochPoolStats {
     poolId: string;
     zrxStaked: number;
+    shareOfStake: number;
     operatorShare?: number;
     makerAddresses: string[];
     totalProtocolFeesGeneratedInEth: number;
+    shareOfFees: number;
     numberOfFills: number;
+    shareOfFills: number;
     approximateStakeRatio: number;
 }
 

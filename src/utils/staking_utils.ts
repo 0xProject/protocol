@@ -98,18 +98,24 @@ export const stakingUtils = {
             maker_addresses,
             operator_share,
             zrx_staked,
+            share_of_stake,
             total_protocol_fees_generated_in_eth,
+            share_of_fees,
             number_of_fills,
+            share_of_fills,
             approximate_stake_ratio,
         } = rawEpochPoolStats;
         return {
             poolId: pool_id,
             zrxStaked: Number(zrx_staked || 0),
+            shareOfStake: Number(share_of_stake),
             operatorShare: _.isNil(operator_share) ? undefined : Number(operator_share),
             approximateStakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
             makerAddresses: maker_addresses || [],
             totalProtocolFeesGeneratedInEth: Number(total_protocol_fees_generated_in_eth || 0),
+            shareOfFees: Number(share_of_fees || 0),
             numberOfFills: Number(number_of_fills || 0),
+            shareOfFills: Number(share_of_fills || 0),
         };
     },
     getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
