@@ -1,6 +1,7 @@
 import { AcceptedOrderInfo, RejectedOrderInfo } from '@0x/mesh-rpc-client';
 import { APIOrder, OrdersChannelSubscriptionOpts, SignedOrder, UpdateOrdersChannelMessage } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+import { ERC20BridgeSource } from '@0x/asset-swapper';
 
 export enum OrderWatcherLifeCycleEvents {
     Added,
@@ -292,6 +293,8 @@ export interface GetSwapQuoteResponse {
     orders: SignedOrder[];
     buyAmount: BigNumber;
     sellAmount: BigNumber;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
     value: BigNumber;
     gas?: BigNumber;
     from?: string;
@@ -305,6 +308,7 @@ export interface GetSwapQuoteRequestParams {
     buyAmount?: BigNumber;
     slippagePercentage?: number;
     gasPrice?: BigNumber;
+    discluded?: ERC20BridgeSource[];
 }
 
 export interface CalculateSwapQuoteParams {
@@ -316,4 +320,5 @@ export interface CalculateSwapQuoteParams {
     isETHSell: boolean;
     slippagePercentage?: number;
     gasPrice?: BigNumber;
+    excludedSources?: ERC20BridgeSource[];
 }

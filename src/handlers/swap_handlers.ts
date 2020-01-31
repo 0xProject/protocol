@@ -1,4 +1,4 @@
-import { SwapQuoterError } from '@0x/asset-swapper';
+import { SwapQuoterError, ERC20BridgeSource } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -34,6 +34,7 @@ export class SwapHandlers {
             takerAddress,
             slippagePercentage,
             gasPrice,
+            discluded,
         } = parseGetSwapQuoteRequestParams(req);
         const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
@@ -48,6 +49,7 @@ export class SwapHandlers {
                 isETHSell,
                 slippagePercentage,
                 gasPrice,
+                excludedSources: discluded,
             });
             res.status(HttpStatus.OK).send(swapQuote);
         } catch (e) {
@@ -113,6 +115,13 @@ const findTokenAddressOrThrowApiError = (address: string, field: string, chainId
     }
 };
 
+const parseStringArrForERC20BridgeSources = (discluded: string[]): ERC20BridgeSource[] => {
+    return discluded.filter((source: string) => source in ERC20BridgeSource).map((source: string): ERC20BridgeSource => {
+        // HACK: to return ERC20BridgeSource enum matched with source
+        return (ERC20BridgeSource as any)[source];
+    });
+};
+
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
     // HACK typescript typing does not allow this valid json-schema
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
@@ -123,5 +132,6 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
     const slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
-    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice };
+    const discluded = req.query.discluded === undefined ? undefined : parseStringArrForERC20BridgeSources(req.query.discluded);
+    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice, discluded };
 };
