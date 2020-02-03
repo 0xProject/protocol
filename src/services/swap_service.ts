@@ -76,7 +76,6 @@ export class SwapService {
             protocolFeeInWeiAmount: protocolFee,
         } = attributedSwapQuote.bestCaseQuoteInfo;
         const { orders, gasPrice } = attributedSwapQuote;
-
         // If ETH was specified as the token to sell then we use the Forwarder
         const extensionContractType = isETHSell ? ExtensionContractType.Forwarder : ExtensionContractType.None;
         const {

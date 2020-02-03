@@ -116,10 +116,7 @@ const findTokenAddressOrThrowApiError = (address: string, field: string, chainId
 };
 
 const parseStringArrForERC20BridgeSources = (discluded: string[]): ERC20BridgeSource[] => {
-    return discluded.filter((source: string) => source in ERC20BridgeSource).map((source: string): ERC20BridgeSource => {
-        // HACK: to return ERC20BridgeSource enum matched with source
-        return (ERC20BridgeSource as any)[source];
-    });
+    return discluded.filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
 };
 
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
@@ -132,6 +129,6 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
     const slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
-    const discluded = req.query.discluded === undefined ? undefined : parseStringArrForERC20BridgeSources(req.query.discluded);
+    const discluded = req.query.discluded === undefined ? undefined : parseStringArrForERC20BridgeSources(req.query.discluded.split(','));
     return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice, discluded };
 };

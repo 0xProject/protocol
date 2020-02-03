@@ -17,10 +17,7 @@
             "$ref": "/numberSchema"
         },
         "discluded": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": "string"
         }
     },
     "required": ["sellToken", "buyToken"],
