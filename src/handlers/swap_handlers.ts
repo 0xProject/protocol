@@ -1,4 +1,4 @@
-import { SwapQuoterError, ERC20BridgeSource } from '@0x/asset-swapper';
+import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';

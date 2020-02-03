@@ -1,7 +1,7 @@
+import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { AcceptedOrderInfo, RejectedOrderInfo } from '@0x/mesh-rpc-client';
 import { APIOrder, OrdersChannelSubscriptionOpts, SignedOrder, UpdateOrdersChannelMessage } from '@0x/types';
 import { BigNumber } from '@0x/utils';
-import { ERC20BridgeSource } from '@0x/asset-swapper';
 
 export enum OrderWatcherLifeCycleEvents {
     Added,
