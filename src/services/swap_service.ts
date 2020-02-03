@@ -5,6 +5,7 @@ import {
     Orderbook,
     SignedOrder,
     SwapQuoteConsumer,
+    SwapQuoteOrdersBreakdown,
     SwapQuoter,
 } from '@0x/asset-swapper';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
@@ -12,7 +13,7 @@ import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } fr
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 
 import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
-import { DEFAULT_TOKEN_DECIMALS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
+import { DEFAULT_TOKEN_DECIMALS, PERCENTAGE_SIG_DIGITS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
 import { logger } from '../logger';
 import { CalculateSwapQuoteParams, GetSwapQuoteResponse } from '../types';
 import { orderUtils } from '../utils/order_utils';
@@ -75,7 +76,8 @@ export class SwapService {
             totalTakerAssetAmount,
             protocolFeeInWeiAmount: protocolFee,
         } = attributedSwapQuote.bestCaseQuoteInfo;
-        const { orders, gasPrice } = attributedSwapQuote;
+        const { orders, gasPrice, sourceBreakdown } = attributedSwapQuote;
+
         // If ETH was specified as the token to sell then we use the Forwarder
         const extensionContractType = isETHSell ? ExtensionContractType.Forwarder : ExtensionContractType.None;
         const {
@@ -123,11 +125,24 @@ export class SwapService {
             sellTokenAddress,
             buyAmount: makerAssetAmount,
             sellAmount: totalTakerAssetAmount,
+            sources: this._reduceSourceBreakdownPrecision(sourceBreakdown),
             orders: this._cleanSignedOrderFields(orders),
         };
         return apiSwapQuote;
     }
 
+    // tslint:disable-next-line: prefer-function-over-method
+    private _reduceSourceBreakdownPrecision(sourceBreakdown: SwapQuoteOrdersBreakdown): SwapQuoteOrdersBreakdown {
+        const breakdown: SwapQuoteOrdersBreakdown = {};
+        return Object.entries(sourceBreakdown).reduce((acc: SwapQuoteOrdersBreakdown, [source, amount]) => {
+            return {
+                ...acc,
+                ...{
+                    [source]: new BigNumber(amount.toPrecision(PERCENTAGE_SIG_DIGITS)),
+                },
+            };
+        }, breakdown);
+    }
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
         // Perform this concurrently
         // if the call fails the gas estimation will also fail, we can throw a more helpful
