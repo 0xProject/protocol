@@ -26,8 +26,8 @@ export class SignedOrderEntity {
     @Column({ name: 'fee_recipient_address', type: 'varchar' })
     public feeRecipientAddress?: string;
 
-    @Column({ name: 'expiration_time_seconds', type: 'int' })
-    public expirationTimeSeconds?: number;
+    @Column({ name: 'expiration_time_seconds', type: 'varchar' })
+    public expirationTimeSeconds?: string;
 
     @Column({ name: 'maker_fee', type: 'varchar' })
     public makerFee?: string;
@@ -65,7 +65,7 @@ export class SignedOrderEntity {
             takerAssetData?: string;
             exchangeAddress?: string;
             feeRecipientAddress?: string;
-            expirationTimeSeconds?: number;
+            expirationTimeSeconds?: string;
             makerFee?: string;
             takerFee?: string;
             makerFeeAssetData?: string;

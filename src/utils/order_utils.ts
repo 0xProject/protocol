@@ -188,7 +188,7 @@ export const orderUtils = {
             salt: signedOrder.salt.toString(),
             exchangeAddress: signedOrder.exchangeAddress,
             feeRecipientAddress: signedOrder.feeRecipientAddress,
-            expirationTimeSeconds: signedOrder.expirationTimeSeconds.toNumber(),
+            expirationTimeSeconds: signedOrder.expirationTimeSeconds.toString(),
             hash: apiOrder.metaData.orderHash,
             remainingFillableTakerAssetAmount: apiOrder.metaData.remainingFillableTakerAssetAmount.toString(),
         });
