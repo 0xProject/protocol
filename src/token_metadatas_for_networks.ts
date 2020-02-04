@@ -14,6 +14,7 @@ export interface TokenMetadataAndChainAddresses {
 
 // Most token metadata taken from https://github.com/MetaMask/eth-contract-metadata/
 // And https://github.com/compound-finance/compound-protocol/blob/master/networks/kovan.json
+// And https://developer.kyber.network/docs/Environments-Kovan/
 // tslint:disable:max-file-line-count
 export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
     {
@@ -22,7 +23,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x6b175474e89094c44da98b954eedeac495271d0f',
-            [ChainId.Kovan]: '0xc4375b7de8af5a38a93548eb8453a498222c4ff2',
+            [ChainId.Kovan]: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
             [ChainId.Ganache]: '0x34d402f14d58e001d8efbe6585051bf9706aa064',
         },
     },
@@ -82,7 +83,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
-            [ChainId.Kovan]: '0xac94ea989f6955c67200dd67f0101e1865a560ea',
+            [ChainId.Kovan]: '0xaaf64bfcc32d0f15873a02163e7e500671a4ffcd',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
