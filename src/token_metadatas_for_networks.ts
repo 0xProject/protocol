@@ -73,7 +73,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
-            [ChainId.Kovan]: '0x9ddb308c14f700d397bb26f584ac2e303cdc7365',
+            [ChainId.Kovan]: '0x9f8cfb61d3b2af62864408dd703f9c3beb55dff7',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
