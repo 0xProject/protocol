@@ -92,7 +92,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Wrapped BTC',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xa0a5ad2296b38bd3e3eb59aaeaf1589e8d9a29a9',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -122,7 +122,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Kyber Network Crystal',
         tokenAddresses: {
             [ChainId.Mainnet]: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xad67cb4d63c9da94aca37fdf2761aadf780ff4a2',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -202,7 +202,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Sai Stablecoin v1.0',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xc4375b7de8af5a38a93548eb8453a498222c4ff2',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -412,7 +412,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Compound Augur',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x158079ee67fce2f58472a96584a73c7ab9ac95c1',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xfd874be7e6733bdc6dca9c7cdd97c225ec235d39',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -432,7 +432,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Compound 0x',
         tokenAddresses: {
             [ChainId.Mainnet]: '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xc014dc10a57ac78350c5fddb26bb66f1cb0960a0',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
