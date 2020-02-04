@@ -77,7 +77,7 @@ export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     noConflicts: true,
     excludedSources:
-        CHAIN_ID === ChainId.Mainnet
+        CHAIN_ID === ChainId.Mainnet || CHAIN_ID === ChainId.Kovan
             ? []
             : [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap],
     runLimit: 2 ** 15,
