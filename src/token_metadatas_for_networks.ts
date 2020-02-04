@@ -13,6 +13,8 @@ export interface TokenMetadataAndChainAddresses {
 }
 
 // Most token metadata taken from https://github.com/MetaMask/eth-contract-metadata/
+// And https://github.com/compound-finance/compound-protocol/blob/master/networks/kovan.json
+// And https://developer.kyber.network/docs/Environments-Kovan/
 // tslint:disable:max-file-line-count
 export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
     {
@@ -21,7 +23,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x6b175474e89094c44da98b954eedeac495271d0f',
-            [ChainId.Kovan]: '0xc4375b7de8af5a38a93548eb8453a498222c4ff2',
+            [ChainId.Kovan]: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
             [ChainId.Ganache]: '0x34d402f14d58e001d8efbe6585051bf9706aa064',
         },
     },
@@ -31,7 +33,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x1985365e9f78359a9B6AD760e32412f4a445E862',
-            [ChainId.Kovan]: '0xb18845c260f680d5b9d84649638813e342e4f8c9',
+            [ChainId.Kovan]: '0x4e5cb5a0caca30d1ad27d8cd8200a907854fb518',
             [ChainId.Ganache]: '0x34d402f14d58e001d8efbe6585051bf9706aa064',
         },
     },
@@ -61,7 +63,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 6,
         tokenAddresses: {
             [ChainId.Mainnet]: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            [ChainId.Kovan]: '0x5a719cf3e02c17c876f6d294adb5cb7c6eb47e2f',
+            [ChainId.Kovan]: '0x75b0622cec14130172eae9cf166b92e5c112faff',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -71,7 +73,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0x9f8cfb61d3b2af62864408dd703f9c3beb55dff7',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -81,7 +83,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xaaf64bfcc32d0f15873a02163e7e500671a4ffcd',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -91,7 +93,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Wrapped BTC',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xa0a5ad2296b38bd3e3eb59aaeaf1589e8d9a29a9',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -121,7 +123,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Kyber Network Crystal',
         tokenAddresses: {
             [ChainId.Mainnet]: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xad67cb4d63c9da94aca37fdf2761aadf780ff4a2',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -201,7 +203,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Sai Stablecoin v1.0',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xc4375b7de8af5a38a93548eb8453a498222c4ff2',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -411,7 +413,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Compound Augur',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x158079ee67fce2f58472a96584a73c7ab9ac95c1',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xfd874be7e6733bdc6dca9c7cdd97c225ec235d39',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -431,7 +433,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'Compound 0x',
         tokenAddresses: {
             [ChainId.Mainnet]: '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407',
-            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0xc014dc10a57ac78350c5fddb26bb66f1cb0960a0',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
