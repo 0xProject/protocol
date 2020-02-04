@@ -8,7 +8,7 @@
     "scripts": {
         "clean": "shx rm -rf lib",
         "build": "tsc -p tsconfig.json",
-        "test": "mocha --require source-map-support/register --require make-promises-safe lib/test/**/*_test.js --timeout 100000 --exit",
+        "test": "ETHEREUM_RPC_URL=http://localhost:8545 mocha --require source-map-support/register --require make-promises-safe lib/test/**/*_test.js --timeout 100000 --exit",
         "dev": "nodemon -r dotenv/config src/index.ts | pino-pretty",
         "watch": "tsc -w",
         "prettier": "prettier --write 'src/**/*.ts' --config .prettierrc",

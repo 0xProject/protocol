@@ -22,7 +22,7 @@ services:
             - ganache
         restart: on-failure
         environment:
-            ETHEREUM_RPC_URL: http://ganache:8545
+            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
             ETHEREUM_CHAIN_ID: '${CHAIN_ID}'
             USE_BOOTSTRAP_LIST: 'true'
             VERBOSITY: 3
@@ -44,6 +44,6 @@ services:
         image: 0xorg/event-pipeline@sha256:058e730018a8bdc31b1fdd68935eeb27bc728a0db579b41436c138cf73e830e1
         restart: always
         environment:
-            ETHEREUM_RPC_URL: http://ganache:8545
+            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
             CHAIN_ID: '${CHAIN_ID}'
             POSTGRES_URI: 'postgresql://api:api@postgres/api'
