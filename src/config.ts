@@ -91,7 +91,7 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     runLimit: 2 ** 15,
     bridgeSlippage: 0.0005,
     dustFractionThreshold: 0.0025,
-    numSamples: CHAIN_ID === ChainId.Mainnet ? 13 : 1,
+    numSamples: 13,
     sampleDistributionBase: 1.05,
 };
 
