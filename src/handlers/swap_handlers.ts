@@ -34,7 +34,7 @@ export class SwapHandlers {
             takerAddress,
             slippagePercentage,
             gasPrice,
-            discluded,
+            excludedSources,
         } = parseGetSwapQuoteRequestParams(req);
         const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
@@ -49,7 +49,7 @@ export class SwapHandlers {
                 isETHSell,
                 slippagePercentage,
                 gasPrice,
-                excludedSources: discluded,
+                excludedSources,
             });
             res.status(HttpStatus.OK).send(swapQuote);
         } catch (e) {
@@ -115,8 +115,8 @@ const findTokenAddressOrThrowApiError = (address: string, field: string, chainId
     }
 };
 
-const parseStringArrForERC20BridgeSources = (discluded: string[]): ERC20BridgeSource[] => {
-    return discluded.filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
+const parseStringArrForERC20BridgeSources = (excludedSources: string[]): ERC20BridgeSource[] => {
+    return excludedSources.filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
 };
 
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
@@ -129,6 +129,6 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
     const slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
-    const discluded = req.query.discluded === undefined ? undefined : parseStringArrForERC20BridgeSources(req.query.discluded.split(','));
-    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice, discluded };
+    const excludedSources = req.query.excludedSources === undefined ? undefined : parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
+    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice, excludedSources };
 };

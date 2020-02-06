@@ -16,7 +16,7 @@
         "slippage": {
             "$ref": "/numberSchema"
         },
-        "discluded": {
+        "excludedSources": {
             "type": "string"
         }
     },
