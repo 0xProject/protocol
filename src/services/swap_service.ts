@@ -7,6 +7,7 @@ import {
     SwapQuoteConsumer,
     SwapQuoteOrdersBreakdown,
     SwapQuoter,
+    ERC20BridgeSource,
 } from '@0x/asset-swapper';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
@@ -136,7 +137,7 @@ export class SwapService {
         const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
         return Object.entries(sourceBreakdown).reduce((acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
             return [...acc, {
-                name: source === 'Native' ? '0x' : source,
+                name: source === ERC20BridgeSource.Native ? '0x' : source,
                 proportion: new BigNumber(percentage.toPrecision(PERCENTAGE_SIG_DIGITS)),
             }];
         }, breakdown);
