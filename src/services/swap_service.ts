@@ -136,7 +136,7 @@ export class SwapService {
         const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
         return Object.entries(sourceBreakdown).reduce((acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
             return [...acc, {
-                name: source,
+                name: source === 'Native' ? '0x' : source,
                 proportion: new BigNumber(percentage.toPrecision(PERCENTAGE_SIG_DIGITS)),
             }];
         }, breakdown);
