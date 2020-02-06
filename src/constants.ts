@@ -22,6 +22,7 @@ export const ETH_SYMBOL = 'ETH';
 export const ADDRESS_HEX_LENGTH = 42;
 export const DEFAULT_TOKEN_DECIMALS = 18;
 export const FIRST_PAGE = 1;
+export const PERCENTAGE_SIG_DIGITS = 4;
 
 // API namespaces
 export const SRA_PATH = '/sra/v3';

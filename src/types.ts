@@ -296,6 +296,7 @@ export interface GetSwapQuoteResponse {
     buyTokenAddress: string;
     sellTokenAddress: string;
     value: BigNumber;
+    sources: GetSwapQuoteResponseLiquiditySource[];
     gas?: BigNumber;
     from?: string;
 }
@@ -321,4 +322,9 @@ export interface CalculateSwapQuoteParams {
     slippagePercentage?: number;
     gasPrice?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
+}
+
+export interface GetSwapQuoteResponseLiquiditySource {
+    name: string;
+    proportion: BigNumber;
 }
