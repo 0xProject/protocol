@@ -1,4 +1,5 @@
 import {
+    ERC20BridgeSource,
     ExtensionContractType,
     MarketBuySwapQuote,
     MarketSellSwapQuote,
@@ -7,7 +8,6 @@ import {
     SwapQuoteConsumer,
     SwapQuoteOrdersBreakdown,
     SwapQuoter,
-    ERC20BridgeSource,
 } from '@0x/asset-swapper';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
