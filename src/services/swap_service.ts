@@ -44,11 +44,13 @@ export class SwapService {
             gasPrice: providedGasPrice,
             isETHSell,
             from,
+            excludedSources,
         } = params;
         const assetSwapperOpts = {
             slippagePercentage,
             gasPrice: providedGasPrice,
             ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+            excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
         };
         if (sellAmount !== undefined) {
             swapQuote = await this._swapQuoter.getMarketSellSwapQuoteAsync(
@@ -74,7 +76,6 @@ export class SwapService {
             protocolFeeInWeiAmount: protocolFee,
         } = attributedSwapQuote.bestCaseQuoteInfo;
         const { orders, gasPrice } = attributedSwapQuote;
-
         // If ETH was specified as the token to sell then we use the Forwarder
         const extensionContractType = isETHSell ? ExtensionContractType.Forwarder : ExtensionContractType.None;
         const {
@@ -118,6 +119,8 @@ export class SwapService {
             from,
             gasPrice,
             protocolFee,
+            buyTokenAddress,
+            sellTokenAddress,
             buyAmount: makerAssetAmount,
             sellAmount: totalTakerAssetAmount,
             orders: this._cleanSignedOrderFields(orders),

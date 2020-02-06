@@ -15,6 +15,9 @@
         },
         "slippage": {
             "$ref": "/numberSchema"
+        },
+        "excludedSources": {
+            "type": "string"
         }
     },
     "required": ["sellToken", "buyToken"],
