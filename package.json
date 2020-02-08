@@ -47,9 +47,9 @@
     },
     "dependencies": {
         "@0x/assert": "^3.0.4",
-        "@0x/asset-swapper": "^4.1.1",
+        "@0x/asset-swapper": "^4.1.2",
         "@0x/connect": "^6.0.4",
-        "@0x/contract-addresses": "^4.3.0",
+        "@0x/contract-addresses": "^4.5.0",
         "@0x/contract-wrappers": "^13.4.0",
         "@0x/json-schemas": "^5.0.4",
         "@0x/mesh-rpc-client": "^8.1.0",
