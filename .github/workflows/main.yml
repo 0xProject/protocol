@@ -153,8 +153,8 @@ jobs:
         uses: peter-evans/create-pull-request@v2.3.0
         with:
             token: ${{ secrets.PAT }}
-            commit-message: "[0xApi][prod] Deploy ${{ steps.parse_pr_info.outputs.ref }}"
-            title: "[0xApi][prod] Deploy ${{ steps.parse_pr_info.outputs.ref }}"
+            commit-message: "[0xApi][kovan] Deploy ${{ steps.parse_pr_info.outputs.ref }}"
+            title: "[0xApi][kovan] Deploy ${{ steps.parse_pr_info.outputs.ref }}"
             reviewers: dekz
             labels: 0xApi, kovan
             branch: "0xApi/kovan/${{ steps.parse_pr_info.outputs.ref }}"
