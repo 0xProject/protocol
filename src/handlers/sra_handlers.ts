@@ -11,6 +11,7 @@ import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { schemaUtils } from '../utils/schema_utils';
+import { schemas as apiSchemas } from '../schemas/schemas';
 
 export class SRAHandlers {
     private readonly _orderBook: OrderBookService;
@@ -67,6 +68,7 @@ export class SRAHandlers {
         res.status(HttpStatus.OK).send(orderbookResponse);
     }
     public async postOrderAsync(req: express.Request, res: express.Response): Promise<void> {
+        schemaUtils.validateSchema(req.body, apiSchemas.sraPostOrderRequestSchema);
         schemaUtils.validateSchema(req.body, schemas.signedOrderSchema);
         const signedOrder = unmarshallOrder(req.body);
         if (WHITELISTED_TOKENS !== '*') {
