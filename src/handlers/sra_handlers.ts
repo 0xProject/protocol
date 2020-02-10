@@ -7,11 +7,11 @@ import * as HttpStatus from 'http-status-codes';
 import { FEE_RECIPIENT_ADDRESS, WHITELISTED_TOKENS } from '../config';
 import { SRA_DOCS_URL } from '../constants';
 import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
+import { schemas as apiSchemas } from '../schemas/schemas';
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { schemaUtils } from '../utils/schema_utils';
-import { schemas as apiSchemas } from '../schemas/schemas';
 
 export class SRAHandlers {
     private readonly _orderBook: OrderBookService;
