@@ -89,7 +89,7 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     noConflicts: true,
     excludedSources: EXCLUDED_SOURCES,
     runLimit: 2 ** 15,
-    bridgeSlippage: 0.0005,
+    bridgeSlippage: 0.002,
     dustFractionThreshold: 0.0025,
     numSamples: 13,
     sampleDistributionBase: 1.05,
