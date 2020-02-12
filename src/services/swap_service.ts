@@ -47,6 +47,7 @@ export class SwapService {
             isETHSell,
             from,
             excludedSources,
+            affiliateAddress,
         } = params;
         const assetSwapperOpts = {
             slippagePercentage,
@@ -89,6 +90,8 @@ export class SwapService {
             useExtensionContract: extensionContractType,
         });
 
+        const affiliatedData = this._attributeCallData(data, affiliateAddress);
+
         let gas;
         if (from) {
             // Force a revert error if the takerAddress does not have enough ETH.
@@ -97,7 +100,7 @@ export class SwapService {
                 : value;
             gas = await this._estimateGasOrThrowRevertErrorAsync({
                 to,
-                data,
+                data: affiliatedData,
                 from,
                 value: txDataValue,
                 gasPrice,
@@ -116,7 +119,7 @@ export class SwapService {
         const apiSwapQuote: GetSwapQuoteResponse = {
             price,
             to,
-            data,
+            data: affiliatedData,
             value,
             gas,
             from,
@@ -176,6 +179,23 @@ export class SwapService {
             orders: attributedOrders,
         };
         return attributedSwapQuote;
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    private _attributeCallData(data: string, affiliateAddress?: string): string {
+        const affiliateAddressOrDefault = affiliateAddress ? affiliateAddress : FEE_RECIPIENT_ADDRESS;
+        const affiliateCallDataEncoder = new AbiEncoder.Method({
+            constant: true,
+            outputs: [],
+            name: 'ZeroExAPIAffiliate',
+            inputs: [{ name: '', type: 'address' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        });
+        const encodedAffiliateData = affiliateCallDataEncoder.encode([affiliateAddressOrDefault]);
+        const affiliatedData = `${data}${encodedAffiliateData.slice(2)}`;
+        return affiliatedData;
     }
 
     // tslint:disable-next-line:prefer-function-over-method

@@ -35,6 +35,7 @@ export class SwapHandlers {
             slippagePercentage,
             gasPrice,
             excludedSources,
+            affiliateAddress,
         } = parseGetSwapQuoteRequestParams(req);
         const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
@@ -50,6 +51,7 @@ export class SwapHandlers {
                 slippagePercentage,
                 gasPrice,
                 excludedSources,
+                affiliateAddress,
             });
             res.status(HttpStatus.OK).send(swapQuote);
         } catch (e) {
@@ -130,5 +132,6 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
     const slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
     const excludedSources = req.query.excludedSources === undefined ? undefined : parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
-    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice, excludedSources };
+    const affiliateAddress = req.query.affiliateAddress;
+    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice, excludedSources, affiliateAddress };
 };

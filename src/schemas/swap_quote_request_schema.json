@@ -10,6 +10,9 @@
         "takerAddress": {
             "$ref": "/addressSchema"
         },
+        "affiliateAddress": {
+            "$ref": "/addressSchema"
+        },
         "gasPrice": {
             "$ref": "/wholeNumberSchema"
         },
