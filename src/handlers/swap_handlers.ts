@@ -13,7 +13,7 @@ import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { ChainId, GetSwapQuoteRequestParams } from '../types';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddress, isETHSymbol } from '../utils/token_metadata_utils';
+import { findTokenAddress, getTokenMetadataIfExists, isETHSymbol } from '../utils/token_metadata_utils';
 
 export class SwapHandlers {
     private readonly _swapService: SwapService;
@@ -100,6 +100,23 @@ export class SwapHandlers {
         }));
         const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
         res.status(HttpStatus.OK).send({ records: filteredTokens });
+    }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
+        const symbolOrAddress = req.query.sellToken || 'WETH';
+        const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
+        if (!baseAsset) {
+            throw new ValidationError([
+                {
+                    field: 'sellToken',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: `Could not find token ${symbolOrAddress}`,
+                },
+            ]);
+        }
+        const unitAmount = new BigNumber(1);
+        const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
+        res.status(HttpStatus.OK).send({ records });
     }
 }
 

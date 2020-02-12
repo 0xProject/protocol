@@ -301,6 +301,13 @@ export interface GetSwapQuoteResponse {
     from?: string;
 }
 
+export interface Price {
+    symbol: string;
+    price: BigNumber;
+}
+
+export type GetTokenPricesResponse = Price[];
+
 export interface GetSwapQuoteRequestParams {
     sellToken: string;
     buyToken: string;

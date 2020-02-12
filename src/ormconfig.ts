@@ -12,4 +12,7 @@ export const config: ConnectionOptions = {
     synchronize: true,
     logging: true,
     logger: 'debug',
+    extra: {
+        connectionLimit: 50,
+    },
 };

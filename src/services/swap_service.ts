@@ -12,11 +12,13 @@ import {
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
+import * as _ from 'lodash';
 
 import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
 import { DEFAULT_TOKEN_DECIMALS, PERCENTAGE_SIG_DIGITS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
 import { logger } from '../logger';
-import { CalculateSwapQuoteParams, GetSwapQuoteResponse, GetSwapQuoteResponseLiquiditySource } from '../types';
+import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
+import { CalculateSwapQuoteParams, GetSwapQuoteResponse, GetSwapQuoteResponseLiquiditySource,  GetTokenPricesResponse, TokenMetadata } from '../types';
 import { orderUtils } from '../utils/order_utils';
 import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
 
@@ -50,9 +52,9 @@ export class SwapService {
             affiliateAddress,
         } = params;
         const assetSwapperOpts = {
+            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
             slippagePercentage,
             gasPrice: providedGasPrice,
-            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
             excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
         };
         if (sellAmount !== undefined) {
@@ -135,6 +137,56 @@ export class SwapService {
         return apiSwapQuote;
     }
 
+    public async getTokenPricesAsync(sellToken: TokenMetadata, unitAmount: BigNumber): Promise<GetTokenPricesResponse> {
+        // Gets the price for buying 1 unit (not base unit as this is different between tokens with differing decimals)
+        // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
+        // Equivalent to performing multiple swap quotes selling sellToken and buying 1 whole buy token
+        const takerAssetData = assetDataUtils.encodeERC20AssetData(sellToken.tokenAddress);
+        const queryAssetData = TokenMetadatasForChains.filter(m => m.symbol !== sellToken.symbol);
+        const chunkSize = 20;
+        const assetDataChunks = _.chunk(queryAssetData, chunkSize);
+        const allResults = _.flatten(
+            await Promise.all(
+                assetDataChunks.map(async a => {
+                    const encodedAssetData = a.map(m =>
+                        assetDataUtils.encodeERC20AssetData(m.tokenAddresses[CHAIN_ID]),
+                    );
+                    const amounts = a.map(m => Web3Wrapper.toBaseUnitAmount(unitAmount, m.decimals));
+                    const quotes = await this._swapQuoter.getBatchMarketBuySwapQuoteForAssetDataAsync(
+                        encodedAssetData,
+                        takerAssetData,
+                        amounts,
+                        {
+                            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+                            slippagePercentage: 0,
+                            bridgeSlippage: 0,
+                            numSamples: 3,
+                        },
+                    );
+                    return quotes;
+                }),
+            ),
+        );
+
+        const prices = allResults.map((quote, i) => {
+            if (!quote) {
+                return undefined;
+            }
+            const buyTokenDecimals = queryAssetData[i].decimals;
+            const sellTokenDecimals = sellToken.decimals;
+            const { makerAssetAmount, totalTakerAssetAmount } = quote.bestCaseQuoteInfo;
+            const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
+            const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
+            const price = unitTakerAssetAmount
+                .dividedBy(unitMakerAssetAmount)
+                .decimalPlaces(buyTokenDecimals);
+            return {
+                symbol: queryAssetData[i].symbol,
+                price,
+            };
+        }).filter(p => p) as GetTokenPricesResponse;
+        return prices;
+    }
     // tslint:disable-next-line: prefer-function-over-method
     private _convertSourceBreakdownToArray(sourceBreakdown: SwapQuoteOrdersBreakdown): GetSwapQuoteResponseLiquiditySource[] {
         const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
