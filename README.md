@@ -36,7 +36,7 @@ These are services that handle HTTP requests and responses.
 
 ### Data Services
 
-These are services that make sure the data being served is present and up-to-date by keeping the database in sync with [0x Mesh](https://github.com/0xProject/0x-mesh) and Ethereum. The endpoints above technically run without this data, but would be providing degraded or non-functional service.
+These are services that make sure the data being served is present and up-to-date by keeping the database in sync with [0x Mesh](https://github.com/0xProject/0x-mesh) and Ethereum. The endpoints above technically run without this data, but would be providing degraded or non-functional service. There is nothing stateful about 0x API -- all the data comes from Mesh or the Ethereum blockchain.
 
 | Name                                                                      |  Run Command                                         | Requires [0x Mesh](https://github.com/0xProject/0x-mesh)? | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
 |---------------------------------------------------------------------------|------------------------------------------------------|-----------------------------------------------------------|--------------------------------------|-------------------------------|
