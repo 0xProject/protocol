@@ -77,6 +77,19 @@ export class SRAHandlers {
         await this._orderBook.addOrderAsync(signedOrder);
         res.status(HttpStatus.OK).send();
     }
+    public async postOrdersAsync(req: express.Request, res: express.Response): Promise<void> {
+        schemaUtils.validateSchema(req.body, schemas.signedOrdersSchema);
+        const signedOrders = unmarshallOrders(req.body);
+        if (WHITELISTED_TOKENS !== '*') {
+            const allowedTokens: string[] = WHITELISTED_TOKENS;
+            for (const signedOrder of signedOrders) {
+                validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.makerAssetData, 'makerAssetData');
+                validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.takerAssetData, 'takerAssetData');
+            }
+        }
+        await this._orderBook.addOrdersAsync(signedOrders);
+        res.status(HttpStatus.OK).send();
+    }
 }
 
 function validateAssetDataIsWhitelistedOrThrow(allowedTokens: string[], assetData: string, field: string): void {
@@ -98,7 +111,7 @@ function validateAssetDataIsWhitelistedOrThrow(allowedTokens: string[], assetDat
     }
 }
 
-// As the orders come in as JSON they need to be turned into the correct types such as BigNumber
+// As the order come in as JSON they need to be turned into the correct types such as BigNumber
 function unmarshallOrder(signedOrderRaw: any): SignedOrder {
     const signedOrder = {
         ...signedOrderRaw,
@@ -110,4 +123,11 @@ function unmarshallOrder(signedOrderRaw: any): SignedOrder {
         expirationTimeSeconds: new BigNumber(signedOrderRaw.expirationTimeSeconds),
     };
     return signedOrder;
+}
+
+// As the orders come in as JSON they need to be turned into the correct types such as BigNumber
+function unmarshallOrders(signedOrdersRaw: any[]): SignedOrder[] {
+    return signedOrdersRaw.map(signedOrderRaw => {
+        return unmarshallOrder(signedOrderRaw);
+    });
 }
