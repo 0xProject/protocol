@@ -41,6 +41,11 @@ export function createSRARouter(orderBook: OrderBookService): express.Router {
      */
     router.post('/order', asyncHandler(handlers.postOrderAsync.bind(handlers)));
     /**
+     * POST Orders endpoint submits several orders to the Relayer.
+     * This is an additional endpoint not a part of the official SRA standard
+     */
+    router.post('/orders', asyncHandler(handlers.postOrdersAsync.bind(handlers)));
+    /**
      * GET Order endpoint retrieves the order by order hash.
      * http://sra3-spec.s3-website-us-east-1.amazonaws.com/#operation/getOrder
      */
