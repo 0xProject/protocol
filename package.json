@@ -14,6 +14,9 @@
         "prettier": "prettier --write 'src/**/*.ts' --config .prettierrc",
         "start": "node -r dotenv/config lib/src/index.js",
         "start:service:http": "node -r dotenv/config lib/src/runners/http_service_runner.js",
+        "start:service:sra_http": "node -r dotenv/config lib/src/runners/http_sra_service_runner.js",
+        "start:service:staking_http": "node -r dotenv/config lib/src/runners/http_staking_service_runner.js",
+        "start:service:swap_http": "node -r dotenv/config lib/src/runners/http_swap_service_runner.js",
         "start:service:order_watcher": "node -r dotenv/config lib/src/runners/order_watcher_service_runner.js",
         "lint": "tslint --project . --format stylish"
     },
