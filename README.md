@@ -120,7 +120,7 @@ Then run `yarn test`.
 ## Deployment
 
 A Docker image is built and hosted by [Dockerhub](https://hub.docker.com/r/0xorg/0x-api) every time a change to the `master` branch occurs.
-Running this image will run 0x API as a monolith, with all it's dependencies. With some minor configuration and refactoring, you can run the different components of the API separately.
+Running this image will run 0x API as a monolith, with all it's dependencies. You can run any of the [services](#services) separately by [overriding the Docker command](https://docs.docker.com/engine/reference/run/#cmd-default-command-or-options) with the service-specific command when running the container.
 
 ## Database
 
