@@ -135,7 +135,8 @@ const findTokenAddressOrThrowApiError = (address: string, field: string, chainId
 };
 
 const parseStringArrForERC20BridgeSources = (excludedSources: string[]): ERC20BridgeSource[] => {
-    return excludedSources.filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
+    return excludedSources.map(source => source === '0x' ? 'Native' : source)
+    .filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
 };
 
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
