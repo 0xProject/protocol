@@ -59,7 +59,7 @@ jobs:
             echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
   prod:
     runs-on: ubuntu-latest
-    if: github.event.comment.body == 'deploy prod'
+    if: github.event.comment.body == 'deploy production'
     steps:
       - name: Fetch issue info
         uses: octokit/request-action@v2.x
