@@ -59,11 +59,12 @@ export class StakingHandlers {
 
     public async getDelegatorAsync(req: express.Request, res: express.Response): Promise<void> {
         const delegatorAddress = req.params.id;
+        const normalizedAddress = delegatorAddress && delegatorAddress.toLowerCase();
 
         const [forCurrentEpoch, forNextEpoch, allTime] = await Promise.all([
-            this._stakingDataService.getDelegatorCurrentEpochAsync(delegatorAddress),
-            this._stakingDataService.getDelegatorNextEpochAsync(delegatorAddress),
-            this._stakingDataService.getDelegatorAllTimeStatsAsync(delegatorAddress),
+            this._stakingDataService.getDelegatorCurrentEpochAsync(normalizedAddress),
+            this._stakingDataService.getDelegatorNextEpochAsync(normalizedAddress),
+            this._stakingDataService.getDelegatorAllTimeStatsAsync(normalizedAddress),
         ]);
 
         const response: StakingDelegatorResponse = {
