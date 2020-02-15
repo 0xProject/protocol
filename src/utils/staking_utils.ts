@@ -98,16 +98,24 @@ export const stakingUtils = {
             maker_addresses,
             operator_share,
             zrx_staked,
+            share_of_stake,
             total_protocol_fees_generated_in_eth,
+            share_of_fees,
+            number_of_fills,
+            share_of_fills,
             approximate_stake_ratio,
         } = rawEpochPoolStats;
         return {
             poolId: pool_id,
             zrxStaked: Number(zrx_staked || 0),
+            shareOfStake: Number(share_of_stake),
             operatorShare: _.isNil(operator_share) ? undefined : Number(operator_share),
             approximateStakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
             makerAddresses: maker_addresses || [],
             totalProtocolFeesGeneratedInEth: Number(total_protocol_fees_generated_in_eth || 0),
+            shareOfFees: Number(share_of_fees || 0),
+            numberOfFills: Number(number_of_fills || 0),
+            shareOfFills: Number(share_of_fills || 0),
         };
     },
     getEpochPoolsStatsFromRaw: (rawEpochPoolsStats: RawEpochPoolStats[]): EpochPoolStats[] => {
@@ -126,10 +134,11 @@ export const stakingUtils = {
     getPoolProtocolFeesGeneratedFromRaw: (
         rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated,
     ): PoolProtocolFeesGenerated => {
-        const { pool_id, seven_day_protocol_fees_generated_in_eth } = rawPoolProtocolFeesGenerated;
+        const { pool_id, seven_day_protocol_fees_generated_in_eth, seven_day_number_of_fills } = rawPoolProtocolFeesGenerated;
         return {
             poolId: pool_id,
             sevenDayProtocolFeesGeneratedInEth: Number(seven_day_protocol_fees_generated_in_eth || 0),
+            sevenDayNumberOfFills: Number(seven_day_number_of_fills || 0),
         };
     },
     getPoolsProtocolFeesGeneratedFromRaw: (
@@ -174,6 +183,7 @@ export const stakingUtils = {
             membersRewardsPaidInEth: Number(_.get(rawAllTimePoolRewards, 'members_reward', 0)),
             totalRewardsPaidInEth: Number(_.get(rawAllTimePoolRewards, 'total_rewards', 0)),
             protocolFeesGeneratedInEth: Number(_.get(rawPoolsProtocolFeesGenerated, 'total_protocol_fees', 0)),
+            numberOfFills: Number(_.get(rawPoolsProtocolFeesGenerated, 'number_of_fills', 0)),
         };
     },
     getAllTimeStakingStatsFromRaw: (rawAllTimeAllTimeStats: RawAllTimeStakingStats): AllTimeStakingStats => {
