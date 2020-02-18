@@ -1,0 +1,75 @@
+{
+    "id": "/PostQuoteRequestSchema",
+    "properties": {
+        "signature": {
+            "type": "string"
+        },
+        "senderAddress": {
+            "$ref": "/addressSchema"
+        },
+        "makerAddress": {
+            "$ref": "/addressSchema"
+        },
+        "takerAddress": {
+            "$ref": "/addressSchema"
+        },
+        "makerFee": {
+            "type": "string"
+        },
+        "takerFee": {
+            "type": "string"
+        },
+        "makerAssetAmount": {
+            "type": "string"
+        },
+        "takerAssetAmount": {
+            "type": "string"
+        },
+        "makerAssetData": {
+            "type": "string"
+        },
+        "takerAssetData": {
+            "type": "string"
+        },
+        "salt": {
+            "type": "string"
+        },
+        "exchangeAddress": {
+            "$ref": "/addressSchema"
+        },
+        "feeRecipientAddress": {
+            "$ref": "/addressSchema"
+        },
+        "expirationTimeSeconds": {
+            "type": "string"
+        },
+        "makerFeeAssetData": {
+            "type": "string"
+        },
+        "takerFeeAssetData": {
+            "type": "string"
+        },
+        "chainId": {
+            "$ref": "/wholeNumberSchema"
+        }
+    },
+    "required": [
+        "signature",
+        "senderAddress",
+        "makerAddress",
+        "takerAddress",
+        "makerFee",
+        "takerFee",
+        "makerAssetAmount",
+        "makerAssetData",
+        "takerAssetData",
+        "salt",
+        "exchangeAddress",
+        "feeRecipientAddress",
+        "expirationTimeSeconds",
+        "makerFeeAssetData",
+        "takerFeeAssetData",
+        "chainId"
+    ],
+    "type": "object"
+}

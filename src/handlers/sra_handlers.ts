@@ -7,6 +7,7 @@ import * as HttpStatus from 'http-status-codes';
 import { FEE_RECIPIENT_ADDRESS, WHITELISTED_TOKENS } from '../config';
 import { SRA_DOCS_URL } from '../constants';
 import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
+import { schemas as apiSchemas } from '../schemas/schemas';
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
@@ -67,7 +68,7 @@ export class SRAHandlers {
         res.status(HttpStatus.OK).send(orderbookResponse);
     }
     public async postOrderAsync(req: express.Request, res: express.Response): Promise<void> {
-        schemaUtils.validateSchema(req.body, schemas.signedOrderSchema);
+        schemaUtils.validateSchema(req.body, apiSchemas.sraPostOrderRequestSchema);
         const signedOrder = unmarshallOrder(req.body);
         if (WHITELISTED_TOKENS !== '*') {
             const allowedTokens: string[] = WHITELISTED_TOKENS;
