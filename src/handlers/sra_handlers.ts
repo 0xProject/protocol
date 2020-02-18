@@ -69,7 +69,6 @@ export class SRAHandlers {
     }
     public async postOrderAsync(req: express.Request, res: express.Response): Promise<void> {
         schemaUtils.validateSchema(req.body, apiSchemas.sraPostOrderRequestSchema);
-        schemaUtils.validateSchema(req.body, schemas.signedOrderSchema);
         const signedOrder = unmarshallOrder(req.body);
         if (WHITELISTED_TOKENS !== '*') {
             const allowedTokens: string[] = WHITELISTED_TOKENS;
