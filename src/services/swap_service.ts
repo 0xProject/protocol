@@ -201,7 +201,7 @@ export class SwapService {
         // Perform this concurrently
         // if the call fails the gas estimation will also fail, we can throw a more helpful
         // error message than gas estimation failure
-        const estimateGasPromise = this._web3Wrapper.estimateGasAsync(txData);
+        const estimateGasPromise = this._web3Wrapper.estimateGasAsync(txData).catch(_e => 0);
         await this._throwIfCallIsRevertErrorAsync(txData);
         const gas = await estimateGasPromise;
         return new BigNumber(gas);
