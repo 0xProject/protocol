@@ -15,7 +15,7 @@ import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
 import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
-import { DEFAULT_TOKEN_DECIMALS, PERCENTAGE_SIG_DIGITS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
+import { DEFAULT_TOKEN_DECIMALS, GAS_LIMIT_BUFFER_PERCENTAGE, PERCENTAGE_SIG_DIGITS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
 import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { CalculateSwapQuoteParams, GetSwapQuoteResponse, GetSwapQuoteResponseLiquiditySource,  GetTokenPricesResponse, TokenMetadata } from '../types';
@@ -100,13 +100,14 @@ export class SwapService {
             const txDataValue = extensionContractType === ExtensionContractType.Forwarder
                 ? BigNumber.min(value, await this._web3Wrapper.getBalanceInWeiAsync(from))
                 : value;
-            gas = await this._estimateGasOrThrowRevertErrorAsync({
+            const gasEstimate = await this._estimateGasOrThrowRevertErrorAsync({
                 to,
                 data: affiliatedData,
                 from,
                 value: txDataValue,
                 gasPrice,
             });
+            gas = gasEstimate.times(GAS_LIMIT_BUFFER_PERCENTAGE + 1).integerValue();
         }
 
         const buyTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(buyTokenAddress);
