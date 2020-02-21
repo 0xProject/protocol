@@ -146,8 +146,9 @@ const findTokenAddressOrThrowApiError = (address: string, field: string, chainId
 };
 
 const parseStringArrForERC20BridgeSources = (excludedSources: string[]): ERC20BridgeSource[] => {
-    return excludedSources.map(source => source === '0x' ? 'Native' : source)
-    .filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
+    return excludedSources
+        .map(source => (source === '0x' ? 'Native' : source))
+        .filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
 };
 
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
@@ -160,7 +161,20 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
     const slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
-    const excludedSources = req.query.excludedSources === undefined ? undefined : parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
+    const excludedSources =
+        req.query.excludedSources === undefined
+            ? undefined
+            : parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
     const affiliateAddress = req.query.affiliateAddress;
-    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice, excludedSources, affiliateAddress };
+    return {
+        takerAddress,
+        sellToken,
+        buyToken,
+        sellAmount,
+        buyAmount,
+        slippagePercentage,
+        gasPrice,
+        excludedSources,
+        affiliateAddress,
+    };
 };

@@ -42,5 +42,5 @@ jobs:
                   key: v1-dependencies-{{ checksum "yarn.lock" }}
             - run: yarn build
             - run: yarn lint
-            - run: yarn prettier
+            - run: yarn prettier:ci
             - run: yarn test

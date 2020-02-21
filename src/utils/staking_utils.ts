@@ -134,7 +134,11 @@ export const stakingUtils = {
     getPoolProtocolFeesGeneratedFromRaw: (
         rawPoolProtocolFeesGenerated: RawPoolProtocolFeesGenerated,
     ): PoolProtocolFeesGenerated => {
-        const { pool_id, seven_day_protocol_fees_generated_in_eth, seven_day_number_of_fills } = rawPoolProtocolFeesGenerated;
+        const {
+            pool_id,
+            seven_day_protocol_fees_generated_in_eth,
+            seven_day_number_of_fills,
+        } = rawPoolProtocolFeesGenerated;
         return {
             poolId: pool_id,
             sevenDayProtocolFeesGeneratedInEth: Number(seven_day_protocol_fees_generated_in_eth || 0),

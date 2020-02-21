@@ -76,13 +76,13 @@ export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 
 const EXCLUDED_SOURCES = (() => {
     switch (CHAIN_ID) {
-    case ChainId.Mainnet:
-        return [];
-    case ChainId.Kovan:
-        return [ERC20BridgeSource.Kyber];
-    default:
-        return [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap];
-}
+        case ChainId.Mainnet:
+            return [];
+        case ChainId.Kovan:
+            return [ERC20BridgeSource.Kyber];
+        default:
+            return [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap];
+    }
 })();
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {

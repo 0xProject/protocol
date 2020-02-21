@@ -15,10 +15,21 @@ import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
 import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
-import { DEFAULT_TOKEN_DECIMALS, GAS_LIMIT_BUFFER_PERCENTAGE, PERCENTAGE_SIG_DIGITS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
+import {
+    DEFAULT_TOKEN_DECIMALS,
+    GAS_LIMIT_BUFFER_PERCENTAGE,
+    PERCENTAGE_SIG_DIGITS,
+    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+} from '../constants';
 import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { CalculateSwapQuoteParams, GetSwapQuoteResponse, GetSwapQuoteResponseLiquiditySource,  GetTokenPricesResponse, TokenMetadata } from '../types';
+import {
+    CalculateSwapQuoteParams,
+    GetSwapQuoteResponse,
+    GetSwapQuoteResponseLiquiditySource,
+    GetTokenPricesResponse,
+    TokenMetadata,
+} from '../types';
 import { orderUtils } from '../utils/order_utils';
 import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
 
@@ -97,9 +108,10 @@ export class SwapService {
         let gas;
         if (from) {
             // Force a revert error if the takerAddress does not have enough ETH.
-            const txDataValue = extensionContractType === ExtensionContractType.Forwarder
-                ? BigNumber.min(value, await this._web3Wrapper.getBalanceInWeiAsync(from))
-                : value;
+            const txDataValue =
+                extensionContractType === ExtensionContractType.Forwarder
+                    ? BigNumber.min(value, await this._web3Wrapper.getBalanceInWeiAsync(from))
+                    : value;
             const gasEstimate = await this._estimateGasOrThrowRevertErrorAsync({
                 to,
                 data: affiliatedData,
@@ -169,34 +181,42 @@ export class SwapService {
             ),
         );
 
-        const prices = allResults.map((quote, i) => {
-            if (!quote) {
-                return undefined;
-            }
-            const buyTokenDecimals = queryAssetData[i].decimals;
-            const sellTokenDecimals = sellToken.decimals;
-            const { makerAssetAmount, totalTakerAssetAmount } = quote.bestCaseQuoteInfo;
-            const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
-            const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
-            const price = unitTakerAssetAmount
-                .dividedBy(unitMakerAssetAmount)
-                .decimalPlaces(buyTokenDecimals);
-            return {
-                symbol: queryAssetData[i].symbol,
-                price,
-            };
-        }).filter(p => p) as GetTokenPricesResponse;
+        const prices = allResults
+            .map((quote, i) => {
+                if (!quote) {
+                    return undefined;
+                }
+                const buyTokenDecimals = queryAssetData[i].decimals;
+                const sellTokenDecimals = sellToken.decimals;
+                const { makerAssetAmount, totalTakerAssetAmount } = quote.bestCaseQuoteInfo;
+                const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
+                const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
+                const price = unitTakerAssetAmount.dividedBy(unitMakerAssetAmount).decimalPlaces(buyTokenDecimals);
+                return {
+                    symbol: queryAssetData[i].symbol,
+                    price,
+                };
+            })
+            .filter(p => p) as GetTokenPricesResponse;
         return prices;
     }
     // tslint:disable-next-line: prefer-function-over-method
-    private _convertSourceBreakdownToArray(sourceBreakdown: SwapQuoteOrdersBreakdown): GetSwapQuoteResponseLiquiditySource[] {
+    private _convertSourceBreakdownToArray(
+        sourceBreakdown: SwapQuoteOrdersBreakdown,
+    ): GetSwapQuoteResponseLiquiditySource[] {
         const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
-        return Object.entries(sourceBreakdown).reduce((acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
-            return [...acc, {
-                name: source === ERC20BridgeSource.Native ? '0x' : source,
-                proportion: new BigNumber(percentage.toPrecision(PERCENTAGE_SIG_DIGITS)),
-            }];
-        }, breakdown);
+        return Object.entries(sourceBreakdown).reduce(
+            (acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
+                return [
+                    ...acc,
+                    {
+                        name: source === ERC20BridgeSource.Native ? '0x' : source,
+                        proportion: new BigNumber(percentage.toPrecision(PERCENTAGE_SIG_DIGITS)),
+                    },
+                ];
+            },
+            breakdown,
+        );
     }
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
         // Perform this concurrently
