@@ -40,6 +40,17 @@ export class SwapHandlers {
         const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
         const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
+        if (sellTokenAddress === buyTokenAddress) {
+            throw new ValidationError(
+                ['buyToken', 'sellToken'].map(field => {
+                    return {
+                        field,
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: 'buyToken and sellToken must be different',
+                    };
+                }),
+            );
+        }
         try {
             const swapQuote = await this._swapService.calculateSwapQuoteAsync({
                 buyTokenAddress,
