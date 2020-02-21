@@ -443,9 +443,10 @@
     uuid "^3.3.2"
     websocket "^1.0.29"
 
-"@0x/mesh-rpc-client@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-8.1.0.tgz#fd7f2a55807207b23bafffe46749388a9539f52c"
+"@0x/mesh-rpc-client@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-9.0.1.tgz#c3bebf7876cf52a254411ee73e78bdbf16f9330c"
+  integrity sha512-+Y8EPFqjZcH/9R9gI9M0rdeWQdrLMJX/INyvWm42QVxFs6F/JURvJLSYwUalcrIirumop362mKPRe/5rx4wQSw==
   dependencies:
     "@0x/assert" "^3.0.2"
     "@0x/types" "^3.1.1"

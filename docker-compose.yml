@@ -17,7 +17,7 @@ services:
         ports:
             - "5432:5432"
     mesh:
-        image: 0xorg/mesh:8.1.1
+        image: 0xorg/mesh:9.0.1
         depends_on:
             - ganache
         restart: on-failure
@@ -27,8 +27,8 @@ services:
             USE_BOOTSTRAP_LIST: 'true'
             VERBOSITY: 3
             PRIVATE_KEY_PATH: ''
+            WS_RPC_ADDR: '0.0.0.0:60557'
             BLOCK_POLLING_INTERVAL: '2s'
-            RPC_ADDR: '0.0.0.0:60557'
             ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
         volumes:
           - ./0x_mesh:/usr/mesh/0x_mesh
