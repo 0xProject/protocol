@@ -14,7 +14,7 @@
         "dev:service:sra_http": "nodemon -r dotenv/config src/runners/http_sra_service_runner.ts | pino-pretty",
         "dev:service:staking_http": "nodemon -r dotenv/config src/runners/http_staking_service_runner.ts | pino-pretty",
         "dev:service:swap_http": "nodemon -r dotenv/config src/runners/http_swap_service_runner.ts | pino-pretty",
-        "dev:service:order_watcher": "nodemon -r dotenv/config src/runners/order_watcher_service_runner.ts",
+        "dev:service:order_watcher": "nodemon -r dotenv/config src/runners/order_watcher_service_runner.ts | pino-pretty",
         "watch": "tsc -w",
         "prettier": "prettier --write '**/*.{ts,tsx,json,md}' --config .prettierrc",
         "prettier:ci": "prettier --list-different '**/*.{ts,tsx,json,md}' --config .prettierrc",

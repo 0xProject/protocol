@@ -98,6 +98,22 @@ To get a local development version of `0x-api` running:
     yarn dev
     ```
 
+#### Developing on Ganache
+
+Ganache is supported, but will not contain the same staking data and 0x Mesh liquidity that kovan or mainnet have for example. To use ganache, use the `.env` file below:
+
+```
+CHAIN_ID=1337
+ETHEREUM_RPC_URL=http://ganache:8545
+```
+
+Then run
+
+```
+$ docker-compose up
+$ yarn dev 
+```
+
 ## Testing
 
 Set the environment variables `CHAIN_ID=1337` and `ETHEREUM_RPC_URL=http://ganache:8545`. Run `docker-compose up` and wait for containers to start up.
