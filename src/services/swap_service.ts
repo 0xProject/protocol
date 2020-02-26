@@ -18,6 +18,7 @@ import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } fro
 import {
     DEFAULT_TOKEN_DECIMALS,
     GAS_LIMIT_BUFFER_PERCENTAGE,
+    ONE_SECOND_MS,
     PERCENTAGE_SIG_DIGITS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
 } from '../constants';
@@ -261,12 +262,13 @@ export class SwapService {
             constant: true,
             outputs: [],
             name: 'ZeroExAPIAffiliate',
-            inputs: [{ name: '', type: 'address' }],
+            inputs: [{ name: 'affiliate', type: 'address' }, { name: 'timestamp', type: 'uint256' }],
             payable: false,
             stateMutability: 'view',
             type: 'function',
         });
-        const encodedAffiliateData = affiliateCallDataEncoder.encode([affiliateAddressOrDefault]);
+        const timestamp = new BigNumber(Date.now() / ONE_SECOND_MS).integerValue();
+        const encodedAffiliateData = affiliateCallDataEncoder.encode([affiliateAddressOrDefault, timestamp]);
         const affiliatedData = `${data}${encodedAffiliateData.slice(2)}`;
         return affiliatedData;
     }
