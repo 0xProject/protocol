@@ -111,7 +111,7 @@ Then run
 
 ```
 $ docker-compose up
-$ yarn dev 
+$ yarn dev
 ```
 
 ## Testing
