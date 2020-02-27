@@ -107,6 +107,48 @@ export const sevenDayProtocolFeesGeneratedQuery = `
     LEFT JOIN pool_7d_fills f ON f.pool_id = p.pool_id;
 `;
 
+export const poolsAvgRewardsQuery = `
+    WITH
+        avg_rewards AS (
+            SELECT
+                pool_id
+                , AVG(members_reward) / 1e18 AS avg_member_reward
+                , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward
+            FROM events.rewards_paid_events rpe
+            JOIN staking.current_epoch ce ON rpe.epoch_id > (ce.epoch_id - 4)
+            GROUP BY 1
+        )
+        SELECT
+            p.pool_id
+            , COALESCE(r.avg_member_reward, 0) AS avg_member_reward
+            , COALESCE(r.avg_total_reward, 0) AS avg_total_reward
+        FROM events.staking_pool_created_events p
+        LEFT JOIN avg_rewards r ON r.pool_id = p.pool_id;
+`;
+
+export const poolAvgRewardsQuery = `
+    WITH
+        avg_rewards AS (
+            SELECT
+                pool_id
+                , AVG(members_reward) / 1e18 AS avg_member_reward
+                , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward
+            FROM events.rewards_paid_events rpe
+            JOIN staking.current_epoch ce ON rpe.epoch_id > (ce.epoch_id - 4)
+            WHERE
+                rpe.pool_id = $1
+            GROUP BY 1
+        )
+        SELECT
+            p.pool_id
+            , COALESCE(r.avg_member_reward, 0) AS avg_member_reward
+            , COALESCE(r.avg_total_reward, 0) AS avg_total_reward
+        FROM events.staking_pool_created_events p
+        LEFT JOIN avg_rewards r ON r.pool_id = p.pool_id
+        WHERE
+            p.pool_id = $1;
+`;
+
 export const poolTotalProtocolFeesGeneratedQuery = `
     WITH
             fills_with_epochs AS (

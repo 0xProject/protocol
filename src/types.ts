@@ -134,6 +134,8 @@ export interface PoolWithStats extends Pool {
     currentEpochStats: EpochPoolStats;
     nextEpochStats: EpochPoolStats;
     sevenDayProtocolFeesGeneratedInEth: number;
+    avgMemberReward: number;
+    avgTotalReward: number;
 }
 
 export interface PoolWithHistoricalStats extends PoolWithStats {
@@ -184,6 +186,18 @@ export interface RawPoolProtocolFeesGenerated {
     pool_id: string;
     seven_day_protocol_fees_generated_in_eth: string;
     seven_day_number_of_fills: string;
+}
+
+export interface RawPoolAvgRewards {
+    pool_id: string;
+    avg_member_reward: string;
+    avg_total_reward: string;
+}
+
+export interface PoolAvgRewards {
+    poolId: string;
+    avgMemberReward: number;
+    avgTotalReward: number;
 }
 
 export interface RawPoolTotalProtocolFeesGenerated {
