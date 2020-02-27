@@ -141,8 +141,8 @@ export const poolAvgRewardsQuery = `
         )
         SELECT
             p.pool_id
-            , COALESCE(r.avg_member_reward, 0) AS avg_member_reward_in_eth
-            , COALESCE(r.avg_total_reward, 0) AS avg_total_reward_in_eth
+            , COALESCE(r.avg_member_reward_in_eth, 0) AS avg_member_reward_in_eth
+            , COALESCE(r.avg_total_reward_in_eth, 0) AS avg_total_reward_in_eth
         FROM events.staking_pool_created_events p
         LEFT JOIN avg_rewards r ON r.pool_id = p.pool_id
         WHERE
