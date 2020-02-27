@@ -112,16 +112,16 @@ export const poolsAvgRewardsQuery = `
         avg_rewards AS (
             SELECT
                 pool_id
-                , AVG(members_reward) / 1e18 AS avg_member_reward
-                , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward
+                , AVG(members_reward) / 1e18 AS avg_member_reward_in_eth
+                , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward_in_eth
             FROM events.rewards_paid_events rpe
             JOIN staking.current_epoch ce ON rpe.epoch_id > (ce.epoch_id - 4)
             GROUP BY 1
         )
         SELECT
             p.pool_id
-            , COALESCE(r.avg_member_reward, 0) AS avg_member_reward
-            , COALESCE(r.avg_total_reward, 0) AS avg_total_reward
+            , COALESCE(r.avg_member_reward_in_eth, 0) AS avg_member_reward_in_eth
+            , COALESCE(r.avg_total_reward_in_eth, 0) AS avg_total_reward_in_eth
         FROM events.staking_pool_created_events p
         LEFT JOIN avg_rewards r ON r.pool_id = p.pool_id;
 `;
@@ -131,8 +131,8 @@ export const poolAvgRewardsQuery = `
         avg_rewards AS (
             SELECT
                 pool_id
-                , AVG(members_reward) / 1e18 AS avg_member_reward
-                , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward
+                , AVG(members_reward) / 1e18 AS avg_member_reward_in_eth
+                , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward_in_eth
             FROM events.rewards_paid_events rpe
             JOIN staking.current_epoch ce ON rpe.epoch_id > (ce.epoch_id - 4)
             WHERE
@@ -141,8 +141,8 @@ export const poolAvgRewardsQuery = `
         )
         SELECT
             p.pool_id
-            , COALESCE(r.avg_member_reward, 0) AS avg_member_reward
-            , COALESCE(r.avg_total_reward, 0) AS avg_total_reward
+            , COALESCE(r.avg_member_reward, 0) AS avg_member_reward_in_eth
+            , COALESCE(r.avg_total_reward, 0) AS avg_total_reward_in_eth
         FROM events.staking_pool_created_events p
         LEFT JOIN avg_rewards r ON r.pool_id = p.pool_id
         WHERE

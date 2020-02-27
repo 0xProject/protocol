@@ -132,8 +132,8 @@ export class StakingDataService {
         return {
             ...pool,
             sevenDayProtocolFeesGeneratedInEth: pool7dProtocolFeesGenerated.sevenDayProtocolFeesGeneratedInEth,
-            avgMemberReward: poolAvgReward.avgMemberReward,
-            avgTotalReward: poolAvgReward.avgTotalReward,
+            avgMemberRewardInEth: poolAvgReward.avgMemberRewardInEth,
+            avgTotalRewardInEth: poolAvgReward.avgTotalRewardInEth,
             currentEpochStats: currentEpochPoolStats,
             nextEpochStats: nextEpochPoolStats,
         };
@@ -169,10 +169,10 @@ export class StakingDataService {
             ...pool,
             sevenDayProtocolFeesGeneratedInEth:
                 poolProtocolFeesGeneratedMap[pool.poolId].sevenDayProtocolFeesGeneratedInEth,
-            avgMemberReward:
-                poolAvgRewardsMap[pool.poolId].avgMemberReward,
-            avgTotalReward:
-                poolAvgRewardsMap[pool.poolId].avgTotalReward,
+            avgMemberRewardInEth:
+                poolAvgRewardsMap[pool.poolId].avgMemberRewardInEth,
+            avgTotalRewardInEth:
+                poolAvgRewardsMap[pool.poolId].avgTotalRewardInEth,
             currentEpochStats: currentEpochPoolStatsMap[pool.poolId],
             nextEpochStats: nextEpochPoolStatsMap[pool.poolId],
         }));

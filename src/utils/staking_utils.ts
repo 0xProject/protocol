@@ -155,11 +155,11 @@ export const stakingUtils = {
     getPoolAvgRewardsFromRaw: (
         rawPoolAvgRewards: RawPoolAvgRewards,
     ): PoolAvgRewards => {
-        const { pool_id, avg_member_reward, avg_total_reward } = rawPoolAvgRewards;
+        const { pool_id, avg_member_reward_in_eth, avg_total_reward_in_eth } = rawPoolAvgRewards;
         return {
             poolId: pool_id,
-            avgMemberReward: Number(avg_member_reward || 0),
-            avgTotalReward: Number(avg_total_reward || 0),
+            avgMemberRewardInEth: Number(avg_member_reward_in_eth || 0),
+            avgTotalRewardInEth: Number(avg_total_reward_in_eth || 0),
         };
     },
     getPoolsAvgRewardsFromRaw: (
