@@ -152,9 +152,7 @@ export const stakingUtils = {
     ): PoolProtocolFeesGenerated[] => {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
     },
-    getPoolAvgRewardsFromRaw: (
-        rawPoolAvgRewards: RawPoolAvgRewards,
-    ): PoolAvgRewards => {
+    getPoolAvgRewardsFromRaw: (rawPoolAvgRewards: RawPoolAvgRewards): PoolAvgRewards => {
         const { pool_id, avg_member_reward_in_eth, avg_total_reward_in_eth } = rawPoolAvgRewards;
         return {
             poolId: pool_id,
@@ -162,9 +160,7 @@ export const stakingUtils = {
             avgTotalRewardInEth: Number(avg_total_reward_in_eth || 0),
         };
     },
-    getPoolsAvgRewardsFromRaw: (
-        rawPoolsAvgRewards: RawPoolAvgRewards[],
-    ): PoolAvgRewards[] => {
+    getPoolsAvgRewardsFromRaw: (rawPoolsAvgRewards: RawPoolAvgRewards[]): PoolAvgRewards[] => {
         return rawPoolsAvgRewards.map(stakingUtils.getPoolAvgRewardsFromRaw);
     },
     getZrxStakedFromRawDelegatorDeposited: (rawDelegatorDeposited: RawDelegatorDeposited[]): number => {

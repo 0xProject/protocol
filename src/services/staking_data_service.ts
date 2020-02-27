@@ -125,9 +125,7 @@ export class StakingDataService {
         const pool7dProtocolFeesGenerated = stakingUtils.getPoolProtocolFeesGeneratedFromRaw(
             rawPoolSevenDayProtocolFeesGenerated[0],
         );
-        const poolAvgReward = stakingUtils.getPoolAvgRewardsFromRaw(
-            rawAvgReward[0],
-        );
+        const poolAvgReward = stakingUtils.getPoolAvgRewardsFromRaw(rawAvgReward[0]);
 
         return {
             ...pool,
@@ -158,9 +156,7 @@ export class StakingDataService {
         const poolProtocolFeesGenerated = stakingUtils.getPoolsProtocolFeesGeneratedFromRaw(
             rawPoolSevenDayProtocolFeesGenerated,
         );
-        const poolAvgRewards = stakingUtils.getPoolsAvgRewardsFromRaw(
-            rawPoolsAvgRewards,
-        );
+        const poolAvgRewards = stakingUtils.getPoolsAvgRewardsFromRaw(rawPoolsAvgRewards);
         const currentEpochPoolStatsMap = utils.arrayToMapWithId(currentEpochPoolStats, 'poolId');
         const nextEpochPoolStatsMap = utils.arrayToMapWithId(nextEpochPoolStats, 'poolId');
         const poolProtocolFeesGeneratedMap = utils.arrayToMapWithId(poolProtocolFeesGenerated, 'poolId');
@@ -169,10 +165,8 @@ export class StakingDataService {
             ...pool,
             sevenDayProtocolFeesGeneratedInEth:
                 poolProtocolFeesGeneratedMap[pool.poolId].sevenDayProtocolFeesGeneratedInEth,
-            avgMemberRewardInEth:
-                poolAvgRewardsMap[pool.poolId].avgMemberRewardInEth,
-            avgTotalRewardInEth:
-                poolAvgRewardsMap[pool.poolId].avgTotalRewardInEth,
+            avgMemberRewardInEth: poolAvgRewardsMap[pool.poolId].avgMemberRewardInEth,
+            avgTotalRewardInEth: poolAvgRewardsMap[pool.poolId].avgTotalRewardInEth,
             currentEpochStats: currentEpochPoolStatsMap[pool.poolId],
             nextEpochStats: nextEpochPoolStatsMap[pool.poolId],
         }));
