@@ -7,6 +7,7 @@ import {
     Epoch,
     EpochPoolStats,
     Pool,
+    PoolAvgRewards,
     PoolEpochDelegatorStats,
     PoolEpochRewards,
     PoolProtocolFeesGenerated,
@@ -23,7 +24,6 @@ import {
     RawPoolProtocolFeesGenerated,
     RawPoolTotalProtocolFeesGenerated,
     TransactionDate,
-    PoolAvgRewards,
 } from '../types';
 
 export const stakingUtils = {
