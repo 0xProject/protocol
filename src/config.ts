@@ -74,17 +74,34 @@ export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
 export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 
+const EXCLUDED_SOURCES = (() => {
+    switch (CHAIN_ID) {
+        case ChainId.Mainnet:
+            return [];
+        case ChainId.Kovan:
+            return [ERC20BridgeSource.Kyber];
+        default:
+            return [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap];
+    }
+})();
+
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     noConflicts: true,
-    excludedSources:
-        CHAIN_ID === ChainId.Mainnet
-            ? []
-            : [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap],
+    excludedSources: EXCLUDED_SOURCES,
     runLimit: 2 ** 15,
-    bridgeSlippage: 0.0005,
+    bridgeSlippage: 0.01,
     dustFractionThreshold: 0.0025,
     numSamples: 13,
     sampleDistributionBase: 1.05,
+    fees: {
+        [ERC20BridgeSource.Uniswap]: new BigNumber(2.5e5),
+        [ERC20BridgeSource.Native]: new BigNumber(3e5),
+        [ERC20BridgeSource.CurveUsdcDai]: new BigNumber(4e5),
+        [ERC20BridgeSource.Eth2Dai]: new BigNumber(5e5),
+        [ERC20BridgeSource.CurveUsdcDaiUsdt]: new BigNumber(5e5),
+        [ERC20BridgeSource.CurveUsdcDaiUsdtTusd]: new BigNumber(8e5),
+        [ERC20BridgeSource.Kyber]: new BigNumber(8e5),
+    },
 };
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {

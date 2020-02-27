@@ -1,20 +1,36 @@
 import {
+    ERC20BridgeSource,
     ExtensionContractType,
     MarketBuySwapQuote,
     MarketSellSwapQuote,
     Orderbook,
     SignedOrder,
     SwapQuoteConsumer,
+    SwapQuoteOrdersBreakdown,
     SwapQuoter,
 } from '@0x/asset-swapper';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
+import * as _ from 'lodash';
 
 import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
-import { DEFAULT_TOKEN_DECIMALS, QUOTE_ORDER_EXPIRATION_BUFFER_MS } from '../constants';
+import {
+    DEFAULT_TOKEN_DECIMALS,
+    GAS_LIMIT_BUFFER_PERCENTAGE,
+    ONE_SECOND_MS,
+    PERCENTAGE_SIG_DIGITS,
+    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+} from '../constants';
 import { logger } from '../logger';
-import { CalculateSwapQuoteParams, GetSwapQuoteResponse } from '../types';
+import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
+import {
+    CalculateSwapQuoteParams,
+    GetSwapQuoteResponse,
+    GetSwapQuoteResponseLiquiditySource,
+    GetTokenPricesResponse,
+    TokenMetadata,
+} from '../types';
 import { orderUtils } from '../utils/order_utils';
 import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
 
@@ -44,11 +60,14 @@ export class SwapService {
             gasPrice: providedGasPrice,
             isETHSell,
             from,
+            excludedSources,
+            affiliateAddress,
         } = params;
         const assetSwapperOpts = {
+            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
             slippagePercentage,
             gasPrice: providedGasPrice,
-            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+            excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
         };
         if (sellAmount !== undefined) {
             swapQuote = await this._swapQuoter.getMarketSellSwapQuoteAsync(
@@ -73,7 +92,7 @@ export class SwapService {
             totalTakerAssetAmount,
             protocolFeeInWeiAmount: protocolFee,
         } = attributedSwapQuote.bestCaseQuoteInfo;
-        const { orders, gasPrice } = attributedSwapQuote;
+        const { orders, gasPrice, sourceBreakdown } = attributedSwapQuote;
 
         // If ETH was specified as the token to sell then we use the Forwarder
         const extensionContractType = isETHSell ? ExtensionContractType.Forwarder : ExtensionContractType.None;
@@ -85,19 +104,23 @@ export class SwapService {
             useExtensionContract: extensionContractType,
         });
 
+        const affiliatedData = this._attributeCallData(data, affiliateAddress);
+
         let gas;
         if (from) {
             // Force a revert error if the takerAddress does not have enough ETH.
-            const txDataValue = extensionContractType === ExtensionContractType.Forwarder
-                ? BigNumber.min(value, await this._web3Wrapper.getBalanceInWeiAsync(from))
-                : value;
-            gas = await this._estimateGasOrThrowRevertErrorAsync({
+            const txDataValue =
+                extensionContractType === ExtensionContractType.Forwarder
+                    ? BigNumber.min(value, await this._web3Wrapper.getBalanceInWeiAsync(from))
+                    : value;
+            const gasEstimate = await this._estimateGasOrThrowRevertErrorAsync({
                 to,
-                data,
+                data: affiliatedData,
                 from,
                 value: txDataValue,
                 gasPrice,
             });
+            gas = gasEstimate.times(GAS_LIMIT_BUFFER_PERCENTAGE + 1).integerValue();
         }
 
         const buyTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(buyTokenAddress);
@@ -112,24 +135,95 @@ export class SwapService {
         const apiSwapQuote: GetSwapQuoteResponse = {
             price,
             to,
-            data,
+            data: affiliatedData,
             value,
             gas,
             from,
             gasPrice,
             protocolFee,
+            buyTokenAddress,
+            sellTokenAddress,
             buyAmount: makerAssetAmount,
             sellAmount: totalTakerAssetAmount,
+            sources: this._convertSourceBreakdownToArray(sourceBreakdown),
             orders: this._cleanSignedOrderFields(orders),
         };
         return apiSwapQuote;
     }
 
+    public async getTokenPricesAsync(sellToken: TokenMetadata, unitAmount: BigNumber): Promise<GetTokenPricesResponse> {
+        // Gets the price for buying 1 unit (not base unit as this is different between tokens with differing decimals)
+        // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
+        // Equivalent to performing multiple swap quotes selling sellToken and buying 1 whole buy token
+        const takerAssetData = assetDataUtils.encodeERC20AssetData(sellToken.tokenAddress);
+        const queryAssetData = TokenMetadatasForChains.filter(m => m.symbol !== sellToken.symbol);
+        const chunkSize = 20;
+        const assetDataChunks = _.chunk(queryAssetData, chunkSize);
+        const allResults = _.flatten(
+            await Promise.all(
+                assetDataChunks.map(async a => {
+                    const encodedAssetData = a.map(m =>
+                        assetDataUtils.encodeERC20AssetData(m.tokenAddresses[CHAIN_ID]),
+                    );
+                    const amounts = a.map(m => Web3Wrapper.toBaseUnitAmount(unitAmount, m.decimals));
+                    const quotes = await this._swapQuoter.getBatchMarketBuySwapQuoteForAssetDataAsync(
+                        encodedAssetData,
+                        takerAssetData,
+                        amounts,
+                        {
+                            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+                            slippagePercentage: 0,
+                            bridgeSlippage: 0,
+                            numSamples: 3,
+                        },
+                    );
+                    return quotes;
+                }),
+            ),
+        );
+
+        const prices = allResults
+            .map((quote, i) => {
+                if (!quote) {
+                    return undefined;
+                }
+                const buyTokenDecimals = queryAssetData[i].decimals;
+                const sellTokenDecimals = sellToken.decimals;
+                const { makerAssetAmount, totalTakerAssetAmount } = quote.bestCaseQuoteInfo;
+                const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
+                const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
+                const price = unitTakerAssetAmount.dividedBy(unitMakerAssetAmount).decimalPlaces(buyTokenDecimals);
+                return {
+                    symbol: queryAssetData[i].symbol,
+                    price,
+                };
+            })
+            .filter(p => p) as GetTokenPricesResponse;
+        return prices;
+    }
+    // tslint:disable-next-line: prefer-function-over-method
+    private _convertSourceBreakdownToArray(
+        sourceBreakdown: SwapQuoteOrdersBreakdown,
+    ): GetSwapQuoteResponseLiquiditySource[] {
+        const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
+        return Object.entries(sourceBreakdown).reduce(
+            (acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
+                return [
+                    ...acc,
+                    {
+                        name: source === ERC20BridgeSource.Native ? '0x' : source,
+                        proportion: new BigNumber(percentage.toPrecision(PERCENTAGE_SIG_DIGITS)),
+                    },
+                ];
+            },
+            breakdown,
+        );
+    }
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
         // Perform this concurrently
         // if the call fails the gas estimation will also fail, we can throw a more helpful
         // error message than gas estimation failure
-        const estimateGasPromise = this._web3Wrapper.estimateGasAsync(txData);
+        const estimateGasPromise = this._web3Wrapper.estimateGasAsync(txData).catch(_e => 0);
         await this._throwIfCallIsRevertErrorAsync(txData);
         const gas = await estimateGasPromise;
         return new BigNumber(gas);
@@ -159,6 +253,24 @@ export class SwapService {
             orders: attributedOrders,
         };
         return attributedSwapQuote;
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    private _attributeCallData(data: string, affiliateAddress?: string): string {
+        const affiliateAddressOrDefault = affiliateAddress ? affiliateAddress : FEE_RECIPIENT_ADDRESS;
+        const affiliateCallDataEncoder = new AbiEncoder.Method({
+            constant: true,
+            outputs: [],
+            name: 'ZeroExAPIAffiliate',
+            inputs: [{ name: 'affiliate', type: 'address' }, { name: 'timestamp', type: 'uint256' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        });
+        const timestamp = new BigNumber(Date.now() / ONE_SECOND_MS).integerValue();
+        const encodedAffiliateData = affiliateCallDataEncoder.encode([affiliateAddressOrDefault, timestamp]);
+        const affiliatedData = `${data}${encodedAffiliateData.slice(2)}`;
+        return affiliatedData;
     }
 
     // tslint:disable-next-line:prefer-function-over-method

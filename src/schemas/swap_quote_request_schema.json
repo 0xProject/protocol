@@ -10,11 +10,17 @@
         "takerAddress": {
             "$ref": "/addressSchema"
         },
+        "affiliateAddress": {
+            "$ref": "/addressSchema"
+        },
         "gasPrice": {
             "$ref": "/wholeNumberSchema"
         },
         "slippage": {
             "$ref": "/numberSchema"
+        },
+        "excludedSources": {
+            "type": "string"
         }
     },
     "required": ["sellToken", "buyToken"],

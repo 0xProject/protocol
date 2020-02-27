@@ -6,7 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import 'mocha';
 import * as request from 'supertest';
 
-import { getAppAsync, getDefaultAppDependenciesAsync  } from '../src/app';
+import { getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE, SRA_PATH } from '../src/constants';
 
@@ -37,8 +37,7 @@ describe('app test', () => {
 
         const dependencies = await getDefaultAppDependenciesAsync(provider, config);
         // start the 0x-api app
-        app = await getAppAsync({...dependencies}, config);
-
+        app = await getAppAsync({ ...dependencies }, config);
     });
     it('should not be undefined', () => {
         expect(app).to.not.be.undefined();

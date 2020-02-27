@@ -1,4 +1,4 @@
-import { SwapQuoterError } from '@0x/asset-swapper';
+import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -13,7 +13,7 @@ import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { ChainId, GetSwapQuoteRequestParams } from '../types';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddress, isETHSymbol } from '../utils/token_metadata_utils';
+import { findTokenAddress, getTokenMetadataIfExists, isETHSymbol } from '../utils/token_metadata_utils';
 
 export class SwapHandlers {
     private readonly _swapService: SwapService;
@@ -34,10 +34,23 @@ export class SwapHandlers {
             takerAddress,
             slippagePercentage,
             gasPrice,
+            excludedSources,
+            affiliateAddress,
         } = parseGetSwapQuoteRequestParams(req);
         const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
         const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
+        if (sellTokenAddress === buyTokenAddress) {
+            throw new ValidationError(
+                ['buyToken', 'sellToken'].map(field => {
+                    return {
+                        field,
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: 'buyToken and sellToken must be different',
+                    };
+                }),
+            );
+        }
         try {
             const swapQuote = await this._swapService.calculateSwapQuoteAsync({
                 buyTokenAddress,
@@ -48,6 +61,8 @@ export class SwapHandlers {
                 isETHSell,
                 slippagePercentage,
                 gasPrice,
+                excludedSources,
+                affiliateAddress,
             });
             res.status(HttpStatus.OK).send(swapQuote);
         } catch (e) {
@@ -97,6 +112,23 @@ export class SwapHandlers {
         const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
         res.status(HttpStatus.OK).send({ records: filteredTokens });
     }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
+        const symbolOrAddress = req.query.sellToken || 'WETH';
+        const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
+        if (!baseAsset) {
+            throw new ValidationError([
+                {
+                    field: 'sellToken',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: `Could not find token ${symbolOrAddress}`,
+                },
+            ]);
+        }
+        const unitAmount = new BigNumber(1);
+        const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
+        res.status(HttpStatus.OK).send({ records });
+    }
 }
 
 const findTokenAddressOrThrowApiError = (address: string, field: string, chainId: ChainId): string => {
@@ -113,6 +145,12 @@ const findTokenAddressOrThrowApiError = (address: string, field: string, chainId
     }
 };
 
+const parseStringArrForERC20BridgeSources = (excludedSources: string[]): ERC20BridgeSource[] => {
+    return excludedSources
+        .map(source => (source === '0x' ? 'Native' : source))
+        .filter((source: string) => source in ERC20BridgeSource) as ERC20BridgeSource[];
+};
+
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
     // HACK typescript typing does not allow this valid json-schema
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
@@ -123,5 +161,20 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
     const slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
-    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, gasPrice };
+    const excludedSources =
+        req.query.excludedSources === undefined
+            ? undefined
+            : parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
+    const affiliateAddress = req.query.affiliateAddress;
+    return {
+        takerAddress,
+        sellToken,
+        buyToken,
+        sellAmount,
+        buyAmount,
+        slippagePercentage,
+        gasPrice,
+        excludedSources,
+        affiliateAddress,
+    };
 };

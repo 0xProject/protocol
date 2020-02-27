@@ -16,12 +16,14 @@ export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
 export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 
 // Swap Quoter
-export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 30; // Ignore orders that expire in 30 seconds
+export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 90; // Ignore orders that expire in 90 seconds
+export const GAS_LIMIT_BUFFER_PERCENTAGE = 0.2; // Add 20% to the estimated gas limit
 export const DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE = 0.2; // 20% Slippage
 export const ETH_SYMBOL = 'ETH';
 export const ADDRESS_HEX_LENGTH = 42;
 export const DEFAULT_TOKEN_DECIMALS = 18;
 export const FIRST_PAGE = 1;
+export const PERCENTAGE_SIG_DIGITS = 4;
 
 // API namespaces
 export const SRA_PATH = '/sra/v3';

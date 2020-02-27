@@ -33,10 +33,30 @@ export class OrderStoreDbAdapter extends OrderStore {
         }
         // Currently not handling deletes as this is handled by Mesh
     }
-    public async hasAsync(assetPairKey: string): Promise<boolean> {
-        const [assetA, assetB] = OrderStore.assetPairKeyToAssets(assetPairKey);
-        const pairs = await this._orderbookService.getAssetPairsAsync(FIRST_PAGE, MAX_QUERY_SIZE, assetA, assetB);
-        return pairs.total !== 0;
+    public async getBatchOrderSetsForAssetsAsync(
+        makerAssetDatas: string[],
+        takerAssetDatas: string[],
+    ): Promise<OrderSet[]> {
+        const { records: apiOrders } = await this._orderbookService.getBatchOrdersAsync(
+            FIRST_PAGE,
+            MAX_QUERY_SIZE,
+            makerAssetDatas,
+            takerAssetDatas,
+        );
+        const orderSets: { [makerAssetData: string]: OrderSet } = {};
+        makerAssetDatas.forEach(m =>
+            takerAssetDatas.forEach(t => (orderSets[OrderStore.getKeyForAssetPair(m, t)] = new OrderSet())),
+        );
+        await Promise.all(
+            apiOrders.map(async o =>
+                orderSets[OrderStore.getKeyForAssetPair(o.order.makerAssetData, o.order.takerAssetData)].addAsync(o),
+            ),
+        );
+        return Object.values(orderSets);
+    }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async hasAsync(_assetPairKey: string): Promise<boolean> {
+        return true;
     }
     public async valuesAsync(assetPairKey: string): Promise<APIOrder[]> {
         return Array.from((await this.getOrderSetForAssetPairAsync(assetPairKey)).values());

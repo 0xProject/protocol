@@ -3,7 +3,7 @@ import { WSClient } from '@0x/mesh-rpc-client';
 import { assetDataUtils } from '@0x/order-utils';
 import { AssetPairsItem, OrdersRequestOpts, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
-import { Connection } from 'typeorm';
+import { Connection, In } from 'typeorm';
 
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
@@ -67,16 +67,18 @@ export class OrderBookService {
         baseAssetData: string,
         quoteAssetData: string,
     ): Promise<OrderbookResponse> {
-        const bidSignedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
-            where: { takerAssetData: baseAssetData, makerAssetData: quoteAssetData },
-        })) as Array<Required<SignedOrderEntity>>;
-        const askSignedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
-            where: { takerAssetData: quoteAssetData, makerAssetData: baseAssetData },
-        })) as Array<Required<SignedOrderEntity>>;
-        const bidApiOrders: APIOrder[] = bidSignedOrderEntities
+        const [bidSignedOrderEntities, askSignedOrderEntities] = await Promise.all([
+            this._connection.manager.find(SignedOrderEntity, {
+                where: { takerAssetData: baseAssetData, makerAssetData: quoteAssetData },
+            }),
+            this._connection.manager.find(SignedOrderEntity, {
+                where: { takerAssetData: quoteAssetData, makerAssetData: baseAssetData },
+            }),
+        ]);
+        const bidApiOrders: APIOrder[] = (bidSignedOrderEntities as Array<Required<SignedOrderEntity>>)
             .map(orderUtils.deserializeOrderToAPIOrder)
             .sort((orderA, orderB) => orderUtils.compareBidOrder(orderA.order, orderB.order));
-        const askApiOrders: APIOrder[] = askSignedOrderEntities
+        const askApiOrders: APIOrder[] = (askSignedOrderEntities as Array<Required<SignedOrderEntity>>)
             .map(orderUtils.deserializeOrderToAPIOrder)
             .sort((orderA, orderB) => orderUtils.compareAskOrder(orderA.order, orderB.order));
         const paginatedBidApiOrders = paginationUtils.paginate(bidApiOrders, page, perPage);
@@ -151,6 +153,23 @@ export class OrderBookService {
                     assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.takerAssetData).assetProxyId ===
                         ordersFilterParams.takerAssetProxyId,
             );
+        const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
+        return paginatedApiOrders;
+    }
+    public async getBatchOrdersAsync(
+        page: number,
+        perPage: number,
+        makerAssetDatas: string[],
+        takerAssetDatas: string[],
+    ): Promise<PaginatedCollection<APIOrder>> {
+        const filterObject = {
+            makerAssetData: In(makerAssetDatas),
+            takerAssetData: In(takerAssetDatas),
+        };
+        const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
+            where: filterObject,
+        })) as Array<Required<SignedOrderEntity>>;
+        const apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
         const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
         return paginatedApiOrders;
     }

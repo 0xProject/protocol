@@ -17,18 +17,18 @@ services:
         ports:
             - "5432:5432"
     mesh:
-        image: 0xorg/mesh:8.1.1
+        image: 0xorg/mesh:9.0.1
         depends_on:
             - ganache
         restart: on-failure
         environment:
-            ETHEREUM_RPC_URL: http://ganache:8545
+            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
             ETHEREUM_CHAIN_ID: '${CHAIN_ID}'
             USE_BOOTSTRAP_LIST: 'true'
             VERBOSITY: 3
             PRIVATE_KEY_PATH: ''
+            WS_RPC_ADDR: '0.0.0.0:60557'
             BLOCK_POLLING_INTERVAL: '2s'
-            RPC_ADDR: '0.0.0.0:60557'
             ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
         volumes:
           - ./0x_mesh:/usr/mesh/0x_mesh
@@ -44,6 +44,6 @@ services:
         image: 0xorg/event-pipeline@sha256:058e730018a8bdc31b1fdd68935eeb27bc728a0db579b41436c138cf73e830e1
         restart: always
         environment:
-            ETHEREUM_RPC_URL: http://ganache:8545
+            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
             CHAIN_ID: '${CHAIN_ID}'
             POSTGRES_URI: 'postgresql://api:api@postgres/api'

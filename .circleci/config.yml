@@ -9,7 +9,7 @@ jobs:
             - image: circleci/node:8.12.0-browsers
             - image: circleci/postgres:9.6.5-alpine-ram
             - image: 0xorg/ganache-cli:6.0.0
-            - image: 0xorg/mesh:8.1.1
+            - image: 0xorg/mesh:9.0.1
               environment:
                 ETHEREUM_RPC_URL: http://0.0.0.0:8545
                 ETHEREUM_CHAIN_ID: 1337
@@ -17,7 +17,7 @@ jobs:
                 VERBOSITY: 3
                 PRIVATE_KEY_PATH: ''
                 BLOCK_POLLING_INTERVAL: '2s'
-                RPC_ADDR: '0.0.0.0:60557'
+                WS_RPC_ADDR: '0.0.0.0:60557'
                 ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
         working_directory: ~/repo
         environment:
@@ -42,5 +42,5 @@ jobs:
                   key: v1-dependencies-{{ checksum "yarn.lock" }}
             - run: yarn build
             - run: yarn lint
-            - run: yarn prettier
+            - run: yarn prettier:ci
             - run: yarn test
