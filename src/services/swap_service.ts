@@ -66,6 +66,7 @@ export class SwapService {
         const assetSwapperOpts = {
             ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
             slippagePercentage,
+            bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
             excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
         };

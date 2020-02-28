@@ -4,7 +4,13 @@ import { ERC20BridgeSource, SwapQuoteRequestOpts } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { DEFAULT_LOCAL_POSTGRES_URI, DEFAULT_LOGGER_INCLUDE_TIMESTAMP, NULL_ADDRESS, NULL_BYTES } from './constants';
+import {
+    DEFAULT_LOCAL_POSTGRES_URI,
+    DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
+    DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    NULL_ADDRESS,
+    NULL_BYTES,
+} from './constants';
 import { TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId } from './types';
 
@@ -89,7 +95,8 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     noConflicts: true,
     excludedSources: EXCLUDED_SOURCES,
     runLimit: 2 ** 15,
-    bridgeSlippage: 0.01,
+    bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    slippagePercentage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     dustFractionThreshold: 0.0025,
     numSamples: 13,
     sampleDistributionBase: 1.05,
