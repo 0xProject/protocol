@@ -111,11 +111,13 @@ export class StakingDataService {
             rawCurrentEpochPoolStats,
             rawNextEpochPoolStats,
             rawPoolSevenDayProtocolFeesGenerated,
+            rawAvgReward,
         ] = await Promise.all([
             this.getStakingPoolAsync(poolId),
             this._connection.query(queries.currentEpochPoolStatsQuery, [poolId]),
             this._connection.query(queries.nextEpochPoolStatsQuery, [poolId]),
             this._connection.query(queries.poolSevenDayProtocolFeesGeneratedQuery, [poolId]),
+            this._connection.query(queries.poolAvgRewardsQuery, [poolId]),
         ]);
 
         const currentEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawCurrentEpochPoolStats[0]);
@@ -123,10 +125,13 @@ export class StakingDataService {
         const pool7dProtocolFeesGenerated = stakingUtils.getPoolProtocolFeesGeneratedFromRaw(
             rawPoolSevenDayProtocolFeesGenerated[0],
         );
+        const poolAvgReward = stakingUtils.getPoolAvgRewardsFromRaw(rawAvgReward[0]);
 
         return {
             ...pool,
             sevenDayProtocolFeesGeneratedInEth: pool7dProtocolFeesGenerated.sevenDayProtocolFeesGeneratedInEth,
+            avgMemberRewardInEth: poolAvgReward.avgMemberRewardInEth,
+            avgTotalRewardInEth: poolAvgReward.avgTotalRewardInEth,
             currentEpochStats: currentEpochPoolStats,
             nextEpochStats: nextEpochPoolStats,
         };
@@ -138,24 +143,30 @@ export class StakingDataService {
             rawCurrentEpochPoolStats,
             rawNextEpochPoolStats,
             rawPoolSevenDayProtocolFeesGenerated,
+            rawPoolsAvgRewards,
         ] = await Promise.all([
             this.getStakingPoolsAsync(),
             this._connection.query(queries.currentEpochPoolsStatsQuery),
             this._connection.query(queries.nextEpochPoolsStatsQuery),
             this._connection.query(queries.sevenDayProtocolFeesGeneratedQuery),
+            this._connection.query(queries.poolsAvgRewardsQuery),
         ]);
         const currentEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawCurrentEpochPoolStats);
         const nextEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawNextEpochPoolStats);
         const poolProtocolFeesGenerated = stakingUtils.getPoolsProtocolFeesGeneratedFromRaw(
             rawPoolSevenDayProtocolFeesGenerated,
         );
+        const poolAvgRewards = stakingUtils.getPoolsAvgRewardsFromRaw(rawPoolsAvgRewards);
         const currentEpochPoolStatsMap = utils.arrayToMapWithId(currentEpochPoolStats, 'poolId');
         const nextEpochPoolStatsMap = utils.arrayToMapWithId(nextEpochPoolStats, 'poolId');
         const poolProtocolFeesGeneratedMap = utils.arrayToMapWithId(poolProtocolFeesGenerated, 'poolId');
+        const poolAvgRewardsMap = utils.arrayToMapWithId(poolAvgRewards, 'poolId');
         return pools.map(pool => ({
             ...pool,
             sevenDayProtocolFeesGeneratedInEth:
                 poolProtocolFeesGeneratedMap[pool.poolId].sevenDayProtocolFeesGeneratedInEth,
+            avgMemberRewardInEth: poolAvgRewardsMap[pool.poolId].avgMemberRewardInEth,
+            avgTotalRewardInEth: poolAvgRewardsMap[pool.poolId].avgTotalRewardInEth,
             currentEpochStats: currentEpochPoolStatsMap[pool.poolId],
             nextEpochStats: nextEpochPoolStatsMap[pool.poolId],
         }));

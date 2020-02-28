@@ -7,6 +7,7 @@ import {
     Epoch,
     EpochPoolStats,
     Pool,
+    PoolAvgRewards,
     PoolEpochDelegatorStats,
     PoolEpochRewards,
     PoolProtocolFeesGenerated,
@@ -18,6 +19,7 @@ import {
     RawEpoch,
     RawEpochPoolStats,
     RawPool,
+    RawPoolAvgRewards,
     RawPoolEpochRewards,
     RawPoolProtocolFeesGenerated,
     RawPoolTotalProtocolFeesGenerated,
@@ -149,6 +151,17 @@ export const stakingUtils = {
         rawPoolsProtocolFeesGenerated: RawPoolProtocolFeesGenerated[],
     ): PoolProtocolFeesGenerated[] => {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
+    },
+    getPoolAvgRewardsFromRaw: (rawPoolAvgRewards: RawPoolAvgRewards): PoolAvgRewards => {
+        const { pool_id, avg_member_reward_in_eth, avg_total_reward_in_eth } = rawPoolAvgRewards;
+        return {
+            poolId: pool_id,
+            avgMemberRewardInEth: Number(avg_member_reward_in_eth || 0),
+            avgTotalRewardInEth: Number(avg_total_reward_in_eth || 0),
+        };
+    },
+    getPoolsAvgRewardsFromRaw: (rawPoolsAvgRewards: RawPoolAvgRewards[]): PoolAvgRewards[] => {
+        return rawPoolsAvgRewards.map(stakingUtils.getPoolAvgRewardsFromRaw);
     },
     getZrxStakedFromRawDelegatorDeposited: (rawDelegatorDeposited: RawDelegatorDeposited[]): number => {
         const resultRow: RawDelegatorDeposited | undefined = _.head(rawDelegatorDeposited);
