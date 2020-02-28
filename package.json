@@ -6,7 +6,7 @@
     "author": "Francesco Agosti <francesco@0x.org>",
     "license": "Apache-2.0",
     "scripts": {
-        "clean": "shx rm -rf lib",
+        "clean": "shx rm -rf lib 0x_mesh/db",
         "build": "tsc -p tsconfig.json",
         "test": "ETHEREUM_RPC_URL=http://localhost:8545 mocha --require source-map-support/register --require make-promises-safe lib/test/**/*_test.js --timeout 100000 --exit",
         "dev": "nodemon -r dotenv/config src/index.ts | pino-pretty",
@@ -66,7 +66,7 @@
         "@0x/subproviders": "^6.0.4",
         "@0x/utils": "^5.2.0",
         "@0x/web3-wrapper": "^7.0.4",
-        "axios": "^0.19.0",
+        "axios": "^0.19.2",
         "body-parser": "^1.19.0",
         "cors": "^2.8.5",
         "debug": "^4.1.1",

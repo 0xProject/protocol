@@ -1,4 +1,3 @@
-import { SignedOrder } from '@0x/asset-swapper';
 import {
     AcceptedOrderInfo,
     OrderEvent,
@@ -6,8 +5,6 @@ import {
     OrderInfo,
     RejectedCode,
     RejectedOrderInfo,
-    ValidationResults,
-    WSClient,
 } from '@0x/mesh-rpc-client';
 import * as _ from 'lodash';
 
@@ -17,22 +14,6 @@ import { logger } from '../logger';
 import { AddedRemovedUpdate, APIOrderWithMetaData } from '../types';
 
 export const meshUtils = {
-    addOrdersToMeshAsync: async (
-        meshClient: WSClient,
-        orders: SignedOrder[],
-        batchSize: number = 100,
-    ): Promise<ValidationResults> => {
-        // Mesh rpc client can't handle a large amount of orders. This results in a fragmented
-        // send which Mesh cannot accept.
-        const validationResults: ValidationResults = { accepted: [], rejected: [] };
-        const chunks = _.chunk(orders, batchSize);
-        for (const chunk of chunks) {
-            const results = await meshClient.addOrdersAsync(chunk as any);
-            validationResults.accepted = [...validationResults.accepted, ...results.accepted];
-            validationResults.rejected = [...validationResults.rejected, ...results.rejected];
-        }
-        return validationResults;
-    },
     orderInfosToApiOrders: (
         orderEvent: Array<OrderEvent | AcceptedOrderInfo | RejectedOrderInfo | OrderInfo>,
     ): APIOrderWithMetaData[] => {

@@ -1,5 +1,4 @@
 import { schemas } from '@0x/json-schemas';
-import { WSClient } from '@0x/mesh-rpc-client';
 import { assetDataUtils } from '@0x/order-utils';
 import {
     APIOrder,
@@ -23,6 +22,7 @@ import {
     UpdateOrdersChannelMessageWithChannel,
     WebsocketSRAOpts,
 } from '../types';
+import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
 import { schemaUtils } from '../utils/schema_utils';
@@ -47,7 +47,7 @@ type ALL_SUBSCRIPTION_OPTS = 'ALL_SUBSCRIPTION_OPTS';
  */
 export class WebsocketService {
     private readonly _server: WebSocket.Server;
-    private readonly _meshClient: WSClient;
+    private readonly _meshClient: MeshClient;
     private readonly _pongIntervalId: number;
     private readonly _requestIdToSocket: Map<string, WrappedWebSocket> = new Map(); // requestId to WebSocket mapping
     private readonly _requestIdToSubscriptionOpts: Map<
@@ -115,7 +115,7 @@ export class WebsocketService {
         // takerAssetProxyId?: string;
         return false;
     }
-    constructor(server: http.Server, meshClient: WSClient, opts?: Partial<WebsocketSRAOpts>) {
+    constructor(server: http.Server, meshClient: MeshClient, opts?: Partial<WebsocketSRAOpts>) {
         const wsOpts: WebsocketSRAOpts = {
             ...DEFAULT_OPTS,
             ...opts,

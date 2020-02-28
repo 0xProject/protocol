@@ -28,11 +28,13 @@ services:
             VERBOSITY: 3
             PRIVATE_KEY_PATH: ''
             WS_RPC_ADDR: '0.0.0.0:60557'
+            HTTP_RPC_ADDR: '0.0.0.0:60556'
             BLOCK_POLLING_INTERVAL: '2s'
             ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
         volumes:
           - ./0x_mesh:/usr/mesh/0x_mesh
         ports:
+            - '60556:60556'
             - '60557:60557'
             - '60558:60558'
             - '60559:60559'

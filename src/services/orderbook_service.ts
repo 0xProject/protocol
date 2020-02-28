@@ -1,5 +1,4 @@
 import { APIOrder, OrderbookResponse, PaginatedCollection } from '@0x/connect';
-import { WSClient } from '@0x/mesh-rpc-client';
 import { assetDataUtils } from '@0x/order-utils';
 import { AssetPairsItem, OrdersRequestOpts, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
@@ -7,12 +6,13 @@ import { Connection, In } from 'typeorm';
 
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
+import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService {
-    private readonly _meshClient?: WSClient;
+    private readonly _meshClient?: MeshClient;
     private readonly _connection: Connection;
     public async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
         const signedOrderEntityIfExists = await this._connection.manager.findOne(SignedOrderEntity, orderHash);
@@ -173,7 +173,7 @@ export class OrderBookService {
         const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
         return paginatedApiOrders;
     }
-    constructor(connection: Connection, meshClient?: WSClient) {
+    constructor(connection: Connection, meshClient?: MeshClient) {
         this._meshClient = meshClient;
         this._connection = connection;
     }
@@ -182,7 +182,7 @@ export class OrderBookService {
     }
     public async addOrdersAsync(signedOrders: SignedOrder[]): Promise<void> {
         if (this._meshClient) {
-            const { rejected } = await this._meshClient.addOrdersAsync(signedOrders as any);
+            const { rejected } = await this._meshClient.addOrdersAsync(signedOrders);
             if (rejected.length !== 0) {
                 const validationErrors = rejected.map((r, i) => ({
                     field: `signedOrder[${i}]`,

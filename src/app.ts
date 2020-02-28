@@ -1,5 +1,4 @@
 import { Orderbook, SupportedProvider } from '@0x/asset-swapper';
-import { WSClient } from '@0x/mesh-rpc-client';
 import * as express from 'express';
 import { Connection } from 'typeorm';
 
@@ -13,12 +12,13 @@ import { OrderBookService } from './services/orderbook_service';
 import { StakingDataService } from './services/staking_data_service';
 import { SwapService } from './services/swap_service';
 import { WebsocketSRAOpts } from './types';
+import { MeshClient } from './utils/mesh_client';
 import { OrderStoreDbAdapter } from './utils/order_store_db_adapter';
 
 export interface AppDependencies {
     connection: Connection;
     stakingDataService: StakingDataService;
-    meshClient?: WSClient;
+    meshClient?: MeshClient;
     orderBookService: OrderBookService;
     swapService?: SwapService;
     provider: SupportedProvider;
@@ -36,14 +36,15 @@ export async function getDefaultAppDependenciesAsync(
         // to catch initialisation errors. Allow the calling function to skip Mesh initialization by
         // not providing a websocket URI
         MESH_WEBSOCKET_URI?: string;
+        MESH_HTTP_URI?: string;
     },
 ): Promise<AppDependencies> {
     const connection = await getDBConnectionAsync();
     const stakingDataService = new StakingDataService(connection);
 
-    let meshClient: WSClient | undefined;
+    let meshClient: MeshClient | undefined;
     if (config.MESH_WEBSOCKET_URI !== undefined) {
-        meshClient = new WSClient(config.MESH_WEBSOCKET_URI);
+        meshClient = new MeshClient(config.MESH_WEBSOCKET_URI, config.MESH_HTTP_URI);
     } else {
         logger.warn(`Skipping Mesh client creation because no URI provided`);
     }
