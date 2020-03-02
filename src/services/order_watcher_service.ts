@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import { Connection } from 'typeorm';
 
+import { MESH_IGNORED_ADDRESSES } from '../config';
 import { SignedOrderEntity } from '../entities';
 import { logger } from '../logger';
 import { APIOrderWithMetaData, OrderWatcherLifeCycleEvents } from '../types';
@@ -70,7 +71,10 @@ export class OrderWatcherService {
         switch (lifecycleEvent) {
             case OrderWatcherLifeCycleEvents.Updated:
             case OrderWatcherLifeCycleEvents.Added: {
-                const signedOrdersModel = orders.map(o => orderUtils.serializeOrder(o));
+                const allowedOrders = orders.filter(
+                    apiOrder => !orderUtils.isIgnoredOrder(MESH_IGNORED_ADDRESSES, apiOrder),
+                );
+                const signedOrdersModel = allowedOrders.map(o => orderUtils.serializeOrder(o));
                 // MAX SQL variable size is 999. This limit is imposed via Sqlite.
                 // The SELECT query is not entirely effecient and pulls in all attributes
                 // so we need to leave space for the attributes on the model represented

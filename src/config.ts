@@ -15,6 +15,7 @@ import { TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId } from './types';
 
 enum EnvVarType {
+    AddressList,
     Port,
     ChainId,
     FeeRecipient,
@@ -38,6 +39,16 @@ export const CHAIN_ID: ChainId = _.isEmpty(process.env.CHAIN_ID)
 export const WHITELISTED_TOKENS: string[] | '*' = _.isEmpty(process.env.WHITELIST_ALL_TOKENS)
     ? TokenMetadatasForChains.map(tm => tm.tokenAddresses[CHAIN_ID])
     : assertEnvVarType('WHITELIST_ALL_TOKENS', process.env.WHITELIST_ALL_TOKENS, EnvVarType.WhitelistAllTokens);
+
+// Ignored addresses. These are ignored at the ingress (Mesh) level and are never stored.
+export const MESH_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.MESH_IGNORED_ADDRESSES)
+    ? []
+    : assertEnvVarType('MESH_IGNORED_ADDRESSES', process.env.MESH_IGNORED_ADDRESSES, EnvVarType.AddressList);
+
+// Ignored addresses only for Swap endpoints (still present in database and SRA).
+export const SWAP_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.SWAP_IGNORED_ADDRESSES)
+    ? []
+    : assertEnvVarType('SWAP_IGNORED_ADDRESSES', process.env.SWAP_IGNORED_ADDRESSES, EnvVarType.AddressList);
 
 // Ethereum RPC Url
 export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.Url);
@@ -153,6 +164,11 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be valid number greater than 0.`);
             }
             return returnValue;
+        case EnvVarType.AddressList:
+            assert.isString(name, value);
+            const addressList = (value as string).split(',').map(a => a.toLowerCase());
+            addressList.forEach((a, i) => assert.isETHAddressHex(`${name}[${i}]`, a));
+            return addressList;
         case EnvVarType.WhitelistAllTokens:
             return '*';
         case EnvVarType.FeeAssetData:

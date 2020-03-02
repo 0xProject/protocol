@@ -78,6 +78,13 @@ const assetDataToAsset = (assetData: string): Asset => {
 };
 
 export const orderUtils = {
+    isIgnoredOrder: (addressesToIgnore: string[], apiOrder: APIOrder): boolean => {
+        return (
+            addressesToIgnore.includes(apiOrder.order.makerAddress) ||
+            orderUtils.includesTokenAddresses(apiOrder.order.makerAssetData, addressesToIgnore) ||
+            orderUtils.includesTokenAddresses(apiOrder.order.takerAssetData, addressesToIgnore)
+        );
+    },
     isMultiAssetData: (decodedAssetData: AssetData): decodedAssetData is MultiAssetData => {
         return decodedAssetData.assetProxyId === AssetProxyId.MultiAsset;
     },
@@ -123,19 +130,22 @@ export const orderUtils = {
         }
         return orderA.expirationTimeSeconds.comparedTo(orderB.expirationTimeSeconds);
     },
-    includesTokenAddress: (assetData: string, tokenAddress: string): boolean => {
+    includesTokenAddresses: (assetData: string, tokenAddresses: string[]): boolean => {
         const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
         if (orderUtils.isMultiAssetData(decodedAssetData)) {
             for (const [, nestedAssetDataElement] of decodedAssetData.nestedAssetData.entries()) {
-                if (orderUtils.includesTokenAddress(nestedAssetDataElement, tokenAddress)) {
+                if (orderUtils.includesTokenAddresses(nestedAssetDataElement, tokenAddresses)) {
                     return true;
                 }
             }
             return false;
         } else if (orderUtils.isTokenAssetData(decodedAssetData)) {
-            return decodedAssetData.tokenAddress === tokenAddress;
+            return tokenAddresses.find(a => a === decodedAssetData.tokenAddress) !== undefined;
         }
         return false;
+    },
+    includesTokenAddress: (assetData: string, tokenAddress: string): boolean => {
+        return orderUtils.includesTokenAddresses(assetData, [tokenAddress]);
     },
     deserializeOrder: (signedOrderEntity: Required<SignedOrderEntity>): SignedOrder => {
         const signedOrder: SignedOrder = {
