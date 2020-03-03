@@ -38,7 +38,7 @@ export class MeshClient extends WSClient {
 
             // validate the response
             utils.isValidJsonRpcResponseOrThrow(response.data, data);
-            return response.data.results;
+            return response.data.result;
         }
     }
 
