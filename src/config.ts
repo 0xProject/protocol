@@ -105,6 +105,17 @@ const EXCLUDED_SOURCES = (() => {
     }
 })();
 
+const sourceFees: { [key in ERC20BridgeSource]: BigNumber } = {
+    [ERC20BridgeSource.Uniswap]: new BigNumber(2.5e5),
+    [ERC20BridgeSource.Native]: new BigNumber(3e5),
+    [ERC20BridgeSource.CurveUsdcDai]: new BigNumber(4e5),
+    [ERC20BridgeSource.Eth2Dai]: new BigNumber(5e5),
+    [ERC20BridgeSource.CurveUsdcDaiUsdt]: new BigNumber(5e5),
+    [ERC20BridgeSource.CurveUsdcDaiUsdtTusd]: new BigNumber(8e5),
+    [ERC20BridgeSource.CurveUsdcDaiUsdtBusd]: new BigNumber(8e5),
+    [ERC20BridgeSource.Kyber]: new BigNumber(8e5),
+};
+
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     noConflicts: true,
     excludedSources: EXCLUDED_SOURCES,
@@ -114,15 +125,7 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     dustFractionThreshold: 0.0025,
     numSamples: 13,
     sampleDistributionBase: 1.05,
-    fees: {
-        [ERC20BridgeSource.Uniswap]: new BigNumber(2.5e5),
-        [ERC20BridgeSource.Native]: new BigNumber(3e5),
-        [ERC20BridgeSource.CurveUsdcDai]: new BigNumber(4e5),
-        [ERC20BridgeSource.Eth2Dai]: new BigNumber(5e5),
-        [ERC20BridgeSource.CurveUsdcDaiUsdt]: new BigNumber(5e5),
-        [ERC20BridgeSource.CurveUsdcDaiUsdtTusd]: new BigNumber(8e5),
-        [ERC20BridgeSource.Kyber]: new BigNumber(8e5),
-    },
+    fees: sourceFees,
 };
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
