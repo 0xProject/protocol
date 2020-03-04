@@ -18,7 +18,7 @@ enum EnvVarType {
     AddressList,
     Port,
     ChainId,
-    FeeRecipient,
+    ETHAddressHex,
     UnitAmount,
     Url,
     WhitelistAllTokens,
@@ -63,7 +63,7 @@ export const MESH_HTTP_URI = _.isEmpty(process.env.MESH_HTTP_URI)
 // The fee recipient for orders
 export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
     ? NULL_ADDRESS
-    : assertEnvVarType('FEE_RECIPIENT_ADDRESS', process.env.FEE_RECIPIENT_ADDRESS, EnvVarType.FeeRecipient);
+    : assertEnvVarType('FEE_RECIPIENT_ADDRESS', process.env.FEE_RECIPIENT_ADDRESS, EnvVarType.ETHAddressHex);
 // A flat fee that should be charged to the order maker
 export const MAKER_FEE_UNIT_AMOUNT = _.isEmpty(process.env.MAKER_FEE_UNIT_AMOUNT)
     ? new BigNumber(0)
@@ -88,6 +88,12 @@ export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
 export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIMESTAMP)
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
     : assertEnvVarType('LOGGER_INCLUDE_TIMESTAMP', process.env.LOGGER_INCLUDE_TIMESTAMP, EnvVarType.Boolean);
+
+export const LIQUIDITY_POOL_REGISTRY_ADDRESS: string | undefined = _.isEmpty(process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS)
+    ? undefined
+    : assertEnvVarType('LIQUIDITY_POOL_REGISTRY_ADDRESS', process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS, EnvVarType.ETHAddressHex);
+
+
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
@@ -150,7 +156,7 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be a valid integer, found ${value}.`);
             }
             return returnValue;
-        case EnvVarType.FeeRecipient:
+        case EnvVarType.ETHAddressHex:
             assert.isETHAddressHex(name, value);
             return value;
         case EnvVarType.Url:

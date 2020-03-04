@@ -8,13 +8,14 @@ import {
     SwapQuoteConsumer,
     SwapQuoteOrdersBreakdown,
     SwapQuoter,
+    SwapQuoterOpts,
 } from '@0x/asset-swapper';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
+import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS, LIQUIDITY_POOL_REGISTRY_ADDRESS } from '../config';
 import {
     DEFAULT_TOKEN_DECIMALS,
     GAS_LIMIT_BUFFER_PERCENTAGE,
@@ -41,9 +42,10 @@ export class SwapService {
     private readonly _web3Wrapper: Web3Wrapper;
     constructor(orderbook: Orderbook, provider: SupportedProvider) {
         this._provider = provider;
-        const swapQuoterOpts = {
+        const swapQuoterOpts: Partial<SwapQuoterOpts> = {
             chainId: CHAIN_ID,
             expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+            liquidityProviderRegistryAddress: LIQUIDITY_POOL_REGISTRY_ADDRESS,
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
