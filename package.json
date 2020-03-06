@@ -26,6 +26,9 @@
         "start:service:order_watcher": "node -r dotenv/config lib/src/runners/order_watcher_service_runner.js",
         "lint": "tslint --project . --format stylish"
     },
+    "resolutions": {
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-b8ec7f5e2"
+    },
     "devDependencies": {
         "@0x/dev-utils": "^3.1.1",
         "@0x/migrations": "^5.0.2",
