@@ -42,9 +42,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^4.4.0":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-e8fd4b39f":
   version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-4.4.0.tgz#bde12000964e5132805ded134908da0d494b2f32"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/8f0f2e0d3c6229bc0de983bbbc40b3bdc9440791"
   dependencies:
     "@0x/assert" "^3.0.7"
     "@0x/contract-addresses" "^4.9.0"
@@ -134,6 +134,10 @@
     sinon "^4.0.0"
     uuid "^3.3.2"
     websocket "^1.0.26"
+
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-b8ec7f5e2":
+  version "4.9.0"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/2476269a83bfc215b9e0e1e7eb03fd1fbbff1d33"
 
 "@0x/contract-addresses@^4.1.0":
   version "4.2.0"
