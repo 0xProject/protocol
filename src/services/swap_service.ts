@@ -15,7 +15,12 @@ import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } fr
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { ASSET_SWAPPER_MARKET_ORDERS_OPTS, CHAIN_ID, FEE_RECIPIENT_ADDRESS, LIQUIDITY_POOL_REGISTRY_ADDRESS } from '../config';
+import {
+    ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+    CHAIN_ID,
+    FEE_RECIPIENT_ADDRESS,
+    LIQUIDITY_POOL_REGISTRY_ADDRESS,
+} from '../config';
 import {
     DEFAULT_TOKEN_DECIMALS,
     GAS_LIMIT_BUFFER_PERCENTAGE,

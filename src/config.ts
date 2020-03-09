@@ -89,11 +89,15 @@ export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIM
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
     : assertEnvVarType('LOGGER_INCLUDE_TIMESTAMP', process.env.LOGGER_INCLUDE_TIMESTAMP, EnvVarType.Boolean);
 
-export const LIQUIDITY_POOL_REGISTRY_ADDRESS: string | undefined = _.isEmpty(process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS)
+export const LIQUIDITY_POOL_REGISTRY_ADDRESS: string | undefined = _.isEmpty(
+    process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS,
+)
     ? undefined
-    : assertEnvVarType('LIQUIDITY_POOL_REGISTRY_ADDRESS', process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS, EnvVarType.ETHAddressHex);
-
-
+    : assertEnvVarType(
+          'LIQUIDITY_POOL_REGISTRY_ADDRESS',
+          process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS,
+          EnvVarType.ETHAddressHex,
+      );
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
