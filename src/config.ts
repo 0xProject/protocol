@@ -124,7 +124,7 @@ const sourceFees: { [key in ERC20BridgeSource]: BigNumber } = {
     [ERC20BridgeSource.CurveUsdcDaiUsdtTusd]: new BigNumber(8e5),
     [ERC20BridgeSource.CurveUsdcDaiUsdtBusd]: new BigNumber(8e5),
     [ERC20BridgeSource.Kyber]: new BigNumber(8e5),
-    [ERC20BridgeSource.LiquidityProvider]: new BigNumber(25e4),
+    [ERC20BridgeSource.LiquidityProvider]: new BigNumber(4e5),
 };
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
