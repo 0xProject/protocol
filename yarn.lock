@@ -47,8 +47,23 @@
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c5fe08a1a6df83d6818d5fb8455f45ceed8fdb1a"
   dependencies:
     "@0x/assert" "^3.0.7"
-    "@0x/contract-addresses" "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-58b6c25d5"
-    "@0x/contract-wrappers" "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-58b6c25d5"
+    "@0x/contract-addresses" "^4.9.0"
+    "@0x/contract-wrappers" "^13.6.3"
+    "@0x/json-schemas" "^5.0.7"
+    "@0x/order-utils" "^10.2.4"
+    "@0x/orderbook" "^2.2.5"
+    "@0x/utils" "^5.4.1"
+    "@0x/web3-wrapper" "^7.0.7"
+    heartbeats "^5.0.1"
+    lodash "^4.17.11"
+
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-plp-58b6c25d5":
+  version "4.4.0-plp"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/380db71d0e828f93a1bde8513ed2d3e43fb1c0a0"
+  dependencies:
+    "@0x/assert" "^3.0.7"
+    "@0x/contract-addresses" "^4.9.0"
+    "@0x/contract-wrappers" "^13.6.3"
     "@0x/json-schemas" "^5.0.7"
     "@0x/order-utils" "^10.2.4"
     "@0x/orderbook" "^2.2.5"
