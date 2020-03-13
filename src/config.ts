@@ -5,6 +5,7 @@ import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import {
+    DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
@@ -115,28 +116,33 @@ const EXCLUDED_SOURCES = (() => {
     }
 })();
 
-const sourceFees: { [key in ERC20BridgeSource]: BigNumber } = {
-    [ERC20BridgeSource.Uniswap]: new BigNumber(2.5e5),
-    [ERC20BridgeSource.Native]: new BigNumber(3e5),
-    [ERC20BridgeSource.CurveUsdcDai]: new BigNumber(4e5),
-    [ERC20BridgeSource.Eth2Dai]: new BigNumber(5e5),
-    [ERC20BridgeSource.CurveUsdcDaiUsdt]: new BigNumber(5e5),
-    [ERC20BridgeSource.CurveUsdcDaiUsdtTusd]: new BigNumber(8e5),
-    [ERC20BridgeSource.CurveUsdcDaiUsdtBusd]: new BigNumber(8e5),
-    [ERC20BridgeSource.Kyber]: new BigNumber(8e5),
-    [ERC20BridgeSource.LiquidityProvider]: new BigNumber(4.5e5),
+const gasSchedule: { [key in ERC20BridgeSource]: number } = {
+    [ERC20BridgeSource.Native]: 1.5e5,
+    [ERC20BridgeSource.Uniswap]: 3e5,
+    [ERC20BridgeSource.LiquidityProvider]: 4.5e5,
+    [ERC20BridgeSource.Eth2Dai]: 5.5e5,
+    [ERC20BridgeSource.Kyber]: 8e5,
+    [ERC20BridgeSource.CurveUsdcDai]: 9e5,
+    [ERC20BridgeSource.CurveUsdcDaiUsdt]: 9e5,
+    [ERC20BridgeSource.CurveUsdcDaiUsdtTusd]: 10e5,
+    [ERC20BridgeSource.CurveUsdcDaiUsdtBusd]: 10e5,
 };
 
+const feeSchedule: { [key in ERC20BridgeSource]: BigNumber } = Object.assign(
+    {},
+    ...(Object.keys(gasSchedule) as ERC20BridgeSource[]).map(k => ({
+        [k]: new BigNumber(gasSchedule[k] + 1.5e5),
+    })),
+);
+
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
-    noConflicts: true,
     excludedSources: EXCLUDED_SOURCES,
-    runLimit: 2 ** 15,
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-    slippagePercentage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-    dustFractionThreshold: 0.0025,
+    maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
     sampleDistributionBase: 1.05,
-    fees: sourceFees,
+    feeSchedule,
+    gasSchedule,
 };
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {

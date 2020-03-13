@@ -42,24 +42,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-58b6c25d5":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-aaa62beca":
   version "4.4.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c5fe08a1a6df83d6818d5fb8455f45ceed8fdb1a"
-  dependencies:
-    "@0x/assert" "^3.0.7"
-    "@0x/contract-addresses" "^4.9.0"
-    "@0x/contract-wrappers" "^13.6.3"
-    "@0x/json-schemas" "^5.0.7"
-    "@0x/order-utils" "^10.2.4"
-    "@0x/orderbook" "^2.2.5"
-    "@0x/utils" "^5.4.1"
-    "@0x/web3-wrapper" "^7.0.7"
-    heartbeats "^5.0.1"
-    lodash "^4.17.11"
-
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-plp-58b6c25d5":
-  version "4.4.0-plp"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/380db71d0e828f93a1bde8513ed2d3e43fb1c0a0"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/9b4505d1df8bb50f999c330610cb21a28e8f532f"
   dependencies:
     "@0x/assert" "^3.0.7"
     "@0x/contract-addresses" "^4.9.0"
@@ -142,9 +127,8 @@
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-artifacts/-/contract-artifacts-3.2.0.tgz#a013ab50862f6c4d16fbbaa2bfc2299c630379d8"
 
-"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-58b6c25d5", "@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-e3f3bb670", "@0x/contract-wrappers@^13.3.0", "@0x/contract-wrappers@^13.4.0", "@0x/contract-wrappers@^13.6.3":
+"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-e3f3bb670", "@0x/contract-wrappers@^13.3.0", "@0x/contract-wrappers@^13.4.0", "@0x/contract-wrappers@^13.6.3":
   version "13.6.3"
-  uid eda9bb7e81dc9dc7e63f23e6332858e322786235
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/eda9bb7e81dc9dc7e63f23e6332858e322786235"
   dependencies:
     "@0x/assert" "^3.0.7"

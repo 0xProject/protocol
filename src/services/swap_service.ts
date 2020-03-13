@@ -100,6 +100,11 @@ export class SwapService {
             totalTakerAssetAmount,
             protocolFeeInWeiAmount: protocolFee,
         } = attributedSwapQuote.bestCaseQuoteInfo;
+        const {
+            makerAssetAmount: guaranteedMakerAssetAmount,
+            totalTakerAssetAmount: guaranteedTotalTakerAssetAmount,
+            gas,
+        } = attributedSwapQuote.worstCaseQuoteInfo;
         const { orders, gasPrice, sourceBreakdown } = attributedSwapQuote;
 
         // If ETH was specified as the token to sell then we use the Forwarder
@@ -114,7 +119,7 @@ export class SwapService {
 
         const affiliatedData = this._attributeCallData(data, affiliateAddress);
 
-        let gas;
+        let suggestedGasEstimate = new BigNumber(gas);
         if (from) {
             // Force a revert error if the takerAddress does not have enough ETH.
             const txDataValue =
@@ -128,24 +133,43 @@ export class SwapService {
                 value: txDataValue,
                 gasPrice,
             });
-            gas = gasEstimate.times(GAS_LIMIT_BUFFER_PERCENTAGE + 1).integerValue();
+            // Take the max of the faux estimate or the real estimate
+            suggestedGasEstimate = BigNumber.max(gasEstimate, suggestedGasEstimate);
         }
+        // Add a buffer to the gas estimate
+        suggestedGasEstimate = suggestedGasEstimate.times(GAS_LIMIT_BUFFER_PERCENTAGE + 1).integerValue();
 
         const buyTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(buyTokenAddress);
         const sellTokenDecimals = await this._fetchTokenDecimalsIfRequiredAsync(sellTokenAddress);
         const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
         const unitTakerAssetAMount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
+        // Best price
         const price =
             buyAmount === undefined
                 ? unitMakerAssetAmount.dividedBy(unitTakerAssetAMount).decimalPlaces(sellTokenDecimals)
                 : unitTakerAssetAMount.dividedBy(unitMakerAssetAmount).decimalPlaces(buyTokenDecimals);
+        // Guaranteed price before revert occurs
+        const guaranteedUnitMakerAssetAmount = Web3Wrapper.toUnitAmount(guaranteedMakerAssetAmount, buyTokenDecimals);
+        const guaranteedUnitTakerAssetAMount = Web3Wrapper.toUnitAmount(
+            guaranteedTotalTakerAssetAmount,
+            sellTokenDecimals,
+        );
+        const guaranteedPrice =
+            buyAmount === undefined
+                ? guaranteedUnitMakerAssetAmount
+                      .dividedBy(guaranteedUnitTakerAssetAMount)
+                      .decimalPlaces(sellTokenDecimals)
+                : guaranteedUnitTakerAssetAMount
+                      .dividedBy(guaranteedUnitMakerAssetAmount)
+                      .decimalPlaces(buyTokenDecimals);
 
         const apiSwapQuote: GetSwapQuoteResponse = {
             price,
+            guaranteedPrice,
             to,
             data: affiliatedData,
             value,
-            gas,
+            gas: suggestedGasEstimate,
             from,
             gasPrice,
             protocolFee,
@@ -180,8 +204,8 @@ export class SwapService {
                         amounts,
                         {
                             ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-                            slippagePercentage: 0,
                             bridgeSlippage: 0,
+                            maxFallbackSlippage: 0,
                             numSamples: 3,
                         },
                     );
