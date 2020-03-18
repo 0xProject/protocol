@@ -30,7 +30,7 @@ These are services that handle HTTP requests and responses.
 | Name                                                | Path       | Run Command                       | Requires [0x Mesh](https://github.com/0xProject/0x-mesh)? | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
 | --------------------------------------------------- | ---------- | --------------------------------- | --------------------------------------------------------- | ------------------------------------ | ----------------------------- |
 | All HTTP Services                                   | `/*`       | `yarn start:service:http`         | Yes                                                       | Yes                                  | Yes                           |
-| [Swap](https://0x.org/docs/api#swap)                | `/swap`    | `yarn start:service:swap_http` | Yes                                                       | Yes                                  | Yes                           |
+| [Swap](https://0x.org/docs/api#swap)                | `/swap`    | `yarn start:service:swap_http`    | Yes                                                       | Yes                                  | Yes                           |
 | [Standard Relayer API](https://0x.org/docs/api#sra) | `/sra`     | `yarn start:service:sra_http`     | Yes                                                       | No                                   | Yes                           |
 | Staking (Not Public)                                | `/staking` | `yarn start:service:staking_http` | No                                                        | No                                   | Yes                           |
 
