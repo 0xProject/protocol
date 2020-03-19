@@ -37,6 +37,15 @@ export class SwapHandlers {
             excludedSources,
             affiliateAddress,
         } = parseGetSwapQuoteRequestParams(req);
+        if (isETHSymbol(buyToken)) {
+            throw new ValidationError([
+                {
+                    field: 'buyToken',
+                    code: ValidationErrorCodes.TokenNotSupported,
+                    reason: 'Buying ETH is unsupported (set to \'WETH\' to received wrapped Ether)',
+                },
+            ]);
+        }
         const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
         const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);

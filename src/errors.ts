@@ -110,4 +110,5 @@ export enum ValidationErrorCodes {
     UnsupportedOption = 1006,
     InvalidOrder = 1007,
     InternalError = 1008,
+    TokenNotSupported = 1009,
 }
