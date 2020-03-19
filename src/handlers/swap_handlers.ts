@@ -42,7 +42,7 @@ export class SwapHandlers {
                 {
                     field: 'buyToken',
                     code: ValidationErrorCodes.TokenNotSupported,
-                    reason: 'Buying ETH is unsupported (set to \'WETH\' to received wrapped Ether)',
+                    reason: "Buying ETH is unsupported (set to 'WETH' to received wrapped Ether)",
                 },
             ]);
         }
