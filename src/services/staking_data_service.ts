@@ -213,7 +213,9 @@ export class StakingDataService {
     }
 
     public async getDelegatorEventsAsync(delegatorAddress: string): Promise<DelegatorEvent[]> {
-        const rawDelegatorEvents: RawDelegatorEvent[] = await this._connection.query(queries.delegatorEventsQuery, [delegatorAddress]);
+        const rawDelegatorEvents: RawDelegatorEvent[] = await this._connection.query(queries.delegatorEventsQuery, [
+            delegatorAddress,
+        ]);
 
         const delegatorEvents = stakingUtils.getDelegatorEventsFromRaw(rawDelegatorEvents);
 

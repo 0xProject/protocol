@@ -193,9 +193,7 @@ export const stakingUtils = {
 
         return poolData;
     },
-    getDelegatorEventsFromRaw: (
-        rawDelegatorEvents: RawDelegatorEvent[],
-    ): DelegatorEvent[] => {
+    getDelegatorEventsFromRaw: (rawDelegatorEvents: RawDelegatorEvent[]): DelegatorEvent[] => {
         const delegatorEvents: DelegatorEvent[] = rawDelegatorEvents.map(rawEvent => ({
             eventType: rawEvent.event_type,
             address: rawEvent.address,
