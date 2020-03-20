@@ -13,5 +13,6 @@ export function createStakingRouter(stakingDataService: StakingDataService): exp
     router.get('/epochs', asyncHandler(handlers.getStakingEpochsAsync.bind(handlers)));
     router.get('/stats', asyncHandler(handlers.getStakingStatsAsync.bind(handlers)));
     router.get('/delegator/:id', asyncHandler(handlers.getDelegatorAsync.bind(handlers)));
+    router.get('/delegator/events/:id', asyncHandler(handlers.getDelegatorEventsAsync.bind(handlers)));
     return router;
 }
