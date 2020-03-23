@@ -197,7 +197,7 @@ export const stakingUtils = {
         const delegatorEvents: DelegatorEvent[] = rawDelegatorEvents.map(rawEvent => ({
             eventType: rawEvent.event_type,
             address: rawEvent.address,
-            blockNumber: Number(rawEvent.block_number),
+            blockNumber: rawEvent.block_number === null ? null : Number(rawEvent.block_number),
             eventTimestamp: rawEvent.event_timestamp,
             transactionHash: rawEvent.transaction_hash,
             eventArgs: rawEvent.event_args,
