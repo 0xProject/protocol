@@ -77,6 +77,17 @@ export class StakingHandlers {
         res.status(HttpStatus.OK).send(response);
     }
 
+    public async getDelegatorEventsAsync(req: express.Request, res: express.Response): Promise<void> {
+        const delegatorAddress = req.params.id;
+        const normalizedAddress = delegatorAddress && delegatorAddress.toLowerCase();
+
+        const delegatorEvents = await this._stakingDataService.getDelegatorEventsAsync(normalizedAddress);
+
+        const response = delegatorEvents;
+
+        res.status(HttpStatus.OK).send(response);
+    }
+
     constructor(stakingDataService: StakingDataService) {
         this._stakingDataService = stakingDataService;
     }

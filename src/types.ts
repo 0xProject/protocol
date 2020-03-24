@@ -291,6 +291,23 @@ export interface StakingStatsResponse {
     allTime: AllTimeStakingStats;
 }
 
+export interface RawDelegatorEvent {
+    event_type: string;
+    address: string;
+    block_number: string | null;
+    event_timestamp: string;
+    transaction_hash: string | null;
+    event_args: object;
+}
+export interface DelegatorEvent {
+    eventType: string;
+    address: string;
+    blockNumber: number | null;
+    eventTimestamp: string;
+    transactionHash: string | null;
+    eventArgs: object;
+}
+
 export interface ObjectMap<T> {
     [key: string]: T;
 }

@@ -4,6 +4,7 @@ import {
     AllTimeDelegatorPoolStats,
     AllTimePoolStats,
     AllTimeStakingStats,
+    DelegatorEvent,
     Epoch,
     EpochPoolStats,
     Pool,
@@ -15,6 +16,7 @@ import {
     RawAllTimePoolRewards,
     RawAllTimeStakingStats,
     RawDelegatorDeposited,
+    RawDelegatorEvent,
     RawDelegatorStaked,
     RawEpoch,
     RawEpochPoolStats,
@@ -190,6 +192,18 @@ export const stakingUtils = {
         }));
 
         return poolData;
+    },
+    getDelegatorEventsFromRaw: (rawDelegatorEvents: RawDelegatorEvent[]): DelegatorEvent[] => {
+        const delegatorEvents: DelegatorEvent[] = rawDelegatorEvents.map(rawEvent => ({
+            eventType: rawEvent.event_type,
+            address: rawEvent.address,
+            blockNumber: rawEvent.block_number === null ? null : Number(rawEvent.block_number),
+            eventTimestamp: rawEvent.event_timestamp,
+            transactionHash: rawEvent.transaction_hash,
+            eventArgs: rawEvent.event_args,
+        }));
+
+        return delegatorEvents;
     },
     getAlltimePoolRewards: (
         rawAllTimePoolRewards?: RawAllTimePoolRewards,

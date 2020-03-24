@@ -599,4 +599,122 @@ export const allTimeStatsQuery = `
         ) / 1e18 AS total_rewards_paid
     FROM events.rewards_paid_events;
 `;
+
+export const delegatorEventsQuery = `
+    WITH
+        earned_rewards_events AS (
+            SELECT
+                'earned_rewards' AS event
+                , aper.address
+                , e.ending_block_number AS block_number
+                , e.ending_timestamp AS event_timestamp
+                , NULL AS transaction_hash
+                , JSON_BUILD_OBJECT('reward', aper.total_reward, 'epochId', aper.epoch_id, 'poolId', aper.pool_id) AS event_args
+            FROM staking.address_pool_epoch_rewards aper
+            LEFT JOIN staking.epochs e ON e.epoch_id = aper.epoch_id
+            WHERE
+                address = $1
+                AND aper.total_reward > 0
+        )
+        , deposited_zrx_events AS (
+            SELECT
+                'deposited_zrx' AS event
+                , se.staker AS address
+                , se.block_number
+                , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
+                , se.transaction_hash
+                , JSON_BUILD_OBJECT('zrxAmount', se.amount / 1e18) AS event_args
+            FROM events.stake_events se
+            LEFT JOIN events.blocks b ON b.block_number = se.block_number
+            WHERE
+                se.staker = $1
+        )
+        , withdrew_zrx_events AS (
+            SELECT
+                'withdrew_zrx' AS event
+                , ue.staker AS address
+                , ue.block_number
+                , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
+                , ue.transaction_hash
+                , JSON_BUILD_OBJECT('zrxAmount', ue.amount / 1e18) AS event_args
+            FROM events.unstake_events ue
+            LEFT JOIN events.blocks b ON b.block_number = ue.block_number
+            WHERE
+                ue.staker = $1
+        )
+        , staked_events AS (
+            SELECT
+                'staked' AS event
+                , mse.staker AS address
+                , mse.block_number
+                , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
+                , mse.transaction_hash
+                , JSON_BUILD_OBJECT('zrxAmount', mse.amount / 1e18, 'poolId', mse.to_pool) AS event_args
+            FROM events.move_stake_events mse
+            LEFT JOIN events.blocks b ON b.block_number = mse.block_number
+            WHERE
+                mse.staker = $1
+                AND to_status = 1
+                AND to_pool <> '0'
+                AND from_status = 0
+        )
+        , removed_stake_events AS (
+            SELECT
+                'removed_stake' AS event
+                , mse.staker AS address
+                , mse.block_number
+                , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
+                , mse.transaction_hash
+                , JSON_BUILD_OBJECT('zrxAmount', mse.amount / 1e18, 'poolId', mse.from_pool) AS event_args
+            FROM events.move_stake_events mse
+            LEFT JOIN events.blocks b ON b.block_number = mse.block_number
+            WHERE
+                mse.staker = $1
+                AND from_status = 1
+                AND from_pool <> '0'
+                AND to_status = 0
+        )
+        , moved_stake_events AS (
+            SELECT
+                'moved_stake' AS event
+                , mse.staker AS address
+                , mse.block_number
+                , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
+                , mse.transaction_hash
+                , JSON_BUILD_OBJECT('zrxAmount', mse.amount / 1e18, 'fromPoolId', mse.from_pool, 'toPoolId', mse.to_pool) AS event_args
+            FROM events.move_stake_events mse
+            LEFT JOIN events.blocks b ON b.block_number = mse.block_number
+            WHERE
+                mse.staker = $1
+                AND from_status = 1
+                AND to_status = 1
+        )
+        , combined AS (
+            SELECT * FROM deposited_zrx_events
+
+            UNION ALL
+
+            SELECT * FROM earned_rewards_events
+
+            UNION ALL
+
+            SELECT * FROM staked_events
+
+            UNION ALL
+
+            SELECT * FROM removed_stake_events
+
+            UNION ALL
+
+            SELECT * FROM moved_stake_events
+
+            UNION ALL
+
+            SELECT * FROM withdrew_zrx_events
+        )
+        SELECT
+            *
+        FROM combined
+        ORDER BY event_timestamp DESC;
+`;
 // tslint:disable-next-line: max-file-line-count

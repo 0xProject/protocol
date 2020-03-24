@@ -7,6 +7,7 @@ import {
     AllTimeDelegatorStats,
     AllTimePoolStats,
     AllTimeStakingStats,
+    DelegatorEvent,
     Epoch,
     EpochDelegatorStats,
     Pool,
@@ -15,6 +16,7 @@ import {
     RawAllTimePoolRewards,
     RawAllTimeStakingStats,
     RawDelegatorDeposited,
+    RawDelegatorEvent,
     RawDelegatorStaked,
     RawEpoch,
     RawPool,
@@ -208,6 +210,16 @@ export class StakingDataService {
             zrxStaked,
             poolData,
         };
+    }
+
+    public async getDelegatorEventsAsync(delegatorAddress: string): Promise<DelegatorEvent[]> {
+        const rawDelegatorEvents: RawDelegatorEvent[] = await this._connection.query(queries.delegatorEventsQuery, [
+            delegatorAddress,
+        ]);
+
+        const delegatorEvents = stakingUtils.getDelegatorEventsFromRaw(rawDelegatorEvents);
+
+        return delegatorEvents;
     }
 
     public async getDelegatorAllTimeStatsAsync(delegatorAddress: string): Promise<AllTimeDelegatorStats> {
