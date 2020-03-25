@@ -10,6 +10,7 @@ import {
     ERC20BridgeAssetData,
     ERC721AssetData,
     MultiAssetData,
+    OrdersFilter,
     SignedOrder,
     StaticCallAssetData,
 } from '@0x/types';
@@ -221,5 +222,58 @@ export const orderUtils = {
             takerFeeAssetData: TAKER_FEE_ASSET_DATA,
         };
         return orderConfigResponse;
+    },
+    filterOrders: (apiOrders: APIOrder[], filters: OrdersFilter): APIOrder[] => {
+        let filteredOrders = apiOrders;
+        if (filters.traderAddress) {
+            filteredOrders = filteredOrders
+                .filter(
+                    apiOrder =>
+                        filters.traderAddress === undefined ||
+                        apiOrder.order.makerAddress === filters.traderAddress ||
+                        apiOrder.order.takerAddress === filters.traderAddress,
+                );
+        }
+        if (filters.makerAssetAddress) {
+            filteredOrders = filteredOrders
+                .filter(
+                    apiOrder =>
+                        filters.makerAssetAddress === undefined ||
+                        orderUtils.includesTokenAddress(
+                            apiOrder.order.makerAssetData,
+                            filters.makerAssetAddress,
+                        ),
+                );
+        }
+        if (filters.takerAssetAddress) {
+            filteredOrders = filteredOrders
+                .filter(
+                    apiOrder =>
+                        filters.takerAssetAddress === undefined ||
+                        orderUtils.includesTokenAddress(
+                            apiOrder.order.takerAssetData,
+                            filters.takerAssetAddress,
+                        ),
+                );
+        }
+        if (filters.makerAssetProxyId) {
+            filteredOrders = filteredOrders
+                .filter(
+                    apiOrder =>
+                        filters.makerAssetProxyId === undefined ||
+                        assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.makerAssetData).assetProxyId ===
+                            filters.makerAssetProxyId,
+                );
+        }
+        if (filters.takerAssetProxyId) {
+            filteredOrders = filteredOrders
+                .filter(
+                    apiOrder =>
+                        filters.takerAssetProxyId === undefined ||
+                        assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.takerAssetData).assetProxyId ===
+                            filters.takerAssetProxyId,
+                );
+        }
+        return filteredOrders;
     },
 };

@@ -1,11 +1,12 @@
 import { APIOrder, OrderbookResponse, PaginatedCollection } from '@0x/connect';
-import { assetDataUtils } from '@0x/order-utils';
 import { AssetPairsItem, OrdersRequestOpts, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 import { Connection, In } from 'typeorm';
 
+import { ONE_SECOND_MS } from '../constants';
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
+import { logger } from '../logger';
 import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
@@ -111,49 +112,21 @@ export class OrderBookService {
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: filterObject,
         })) as Array<Required<SignedOrderEntity>>;
-        let apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
+        const apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
         // Post-filters
-        apiOrders = apiOrders
-            .filter(
-                // traderAddress
-                apiOrder =>
-                    ordersFilterParams.traderAddress === undefined ||
-                    apiOrder.order.makerAddress === ordersFilterParams.traderAddress ||
-                    apiOrder.order.takerAddress === ordersFilterParams.traderAddress,
-            )
-            .filter(
-                // makerAssetAddress
-                apiOrder =>
-                    ordersFilterParams.makerAssetAddress === undefined ||
-                    orderUtils.includesTokenAddress(
-                        apiOrder.order.makerAssetData,
-                        ordersFilterParams.makerAssetAddress,
-                    ),
-            )
-            .filter(
-                // takerAssetAddress
-                apiOrder =>
-                    ordersFilterParams.takerAssetAddress === undefined ||
-                    orderUtils.includesTokenAddress(
-                        apiOrder.order.takerAssetData,
-                        ordersFilterParams.takerAssetAddress,
-                    ),
-            )
-            .filter(
-                // makerAssetProxyId
-                apiOrder =>
-                    ordersFilterParams.makerAssetProxyId === undefined ||
-                    assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.makerAssetData).assetProxyId ===
-                        ordersFilterParams.makerAssetProxyId,
-            )
-            .filter(
-                // takerAssetProxyId
-                apiOrder =>
-                    ordersFilterParams.takerAssetProxyId === undefined ||
-                    assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.takerAssetData).assetProxyId ===
-                        ordersFilterParams.takerAssetProxyId,
-            );
-        const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
+        const filteredApiOrders = orderUtils.filterOrders(apiOrders, ordersFilterParams);
+        // Remove expired orders
+        const dateNowSeconds = Date.now() / ONE_SECOND_MS;
+        const freshFilteredApiOrders = filteredApiOrders.
+            filter(apiOrder => apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds));
+        const expiredOrders = _.xor(filteredApiOrders, freshFilteredApiOrders);
+        if (!_.isEmpty(expiredOrders)) {
+            logger.warn({
+                numExpiredOrders: expiredOrders.length,
+                secondsAgoExpired: expiredOrders.map(apiOrder => dateNowSeconds - apiOrder.order.expirationTimeSeconds.toNumber()).sort(),
+            });
+        }
+        const paginatedApiOrders = paginationUtils.paginate(freshFilteredApiOrders, page, perPage);
         return paginatedApiOrders;
     }
     public async getBatchOrdersAsync(
