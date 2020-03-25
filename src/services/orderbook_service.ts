@@ -119,13 +119,6 @@ export class OrderBookService {
         const dateNowSeconds = Date.now() / ONE_SECOND_MS;
         const freshFilteredApiOrders = filteredApiOrders.
             filter(apiOrder => apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds));
-        const expiredOrders = _.xor(filteredApiOrders, freshFilteredApiOrders);
-        if (!_.isEmpty(expiredOrders)) {
-            logger.warn({
-                numExpiredOrders: expiredOrders.length,
-                secondsAgoExpired: expiredOrders.map(apiOrder => dateNowSeconds - apiOrder.order.expirationTimeSeconds.toNumber()).sort(),
-            });
-        }
         const paginatedApiOrders = paginationUtils.paginate(freshFilteredApiOrders, page, perPage);
         return paginatedApiOrders;
     }
