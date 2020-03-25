@@ -4,12 +4,19 @@ import {
     MarketBuySwapQuote,
     MarketSellSwapQuote,
     Orderbook,
+    ProtocolFeeUtils,
     SignedOrder,
     SwapQuoteConsumer,
     SwapQuoteOrdersBreakdown,
     SwapQuoter,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
+import {
+    WETH9Contract,
+} from '@0x/contract-wrappers';
+import {
+    getContractAddressesForChainOrThrow,
+} from '@0x/contract-addresses';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
@@ -24,8 +31,10 @@ import {
 import {
     DEFAULT_TOKEN_DECIMALS,
     GAS_LIMIT_BUFFER_PERCENTAGE,
+    ONE,
     ONE_SECOND_MS,
     PERCENTAGE_SIG_DIGITS,
+    PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     ZERO,
 } from '../constants';
@@ -46,6 +55,9 @@ export class SwapService {
     private readonly _swapQuoter: SwapQuoter;
     private readonly _swapQuoteConsumer: SwapQuoteConsumer;
     private readonly _web3Wrapper: Web3Wrapper;
+    private readonly _wethContract: WETH9Contract;
+    private readonly _protocolFeeUtils: ProtocolFeeUtils;
+
     constructor(orderbook: Orderbook, provider: SupportedProvider) {
         this._provider = provider;
         const swapQuoterOpts: Partial<SwapQuoterOpts> = {
@@ -56,7 +68,12 @@ export class SwapService {
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
         this._web3Wrapper = new Web3Wrapper(this._provider);
+
+        const contractAddresses = getContractAddressesForChainOrThrow(CHAIN_ID);
+        this._wethContract = new WETH9Contract(contractAddresses.etherToken, this._provider);
+        this._protocolFeeUtils = new ProtocolFeeUtils(PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS);
     }
+
     public async calculateSwapQuoteAsync(params: CalculateSwapQuoteParams): Promise<GetSwapQuoteResponse> {
         let swapQuote;
         const {
@@ -184,6 +201,14 @@ export class SwapService {
         return apiSwapQuote;
     }
 
+    public async getSwapQuoteForWrapAsync(params: CalculateSwapQuoteParams): Promise<GetSwapQuoteResponse> {
+        return this._getSwapQuoteForWethAsync(params, false);
+    }
+
+    public async getSwapQuoteForUnwrapAsync(params: CalculateSwapQuoteParams): Promise<GetSwapQuoteResponse> {
+        return this._getSwapQuoteForWethAsync(params, true);
+    }
+
     public async getTokenPricesAsync(sellToken: TokenMetadata, unitAmount: BigNumber): Promise<GetTokenPricesResponse> {
         // Gets the price for buying 1 unit (not base unit as this is different between tokens with differing decimals)
         // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
@@ -233,6 +258,51 @@ export class SwapService {
             })
             .filter(p => p) as GetTokenPricesResponse;
         return prices;
+    }
+    private async _getSwapQuoteForWethAsync(params: CalculateSwapQuoteParams, isUnwrap: boolean): Promise<GetSwapQuoteResponse> {
+        const {
+            from,
+            buyTokenAddress,
+            sellTokenAddress,
+            buyAmount,
+            sellAmount,
+            affiliateAddress,
+            gasPrice: providedGasPrice,
+        } = params;
+        const amount = buyAmount || sellAmount;
+        if (amount === undefined) {
+            throw new Error('sellAmount or buyAmount required');
+        }
+        const data = (isUnwrap ? this._wethContract.withdraw(amount) : this._wethContract.deposit()).getABIEncodedTransactionData();
+        const value = isUnwrap ? ZERO : amount;
+        const affiliatedData = this._attributeCallData(data, affiliateAddress);
+        const gasPrice = providedGasPrice || await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasEstimate = await this._estimateGasOrThrowRevertErrorAsync({
+            to: this._wethContract.address,
+            data: affiliatedData,
+            from,
+            value,
+            gasPrice,
+        });
+        const suggestedGasEstimate = gasEstimate.times(GAS_LIMIT_BUFFER_PERCENTAGE + 1).integerValue();
+        const apiSwapQuote: GetSwapQuoteResponse = {
+            price: ONE,
+            guaranteedPrice: ONE,
+            to: this._wethContract.address,
+            data: affiliatedData,
+            value,
+            gas: suggestedGasEstimate,
+            from,
+            gasPrice,
+            protocolFee: ZERO,
+            buyTokenAddress,
+            sellTokenAddress,
+            buyAmount: amount,
+            sellAmount: amount,
+            sources: [],
+            orders: [],
+        };
+        return apiSwapQuote;
     }
     // tslint:disable-next-line: prefer-function-over-method
     private _convertSourceBreakdownToArray(

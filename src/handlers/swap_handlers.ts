@@ -11,9 +11,9 @@ import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { ChainId, GetSwapQuoteRequestParams } from '../types';
+import { ChainId, GetSwapQuoteRequestParams, GetSwapQuoteResponse, CalculateSwapQuoteParams } from '../types';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddress, getTokenMetadataIfExists, isETHSymbol } from '../utils/token_metadata_utils';
+import { findTokenAddress, getTokenMetadataIfExists, isETHSymbol, isWETHSymbol } from '../utils/token_metadata_utils';
 
 export class SwapHandlers {
     private readonly _swapService: SwapService;
@@ -37,7 +37,10 @@ export class SwapHandlers {
             excludedSources,
             affiliateAddress,
         } = parseGetSwapQuoteRequestParams(req);
-        if (isETHSymbol(buyToken)) {
+
+        const isETHSell = isETHSymbol(sellToken);
+        // if sellToken is not WETH and buyToken is ETH, throw
+        if (!isWETHSymbol(sellToken) && isETHSymbol(buyToken)) {
             throw new ValidationError([
                 {
                     field: 'buyToken',
@@ -46,10 +49,12 @@ export class SwapHandlers {
                 },
             ]);
         }
-        const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
         const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
-        if (sellTokenAddress === buyTokenAddress) {
+        const isWrap = isETHSell && isWETHSymbol(buyToken);
+        const isUnwrap = isWETHSymbol(sellToken) && isETHSymbol(buyToken);
+        // if token addresses are the same but a unwrap or wrap operation is requested, ignore error
+        if (!isUnwrap && !isWrap && sellTokenAddress === buyTokenAddress) {
             throw new ValidationError(
                 ['buyToken', 'sellToken'].map(field => {
                     return {
@@ -60,19 +65,29 @@ export class SwapHandlers {
                 }),
             );
         }
+
+        const calculateSwapQuoteParams: CalculateSwapQuoteParams = {
+            buyTokenAddress,
+            sellTokenAddress,
+            buyAmount,
+            sellAmount,
+            from: takerAddress,
+            isETHSell,
+            slippagePercentage,
+            gasPrice,
+            excludedSources,
+            affiliateAddress,
+        };
+
         try {
-            const swapQuote = await this._swapService.calculateSwapQuoteAsync({
-                buyTokenAddress,
-                sellTokenAddress,
-                buyAmount,
-                sellAmount,
-                from: takerAddress,
-                isETHSell,
-                slippagePercentage,
-                gasPrice,
-                excludedSources,
-                affiliateAddress,
-            });
+            let swapQuote: GetSwapQuoteResponse;
+            if (isUnwrap) {
+                swapQuote = await this._swapService.getSwapQuoteForUnwrapAsync(calculateSwapQuoteParams);
+            } else if (isWrap) {
+                swapQuote = await this._swapService.getSwapQuoteForWrapAsync(calculateSwapQuoteParams);
+            } else {
+                swapQuote = await this._swapService.calculateSwapQuoteAsync(calculateSwapQuoteParams);
+            }
             res.status(HttpStatus.OK).send(swapQuote);
         } catch (e) {
             // If this is already a transformed error then just re-throw

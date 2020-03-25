@@ -1,4 +1,4 @@
-import { ADDRESS_HEX_LENGTH, ETH_SYMBOL } from '../constants';
+import { ADDRESS_HEX_LENGTH, ETH_SYMBOL, WETH_SYMBOL } from '../constants';
 import { TokenMetadataAndChainAddresses, TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { ChainId, TokenMetadata } from '../types';
 
@@ -35,6 +35,15 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
  */
 export function isETHSymbol(tokenSymbol: string): boolean {
     return tokenSymbol.toLowerCase() === ETH_SYMBOL.toLowerCase();
+}
+
+/**
+ *  Returns true if this symbol represents WETH
+ *
+ * @param tokenSymbol the symbol of the token
+ */
+export function isWETHSymbol(tokenSymbol: string): boolean {
+    return tokenSymbol.toLowerCase() === WETH_SYMBOL.toLowerCase();
 }
 
 /**
