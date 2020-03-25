@@ -17,7 +17,7 @@ services:
         ports:
             - "5432:5432"
     mesh:
-        image: 0xorg/mesh:9.0.1
+        image: 0xorg/mesh:9.2.1
         depends_on:
             - ganache
         restart: on-failure

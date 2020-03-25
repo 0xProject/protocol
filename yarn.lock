@@ -32,7 +32,7 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/assert@^3.0.7":
+"@0x/assert@^3.0.6", "@0x/assert@^3.0.7":
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/@0x/assert/-/assert-3.0.7.tgz#fb616533ed00480bd642f8419d28e88b547c30df"
   dependencies:
@@ -399,14 +399,14 @@
     uuid "^3.3.2"
     websocket "^1.0.29"
 
-"@0x/mesh-rpc-client@^9.0.1":
-  version "9.0.1"
-  resolved "https://registry.npmjs.org/@0x/mesh-rpc-client/-/mesh-rpc-client-9.0.1.tgz#c3bebf7876cf52a254411ee73e78bdbf16f9330c"
+"@0x/mesh-rpc-client@^9.2.1":
+  version "9.2.1"
+  resolved "https://registry.yarnpkg.com/@0x/mesh-rpc-client/-/mesh-rpc-client-9.2.1.tgz#52540e2492e8c3a5c54127532e80f7ffb622fbea"
   dependencies:
-    "@0x/assert" "^3.0.2"
-    "@0x/types" "^3.1.1"
-    "@0x/typescript-typings" "^5.0.1"
-    "@0x/utils" "^5.1.1"
+    "@0x/assert" "^3.0.6"
+    "@0x/types" "^3.1.2"
+    "@0x/typescript-typings" "^5.0.2"
+    "@0x/utils" "^5.4.0"
     uuid "^3.3.2"
     web3-providers "^2.0.0-alpha.1"
     websocket "^1.0.29"
@@ -765,7 +765,7 @@
     js-sha3 "^0.7.0"
     lodash "^4.17.11"
 
-"@0x/utils@^5.4.1":
+"@0x/utils@^5.4.0", "@0x/utils@^5.4.1":
   version "5.4.1"
   resolved "https://registry.yarnpkg.com/@0x/utils/-/utils-5.4.1.tgz#5ec5f0d08dad38543b6ff8199bdf8f3d0e63488e"
   dependencies:
