@@ -6,7 +6,6 @@ import { Connection, In } from 'typeorm';
 import { ONE_SECOND_MS } from '../constants';
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
-import { logger } from '../logger';
 import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
@@ -117,8 +116,9 @@ export class OrderBookService {
         const filteredApiOrders = orderUtils.filterOrders(apiOrders, ordersFilterParams);
         // Remove expired orders
         const dateNowSeconds = Date.now() / ONE_SECOND_MS;
-        const freshFilteredApiOrders = filteredApiOrders.
-            filter(apiOrder => apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds));
+        const freshFilteredApiOrders = filteredApiOrders.filter(apiOrder =>
+            apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds),
+        );
         const paginatedApiOrders = paginationUtils.paginate(freshFilteredApiOrders, page, perPage);
         return paginatedApiOrders;
     }
