@@ -10,7 +10,7 @@ import {
     ERC20BridgeAssetData,
     ERC721AssetData,
     MultiAssetData,
-    OrdersFilter,
+    OrdersRequestOpts,
     SignedOrder,
     StaticCallAssetData,
 } from '@0x/types';
@@ -223,7 +223,7 @@ export const orderUtils = {
         };
         return orderConfigResponse;
     },
-    filterOrders: (apiOrders: APIOrder[], filters: OrdersFilter): APIOrder[] => {
+    filterOrders: (apiOrders: APIOrder[], filters: OrdersRequestOpts): APIOrder[] => {
         let filteredOrders = apiOrders;
         if (filters.traderAddress) {
             filteredOrders = filteredOrders.filter(
