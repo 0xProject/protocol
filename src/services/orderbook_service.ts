@@ -34,7 +34,6 @@ export class OrderBookService {
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity)) as Array<
             Required<SignedOrderEntity>
         >;
-
         const assetPairsItems: AssetPairsItem[] = signedOrderEntities
             .map(orderUtils.deserializeOrder)
             .map(orderUtils.signedOrderToAssetPair);
@@ -52,7 +51,10 @@ export class OrderBookService {
                 assetPair.assetDataA.assetData === assetData || assetPair.assetDataB.assetData === assetData;
             nonPaginatedFilteredAssetPairs = assetPairsItems.filter(containsAssetData);
         }
-        const uniqueNonPaginatedFilteredAssetPairs = _.uniqWith(nonPaginatedFilteredAssetPairs, _.isEqual.bind(_));
+        const uniqueNonPaginatedFilteredAssetPairs = _.uniqBy(
+            nonPaginatedFilteredAssetPairs,
+            assetPair => `${assetPair.assetDataA.assetData}/${assetPair.assetDataB.assetData}`,
+        );
         const paginatedFilteredAssetPairs = paginationUtils.paginate(
             uniqueNonPaginatedFilteredAssetPairs,
             page,
