@@ -11,12 +11,8 @@ import {
     SwapQuoter,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
-import {
-    WETH9Contract,
-} from '@0x/contract-wrappers';
-import {
-    getContractAddressesForChainOrThrow,
-} from '@0x/contract-addresses';
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { AbiEncoder, BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
@@ -259,7 +255,10 @@ export class SwapService {
             .filter(p => p) as GetTokenPricesResponse;
         return prices;
     }
-    private async _getSwapQuoteForWethAsync(params: CalculateSwapQuoteParams, isUnwrap: boolean): Promise<GetSwapQuoteResponse> {
+    private async _getSwapQuoteForWethAsync(
+        params: CalculateSwapQuoteParams,
+        isUnwrap: boolean,
+    ): Promise<GetSwapQuoteResponse> {
         const {
             from,
             buyTokenAddress,
@@ -273,10 +272,13 @@ export class SwapService {
         if (amount === undefined) {
             throw new Error('sellAmount or buyAmount required');
         }
-        const data = (isUnwrap ? this._wethContract.withdraw(amount) : this._wethContract.deposit()).getABIEncodedTransactionData();
+        const data = (isUnwrap
+            ? this._wethContract.withdraw(amount)
+            : this._wethContract.deposit()
+        ).getABIEncodedTransactionData();
         const value = isUnwrap ? ZERO : amount;
         const affiliatedData = this._attributeCallData(data, affiliateAddress);
-        const gasPrice = providedGasPrice || await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPrice = providedGasPrice || (await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync());
         const gasEstimate = await this._estimateGasOrThrowRevertErrorAsync({
             to: this._wethContract.address,
             data: affiliatedData,

@@ -11,7 +11,7 @@ import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { ChainId, GetSwapQuoteRequestParams, GetSwapQuoteResponse, CalculateSwapQuoteParams } from '../types';
+import { CalculateSwapQuoteParams, ChainId, GetSwapQuoteRequestParams, GetSwapQuoteResponse } from '../types';
 import { schemaUtils } from '../utils/schema_utils';
 import { findTokenAddress, getTokenMetadataIfExists, isETHSymbol, isWETHSymbol } from '../utils/token_metadata_utils';
 
