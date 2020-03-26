@@ -478,11 +478,11 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
-        decimals: 18,
-        symbol: 'BNB',
-        name: 'Binance Coin',
+        decimals: 8,
+        symbol: 'UBT',
+        name: 'UniBright',
         tokenAddresses: {
-            [ChainId.Mainnet]: '0xb8c77482e45f1f44de1745f52c74426c631bdd52',
+            [ChainId.Mainnet]: '0x8400d94a5cb0fa0d041a3788e395285d61c9ee5e',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
