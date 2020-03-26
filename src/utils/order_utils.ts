@@ -225,42 +225,44 @@ export const orderUtils = {
     },
     filterOrders: (apiOrders: APIOrder[], filters: OrdersRequestOpts): APIOrder[] => {
         let filteredOrders = apiOrders;
-        if (filters.traderAddress) {
+        const {
+            traderAddress,
+            makerAssetAddress,
+            takerAssetAddress,
+            makerAssetProxyId,
+            takerAssetProxyId,
+        } = filters;
+        if (traderAddress) {
             filteredOrders = filteredOrders.filter(
                 apiOrder =>
-                    filters.traderAddress === undefined ||
-                    apiOrder.order.makerAddress === filters.traderAddress ||
-                    apiOrder.order.takerAddress === filters.traderAddress,
+                    apiOrder.order.makerAddress === traderAddress ||
+                    apiOrder.order.takerAddress === traderAddress,
             );
         }
-        if (filters.makerAssetAddress) {
+        if (makerAssetAddress) {
             filteredOrders = filteredOrders.filter(
                 apiOrder =>
-                    filters.makerAssetAddress === undefined ||
-                    orderUtils.includesTokenAddress(apiOrder.order.makerAssetData, filters.makerAssetAddress),
+                    orderUtils.includesTokenAddress(apiOrder.order.makerAssetData, makerAssetAddress),
             );
         }
-        if (filters.takerAssetAddress) {
+        if (takerAssetAddress) {
             filteredOrders = filteredOrders.filter(
                 apiOrder =>
-                    filters.takerAssetAddress === undefined ||
-                    orderUtils.includesTokenAddress(apiOrder.order.takerAssetData, filters.takerAssetAddress),
+                    orderUtils.includesTokenAddress(apiOrder.order.takerAssetData, takerAssetAddress),
             );
         }
-        if (filters.makerAssetProxyId) {
+        if (makerAssetProxyId) {
             filteredOrders = filteredOrders.filter(
                 apiOrder =>
-                    filters.makerAssetProxyId === undefined ||
                     assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.makerAssetData).assetProxyId ===
-                        filters.makerAssetProxyId,
+                        makerAssetProxyId,
             );
         }
-        if (filters.takerAssetProxyId) {
+        if (takerAssetProxyId) {
             filteredOrders = filteredOrders.filter(
                 apiOrder =>
-                    filters.takerAssetProxyId === undefined ||
                     assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.takerAssetData).assetProxyId ===
-                        filters.takerAssetProxyId,
+                        takerAssetProxyId,
             );
         }
         return filteredOrders;
