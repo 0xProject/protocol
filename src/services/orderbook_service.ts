@@ -3,7 +3,7 @@ import { AssetPairsItem, OrdersRequestOpts, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 import { Connection, In } from 'typeorm';
 
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS, SRA_ORDER_EXPIRATION_BUFFER_SECONDS } from '../constants';
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
 import { MeshClient } from '../utils/mesh_client';
@@ -117,7 +117,7 @@ export class OrderBookService {
         // Remove expired orders
         const dateNowSeconds = Date.now() / ONE_SECOND_MS;
         const freshFilteredApiOrders = filteredApiOrders.filter(apiOrder =>
-            apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds),
+            apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds + SRA_ORDER_EXPIRATION_BUFFER_SECONDS),
         );
         const paginatedApiOrders = paginationUtils.paginate(freshFilteredApiOrders, page, perPage);
         return paginatedApiOrders;
