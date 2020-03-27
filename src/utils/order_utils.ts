@@ -10,6 +10,7 @@ import {
     ERC20BridgeAssetData,
     ERC721AssetData,
     MultiAssetData,
+    OrdersRequestOpts,
     SignedOrder,
     StaticCallAssetData,
 } from '@0x/types';
@@ -221,5 +222,40 @@ export const orderUtils = {
             takerFeeAssetData: TAKER_FEE_ASSET_DATA,
         };
         return orderConfigResponse;
+    },
+    filterOrders: (apiOrders: APIOrder[], filters: OrdersRequestOpts): APIOrder[] => {
+        let filteredOrders = apiOrders;
+        const { traderAddress, makerAssetAddress, takerAssetAddress, makerAssetProxyId, takerAssetProxyId } = filters;
+        if (traderAddress) {
+            filteredOrders = filteredOrders.filter(
+                apiOrder =>
+                    apiOrder.order.makerAddress === traderAddress || apiOrder.order.takerAddress === traderAddress,
+            );
+        }
+        if (makerAssetAddress) {
+            filteredOrders = filteredOrders.filter(apiOrder =>
+                orderUtils.includesTokenAddress(apiOrder.order.makerAssetData, makerAssetAddress),
+            );
+        }
+        if (takerAssetAddress) {
+            filteredOrders = filteredOrders.filter(apiOrder =>
+                orderUtils.includesTokenAddress(apiOrder.order.takerAssetData, takerAssetAddress),
+            );
+        }
+        if (makerAssetProxyId) {
+            filteredOrders = filteredOrders.filter(
+                apiOrder =>
+                    assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.makerAssetData).assetProxyId ===
+                    makerAssetProxyId,
+            );
+        }
+        if (takerAssetProxyId) {
+            filteredOrders = filteredOrders.filter(
+                apiOrder =>
+                    assetDataUtils.decodeAssetDataOrThrow(apiOrder.order.takerAssetData).assetProxyId ===
+                    takerAssetProxyId,
+            );
+        }
+        return filteredOrders;
     },
 };
