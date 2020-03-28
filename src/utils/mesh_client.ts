@@ -13,11 +13,11 @@ export class MeshClient extends WSClient {
             // break into chunks because mesh websocket fails when the msg is too big
             const validationResults: ValidationResults = { accepted: [], rejected: [] };
             const chunks = _.chunk(orders, MESH_ORDERS_BATCH_SIZE);
-            chunks.forEach(async chunk => {
+            for (const chunk of chunks) {
                 const results = await super.addOrdersAsync(chunk, pinned);
                 validationResults.accepted = [...validationResults.accepted, ...results.accepted];
                 validationResults.rejected = [...validationResults.rejected, ...results.rejected];
-            });
+            }
             return validationResults;
         } else {
             // send via http
