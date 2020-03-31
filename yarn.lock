@@ -42,9 +42,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-99b0a95f8":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-424cbd483":
   version "4.4.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/edb76a7eb188e7c208efa7ad611c04de6c27223a"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/e4b2db507e221a4021b104ee7985db537bb641f6"
   dependencies:
     "@0x/assert" "^3.0.7"
     "@0x/contract-addresses" "^4.9.0"
@@ -119,17 +119,17 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-277dbacf6", "@0x/contract-addresses@^4.1.0", "@0x/contract-addresses@^4.9.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-424cbd483", "@0x/contract-addresses@^4.1.0", "@0x/contract-addresses@^4.9.0":
   version "4.9.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/2df97ffbb1acb65751d8525d329990b907bcc46a"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/3f47358b79aa71331eb9f55caf6ea9fd2422d4d9"
 
 "@0x/contract-artifacts@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-artifacts/-/contract-artifacts-3.2.0.tgz#a013ab50862f6c4d16fbbaa2bfc2299c630379d8"
 
-"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-e3f3bb670", "@0x/contract-wrappers@^13.3.0", "@0x/contract-wrappers@^13.4.0", "@0x/contract-wrappers@^13.6.3":
+"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-424cbd483", "@0x/contract-wrappers@^13.3.0", "@0x/contract-wrappers@^13.4.0", "@0x/contract-wrappers@^13.6.3":
   version "13.6.3"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/eda9bb7e81dc9dc7e63f23e6332858e322786235"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/3f73b1a23ef148c26d45b4b2210dca8415a9485e"
   dependencies:
     "@0x/assert" "^3.0.7"
     "@0x/base-contract" "^6.2.1"
