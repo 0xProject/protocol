@@ -18,6 +18,7 @@ import { ChainId } from './types';
 enum EnvVarType {
     AddressList,
     Port,
+    KeepAliveTimeout,
     ChainId,
     ETHAddressHex,
     UnitAmount,
@@ -31,6 +32,22 @@ enum EnvVarType {
 export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
     ? 3000
     : assertEnvVarType('HTTP_PORT', process.env.HTTP_PORT, EnvVarType.Port);
+
+// Number of milliseconds of inactivity the servers waits for additional
+// incoming data aftere it finished writing last response before a socket will
+// be destroyed.
+// Ref: https://nodejs.org/api/http.html#http_server_keepalivetimeout
+export const HTTP_KEEP_ALIVE_TIMEOUT = _.isEmpty(process.env.HTTP_KEEP_ALIVE_TIMEOUT)
+    ? 76 * 1000
+    : assertEnvVarType('HTTP_KEEP_ALIVE_TIMEOUT', process.env.HTTP_KEEP_ALIVE_TIMEOUT, EnvVarType.KeepAliveTimeout);
+
+// Limit the amount of time the parser will wait to receive the complete HTTP headers.
+// NOTE: This value HAS to be higher than HTTP_KEEP_ALIVE_TIMEOUT.
+// Ref: https://nodejs.org/api/http.html#http_server_headerstimeout
+export const HTTP_HEADERS_TIMEOUT = _.isEmpty(process.env.HTTP_HEADERS_TIMEOUT)
+    ? 77 * 1000
+    : assertEnvVarType('HTTP_HEADERS_TIMEOUT', process.env.HTTP_HEADERS_TIMEOUT, EnvVarType.KeepAliveTimeout);
+
 // Default chain id to use when not specified
 export const CHAIN_ID: ChainId = _.isEmpty(process.env.CHAIN_ID)
     ? ChainId.Kovan
@@ -157,6 +174,13 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 }
             } catch (err) {
                 throw new Error(`${name} must be between 0 to 65535, found ${value}.`);
+            }
+            return returnValue;
+        case EnvVarType.KeepAliveTimeout:
+            try {
+                returnValue = parseInt(value, 10);
+            } catch (err) {
+                throw new Error(`${name} must be a valid integer, found ${value}.`);
             }
             return returnValue;
         case EnvVarType.ChainId:
