@@ -27,6 +27,7 @@ import {
     ONE_SECOND_MS,
     PERCENTAGE_SIG_DIGITS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+    ZERO,
 } from '../constants';
 import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
@@ -237,8 +238,18 @@ export class SwapService {
     private _convertSourceBreakdownToArray(
         sourceBreakdown: SwapQuoteOrdersBreakdown,
     ): GetSwapQuoteResponseLiquiditySource[] {
+        const defaultSourceBreakdown: SwapQuoteOrdersBreakdown = Object.keys(ERC20BridgeSource).reduce(
+            (acc: SwapQuoteOrdersBreakdown, k: any): SwapQuoteOrdersBreakdown => {
+                return {
+                    ...acc,
+                    [k]: ZERO,
+                };
+            },
+            {},
+        );
+
         const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
-        return Object.entries(sourceBreakdown).reduce(
+        return Object.entries({ ...defaultSourceBreakdown, ...sourceBreakdown }).reduce(
             (acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
                 return [
                     ...acc,
