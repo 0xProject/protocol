@@ -45,7 +45,7 @@ if (require.main === module) {
  */
 export async function runHttpServiceAsync(
     dependencies: AppDependencies,
-    config: { HTTP_PORT: string },
+    config: { HTTP_PORT: string; HTTP_KEEP_ALIVE_TIMEOUT: number; HTTP_HEADERS_TIMEOUT: number },
     _app?: core.Express,
 ): Promise<Server> {
     const app = _app || express();
@@ -57,6 +57,8 @@ export async function runHttpServiceAsync(
     const server = app.listen(config.HTTP_PORT, () => {
         logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!`);
     });
+    server.keepAliveTimeout = config.HTTP_KEEP_ALIVE_TIMEOUT;
+    server.headersTimeout = config.HTTP_HEADERS_TIMEOUT;
 
     // staking http service
     app.use(STAKING_PATH, createStakingRouter(dependencies.stakingDataService));

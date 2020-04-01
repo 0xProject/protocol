@@ -79,7 +79,12 @@ export async function getDefaultAppDependenciesAsync(
  */
 export async function getAppAsync(
     dependencies: AppDependencies,
-    config: { HTTP_PORT: string; ETHEREUM_RPC_URL: string },
+    config: {
+        HTTP_PORT: string;
+        ETHEREUM_RPC_URL: string;
+        HTTP_KEEP_ALIVE_TIMEOUT: number;
+        HTTP_HEADERS_TIMEOUT: number;
+    },
 ): Promise<Express.Application> {
     const app = express();
     await runHttpServiceAsync(dependencies, config, app);
