@@ -238,15 +238,7 @@ export class SwapService {
     private _convertSourceBreakdownToArray(
         sourceBreakdown: SwapQuoteOrdersBreakdown,
     ): GetSwapQuoteResponseLiquiditySource[] {
-        const defaultSourceBreakdown: SwapQuoteOrdersBreakdown = Object.keys(ERC20BridgeSource).reduce(
-            (acc: SwapQuoteOrdersBreakdown, k: any): SwapQuoteOrdersBreakdown => {
-                return {
-                    ...acc,
-                    [k]: ZERO,
-                };
-            },
-            {},
-        );
+        const defaultSourceBreakdown: SwapQuoteOrdersBreakdown = Object.assign({}, ...Object.values(ERC20BridgeSource).map(s => ({ [s]: ZERO })));
 
         const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
         return Object.entries({ ...defaultSourceBreakdown, ...sourceBreakdown }).reduce(
@@ -262,6 +254,7 @@ export class SwapService {
             breakdown,
         );
     }
+
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
         // Perform this concurrently
         // if the call fails the gas estimation will also fail, we can throw a more helpful
