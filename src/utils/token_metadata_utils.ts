@@ -42,8 +42,13 @@ export function isETHSymbol(tokenSymbol: string): boolean {
  *
  * @param tokenSymbol the symbol of the token
  */
-export function isWETHSymbol(tokenSymbol: string): boolean {
-    return tokenSymbol.toLowerCase() === WETH_SYMBOL.toLowerCase();
+export function isWETHSymbolOrAddress(tokenAddressOrSymbol: string, chainId: number): boolean {
+    // force downcast to TokenMetadata the optional
+    const wethAddress = ((getTokenMetadataIfExists(WETH_SYMBOL, chainId) as any) as TokenMetadata).tokenAddress;
+    return (
+        tokenAddressOrSymbol.toLowerCase() === WETH_SYMBOL.toLowerCase() ||
+        tokenAddressOrSymbol.toLowerCase() === wethAddress
+    );
 }
 
 /**

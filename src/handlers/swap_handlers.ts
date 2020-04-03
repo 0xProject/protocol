@@ -13,7 +13,12 @@ import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { CalculateSwapQuoteParams, ChainId, GetSwapQuoteRequestParams, GetSwapQuoteResponse } from '../types';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddress, getTokenMetadataIfExists, isETHSymbol, isWETHSymbol } from '../utils/token_metadata_utils';
+import {
+    findTokenAddress,
+    getTokenMetadataIfExists,
+    isETHSymbol,
+    isWETHSymbolOrAddress,
+} from '../utils/token_metadata_utils';
 
 export class SwapHandlers {
     private readonly _swapService: SwapService;
@@ -39,20 +44,10 @@ export class SwapHandlers {
         } = parseGetSwapQuoteRequestParams(req);
 
         const isETHSell = isETHSymbol(sellToken);
-        // if sellToken is not WETH and buyToken is ETH, throw
-        if (!isWETHSymbol(sellToken) && isETHSymbol(buyToken)) {
-            throw new ValidationError([
-                {
-                    field: 'buyToken',
-                    code: ValidationErrorCodes.TokenNotSupported,
-                    reason: "Buying ETH is unsupported (set to 'WETH' to received wrapped Ether)",
-                },
-            ]);
-        }
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
         const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
-        const isWrap = isETHSell && isWETHSymbol(buyToken);
-        const isUnwrap = isWETHSymbol(sellToken) && isETHSymbol(buyToken);
+        const isWrap = isETHSell && isWETHSymbolOrAddress(buyToken, CHAIN_ID);
+        const isUnwrap = isWETHSymbolOrAddress(sellToken, CHAIN_ID) && isETHSymbol(buyToken);
         // if token addresses are the same but a unwrap or wrap operation is requested, ignore error
         if (!isUnwrap && !isWrap && sellTokenAddress === buyTokenAddress) {
             throw new ValidationError(
@@ -64,6 +59,17 @@ export class SwapHandlers {
                     };
                 }),
             );
+        }
+
+        // if sellToken is not WETH and buyToken is ETH, throw
+        if (!isWETHSymbolOrAddress(sellToken, CHAIN_ID) && isETHSymbol(buyToken)) {
+            throw new ValidationError([
+                {
+                    field: 'buyToken',
+                    code: ValidationErrorCodes.TokenNotSupported,
+                    reason: "Buying ETH is unsupported (set to 'WETH' to received wrapped Ether)",
+                },
+            ]);
         }
 
         const calculateSwapQuoteParams: CalculateSwapQuoteParams = {

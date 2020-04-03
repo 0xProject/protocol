@@ -32,6 +32,8 @@ import {
     PERCENTAGE_SIG_DIGITS,
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+    UNWRAP_QUOTE_GAS,
+    WRAP_QUOTE_GAS,
     ZERO,
 } from '../constants';
 import { logger } from '../logger';
@@ -278,22 +280,16 @@ export class SwapService {
         ).getABIEncodedTransactionData();
         const value = isUnwrap ? ZERO : amount;
         const affiliatedData = this._attributeCallData(data, affiliateAddress);
+        // TODO: consider not using protocol fee utils due to lack of need for an aggresive gas price for wrapping/unwrapping
         const gasPrice = providedGasPrice || (await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync());
-        const gasEstimate = await this._estimateGasOrThrowRevertErrorAsync({
-            to: this._wethContract.address,
-            data: affiliatedData,
-            from,
-            value,
-            gasPrice,
-        });
-        const suggestedGasEstimate = gasEstimate.times(GAS_LIMIT_BUFFER_PERCENTAGE + 1).integerValue();
+        const gasEstimate = isUnwrap ? UNWRAP_QUOTE_GAS : WRAP_QUOTE_GAS;
         const apiSwapQuote: GetSwapQuoteResponse = {
             price: ONE,
             guaranteedPrice: ONE,
             to: this._wethContract.address,
             data: affiliatedData,
             value,
-            gas: suggestedGasEstimate,
+            gas: gasEstimate,
             from,
             gasPrice,
             protocolFee: ZERO,
