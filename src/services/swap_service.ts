@@ -27,6 +27,7 @@ import {
     ONE_SECOND_MS,
     PERCENTAGE_SIG_DIGITS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+    ZERO,
 } from '../constants';
 import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
@@ -237,8 +238,13 @@ export class SwapService {
     private _convertSourceBreakdownToArray(
         sourceBreakdown: SwapQuoteOrdersBreakdown,
     ): GetSwapQuoteResponseLiquiditySource[] {
+        const defaultSourceBreakdown: SwapQuoteOrdersBreakdown = Object.assign(
+            {},
+            ...Object.values(ERC20BridgeSource).map(s => ({ [s]: ZERO })),
+        );
+
         const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
-        return Object.entries(sourceBreakdown).reduce(
+        return Object.entries({ ...defaultSourceBreakdown, ...sourceBreakdown }).reduce(
             (acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
                 return [
                     ...acc,
@@ -251,6 +257,7 @@ export class SwapService {
             breakdown,
         );
     }
+
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
         // Perform this concurrently
         // if the call fails the gas estimation will also fail, we can throw a more helpful
