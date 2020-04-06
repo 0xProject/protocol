@@ -79,9 +79,11 @@ export class OrderBookService {
         ]);
         const bidApiOrders: APIOrder[] = (bidSignedOrderEntities as Array<Required<SignedOrderEntity>>)
             .map(orderUtils.deserializeOrderToAPIOrder)
+            .filter(freshOrderFilter)
             .sort((orderA, orderB) => orderUtils.compareBidOrder(orderA.order, orderB.order));
         const askApiOrders: APIOrder[] = (askSignedOrderEntities as Array<Required<SignedOrderEntity>>)
             .map(orderUtils.deserializeOrderToAPIOrder)
+            .filter(freshOrderFilter)
             .sort((orderA, orderB) => orderUtils.compareAskOrder(orderA.order, orderB.order));
         const paginatedBidApiOrders = paginationUtils.paginate(bidApiOrders, page, perPage);
         const paginatedAskApiOrders = paginationUtils.paginate(askApiOrders, page, perPage);
@@ -90,6 +92,7 @@ export class OrderBookService {
             asks: paginatedAskApiOrders,
         };
     }
+
     // TODO:(leo) Do all filtering and pagination in a DB (requires stored procedures or redundant fields)
     // tslint:disable-next-line:prefer-function-over-method
     public async getOrdersAsync(
@@ -113,15 +116,10 @@ export class OrderBookService {
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: filterObject,
         })) as Array<Required<SignedOrderEntity>>;
-        const apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
+        const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder).filter(freshOrderFilter);
         // Post-filters
         const filteredApiOrders = orderUtils.filterOrders(apiOrders, ordersFilterParams);
-        // Remove expired orders
-        const dateNowSeconds = Date.now() / ONE_SECOND_MS;
-        const freshFilteredApiOrders = filteredApiOrders.filter(apiOrder =>
-            apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds + SRA_ORDER_EXPIRATION_BUFFER_SECONDS),
-        );
-        const paginatedApiOrders = paginationUtils.paginate(freshFilteredApiOrders, page, perPage);
+        const paginatedApiOrders = paginationUtils.paginate(filteredApiOrders, page, perPage);
         return paginatedApiOrders;
     }
     public async getBatchOrdersAsync(
@@ -137,7 +135,7 @@ export class OrderBookService {
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: filterObject,
         })) as Array<Required<SignedOrderEntity>>;
-        const apiOrders = _.map(signedOrderEntities, orderUtils.deserializeOrderToAPIOrder);
+        const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder).filter(freshOrderFilter);
         const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
         return paginatedApiOrders;
     }
@@ -164,4 +162,9 @@ export class OrderBookService {
         }
         throw new Error('Could not add order to mesh.');
     }
+}
+
+function freshOrderFilter(apiOrder: APIOrder): boolean {
+    const dateNowSeconds = Date.now() / ONE_SECOND_MS;
+    return apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds + SRA_ORDER_EXPIRATION_BUFFER_SECONDS);
 }
