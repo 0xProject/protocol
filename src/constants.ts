@@ -18,6 +18,8 @@ export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 
 // The number of orders to post to Mesh at one time
 export const MESH_ORDERS_BATCH_SIZE = 200;
+// 5242880 appears to be the max HTTP content length with Mesh
+export const MESH_ORDERS_BATCH_HTTP_BYTE_LENGTH = 2500000;
 
 // Swap Quoter
 export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 90; // Ignore orders that expire in 90 seconds

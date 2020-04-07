@@ -47,4 +47,29 @@ export const utils = {
 
         throw new Error('Validation error: Response should be of type Object');
     },
+    chunkByByteLength: <T>(items: T[], maxByteLength: number): T[][] => {
+        const itemsClone = items.slice(0);
+        const chunkedItems: T[][] = [];
+        let currChunk: T[] = [];
+        let currentChunkTotalLength: number = 0;
+        while (itemsClone.length !== 0) {
+            const item = itemsClone[0];
+            const currLength = Buffer.from(JSON.stringify(item)).byteLength;
+            // Too big to add, reset
+            if (currentChunkTotalLength + currLength > maxByteLength) {
+                chunkedItems.push(currChunk);
+                currChunk = [];
+                currentChunkTotalLength = 0;
+            } else {
+                currChunk.push(item);
+                currentChunkTotalLength += currLength;
+                itemsClone.splice(0, 1);
+            }
+        }
+        // Handle the final chunk
+        if (currChunk.length !== 0) {
+            chunkedItems.push(currChunk);
+        }
+        return chunkedItems;
+    },
 };

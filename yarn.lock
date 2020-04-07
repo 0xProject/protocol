@@ -6978,6 +6978,10 @@ ret@~0.1.10:
   version "0.1.15"
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.15.tgz#b8a4825d5bdb1fc3f6f53c2bc33f81388681c7bc"
 
+retry-axios@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-2.1.2.tgz#78a8041bc34047a205aa4098af23f943ec58abd2"
+
 rimraf@^2.2.8, rimraf@^2.6.2, rimraf@^2.6.3:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.7.1.tgz#35797f13a7fdadc566142c29d4f07ccad483e3ec"

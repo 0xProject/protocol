@@ -6,7 +6,7 @@ version: 2
 jobs:
     build:
         docker:
-            - image: circleci/node:8.12.0-browsers
+            - image: circleci/node:11.14-browsers
             - image: circleci/postgres:9.6.5-alpine-ram
             - image: 0xorg/ganache-cli:6.0.0
             - image: 0xorg/mesh:9.2.1
