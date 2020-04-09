@@ -379,7 +379,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
     },
     {
         decimals: 8,
-        symbol: 'cSAI',
+        symbol: 'cDAI',
         name: 'Compound Dai',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x5d3a536e4d6dbd6114cc1ead35777bab948e3643',

@@ -6,7 +6,6 @@ import {
     RejectedCode,
     RejectedOrderInfo,
 } from '@0x/mesh-rpc-client';
-import * as _ from 'lodash';
 
 import { ZERO } from '../constants';
 import { ValidationErrorCodes } from '../errors';
