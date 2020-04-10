@@ -27,8 +27,8 @@
         "lint": "tslint --project . --format stylish"
     },
     "resolutions": {
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-a80d1f861",
-        "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-a80d1f861"
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-0e196a59d",
+        "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-0e196a59d"
     },
     "devDependencies": {
         "@0x/dev-utils": "^3.1.1",
@@ -60,10 +60,10 @@
     },
     "dependencies": {
         "@0x/assert": "^3.0.4",
-        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-a80d1f861",
+        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-0e196a59d",
         "@0x/connect": "^6.0.4",
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-a80d1f861",
-        "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-a80d1f861",
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-0e196a59d",
+        "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-0e196a59d",
         "@0x/json-schemas": "^5.0.4",
         "@0x/mesh-rpc-client": "^9.2.1",
         "@0x/order-utils": "^10.1.1",
