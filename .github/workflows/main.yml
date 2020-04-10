@@ -210,7 +210,7 @@ jobs:
             commit-message: "[0xApi][staging][kovan] Deploy ${{ steps.parse_pr_info.outputs.ref }}"
             title: "[0xApi]staging][kovan] Deploy ${{ steps.parse_pr_info.outputs.ref }}"
             reviewers: dekz
-            labels: 0xApi, kovan
+            labels: 0xApi, kovan, staging
             branch: "0xApi/kovan-staging/${{ steps.parse_pr_info.outputs.ref }}"
             body: |
               https://github.com/${{ github.repository }}/compare/master...${{ steps.parse_pr_info.outputs.ref }}
