@@ -14,7 +14,6 @@ import * as defaultConfig from '../config';
 import { SRA_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
-import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { requestLogger } from '../middleware/request_logger';
 import { createSRARouter } from '../routers/sra_router';
@@ -57,7 +56,6 @@ async function runHttpServiceAsync(
     server.headersTimeout = config.HTTP_HEADERS_TIMEOUT;
 
     // SRA http service
-    app.use(addressNormalizer);
     app.use(SRA_PATH, createSRARouter(dependencies.orderBookService));
     app.use(errorHandler);
 

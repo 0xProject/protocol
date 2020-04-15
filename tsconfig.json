@@ -15,5 +15,5 @@
         "resolveJsonModule": true
     },
     "include": ["src/**/*.ts", "test/**/*.ts"],
-    "files": ["./src/schemas/swap_quote_request_schema.json", "./test/fixtures/order.json"]
+    "files": ["./src/schemas/swap_quote_request_schema.json"]
 }
