@@ -99,6 +99,24 @@ export const TAKER_FEE_ASSET_DATA = _.isEmpty(process.env.TAKER_FEE_ASSET_DATA)
     ? NULL_BYTES
     : assertEnvVarType('TAKER_FEE_ASSET_DATA', process.env.TAKER_FEE_ASSET_DATA, EnvVarType.FeeAssetData);
 
+// If there are any orders in the orderbook that are expired by more than x seconds, log an error
+export const MAX_ORDER_EXPIRATION_BUFFER_SECONDS: number = _.isEmpty(process.env.MAX_ORDER_EXPIRATION_BUFFER_SECONDS)
+    ? 3 * 60
+    : assertEnvVarType(
+          'MAX_ORDER_EXPIRATION_BUFFER_SECONDS',
+          process.env.MAX_ORDER_EXPIRATION_BUFFER_SECONDS,
+          EnvVarType.KeepAliveTimeout,
+      );
+
+// Ignore orders greater than x seconds when responding to SRA requests
+export const SRA_ORDER_EXPIRATION_BUFFER_SECONDS: number = _.isEmpty(process.env.SRA_ORDER_EXPIRATION_BUFFER_SECONDS)
+    ? 10
+    : assertEnvVarType(
+          'SRA_ORDER_EXPIRATION_BUFFER_SECONDS',
+          process.env.SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
+          EnvVarType.KeepAliveTimeout,
+      );
+
 export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
     ? DEFAULT_LOCAL_POSTGRES_URI
     : assertEnvVarType('POSTGRES_URI', process.env.POSTGRES_URI, EnvVarType.Url);

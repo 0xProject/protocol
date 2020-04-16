@@ -3,9 +3,10 @@ import { AssetPairsItem, OrdersRequestOpts, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 import { Connection, In } from 'typeorm';
 
-import { ONE_SECOND_MS, SRA_ORDER_EXPIRATION_BUFFER_SECONDS } from '../constants';
+import { SRA_ORDER_EXPIRATION_BUFFER_SECONDS } from '../config';
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
+import { alertOnExpiredOrders } from '../logger';
 import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
@@ -79,11 +80,11 @@ export class OrderBookService {
         ]);
         const bidApiOrders: APIOrder[] = (bidSignedOrderEntities as Array<Required<SignedOrderEntity>>)
             .map(orderUtils.deserializeOrderToAPIOrder)
-            .filter(freshOrderFilter)
+            .filter(orderUtils.isFreshOrder)
             .sort((orderA, orderB) => orderUtils.compareBidOrder(orderA.order, orderB.order));
         const askApiOrders: APIOrder[] = (askSignedOrderEntities as Array<Required<SignedOrderEntity>>)
             .map(orderUtils.deserializeOrderToAPIOrder)
-            .filter(freshOrderFilter)
+            .filter(orderUtils.isFreshOrder)
             .sort((orderA, orderB) => orderUtils.compareAskOrder(orderA.order, orderB.order));
         const paginatedBidApiOrders = paginationUtils.paginate(bidApiOrders, page, perPage);
         const paginatedAskApiOrders = paginationUtils.paginate(askApiOrders, page, perPage);
@@ -116,9 +117,14 @@ export class OrderBookService {
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: filterObject,
         })) as Array<Required<SignedOrderEntity>>;
-        const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder).filter(freshOrderFilter);
+        const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder);
+
+        // check for expired orders
+        const { fresh, expired } = orderUtils.groupByFreshness(apiOrders, SRA_ORDER_EXPIRATION_BUFFER_SECONDS);
+        alertOnExpiredOrders(expired);
+
         // Post-filters
-        const filteredApiOrders = orderUtils.filterOrders(apiOrders, ordersFilterParams);
+        const filteredApiOrders = orderUtils.filterOrders(fresh, ordersFilterParams);
         const paginatedApiOrders = paginationUtils.paginate(filteredApiOrders, page, perPage);
         return paginatedApiOrders;
     }
@@ -135,8 +141,13 @@ export class OrderBookService {
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: filterObject,
         })) as Array<Required<SignedOrderEntity>>;
-        const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder).filter(freshOrderFilter);
-        const paginatedApiOrders = paginationUtils.paginate(apiOrders, page, perPage);
+        const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder);
+
+        // check for expired orders
+        const { fresh, expired } = orderUtils.groupByFreshness(apiOrders, SRA_ORDER_EXPIRATION_BUFFER_SECONDS);
+        alertOnExpiredOrders(expired);
+
+        const paginatedApiOrders = paginationUtils.paginate(fresh, page, perPage);
         return paginatedApiOrders;
     }
     constructor(connection: Connection, meshClient?: MeshClient) {
@@ -162,9 +173,4 @@ export class OrderBookService {
         }
         throw new Error('Could not add order to mesh.');
     }
-}
-
-function freshOrderFilter(apiOrder: APIOrder): boolean {
-    const dateNowSeconds = Date.now() / ONE_SECOND_MS;
-    return apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds + SRA_ORDER_EXPIRATION_BUFFER_SECONDS);
 }

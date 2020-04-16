@@ -22,10 +22,11 @@ import {
     FEE_RECIPIENT_ADDRESS,
     MAKER_FEE_ASSET_DATA,
     MAKER_FEE_UNIT_AMOUNT,
+    SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
     TAKER_FEE_ASSET_DATA,
     TAKER_FEE_UNIT_AMOUNT,
 } from '../config';
-import { MAX_TOKEN_SUPPLY_POSSIBLE, NULL_ADDRESS } from '../constants';
+import { MAX_TOKEN_SUPPLY_POSSIBLE, NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { SignedOrderEntity } from '../entities';
 import { APIOrderWithMetaData } from '../types';
 
@@ -106,6 +107,25 @@ export const orderUtils = {
             default:
                 return false;
         }
+    },
+    isFreshOrder: (
+        apiOrder: APIOrder,
+        expirationBufferSeconds: number = SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
+    ): boolean => {
+        const dateNowSeconds = Date.now() / ONE_SECOND_MS;
+        return apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds + expirationBufferSeconds);
+    },
+    groupByFreshness: <T extends APIOrder>(
+        apiOrders: T[],
+        expirationBufferSeconds: number,
+    ): { fresh: T[]; expired: T[] } => {
+        const accumulator = { fresh: [] as T[], expired: [] as T[] };
+        for (const order of apiOrders) {
+            orderUtils.isFreshOrder(order, expirationBufferSeconds)
+                ? accumulator.fresh.push(order)
+                : accumulator.expired.push(order);
+        }
+        return accumulator;
     },
     compareAskOrder: (orderA: SignedOrder, orderB: SignedOrder): number => {
         const orderAPrice = orderA.takerAssetAmount.div(orderA.makerAssetAmount);

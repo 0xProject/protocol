@@ -2,6 +2,7 @@ import { Connection } from 'typeorm';
 
 import { getDefaultAppDependenciesAsync } from '../app';
 import * as defaultConfig from '../config';
+import { OrderWatcherSyncError } from '../errors';
 import { logger } from '../logger';
 import { OrderWatcherService } from '../services/order_watcher_service';
 import { MeshClient } from '../utils/mesh_client';
@@ -47,5 +48,10 @@ process.on('unhandledRejection', err => {
 export async function runOrderWatcherServiceAsync(connection: Connection, meshClient: MeshClient): Promise<void> {
     const orderWatcherService = new OrderWatcherService(connection, meshClient);
     logger.info(`OrderWatcherService starting up!`);
-    await orderWatcherService.syncOrderbookAsync();
+    try {
+        await orderWatcherService.syncOrderbookAsync();
+    } catch (err) {
+        const logError = new OrderWatcherSyncError(`Error on starting OrderWatcher service: [${err.stack}]`);
+        throw logError;
+    }
 }
