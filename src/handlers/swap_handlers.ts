@@ -163,7 +163,7 @@ export class SwapHandlers {
 
 const findTokenAddressOrThrowApiError = (address: string, field: string, chainId: ChainId): string => {
     try {
-        return findTokenAddress(address, chainId);
+        return findTokenAddress(address.toLowerCase(), chainId);
     } catch (e) {
         throw new ValidationError([
             {

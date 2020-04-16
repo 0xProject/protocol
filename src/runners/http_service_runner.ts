@@ -10,6 +10,7 @@ import * as defaultConfig from '../config';
 import { SRA_PATH, STAKING_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
+import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { requestLogger } from '../middleware/request_logger';
 import { createSRARouter } from '../routers/sra_router';
@@ -59,6 +60,9 @@ export async function runHttpServiceAsync(
     });
     server.keepAliveTimeout = config.HTTP_KEEP_ALIVE_TIMEOUT;
     server.headersTimeout = config.HTTP_HEADERS_TIMEOUT;
+
+    // transform all values of `req.query.[xx]Address` to lowercase
+    app.use(addressNormalizer);
 
     // staking http service
     app.use(STAKING_PATH, createStakingRouter(dependencies.stakingDataService));

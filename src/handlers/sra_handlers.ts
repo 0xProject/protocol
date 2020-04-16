@@ -40,8 +40,8 @@ export class SRAHandlers {
         const assetPairs = await this._orderBook.getAssetPairsAsync(
             page,
             perPage,
-            req.query.assetDataA,
-            req.query.assetDataB,
+            req.query.assetDataA && req.query.assetDataA.toLowerCase(),
+            req.query.assetDataB && req.query.assetDataB.toLowerCase(),
         );
         res.status(HttpStatus.OK).send(assetPairs);
     }
@@ -62,8 +62,8 @@ export class SRAHandlers {
     public async orderbookAsync(req: express.Request, res: express.Response): Promise<void> {
         schemaUtils.validateSchema(req.query, schemas.orderBookRequestSchema);
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
-        const baseAssetData = req.query.baseAssetData;
-        const quoteAssetData = req.query.quoteAssetData;
+        const baseAssetData = req.query.baseAssetData.toLowerCase();
+        const quoteAssetData = req.query.quoteAssetData.toLowerCase();
         const orderbookResponse = await this._orderBook.getOrderBookAsync(page, perPage, baseAssetData, quoteAssetData);
         res.status(HttpStatus.OK).send(orderbookResponse);
     }
