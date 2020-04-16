@@ -23,10 +23,13 @@ import {
     CHAIN_ID,
     FEE_RECIPIENT_ADDRESS,
     LIQUIDITY_POOL_REGISTRY_ADDRESS,
+    RFQT_API_KEY_WHITELIST,
+    RFQT_MAKER_ENDPOINTS,
 } from '../config';
 import {
     DEFAULT_TOKEN_DECIMALS,
     GAS_LIMIT_BUFFER_PERCENTAGE,
+    NULL_ADDRESS,
     ONE,
     ONE_SECOND_MS,
     PERCENTAGE_SIG_DIGITS,
@@ -62,6 +65,10 @@ export class SwapService {
             chainId: CHAIN_ID,
             expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
             liquidityProviderRegistryAddress: LIQUIDITY_POOL_REGISTRY_ADDRESS,
+            rfqt: {
+                takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
+                makerEndpoints: RFQT_MAKER_ENDPOINTS,
+            },
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
@@ -85,6 +92,10 @@ export class SwapService {
             from,
             excludedSources,
             affiliateAddress,
+            apiKey,
+            rfqt,
+            // tslint:disable-next-line:boolean-naming
+            skipValidation,
         } = params;
         const assetSwapperOpts = {
             ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
@@ -92,6 +103,17 @@ export class SwapService {
             bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
             excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
+            apiKey,
+            rfqt:
+                rfqt === undefined || from === undefined || from === NULL_ADDRESS
+                    ? undefined
+                    : {
+                          ...rfqt,
+                          // If this is a forwarder transaction, then we want to request quotes with the taker as the
+                          // forwarder contract. If it's not, then we want to request quotes with the taker set to the
+                          // API's takerAddress query parameter, which in this context is known as `from`.
+                          takerAddress: isETHSell ? getContractAddressesForChainOrThrow(CHAIN_ID).forwarder : from,
+                      },
         };
         if (sellAmount !== undefined) {
             swapQuote = await this._swapQuoter.getMarketSellSwapQuoteAsync(
@@ -136,7 +158,7 @@ export class SwapService {
         const affiliatedData = this._attributeCallData(data, affiliateAddress);
 
         let suggestedGasEstimate = new BigNumber(gas);
-        if (from) {
+        if (!skipValidation && from) {
             // Force a revert error if the takerAddress does not have enough ETH.
             const txDataValue =
                 extensionContractType === ExtensionContractType.Forwarder

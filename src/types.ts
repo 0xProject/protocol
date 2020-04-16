@@ -359,6 +359,10 @@ export interface GetSwapQuoteRequestParams {
     gasPrice?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
+    rfqt?: {
+        intentOnFilling: boolean;
+    };
+    skipValidation: boolean;
 }
 
 export interface CalculateSwapQuoteParams {
@@ -372,6 +376,11 @@ export interface CalculateSwapQuoteParams {
     gasPrice?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
+    apiKey?: string;
+    rfqt?: {
+        intentOnFilling: boolean;
+    };
+    skipValidation: boolean;
 }
 
 export interface GetSwapQuoteResponseLiquiditySource {

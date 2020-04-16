@@ -637,4 +637,24 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'ZWETH',
+        name: 'Custom Kovan Wrapped Ether',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0x1FcAf05ABa8c7062D6F08E25c77Bf3746fCe5433',
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'ZUSDC',
+        name: 'Custom Kovan USD Coin',
+        decimals: 6,
+        tokenAddresses: {
+            [ChainId.Mainnet]: NULL_ADDRESS,
+            [ChainId.Kovan]: '0x5a719Cf3E02c17c876F6d294aDb5CB7C6eB47e2F',
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];

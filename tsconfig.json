@@ -9,7 +9,7 @@
         "noUnusedLocals": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "sourceMap": false,
+        "sourceMap": true,
         "typeRoots": ["./node_modules/@0x/typescript-typings/types", "./node_modules/@types"],
         "noUnusedParameters": true,
         "resolveJsonModule": true

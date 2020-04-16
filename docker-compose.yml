@@ -4,6 +4,8 @@ services:
         image: "0xorg/ganache-cli:6.0.0"
         ports:
             - "8545:8545"
+        environment:
+            VERSION: 6.2.4-110e1afa8
     postgres:
         image: postgres:9.6
         environment:

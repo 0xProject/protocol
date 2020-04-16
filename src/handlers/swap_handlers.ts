@@ -41,6 +41,9 @@ export class SwapHandlers {
             gasPrice,
             excludedSources,
             affiliateAddress,
+            rfqt,
+            // tslint:disable-next-line:boolean-naming
+            skipValidation,
         } = parseGetSwapQuoteRequestParams(req);
 
         const isETHSell = isETHSymbol(sellToken);
@@ -83,6 +86,14 @@ export class SwapHandlers {
             gasPrice,
             excludedSources,
             affiliateAddress,
+            apiKey: req.header('0x-api-key'),
+            rfqt:
+                rfqt === undefined
+                    ? undefined
+                    : {
+                          intentOnFilling: rfqt.intentOnFilling,
+                      },
+            skipValidation,
         };
 
         try {
@@ -200,6 +211,10 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
             ? undefined
             : parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
     const affiliateAddress = req.query.affiliateAddress;
+    const rfqt =
+        req.query.intentOnFilling === undefined ? undefined : { intentOnFilling: req.query.intentOnFilling === 'true' };
+    // tslint:disable-next-line:boolean-naming
+    const skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
     return {
         takerAddress,
         sellToken,
@@ -210,5 +225,7 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
         gasPrice,
         excludedSources,
         affiliateAddress,
+        rfqt,
+        skipValidation,
     };
 };

@@ -6,9 +6,12 @@
     "author": "Francesco Agosti <francesco@0x.org>",
     "license": "Apache-2.0",
     "scripts": {
-        "clean": "shx rm -rf lib 0x_mesh/db",
+        "install": "sed -ie 's!import { Provider as Web3Provider } from \"web3/providers\";!import { Web3EthereumProvider as Web3Provider } from \"web3-providers\";!' node_modules/ganache-core/typings/index.d.ts # see https://github.com/trufflesuite/ganache-core/issues/465#issuecomment-610005598",
+        "clean": "yarn clean:ts && yarn clean:docker",
+        "clean:ts": "shx rm -rf lib",
+        "clean:docker": "shx rm -rf 0x_mesh/db",
         "build": "tsc -p tsconfig.json",
-        "test": "ETHEREUM_RPC_URL=http://localhost:8545 mocha --require source-map-support/register --require make-promises-safe lib/test/**/*_test.js --timeout 100000 --exit",
+        "test": "ETHEREUM_RPC_URL=http://localhost:8545 CHAIN_ID=1337 RFQT_API_KEY_WHITELIST='koolApiKey1,koolApikey2' RFQT_MAKER_ENDPOINTS='https://mock-rfqt1.club' mocha --require source-map-support/register --require make-promises-safe lib/test/**/*_test.js --timeout 100000 --exit",
         "dev": "nodemon -r dotenv/config src/index.ts | pino-pretty",
         "dev:service:http": "nodemon -r dotenv/config src/runners/http_service_runner.ts | pino-pretty",
         "dev:service:sra_http": "nodemon -r dotenv/config src/runners/http_sra_service_runner.ts | pino-pretty",
@@ -16,23 +19,25 @@
         "dev:service:swap_http": "nodemon -r dotenv/config src/runners/http_swap_service_runner.ts | pino-pretty",
         "dev:service:order_watcher": "nodemon -r dotenv/config src/runners/order_watcher_service_runner.ts | pino-pretty",
         "watch": "tsc -w",
-        "prettier": "prettier --write '**/*.{ts,tsx,json,md}' --config .prettierrc",
-        "prettier:ci": "prettier --list-different '**/*.{ts,tsx,json,md}' --config .prettierrc",
+        "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
+        "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",
         "start": "node -r dotenv/config lib/src/index.js",
         "start:service:http": "node -r dotenv/config lib/src/runners/http_service_runner.js",
         "start:service:sra_http": "node -r dotenv/config lib/src/runners/http_sra_service_runner.js",
         "start:service:staking_http": "node -r dotenv/config lib/src/runners/http_staking_service_runner.js",
         "start:service:swap_http": "node -r dotenv/config lib/src/runners/http_swap_service_runner.js",
         "start:service:order_watcher": "node -r dotenv/config lib/src/runners/order_watcher_service_runner.js",
-        "lint": "tslint --project . --format stylish"
+        "lint": "tslint --project . --format stylish && yarn prettier:ci"
+    },
+    "config": {
+        "prettier_target": "{.,test/**,src/**}/*.{ts,tsx,json,md}"
     },
     "resolutions": {
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-0e196a59d",
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-110e1afa8",
         "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-0e196a59d"
     },
     "devDependencies": {
         "@0x/dev-utils": "^3.1.1",
-        "@0x/migrations": "^5.0.2",
         "@0x/tslint-config": "^4.0.0",
         "@0x/types": "^3.1.1",
         "@0x/typescript-typings": "^5.0.1",
@@ -48,6 +53,7 @@
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
         "dirty-chai": "^2.0.1",
+        "make-promises-safe": "^5.1.0",
         "mocha": "^6.2.2",
         "nodemon": "^1.19.4",
         "pino-pretty": "^3.2.2",
@@ -60,9 +66,9 @@
     },
     "dependencies": {
         "@0x/assert": "^3.0.4",
-        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-0e196a59d",
+        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-110e1afa8",
         "@0x/connect": "^6.0.4",
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-0e196a59d",
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-110e1afa8",
         "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-0e196a59d",
         "@0x/json-schemas": "^5.0.4",
         "@0x/mesh-rpc-client": "^9.2.1",
