@@ -8,7 +8,7 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(config.ETHEREUM_RPC_URL);
         const dependencies = await getDefaultAppDependenciesAsync(provider, config);
         await getAppAsync(dependencies, config);
-    })().catch(err => logger.error(err));
+    })().catch(err => logger.error(err.stack));
 }
 process.on('uncaughtException', err => {
     logger.error(err);

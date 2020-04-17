@@ -27,7 +27,7 @@ if (require.main === module) {
             );
             process.exit(1);
         }
-    })().catch(error => logger.error(error));
+    })().catch(error => logger.error(error.stack));
 }
 process.on('uncaughtException', err => {
     logger.error(err);

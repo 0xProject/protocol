@@ -20,7 +20,7 @@ export function alertOnExpiredOrders(expired: APIOrder[], details?: string): voi
     if (
         expired.find((order, i) => {
             idx = i;
-            return order.order.expirationTimeSeconds.gt(maxExpirationTimeSeconds);
+            return order.order.expirationTimeSeconds.toNumber() > maxExpirationTimeSeconds;
         })
     ) {
         const error = new ExpiredOrderError(expired[idx].order, MAX_ORDER_EXPIRATION_BUFFER_SECONDS, details);

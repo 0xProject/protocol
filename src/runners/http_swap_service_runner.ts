@@ -36,7 +36,7 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL);
         const dependencies = await getDefaultAppDependenciesAsync(provider, defaultConfig);
         await runHttpServiceAsync(dependencies, defaultConfig);
-    })().catch(error => logger.error(error));
+    })().catch(error => logger.error(error.stack));
 }
 
 async function runHttpServiceAsync(

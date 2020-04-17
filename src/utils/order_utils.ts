@@ -113,7 +113,7 @@ export const orderUtils = {
         expirationBufferSeconds: number = SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
     ): boolean => {
         const dateNowSeconds = Date.now() / ONE_SECOND_MS;
-        return apiOrder.order.expirationTimeSeconds.gt(dateNowSeconds + expirationBufferSeconds);
+        return apiOrder.order.expirationTimeSeconds.toNumber() > dateNowSeconds + expirationBufferSeconds;
     },
     groupByFreshness: <T extends APIOrder>(
         apiOrders: T[],

@@ -55,7 +55,7 @@ export async function getDefaultAppDependenciesAsync(
     try {
         swapService = createSwapServiceFromOrderBookService(orderBookService, provider);
     } catch (err) {
-        logger.error(err);
+        logger.error(err.stack);
     }
 
     const websocketOpts = { path: SRA_PATH };

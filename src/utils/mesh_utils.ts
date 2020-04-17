@@ -12,6 +12,8 @@ import { ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { AddedRemovedUpdate, APIOrderWithMetaData } from '../types';
 
+import { orderUtils } from './order_utils';
+
 export const meshUtils = {
     orderInfosToApiOrders: (
         orderEvent: Array<OrderEvent | AcceptedOrderInfo | RejectedOrderInfo | OrderInfo>,
@@ -25,7 +27,8 @@ export const meshUtils = {
             ? (orderEvent as OrderEvent).fillableTakerAssetAmount
             : ZERO;
         return {
-            order: orderEvent.signedOrder,
+            // orderEvent.signedOrder comes from mesh with string fields, needs to be serialized into SignedOrder
+            order: orderUtils.deserializeOrder(orderEvent.signedOrder as any), // tslint:disable-line:no-unnecessary-type-assertion
             metaData: {
                 orderHash: orderEvent.orderHash,
                 remainingFillableTakerAssetAmount,
