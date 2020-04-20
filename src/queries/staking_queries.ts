@@ -604,7 +604,7 @@ export const delegatorEventsQuery = `
     WITH
         earned_rewards_events AS (
             SELECT
-                'earned_rewards' AS event
+                'earned_rewards' AS event_type
                 , aper.address
                 , e.ending_block_number AS block_number
                 , e.ending_timestamp AS event_timestamp
@@ -618,7 +618,7 @@ export const delegatorEventsQuery = `
         )
         , deposited_zrx_events AS (
             SELECT
-                'deposited_zrx' AS event
+                'deposited_zrx' AS event_type
                 , se.staker AS address
                 , se.block_number
                 , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
@@ -631,7 +631,7 @@ export const delegatorEventsQuery = `
         )
         , withdrew_zrx_events AS (
             SELECT
-                'withdrew_zrx' AS event
+                'withdrew_zrx' AS event_type
                 , ue.staker AS address
                 , ue.block_number
                 , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
@@ -644,7 +644,7 @@ export const delegatorEventsQuery = `
         )
         , staked_events AS (
             SELECT
-                'staked' AS event
+                'staked' AS event_type
                 , mse.staker AS address
                 , mse.block_number
                 , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
@@ -660,7 +660,7 @@ export const delegatorEventsQuery = `
         )
         , removed_stake_events AS (
             SELECT
-                'removed_stake' AS event
+                'removed_stake' AS event_type
                 , mse.staker AS address
                 , mse.block_number
                 , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
@@ -676,7 +676,7 @@ export const delegatorEventsQuery = `
         )
         , moved_stake_events AS (
             SELECT
-                'moved_stake' AS event
+                'moved_stake' AS event_type
                 , mse.staker AS address
                 , mse.block_number
                 , TO_TIMESTAMP(b.block_timestamp) AS event_timestamp
