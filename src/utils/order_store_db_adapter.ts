@@ -1,4 +1,4 @@
-import { AddedRemovedOrders, APIOrder, OrderSet, OrderStore } from '@0x/asset-swapper';
+import { APIOrder, OrderSet, OrderStore } from '@0x/asset-swapper';
 
 import { SWAP_IGNORED_ADDRESSES } from '../config';
 import { FIRST_PAGE } from '../constants';
@@ -32,13 +32,6 @@ export class OrderStoreDbAdapter extends OrderStore {
         );
         await orderSet.addManyAsync(allowedOrders);
         return orderSet;
-    }
-    public async updateAsync(addedRemoved: AddedRemovedOrders): Promise<void> {
-        const { added } = addedRemoved;
-        for (const order of added) {
-            await this._orderbookService.addOrderAsync(order.order);
-        }
-        // Currently not handling deletes as this is handled by Mesh
     }
     public async getBatchOrderSetsForAssetsAsync(
         makerAssetDatas: string[],

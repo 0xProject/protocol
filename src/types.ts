@@ -387,3 +387,8 @@ export interface GetSwapQuoteResponseLiquiditySource {
     name: string;
     proportion: BigNumber;
 }
+
+export interface PinResult {
+    pin: SignedOrder[];
+    doNotPin: SignedOrder[];
+}

@@ -75,7 +75,9 @@ export class SRAHandlers {
             validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.makerAssetData, 'makerAssetData');
             validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.takerAssetData, 'takerAssetData');
         }
-        await this._orderBook.addOrderAsync(signedOrder);
+        const pinResult = await this._orderBook.splitOrdersByPinningAsync([signedOrder]);
+        const isPinned = pinResult.pin.length === 1;
+        await this._orderBook.addOrderAsync(signedOrder, isPinned);
         res.status(HttpStatus.OK).send();
     }
     public async postOrdersAsync(req: express.Request, res: express.Response): Promise<void> {
@@ -88,7 +90,11 @@ export class SRAHandlers {
                 validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.takerAssetData, 'takerAssetData');
             }
         }
-        await this._orderBook.addOrdersAsync(signedOrders);
+        const pinResult = await this._orderBook.splitOrdersByPinningAsync(signedOrders);
+        await Promise.all([
+            this._orderBook.addOrdersAsync(pinResult.pin, true),
+            this._orderBook.addOrdersAsync(pinResult.doNotPin, false),
+        ]);
         res.status(HttpStatus.OK).send();
     }
 }

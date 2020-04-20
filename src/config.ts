@@ -17,6 +17,7 @@ import { ChainId } from './types';
 
 enum EnvVarType {
     AddressList,
+    StringList,
     Port,
     KeepAliveTimeout,
     ChainId,
@@ -67,6 +68,16 @@ export const MESH_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.MESH_IGNOR
 export const SWAP_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.SWAP_IGNORED_ADDRESSES)
     ? []
     : assertEnvVarType('SWAP_IGNORED_ADDRESSES', process.env.SWAP_IGNORED_ADDRESSES, EnvVarType.AddressList);
+
+// MMer addresses whose orders should be pinned to the Mesh node
+export const PINNED_POOL_IDS: string[] = _.isEmpty(process.env.PINNED_POOL_IDS)
+    ? []
+    : assertEnvVarType('PINNED_POOL_IDS', process.env.PINNED_POOL_IDS, EnvVarType.StringList);
+
+// MMer addresses whose orders should be pinned to the Mesh node
+export const PINNED_MM_ADDRESSES: string[] = _.isEmpty(process.env.PINNED_MM_ADDRESSES)
+    ? []
+    : assertEnvVarType('PINNED_MM_ADDRESSES', process.env.PINNED_MM_ADDRESSES, EnvVarType.AddressList);
 
 // Ethereum RPC Url
 export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.Url);
@@ -237,6 +248,10 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             const addressList = (value as string).split(',').map(a => a.toLowerCase());
             addressList.forEach((a, i) => assert.isETHAddressHex(`${name}[${i}]`, a));
             return addressList;
+        case EnvVarType.StringList:
+            assert.isString(name, value);
+            const stringList = (value as string).split(',');
+            return stringList;
         case EnvVarType.WhitelistAllTokens:
             return '*';
         case EnvVarType.FeeAssetData:

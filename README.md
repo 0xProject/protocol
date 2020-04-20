@@ -75,6 +75,8 @@ To get a local development version of `0x-api` running:
 | `WHITELIST_ALL_TOKENS`            | `false`                                                         | A boolean determining whether all tokens should be allowed to be posted.                                                                                                                                  |
 | `MESH_IGNORED_ADDRESSES`          | `[]`                                                            | A comma seperated list of addresses to ignore. These addresses are ignored at the ingress (Mesh) layer and are never persisted                                                                            |
 | `SWAP_IGNORED_ADDRESSES`          | `[]`                                                            | A comma seperated list of addresses to ignore. These addresses are persisted but not used in any `/swap/*` endpoints                                                                                      |
+| `PINNED_POOL_IDS`                 | `[]`                                                            | A comma seperated list of pool IDs whose MMers orders will be pinned to the Mesh node. This makes them immune to spam attacks.                                                                            |
+| `PINNED_MM_ADDRESSES`             | `[]`                                                            | A comma seperated list of MMer addresses whose orders will be pinned to the Mesh node. This makes them immune to spam attacks.                                                                            |
 
 3. Install the dependencies:
 

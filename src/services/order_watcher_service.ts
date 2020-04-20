@@ -30,7 +30,14 @@ export class OrderWatcherService {
         // TODO(dekz): Mesh can reject due to InternalError or EthRPCRequestFailed.
         // in the future we can attempt to retry these a few times. Ultimately if we
         // cannot validate the order we cannot keep the order around
-        const { accepted, rejected } = await this._meshClient.addOrdersAsync(signedOrders);
+        const pinResult = await orderUtils.splitOrdersByPinningAsync(this._connection, signedOrders);
+        const [pinnedValidationResults, unpinnedValidationResults] = await Promise.all([
+            this._meshClient.addOrdersAsync(pinResult.pin, true),
+            this._meshClient.addOrdersAsync(pinResult.doNotPin, false),
+        ]);
+        const accepted = [...pinnedValidationResults.accepted, ...unpinnedValidationResults.accepted];
+        const rejected = [...pinnedValidationResults.rejected, ...unpinnedValidationResults.rejected];
+
         logger.info('OrderWatcherService sync', {
             accepted: accepted.length,
             rejected: rejected.length,

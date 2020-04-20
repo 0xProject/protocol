@@ -7,6 +7,7 @@ import { SRA_ORDER_EXPIRATION_BUFFER_SECONDS } from '../config';
 import { SignedOrderEntity } from '../entities';
 import { ValidationError } from '../errors';
 import { alertOnExpiredOrders } from '../logger';
+import { PinResult } from '../types';
 import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
@@ -154,12 +155,12 @@ export class OrderBookService {
         this._meshClient = meshClient;
         this._connection = connection;
     }
-    public async addOrderAsync(signedOrder: SignedOrder): Promise<void> {
-        return this.addOrdersAsync([signedOrder]);
+    public async addOrderAsync(signedOrder: SignedOrder, pinned: boolean): Promise<void> {
+        return this.addOrdersAsync([signedOrder], pinned);
     }
-    public async addOrdersAsync(signedOrders: SignedOrder[]): Promise<void> {
+    public async addOrdersAsync(signedOrders: SignedOrder[], pinned: boolean): Promise<void> {
         if (this._meshClient) {
-            const { rejected } = await this._meshClient.addOrdersAsync(signedOrders);
+            const { rejected } = await this._meshClient.addOrdersAsync(signedOrders, pinned);
             if (rejected.length !== 0) {
                 const validationErrors = rejected.map((r, i) => ({
                     field: `signedOrder[${i}]`,
@@ -172,5 +173,8 @@ export class OrderBookService {
             return;
         }
         throw new Error('Could not add order to mesh.');
+    }
+    public async splitOrdersByPinningAsync(signedOrders: SignedOrder[]): Promise<PinResult> {
+        return orderUtils.splitOrdersByPinningAsync(this._connection, signedOrders);
     }
 }

@@ -1,4 +1,4 @@
-import { AssetPairsItem, BaseOrderProvider, OrderStore, SignedOrder } from '@0x/asset-swapper';
+import { AcceptedRejectedOrders, AssetPairsItem, BaseOrderProvider, OrderStore, SignedOrder } from '@0x/asset-swapper';
 
 import { FIRST_PAGE } from './constants';
 import { OrderBookService } from './services/orderbook_service';
@@ -26,7 +26,7 @@ export class OrderBookServiceOrderProvider extends BaseOrderProvider {
     public async destroyAsync(): Promise<void> {
         return Promise.resolve();
     }
-    public async addOrdersAsync(_orders: SignedOrder[]): Promise<any> {
+    public async addOrdersAsync(_orders: SignedOrder[]): Promise<AcceptedRejectedOrders> {
         return Promise.resolve() as any;
     }
 }
