@@ -146,3 +146,10 @@ export class OrderWatcherSyncError extends AlertError {
         super();
     }
 }
+
+export class WebsocketServiceError extends AlertError {
+    public message = 'Error in the Websocket service!';
+    constructor(public error: Error) {
+        super();
+    }
+}

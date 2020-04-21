@@ -14,7 +14,8 @@ import * as _ from 'lodash';
 import * as WebSocket from 'ws';
 
 import { MESH_IGNORED_ADDRESSES } from '../config';
-import { MalformedJSONError, NotImplementedError } from '../errors';
+import { MalformedJSONError, NotImplementedError, WebsocketServiceError } from '../errors';
+import { logger } from '../logger';
 import { generateError } from '../middleware/error_handling';
 import {
     MessageChannels,
@@ -116,6 +117,9 @@ export class WebsocketService {
         // takerAssetProxyId?: string;
         return false;
     }
+    private static _handleError(_ws: WrappedWebSocket, err: Error): void {
+        logger.error(new WebsocketServiceError(err));
+    }
     constructor(server: http.Server, meshClient: MeshClient, opts?: Partial<WebsocketSRAOpts>) {
         const wsOpts: WebsocketSRAOpts = {
             ...DEFAULT_OPTS,
@@ -123,6 +127,7 @@ export class WebsocketService {
         };
         this._server = new WebSocket.Server({ server, path: wsOpts.path });
         this._server.on('connection', this._processConnection.bind(this));
+        this._server.on('error', WebsocketService._handleError.bind(this));
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
         this._meshClient = meshClient;
         // tslint:disable-next-line:no-floating-promises

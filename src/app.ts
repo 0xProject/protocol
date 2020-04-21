@@ -101,7 +101,7 @@ export async function getAppAsync(
         try {
             await runOrderWatcherServiceAsync(dependencies.connection, dependencies.meshClient);
         } catch (e) {
-            logger.error(`Error attempting to start Order Watcher service, [${e}]`);
+            logger.error(`Error attempting to start Order Watcher service, [${JSON.stringify(e)}]`);
         }
     } else {
         logger.warn('No mesh client provided, API running without Order Watcher');
