@@ -102,7 +102,7 @@ export const serviceUtils = {
                 decimals = decimalsEncoder.strictDecodeReturnValue<BigNumber>(result).toNumber();
                 logger.info(`Unmapped token decimals ${tokenAddress} ${decimals}`);
             } catch (err) {
-                logger.error(`Error fetching token decimals ${tokenAddress}`);
+                logger.warn(`Error fetching token decimals ${tokenAddress}`);
                 decimals = DEFAULT_TOKEN_DECIMALS;
             }
         }
