@@ -11,8 +11,9 @@ import * as request from 'supertest';
 
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
-import { DEFAULT_PAGE, DEFAULT_PER_PAGE, SRA_PATH, SWAP_PATH } from '../src/constants';
+import { DEFAULT_PAGE, DEFAULT_PER_PAGE, META_TRANSACTION_PATH, SRA_PATH, SWAP_PATH } from '../src/constants';
 import { SignedOrderEntity } from '../src/entities';
+import { GeneralErrorCodes, generalErrorCodeToReason } from '../src/errors';
 
 import * as orderFixture from './fixtures/order.json';
 import { expect } from './utils/expect';
@@ -60,8 +61,19 @@ describe('app test', () => {
             .then(response => {
                 expect(response.body.perPage).to.equal(DEFAULT_PER_PAGE);
                 expect(response.body.page).to.equal(DEFAULT_PAGE);
-                expect(response.body.total).to.equal(0);
-                expect(response.body.records).to.deep.equal([]);
+                expect(response.body.total).to.be.an('number');
+                expect(response.body.records).to.be.an('array');
+            });
+    });
+    it('should return InvalidAPIKey error if invalid UUID supplied as API Key', async () => {
+        await request(app)
+            .post(`${META_TRANSACTION_PATH}/submit`)
+            .set('0x-api-key', 'foobar')
+            .expect('Content-Type', /json/)
+            .expect(HttpStatus.BAD_REQUEST)
+            .then(response => {
+                expect(response.body.code).to.equal(GeneralErrorCodes.InvalidAPIKey);
+                expect(response.body.reason).to.equal(generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey]);
             });
     });
     it('should normalize addresses to lowercase', async () => {

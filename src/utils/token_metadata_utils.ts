@@ -1,4 +1,5 @@
 import { ADDRESS_HEX_LENGTH, ETH_SYMBOL, WETH_SYMBOL } from '../constants';
+import { ValidationError, ValidationErrorCodes } from '../errors';
 import { TokenMetadataAndChainAddresses, TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { ChainId, TokenMetadata } from '../types';
 
@@ -66,6 +67,26 @@ export function findTokenAddress(symbolOrAddress: string, chainId: ChainId): str
         throw new Error(`Could not find token ${symbolOrAddress}`);
     }
     return entry.tokenAddress;
+}
+
+/**
+ * Attempts to find the address of the token and throws if not found
+ *
+ * @param address the uppercase symbol of the token (ex. `REP`) or the address of the contract
+ * @param chainId the Network where the address should be hosted on.
+ */
+export function findTokenAddressOrThrowApiError(address: string, field: string, chainId: ChainId): string {
+    try {
+        return findTokenAddress(address.toLowerCase(), chainId);
+    } catch (e) {
+        throw new ValidationError([
+            {
+                field,
+                code: ValidationErrorCodes.ValueOutOfRange,
+                reason: e.message,
+            },
+        ]);
+    }
 }
 
 /**

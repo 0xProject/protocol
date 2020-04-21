@@ -1,0 +1,13 @@
+{
+    "id": "/MetaTransactionFillRequestSchema",
+    "properties": {
+        "signature": {
+            "$ref": "/hexSchema"
+        },
+        "zeroExTransaction": {
+            "$ref": "/zeroExTransactionSchema"
+        }
+    },
+    "required": ["signature", "zeroExTransaction"],
+    "type": "object"
+}

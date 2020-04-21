@@ -63,6 +63,11 @@ export class NotImplementedError extends BadRequestError {
     public generalErrorCode = GeneralErrorCodes.NotImplemented;
 }
 
+export class InvalidAPIKeyError extends BadRequestError {
+    public statusCode = HttpStatus.BAD_REQUEST;
+    public generalErrorCode = GeneralErrorCodes.InvalidAPIKey;
+}
+
 export class NotFoundError extends APIBaseError {
     public statusCode = HttpStatus.NOT_FOUND;
 }
@@ -91,6 +96,8 @@ export enum GeneralErrorCodes {
     Throttled = 103,
     NotImplemented = 104,
     TransactionInvalid = 105,
+    UnableToSubmitOnBehalfOfTaker = 106,
+    InvalidAPIKey = 107,
 }
 
 export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = {
@@ -100,6 +107,8 @@ export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = 
     [GeneralErrorCodes.Throttled]: 'Throttled',
     [GeneralErrorCodes.NotImplemented]: 'Not Implemented',
     [GeneralErrorCodes.TransactionInvalid]: 'Transaction Invalid',
+    [GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker]: 'Unable to submit transaction on behalf of taker',
+    [GeneralErrorCodes.InvalidAPIKey]: 'Invalid API key',
 };
 
 export enum ValidationErrorCodes {

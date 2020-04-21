@@ -1,5 +1,5 @@
 {
-    "id": "/SwapQuoteRequestSchema",
+    "id": "/MetaTransactionQuoteRequestSchema",
     "properties": {
         "sellToken": {
             "type": "string"
@@ -10,31 +10,11 @@
         "takerAddress": {
             "$ref": "/addressSchema"
         },
-        "affiliateAddress": {
-            "$ref": "/addressSchema"
-        },
-        "gasPrice": {
-            "$ref": "/wholeNumberSchema"
-        },
         "slippagePercentage": {
             "$ref": "/numberSchema"
-        },
-        "excludedSources": {
-            "type": "string"
-        },
-        "apiKey": {
-            "type": "string"
-        },
-        "intentOnFilling": {
-            "type": "string",
-            "enum": ["true", "false"]
-        },
-        "skipValidation": {
-            "type": "string",
-            "enum": ["true", "false"]
         }
     },
-    "required": ["sellToken", "buyToken"],
+    "required": ["sellToken", "buyToken", "takerAddress"],
     "oneOf": [
         {
             "id": "sellAmount",

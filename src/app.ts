@@ -1,14 +1,18 @@
 import { Orderbook, SupportedProvider } from '@0x/asset-swapper';
 import * as express from 'express';
+import * as asyncHandler from 'express-async-handler';
 import { Connection } from 'typeorm';
 
-import { SRA_PATH } from './constants';
+import { META_TRANSACTION_PATH, SRA_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
+import { SignerHandlers } from './handlers/signer_handlers';
 import { logger } from './logger';
 import { OrderBookServiceOrderProvider } from './order_book_service_order_provider';
 import { runHttpServiceAsync } from './runners/http_service_runner';
 import { runOrderWatcherServiceAsync } from './runners/order_watcher_service_runner';
+import { MetaTransactionService } from './services/meta_transaction_service';
 import { OrderBookService } from './services/orderbook_service';
+import { SignerService } from './services/signer_service';
 import { StakingDataService } from './services/staking_data_service';
 import { SwapService } from './services/swap_service';
 import { WebsocketSRAOpts } from './types';
@@ -21,6 +25,7 @@ export interface AppDependencies {
     meshClient?: MeshClient;
     orderBookService: OrderBookService;
     swapService?: SwapService;
+    metaTransactionService?: MetaTransactionService;
     provider: SupportedProvider;
     websocketOpts: Partial<WebsocketSRAOpts>;
 }
@@ -58,6 +63,8 @@ export async function getDefaultAppDependenciesAsync(
         logger.error(err.stack);
     }
 
+    const metaTransactionService = createMetaTxnServiceFromOrderBookService(orderBookService, provider);
+
     const websocketOpts = { path: SRA_PATH };
 
     return {
@@ -66,12 +73,14 @@ export async function getDefaultAppDependenciesAsync(
         meshClient,
         orderBookService,
         swapService,
+        metaTransactionService,
         provider,
         websocketOpts,
     };
 }
 /**
- * starts the app with dependencies injected
+ * starts the app with dependencies injected. This entry-point is used when running a single instance 0x API
+ * deployment and in tests. It is not used in production deployments where scaling is required.
  * @param dependencies  all values are optional and will be filled with reasonable defaults, with one
  *                      exception. if a `meshClient` is not provided, the API will start without a
  *                      connection to mesh.
@@ -97,6 +106,15 @@ export async function getAppAsync(
     } else {
         logger.warn('No mesh client provided, API running without Order Watcher');
     }
+
+    // Add signer service when spinning up app
+    const signerService = new SignerService();
+    const handlers = new SignerHandlers(signerService);
+    app.post(
+        `${META_TRANSACTION_PATH}/submit`,
+        asyncHandler(handlers.submitZeroExTransactionIfWhitelistedAsync.bind(handlers)),
+    );
+
     return app;
 }
 
@@ -108,4 +126,14 @@ function createSwapServiceFromOrderBookService(
     const orderProvider = new OrderBookServiceOrderProvider(orderStore, orderBookService);
     const orderBook = new Orderbook(orderProvider, orderStore);
     return new SwapService(orderBook, provider);
+}
+
+function createMetaTxnServiceFromOrderBookService(
+    orderBookService: OrderBookService,
+    provider: SupportedProvider,
+): MetaTransactionService {
+    const orderStore = new OrderStoreDbAdapter(orderBookService);
+    const orderProvider = new OrderBookServiceOrderProvider(orderStore, orderBookService);
+    const orderBook = new Orderbook(orderProvider, orderStore);
+    return new MetaTransactionService(orderBook, provider);
 }

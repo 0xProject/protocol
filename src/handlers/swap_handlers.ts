@@ -1,4 +1,4 @@
-import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
+import { SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -11,10 +11,11 @@ import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { CalculateSwapQuoteParams, ChainId, GetSwapQuoteRequestParams, GetSwapQuoteResponse } from '../types';
+import { CalculateSwapQuoteParams, GetSwapQuoteRequestParams, GetSwapQuoteResponse } from '../types';
+import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import {
-    findTokenAddress,
+    findTokenAddressOrThrowApiError,
     getTokenMetadataIfExists,
     isETHSymbol,
     isWETHSymbolOrAddress,
@@ -172,30 +173,6 @@ export class SwapHandlers {
     }
 }
 
-const findTokenAddressOrThrowApiError = (address: string, field: string, chainId: ChainId): string => {
-    try {
-        return findTokenAddress(address.toLowerCase(), chainId);
-    } catch (e) {
-        throw new ValidationError([
-            {
-                field,
-                code: ValidationErrorCodes.ValueOutOfRange,
-                reason: e.message,
-            },
-        ]);
-    }
-};
-
-const parseStringArrForERC20BridgeSources = (excludedSources: string[]): ERC20BridgeSource[] => {
-    // Need to compare value of the enum instead of the key, as values are used by asset-swapper
-    // CurveUsdcDaiUsdt = 'Curve_USDC_DAI_USDT' is excludedSources=Curve_USDC_DAI_USDT
-    return excludedSources
-        .map(source => (source === '0x' ? 'Native' : source))
-        .filter((source: string) =>
-            Object.keys(ERC20BridgeSource).find((k: any) => ERC20BridgeSource[k] === source),
-        ) as ERC20BridgeSource[];
-};
-
 const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
     // HACK typescript typing does not allow this valid json-schema
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
@@ -209,7 +186,7 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
     const excludedSources =
         req.query.excludedSources === undefined
             ? undefined
-            : parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
+            : parseUtils.parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
     const affiliateAddress = req.query.affiliateAddress;
     const rfqt =
         req.query.intentOnFilling === undefined ? undefined : { intentOnFilling: req.query.intentOnFilling === 'true' };

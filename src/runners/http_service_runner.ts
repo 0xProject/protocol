@@ -7,17 +7,23 @@ import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
 import * as defaultConfig from '../config';
-import { SRA_PATH, STAKING_PATH, SWAP_PATH } from '../constants';
+import { META_TRANSACTION_PATH, SRA_PATH, STAKING_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { requestLogger } from '../middleware/request_logger';
+import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
 import { createSRARouter } from '../routers/sra_router';
 import { createStakingRouter } from '../routers/staking_router';
 import { createSwapRouter } from '../routers/swap_router';
 import { WebsocketService } from '../services/websocket_service';
 import { providerUtils } from '../utils/provider_utils';
+
+/**
+ * http_service_runner hosts endpoints for staking, sra, swap and meta-txns (minus the /submit endpoint)
+ * and can be horizontally scaled as needed
+ */
 
 process.on('uncaughtException', err => {
     logger.error(err);
@@ -69,6 +75,13 @@ export async function runHttpServiceAsync(
 
     // SRA http service
     app.use(SRA_PATH, createSRARouter(dependencies.orderBookService));
+
+    // Meta transaction http service
+    if (dependencies.metaTransactionService) {
+        app.use(META_TRANSACTION_PATH, createMetaTransactionRouter(dependencies.metaTransactionService));
+    } else {
+        logger.error(`API running without meta transactions service`);
+    }
 
     // swap/quote http service
     if (dependencies.swapService) {

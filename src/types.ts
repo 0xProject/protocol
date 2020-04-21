@@ -1,6 +1,12 @@
-import { ERC20BridgeSource } from '@0x/asset-swapper';
+import { ERC20BridgeSource, MarketBuySwapQuote, MarketSellSwapQuote } from '@0x/asset-swapper';
 import { AcceptedOrderInfo, RejectedOrderInfo } from '@0x/mesh-rpc-client';
-import { APIOrder, OrdersChannelSubscriptionOpts, SignedOrder, UpdateOrdersChannelMessage } from '@0x/types';
+import {
+    APIOrder,
+    OrdersChannelSubscriptionOpts,
+    SignedOrder,
+    UpdateOrdersChannelMessage,
+    ZeroExTransaction,
+} from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 export enum OrderWatcherLifeCycleEvents {
@@ -349,6 +355,45 @@ export interface Price {
 
 export type GetTokenPricesResponse = Price[];
 
+export interface GetMetaTransactionQuoteResponse {
+    price: BigNumber;
+    zeroExTransactionHash: string;
+    zeroExTransaction: ZeroExTransaction;
+    orders: SignedOrder[];
+    buyAmount: BigNumber;
+    sellAmount: BigNumber;
+    sources: GetSwapQuoteResponseLiquiditySource[];
+}
+
+export interface GetMetaTransactionPriceResponse {
+    price: BigNumber;
+    buyAmount: BigNumber;
+    sellAmount: BigNumber;
+}
+
+// takerAddress, sellAmount, buyAmount, swapQuote, price
+export interface CalculateMetaTransactionPriceResponse {
+    price: BigNumber;
+    buyAmount: BigNumber | undefined;
+    sellAmount: BigNumber | undefined;
+    takerAddress: string;
+    swapQuote: MarketSellSwapQuote | MarketBuySwapQuote;
+    sources: GetSwapQuoteResponseLiquiditySource[];
+}
+
+export interface PostTransactionResponse {
+    ethereumTransactionHash: string;
+    signedEthereumTransaction: string;
+}
+
+export interface ZeroExTransactionWithoutDomain {
+    salt: BigNumber;
+    expirationTimeSeconds: BigNumber;
+    gasPrice: BigNumber;
+    signerAddress: string;
+    data: string;
+}
+
 export interface GetSwapQuoteRequestParams {
     sellToken: string;
     buyToken: string;
@@ -363,6 +408,16 @@ export interface GetSwapQuoteRequestParams {
         intentOnFilling: boolean;
     };
     skipValidation: boolean;
+}
+
+export interface GetTransactionRequestParams {
+    takerAddress: string;
+    sellToken: string;
+    buyToken: string;
+    sellAmount?: BigNumber;
+    buyAmount?: BigNumber;
+    slippagePercentage?: number;
+    excludedSources?: ERC20BridgeSource[];
 }
 
 export interface CalculateSwapQuoteParams {
@@ -391,4 +446,15 @@ export interface GetSwapQuoteResponseLiquiditySource {
 export interface PinResult {
     pin: SignedOrder[];
     doNotPin: SignedOrder[];
+}
+
+export interface CalculateMetaTransactionQuoteParams {
+    takerAddress: string;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    buyAmount: BigNumber | undefined;
+    sellAmount: BigNumber | undefined;
+    from: string | undefined;
+    slippagePercentage?: number;
+    excludedSources?: ERC20BridgeSource[];
 }

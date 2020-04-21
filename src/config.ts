@@ -3,6 +3,7 @@ import { assert } from '@0x/assert';
 import { ERC20BridgeSource, SwapQuoteRequestOpts } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
+import * as validateUUID from 'uuid-validate';
 
 import {
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
@@ -27,6 +28,8 @@ enum EnvVarType {
     WhitelistAllTokens,
     Boolean,
     FeeAssetData,
+    NonEmptyString,
+    APIKeys,
 }
 
 // Network port to listen on
@@ -152,6 +155,28 @@ export const RFQT_API_KEY_WHITELIST: string[] =
 export const RFQT_MAKER_ENDPOINTS: string[] =
     process.env.RFQT_MAKER_ENDPOINTS === undefined ? [] : process.env.RFQT_MAKER_ENDPOINTS.split(',');
 
+// Whitelisted 0x API keys that can use the meta-txn /submit endpoint
+export const WHITELISTED_API_KEYS_META_TXN_SUBMIT: string[] =
+    process.env.WHITELISTED_API_KEYS_META_TXN_SUBMIT === undefined
+        ? []
+        : assertEnvVarType(
+              'WHITELISTED_API_KEYS_META_TXN_SUBMIT',
+              process.env.WHITELISTED_API_KEYS_META_TXN_SUBMIT,
+              EnvVarType.APIKeys,
+          );
+
+// The meta-txn relay sender address
+export const META_TXN_RELAY_ADDRESS = _.isEmpty(process.env.META_TXN_RELAY_ADDRESS)
+    ? NULL_ADDRESS
+    : assertEnvVarType('META_TXN_RELAY_ADDRESS', process.env.META_TXN_RELAY_ADDRESS, EnvVarType.ETHAddressHex);
+
+// The meta-txn relay sender private key
+export const META_TXN_RELAY_PRIVATE_KEY = assertEnvVarType(
+    'META_TXN_RELAY_PRIVATE_KEY',
+    process.env.META_TXN_RELAY_PRIVATE_KEY,
+    EnvVarType.NonEmptyString,
+);
+
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
@@ -257,6 +282,22 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
         case EnvVarType.FeeAssetData:
             assert.isString(name, value);
             return value;
+        case EnvVarType.NonEmptyString:
+            assert.isString(name, value);
+            if (value === '') {
+                throw new Error(`${name} must be supplied`);
+            }
+            return value;
+        case EnvVarType.APIKeys:
+            assert.isString(name, value);
+            const apiKeys = (value as string).split(',');
+            apiKeys.forEach(apiKey => {
+                const isValidUUID = validateUUID(apiKey);
+                if (!isValidUUID) {
+                    throw new Error(`API Key ${apiKey} isn't UUID compliant`);
+                }
+            });
+            return apiKeys;
         default:
             throw new Error(`Unrecognised EnvVarType: ${expectedType} encountered for variable ${name}.`);
     }
