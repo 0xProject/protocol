@@ -99,7 +99,7 @@ export const serviceUtils = {
             const encodedCallData = decimalsEncoder.encode(tokenAddress);
             try {
                 const result = await web3Wrapper.callAsync({ data: encodedCallData, to: tokenAddress });
-                decimals = decimalsEncoder.strictDecodeReturnValue<BigNumber>(result).toNumber();
+                decimals = decimalsEncoder.strictDecodeReturnValue<number>(result);
                 logger.info(`Unmapped token decimals ${tokenAddress} ${decimals}`);
             } catch (err) {
                 logger.warn(`Error fetching token decimals ${tokenAddress}`);
