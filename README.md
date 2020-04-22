@@ -122,9 +122,9 @@ $ yarn dev
 
 ## Testing
 
-Set the environment variables `CHAIN_ID=1337` and `ETHEREUM_RPC_URL=http://ganache:8545`. Run `docker-compose up` and wait for containers to start up.
+Run `yarn test`. It's really that easy :)
 
-Then run `yarn test`.
+Tip: Test suites set up and teardown sandboxed environments, so using `.only` on `it` and `describe` statements will save lots of development time.
 
 ## Commands
 

@@ -12,10 +12,12 @@ import * as request from 'supertest';
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE, META_TRANSACTION_PATH, SRA_PATH, SWAP_PATH } from '../src/constants';
+import { getDBConnectionAsync } from '../src/db_connection';
 import { SignedOrderEntity } from '../src/entities';
 import { GeneralErrorCodes, generalErrorCodeToReason } from '../src/errors';
 
 import * as orderFixture from './fixtures/order.json';
+import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { expect } from './utils/expect';
 import { ganacheZrxWethOrder1 } from './utils/mocks';
 
@@ -30,9 +32,13 @@ let dependencies: AppDependencies;
 
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
+const SUITE_NAME = 'app_test';
 
-describe('app test', () => {
+describe(SUITE_NAME, () => {
     before(async () => {
+        // start the 0x-api app
+        await setupDependenciesAsync(SUITE_NAME);
+
         // connect to ganache and run contract migrations
         const ganacheConfigs = {
             shouldUseInProcessGanache: false,
@@ -50,8 +56,8 @@ describe('app test', () => {
         // start the 0x-api app
         app = await getAppAsync({ ...dependencies }, config);
     });
-    it('should not be undefined', () => {
-        expect(app).to.not.be.undefined();
+    after(async () => {
+        await teardownDependenciesAsync(SUITE_NAME);
     });
     it('should respond to GET /sra/orders', async () => {
         await request(app)
@@ -89,7 +95,8 @@ describe('app test', () => {
         });
 
         const apiOrderResponse = { chainId: config.CHAIN_ID, ...orderFixture, expirationTimeSeconds };
-        await dependencies.connection.manager.save(orderModel);
+        const dbConnection = await getDBConnectionAsync();
+        await dbConnection.manager.save(orderModel);
         await request(app)
             .get(`${SRA_PATH}/orders?makerAddress=${orderFixture.makerAddress.toUpperCase()}`)
             .expect('Content-Type', /json/)
@@ -100,7 +107,7 @@ describe('app test', () => {
                 expect(response.body.total).to.equal(1);
                 expect(response.body.records[0].order).to.deep.equal(apiOrderResponse);
             });
-        await dependencies.connection.manager.remove(orderModel);
+        await dbConnection.manager.remove(orderModel);
     });
     describe('should respond to GET /swap/quote', () => {
         it("with INSUFFICIENT_ASSET_LIQUIDITY when there's no liquidity (empty orderbook, sampling excluded, no RFQ)", async () => {
@@ -124,8 +131,10 @@ describe('app test', () => {
         let makerAddress: string;
         let takerAddress: string;
 
-        beforeEach(() => {
-            contractAddresses = getContractAddressesForChainOrThrow(parseInt(process.env.CHAIN_ID || '1337', 10));
+        beforeEach(async () => {
+            contractAddresses = getContractAddressesForChainOrThrow(
+                process.env.CHAIN_ID ? parseInt(process.env.CHAIN_ID, 10) : await web3Wrapper.getChainIdAsync(),
+            );
             [makerAddress, takerAddress] = accounts;
         });
 

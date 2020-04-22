@@ -45,4 +45,5 @@ jobs:
             - run: yarn build
             - run: yarn lint
             - run: yarn prettier:ci
+            - setup_remote_docker # Expose the docker daemon so that it can be used in tests.
             - run: yarn test

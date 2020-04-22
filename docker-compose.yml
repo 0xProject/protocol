@@ -27,7 +27,7 @@ services:
             ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
             ETHEREUM_CHAIN_ID: '${CHAIN_ID}'
             USE_BOOTSTRAP_LIST: 'true'
-            VERBOSITY: 3
+            VERBOSITY: 4
             PRIVATE_KEY_PATH: ''
             WS_RPC_ADDR: '0.0.0.0:60557'
             HTTP_RPC_ADDR: '0.0.0.0:60556'
