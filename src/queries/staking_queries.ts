@@ -5,14 +5,6 @@ export const currentEpochQuery = `
         FROM staking.epoch_start_pool_status esps
         JOIN staking.current_epoch ce ON ce.epoch_id = esps.epoch_id
     )
-    , protocol_fees AS (
-        SELECT
-            SUM(protocol_fee_paid) / 1e18::NUMERIC AS protocol_fees_generated_in_eth
-        FROM events.fill_events fe
-        JOIN staking.current_epoch ce
-            ON fe.block_number > ce.starting_block_number
-            OR (fe.block_number = ce.starting_block_number AND fe.transaction_index > ce.starting_transaction_index)
-    )
     , zrx_deposited AS (
         SELECT
             SUM(scc.amount) AS zrx_deposited
@@ -25,11 +17,9 @@ export const currentEpochQuery = `
         ce.*
         , zd.zrx_deposited
         , zs.zrx_staked
-        , pf.protocol_fees_generated_in_eth
     FROM staking.current_epoch ce
     CROSS JOIN zrx_deposited zd
-    CROSS JOIN zrx_staked zs
-    CROSS JOIN protocol_fees pf;`;
+    CROSS JOIN zrx_staked zs;`;
 
 export const nextEpochQuery = `
     WITH

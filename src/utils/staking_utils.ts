@@ -40,7 +40,6 @@ export const stakingUtils = {
             ending_block_timestamp,
             zrx_deposited,
             zrx_staked,
-            protocol_fees_generated_in_eth,
         } = rawEpoch;
         let epochEnd: TransactionDate | undefined;
         if (ending_transaction_hash && ending_block_number) {
@@ -60,7 +59,6 @@ export const stakingUtils = {
             epochEnd,
             zrxDeposited: Number(zrx_deposited || 0),
             zrxStaked: Number(zrx_staked || 0),
-            protocolFeesGeneratedInEth: Number(protocol_fees_generated_in_eth || 0),
         };
     },
     getPoolFromRaw: (rawPool: RawPool): Pool => {
