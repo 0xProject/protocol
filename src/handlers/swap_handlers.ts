@@ -31,7 +31,47 @@ export class SwapHandlers {
         this._swapService = swapService;
     }
     public async getSwapQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        // parse query params
+        res.status(HttpStatus.OK).send(
+            await this._calculateSwapQuoteAsync(parseGetSwapQuoteRequestParams(req, 'quote')),
+        );
+    }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
+        const tokens = TokenMetadatasForChains.map(tm => ({
+            symbol: tm.symbol,
+            address: tm.tokenAddresses[CHAIN_ID],
+            name: tm.name,
+            decimals: tm.decimals,
+        }));
+        const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
+        res.status(HttpStatus.OK).send({ records: filteredTokens });
+    }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async getSwapPriceAsync(req: express.Request, res: express.Response): Promise<void> {
+        const params = parseGetSwapQuoteRequestParams(req, 'price');
+        params.skipValidation = true;
+        const quote = await this._calculateSwapQuoteAsync(params);
+        const { price, value, gasPrice, gas, protocolFee, buyAmount, sellAmount, sources } = quote;
+        res.status(HttpStatus.OK).send({ price, value, gasPrice, gas, protocolFee, buyAmount, sellAmount, sources });
+    }
+    // tslint:disable-next-line:prefer-function-over-method
+    public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
+        const symbolOrAddress = req.query.sellToken || 'WETH';
+        const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
+        if (!baseAsset) {
+            throw new ValidationError([
+                {
+                    field: 'sellToken',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: `Could not find token ${symbolOrAddress}`,
+                },
+            ]);
+        }
+        const unitAmount = new BigNumber(1);
+        const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
+        res.status(HttpStatus.OK).send({ records });
+    }
+    private async _calculateSwapQuoteAsync(params: GetSwapQuoteRequestParams): Promise<GetSwapQuoteResponse> {
         const {
             sellToken,
             buyToken,
@@ -45,7 +85,8 @@ export class SwapHandlers {
             rfqt,
             // tslint:disable-next-line:boolean-naming
             skipValidation,
-        } = parseGetSwapQuoteRequestParams(req);
+            apiKey,
+        } = params;
 
         const isETHSell = isETHSymbol(sellToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
@@ -87,12 +128,13 @@ export class SwapHandlers {
             gasPrice,
             excludedSources,
             affiliateAddress,
-            apiKey: req.header('0x-api-key'),
+            apiKey,
             rfqt:
                 rfqt === undefined
                     ? undefined
                     : {
                           intentOnFilling: rfqt.intentOnFilling,
+                          isIndicative: rfqt.isIndicative,
                       },
             skipValidation,
         };
@@ -106,7 +148,7 @@ export class SwapHandlers {
             } else {
                 swapQuote = await this._swapService.calculateSwapQuoteAsync(calculateSwapQuoteParams);
             }
-            res.status(HttpStatus.OK).send(swapQuote);
+            return swapQuote;
         } catch (e) {
             // If this is already a transformed error then just re-throw
             if (isAPIError(e)) {
@@ -143,37 +185,12 @@ export class SwapHandlers {
             throw new InternalServerError(e.message);
         }
     }
-    // tslint:disable-next-line:prefer-function-over-method
-    public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
-        const tokens = TokenMetadatasForChains.map(tm => ({
-            symbol: tm.symbol,
-            address: tm.tokenAddresses[CHAIN_ID],
-            name: tm.name,
-            decimals: tm.decimals,
-        }));
-        const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
-        res.status(HttpStatus.OK).send({ records: filteredTokens });
-    }
-    // tslint:disable-next-line:prefer-function-over-method
-    public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
-        const symbolOrAddress = req.query.sellToken || 'WETH';
-        const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
-        if (!baseAsset) {
-            throw new ValidationError([
-                {
-                    field: 'sellToken',
-                    code: ValidationErrorCodes.ValueOutOfRange,
-                    reason: `Could not find token ${symbolOrAddress}`,
-                },
-            ]);
-        }
-        const unitAmount = new BigNumber(1);
-        const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
-        res.status(HttpStatus.OK).send({ records });
-    }
 }
 
-const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteRequestParams => {
+const parseGetSwapQuoteRequestParams = (
+    req: express.Request,
+    endpoint: 'price' | 'quote',
+): GetSwapQuoteRequestParams => {
     // HACK typescript typing does not allow this valid json-schema
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
     const takerAddress = req.query.takerAddress;
@@ -188,8 +205,14 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
             ? undefined
             : parseUtils.parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
     const affiliateAddress = req.query.affiliateAddress;
+    const apiKey = req.header('0x-api-key');
     const rfqt =
-        req.query.intentOnFilling === undefined ? undefined : { intentOnFilling: req.query.intentOnFilling === 'true' };
+        takerAddress && apiKey
+            ? {
+                  intentOnFilling: endpoint === 'quote' && req.query.intentOnFilling === 'true',
+                  isIndicative: endpoint === 'price',
+              }
+            : undefined;
     // tslint:disable-next-line:boolean-naming
     const skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
     return {
@@ -204,5 +227,6 @@ const parseGetSwapQuoteRequestParams = (req: express.Request): GetSwapQuoteReque
         affiliateAddress,
         rfqt,
         skipValidation,
+        apiKey,
     };
 };

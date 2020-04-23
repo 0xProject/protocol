@@ -22,7 +22,6 @@ import {
 } from '../config';
 import {
     GAS_LIMIT_BUFFER_PERCENTAGE,
-    NULL_ADDRESS,
     ONE,
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
@@ -41,6 +40,7 @@ export class SwapService {
     private readonly _web3Wrapper: Web3Wrapper;
     private readonly _wethContract: WETH9Contract;
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
+    private readonly _forwarderAddress: string;
 
     constructor(orderbook: Orderbook, provider: SupportedProvider) {
         this._provider = provider;
@@ -60,6 +60,7 @@ export class SwapService {
         const contractAddresses = getContractAddressesForChainOrThrow(CHAIN_ID);
         this._wethContract = new WETH9Contract(contractAddresses.etherToken, this._provider);
         this._protocolFeeUtils = new ProtocolFeeUtils(PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS);
+        this._forwarderAddress = contractAddresses.forwarder;
     }
 
     public async calculateSwapQuoteAsync(params: CalculateSwapQuoteParams): Promise<GetSwapQuoteResponse> {
@@ -80,23 +81,25 @@ export class SwapService {
             // tslint:disable-next-line:boolean-naming
             skipValidation,
         } = params;
+        let _rfqt;
+        if (apiKey !== undefined && (isETHSell || from !== undefined)) {
+            _rfqt = {
+                ...rfqt,
+                intentOnFilling: rfqt && rfqt.intentOnFilling ? true : false,
+                apiKey,
+                // If this is a forwarder transaction, then we want to request quotes with the taker as the
+                // forwarder contract. If it's not, then we want to request quotes with the taker set to the
+                // API's takerAddress query parameter, which in this context is known as `from`.
+                takerAddress: isETHSell ? this._forwarderAddress : from || '',
+            };
+        }
         const assetSwapperOpts = {
             ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
             slippagePercentage,
             bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
             excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
-            apiKey,
-            rfqt:
-                rfqt === undefined || from === undefined || from === NULL_ADDRESS
-                    ? undefined
-                    : {
-                          ...rfqt,
-                          // If this is a forwarder transaction, then we want to request quotes with the taker as the
-                          // forwarder contract. If it's not, then we want to request quotes with the taker set to the
-                          // API's takerAddress query parameter, which in this context is known as `from`.
-                          takerAddress: isETHSell ? getContractAddressesForChainOrThrow(CHAIN_ID).forwarder : from,
-                      },
+            rfqt: _rfqt,
         };
         if (sellAmount !== undefined) {
             swapQuote = await this._swapQuoter.getMarketSellSwapQuoteAsync(

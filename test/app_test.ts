@@ -1,3 +1,4 @@
+// tslint:disable:max-file-line-count
 import { rfqtMocker } from '@0x/asset-swapper';
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ERC20TokenContract, WETH9Contract } from '@0x/contract-wrappers';
@@ -19,7 +20,7 @@ import { GeneralErrorCodes, generalErrorCodeToReason } from '../src/errors';
 import * as orderFixture from './fixtures/order.json';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { expect } from './utils/expect';
-import { ganacheZrxWethOrder1 } from './utils/mocks';
+import { ganacheZrxWethOrder1, rfqtIndicativeQuoteResponse } from './utils/mocks';
 
 let app: Express.Application;
 
@@ -188,6 +189,88 @@ describe(SUITE_NAME, () => {
                         },
                     );
                 });
+                it('should not include an RFQ-T order when intentOnFilling === false', async () => {
+                    const sellAmount = new BigNumber(100000000000000000);
+
+                    const wethContract = new WETH9Contract(contractAddresses.etherToken, provider);
+                    await wethContract.deposit().sendTransactionAsync({ value: sellAmount, from: takerAddress });
+                    await wethContract
+                        .approve(contractAddresses.erc20Proxy, sellAmount)
+                        .sendTransactionAsync({ from: takerAddress });
+
+                    const mockedApiParams = {
+                        sellToken: contractAddresses.etherToken,
+                        buyToken: contractAddresses.zrxToken,
+                        sellAmount: sellAmount.toString(),
+                        buyAmount: undefined,
+                        takerAddress,
+                    };
+                    return rfqtMocker.withMockedRfqtIndicativeQuotes(
+                        [
+                            {
+                                endpoint: 'https://mock-rfqt1.club',
+                                responseData: rfqtIndicativeQuoteResponse,
+                                responseCode: 200,
+                                requestApiKey: 'koolApiKey1',
+                                requestParams: mockedApiParams,
+                            },
+                        ],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${sellAmount.toString()}&takerAddress=${takerAddress}&intentOnFilling=false&excludedSources=Uniswap,Eth2Dai,Kyber,LiquidityProvider&skipValidation=true`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.BAD_REQUEST)
+                                .expect('Content-Type', /json/);
+
+                            const validationErrors = appResponse.body.validationErrors;
+                            expect(validationErrors.length).to.eql(1);
+                            expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
+                        },
+                    );
+                });
+                it('should not include an RFQ-T order when intentOnFilling is omitted', async () => {
+                    const sellAmount = new BigNumber(100000000000000000);
+
+                    const wethContract = new WETH9Contract(contractAddresses.etherToken, provider);
+                    await wethContract.deposit().sendTransactionAsync({ value: sellAmount, from: takerAddress });
+                    await wethContract
+                        .approve(contractAddresses.erc20Proxy, sellAmount)
+                        .sendTransactionAsync({ from: takerAddress });
+
+                    const mockedApiParams = {
+                        sellToken: contractAddresses.etherToken,
+                        buyToken: contractAddresses.zrxToken,
+                        sellAmount: sellAmount.toString(),
+                        buyAmount: undefined,
+                        takerAddress,
+                    };
+                    return rfqtMocker.withMockedRfqtIndicativeQuotes(
+                        [
+                            {
+                                endpoint: 'https://mock-rfqt1.club',
+                                responseData: rfqtIndicativeQuoteResponse,
+                                responseCode: 200,
+                                requestApiKey: 'koolApiKey1',
+                                requestParams: mockedApiParams,
+                            },
+                        ],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${sellAmount.toString()}&takerAddress=${takerAddress}&excludedSources=Uniswap,Eth2Dai,Kyber,LiquidityProvider&skipValidation=true`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.BAD_REQUEST)
+                                .expect('Content-Type', /json/);
+
+                            const validationErrors = appResponse.body.validationErrors;
+                            expect(validationErrors.length).to.eql(1);
+                            expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
+                        },
+                    );
+                });
                 it('should fail when taker address is not supplied', async () => {
                     const sellAmount = new BigNumber(100000000000000000);
 
@@ -318,6 +401,86 @@ describe(SUITE_NAME, () => {
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
                                 .expect('Content-Type', /json/);
+                        },
+                    );
+                });
+                it('should get an indicative quote from an RFQ-T provider', async () => {
+                    const sellAmount = new BigNumber(100000000000000000);
+
+                    const mockedApiParams = {
+                        sellToken: contractAddresses.etherToken,
+                        buyToken: contractAddresses.zrxToken,
+                        sellAmount: sellAmount.toString(),
+                        buyAmount: undefined,
+                        takerAddress,
+                    };
+                    return rfqtMocker.withMockedRfqtIndicativeQuotes(
+                        [
+                            {
+                                endpoint: 'https://mock-rfqt1.club',
+                                responseData: rfqtIndicativeQuoteResponse,
+                                responseCode: 200,
+                                requestApiKey: 'koolApiKey1',
+                                requestParams: mockedApiParams,
+                            },
+                        ],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${sellAmount.toString()}&takerAddress=${takerAddress}&excludedSources=Uniswap,Eth2Dai,Kyber,LiquidityProvider`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.OK)
+                                .expect('Content-Type', /json/);
+
+                            const responseJson = JSON.parse(appResponse.text);
+                            delete responseJson.gas;
+                            delete responseJson.gasPrice;
+                            delete responseJson.protocolFee;
+                            delete responseJson.value;
+                            expect(responseJson).to.eql({
+                                buyAmount: '100000000000000000',
+                                price: '1',
+                                sellAmount: '100000000000000000',
+                                sources: [
+                                    {
+                                        name: '0x',
+                                        proportion: '1',
+                                    },
+                                    {
+                                        name: 'Uniswap',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'Eth2Dai',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'Kyber',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'Curve_USDC_DAI',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'Curve_USDC_DAI_USDT',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'Curve_USDC_DAI_USDT_TUSD',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'LiquidityProvider',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'Curve_USDC_DAI_USDT_BUSD',
+                                        proportion: '0',
+                                    },
+                                ],
+                            });
                         },
                     );
                 });

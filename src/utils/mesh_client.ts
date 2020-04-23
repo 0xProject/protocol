@@ -13,7 +13,7 @@ import * as _ from 'lodash';
 import { MESH_ORDERS_BATCH_HTTP_BYTE_LENGTH, MESH_ORDERS_BATCH_SIZE } from '../constants';
 import { logger } from '../logger';
 
-import { axios } from './axios_utils';
+import { retryableAxios } from './axios_utils';
 import { utils } from './utils';
 
 export class MeshClient extends WSClient {
@@ -43,7 +43,7 @@ export class MeshClient extends WSClient {
                 try {
                     const startTime = Date.now();
                     // send the request
-                    const response = await axios({
+                    const response = await retryableAxios({
                         method: 'post',
                         url: this.httpURI,
                         data,

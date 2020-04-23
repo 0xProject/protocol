@@ -3,9 +3,6 @@ import * as rax from 'retry-axios';
 
 import { logger } from '../logger';
 
-// Attach retry-axios to the global instance
-rax.attach();
-
 const DEFAULT_RETRY_CONFIG: rax.RetryConfig = {
     // Retry 3 times
     retry: 3,
@@ -21,12 +18,16 @@ const DEFAULT_RETRY_CONFIG: rax.RetryConfig = {
     },
 };
 
-export const axios = (config: AxiosRequestConfig): AxiosPromise => {
-    return Axios({
+const retryableAxiosInstance = Axios.create();
+export const retryableAxios = (config: AxiosRequestConfig): AxiosPromise => {
+    return retryableAxiosInstance({
         ...config,
         raxConfig: {
+            instance: retryableAxiosInstance,
             ...DEFAULT_RETRY_CONFIG,
             ...config.raxConfig,
         },
     });
 };
+// Attach retry-axios only to our specific instance
+rax.attach(retryableAxiosInstance);

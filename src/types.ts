@@ -405,9 +405,11 @@ export interface GetSwapQuoteRequestParams {
     excludedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
     rfqt?: {
-        intentOnFilling: boolean;
+        intentOnFilling?: boolean;
+        isIndicative?: boolean;
     };
     skipValidation: boolean;
+    apiKey?: string;
 }
 
 export interface GetTransactionRequestParams {
@@ -433,7 +435,8 @@ export interface CalculateSwapQuoteParams {
     affiliateAddress?: string;
     apiKey?: string;
     rfqt?: {
-        intentOnFilling: boolean;
+        intentOnFilling?: boolean;
+        isIndicative?: boolean;
     };
     skipValidation: boolean;
 }
