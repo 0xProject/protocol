@@ -3,6 +3,7 @@ import * as cors from 'cors';
 import * as express from 'express';
 import * as asyncHandler from 'express-async-handler';
 
+import * as defaultConfig from '../config';
 import { META_TRANSACTION_PATH } from '../constants';
 import { SignerHandlers } from '../handlers/signer_handlers';
 import { logger } from '../logger';
@@ -33,6 +34,11 @@ if (require.main === module) {
         app.use(errorHandler);
 
         logger.info('Signing Service started!');
+        const server = app.listen(defaultConfig.HTTP_PORT, () => {
+            logger.info(`API (HTTP) listening on port ${defaultConfig.HTTP_PORT}!`);
+        });
+        server.keepAliveTimeout = defaultConfig.HTTP_KEEP_ALIVE_TIMEOUT;
+        server.headersTimeout = defaultConfig.HTTP_HEADERS_TIMEOUT;
     })().catch(error => logger.error(error));
 }
 process.on('uncaughtException', err => {
