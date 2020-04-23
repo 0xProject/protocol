@@ -70,7 +70,6 @@ export class SignerHandlers {
                         gas: ethereumTxn.gas,
                         value: ethereumTxn.value,
                         to: ethereumTxn.to,
-                        nonce: ethereumTxn.nonce,
                     },
                 });
             }
