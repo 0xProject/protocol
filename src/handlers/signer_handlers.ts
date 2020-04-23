@@ -61,7 +61,7 @@ export class SignerHandlers {
                     signature,
                     protocolFee,
                 );
-                res.status(HttpStatus.BAD_GATEWAY).send({
+                res.status(HttpStatus.FORBIDDEN).send({
                     code: GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker,
                     reason: generalErrorCodeToReason[GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker],
                     ethereumTransaction: {
