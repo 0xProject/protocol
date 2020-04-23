@@ -484,6 +484,41 @@ describe(SUITE_NAME, () => {
                         },
                     );
                 });
+                it('should fail silently when RFQ-T provider gives an error response', async () => {
+                    const sellAmount = new BigNumber(100000000000000000);
+
+                    const mockedApiParams = {
+                        sellToken: contractAddresses.etherToken,
+                        buyToken: contractAddresses.zrxToken,
+                        sellAmount: sellAmount.toString(),
+                        buyAmount: undefined,
+                        takerAddress,
+                    };
+                    return rfqtMocker.withMockedRfqtIndicativeQuotes(
+                        [
+                            {
+                                endpoint: 'https://mock-rfqt1.club',
+                                responseData: {},
+                                responseCode: 500,
+                                requestApiKey: 'koolApiKey1',
+                                requestParams: mockedApiParams,
+                            },
+                        ],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${sellAmount.toString()}&takerAddress=${takerAddress}&excludedSources=Uniswap,Eth2Dai,Kyber,LiquidityProvider`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.BAD_REQUEST)
+                                .expect('Content-Type', /json/);
+
+                            const validationErrors = appResponse.body.validationErrors;
+                            expect(validationErrors.length).to.eql(1);
+                            expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
+                        },
+                    );
+                });
             });
         });
 

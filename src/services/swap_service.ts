@@ -29,6 +29,7 @@ import {
     WRAP_QUOTE_GAS,
     ZERO,
 } from '../constants';
+import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { CalculateSwapQuoteParams, GetSwapQuoteResponse, GetTokenPricesResponse, TokenMetadata } from '../types';
 import { serviceUtils } from '../utils/service_utils';
@@ -51,6 +52,7 @@ export class SwapService {
             rfqt: {
                 takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
                 makerEndpoints: RFQT_MAKER_ENDPOINTS,
+                warningLogger: logger.warn.bind(logger),
             },
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
