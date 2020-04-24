@@ -112,7 +112,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         symbol: 'SUSD',
         name: 'sUSD',
         tokenAddresses: {
-            [ChainId.Mainnet]: '0x57ab1e02fee23774580c119740129eac7081e9d3',
+            [ChainId.Mainnet]: '0x57ab1ec28d129707052df4df418d58a2d46d5f51',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
