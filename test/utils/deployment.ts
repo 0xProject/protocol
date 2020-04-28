@@ -2,11 +2,10 @@ import { logUtils as log } from '@0x/utils';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as rimraf from 'rimraf';
 import { promisify } from 'util';
 
 const apiRootDir = path.normalize(path.resolve(`${__dirname}/../../../`));
-const rimrafAsync = promisify(rimraf);
+const testRootDir = `${apiRootDir}/test`;
 
 export enum LogType {
     Console,
@@ -56,8 +55,8 @@ export async function teardownApiAsync(suiteName: string, logType?: LogType): Pr
     await teardownDependenciesAsync(suiteName, logType);
 }
 
-// NOTE(jalextowle): This is used to avoid calling teardown logic redundantly.
 let didTearDown = false;
+let didCreateFreshComposeFile = false;
 
 /**
  * Sets up 0x-api's dependencies.
@@ -66,25 +65,20 @@ let didTearDown = false;
  * @param logType Indicates where logs should be directed.
  */
 export async function setupDependenciesAsync(suiteName: string, logType?: LogType): Promise<void> {
+    if (!didCreateFreshComposeFile) {
+        await createFreshDockerComposeFileAsync();
+        didCreateFreshComposeFile = true;
+    }
+
     // Tear down any existing dependencies or lingering data if a tear-down has
     // not been called yet.
     if (!didTearDown) {
         await teardownDependenciesAsync(suiteName, logType);
     }
 
-    const pull = spawn('docker-compose', ['pull'], {
-        cwd: apiRootDir,
-    });
-    directLogs(pull, suiteName, 'pull', logType);
-    // NOTE(jalextowle): This doesn't usually take this long locally, but CI takes
-    // considerably longer. The reason for this could have to do with the fact that
-    // we are using Docker-in-Docker to run the tests.
-    const pullTimeout = 20000;
-    await waitForCloseAsync(pull, 'pull', pullTimeout);
-
     // Spin up the 0x-api dependencies
     const up = spawn('docker-compose', ['up', '--build'], {
-        cwd: apiRootDir,
+        cwd: testRootDir,
         env: {
             ...process.env,
             ETHEREUM_RPC_URL: 'http://ganache:8545',
@@ -107,15 +101,11 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
 export async function teardownDependenciesAsync(suiteName: string, logType?: LogType): Promise<void> {
     // Tear down any existing docker containers from the `docker-compose.yml` file.
     const rm = spawn('docker-compose', ['rm', '-f'], {
-        cwd: apiRootDir,
+        cwd: testRootDir,
     });
     directLogs(rm, suiteName, 'rm', logType);
     const rmTimeout = 5000;
     await waitForCloseAsync(rm, 'rm', rmTimeout);
-
-    // Remove any persisted files.
-    await rimrafAsync(`${apiRootDir}/0x_mesh`);
-    await rimrafAsync(`${apiRootDir}/postgres`);
 
     didTearDown = true;
 }
@@ -139,6 +129,16 @@ function directLogs(
         stream.stdout.pipe(logStream);
         stream.stderr.pipe(errorStream);
     }
+}
+
+const volumeRegex = new RegExp(/[ \t\r]*volumes:.*\n([ \t\r]*-.*\n)+/, 'g');
+
+// Removes the volume fields from the docker-compose.yml to fix a
+// docker compatibility issue with Linux systems.
+// Issue: https://github.com/0xProject/0x-api/issues/186
+async function createFreshDockerComposeFileAsync(): Promise<void> {
+    const dockerComposeString = (await promisify(fs.readFile)(`${apiRootDir}/docker-compose.yml`)).toString();
+    await promisify(fs.writeFile)(`${testRootDir}/docker-compose.yml`, dockerComposeString.replace(volumeRegex, ''));
 }
 
 function neatlyPrintChunk(prefix: string, chunk: Buffer): void {
@@ -206,6 +206,6 @@ async function waitForDependencyStartupAsync(logStream: ChildProcessWithoutNullS
         });
         setTimeout(() => {
             reject(new Error('Timed out waiting for dependency logs'));
-        }, 22500); // tslint:disable-line:custom-no-magic-numbers
+        }, 60000); // tslint:disable-line:custom-no-magic-numbers
     });
 }

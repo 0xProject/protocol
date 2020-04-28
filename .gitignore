@@ -83,4 +83,7 @@ db/database.sqlite
 # postgres docker volume
 postgres
 
+# test docker file
+test/docker-compose.yml
+
 TODO.txt
