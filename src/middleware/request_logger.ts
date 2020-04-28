@@ -25,6 +25,7 @@ export function requestLogger(): core.RequestHandler {
                     url: req.originalUrl.split('?')[0],
                     method: req.method,
                     headers: {
+                        '0x-api-key': req.headers['0x-api-key'],
                         'user-agent': req.headers['user-agent'],
                         host: req.headers.host,
                         referer: req.headers.referer,
