@@ -472,11 +472,15 @@ describe(SUITE_NAME, () => {
                                         proportion: '0',
                                     },
                                     {
-                                        name: 'LiquidityProvider',
+                                        name: 'Curve_USDC_DAI_USDT_BUSD',
                                         proportion: '0',
                                     },
                                     {
-                                        name: 'Curve_USDC_DAI_USDT_BUSD',
+                                        name: 'Curve_USDC_DAI_USDT_SUSD',
+                                        proportion: '0',
+                                    },
+                                    {
+                                        name: 'LiquidityProvider',
                                         proportion: '0',
                                     },
                                 ],
