@@ -1,5 +1,7 @@
 name: Release
-on: repository_dispatch
+on: 
+    repository_dispatch:
+        types: [semantic-release]
 
 jobs:
   release:
@@ -7,6 +9,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '11.x'
+      - name: Install dependencies
+        run: yarn install
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v2
         with:
