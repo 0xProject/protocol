@@ -1,15 +1,16 @@
-name: "Conventional Commit PR Title"
-on:
-  pull_request:
-    types:
-      - opened
-      - edited
-      - synchronize
+name: Release
+on: repository_dispatch
 
 jobs:
-  main:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - uses: amannn/action-semantic-pull-request@v1.1.1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v2
+        with:
+          dry_run: true
+          semantic_version: 1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
