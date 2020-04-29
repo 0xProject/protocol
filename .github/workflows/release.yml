@@ -22,3 +22,4 @@ jobs:
           semantic_version: 1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: true
