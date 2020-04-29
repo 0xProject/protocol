@@ -6,6 +6,7 @@ import {
     SwapQuoter,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
+import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
@@ -54,6 +55,7 @@ export class SwapService {
                 makerEndpoints: RFQT_MAKER_ENDPOINTS,
                 warningLogger: logger.warn.bind(logger),
             },
+            permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
