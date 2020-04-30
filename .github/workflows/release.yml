@@ -18,7 +18,6 @@ jobs:
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v2
         with:
-          dry_run: true
           semantic_version: '17.0.7'
           branch: 'master'
         env:
