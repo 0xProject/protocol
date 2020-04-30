@@ -124,6 +124,9 @@ export enum ValidationErrorCodes {
     TokenNotSupported = 1009,
 }
 
+export enum ValidationErrorReasons {
+    PercentageOutOfRange = 'MUST_BE_LESS_THAN_OR_EQUAL_TO_ONE',
+}
 export abstract class AlertError {
     public abstract message: string;
     public shouldAlert: boolean = true;

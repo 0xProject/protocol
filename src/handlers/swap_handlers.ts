@@ -5,7 +5,13 @@ import * as HttpStatus from 'http-status-codes';
 
 import { CHAIN_ID } from '../config';
 import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, SWAP_DOCS_URL } from '../constants';
-import { InternalServerError, RevertAPIError, ValidationError, ValidationErrorCodes } from '../errors';
+import {
+    InternalServerError,
+    RevertAPIError,
+    ValidationError,
+    ValidationErrorCodes,
+    ValidationErrorReasons,
+} from '../errors';
 import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
@@ -199,7 +205,19 @@ const parseGetSwapQuoteRequestParams = (
     const sellAmount = req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount);
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
-    const slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
+
+    let slippagePercentage;
+    if (req.query.slippagePercentage <= 1 || req.query.slippagePercentage === undefined) {
+        slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
+    } else {
+        throw new ValidationError([
+            {
+                field: 'slippagePercentage',
+                code: ValidationErrorCodes.ValueOutOfRange,
+                reason: ValidationErrorReasons.PercentageOutOfRange,
+            },
+        ]);
+    }
     const excludedSources =
         req.query.excludedSources === undefined
             ? undefined
