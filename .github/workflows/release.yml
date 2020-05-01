@@ -23,7 +23,6 @@ jobs:
         with:
           semantic_version: '17.0.7'
           branch: 'master'
-          dry_run: true
           extra_plugins: |
             @semantic-release/changelog
             @semantic-release/git
@@ -47,8 +46,8 @@ jobs:
         uses: peter-evans/create-pull-request@v2.3.0
         with:
             token: ${{ secrets.PAT }}
-            commit-message: "[0xApi][prod] Deploy ${{ steps.semantic_release.outputs.new_release_version }}"
-            title: "[0xApi][prod] Deploy ${{ steps.semantic_release.outputs.new_release_version }}"
+            commit-message: "[0xApi][prod] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
+            title: "[0xApi][prod] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
             reviewers: dekz
             labels: 0xApi, prod
             branch: "0xApi/prod/${{ steps.semantic_release.outputs.new_release_version }}"
