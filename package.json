@@ -57,7 +57,9 @@
                     "prepareCmd": "docker build -t 0xorg/0x-api ."
                 }
             ],
-            "semantic-release-docker",
+            ["semantic-release-docker", {
+                "name": "0xorg/0x-api"
+            }],
             [
                 "semantic-release-slack-bot",
                 {
@@ -65,7 +67,7 @@
                     "notifyOnFail": true,
                     "markdownReleaseNotes": true,
                     "onSuccessTemplate": {
-                        "text": "Version $npm_package_name of $package_name has been released. The deployment must be approved at https://github.com/0xProject/0x-main-infra/pulls. $release_notes"
+                        "text": "Version $npm_package_version of $package_name has been released. The deployment must be approved at https://github.com/0xProject/0x-main-infra/pulls. $release_notes"
                     },
                     "onFailTemplate": {
                         "text": "Releasing $package_name with version $npm_package_version failed."

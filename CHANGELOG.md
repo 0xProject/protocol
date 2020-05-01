@@ -11,4 +11,3 @@
 
 * Support RFQT via Meta-txn Endpoints ([#203](https://github.com/0xProject/0x-api/issues/203)) ([ea9a7e0](https://github.com/0xProject/0x-api/commit/ea9a7e0ad32855796c4cf9ef125b075f5761e71d))
 
-# CHANGELOG
