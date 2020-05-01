@@ -21,7 +21,7 @@ import {
     META_TXN_RELAY_PRIVATE_KEY,
     WHITELISTED_API_KEYS_META_TXN_SUBMIT,
 } from '../config';
-import { ETH_GAS_STATION_API_BASE_URL } from '../constants';
+import { ETH_GAS_STATION_API_BASE_URL, ONE_SECOND_MS } from '../constants';
 import { PostTransactionResponse, ZeroExTransactionWithoutDomain } from '../types';
 
 export class SignerService {
@@ -75,7 +75,7 @@ export class SignerService {
     ): Promise<BigNumber> {
         // Verify 0x txn won't expire in next 60 seconds
         // tslint:disable-next-line:custom-no-magic-numbers
-        const sixtySecondsFromNow = new BigNumber(+new Date() + 60);
+        const sixtySecondsFromNow = new BigNumber(Math.floor(new Date().getTime() / ONE_SECOND_MS) + 60);
         if (zeroExTransaction.expirationTimeSeconds.lte(sixtySecondsFromNow)) {
             throw new Error('zeroExTransaction expirationTimeSeconds in less than 60 seconds from now');
         }
