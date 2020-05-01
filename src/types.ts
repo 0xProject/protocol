@@ -458,4 +458,5 @@ export interface CalculateMetaTransactionQuoteParams {
     from: string | undefined;
     slippagePercentage?: number;
     excludedSources?: ERC20BridgeSource[];
+    apiKey: string | undefined;
 }

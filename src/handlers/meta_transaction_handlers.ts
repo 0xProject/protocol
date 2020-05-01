@@ -3,10 +3,13 @@ import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
+import * as isValidUUID from 'uuid-validate';
 
 import { CHAIN_ID } from '../config';
 import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
 import {
+    GeneralErrorCodes,
+    generalErrorCodeToReason,
     InternalServerError,
     RevertAPIError,
     ValidationError,
@@ -32,6 +35,14 @@ export class MetaTransactionHandlers {
         this._metaTransactionService = metaTransactionService;
     }
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
+        const apiKey = req.header('0x-api-key');
+        if (apiKey !== undefined && !isValidUUID(apiKey)) {
+            res.status(HttpStatus.BAD_REQUEST).send({
+                code: GeneralErrorCodes.InvalidAPIKey,
+                reason: generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey],
+            });
+            return;
+        }
         // HACK typescript typing does not allow this valid json-schema
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema as any);
         // parse query params
@@ -56,6 +67,7 @@ export class MetaTransactionHandlers {
                 from: takerAddress,
                 slippagePercentage,
                 excludedSources,
+                apiKey,
             });
             res.status(HttpStatus.OK).send(metaTransactionQuote);
         } catch (e) {
@@ -95,6 +107,14 @@ export class MetaTransactionHandlers {
         }
     }
     public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
+        const apiKey = req.header('0x-api-key');
+        if (apiKey !== undefined && !isValidUUID(apiKey)) {
+            res.status(HttpStatus.BAD_REQUEST).send({
+                code: GeneralErrorCodes.InvalidAPIKey,
+                reason: generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey],
+            });
+            return;
+        }
         // HACK typescript typing does not allow this valid json-schema
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema as any);
         // parse query params
@@ -110,16 +130,20 @@ export class MetaTransactionHandlers {
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
         const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
         try {
-            const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync({
-                takerAddress,
-                buyTokenAddress,
-                sellTokenAddress,
-                buyAmount,
-                sellAmount,
-                from: takerAddress,
-                slippagePercentage,
-                excludedSources,
-            });
+            const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
+                {
+                    takerAddress,
+                    buyTokenAddress,
+                    sellTokenAddress,
+                    buyAmount,
+                    sellAmount,
+                    from: takerAddress,
+                    slippagePercentage,
+                    excludedSources,
+                    apiKey,
+                },
+                'price',
+            );
             const metaTransactionPriceResponse = {
                 price: metaTransactionPrice.price,
                 buyAmount: metaTransactionPrice.buyAmount,
