@@ -43,7 +43,7 @@
             "@semantic-release/commit-analyzer",
             "@semantic-release/release-notes-generator",
             [
-                "@sematic-release/npm",
+                "@semantic-release/npm",
                 {
                     "npmPublish": false
                 }
