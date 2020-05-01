@@ -76,7 +76,7 @@ export class SignerService {
         // Verify 0x txn won't expire in next 60 seconds
         // tslint:disable-next-line:custom-no-magic-numbers
         const sixtySecondsFromNow = new BigNumber(+new Date() + 60);
-        if (zeroExTransaction.expirationTimeSeconds <= sixtySecondsFromNow) {
+        if (zeroExTransaction.expirationTimeSeconds.lte(sixtySecondsFromNow)) {
             throw new Error('zeroExTransaction expirationTimeSeconds in less than 60 seconds from now');
         }
 
@@ -85,7 +85,7 @@ export class SignerService {
 
         // Verify orders don't expire in next 60 seconds
         orders.forEach(order => {
-            if (order.expirationTimeSeconds <= sixtySecondsFromNow) {
+            if (order.expirationTimeSeconds.lte(sixtySecondsFromNow)) {
                 throw new Error('Order included in zeroExTransaction expires in less than 60 seconds from now');
             }
         });
@@ -94,7 +94,7 @@ export class SignerService {
         const currentFastGasPrice = await this._getGasPriceFromGasStationOrThrowAsync();
         // Make sure gasPrice is not 3X the current fast EthGasStation gas price
         // tslint:disable-next-line:custom-no-magic-numbers
-        if (currentFastGasPrice < gasPrice && gasPrice.minus(currentFastGasPrice).gt(currentFastGasPrice.times(3))) {
+        if (currentFastGasPrice.lt(gasPrice) && gasPrice.minus(currentFastGasPrice).gt(currentFastGasPrice.times(3))) {
             throw new Error('Gas price too high');
         }
 
