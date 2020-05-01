@@ -94,7 +94,7 @@ export class SignerService {
         const currentFastGasPrice = await this._getGasPriceFromGasStationOrThrowAsync();
         // Make sure gasPrice is not 3X the current fast EthGasStation gas price
         // tslint:disable-next-line:custom-no-magic-numbers
-        if (currentFastGasPrice < gasPrice && gasPrice.minus(currentFastGasPrice) > currentFastGasPrice.times(3)) {
+        if (currentFastGasPrice < gasPrice && gasPrice.minus(currentFastGasPrice).gt(currentFastGasPrice.times(3))) {
             throw new Error('Gas price too high');
         }
 
