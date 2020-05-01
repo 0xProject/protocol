@@ -35,6 +35,7 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           SLACK_WEBHOOK: ${{ secrets.RELEASE_SLACK_WEBHOOK }}
+          SEMANTIC_RELEASE_PACKAGE: 0x-api
           DEBUG: true
       - uses: actions/checkout@v2
         with:
