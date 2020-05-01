@@ -2,6 +2,8 @@ name: Release
 on: 
     repository_dispatch:
         types: [semantic-release]
+    schedule:
+        - cron: '* 17 * * 1'
 
 jobs:
   release:
@@ -17,9 +19,42 @@ jobs:
         run: yarn install
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v2
+        id: semantic_release
         with:
           semantic_version: '17.0.7'
           branch: 'master'
+          dry_run: true
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+            @semantic-release/exec
+            semantic-release-docker
+            semantic-release-slack-bot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SLACK_WEBHOOK: ${{ secrets.RELEASE_SLACK_WEBHOOK }}
           DEBUG: true
+      - uses: actions/checkout@v2
+        with:
+            token: ${{ secrets.PAT }}
+            repository: 0xProject/0x-main-infra
+      - name: Update API Deployment
+        run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ github.sha }}"/g' env/0x-api/prod/*.yml
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v2.3.0
+        with:
+            token: ${{ secrets.PAT }}
+            commit-message: "[0xApi][prod] Deploy ${{ steps.semantic_release.outputs.new_release_version }}"
+            title: "[0xApi][prod] Deploy ${{ steps.semantic_release.outputs.new_release_version }}"
+            reviewers: dekz
+            labels: 0xApi, prod
+            branch: "0xApi/prod/${{ steps.semantic_release.outputs.new_release_version }}"
+            body: |
+              https://github.com/${{ github.repository }}/compare/master...${{ steps.semantic_release.outputs.new_release_version }}
+              ${{ steps.semantic_release.outputs.new_release_version }}
+      - name: Check outputs
+        run: |
+            echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
+            echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"

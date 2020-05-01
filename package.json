@@ -1,6 +1,6 @@
 {
     "name": "0x-api",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "0x API",
     "repository": "git@github.com:0xProject/0x-api.git",
     "author": "Francesco Agosti <francesco@0x.org>",
@@ -42,7 +42,36 @@
         "plugins": [
             "@semantic-release/commit-analyzer",
             "@semantic-release/release-notes-generator",
-            "@semantic-release/github"
+            [
+                "@sematic-release/npm",
+                {
+                    "npmPublish": false
+                }
+            ],
+            "@semantic-release/github",
+            "@semantic-release/changelog",
+            "@semantic-release/git",
+            [
+                "@semantic-release/exec",
+                {
+                    "prepareCmd": "docker build -t 0xorg/0x-api ."
+                }
+            ],
+            "semantic-release-docker",
+            [
+                "semantic-release-slack-bot",
+                {
+                    "notifyOnSuccess": true,
+                    "notifyOnFail": true,
+                    "markdownReleaseNotes": true,
+                    "onSuccessTemplate": {
+                        "text": "Version $npm_package_name of $package_name has been released. The deployment must be approved at https://github.com/0xProject/0x-main-infra/pulls. $release_notes"
+                    },
+                    "onFailTemplate": {
+                        "text": "Releasing $package_name with version $npm_package_version failed."
+                    }
+                }
+            ]
         ]
     },
     "devDependencies": {
@@ -50,6 +79,9 @@
         "@0x/tslint-config": "^4.0.0",
         "@0x/types": "^3.1.1",
         "@0x/typescript-typings": "^5.0.1",
+        "@semantic-release/changelog": "^5.0.1",
+        "@semantic-release/exec": "^5.0.0",
+        "@semantic-release/git": "^9.0.0",
         "@types/cors": "^2.8.6",
         "@types/dotenv": "^6.1.1",
         "@types/express": "^4.17.1",
@@ -69,6 +101,8 @@
         "pino-pretty": "^3.2.2",
         "prettier": "^1.18.2",
         "rimraf": "^3.0.2",
+        "semantic-release-docker": "^2.2.0",
+        "semantic-release-slack-bot": "^1.6.1",
         "shx": "^0.3.2",
         "supertest": "^4.0.2",
         "ts-node": "^8.4.1",
