@@ -10,6 +10,7 @@ import {
     DelegatorEvent,
     Epoch,
     EpochDelegatorStats,
+    EpochWithFees,
     Pool,
     PoolEpochRewards,
     PoolWithStats,
@@ -19,6 +20,7 @@ import {
     RawDelegatorEvent,
     RawDelegatorStaked,
     RawEpoch,
+    RawEpochWithFees,
     RawPool,
     RawPoolEpochRewards,
     RawPoolTotalProtocolFeesGenerated,
@@ -41,12 +43,32 @@ export class StakingDataService {
         return epoch;
     }
 
+    public async getCurrentEpochWithFeesAsync(): Promise<EpochWithFees> {
+        const rawEpochWithFees: RawEpochWithFees | undefined = _.head(
+            await this._connection.query(queries.currentEpochWithFeesQuery),
+        );
+        if (!rawEpochWithFees) {
+            throw new Error('Could not find the current epoch.');
+        }
+        const epoch = stakingUtils.getEpochWithFeesFromRaw(rawEpochWithFees);
+        return epoch;
+    }
+
     public async getNextEpochAsync(): Promise<Epoch> {
         const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(queries.nextEpochQuery));
         if (!rawEpoch) {
-            throw new Error('Could not find the next current epoch.');
+            throw new Error('Could not find the next epoch.');
         }
         const epoch = stakingUtils.getEpochFromRaw(rawEpoch);
+        return epoch;
+    }
+
+    public async getNextEpochWithFeesAsync(): Promise<EpochWithFees> {
+        const rawEpoch: RawEpochWithFees | undefined = _.head(await this._connection.query(queries.nextEpochQuery));
+        if (!rawEpoch) {
+            throw new Error('Could not find the next epoch.');
+        }
+        const epoch = stakingUtils.getEpochWithFeesFromRaw(rawEpoch);
         return epoch;
     }
 

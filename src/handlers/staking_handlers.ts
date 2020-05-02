@@ -1,14 +1,17 @@
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
+import { schemas } from '../schemas/schemas';
 import { StakingDataService } from '../services/staking_data_service';
 import {
     StakingDelegatorResponse,
     StakingEpochsResponse,
+    StakingEpochsWithFeesResponse,
     StakingPoolResponse,
     StakingPoolsResponse,
     StakingStatsResponse,
 } from '../types';
+import { schemaUtils } from '../utils/schema_utils';
 
 export class StakingHandlers {
     private readonly _stakingDataService: StakingDataService;
@@ -38,15 +41,31 @@ export class StakingHandlers {
 
         res.status(HttpStatus.OK).send(response);
     }
-    public async getStakingEpochsAsync(_req: express.Request, res: express.Response): Promise<void> {
-        const [currentEpoch, nextEpoch] = await Promise.all([
-            this._stakingDataService.getCurrentEpochAsync(),
-            this._stakingDataService.getNextEpochAsync(),
-        ]);
-        const response: StakingEpochsResponse = {
-            currentEpoch,
-            nextEpoch,
-        };
+    public async getStakingEpochsAsync(req: express.Request, res: express.Response): Promise<void> {
+        // optional query string to include fees
+        schemaUtils.validateSchema(req.query, schemas.stakingEpochRequestSchema as any);
+        const isWithFees = req.query.withFees ? req.query.withFees === 'true' : false;
+
+        let response: StakingEpochsResponse | StakingEpochsWithFeesResponse;
+        if (isWithFees) {
+            const [currentEpoch, nextEpoch] = await Promise.all([
+                this._stakingDataService.getCurrentEpochWithFeesAsync(),
+                this._stakingDataService.getNextEpochWithFeesAsync(),
+            ]);
+            response = {
+                currentEpoch,
+                nextEpoch,
+            };
+        } else {
+            const [currentEpoch, nextEpoch] = await Promise.all([
+                this._stakingDataService.getCurrentEpochAsync(),
+                this._stakingDataService.getNextEpochAsync(),
+            ]);
+            response = {
+                currentEpoch,
+                nextEpoch,
+            };
+        }
         res.status(HttpStatus.OK).send(response);
     }
     public async getStakingStatsAsync(_req: express.Request, res: express.Response): Promise<void> {

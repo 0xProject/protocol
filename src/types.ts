@@ -75,6 +75,12 @@ export interface RawEpoch {
     zrx_staked?: string;
 }
 
+// Separating out the response with fees
+// As this is a significantly heavier query (it has to sum over fills)
+export interface RawEpochWithFees extends RawEpoch {
+    protocol_fees_generated_in_eth: string;
+}
+
 export interface TransactionDate {
     blockNumber: number;
     txHash: string;
@@ -87,6 +93,10 @@ export interface Epoch {
     epochEnd?: TransactionDate;
     zrxStaked: number;
     zrxDeposited: number;
+}
+
+export interface EpochWithFees extends Epoch {
+    protocolFeesGeneratedInEth: number;
 }
 
 export interface RawPool {
@@ -153,6 +163,8 @@ export interface RawEpochPoolStats {
     maker_addresses: string[];
     operator_share?: string;
     zrx_staked?: string;
+    operator_zrx_staked?: string;
+    member_zrx_staked?: string;
     total_staked?: string;
     share_of_stake?: string;
     total_protocol_fees_generated_in_eth?: string;
@@ -165,6 +177,8 @@ export interface RawEpochPoolStats {
 export interface EpochPoolStats {
     poolId: string;
     zrxStaked: number;
+    operatorZrxStaked: number;
+    memberZrxStaked: number;
     shareOfStake: number;
     operatorShare?: number;
     makerAddresses: string[];
@@ -290,6 +304,10 @@ export interface StakingDelegatorResponse {
 export interface StakingEpochsResponse {
     currentEpoch: Epoch;
     nextEpoch: Epoch;
+}
+export interface StakingEpochsWithFeesResponse {
+    currentEpoch: EpochWithFees;
+    nextEpoch: EpochWithFees;
 }
 export interface StakingStatsResponse {
     allTime: AllTimeStakingStats;

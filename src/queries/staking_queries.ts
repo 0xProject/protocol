@@ -19,7 +19,41 @@ export const currentEpochQuery = `
         , zs.zrx_staked
     FROM staking.current_epoch ce
     CROSS JOIN zrx_deposited zd
-    CROSS JOIN zrx_staked zs;`;
+    CROSS JOIN zrx_staked zs`;
+
+export const currentEpochWithFeesQuery = `
+    WITH zrx_staked AS (
+        SELECT
+            SUM(esps.zrx_delegated) AS zrx_staked
+        FROM staking.epoch_start_pool_status esps
+        JOIN staking.current_epoch ce ON ce.epoch_id = esps.epoch_id
+    )
+    , zrx_deposited AS (
+        SELECT
+            SUM(scc.amount) AS zrx_deposited
+        FROM staking.zrx_staking_contract_changes scc
+        JOIN staking.current_epoch ce
+            ON scc.block_number < ce.starting_block_number
+            OR (scc.block_number = ce.starting_block_number AND scc.transaction_index < ce.starting_transaction_index)
+    )
+    , protocol_fees AS (
+        SELECT
+            SUM(protocol_fee_paid) / 1e18::NUMERIC AS protocol_fees_generated_in_eth
+        FROM events.fill_events fe
+        JOIN staking.current_epoch ce
+            ON fe.block_number > ce.starting_block_number
+            OR (fe.block_number = ce.starting_block_number AND fe.transaction_index > ce.starting_transaction_index)
+    )
+    SELECT
+        ce.*
+        , zd.zrx_deposited
+        , zs.zrx_staked
+        , pf.protocol_fees_generated_in_eth
+    FROM staking.current_epoch ce
+    CROSS JOIN zrx_deposited zd
+    CROSS JOIN zrx_staked zs
+    CROSS JOIN protocol_fees pf;
+`;
 
 export const nextEpochQuery = `
     WITH
@@ -239,6 +273,8 @@ export const currentEpochPoolsStatsQuery = `
         , cebs.operator_share AS operator_share
         , cebs.zrx_delegated AS zrx_staked
         , ts.total_staked
+        , cebs.operator_zrx_delegated AS operator_zrx_staked
+        , cebs.member_zrx_delegated AS member_zrx_staked
         , cebs.zrx_delegated / ts.total_staked AS share_of_stake
         , fbp.protocol_fees AS total_protocol_fees_generated_in_eth
         , fbp.num_fills AS number_of_fills
@@ -294,6 +330,8 @@ export const currentEpochPoolStatsQuery = `
             , cebs.maker_addresses AS maker_addresses
             , cebs.operator_share AS operator_share
             , cebs.zrx_delegated AS zrx_staked
+            , cebs.operator_zrx_delegated AS operator_zrx_staked
+            , cebs.member_zrx_delegated AS member_zrx_staked
             , ts.total_staked
             , cebs.zrx_delegated / ts.total_staked AS share_of_stake
             , fbp.protocol_fees AS total_protocol_fees_generated_in_eth
@@ -318,6 +356,14 @@ export const nextEpochPoolsStatsQuery = `
             SELECT
                 pi.pool_id
                 , SUM(zsc.amount) AS zrx_staked
+                , SUM(CASE
+                            WHEN pi.operator = zsc.staker THEN zsc.amount
+                            ELSE 0.00
+                        END) AS operator_zrx_staked
+                , SUM(CASE
+                            WHEN pi.operator <> zsc.staker THEN zsc.amount
+                            ELSE 0.00
+                        END) AS member_zrx_staked
             FROM staking.pool_info pi
             LEFT JOIN staking.zrx_staking_changes zsc ON zsc.pool_id = pi.pool_id
             GROUP BY 1
@@ -366,6 +412,8 @@ export const nextEpochPoolsStatsQuery = `
             , pi.maker_addresses
             , os.operator_share
             , cs.zrx_staked
+            , cs.operator_zrx_staked
+            , cs.member_zrx_staked
             , ts.total_staked
             , cs.zrx_staked / ts.total_staked AS share_of_stake
             , 0.00 AS total_protocol_fees_generated_in_eth
@@ -387,6 +435,14 @@ export const nextEpochPoolStatsQuery = `
             SELECT
                 pi.pool_id
                 , SUM(zsc.amount) AS zrx_staked
+                , SUM(CASE
+                        WHEN pi.operator = zsc.staker THEN zsc.amount
+                        ELSE 0.00
+                    END) AS operator_zrx_staked
+                , SUM(CASE
+                        WHEN pi.operator <> zsc.staker THEN zsc.amount
+                        ELSE 0.00
+                    END) AS member_zrx_staked
             FROM staking.pool_info pi
             LEFT JOIN staking.zrx_staking_changes zsc ON zsc.pool_id = pi.pool_id
             GROUP BY 1
@@ -435,6 +491,8 @@ export const nextEpochPoolStatsQuery = `
             , pi.maker_addresses
             , os.operator_share
             , cs.zrx_staked
+            , cs.operator_zrx_staked
+            , cs.member_zrx_staked
             , ts.total_staked
             , cs.zrx_staked / ts.total_staked AS share_of_stake
             , 0.00 AS total_protocol_fees_generated_in_eth

@@ -7,6 +7,7 @@ import {
     DelegatorEvent,
     Epoch,
     EpochPoolStats,
+    EpochWithFees,
     Pool,
     PoolAvgRewards,
     PoolEpochDelegatorStats,
@@ -20,6 +21,7 @@ import {
     RawDelegatorStaked,
     RawEpoch,
     RawEpochPoolStats,
+    RawEpochWithFees,
     RawPool,
     RawPoolAvgRewards,
     RawPoolEpochRewards,
@@ -61,6 +63,40 @@ export const stakingUtils = {
             zrxStaked: Number(zrx_staked || 0),
         };
     },
+    getEpochWithFeesFromRaw: (rawEpochWithFees: RawEpochWithFees): EpochWithFees => {
+        const {
+            epoch_id,
+            starting_transaction_hash,
+            starting_block_number,
+            starting_block_timestamp,
+            ending_transaction_hash,
+            ending_block_number,
+            ending_block_timestamp,
+            zrx_deposited,
+            zrx_staked,
+            protocol_fees_generated_in_eth,
+        } = rawEpochWithFees;
+        let epochEnd: TransactionDate | undefined;
+        if (ending_transaction_hash && ending_block_number) {
+            epochEnd = {
+                blockNumber: parseInt(ending_block_number, 10),
+                txHash: ending_transaction_hash,
+                timestamp: ending_block_timestamp || undefined,
+            };
+        }
+        return {
+            epochId: parseInt(epoch_id, 10),
+            epochStart: {
+                blockNumber: parseInt(starting_block_number, 10),
+                txHash: starting_transaction_hash,
+                timestamp: starting_block_timestamp || undefined,
+            },
+            epochEnd,
+            zrxDeposited: Number(zrx_deposited || 0),
+            zrxStaked: Number(zrx_staked || 0),
+            protocolFeesGeneratedInEth: Number(protocol_fees_generated_in_eth || 0),
+        };
+    },
     getPoolFromRaw: (rawPool: RawPool): Pool => {
         const {
             pool_id,
@@ -100,6 +136,8 @@ export const stakingUtils = {
             maker_addresses,
             operator_share,
             zrx_staked,
+            operator_zrx_staked,
+            member_zrx_staked,
             share_of_stake,
             total_protocol_fees_generated_in_eth,
             share_of_fees,
@@ -110,6 +148,8 @@ export const stakingUtils = {
         return {
             poolId: pool_id,
             zrxStaked: Number(zrx_staked || 0),
+            operatorZrxStaked: Number(operator_zrx_staked || 0),
+            memberZrxStaked: Number(member_zrx_staked || 0),
             shareOfStake: Number(share_of_stake),
             operatorShare: _.isNil(operator_share) ? undefined : Number(operator_share),
             approximateStakeRatio: approximate_stake_ratio ? Number(approximate_stake_ratio) : 0,
