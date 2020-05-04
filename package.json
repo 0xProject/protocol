@@ -57,9 +57,12 @@
                     "prepareCmd": "docker build -t 0xorg/0x-api ."
                 }
             ],
-            ["semantic-release-docker", {
-                "name": "0xorg/0x-api"
-            }],
+            [
+                "semantic-release-docker",
+                {
+                    "name": "0xorg/0x-api"
+                }
+            ],
             [
                 "semantic-release-slack-bot",
                 {

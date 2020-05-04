@@ -1,4 +1,4 @@
-<!--- 
+<!---
 The PR title should follow [conventional commits](https://www.conventionalcommits.org/)
 The title will be used to generate the [changelog](/CHANGELOG.md) and release notes, so be descriptive.
 You can use prefixes other than fix: and feat: if you think your change should not go in the [changelog](/CHANGELOG.md).
@@ -20,5 +20,3 @@ When a new version is released, the API will automatically be deployed to produc
 -   [ ] Update [documentation](https://github.com/0xProject/website/blob/development/mdx/api/index.mdx) as needed. **Website Documentation PR:**
 -   [ ] Prefix PR title with `[WIP]` if necessary.
 -   [ ] Add tests to cover changes as needed.
-
-
