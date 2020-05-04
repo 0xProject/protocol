@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/0xProject/0x-api/compare/v1.1.0...v1.2.0) (2020-05-04)
+
+
+### Bug Fixes
+
+* specify an image name for the Docker push, fix typos ([512deab](https://github.com/0xProject/0x-api/commit/512deab78da744e86ca7e2f58d2c6e09e4f78c05))
+
+
+### Features
+
+* Added pool breakdown of operator vs member stake, added option to add… ([#202](https://github.com/0xProject/0x-api/issues/202)) ([e20daa5](https://github.com/0xProject/0x-api/commit/e20daa5bb1cf6271b83d977459227fd80d1794cd))
+
 # [1.1.0](https://github.com/0xProject/0x-api/compare/v1.0.0...v1.1.0) (2020-05-01)
 
 ### Bug Fixes
