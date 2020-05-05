@@ -2,7 +2,7 @@
 The PR title should follow [conventional commits](https://www.conventionalcommits.org/)
 The title will be used to generate the [changelog](/CHANGELOG.md) and release notes, so be descriptive.
 You can use prefixes other than fix: and feat: if you think your change should not go in the [changelog](/CHANGELOG.md).
-When a new version is released, the API will automatically be deployed to production (once a week).
+When a new version is released, the API will automatically be deployed to all environments (once a week).
 -->
 
 # Description

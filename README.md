@@ -1,3 +1,8 @@
+[![Version](https://img.shields.io/github/package-json/v/0xProject/0x-api)](https://github.com/0xProject/0x-api/releases)
+[![Docs](https://img.shields.io/badge/docs-website-yellow.svg)](https://0x.org/docs/api)
+[![Chat with us on Discord](https://img.shields.io/badge/chat-Discord-blueViolet.svg)](https://discord.com/invite/d3FTX3M)
+[![Circle CI](https://img.shields.io/circleci/project/0xProject/0x-api/master.svg)](https://circleci.com/gh/0xProject/0x-api/tree/master)
+
 ![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png '0x API')
 
 ## Table of contents
@@ -12,6 +17,7 @@
 -   [Commands](#commands)
 -   [Database](#database)
 -   [Deployment](#deployment)
+-   [Release](#release)
 -   [Legal Disclaimer](#legal-disclaimer)
 
 ## Introduction
@@ -135,11 +141,17 @@ Tip: Test suites set up and teardown sandboxed environments, so using `.only` on
 -   `yarn dev` - Starts the API in dev-mode
 -   `yarn watch` - Watch the source code and rebuild on change
 -   `yarn prettier` - Auto-format the code
+-   `yarn release` - Release a new version of the 0x-api
 
 ## Deployment
 
 A Docker image is built and hosted by [Dockerhub](https://hub.docker.com/r/0xorg/0x-api) every time a change to the `master` branch occurs. A Docker image is built, pushed and [tagged](https://hub.docker.com/r/0xorg/0x-api/tags) when a new version is [released](https://github.com/0xProject/0x-api/releases) as well.
 Running this image will run 0x API as a monolith, with all it's dependencies. You can run any of the [services](#services) separately by [overriding the Docker command](https://docs.docker.com/engine/reference/run/#cmd-default-command-or-options) with the service-specific command when running the container.
+
+## Release
+
+Releases are triggered automatically by the [release GitHub action](https://github.com/0xProject/0x-api/actions?query=workflow%3ARelease).
+They can also be triggered manually by using `yarn release`, which requires a [GITHUB_TOKEN](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) environment variable.
 
 ## Database
 

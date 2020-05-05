@@ -127,7 +127,7 @@ describe(SUITE_NAME, () => {
                 });
         });
     });
-    describe('should hit RFQ-T when apropriate', async () => {
+    describe('should hit RFQ-T when appropriate', async () => {
         let contractAddresses: ContractAddresses;
         let makerAddress: string;
         let takerAddress: string;

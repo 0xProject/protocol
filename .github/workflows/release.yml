@@ -41,15 +41,15 @@ jobs:
             token: ${{ secrets.PAT }}
             repository: 0xProject/0x-main-infra
       - name: Update API Deployment
-        run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ github.sha }}"/g' env/0x-api/prod/*.yml
+        run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ github.sha }}"/g' env/0x-api/**/*.yml
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v2.3.0
         with:
             token: ${{ secrets.PAT }}
-            commit-message: "[0xApi][prod] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
-            title: "[0xApi][prod] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
+            commit-message: "[0xApi][prod|kovan|staging] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
+            title: "[0xApi][prod|kovan|staging] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
             reviewers: dekz
-            labels: 0xApi, prod
+            labels: 0xApi, prod, kovan, staging
             branch: "0xApi/prod/${{ steps.semantic_release.outputs.new_release_version }}"
             body: |
               https://github.com/${{ github.repository }}/compare/master...${{ steps.semantic_release.outputs.new_release_version }}
