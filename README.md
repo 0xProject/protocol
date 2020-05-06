@@ -135,7 +135,7 @@ Tip: Test suites set up and teardown sandboxed environments, so using `.only` on
 ## Commands
 
 -   `yarn build` - Build the code
--   `yarn test` - Test the code (must run docker-compose first)
+-   `yarn test` - Test the code
 -   `yarn lint` - Lint the code
 -   `yarn start` - Starts the API
 -   `yarn dev` - Starts the API in dev-mode
