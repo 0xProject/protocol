@@ -286,6 +286,25 @@ describe(SUITE_NAME, () => {
                     expect(validationErrors.length).to.eql(1);
                     expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                 });
+                it("should fail when it's a buy order and those are disabled (which is the default)", async () => {
+                    const buyAmount = new BigNumber(100000000000000000);
+
+                    const wethContract = new WETH9Contract(contractAddresses.etherToken, provider);
+                    await wethContract
+                        .approve(contractAddresses.erc20Proxy, new BigNumber(0))
+                        .sendTransactionAsync({ from: takerAddress });
+
+                    const appResponse = await request(app)
+                        .get(
+                            `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&buyAmount=${buyAmount.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=Uniswap,Eth2Dai,Kyber,LiquidityProvider&skipValidation=true`,
+                        )
+                        .set('0x-api-key', 'koolApiKey1')
+                        .expect(HttpStatus.BAD_REQUEST)
+                        .expect('Content-Type', /json/);
+                    const validationErrors = appResponse.body.validationErrors;
+                    expect(validationErrors.length).to.eql(1);
+                    expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
+                });
                 it('should succeed when taker can not actually fill but we skip validation', async () => {
                     const sellAmount = new BigNumber(100000000000000000);
 

@@ -57,7 +57,18 @@ export class SwapHandlers {
         const params = parseGetSwapQuoteRequestParams(req, 'price');
         params.skipValidation = true;
         const quote = await this._calculateSwapQuoteAsync(params);
-        const { price, value, gasPrice, gas, protocolFee, buyAmount, sellAmount, sources } = quote;
+        const { price, value, gasPrice, gas, protocolFee, buyAmount, sellAmount, sources, orders } = quote;
+        logger.info({
+            indicativeQuoteServed: {
+                taker: params.takerAddress,
+                apiKey: params.apiKey,
+                buyToken: params.buyToken,
+                sellToken: params.sellToken,
+                buyAmount: params.buyAmount,
+                sellAmount: params.sellAmount,
+                makers: orders.map(o => o.makerAddress),
+            },
+        });
         res.status(HttpStatus.OK).send({ price, value, gasPrice, gas, protocolFee, buyAmount, sellAmount, sources });
     }
     // tslint:disable-next-line:prefer-function-over-method

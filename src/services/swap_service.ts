@@ -19,7 +19,8 @@ import {
     CHAIN_ID,
     LIQUIDITY_POOL_REGISTRY_ADDRESS,
     RFQT_API_KEY_WHITELIST,
-    RFQT_MAKER_ENDPOINTS,
+    RFQT_MAKER_ASSET_OFFERINGS,
+    RFQT_SKIP_BUY_REQUESTS,
 } from '../config';
 import {
     GAS_LIMIT_BUFFER_PERCENTAGE,
@@ -52,8 +53,10 @@ export class SwapService {
             liquidityProviderRegistryAddress: LIQUIDITY_POOL_REGISTRY_ADDRESS,
             rfqt: {
                 takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
-                makerEndpoints: RFQT_MAKER_ENDPOINTS,
+                makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
+                skipBuyRequests: RFQT_SKIP_BUY_REQUESTS,
                 warningLogger: logger.warn.bind(logger),
+                infoLogger: logger.info.bind(logger),
             },
             permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
         };

@@ -36,6 +36,7 @@ export const PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS = 6000;
 export const UNWRAP_QUOTE_GAS = new BigNumber(60000);
 export const WRAP_QUOTE_GAS = new BigNumber(40000);
 export const ONE_GWEI = new BigNumber(1000000000);
+export const DEFAULT_RFQT_SKIP_BUY_REQUESTS = true;
 
 // API namespaces
 export const SRA_PATH = '/sra/v3';
