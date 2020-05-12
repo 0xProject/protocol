@@ -1,10 +1,9 @@
 # [1.3.0](https://github.com/0xProject/0x-api/compare/v1.2.0...v1.3.0) (2020-05-11)
 
-
 ### Features
 
-* Remove Kyber exclusion ([#211](https://github.com/0xProject/0x-api/issues/211)) ([aa600ab](https://github.com/0xProject/0x-api/commit/aa600abd74bb963303720d8a3cdf3b5f5044ae4f))
-* RFQ-T follow-ups ([#201](https://github.com/0xProject/0x-api/issues/201)) ([a55f22e](https://github.com/0xProject/0x-api/commit/a55f22ee866f0ce8a8e5164829bc511838019a47)), closes [/github.com/0xProject/0x-api/pull/201#discussion_r417775612](https://github.com//github.com/0xProject/0x-api/pull/201/issues/discussion_r417775612)
+-   Remove Kyber exclusion ([#211](https://github.com/0xProject/0x-api/issues/211)) ([aa600ab](https://github.com/0xProject/0x-api/commit/aa600abd74bb963303720d8a3cdf3b5f5044ae4f))
+-   RFQ-T follow-ups ([#201](https://github.com/0xProject/0x-api/issues/201)) ([a55f22e](https://github.com/0xProject/0x-api/commit/a55f22ee866f0ce8a8e5164829bc511838019a47)), closes [/github.com/0xProject/0x-api/pull/201#discussion_r417775612](https://github.com//github.com/0xProject/0x-api/pull/201/issues/discussion_r417775612)
 
 # [1.2.0](https://github.com/0xProject/0x-api/compare/v1.1.0...v1.2.0) (2020-05-04)
 

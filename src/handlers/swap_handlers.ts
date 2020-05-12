@@ -37,9 +37,22 @@ export class SwapHandlers {
         this._swapService = swapService;
     }
     public async getSwapQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        res.status(HttpStatus.OK).send(
-            await this._calculateSwapQuoteAsync(parseGetSwapQuoteRequestParams(req, 'quote')),
-        );
+        const params = parseGetSwapQuoteRequestParams(req, 'quote');
+        const quote = await this._calculateSwapQuoteAsync(params);
+        if (params.rfqt !== undefined) {
+            logger.info({
+                firmQuoteServed: {
+                    taker: params.takerAddress,
+                    apiKey: params.apiKey,
+                    buyToken: params.buyToken,
+                    sellToken: params.sellToken,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
+                    makers: quote.orders.map(order => order.makerAddress),
+                },
+            });
+        }
+        res.status(HttpStatus.OK).send(quote);
     }
     // tslint:disable-next-line:prefer-function-over-method
     public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
