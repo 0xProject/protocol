@@ -479,3 +479,24 @@ export interface CalculateMetaTransactionQuoteParams {
     excludedSources?: ERC20BridgeSource[];
     apiKey: string | undefined;
 }
+
+export enum TransactionStates {
+    // transaction has been constructed, but not yet submitted to the network.
+    Unsubmitted = 'unsubmitted',
+    // transaction has been submitted to the network.
+    Submitted = 'submitted',
+    // transaction has been spotted in the mempool.
+    Mempool = 'mempool',
+    // transaction has not been mined in the expected time.
+    Stuck = 'stuck',
+    // transaction has been mined.
+    Included = 'included',
+    // transaction is confirmed.
+    Confirmed = 'confirmed',
+    // transaction is no longer in the mempool.
+    Dropped = 'dropped',
+    // transaction has been aborted because a new transaction with the same
+    // nonce has been mined.
+    Aborted = 'aborted',
+}
+// tslint:disable-line:max-file-line-count

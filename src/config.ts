@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
 
 import {
+    DEFAULT_EXPECTED_MINED_SEC,
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
@@ -20,6 +21,7 @@ import { ChainId } from './types';
 enum EnvVarType {
     AddressList,
     StringList,
+    Integer,
     Port,
     KeepAliveTimeout,
     ChainId,
@@ -31,6 +33,7 @@ enum EnvVarType {
     FeeAssetData,
     NonEmptyString,
     APIKeys,
+    PrivateKeys,
     RfqtMakerAssetOfferings,
 }
 
@@ -178,15 +181,19 @@ export const WHITELISTED_API_KEYS_META_TXN_SUBMIT: string[] =
               EnvVarType.APIKeys,
           );
 
-// The meta-txn relay sender address
-export const META_TXN_RELAY_ADDRESS = _.isEmpty(process.env.META_TXN_RELAY_ADDRESS)
-    ? NULL_ADDRESS
-    : assertEnvVarType('META_TXN_RELAY_ADDRESS', process.env.META_TXN_RELAY_ADDRESS, EnvVarType.ETHAddressHex);
+// The meta-txn relay sender private keys managed by the TransactionWatcher
+export const META_TXN_RELAY_PRIVATE_KEYS: string[] = _.isEmpty(process.env.META_TXN_RELAY_PRIVATE_KEYS)
+    ? []
+    : assertEnvVarType('META_TXN_RELAY_PRIVATE_KEYS', process.env.META_TXN_RELAY_PRIVATE_KEYS, EnvVarType.StringList);
 
-// The meta-txn relay sender private key
-export const META_TXN_RELAY_PRIVATE_KEY = _.isEmpty(process.env.META_TXN_RELAY_PRIVATE_KEY)
-    ? undefined
-    : assertEnvVarType('META_TXN_RELAY_PRIVATE_KEY', process.env.META_TXN_RELAY_PRIVATE_KEY, EnvVarType.NonEmptyString);
+// The expected time for a meta-txn to be included in a block.
+export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.META_TXN_RELAY_EXPECTED_MINED_SEC)
+    ? DEFAULT_EXPECTED_MINED_SEC
+    : assertEnvVarType(
+          'META_TXN_RELAY_EXPECTED_MINED_SEC',
+          process.env.META_TXN_RELAY_EXPECTED_MINED_SEC,
+          EnvVarType.Integer,
+      );
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
@@ -246,6 +253,13 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 }
             } catch (err) {
                 throw new Error(`${name} must be between 0 to 65535, found ${value}.`);
+            }
+            return returnValue;
+        case EnvVarType.Integer:
+            try {
+                returnValue = parseInt(value, 10);
+            } catch (err) {
+                throw new Error(`${name} must be a valid integer, found ${value}.`);
             }
             return returnValue;
         case EnvVarType.KeepAliveTimeout:
