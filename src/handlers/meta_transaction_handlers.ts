@@ -191,15 +191,13 @@ export class MetaTransactionHandlers {
 }
 
 const parseGetTransactionRequestParams = (req: express.Request): GetTransactionRequestParams => {
-    const takerAddress = req.query.takerAddress;
-    const sellToken = req.query.sellToken;
-    const buyToken = req.query.buyToken;
-    const sellAmount = req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount);
-    const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
-    let slippagePercentage;
-    if (req.query.slippagePercentage <= 1 || req.query.slippagePercentage === undefined) {
-        slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
-    } else {
+    const takerAddress = req.query.takerAddress as string;
+    const sellToken = req.query.sellToken as string;
+    const buyToken = req.query.buyToken as string;
+    const sellAmount = req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount as string);
+    const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);
+    const slippagePercentage = parseFloat(req.query.slippagePercentage as string) || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE;
+    if (slippagePercentage > 1) {
         throw new ValidationError([
             {
                 field: 'slippagePercentage',
@@ -211,6 +209,6 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
     const excludedSources =
         req.query.excludedSources === undefined
             ? undefined
-            : parseUtils.parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
+            : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(','));
     return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, excludedSources };
 };

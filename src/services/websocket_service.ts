@@ -135,7 +135,7 @@ export class WebsocketService {
             .subscribeToOrdersAsync(e => this.orderUpdate(meshUtils.orderInfosToApiOrders(e)))
             .then(subscriptionId => (this._meshSubscriptionId = subscriptionId));
     }
-    public destroy(): void {
+    public async destroyAsync(): Promise<void> {
         clearInterval(this._pongIntervalId);
         for (const ws of this._server.clients) {
             ws.terminate();
@@ -144,7 +144,11 @@ export class WebsocketService {
         this._requestIdToSubscriptionOpts.clear();
         this._server.close();
         if (this._meshSubscriptionId) {
-            void this._meshClient.unsubscribeAsync(this._meshSubscriptionId);
+            try {
+                await this._meshClient.unsubscribeAsync(this._meshSubscriptionId);
+            } finally {
+                delete this._meshSubscriptionId;
+            }
         }
     }
     public orderUpdate(apiOrders: APIOrder[]): void {

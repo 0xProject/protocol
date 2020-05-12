@@ -44,6 +44,11 @@ if (require.main === module) {
     })().catch(error => logger.error(error.stack));
 }
 
+export interface HttpServices {
+    server: Server;
+    wsService: WebsocketService;
+}
+
 /**
  * This service handles the HTTP requests. This involves fetching from the database
  * as well as adding orders to mesh.
@@ -54,7 +59,7 @@ export async function runHttpServiceAsync(
     dependencies: AppDependencies,
     config: { HTTP_PORT: string; HTTP_KEEP_ALIVE_TIMEOUT: number; HTTP_HEADERS_TIMEOUT: number },
     _app?: core.Express,
-): Promise<Server> {
+): Promise<HttpServices> {
     const app = _app || express();
     app.use(requestLogger());
     app.use(cors());
@@ -63,6 +68,9 @@ export async function runHttpServiceAsync(
     app.get('/', rootHandler);
     const server = app.listen(config.HTTP_PORT, () => {
         logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!`);
+    });
+    server.on('error', err => {
+        logger.error(err);
     });
     server.keepAliveTimeout = config.HTTP_KEEP_ALIVE_TIMEOUT;
     server.headersTimeout = config.HTTP_HEADERS_TIMEOUT;
@@ -93,13 +101,17 @@ export async function runHttpServiceAsync(
     app.use(errorHandler);
 
     // websocket service
+    let wsService: WebsocketService;
     if (dependencies.meshClient) {
         // tslint:disable-next-line:no-unused-expression
-        new WebsocketService(server, dependencies.meshClient, dependencies.websocketOpts);
+        wsService = new WebsocketService(server, dependencies.meshClient, dependencies.websocketOpts);
     } else {
         logger.error(`Could not establish mesh connection, exiting`);
         process.exit(1);
     }
 
-    return server;
+    return {
+        server,
+        wsService,
+    };
 }

@@ -9,7 +9,7 @@ export function addressNormalizer(req: express.Request, _: express.Response, nex
     const addressKeys = Object.keys(req.query).filter(key => key.match(/\w+Address/));
     const normalized: { [key: string]: any } = {};
     for (const key of addressKeys) {
-        normalized[key] = req.query[key].toLowerCase();
+        normalized[key] = (req.query[key] as string).toLowerCase();
     }
     req.query = {
         ...req.query,

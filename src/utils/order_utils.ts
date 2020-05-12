@@ -31,6 +31,7 @@ import {
 } from '../config';
 import { MAX_TOKEN_SUPPLY_POSSIBLE, NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { SignedOrderEntity } from '../entities';
+import { logger } from '../logger';
 import * as queries from '../queries/staking_queries';
 import { APIOrderWithMetaData, PinResult, RawEpochPoolStats } from '../types';
 
@@ -286,7 +287,15 @@ export const orderUtils = {
     // those we wish not to pin. We wish to pin the orders of MMers with a lot of ZRX at stake and
     // who have a track record of acting benevolently.
     async splitOrdersByPinningAsync(connection: Connection, signedOrders: SignedOrder[]): Promise<PinResult> {
-        const currentPoolStats = await connection.query(queries.currentEpochPoolsStatsQuery);
+        let currentPoolStats = [];
+        // HACK(jalextowle): This query will fail when running against Ganache, so we
+        // skip it an only use pinned MMers. A deployed staking system that allows this
+        // functionality to be tested would improve the testing infrastructure.
+        try {
+            currentPoolStats = await connection.query(queries.currentEpochPoolsStatsQuery);
+        } catch (error) {
+            logger.warn(`currentEpochPoolsStatsQuery threw an error: ${error}`);
+        }
         let makerAddresses: string[] = PINNED_MM_ADDRESSES;
         currentPoolStats.forEach((poolStats: RawEpochPoolStats) => {
             if (!PINNED_POOL_IDS.includes(poolStats.pool_id)) {

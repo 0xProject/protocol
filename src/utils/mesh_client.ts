@@ -64,8 +64,8 @@ export class MeshClient extends WSClient {
                     logger.error(`Mesh HTTP sync ${i + 1}/${chunks.length} failed ${err.message}`);
                     // If we can't validate orders, and have exhausted retries, then we need to reject
                     const rejected: RejectedOrderInfo[] = await Promise.all(
-                        orders.map(async o => ({
-                            orderHash: await orderHashUtils.getOrderHashAsync(o),
+                        orders.map(o => ({
+                            orderHash: orderHashUtils.getOrderHash(o),
                             signedOrder: o,
                             kind: RejectedKind.MeshError,
                             status: {

@@ -48,7 +48,10 @@ export const serviceUtils = {
             constant: true,
             outputs: [],
             name: 'ZeroExAPIAffiliate',
-            inputs: [{ name: 'affiliate', type: 'address' }, { name: 'timestamp', type: 'uint256' }],
+            inputs: [
+                { name: 'affiliate', type: 'address' },
+                { name: 'timestamp', type: 'uint256' },
+            ],
             payable: false,
             stateMutability: 'view',
             type: 'function',

@@ -21,9 +21,9 @@ export class OrderBookService {
         if (signedOrderEntityIfExists === undefined) {
             return undefined;
         } else {
-            const deserializedOrder = orderUtils.deserializeOrderToAPIOrder(signedOrderEntityIfExists as Required<
-                SignedOrderEntity
-            >);
+            const deserializedOrder = orderUtils.deserializeOrderToAPIOrder(
+                signedOrderEntityIfExists as Required<SignedOrderEntity>,
+            );
             return deserializedOrder;
         }
     }

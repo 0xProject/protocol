@@ -73,7 +73,7 @@ export class SwapHandlers {
     }
     // tslint:disable-next-line:prefer-function-over-method
     public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
-        const symbolOrAddress = req.query.sellToken || 'WETH';
+        const symbolOrAddress = (req.query.sellToken as string) || 'WETH';
         const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
         if (!baseAsset) {
             throw new ValidationError([
@@ -210,17 +210,15 @@ const parseGetSwapQuoteRequestParams = (
 ): GetSwapQuoteRequestParams => {
     // HACK typescript typing does not allow this valid json-schema
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
-    const takerAddress = req.query.takerAddress;
-    const sellToken = req.query.sellToken;
-    const buyToken = req.query.buyToken;
-    const sellAmount = req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount);
-    const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount);
-    const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice);
-
-    let slippagePercentage;
-    if (req.query.slippagePercentage <= 1 || req.query.slippagePercentage === undefined) {
-        slippagePercentage = Number.parseFloat(req.query.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE);
-    } else {
+    const takerAddress = req.query.takerAddress as string;
+    const sellToken = req.query.sellToken as string;
+    const buyToken = req.query.buyToken as string;
+    const sellAmount = req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount as string);
+    const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);
+    const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice as string);
+    const slippagePercentage =
+        Number.parseFloat(req.query.slippagePercentage as string) || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE;
+    if (slippagePercentage > 1) {
         throw new ValidationError([
             {
                 field: 'slippagePercentage',
@@ -232,8 +230,8 @@ const parseGetSwapQuoteRequestParams = (
     const excludedSources =
         req.query.excludedSources === undefined
             ? undefined
-            : parseUtils.parseStringArrForERC20BridgeSources(req.query.excludedSources.split(','));
-    const affiliateAddress = req.query.affiliateAddress;
+            : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(','));
+    const affiliateAddress = req.query.affiliateAddress as string;
     const apiKey = req.header('0x-api-key');
     const rfqt =
         takerAddress && apiKey
