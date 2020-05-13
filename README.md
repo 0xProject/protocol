@@ -1,7 +1,7 @@
 [![Version](https://img.shields.io/github/package-json/v/0xProject/0x-api)](https://github.com/0xProject/0x-api/releases)
 [![Docs](https://img.shields.io/badge/docs-website-yellow.svg)](https://0x.org/docs/api)
 [![Chat with us on Discord](https://img.shields.io/badge/chat-Discord-blueViolet.svg)](https://discord.com/invite/d3FTX3M)
-[![Continuous Integration](https://github.com/0xProject/0x-api/workflows/Build%20and%20Test/badge.svg)](https://circleci.com/gh/0xProject/0x-api/tree/master)
+[![Continuous Integration](https://github.com/0xProject/0x-api/workflows/Build%20and%20Test/badge.svg)](https://github.com/0xProject/0x-api/actions?query=workflow%3A%22Build+and+Test%22+branch%3Amaster)
 
 ![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png '0x API')
 
