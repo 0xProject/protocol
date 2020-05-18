@@ -12,6 +12,8 @@ export const ZRX_TOKEN_ADDRESS = CONTRACT_ADDRESSES.zrxToken;
 export const WETH_TOKEN_ADDRESS = CONTRACT_ADDRESSES.etherToken;
 export const ZRX_ASSET_DATA = assetDataUtils.encodeERC20AssetData(ZRX_TOKEN_ADDRESS);
 export const WETH_ASSET_DATA = assetDataUtils.encodeERC20AssetData(WETH_TOKEN_ADDRESS);
+export const UNKNOWN_TOKEN_ADDRESS = '0xbe0037eaf2d64fe5529bca93c18c9702d3930376';
+export const UNKNOWN_TOKEN_ASSET_DATA = assetDataUtils.encodeERC20AssetData(UNKNOWN_TOKEN_ADDRESS);
 export const SYMBOL_TO_ADDRESS: ObjectMap<string> = {
     ZRX: ZRX_TOKEN_ADDRESS,
     WETH: WETH_TOKEN_ADDRESS,

@@ -11,7 +11,7 @@ import { ChainId, TokenMetadata } from '../types';
  */
 export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: ChainId): TokenMetadata | undefined {
     let entry: TokenMetadataAndChainAddresses | undefined;
-    if (tokenAddressOrSymbol.startsWith('0x') && tokenAddressOrSymbol.length === ADDRESS_HEX_LENGTH) {
+    if (isTokenAddress(tokenAddressOrSymbol)) {
         entry = TokenMetadatasForChains.find(
             tm => tm.tokenAddresses[chainId].toLowerCase() === tokenAddressOrSymbol.toLowerCase(),
         );
@@ -59,12 +59,24 @@ export function isWETHSymbolOrAddress(tokenAddressOrSymbol: string, chainId: num
  * @param chainId the Network where the address should be hosted on.
  */
 export function findTokenAddressOrThrow(symbolOrAddress: string, chainId: ChainId): string {
+    if (isTokenAddress(symbolOrAddress)) {
+        return symbolOrAddress;
+    }
     const entry = getTokenMetadataIfExists(symbolOrAddress, chainId);
     if (!entry) {
         // NOTE(jalextowle): Use the original symbol to increase readability.
         throw new Error(`Could not find token \`${symbolOrAddress}\``);
     }
     return entry.tokenAddress;
+}
+
+/**
+ * Returns whether a string is an address or not.
+ *
+ * @param symbolOrAddress the uppercase symbol of the token (ex. `REP`) or the address of the contract
+ */
+export function isTokenAddress(symbolOrAddress: string): boolean {
+    return symbolOrAddress.startsWith('0x') && symbolOrAddress.length === ADDRESS_HEX_LENGTH;
 }
 
 /**

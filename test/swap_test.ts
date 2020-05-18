@@ -16,6 +16,8 @@ import {
     CONTRACT_ADDRESSES,
     MAX_MINT_AMOUNT,
     SYMBOL_TO_ADDRESS,
+    UNKNOWN_TOKEN_ADDRESS,
+    UNKNOWN_TOKEN_ASSET_DATA,
     WETH_ASSET_DATA,
     WETH_TOKEN_ADDRESS,
     ZRX_ASSET_DATA,
@@ -92,6 +94,12 @@ describe(SUITE_NAME, () => {
                 makerAssetAmount: MAKER_WETH_AMOUNT,
                 takerAssetAmount: ONE_THOUSAND_IN_BASE,
             },
+            {
+                makerAssetData: ZRX_ASSET_DATA,
+                takerAssetData: UNKNOWN_TOKEN_ASSET_DATA,
+                makerAssetAmount: ONE_THOUSAND_IN_BASE,
+                takerAssetAmount: ONE_THOUSAND_IN_BASE,
+            },
         ]);
     });
     after(async () => {
@@ -121,6 +129,7 @@ describe(SUITE_NAME, () => {
                 { buyToken: 'WETH', sellToken: 'ZRX', buyAmount: '1000' },
                 { buyToken: ZRX_TOKEN_ADDRESS, sellToken: 'WETH', buyAmount: '1000' },
                 { buyToken: ZRX_TOKEN_ADDRESS, sellToken: WETH_TOKEN_ADDRESS, buyAmount: '1000' },
+                { buyToken: 'ZRX', sellToken: UNKNOWN_TOKEN_ADDRESS, buyAmount: '1000' },
             ];
             for (const parameters of parameterPermutations) {
                 it(`should return a valid quote with ${JSON.stringify(parameters)}`, async () => {
