@@ -13,6 +13,7 @@ import { utils as web3WrapperUtils } from '@0x/web3-wrapper/lib/src/utils';
 
 import { CHAIN_ID } from '../config';
 import { ETH_TRANSFER_GAS_LIMIT } from '../constants';
+import { logger } from '../logger';
 import { ZeroExTransactionWithoutDomain } from '../types';
 
 export class Signer {
@@ -72,6 +73,12 @@ export class Signer {
             signature,
             protocolFee,
         );
+        logger.info({
+            message: `attempting to sign and broadcast a meta transaction`,
+            nonceNumber: web3WrapperUtils.convertHexToNumber(ethereumTxnParams.nonce),
+            from: ethereumTxnParams.from,
+            gasPrice: ethereumTxnParams.gasPrice,
+        });
         const signedEthereumTransaction = await this._privateWalletSubprovider.signTransactionAsync(ethereumTxnParams);
         const ethereumTransactionHash = await this._contractWrappers.exchange
             .executeTransaction(zeroExTransaction, signature)
@@ -83,7 +90,11 @@ export class Signer {
                 },
                 { shouldValidate: false },
             );
-
+        logger.info({
+            message: 'signed and broadcasted a meta transaction',
+            txHash: ethereumTransactionHash,
+            from: ethereumTxnParams.from,
+        });
         return { ethereumTxnParams, ethereumTransactionHash, signedEthereumTransaction };
     }
 
@@ -145,6 +156,10 @@ export class Signer {
         const nonceHex = await this._web3Wrapper.sendRawPayloadAsync<string>({
             method: 'eth_getTransactionCount',
             params: [address, 'pending'],
+        });
+        logger.info({
+            message: 'received nonce from eth_getTransactionCount',
+            nonceNumber: web3WrapperUtils.convertHexToNumber(nonceHex),
         });
         return nonceHex;
     }

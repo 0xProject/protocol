@@ -336,6 +336,7 @@ const parsePostTransactionRequestBody = (req: any): PostTransactionRequestBody =
 
 const marshallTransactionEntity = (tx: TransactionEntity): any => {
     return {
+        refHash: tx.refHash,
         hash: tx.txHash,
         status: tx.status,
         gasPrice: tx.gasPrice,

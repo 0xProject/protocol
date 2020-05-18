@@ -498,5 +498,7 @@ export enum TransactionStates {
     // transaction has been aborted because a new transaction with the same
     // nonce has been mined.
     Aborted = 'aborted',
+    // transaction was in an unsubmitted state for too long.
+    Cancelled = 'cancelled',
 }
 // tslint:disable-line:max-file-line-count
