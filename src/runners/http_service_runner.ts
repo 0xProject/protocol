@@ -7,13 +7,14 @@ import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
 import * as defaultConfig from '../config';
-import { META_TRANSACTION_PATH, SRA_PATH, STAKING_PATH, SWAP_PATH } from '../constants';
+import { META_TRANSACTION_PATH, METRICS_PATH, SRA_PATH, STAKING_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { requestLogger } from '../middleware/request_logger';
 import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
+import { createMetricsRouter } from '../routers/metrics_router';
 import { createSRARouter } from '../routers/sra_router';
 import { createStakingRouter } from '../routers/staking_router';
 import { createSwapRouter } from '../routers/swap_router';
@@ -57,7 +58,12 @@ export interface HttpServices {
  */
 export async function runHttpServiceAsync(
     dependencies: AppDependencies,
-    config: { HTTP_PORT: string; HTTP_KEEP_ALIVE_TIMEOUT: number; HTTP_HEADERS_TIMEOUT: number },
+    config: {
+        HTTP_PORT: number;
+        HTTP_KEEP_ALIVE_TIMEOUT: number;
+        HTTP_HEADERS_TIMEOUT: number;
+        PROMETHEUS_PORT: number;
+    },
     _app?: core.Express,
 ): Promise<HttpServices> {
     const app = _app || express();
@@ -96,6 +102,24 @@ export async function runHttpServiceAsync(
         app.use(SWAP_PATH, createSwapRouter(dependencies.swapService));
     } else {
         logger.error(`API running without swap service`);
+    }
+    if (dependencies.metricsService) {
+        const metricsRouter = createMetricsRouter(dependencies.metricsService);
+        if (config.PROMETHEUS_PORT === config.HTTP_PORT) {
+            // if the target prometheus port is the same as the base app port,
+            // we just add the router to latter.
+            app.use(METRICS_PATH, metricsRouter);
+        } else {
+            // otherwise we create a separate server for metrics.
+            const metricsApp = express();
+            metricsApp.use(METRICS_PATH, metricsRouter);
+            const metricsServer = metricsApp.listen(config.PROMETHEUS_PORT, () => {
+                logger.info(`Metrics (HTTP) listening on port ${defaultConfig.PROMETHEUS_PORT}`);
+            });
+            metricsServer.on('error', err => {
+                logger.error(err);
+            });
+        }
     }
 
     app.use(errorHandler);

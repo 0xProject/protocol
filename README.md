@@ -88,6 +88,8 @@ To get a local development version of `0x-api` running:
 | `WHITELISTED_API_KEYS_META_TXN_SUBMIT` | `[]`                                                            | A comma seperated list of whitelisted 0x API keys that can use the meta-txn /submit endpoint.                                                                                                             |
 | `META_TXN_RELAY_PRIVATE_KEYS`          | `[]`                                                            | A comma seperated list of meta-txn relay sender private keys managed by the TransactionWatcherSignerService.                                                                                              |
 | `META_TXN_RELAY_EXPECTED_MINED_SEC`    | Default: `120`                                                  | The expected time for a meta-txn to be included in a block.                                                                                                                                               |
+| `ENABLE_PROMETHEUS_METRICS`            | Default: `false`                                                | A boolean determining whether to enable prometheus monitoring.                                                                                                                                            |
+| `PROMETHEUS_PORT`                      | Default: `8080`                                                 | The port from which prometheus metrics should be served.                                                                                                                                                  |
 
 3. Install the dependencies:
 

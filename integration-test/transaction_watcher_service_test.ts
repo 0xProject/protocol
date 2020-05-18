@@ -16,6 +16,7 @@ import { META_TRANSACTION_PATH, SRA_PATH } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { TransactionEntity } from '../src/entities';
 import { GeneralErrorCodes } from '../src/errors';
+import { MetricsService } from '../src/services/metrics_service';
 import { OrderBookService } from '../src/services/orderbook_service';
 import { StakingDataService } from '../src/services/staking_data_service';
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
@@ -66,6 +67,7 @@ describe('transaction watcher service', () => {
         const websocketOpts = { path: SRA_PATH };
         const swapService = createSwapServiceFromOrderBookService(orderBookService, provider);
         const meshClient = new MeshClient(config.MESH_WEBSOCKET_URI, config.MESH_HTTP_URI);
+        const metricsService = new MetricsService();
         metaTxnUser = new TestMetaTxnUser();
         ({ app } = await getAppAsync(
             {
@@ -77,6 +79,7 @@ describe('transaction watcher service', () => {
                 swapService,
                 meshClient,
                 websocketOpts,
+                metricsService,
             },
             config,
         ));
@@ -138,6 +141,13 @@ describe('transaction watcher service', () => {
             .then(response => {
                 expect(response.body.hash).to.equal(txHashToRequest);
                 expect(response.body.status).to.equal('aborted');
+            });
+        await request(app)
+            .get('/metrics')
+            .then(response => {
+                expect(response.text).to.include('signer_transactions_count');
+                expect(response.text).to.include('signer_gas_price_sum');
+                expect(response.text).to.include('signer_eth_balance_sum');
             });
     });
 });

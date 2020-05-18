@@ -195,6 +195,16 @@ export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.M
           EnvVarType.Integer,
       );
 
+// Whether or not prometheus metrics should be enabled.
+// tslint:disable-next-line:boolean-naming
+export const ENABLE_PROMETHEUS_METRICS: boolean = _.isEmpty(process.env.ENABLE_PROMETHEUS_METRICS)
+    ? false
+    : assertEnvVarType('ENABLE_PROMETHEUS_METRICS', process.env.ENABLE_PROMETHEUS_METRICS, EnvVarType.Boolean);
+
+export const PROMETHEUS_PORT: number = _.isEmpty(process.env.PROMETHEUS_PORT)
+    ? 8080
+    : assertEnvVarType('PROMETHEUS_PORT', process.env.PROMETHEUS_PORT, EnvVarType.Port);
+
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision

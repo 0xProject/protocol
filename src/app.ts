@@ -10,6 +10,7 @@ import { OrderBookServiceOrderProvider } from './order_book_service_order_provid
 import { runHttpServiceAsync } from './runners/http_service_runner';
 import { runOrderWatcherServiceAsync } from './runners/order_watcher_service_runner';
 import { MetaTransactionService } from './services/meta_transaction_service';
+import { MetricsService } from './services/metrics_service';
 import { OrderBookService } from './services/orderbook_service';
 import { StakingDataService } from './services/staking_data_service';
 import { SwapService } from './services/swap_service';
@@ -28,6 +29,7 @@ export interface AppDependencies {
     provider: SupportedProvider;
     websocketOpts: Partial<WebsocketSRAOpts>;
     transactionWatcherService?: TransactionWatcherSignerService;
+    metricsService?: MetricsService;
 }
 
 /**
@@ -42,6 +44,7 @@ export async function getDefaultAppDependenciesAsync(
         // not providing a websocket URI
         MESH_WEBSOCKET_URI?: string;
         MESH_HTTP_URI?: string;
+        ENABLE_PROMETHEUS_METRICS: boolean;
     },
 ): Promise<AppDependencies> {
     const connection = await getDBConnectionAsync();
@@ -52,6 +55,10 @@ export async function getDefaultAppDependenciesAsync(
         meshClient = new MeshClient(config.MESH_WEBSOCKET_URI, config.MESH_HTTP_URI);
     } else {
         logger.warn(`Skipping Mesh client creation because no URI provided`);
+    }
+    let metricsService: MetricsService | undefined;
+    if (config.ENABLE_PROMETHEUS_METRICS) {
+        metricsService = new MetricsService();
     }
 
     const orderBookService = new OrderBookService(connection, meshClient);
@@ -76,6 +83,7 @@ export async function getDefaultAppDependenciesAsync(
         metaTransactionService,
         provider,
         websocketOpts,
+        metricsService,
     };
 }
 /**
@@ -89,10 +97,12 @@ export async function getDefaultAppDependenciesAsync(
 export async function getAppAsync(
     dependencies: AppDependencies,
     config: {
-        HTTP_PORT: string;
+        HTTP_PORT: number;
         ETHEREUM_RPC_URL: string;
         HTTP_KEEP_ALIVE_TIMEOUT: number;
         HTTP_HEADERS_TIMEOUT: number;
+        ENABLE_PROMETHEUS_METRICS: boolean;
+        PROMETHEUS_PORT: number;
     },
 ): Promise<{ app: Express.Application; server: Server }> {
     const app = express();

@@ -43,6 +43,7 @@ export const SRA_PATH = '/sra/v3';
 export const STAKING_PATH = '/staking';
 export const SWAP_PATH = '/swap/v0';
 export const META_TRANSACTION_PATH = '/meta_transaction/v0';
+export const METRICS_PATH = '/metrics';
 
 // Docs
 export const SWAP_DOCS_URL = 'https://0x.org/docs/api#swap';
@@ -64,3 +65,6 @@ export const PUBLIC_ADDRESS_FOR_ETH_CALLS = '0xAb5801a7D398351b8bE11C439e05C5B32
 export const DEFAULT_EXPECTED_MINED_SEC = 120 * 1.5;
 export const TX_WATCHER_POLLING_INTERVAL_MS = 5 * 1000;
 export const NUMBER_OF_BLOCKS_UNTIL_CONFIRMED = 3;
+export const TX_WATCHER_UPDATE_METRICS_INTERVAL_MS = 30 * 1000;
+export const ETH_DECIMALS = 18;
+export const GWEI_DECIMALS = 9;

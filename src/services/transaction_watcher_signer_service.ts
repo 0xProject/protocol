@@ -2,14 +2,23 @@ import { RPCSubprovider, Web3ProviderEngine } from '@0x/subproviders';
 import { BigNumber, intervalUtils, providerUtils } from '@0x/utils';
 import { SupportedProvider, Web3Wrapper } from '@0x/web3-wrapper';
 import { utils as web3WrapperUtils } from '@0x/web3-wrapper/lib/src/utils';
+import { Counter, Gauge, Summary } from 'prom-client';
 import { Connection, Not, Repository } from 'typeorm';
 
-import { ETHEREUM_RPC_URL, META_TXN_RELAY_EXPECTED_MINED_SEC, META_TXN_RELAY_PRIVATE_KEYS } from '../config';
 import {
+    ENABLE_PROMETHEUS_METRICS,
+    ETHEREUM_RPC_URL,
+    META_TXN_RELAY_EXPECTED_MINED_SEC,
+    META_TXN_RELAY_PRIVATE_KEYS,
+} from '../config';
+import {
+    ETH_DECIMALS,
+    GWEI_DECIMALS,
     NUMBER_OF_BLOCKS_UNTIL_CONFIRMED,
     ONE_SECOND_MS,
     TX_HASH_RESPONSE_WAIT_TIME_MS,
     TX_WATCHER_POLLING_INTERVAL_MS,
+    TX_WATCHER_UPDATE_METRICS_INTERVAL_MS,
     UNSTICKING_TRANSACTION_GAS_MULTIPLIER,
 } from '../constants';
 import { TransactionEntity } from '../entities';
@@ -18,6 +27,9 @@ import { TransactionStates } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
 import { Signer } from '../utils/signer';
 
+const SIGNER_ADDRESS_LABEL = 'signer_address';
+const TRANSACTION_STATUS_LABEL = 'status';
+
 export class TransactionWatcherSignerService {
     private readonly _transactionRepository: Repository<TransactionEntity>;
     private readonly _provider: SupportedProvider;
@@ -25,6 +37,10 @@ export class TransactionWatcherSignerService {
     private readonly _transactionWatcherTimer: NodeJS.Timer;
     private readonly _signers: Map<string, Signer>;
     private readonly _availableSignerPublicAddresses: string[];
+    private readonly _metricsUpdateTimer: NodeJS.Timer;
+    private readonly _signerBalancesGauge: Gauge<string>;
+    private readonly _transactionsUpdateCounter: Counter<string>;
+    private readonly _gasPriceSummary: Summary<string>;
 
     private static _createWeb3Provider(rpcHost: string): SupportedProvider {
         const providerEngine = new Web3ProviderEngine();
@@ -60,9 +76,41 @@ export class TransactionWatcherSignerService {
                 });
             },
         );
+        // Metric collection related fields
+        this._signerBalancesGauge = new Gauge({
+            name: 'signer_eth_balance_sum',
+            help: 'Available ETH Balance of a signer',
+            labelNames: [SIGNER_ADDRESS_LABEL],
+        });
+        this._transactionsUpdateCounter = new Counter({
+            name: 'signer_transactions_count',
+            help: 'Number of transactions updates of a signer by status',
+            labelNames: [SIGNER_ADDRESS_LABEL, TRANSACTION_STATUS_LABEL],
+        });
+        this._gasPriceSummary = new Summary({
+            name: 'signer_gas_price_summary',
+            help: 'Observed gas prices by the signer in gwei',
+            labelNames: [SIGNER_ADDRESS_LABEL],
+        });
+        if (ENABLE_PROMETHEUS_METRICS) {
+            this._metricsUpdateTimer = intervalUtils.setAsyncExcludingInterval(
+                async () => {
+                    logger.trace('updating metrics');
+                    await this._updateSignerBalancesAsync();
+                },
+                TX_WATCHER_UPDATE_METRICS_INTERVAL_MS,
+                (err: Error) => {
+                    logger.error({
+                        message: `transaction watcher failed to update metrics: ${JSON.stringify(err)}`,
+                        err: err.stack,
+                    });
+                },
+            );
+        }
     }
     public stop(): void {
         intervalUtils.clearAsyncExcludingInterval(this._transactionWatcherTimer);
+        intervalUtils.clearAsyncExcludingInterval(this._metricsUpdateTimer);
     }
     public async syncTransactionStatusAsync(): Promise<void> {
         try {
@@ -106,7 +154,11 @@ export class TransactionWatcherSignerService {
         txEntity.signedTx = signedEthereumTransaction;
         txEntity.nonce = web3WrapperUtils.convertHexToNumber(ethereumTxnParams.nonce);
         txEntity.from = ethereumTxnParams.from;
-        await this._transactionRepository.save(txEntity);
+        this._gasPriceSummary.observe(
+            { signer_address: txEntity.from },
+            Web3Wrapper.toUnitAmount(txEntity.gasPrice, GWEI_DECIMALS).toNumber(),
+        );
+        await this._updateTxEntityAsync(txEntity);
     }
     private async _syncBroadcastedTransactionStatusAsync(): Promise<void> {
         const transactionsToCheck = await this._transactionRepository.find({
@@ -140,7 +192,7 @@ export class TransactionWatcherSignerService {
                     });
                     txEntity.status = TransactionStates.Included;
                     txEntity.blockNumber = txInBlockchain.blockNumber;
-                    await this._transactionRepository.save(txEntity);
+                    await this._updateTxEntityAsync(txEntity);
                     await this._abortTransactionsWithTheSameNonceAsync(txEntity);
                     return txEntity;
                     // Checks if the txn is in the mempool but still has it's status set to Unsubmitted or Submitted
@@ -150,14 +202,14 @@ export class TransactionWatcherSignerService {
                         hash: txInBlockchain.hash,
                     });
                     txEntity.status = TransactionStates.Mempool;
-                    return this._transactionRepository.save(txEntity);
+                    return this._updateTxEntityAsync(txEntity);
                 } else if (isExpired) {
                     // NOTE(oskar): we currently cancel all transactions that are in the
                     // "stuck" state. A better solution might be to unstick
                     // transactions one by one and observing if they unstick the
                     // subsequent transactions.
                     txEntity.status = TransactionStates.Stuck;
-                    return this._transactionRepository.save(txEntity);
+                    return this._updateTxEntityAsync(txEntity);
                 }
             }
         } catch (err) {
@@ -169,7 +221,7 @@ export class TransactionWatcherSignerService {
                 // is fixed.
                 if (isExpired) {
                     txEntity.status = TransactionStates.Dropped;
-                    return this._transactionRepository.save(txEntity);
+                    return this._updateTxEntityAsync(txEntity);
                 }
             } else {
                 // if the error is not from a typeerror, we rethrow
@@ -189,6 +241,7 @@ export class TransactionWatcherSignerService {
         });
         for (const tx of transactionsToAbort) {
             tx.status = TransactionStates.Aborted;
+            this._transactionsUpdateCounter.inc({ signer_address: tx.from, status: tx.status }, 1);
             await this._transactionRepository.save(tx);
         }
 
@@ -348,7 +401,7 @@ export class TransactionWatcherSignerService {
                 // the node, we change its status to submitted and see whether
                 // or not it will appear again.
                 tx.status = TransactionStates.Submitted;
-                await this._transactionRepository.save(tx);
+                await this._updateTxEntityAsync(tx);
                 continue;
             }
             if (txInBlockchain.blockNumber === null) {
@@ -357,7 +410,7 @@ export class TransactionWatcherSignerService {
                 // an ethereum node.
                 tx.status = TransactionStates.Mempool;
                 tx.blockNumber = undefined;
-                await this._transactionRepository.save(tx);
+                await this._updateTxEntityAsync(tx);
                 continue;
             } else {
                 if (tx.blockNumber !== txInBlockchain.blockNumber) {
@@ -370,9 +423,33 @@ export class TransactionWatcherSignerService {
                 }
                 if (tx.blockNumber + NUMBER_OF_BLOCKS_UNTIL_CONFIRMED < latestBlockNumber) {
                     tx.status = TransactionStates.Confirmed;
-                    await this._transactionRepository.save(tx);
+                    await this._updateTxEntityAsync(tx);
                 }
             }
         }
+    }
+    private async _updateTxEntityAsync(txEntity: TransactionEntity): Promise<TransactionEntity> {
+        this._transactionsUpdateCounter.inc({ signer_address: txEntity.from, status: txEntity.status }, 1);
+        return this._transactionRepository.save(txEntity);
+    }
+    private async _updateSignerBalancesAsync(): Promise<void> {
+        // TODO(oskar) - use contract to grab all balances in a single RPC call?
+        for (const signerAddress of this._availableSignerPublicAddresses) {
+            try {
+                await this._updateSignerBalanceAsync(signerAddress);
+            } catch (err) {
+                logger.error({
+                    message: `failed to update signer balance: ${JSON.stringify(err)}`,
+                    stack: err.stack,
+                });
+            }
+        }
+    }
+    private async _updateSignerBalanceAsync(signerAddress: string): Promise<void> {
+        const signerBalance = await this._web3Wrapper.getBalanceInWeiAsync(signerAddress);
+        this._signerBalancesGauge.set(
+            { signer_address: signerAddress },
+            Web3Wrapper.toUnitAmount(signerBalance, ETH_DECIMALS).toNumber(),
+        );
     }
 }
