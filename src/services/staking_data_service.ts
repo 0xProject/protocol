@@ -34,6 +34,26 @@ export class StakingDataService {
         this._connection = connection;
     }
 
+    public async getEpochNAsync(epochId: number): Promise<Epoch> {
+        const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(queries.epochNQuery, [epochId]));
+        if (!rawEpoch) {
+            throw new Error(`Could not find epoch ${epochId}`);
+        }
+        const epoch = stakingUtils.getEpochFromRaw(rawEpoch);
+        return epoch;
+    }
+
+    public async getEpochNWithFeesAsync(epochId: number): Promise<Epoch> {
+        const rawEpochWithFees: RawEpochWithFees | undefined = _.head(
+            await this._connection.query(queries.epochNWithFeesQuery, [epochId]),
+        );
+        if (!rawEpochWithFees) {
+            throw new Error(`Could not find epoch ${epochId}`);
+        }
+        const epoch = stakingUtils.getEpochWithFeesFromRaw(rawEpochWithFees);
+        return epoch;
+    }
+
     public async getCurrentEpochAsync(): Promise<Epoch> {
         const rawEpoch: RawEpoch | undefined = _.head(await this._connection.query(queries.currentEpochQuery));
         if (!rawEpoch) {

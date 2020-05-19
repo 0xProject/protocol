@@ -79,6 +79,101 @@ export const nextEpochQuery = `
     CROSS JOIN zrx_staked zs
     CROSS JOIN zrx_deposited zd;`;
 
+export const epochNQuery = `
+    WITH
+        epoch AS (
+            SELECT
+                epoch_id
+                , starting_transaction_hash
+                , starting_transaction_index
+                , starting_block_number
+                , starting_block_timestamp
+                , ending_transaction_hash
+                , ending_transaction_index
+                , ending_block_number
+                , ending_timestamp AS ending_block_timestamp
+            FROM staking.epochs
+            WHERE
+                epoch_id = $1
+        )
+        , zrx_staked AS (
+            SELECT
+                SUM(esps.zrx_delegated) AS zrx_staked
+            FROM staking.epoch_start_pool_status esps
+            JOIN epoch e ON e.epoch_id = esps.epoch_id
+        )
+        , zrx_deposited AS (
+            SELECT
+                SUM(scc.amount) AS zrx_deposited
+            FROM staking.zrx_staking_contract_changes scc
+            JOIN epoch e
+                ON scc.block_number < e.starting_block_number
+                OR (scc.block_number = e.starting_block_number AND scc.transaction_index < e.starting_transaction_index)
+        )
+        SELECT
+            e.*
+            , zd.zrx_deposited
+            , zs.zrx_staked
+        FROM epoch e
+        CROSS JOIN zrx_deposited zd
+        CROSS JOIN zrx_staked zs
+;`;
+
+export const epochNWithFeesQuery = `
+WITH
+    epoch AS (
+        SELECT
+            epoch_id
+            , starting_transaction_hash
+            , starting_transaction_index
+            , starting_block_number
+            , starting_block_timestamp
+            , ending_transaction_hash
+            , ending_transaction_index
+            , ending_block_number
+            , ending_timestamp AS ending_block_timestamp
+        FROM staking.epochs
+        WHERE
+            epoch_id = $1
+    )
+    , zrx_staked AS (
+        SELECT
+            SUM(esps.zrx_delegated) AS zrx_staked
+        FROM staking.epoch_start_pool_status esps
+        JOIN epoch e ON e.epoch_id = esps.epoch_id
+    )
+    , zrx_deposited AS (
+        SELECT
+            SUM(scc.amount) AS zrx_deposited
+        FROM staking.zrx_staking_contract_changes scc
+        JOIN epoch e
+            ON scc.block_number < e.starting_block_number
+            OR (scc.block_number = e.starting_block_number AND scc.transaction_index < e.starting_transaction_index)
+    )
+    , protocol_fees AS (
+        SELECT
+            SUM(protocol_fee_paid) / 1e18::NUMERIC AS protocol_fees_generated_in_eth
+        FROM events.fill_events fe
+        JOIN epoch e
+            ON
+            -- Start of epoch
+            (fe.block_number > e.starting_block_number
+            OR (fe.block_number = e.starting_block_number AND fe.transaction_index > e.starting_transaction_index))
+            -- End of epoch, impute high block number for current epoch
+            AND (fe.block_number < COALESCE(e.ending_block_number,99999999999)
+            OR (fe.block_number = e.ending_block_number AND fe.transaction_index < e.ending_transaction_index))
+    )
+    SELECT
+        e.*
+        , zd.zrx_deposited
+        , zs.zrx_staked
+        , pf.protocol_fees_generated_in_eth
+    FROM epoch e
+    CROSS JOIN zrx_deposited zd
+    CROSS JOIN zrx_staked zs
+    CROSS JOIN protocol_fees pf
+;`;
+
 export const stakingPoolsQuery = `SELECT * FROM staking.pool_info;`;
 
 export const stakingPoolByIdQuery = `SELECT * FROM staking.pool_info WHERE pool_id = $1;`;
