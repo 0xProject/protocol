@@ -316,12 +316,7 @@ export class MetaTransactionService {
         return utils.runWithTimeout(async () => {
             while (true) {
                 const tx = await this._transactionEntityRepository.findOne(txEntity.refHash);
-                if (
-                    tx !== undefined &&
-                    tx.status === TransactionStates.Submitted &&
-                    tx.txHash !== undefined &&
-                    tx.signedTx !== undefined
-                ) {
+                if (tx !== undefined && tx.txHash !== undefined && tx.signedTx !== undefined) {
                     return { ethereumTransactionHash: tx.txHash, signedEthereumTransaction: tx.signedTx };
                 }
 
