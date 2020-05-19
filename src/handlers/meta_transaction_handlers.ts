@@ -23,7 +23,7 @@ import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { MetaTransactionService } from '../services/meta_transaction_service';
-import { GetTransactionRequestParams, ZeroExTransactionWithoutDomain } from '../types';
+import { GetMetaTransactionPriceResponse, GetTransactionRequestParams, ZeroExTransactionWithoutDomain } from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { findTokenAddressOrThrowApiError } from '../utils/token_metadata_utils';
@@ -147,12 +147,13 @@ export class MetaTransactionHandlers {
                 },
                 'price',
             );
-            const metaTransactionPriceResponse = {
+            const metaTransactionPriceResponse: GetMetaTransactionPriceResponse = {
                 price: metaTransactionPrice.price,
                 buyAmount: metaTransactionPrice.buyAmount,
                 sellAmount: metaTransactionPrice.sellAmount,
                 sellTokenAddress,
                 buyTokenAddress,
+                sources: metaTransactionPrice.sources,
             };
             res.status(HttpStatus.OK).send(metaTransactionPriceResponse);
         } catch (e) {

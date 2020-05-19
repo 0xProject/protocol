@@ -369,6 +369,22 @@ export interface Price {
     price: BigNumber;
 }
 
+interface BasePriceResponse {
+    price: BigNumber;
+    buyAmount: BigNumber;
+    sellAmount: BigNumber;
+    sellTokenAddress: string;
+    buyTokenAddress: string;
+    sources: GetSwapQuoteResponseLiquiditySource[];
+}
+
+export interface GetSwapPriceResponse extends BasePriceResponse {
+    value: BigNumber;
+    gasPrice: BigNumber;
+    gas: BigNumber;
+    protocolFee: BigNumber;
+}
+
 export type GetTokenPricesResponse = Price[];
 
 export interface GetMetaTransactionQuoteResponse {
@@ -381,11 +397,7 @@ export interface GetMetaTransactionQuoteResponse {
     sources: GetSwapQuoteResponseLiquiditySource[];
 }
 
-export interface GetMetaTransactionPriceResponse {
-    price: BigNumber;
-    buyAmount: BigNumber;
-    sellAmount: BigNumber;
-}
+export interface GetMetaTransactionPriceResponse extends BasePriceResponse {}
 
 // takerAddress, sellAmount, buyAmount, swapQuote, price
 export interface CalculateMetaTransactionPriceResponse {

@@ -138,8 +138,8 @@ export class MetaTransactionService {
 
         const response: CalculateMetaTransactionPriceResponse = {
             takerAddress,
-            sellAmount,
-            buyAmount,
+            buyAmount: makerAssetAmount,
+            sellAmount: totalTakerAssetAmount,
             price,
             swapQuote,
             sources: serviceUtils.convertSourceBreakdownToArray(swapQuote.sourceBreakdown),

@@ -17,7 +17,12 @@ import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { CalculateSwapQuoteParams, GetSwapQuoteRequestParams, GetSwapQuoteResponse } from '../types';
+import {
+    CalculateSwapQuoteParams,
+    GetSwapPriceResponse,
+    GetSwapQuoteRequestParams,
+    GetSwapQuoteResponse,
+} from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import {
@@ -70,7 +75,19 @@ export class SwapHandlers {
         const params = parseGetSwapQuoteRequestParams(req, 'price');
         params.skipValidation = true;
         const quote = await this._calculateSwapQuoteAsync(params);
-        const { price, value, gasPrice, gas, protocolFee, buyAmount, sellAmount, sources, orders } = quote;
+        const {
+            price,
+            value,
+            gasPrice,
+            gas,
+            protocolFee,
+            buyAmount,
+            sellAmount,
+            sources,
+            orders,
+            buyTokenAddress,
+            sellTokenAddress,
+        } = quote;
         logger.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
@@ -82,7 +99,20 @@ export class SwapHandlers {
                 makers: orders.map(o => o.makerAddress),
             },
         });
-        res.status(HttpStatus.OK).send({ price, value, gasPrice, gas, protocolFee, buyAmount, sellAmount, sources });
+
+        const response: GetSwapPriceResponse = {
+            price,
+            value,
+            gasPrice,
+            gas,
+            protocolFee,
+            buyTokenAddress,
+            buyAmount,
+            sellTokenAddress,
+            sellAmount,
+            sources,
+        };
+        res.status(HttpStatus.OK).send(response);
     }
     // tslint:disable-next-line:prefer-function-over-method
     public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {

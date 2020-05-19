@@ -26,3 +26,16 @@ export const rfqtIndicativeQuoteResponse = {
     takerAssetData: '0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082',
     expirationTimeSeconds: '1903620548', // in the year 2030
 };
+
+export const liquiditySources0xOnly = [
+    { name: '0x', proportion: '1' },
+    { name: 'Uniswap', proportion: '0' },
+    { name: 'Eth2Dai', proportion: '0' },
+    { name: 'Kyber', proportion: '0' },
+    { name: 'Curve_USDC_DAI', proportion: '0' },
+    { name: 'Curve_USDC_DAI_USDT', proportion: '0' },
+    { name: 'Curve_USDC_DAI_USDT_TUSD', proportion: '0' },
+    { name: 'Curve_USDC_DAI_USDT_BUSD', proportion: '0' },
+    { name: 'Curve_USDC_DAI_USDT_SUSD', proportion: '0' },
+    { name: 'LiquidityProvider', proportion: '0' },
+];
