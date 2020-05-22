@@ -31,5 +31,6 @@ export const createMetaTransactionRouter = (metaTransactionService: MetaTransact
      * https://0x.org/docs/guides/v3-specification#executing-a-transaction
      */
     router.post('/submit', asyncHandler(handlers.submitZeroExTransactionIfWhitelistedAsync.bind(handlers)));
+    router.get('/signer/status', asyncHandler(handlers.getSignerStatusAsync.bind(handlers)));
     return router;
 };

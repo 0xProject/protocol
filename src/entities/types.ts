@@ -1,19 +1,20 @@
 import { BigNumber } from '@0x/utils';
 
-import { ZeroExTransactionWithoutDomain } from '../types';
-
 export interface TransactionEntityOpts {
     refHash: string;
-    txHash?: string;
-    signedTx?: string;
     takerAddress?: string;
     status: string;
     expectedMinedInSec: number;
+    to: string;
+    data?: string;
+    value?: BigNumber;
+    from?: string;
     nonce?: number;
     gasPrice?: BigNumber;
-    protocolFee?: BigNumber;
+    gas?: number;
+    txHash?: string;
+    gasUsed?: number;
     blockNumber?: number;
-    zeroExTransaction?: ZeroExTransactionWithoutDomain;
-    zeroExTransactionSignature?: string;
-    from?: string;
+    // Ethereum tx status, 1 == success, 0 == failure
+    txStatus?: number;
 }

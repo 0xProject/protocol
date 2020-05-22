@@ -98,6 +98,7 @@ export enum GeneralErrorCodes {
     TransactionInvalid = 105,
     UnableToSubmitOnBehalfOfTaker = 106,
     InvalidAPIKey = 107,
+    ServiceDisabled = 108,
 }
 
 export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = {
@@ -109,6 +110,7 @@ export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = 
     [GeneralErrorCodes.TransactionInvalid]: 'Transaction Invalid',
     [GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker]: 'Unable to submit transaction on behalf of taker',
     [GeneralErrorCodes.InvalidAPIKey]: 'Invalid API key',
+    [GeneralErrorCodes.ServiceDisabled]: 'Service disabled',
 };
 
 export enum ValidationErrorCodes {

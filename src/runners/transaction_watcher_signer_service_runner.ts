@@ -2,12 +2,21 @@ import * as express from 'express';
 import { Connection } from 'typeorm';
 
 import * as defaultConfig from '../config';
-import { METRICS_PATH } from '../constants';
+import {
+    META_TXN_MIN_SIGNER_ETH_BALANCE,
+    METRICS_PATH,
+    NUMBER_OF_BLOCKS_UNTIL_CONFIRMED,
+    TX_WATCHER_POLLING_INTERVAL_MS,
+    TX_WATCHER_UPDATE_METRICS_INTERVAL_MS,
+    UNSTICKING_TRANSACTION_GAS_MULTIPLIER,
+} from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
 import { createMetricsRouter } from '../routers/metrics_router';
 import { MetricsService } from '../services/metrics_service';
 import { TransactionWatcherSignerService } from '../services/transaction_watcher_signer_service';
+import { TransactionWatcherSignerServiceConfig } from '../types';
+import { providerUtils } from '../utils/provider_utils';
 
 if (require.main === module) {
     (async () => {
@@ -44,7 +53,21 @@ export async function runTransactionWatcherServiceAsync(connection: Connection):
             logger.error(err);
         });
     }
-    const transactionWatcherService = new TransactionWatcherSignerService(connection);
+    const config: TransactionWatcherSignerServiceConfig = {
+        provider: providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL),
+        chainId: defaultConfig.CHAIN_ID,
+        signerPrivateKeys: defaultConfig.META_TXN_RELAY_PRIVATE_KEYS,
+        expectedMinedInSec: defaultConfig.META_TXN_RELAY_EXPECTED_MINED_SEC,
+        isSigningEnabled: defaultConfig.META_TXN_SIGNING_ENABLED,
+        maxGasPriceGwei: defaultConfig.META_TXN_MAX_GAS_PRICE_GWEI,
+        minSignerEthBalance: META_TXN_MIN_SIGNER_ETH_BALANCE,
+        transactionPollingIntervalMs: TX_WATCHER_POLLING_INTERVAL_MS,
+        heartbeatIntervalMs: TX_WATCHER_UPDATE_METRICS_INTERVAL_MS,
+        unstickGasMultiplier: UNSTICKING_TRANSACTION_GAS_MULTIPLIER,
+        numBlocksUntilConfirmed: NUMBER_OF_BLOCKS_UNTIL_CONFIRMED,
+    };
+
+    const transactionWatcherService = new TransactionWatcherSignerService(connection, config);
     await transactionWatcherService.syncTransactionStatusAsync();
     logger.info(`TransactionWatcherService starting up!`);
 }

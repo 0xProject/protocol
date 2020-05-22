@@ -3,7 +3,6 @@ import { SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
-import * as _ from 'lodash';
 import * as isValidUUID from 'uuid-validate';
 
 import { CHAIN_ID } from '../config';
@@ -224,19 +223,24 @@ export class MetaTransactionHandlers {
 
             // If eligible for free txn relay, submit it, otherwise, return unsigned Ethereum txn
             if (apiKey !== undefined && MetaTransactionService.isEligibleForFreeMetaTxn(apiKey)) {
-                const {
-                    ethereumTransactionHash,
-                    signedEthereumTransaction,
-                } = await this._metaTransactionService.submitZeroExTransactionAsync(
+                // If Metatxn service is not live then we reject
+                const isLive = await this._metaTransactionService.isSignerLiveAsync();
+                if (!isLive) {
+                    res.status(HttpStatus.NOT_FOUND).send({
+                        code: GeneralErrorCodes.ServiceDisabled,
+                        reason: generalErrorCodeToReason[GeneralErrorCodes.ServiceDisabled],
+                    });
+                    return;
+                }
+                const { ethereumTransactionHash } = await this._metaTransactionService.submitZeroExTransactionAsync(
                     zeroExTransactionHash,
                     zeroExTransaction,
                     signature,
                     protocolFee,
                 );
-                // return the transactionReceipt
                 res.status(HttpStatus.OK).send({
                     ethereumTransactionHash,
-                    signedEthereumTransaction,
+                    zeroExTransactionHash,
                 });
             } else {
                 const ethereumTxn = await this._metaTransactionService.generatePartialExecuteTransactionEthereumTransactionAsync(
@@ -287,6 +291,15 @@ export class MetaTransactionHandlers {
             throw new NotFoundError();
         } else {
             res.status(HttpStatus.OK).send(marshallTransactionEntity(tx));
+        }
+    }
+    public async getSignerStatusAsync(_req: express.Request, res: express.Response): Promise<void> {
+        try {
+            const isLive = await this._metaTransactionService.isSignerLiveAsync();
+            res.status(HttpStatus.OK).send({ isLive });
+        } catch (e) {
+            logger.error('Uncaught error: ', e);
+            throw new InternalServerError('failed to check signer status');
         }
     }
 }

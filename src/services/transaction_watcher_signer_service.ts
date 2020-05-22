@@ -1,74 +1,88 @@
-import { RPCSubprovider, Web3ProviderEngine } from '@0x/subproviders';
-import { BigNumber, intervalUtils, providerUtils } from '@0x/utils';
-import { SupportedProvider, Web3Wrapper } from '@0x/web3-wrapper';
-import { utils as web3WrapperUtils } from '@0x/web3-wrapper/lib/src/utils';
+import { ContractWrappers } from '@0x/contract-wrappers';
+import { BigNumber, intervalUtils } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { Counter, Gauge, Summary } from 'prom-client';
 import { Connection, Not, Repository } from 'typeorm';
 
-import {
-    ENABLE_PROMETHEUS_METRICS,
-    ETHEREUM_RPC_URL,
-    META_TXN_RELAY_EXPECTED_MINED_SEC,
-    META_TXN_RELAY_PRIVATE_KEYS,
-} from '../config';
+import { ENABLE_PROMETHEUS_METRICS } from '../config';
 import {
     ETH_DECIMALS,
+    ETH_TRANSFER_GAS_LIMIT,
     GWEI_DECIMALS,
-    NUMBER_OF_BLOCKS_UNTIL_CONFIRMED,
     ONE_SECOND_MS,
+    SIGNER_STATUS_DB_KEY,
     TX_HASH_RESPONSE_WAIT_TIME_MS,
-    TX_WATCHER_POLLING_INTERVAL_MS,
-    TX_WATCHER_UPDATE_METRICS_INTERVAL_MS,
-    UNSTICKING_TRANSACTION_GAS_MULTIPLIER,
+    ZERO,
 } from '../constants';
-import { TransactionEntity } from '../entities';
+import { KeyValueEntity, TransactionEntity } from '../entities';
 import { logger } from '../logger';
-import { TransactionStates } from '../types';
+import { TransactionStates, TransactionWatcherSignerServiceConfig, TransactionWatcherSignerStatus } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
 import { Signer } from '../utils/signer';
+import { utils } from '../utils/utils';
 
 const SIGNER_ADDRESS_LABEL = 'signer_address';
 const TRANSACTION_STATUS_LABEL = 'status';
 
 export class TransactionWatcherSignerService {
     private readonly _transactionRepository: Repository<TransactionEntity>;
-    private readonly _provider: SupportedProvider;
+    private readonly _kvRepository: Repository<KeyValueEntity>;
     private readonly _web3Wrapper: Web3Wrapper;
-    private readonly _transactionWatcherTimer: NodeJS.Timer;
-    private readonly _signers: Map<string, Signer>;
+    private readonly _contractWrappers: ContractWrappers;
+    private readonly _config: TransactionWatcherSignerServiceConfig;
+    private readonly _signers: Map<string, Signer> = new Map();
+    private readonly _signerBalancesEth: Map<string, number> = new Map();
     private readonly _availableSignerPublicAddresses: string[];
     private readonly _metricsUpdateTimer: NodeJS.Timer;
+    private readonly _transactionWatcherTimer: NodeJS.Timer;
+    // Metrics
     private readonly _signerBalancesGauge: Gauge<string>;
     private readonly _transactionsUpdateCounter: Counter<string>;
     private readonly _gasPriceSummary: Summary<string>;
 
-    private static _createWeb3Provider(rpcHost: string): SupportedProvider {
-        const providerEngine = new Web3ProviderEngine();
-        providerEngine.addProvider(new RPCSubprovider(rpcHost));
-        providerUtils.startProviderEngine(providerEngine);
-        return providerEngine;
+    public static getSortedSignersByAvailability(signerMap: Map<string, { balance: number; count: number }>): string[] {
+        return Array.from(signerMap.entries())
+            .sort((a, b) => {
+                const [, aSigner] = a;
+                const [, bSigner] = b;
+                // if the number of pending transactions is the same, we sort
+                // the signers by their known balance.
+                if (aSigner.count === bSigner.count) {
+                    return bSigner.balance - aSigner.balance;
+                }
+                // otherwise we sort by the least amount of pending transactions.
+                return aSigner.count - bSigner.count;
+            })
+            .map(([address]) => address);
     }
     private static _isUnsubmittedTxExpired(tx: TransactionEntity): boolean {
-        const now = new Date();
-        const shouldBeSubmittedBy = new Date(tx.createdAt.getTime() + TX_HASH_RESPONSE_WAIT_TIME_MS);
-        return tx.status === TransactionStates.Unsubmitted && now > shouldBeSubmittedBy;
+        return tx.status === TransactionStates.Unsubmitted && Date.now() > tx.expectedAt.getTime();
     }
-    constructor(dbConnection: Connection) {
-        this._provider = TransactionWatcherSignerService._createWeb3Provider(ETHEREUM_RPC_URL);
+    constructor(dbConnection: Connection, config: TransactionWatcherSignerServiceConfig) {
+        this._config = config;
         this._transactionRepository = dbConnection.getRepository(TransactionEntity);
-        this._web3Wrapper = new Web3Wrapper(this._provider);
+        this._kvRepository = dbConnection.getRepository(KeyValueEntity);
+        this._web3Wrapper = new Web3Wrapper(config.provider);
         this._signers = new Map<string, Signer>();
-        this._availableSignerPublicAddresses = META_TXN_RELAY_PRIVATE_KEYS.map(key => {
-            const signer = new Signer(key, ETHEREUM_RPC_URL);
+        this._contractWrappers = new ContractWrappers(config.provider, { chainId: config.chainId });
+        this._availableSignerPublicAddresses = config.signerPrivateKeys.map(key => {
+            const signer = new Signer(key, config.provider);
             this._signers.set(signer.publicAddress, signer);
             return signer.publicAddress;
         });
-        this._transactionWatcherTimer = intervalUtils.setAsyncExcludingInterval(
-            async () => {
-                logger.trace('syncing transaction status');
-                await this.syncTransactionStatusAsync();
+        this._metricsUpdateTimer = utils.setAsyncExcludingImmediateInterval(
+            async () => this._updateLiveSatusAsync(),
+            config.heartbeatIntervalMs,
+            (err: Error) => {
+                logger.error({
+                    message: `transaction watcher failed to update metrics and heartbeat: ${JSON.stringify(err)}`,
+                    err: err.stack,
+                });
             },
-            TX_WATCHER_POLLING_INTERVAL_MS,
+        );
+        this._transactionWatcherTimer = utils.setAsyncExcludingImmediateInterval(
+            async () => this.syncTransactionStatusAsync(),
+            config.transactionPollingIntervalMs,
             (err: Error) => {
                 logger.error({
                     message: `transaction watcher failed to sync transaction status: ${JSON.stringify(err)}`,
@@ -76,36 +90,23 @@ export class TransactionWatcherSignerService {
                 });
             },
         );
-        // Metric collection related fields
-        this._signerBalancesGauge = new Gauge({
-            name: 'signer_eth_balance_sum',
-            help: 'Available ETH Balance of a signer',
-            labelNames: [SIGNER_ADDRESS_LABEL],
-        });
-        this._transactionsUpdateCounter = new Counter({
-            name: 'signer_transactions_count',
-            help: 'Number of transactions updates of a signer by status',
-            labelNames: [SIGNER_ADDRESS_LABEL, TRANSACTION_STATUS_LABEL],
-        });
-        this._gasPriceSummary = new Summary({
-            name: 'signer_gas_price_summary',
-            help: 'Observed gas prices by the signer in gwei',
-            labelNames: [SIGNER_ADDRESS_LABEL],
-        });
         if (ENABLE_PROMETHEUS_METRICS) {
-            this._metricsUpdateTimer = intervalUtils.setAsyncExcludingInterval(
-                async () => {
-                    logger.trace('updating metrics');
-                    await this._updateSignerBalancesAsync();
-                },
-                TX_WATCHER_UPDATE_METRICS_INTERVAL_MS,
-                (err: Error) => {
-                    logger.error({
-                        message: `transaction watcher failed to update metrics: ${JSON.stringify(err)}`,
-                        err: err.stack,
-                    });
-                },
-            );
+            // Metric collection related fields
+            this._signerBalancesGauge = new Gauge({
+                name: 'signer_eth_balance_sum',
+                help: 'Available ETH Balance of a signer',
+                labelNames: [SIGNER_ADDRESS_LABEL],
+            });
+            this._transactionsUpdateCounter = new Counter({
+                name: 'signer_transactions_count',
+                help: 'Number of transactions updates of a signer by status',
+                labelNames: [SIGNER_ADDRESS_LABEL, TRANSACTION_STATUS_LABEL],
+            });
+            this._gasPriceSummary = new Summary({
+                name: 'signer_gas_price_summary',
+                help: 'Observed gas prices by the signer in gwei',
+                labelNames: [SIGNER_ADDRESS_LABEL],
+            });
         }
     }
     public stop(): void {
@@ -113,6 +114,7 @@ export class TransactionWatcherSignerService {
         intervalUtils.clearAsyncExcludingInterval(this._metricsUpdateTimer);
     }
     public async syncTransactionStatusAsync(): Promise<void> {
+        logger.trace('syncing transaction status');
         try {
             await this._cancelOrSignAndBroadcastTransactionsAsync();
         } catch (err) {
@@ -127,37 +129,38 @@ export class TransactionWatcherSignerService {
     }
     private async _signAndBroadcastMetaTxAsync(txEntity: TransactionEntity, signer: Signer): Promise<void> {
         // TODO(oskar) refactor with type guards?
-        if (txEntity.protocolFee === undefined) {
-            throw new Error('txEntity is missing protocolFee');
+        if (utils.isNil(txEntity.to)) {
+            throw new Error('txEntity is missing to');
         }
-        if (txEntity.gasPrice === undefined) {
+        if (utils.isNil(txEntity.value)) {
+            throw new Error('txEntity is missing value');
+        }
+        if (utils.isNil(txEntity.gasPrice)) {
             throw new Error('txEntity is missing gasPrice');
         }
-        if (txEntity.zeroExTransaction === undefined) {
-            throw new Error('txEntity is missing zeroExTransaction');
+        if (utils.isNil(txEntity.data)) {
+            throw new Error('txEntity is missing data');
         }
-        if (txEntity.zeroExTransactionSignature === undefined) {
-            throw new Error('txEntity is missing zeroExTransactionSignature');
+        if (!this._isSignerLiveAsync()) {
+            throw new Error('signer is currently not live');
         }
-        const {
-            ethereumTxnParams,
-            ethereumTransactionHash,
-            signedEthereumTransaction,
-        } = await signer.signAndBroadcastMetaTxAsync(
-            txEntity.zeroExTransaction,
-            txEntity.zeroExTransactionSignature,
-            txEntity.protocolFee,
+        const { ethereumTxnParams, ethereumTransactionHash } = await signer.signAndBroadcastMetaTxAsync(
+            txEntity.to,
+            txEntity.data,
+            txEntity.value,
             txEntity.gasPrice,
         );
         txEntity.status = TransactionStates.Submitted;
         txEntity.txHash = ethereumTransactionHash;
-        txEntity.signedTx = signedEthereumTransaction;
-        txEntity.nonce = web3WrapperUtils.convertHexToNumber(ethereumTxnParams.nonce);
+        txEntity.nonce = ethereumTxnParams.nonce;
         txEntity.from = ethereumTxnParams.from;
-        this._gasPriceSummary.observe(
-            { signer_address: txEntity.from },
-            Web3Wrapper.toUnitAmount(txEntity.gasPrice, GWEI_DECIMALS).toNumber(),
-        );
+        txEntity.gas = ethereumTxnParams.gas;
+        if (ENABLE_PROMETHEUS_METRICS) {
+            this._gasPriceSummary.observe(
+                { [SIGNER_ADDRESS_LABEL]: txEntity.from },
+                Web3Wrapper.toUnitAmount(txEntity.gasPrice, GWEI_DECIMALS).toNumber(),
+            );
+        }
         await this._updateTxEntityAsync(txEntity);
     }
     private async _syncBroadcastedTransactionStatusAsync(): Promise<void> {
@@ -241,8 +244,7 @@ export class TransactionWatcherSignerService {
         });
         for (const tx of transactionsToAbort) {
             tx.status = TransactionStates.Aborted;
-            this._transactionsUpdateCounter.inc({ signer_address: tx.from, status: tx.status }, 1);
-            await this._transactionRepository.save(tx);
+            await this._updateTxEntityAsync(tx);
         }
 
         return transactionsToAbort;
@@ -259,7 +261,7 @@ export class TransactionWatcherSignerService {
         for (const tx of unsignedTransactions) {
             if (TransactionWatcherSignerService._isUnsubmittedTxExpired(tx)) {
                 logger.error({
-                    message: `found a transaction in an unsubmitted state waiting longer that ${TX_HASH_RESPONSE_WAIT_TIME_MS}ms`,
+                    message: `found a transaction in an unsubmitted state waiting longer than ${TX_HASH_RESPONSE_WAIT_TIME_MS}ms`,
                     refHash: tx.refHash,
                     from: tx.from,
                 });
@@ -288,20 +290,22 @@ export class TransactionWatcherSignerService {
         return signer;
     }
     private async _getNextSignerAsync(): Promise<Signer> {
-        const sortedSigners = await this._getSortedSignerPublicAddressesByAvailabilityAsync();
+        const [selectedSigner] = await this._getSortedSignerPublicAddressesByAvailabilityAsync();
         // TODO(oskar) - add random choice for top signers to better distribute
         // the fees.
-        const signer = this._signers.get(sortedSigners[0]);
+        const signer = this._signers.get(selectedSigner);
         if (signer === undefined) {
-            throw new Error(`signer with public address: ${sortedSigners[0]} is not available`);
+            throw new Error(`signer with public address: ${selectedSigner} is not available`);
         }
 
         return signer;
     }
     private async _getSortedSignerPublicAddressesByAvailabilityAsync(): Promise<string[]> {
-        const map = new Map<string, number>();
+        const signerMap = new Map<string, { count: number; balance: number }>();
         this._availableSignerPublicAddresses.forEach(signerAddress => {
-            map.set(signerAddress, 0);
+            const count = 0;
+            const balance = this._signerBalancesEth.get(signerAddress) || 0;
+            signerMap.set(signerAddress, { count, balance });
         });
         // TODO(oskar) - move to query builder?
         const res: Array<{ from: string; count: number }> = await this._transactionRepository.query(
@@ -312,13 +316,10 @@ export class TransactionWatcherSignerService {
             // signer pool
             return this._availableSignerPublicAddresses.includes(result.from);
         }).forEach(result => {
-            map.set(result.from, result.count);
+            const current = signerMap.get(result.from);
+            signerMap.set(result.from, { ...current, count: result.count });
         });
-        return [...map.entries()]
-            .sort((a, b) => {
-                return a[1] - b[1];
-            })
-            .map(entry => entry[0]);
+        return TransactionWatcherSignerService.getSortedSignersByAvailability(signerMap);
     }
     private async _unstickTransactionAsync(
         tx: TransactionEntity,
@@ -336,7 +337,10 @@ export class TransactionWatcherSignerService {
             nonce: tx.nonce,
             gasPrice,
             from: tx.from,
-            expectedMinedInSec: META_TXN_RELAY_EXPECTED_MINED_SEC,
+            to: signer.publicAddress,
+            value: ZERO,
+            gas: ETH_TRANSFER_GAS_LIMIT,
+            expectedMinedInSec: this._config.expectedMinedInSec,
         });
         await this._transactionRepository.save(transactionEntity);
         return txHash;
@@ -349,7 +353,7 @@ export class TransactionWatcherSignerService {
             return;
         }
         const gasStationPrice = await ethGasStationUtils.getGasPriceOrThrowAsync();
-        const targetGasPrice = gasStationPrice.multipliedBy(UNSTICKING_TRANSACTION_GAS_MULTIPLIER);
+        const targetGasPrice = gasStationPrice.multipliedBy(this._config.unstickGasMultiplier);
         for (const tx of stuckTransactions) {
             if (tx.from === undefined) {
                 logger.error({
@@ -358,7 +362,7 @@ export class TransactionWatcherSignerService {
                 });
                 continue;
             }
-            if (tx.gasPrice !== undefined && tx.gasPrice.isGreaterThanOrEqualTo(targetGasPrice)) {
+            if (!utils.isNil(tx.gasPrice) && tx.gasPrice.isGreaterThanOrEqualTo(targetGasPrice)) {
                 logger.warn({
                     message:
                         'unsticking of transaction skipped as the targetGasPrice is less than or equal to the gas price it was submitted with',
@@ -421,35 +425,99 @@ export class TransactionWatcherSignerService {
                         returnedBlockNumber: txInBlockchain.blockNumber,
                     });
                 }
-                if (tx.blockNumber + NUMBER_OF_BLOCKS_UNTIL_CONFIRMED < latestBlockNumber) {
+                if (tx.blockNumber + this._config.numBlocksUntilConfirmed < latestBlockNumber) {
+                    const txReceipt = await this._web3Wrapper.getTransactionReceiptIfExistsAsync(tx.txHash);
                     tx.status = TransactionStates.Confirmed;
+                    tx.gasUsed = txReceipt.gasUsed;
+                    // status type can be a string
+                    tx.txStatus = utils.isNil(txReceipt.status)
+                        ? tx.txStatus
+                        : new BigNumber(txReceipt.status).toNumber();
                     await this._updateTxEntityAsync(tx);
                 }
             }
         }
     }
     private async _updateTxEntityAsync(txEntity: TransactionEntity): Promise<TransactionEntity> {
-        this._transactionsUpdateCounter.inc({ signer_address: txEntity.from, status: txEntity.status }, 1);
+        if (ENABLE_PROMETHEUS_METRICS) {
+            this._transactionsUpdateCounter.inc(
+                { [SIGNER_ADDRESS_LABEL]: txEntity.from, [TRANSACTION_STATUS_LABEL]: txEntity.status },
+                1,
+            );
+        }
         return this._transactionRepository.save(txEntity);
     }
     private async _updateSignerBalancesAsync(): Promise<void> {
-        // TODO(oskar) - use contract to grab all balances in a single RPC call?
-        for (const signerAddress of this._availableSignerPublicAddresses) {
-            try {
-                await this._updateSignerBalanceAsync(signerAddress);
-            } catch (err) {
-                logger.error({
-                    message: `failed to update signer balance: ${JSON.stringify(err)}`,
-                    stack: err.stack,
-                });
-            }
+        try {
+            const balances = await this._contractWrappers.devUtils
+                .getEthBalances(this._availableSignerPublicAddresses)
+                .callAsync();
+            balances.forEach((balance, i) =>
+                this._updateSignerBalance(this._availableSignerPublicAddresses[i], balance),
+            );
+        } catch (err) {
+            logger.error({
+                message: `failed to update signer balance: ${JSON.stringify(err)}, ${
+                    this._availableSignerPublicAddresses
+                }`,
+                stack: err.stack,
+            });
         }
     }
-    private async _updateSignerBalanceAsync(signerAddress: string): Promise<void> {
-        const signerBalance = await this._web3Wrapper.getBalanceInWeiAsync(signerAddress);
-        this._signerBalancesGauge.set(
-            { signer_address: signerAddress },
-            Web3Wrapper.toUnitAmount(signerBalance, ETH_DECIMALS).toNumber(),
+    private _updateSignerBalance(signerAddress: string, signerBalance: BigNumber): void {
+        const balanceInEth = Web3Wrapper.toUnitAmount(signerBalance, ETH_DECIMALS).toNumber();
+        this._signerBalancesEth.set(signerAddress, balanceInEth);
+        if (ENABLE_PROMETHEUS_METRICS) {
+            this._signerBalancesGauge.set({ [SIGNER_ADDRESS_LABEL]: signerAddress }, balanceInEth);
+        }
+    }
+    private async _isSignerLiveAsync(): Promise<boolean> {
+        // Return immediately if the override is set to false
+        if (!this._config.isSigningEnabled) {
+            return false;
+        }
+        const currentFastGasPrice = await ethGasStationUtils.getGasPriceOrThrowAsync();
+        const isCurrentGasPriceBelowMax = Web3Wrapper.toUnitAmount(currentFastGasPrice, GWEI_DECIMALS).lt(
+            this._config.maxGasPriceGwei,
         );
+        const hasAvailableBalance =
+            Array.from(this._signerBalancesEth.values()).filter(val => val > this._config.minSignerEthBalance).length >
+            0;
+        return hasAvailableBalance && isCurrentGasPriceBelowMax;
+    }
+    private async _updateLiveSatusAsync(): Promise<void> {
+        logger.trace('updating metrics');
+        await this._updateSignerBalancesAsync();
+        logger.trace('heartbeat');
+        await this._updateSignerStatusAsync();
+    }
+    private async _updateSignerStatusAsync(): Promise<void> {
+        // TODO: do we need to find the entity first, for UPDATE?
+        let statusKV = await this._kvRepository.findOne(SIGNER_STATUS_DB_KEY);
+        if (utils.isNil(statusKV)) {
+            statusKV = new KeyValueEntity(SIGNER_STATUS_DB_KEY);
+        }
+        const isLive = await this._isSignerLiveAsync();
+        const statusContent: TransactionWatcherSignerStatus = {
+            live: isLive,
+            // HACK: We save the time to force the updatedAt update else it will be a noop when state hasn't changed
+            timeSinceEpoch: Date.now(),
+            // tslint:disable-next-line:no-inferred-empty-object-type
+            balances: Array.from(this._signerBalancesEth.entries()).reduce(
+                (acc: object, signerBalance: [string, number]): Record<string, number> => {
+                    const [from, balance] = signerBalance;
+                    return { ...acc, [from]: balance };
+                },
+                {},
+            ),
+            gasPrice: Web3Wrapper.toUnitAmount(
+                await ethGasStationUtils.getGasPriceOrThrowAsync(),
+                GWEI_DECIMALS,
+            ).toNumber(),
+            maxGasPrice: this._config.maxGasPriceGwei.toNumber(),
+        };
+        statusKV.value = JSON.stringify(statusContent);
+        await this._kvRepository.save(statusKV);
     }
 }
+// tslint:disable-line:max-file-line-count

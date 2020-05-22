@@ -172,12 +172,12 @@ export const RFQT_SKIP_BUY_REQUESTS: boolean = _.isEmpty(process.env.RFQT_SKIP_B
     : assertEnvVarType('RFQT_SKIP_BUY_REQUESTS', process.env.RFQT_SKIP_BUY_REQUESTS, EnvVarType.Boolean);
 
 // Whitelisted 0x API keys that can use the meta-txn /submit endpoint
-export const WHITELISTED_API_KEYS_META_TXN_SUBMIT: string[] =
-    process.env.WHITELISTED_API_KEYS_META_TXN_SUBMIT === undefined
+export const META_TXN_SUBMIT_WHITELISTED_API_KEYS: string[] =
+    process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS === undefined
         ? []
         : assertEnvVarType(
-              'WHITELISTED_API_KEYS_META_TXN_SUBMIT',
-              process.env.WHITELISTED_API_KEYS_META_TXN_SUBMIT,
+              'META_TXN_SUBMIT_WHITELISTED_API_KEYS',
+              process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS,
               EnvVarType.APIKeys,
           );
 
@@ -194,6 +194,15 @@ export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.M
           process.env.META_TXN_RELAY_EXPECTED_MINED_SEC,
           EnvVarType.Integer,
       );
+// Should TransactionWatcherSignerService sign transactions
+// tslint:disable-next-line:boolean-naming
+export const META_TXN_SIGNING_ENABLED: boolean = _.isEmpty(process.env.META_TXN_SIGNING_ENABLED)
+    ? true
+    : assertEnvVarType('META_TXN_SIGNING_ENABLED', process.env.META_TXN_SIGNING_ENABLED, EnvVarType.Boolean);
+// The maximum gas price (in gwei) the service will allow
+export const META_TXN_MAX_GAS_PRICE_GWEI: BigNumber = _.isEmpty(process.env.META_TXN_MAX_GAS_PRICE_GWEI)
+    ? new BigNumber(50)
+    : assertEnvVarType('META_TXN_MAX_GAS_PRICE_GWEI', process.env.META_TXN_MAX_GAS_PRICE_GWEI, EnvVarType.UnitAmount);
 
 // Whether or not prometheus metrics should be enabled.
 // tslint:disable-next-line:boolean-naming

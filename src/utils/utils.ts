@@ -1,3 +1,4 @@
+import { intervalUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { ObjectMap } from '../types';
@@ -85,5 +86,25 @@ export const utils = {
             clearTimeout(_timeoutHandle);
             return result;
         });
+    },
+    isNil: (value: any): boolean => {
+        // undefined == null => true
+        // undefined == undefined => true
+        return value == null;
+    },
+    setAsyncExcludingImmediateInterval(
+        fn: () => Promise<void>,
+        intervalMs: number,
+        onError: (err: Error) => void,
+    ): NodeJS.Timer {
+        // Execute this immediately rather than wait for the first interval
+        void (async () => {
+            try {
+                await fn();
+            } catch (e) {
+                onError(e);
+            }
+        })();
+        return intervalUtils.setAsyncExcludingInterval(fn, intervalMs, onError);
     },
 };

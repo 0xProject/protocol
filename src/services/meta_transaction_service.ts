@@ -14,24 +14,28 @@ import {
     CHAIN_ID,
     LIQUIDITY_POOL_REGISTRY_ADDRESS,
     META_TXN_RELAY_EXPECTED_MINED_SEC,
-    WHITELISTED_API_KEYS_META_TXN_SUBMIT,
+    META_TXN_SUBMIT_WHITELISTED_API_KEYS,
 } from '../config';
 import {
     ONE_GWEI,
+    ONE_MINUTE_MS,
     ONE_SECOND_MS,
     PUBLIC_ADDRESS_FOR_ETH_CALLS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+    SIGNER_STATUS_DB_KEY,
     SUBMITTED_TX_DB_POLLING_INTERVAL_MS,
     TEN_MINUTES_MS,
     TX_HASH_RESPONSE_WAIT_TIME_MS,
 } from '../constants';
-import { TransactionEntity } from '../entities';
+import { KeyValueEntity, TransactionEntity } from '../entities';
+import { logger } from '../logger';
 import {
     CalculateMetaTransactionPriceResponse,
     CalculateMetaTransactionQuoteParams,
     GetMetaTransactionQuoteResponse,
     PostTransactionResponse,
     TransactionStates,
+    TransactionWatcherSignerStatus,
     ZeroExTransactionWithoutDomain,
 } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
@@ -46,9 +50,10 @@ export class MetaTransactionService {
     private readonly _devUtils: DevUtilsContract;
     private readonly _connection: Connection;
     private readonly _transactionEntityRepository: Repository<TransactionEntity>;
+    private readonly _kvRepository: Repository<KeyValueEntity>;
 
     public static isEligibleForFreeMetaTxn(apiKey: string): boolean {
-        return WHITELISTED_API_KEYS_META_TXN_SUBMIT.includes(apiKey);
+        return META_TXN_SUBMIT_WHITELISTED_API_KEYS.includes(apiKey);
     }
     private static _calculateProtocolFee(numOrders: number, gasPrice: BigNumber): BigNumber {
         return new BigNumber(150000).times(gasPrice).times(numOrders);
@@ -66,6 +71,7 @@ export class MetaTransactionService {
         this._devUtils = new DevUtilsContract(this._contractWrappers.contractAddresses.devUtils, this._provider);
         this._connection = dbConnection;
         this._transactionEntityRepository = this._connection.getRepository(TransactionEntity);
+        this._kvRepository = this._connection.getRepository(KeyValueEntity);
     }
     public async calculateMetaTransactionPriceAsync(
         params: CalculateMetaTransactionQuoteParams,
@@ -204,8 +210,7 @@ export class MetaTransactionService {
         signature: string,
     ): Promise<BigNumber> {
         // Verify 0x txn won't expire in next 60 seconds
-        // tslint:disable-next-line:custom-no-magic-numbers
-        const sixtySecondsFromNow = new BigNumber(Math.floor(new Date().getTime() / ONE_SECOND_MS) + 60);
+        const sixtySecondsFromNow = new BigNumber(Date.now() + ONE_MINUTE_MS).dividedBy(ONE_SECOND_MS);
         if (zeroExTransaction.expirationTimeSeconds.lte(sixtySecondsFromNow)) {
             throw new Error('zeroExTransaction expirationTimeSeconds in less than 60 seconds from now');
         }
@@ -216,7 +221,7 @@ export class MetaTransactionService {
         const currentFastGasPrice = await ethGasStationUtils.getGasPriceOrThrowAsync();
         // Make sure gasPrice is not 3X the current fast EthGasStation gas price
         // tslint:disable-next-line:custom-no-magic-numbers
-        if (currentFastGasPrice.lt(gasPrice) && gasPrice.minus(currentFastGasPrice).gt(currentFastGasPrice.times(3))) {
+        if (currentFastGasPrice.lt(gasPrice) && gasPrice.minus(currentFastGasPrice).gte(currentFastGasPrice.times(3))) {
             throw new Error('Gas price too high');
         }
 
@@ -295,29 +300,41 @@ export class MetaTransactionService {
             refHash: zeroExTransactionHash,
             status: TransactionStates.Unsubmitted,
             takerAddress: zeroExTransaction.signerAddress,
-            zeroExTransaction,
-            zeroExTransactionSignature: signature,
-            protocolFee,
+            to: this._contractWrappers.exchange.address,
+            data: this._contractWrappers.exchange
+                .executeTransaction(zeroExTransaction, signature)
+                .getABIEncodedTransactionData(),
+            value: protocolFee,
             gasPrice: zeroExTransaction.gasPrice,
             expectedMinedInSec: META_TXN_RELAY_EXPECTED_MINED_SEC,
         });
         await this._transactionEntityRepository.save(transactionEntity);
-        const { ethereumTransactionHash, signedEthereumTransaction } = await this._waitUntilTxHashAsync(
-            transactionEntity,
-        );
+        const { ethereumTransactionHash } = await this._waitUntilTxHashAsync(transactionEntity);
         return {
             ethereumTransactionHash,
-            signedEthereumTransaction,
+            zeroExTransactionHash,
         };
     }
-    private async _waitUntilTxHashAsync(
-        txEntity: TransactionEntity,
-    ): Promise<{ ethereumTransactionHash: string; signedEthereumTransaction: string }> {
+    public async isSignerLiveAsync(): Promise<boolean> {
+        const statusKV = await this._kvRepository.findOne(SIGNER_STATUS_DB_KEY);
+        if (utils.isNil(statusKV) || utils.isNil(statusKV.value)) {
+            logger.error({
+                message: `signer status entry is not present in the database`,
+            });
+            return false;
+        }
+        const signerStatus: TransactionWatcherSignerStatus = JSON.parse(statusKV.value);
+        const hasUpdatedRecently =
+            !utils.isNil(statusKV.updatedAt) && statusKV.updatedAt.getTime() > Date.now() - TEN_MINUTES_MS;
+        // tslint:disable-next-line:no-boolean-literal-compare
+        return signerStatus.live === true && hasUpdatedRecently;
+    }
+    private async _waitUntilTxHashAsync(txEntity: TransactionEntity): Promise<{ ethereumTransactionHash: string }> {
         return utils.runWithTimeout(async () => {
             while (true) {
                 const tx = await this._transactionEntityRepository.findOne(txEntity.refHash);
-                if (tx !== undefined && tx.txHash !== undefined && tx.signedTx !== undefined) {
-                    return { ethereumTransactionHash: tx.txHash, signedEthereumTransaction: tx.signedTx };
+                if (!utils.isNil(tx) && !utils.isNil(tx.txHash) && !utils.isNil(tx.data)) {
+                    return { ethereumTransactionHash: tx.txHash };
                 }
 
                 await utils.delayAsync(SUBMITTED_TX_DB_POLLING_INTERVAL_MS);

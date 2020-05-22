@@ -599,7 +599,7 @@ describe(SUITE_NAME, () => {
                             signature,
                         },
                         headers: {
-                            '0x-api-key': config.WHITELISTED_API_KEYS_META_TXN_SUBMIT[0],
+                            '0x-api-key': config.META_TXN_SUBMIT_WHITELISTED_API_KEYS[0],
                         },
                     });
                     expect(response.status).to.be.eq(HttpStatus.OK);
@@ -711,7 +711,7 @@ describe(SUITE_NAME, () => {
                             signature,
                         },
                         headers: {
-                            '0x-api-key': config.WHITELISTED_API_KEYS_META_TXN_SUBMIT[0],
+                            '0x-api-key': config.META_TXN_SUBMIT_WHITELISTED_API_KEYS[0],
                         },
                     });
                     expect(response.status).to.be.eq(HttpStatus.OK);

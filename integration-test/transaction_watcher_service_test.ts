@@ -20,7 +20,7 @@ import { MetricsService } from '../src/services/metrics_service';
 import { OrderBookService } from '../src/services/orderbook_service';
 import { StakingDataService } from '../src/services/staking_data_service';
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
-import { TransactionStates } from '../src/types';
+import { TransactionStates, TransactionWatcherSignerServiceConfig } from '../src/types';
 import { MeshClient } from '../src/utils/mesh_client';
 import { utils } from '../src/utils/utils';
 
@@ -58,8 +58,21 @@ describe('transaction watcher service', () => {
         providerUtils.startProviderEngine(providerEngine);
         provider = providerEngine;
         connection = await getDBConnectionAsync();
+        const txWatcherConfig: TransactionWatcherSignerServiceConfig = {
+            provider: providerEngine,
+            chainId: config.CHAIN_ID,
+            signerPrivateKeys: config.META_TXN_RELAY_PRIVATE_KEYS,
+            expectedMinedInSec: config.META_TXN_RELAY_EXPECTED_MINED_SEC,
+            isSigningEnabled: config.META_TXN_SIGNING_ENABLED,
+            maxGasPriceGwei: config.META_TXN_MAX_GAS_PRICE_GWEI,
+            minSignerEthBalance: 0.1,
+            transactionPollingIntervalMs: 100,
+            heartbeatIntervalMs: 1000,
+            unstickGasMultiplier: 1.1,
+            numBlocksUntilConfirmed: 5,
+        };
         transactionEntityRepository = connection.getRepository(TransactionEntity);
-        txWatcher = new TransactionWatcherSignerService(connection);
+        txWatcher = new TransactionWatcherSignerService(connection, txWatcherConfig);
         await txWatcher.syncTransactionStatusAsync();
         const orderBookService = new OrderBookService(connection);
         const metaTransactionService = createMetaTxnServiceFromOrderBookService(orderBookService, provider, connection);

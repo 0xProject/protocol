@@ -1,9 +1,9 @@
 import { ConnectionOptions } from 'typeorm';
 
 import { POSTGRES_URI } from './config';
-import { SignedOrderEntity, TransactionEntity } from './entities';
+import { KeyValueEntity, SignedOrderEntity, TransactionEntity } from './entities';
 
-const entities = [SignedOrderEntity, TransactionEntity];
+const entities = [SignedOrderEntity, TransactionEntity, KeyValueEntity];
 
 export const config: ConnectionOptions = {
     type: 'postgres',

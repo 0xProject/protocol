@@ -1,15 +1,13 @@
 # [1.4.0](https://github.com/0xProject/0x-api/compare/v1.3.0...v1.4.0) (2020-05-18)
 
-
 ### Bug Fixes
 
-* re-allow unknown tokens to be queried in the swap/quote endpoint ([#226](https://github.com/0xProject/0x-api/issues/226)) ([1379e63](https://github.com/0xProject/0x-api/commit/1379e638693e030ab343adfa9893a6f42081ea01))
-
+-   re-allow unknown tokens to be queried in the swap/quote endpoint ([#226](https://github.com/0xProject/0x-api/issues/226)) ([1379e63](https://github.com/0xProject/0x-api/commit/1379e638693e030ab343adfa9893a6f42081ea01))
 
 ### Features
 
-* add transaction watcher service ([#215](https://github.com/0xProject/0x-api/issues/215)) ([7bbb9c6](https://github.com/0xProject/0x-api/commit/7bbb9c6f0992ae2a9a9ae9f2fe6d59f99a8e121a))
-* Improve RFQ-T logging ([#219](https://github.com/0xProject/0x-api/issues/219)) ([22b6b0c](https://github.com/0xProject/0x-api/commit/22b6b0c1fb15513bc1225ca5f3a8918639fe8f32))
+-   add transaction watcher service ([#215](https://github.com/0xProject/0x-api/issues/215)) ([7bbb9c6](https://github.com/0xProject/0x-api/commit/7bbb9c6f0992ae2a9a9ae9f2fe6d59f99a8e121a))
+-   Improve RFQ-T logging ([#219](https://github.com/0xProject/0x-api/issues/219)) ([22b6b0c](https://github.com/0xProject/0x-api/commit/22b6b0c1fb15513bc1225ca5f3a8918639fe8f32))
 
 # [1.3.0](https://github.com/0xProject/0x-api/compare/v1.2.0...v1.3.0) (2020-05-11)
 
