@@ -1,3 +1,19 @@
+# [1.5.0](https://github.com/0xProject/0x-api/compare/v1.4.0...v1.5.0) (2020-05-25)
+
+
+### Bug Fixes
+
+* unify the response data from /swap/v0/price and /meta_transaction/v0/price ([#228](https://github.com/0xProject/0x-api/issues/228)) ([62f3fae](https://github.com/0xProject/0x-api/commit/62f3fae42a8ab7e73b644f0e8c523d655e6319e8))
+
+
+### Features
+
+* Add Prometheus Monitoring ([#222](https://github.com/0xProject/0x-api/issues/222)) ([5a51add](https://github.com/0xProject/0x-api/commit/5a51add4f0351d1e8567817411cdd24a984c2c28))
+* added an epochs/n endpoint to get info on an arbitrary epoch ([#230](https://github.com/0xProject/0x-api/issues/230)) ([68ec159](https://github.com/0xProject/0x-api/commit/68ec1595b99c15e50c5cfeae682cf16b68d83be1))
+* lower default slippage percentage to 1% ([#238](https://github.com/0xProject/0x-api/issues/238)) ([c7ec0ff](https://github.com/0xProject/0x-api/commit/c7ec0ff80d13d141dbc062b88ef5a97fd5b387a3))
+* MetaTxn add signer heartbeat and status ([#236](https://github.com/0xProject/0x-api/issues/236)) ([3a11867](https://github.com/0xProject/0x-api/commit/3a118670ec6376203400650f39b93e06fc1c76af))
+* set default skip RFQt buy requests to false ([#232](https://github.com/0xProject/0x-api/issues/232)) ([a5d7a1c](https://github.com/0xProject/0x-api/commit/a5d7a1ce8d539382fada237f77fbcb637aaf3791))
+
 # [1.4.0](https://github.com/0xProject/0x-api/compare/v1.3.0...v1.4.0) (2020-05-18)
 
 ### Bug Fixes
