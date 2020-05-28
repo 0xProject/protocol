@@ -19,7 +19,7 @@ ethers.errors.setLogLevel('error');
 // tslint:disable:custom-no-magic-numbers
 
 const SUITE_NAME = 'transaction watcher signer tests';
-describe.only(SUITE_NAME, () => {
+describe(SUITE_NAME, () => {
     describe('.getSortedSignersByAvailability', () => {
         it('sorts signers in order of highest balance andd lowest tx count', () => {
             const testSigners = [
