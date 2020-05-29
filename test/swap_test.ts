@@ -217,6 +217,16 @@ describe(SUITE_NAME, () => {
                 },
             );
         });
+        it('should not return estimatedGasTokenRefund: 0 if there are not gas tokens in our wallet', async () => {
+            await quoteAndExpectAsync(
+                {
+                    sellAmount: '1234',
+                },
+                {
+                    estimatedGasTokenRefund: '0',
+                },
+            );
+        });
     });
 
     describe('/tokens', () => {
@@ -256,6 +266,7 @@ interface QuoteAssertion {
     signedOrders: SignedOrder[];
     sellTokenAddress: string;
     buyTokenAddress: string;
+    estimatedGasTokenRefund: string;
     validationErrors: ValidationErrorItem[];
     revertErrorReason: string;
 }

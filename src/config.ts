@@ -230,7 +230,7 @@ const EXCLUDED_SOURCES = (() => {
     }
 })();
 
-const gasSchedule: { [key in ERC20BridgeSource]: number } = {
+export const GAS_SCHEDULE: { [key in ERC20BridgeSource]: number } = {
     [ERC20BridgeSource.Native]: 1.5e5,
     [ERC20BridgeSource.Uniswap]: 3e5,
     [ERC20BridgeSource.LiquidityProvider]: 3e5,
@@ -245,8 +245,8 @@ const gasSchedule: { [key in ERC20BridgeSource]: number } = {
 
 const feeSchedule: { [key in ERC20BridgeSource]: BigNumber } = Object.assign(
     {},
-    ...(Object.keys(gasSchedule) as ERC20BridgeSource[]).map(k => ({
-        [k]: new BigNumber(gasSchedule[k] + 1.5e5),
+    ...(Object.keys(GAS_SCHEDULE) as ERC20BridgeSource[]).map(k => ({
+        [k]: new BigNumber(GAS_SCHEDULE[k] + 1.5e5),
     })),
 );
 
@@ -257,7 +257,7 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     numSamples: 13,
     sampleDistributionBase: 1.05,
     feeSchedule,
-    gasSchedule,
+    gasSchedule: GAS_SCHEDULE,
 };
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {

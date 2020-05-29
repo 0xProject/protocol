@@ -1,5 +1,7 @@
 import { BigNumber } from '@0x/utils';
 
+import { ChainId } from './types';
+
 // tslint:disable:custom-no-magic-numbers
 
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -24,6 +26,7 @@ export const MESH_ORDERS_BATCH_HTTP_BYTE_LENGTH = 2500000;
 // Swap Quoter
 export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 90; // Ignore orders that expire in 90 seconds
 export const GAS_LIMIT_BUFFER_PERCENTAGE = 0.2; // Add 20% to the estimated gas limit
+export const GAS_LIMIT_BUFFER_MULTIPLIER = GAS_LIMIT_BUFFER_PERCENTAGE + 1;
 export const DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE = 0.01; // 1% Slippage
 export const DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE = 0.015; // 1.5% Slippage in a fallback route
 export const ETH_SYMBOL = 'ETH';
@@ -69,3 +72,17 @@ export const ETH_DECIMALS = 18;
 export const GWEI_DECIMALS = 9;
 export const META_TXN_MIN_SIGNER_ETH_BALANCE = 0.1;
 export const SIGNER_STATUS_DB_KEY = 'signer_status';
+
+// Gas tokens
+export const SSTORE_COST = 5000;
+export const SSTORE_INIT_COST = 20000;
+export const GAS_BURN_REFUND = 240000;
+export const GAS_BURN_COST = 6870;
+export const GST_DIVISOR = 41130;
+export const GST_INTERACTION_COST = 14154;
+
+export const GST2_WALLET_ADDRESSES = {
+    [ChainId.Mainnet]: '0x000000d3b08566be75a6db803c03c85c0c1c5b96',
+    [ChainId.Kovan]: NULL_ADDRESS,
+    [ChainId.Ganache]: NULL_ADDRESS,
+};

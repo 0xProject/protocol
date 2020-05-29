@@ -346,22 +346,37 @@ export interface TokenMetadata {
     tokenAddress: string;
 }
 
-export interface GetSwapQuoteResponse {
-    price: BigNumber;
-    guaranteedPrice: BigNumber;
+export interface GasTokenRefundInfo {
+    usedGasTokens: number;
+    gasTokenGasCost: BigNumber;
+    gasTokenRefund: BigNumber;
+}
+
+export interface SwapQuoteResponsePartialTransaction {
     to: string;
     data: string;
+    value: BigNumber;
+}
+
+export interface SwapQuoteResponsePrice {
+    price: BigNumber;
+    guaranteedPrice: BigNumber;
+}
+
+export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransaction, SwapQuoteResponsePrice {
     gasPrice: BigNumber;
     protocolFee: BigNumber;
+    minimumProtocolFee: BigNumber;
     orders: SignedOrder[];
     buyAmount: BigNumber;
     sellAmount: BigNumber;
     buyTokenAddress: string;
     sellTokenAddress: string;
-    value: BigNumber;
     sources: GetSwapQuoteResponseLiquiditySource[];
-    gas?: BigNumber;
     from?: string;
+    gas: BigNumber;
+    estimatedGas: BigNumber;
+    estimatedGasTokenRefund: BigNumber;
 }
 
 export interface Price {
@@ -382,7 +397,10 @@ export interface GetSwapPriceResponse extends BasePriceResponse {
     value: BigNumber;
     gasPrice: BigNumber;
     gas: BigNumber;
+    estimatedGas: BigNumber;
     protocolFee: BigNumber;
+    estimatedGasTokenRefund: BigNumber;
+    minimumProtocolFee: BigNumber;
 }
 
 export type GetTokenPricesResponse = Price[];
