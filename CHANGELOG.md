@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/0xProject/0x-api/compare/v1.5.0...v1.6.0) (2020-06-01)
+
+
+### Bug Fixes
+
+* Re-pin asset-swapper to latest monorepo commit ([#240](https://github.com/0xProject/0x-api/issues/240)) ([dfbf0e7](https://github.com/0xProject/0x-api/commit/dfbf0e719fe1a2371e0a2e5dcc9a2824f9de4529))
+
+
+### Features
+
+* add estimatedGas, estimatedGasTokenRefund and minimumProtocolFee to /quote and /price  response ([#237](https://github.com/0xProject/0x-api/issues/237)) ([f7f3277](https://github.com/0xProject/0x-api/commit/f7f3277510fcc05f03f0a187e64364e02305e3ee))
+
 # [1.5.0](https://github.com/0xProject/0x-api/compare/v1.4.0...v1.5.0) (2020-05-25)
 
 
