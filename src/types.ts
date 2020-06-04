@@ -417,6 +417,17 @@ export interface GetMetaTransactionQuoteResponse {
 
 export interface GetMetaTransactionPriceResponse extends BasePriceResponse {}
 
+export interface GetMetaTransactionStatusResponse {
+    refHash: string;
+    hash?: string;
+    status: string;
+    gasPrice?: BigNumber;
+    updatedAt?: Date;
+    blockNumber?: number;
+    expectedMinedInSec?: number;
+    ethereumTxStatus?: number;
+}
+
 // takerAddress, sellAmount, buyAmount, swapQuote, price
 export interface CalculateMetaTransactionPriceResponse {
     price: BigNumber;

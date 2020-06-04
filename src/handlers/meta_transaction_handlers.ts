@@ -22,7 +22,12 @@ import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { MetaTransactionService } from '../services/meta_transaction_service';
-import { GetMetaTransactionPriceResponse, GetTransactionRequestParams, ZeroExTransactionWithoutDomain } from '../types';
+import {
+    GetMetaTransactionPriceResponse,
+    GetMetaTransactionStatusResponse,
+    GetTransactionRequestParams,
+    ZeroExTransactionWithoutDomain,
+} from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { findTokenAddressOrThrowApiError } from '../utils/token_metadata_utils';
@@ -350,7 +355,7 @@ const parsePostTransactionRequestBody = (req: any): PostTransactionRequestBody =
     };
 };
 
-const marshallTransactionEntity = (tx: TransactionEntity): any => {
+const marshallTransactionEntity = (tx: TransactionEntity): GetMetaTransactionStatusResponse => {
     return {
         refHash: tx.refHash,
         hash: tx.txHash,
@@ -359,5 +364,6 @@ const marshallTransactionEntity = (tx: TransactionEntity): any => {
         updatedAt: tx.updatedAt,
         blockNumber: tx.blockNumber,
         expectedMinedInSec: tx.expectedMinedInSec,
+        ethereumTxStatus: tx.txStatus,
     };
 };
