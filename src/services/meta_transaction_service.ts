@@ -1,4 +1,5 @@
 import { Orderbook, SwapQuoter, SwapQuoterOpts } from '@0x/asset-swapper';
+import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
 import { ContractWrappers } from '@0x/contract-wrappers';
 import { DevUtilsContract } from '@0x/contracts-dev-utils';
 import { generatePseudoRandomSalt, SupportedProvider, ZeroExTransaction } from '@0x/order-utils';
@@ -15,6 +16,9 @@ import {
     LIQUIDITY_POOL_REGISTRY_ADDRESS,
     META_TXN_RELAY_EXPECTED_MINED_SEC,
     META_TXN_SUBMIT_WHITELISTED_API_KEYS,
+    RFQT_API_KEY_WHITELIST,
+    RFQT_MAKER_ASSET_OFFERINGS,
+    RFQT_SKIP_BUY_REQUESTS,
 } from '../config';
 import {
     ONE_GWEI,
@@ -64,6 +68,14 @@ export class MetaTransactionService {
             chainId: CHAIN_ID,
             expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
             liquidityProviderRegistryAddress: LIQUIDITY_POOL_REGISTRY_ADDRESS,
+            rfqt: {
+                takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
+                makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
+                skipBuyRequests: RFQT_SKIP_BUY_REQUESTS,
+                warningLogger: logger.warn.bind(logger),
+                infoLogger: logger.info.bind(logger),
+            },
+            permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._contractWrappers = new ContractWrappers(this._provider, { chainId: CHAIN_ID });
