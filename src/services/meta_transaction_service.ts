@@ -307,15 +307,20 @@ export class MetaTransactionService {
         zeroExTransaction: ZeroExTransactionWithoutDomain,
         signature: string,
         protocolFee: BigNumber,
+        affiliateAddress?: string,
     ): Promise<PostTransactionResponse> {
+        const data = serviceUtils.attributeCallData(
+            this._contractWrappers.exchange
+                .executeTransaction(zeroExTransaction, signature)
+                .getABIEncodedTransactionData(),
+            affiliateAddress,
+        );
         const transactionEntity = TransactionEntity.make({
             refHash: zeroExTransactionHash,
             status: TransactionStates.Unsubmitted,
             takerAddress: zeroExTransaction.signerAddress,
             to: this._contractWrappers.exchange.address,
-            data: this._contractWrappers.exchange
-                .executeTransaction(zeroExTransaction, signature)
-                .getABIEncodedTransactionData(),
+            data,
             value: protocolFee,
             gasPrice: zeroExTransaction.gasPrice,
             expectedMinedInSec: META_TXN_RELAY_EXPECTED_MINED_SEC,

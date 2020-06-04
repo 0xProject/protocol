@@ -193,6 +193,7 @@ export class MetaTransactionHandlers {
     }
     public async submitZeroExTransactionIfWhitelistedAsync(req: express.Request, res: express.Response): Promise<void> {
         const apiKey = req.header('0x-api-key');
+        const affiliateAddress = req.query.affiliateAddress as string | undefined;
         if (apiKey !== undefined && !isValidUUID(apiKey)) {
             res.status(HttpStatus.BAD_REQUEST).send({
                 code: GeneralErrorCodes.InvalidAPIKey,
@@ -237,6 +238,7 @@ export class MetaTransactionHandlers {
                     zeroExTransaction,
                     signature,
                     protocolFee,
+                    affiliateAddress,
                 );
                 res.status(HttpStatus.OK).send({
                     ethereumTransactionHash,
