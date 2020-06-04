@@ -151,6 +151,7 @@ export interface PoolWithStats extends Pool {
     sevenDayProtocolFeesGeneratedInEth: number;
     avgMemberRewardInEth: number;
     avgTotalRewardInEth: number;
+    avgMemberRewardEthPerZrx: number;
 }
 
 export interface PoolWithHistoricalStats extends PoolWithStats {
@@ -211,12 +212,15 @@ export interface RawPoolAvgRewards {
     pool_id: string;
     avg_member_reward_in_eth: string;
     avg_total_reward_in_eth: string;
+    avg_member_stake: string;
+    avg_member_reward_eth_per_zrx: string;
 }
 
 export interface PoolAvgRewards {
     poolId: string;
     avgMemberRewardInEth: number;
     avgTotalRewardInEth: number;
+    avgMemberRewardEthPerZrx: number;
 }
 
 export interface RawPoolTotalProtocolFeesGenerated {

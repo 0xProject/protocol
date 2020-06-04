@@ -193,11 +193,17 @@ export const stakingUtils = {
         return rawPoolsProtocolFeesGenerated.map(stakingUtils.getPoolProtocolFeesGeneratedFromRaw);
     },
     getPoolAvgRewardsFromRaw: (rawPoolAvgRewards: RawPoolAvgRewards): PoolAvgRewards => {
-        const { pool_id, avg_member_reward_in_eth, avg_total_reward_in_eth } = rawPoolAvgRewards;
+        const {
+            pool_id,
+            avg_member_reward_in_eth,
+            avg_total_reward_in_eth,
+            avg_member_reward_eth_per_zrx,
+        } = rawPoolAvgRewards;
         return {
             poolId: pool_id,
             avgMemberRewardInEth: Number(avg_member_reward_in_eth || 0),
             avgTotalRewardInEth: Number(avg_total_reward_in_eth || 0),
+            avgMemberRewardEthPerZrx: Number(avg_member_reward_eth_per_zrx || 0),
         };
     },
     getPoolsAvgRewardsFromRaw: (rawPoolsAvgRewards: RawPoolAvgRewards[]): PoolAvgRewards[] => {
