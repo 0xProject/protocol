@@ -1,3 +1,16 @@
+# [1.7.0](https://github.com/0xProject/0x-api/compare/v1.6.0...v1.7.0) (2020-06-08)
+
+
+### Bug Fixes
+
+* Add RFQT configs when instantiating SwapQuoter ([#218](https://github.com/0xProject/0x-api/issues/218)) ([28e1214](https://github.com/0xProject/0x-api/commit/28e1214186c3285ca61de9bd7ca38ec84f9cbf32))
+
+
+### Features
+
+* added rewards per ZRX to pools endpoint ([#235](https://github.com/0xProject/0x-api/issues/235)) ([d8b8941](https://github.com/0xProject/0x-api/commit/d8b8941f9492720254b6a8d7c491ad16a3deedd4))
+* return ethereum transaction status in the response from metatxn status ([#247](https://github.com/0xProject/0x-api/issues/247)) ([ce973a2](https://github.com/0xProject/0x-api/commit/ce973a2cac07fd9dcf783f284f3db125c242317f))
+
 # [1.6.0](https://github.com/0xProject/0x-api/compare/v1.5.0...v1.6.0) (2020-06-01)
 
 
