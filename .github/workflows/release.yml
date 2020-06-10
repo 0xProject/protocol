@@ -50,7 +50,7 @@ jobs:
             title: "[0xApi][prod|kovan|staging] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
             reviewers: dekz
             labels: 0xApi, prod, kovan, staging
-            branch: "0xApi/prod/${{ steps.semantic_release.outputs.new_release_version }}"
+            branch: "0xApi-{{ steps.semantic_release.outputs.new_release_version }}"
             body: |
               https://github.com/${{ github.repository }}/compare/master...${{ steps.semantic_release.outputs.new_release_version }}
               ${{ steps.semantic_release.outputs.new_release_version }}
