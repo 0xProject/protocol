@@ -50,10 +50,12 @@ jobs:
             title: "[0xApi][prod|kovan|staging] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
             reviewers: dekz
             labels: 0xApi, prod, kovan, staging
-            branch: "0xApi-{{ steps.semantic_release.outputs.new_release_version }}"
+            branch: "0xApi-${{ github.ref }}"
             body: |
-              https://github.com/${{ github.repository }}/compare/master...${{ steps.semantic_release.outputs.new_release_version }}
-              ${{ steps.semantic_release.outputs.new_release_version }}
+              Triggered by ${{ github.event_name }} in https://github.com/${{ github.repository }}, by ${{ github.actor }}
+              Git SHA: https://github.com/${{ github.repository }}/commits/${{ github.sha }}
+              Git ref: ${{ github.ref }}
+              New Version: ${{ steps.semantic_release.outputs.new_release_version }}
       - name: Check outputs
         run: |
             echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
