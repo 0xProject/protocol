@@ -241,13 +241,13 @@ describe(SUITE_NAME, () => {
                 const response = await httpGetAsync({ route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
-                expect(response.body).to.be.deep.eq({
+                expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
+                expect(response.body).to.include({
                     price,
                     buyAmount,
                     sellAmount,
                     sellTokenAddress,
                     buyTokenAddress,
-                    sources: liquiditySources0xOnly,
                 });
             });
 
@@ -264,13 +264,13 @@ describe(SUITE_NAME, () => {
                 const response = await httpGetAsync({ route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
-                expect(response.body).to.be.deep.eq({
+                expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
+                expect(response.body).to.include({
                     price,
                     buyAmount,
                     sellAmount,
                     sellTokenAddress,
                     buyTokenAddress,
-                    sources: liquiditySources0xOnly,
                 });
             });
 
@@ -291,13 +291,13 @@ describe(SUITE_NAME, () => {
                 const response = await httpGetAsync({ route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
-                expect(response.body).to.be.deep.eq({
+                expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
+                expect(response.body).to.include({
                     price: largeOrderPrice,
                     buyAmount: largeBuyAmount,
                     sellAmount: largeSellAmount,
                     sellTokenAddress,
                     buyTokenAddress,
-                    sources: liquiditySources0xOnly,
                 });
             });
         });
@@ -544,13 +544,13 @@ describe(SUITE_NAME, () => {
                     const response = await httpGetAsync({ route });
                     expect(response.type).to.be.eq('application/json');
                     expect(response.status).to.be.eq(HttpStatus.OK);
-                    expect(response.body).to.be.deep.eq({
+                    expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
+                    expect(response.body).to.include({
                         price,
                         buyAmount,
                         sellAmount,
                         sellTokenAddress,
                         buyTokenAddress,
-                        sources: liquiditySources0xOnly,
                     });
                 });
 
@@ -656,12 +656,12 @@ describe(SUITE_NAME, () => {
                     const response = await httpGetAsync({ route });
                     expect(response.type).to.be.eq('application/json');
                     expect(response.status).to.be.eq(HttpStatus.OK);
-                    expect(response.body).to.be.deep.eq({
+                    expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
+                    expect(response.body).to.include({
                         price,
                         buyAmount: largeBuyAmount,
                         sellTokenAddress,
                         buyTokenAddress,
-                        sources: liquiditySources0xOnly,
                     });
                 });
 

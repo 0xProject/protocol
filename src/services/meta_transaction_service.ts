@@ -30,6 +30,7 @@ import {
     SUBMITTED_TX_DB_POLLING_INTERVAL_MS,
     TEN_MINUTES_MS,
     TX_HASH_RESPONSE_WAIT_TIME_MS,
+    ZERO,
 } from '../constants';
 import { KeyValueEntity, TransactionEntity } from '../entities';
 import { logger } from '../logger';
@@ -135,7 +136,8 @@ export class MetaTransactionService {
         } else {
             throw new Error('sellAmount or buyAmount required');
         }
-
+        const { gasPrice } = swapQuote;
+        const { gas, protocolFeeInWeiAmount: protocolFee } = swapQuote.worstCaseQuoteInfo;
         const makerAssetAmount = swapQuote.bestCaseQuoteInfo.makerAssetAmount;
         const totalTakerAssetAmount = swapQuote.bestCaseQuoteInfo.totalTakerAssetAmount;
 
@@ -161,16 +163,26 @@ export class MetaTransactionService {
             price,
             swapQuote,
             sources: serviceUtils.convertSourceBreakdownToArray(swapQuote.sourceBreakdown),
+            estimatedGas: new BigNumber(gas),
+            gasPrice,
+            protocolFee,
+            minimumProtocolFee: protocolFee,
         };
         return response;
     }
     public async calculateMetaTransactionQuoteAsync(
         params: CalculateMetaTransactionQuoteParams,
     ): Promise<GetMetaTransactionQuoteResponse> {
-        const { takerAddress, sellAmount, buyAmount, swapQuote, price } = await this.calculateMetaTransactionPriceAsync(
-            params,
-            'quote',
-        );
+        const {
+            takerAddress,
+            sellAmount,
+            buyAmount,
+            swapQuote,
+            price,
+            estimatedGas,
+            protocolFee,
+            minimumProtocolFee,
+        } = await this.calculateMetaTransactionPriceAsync(params, 'quote');
 
         const floatGasPrice = swapQuote.gasPrice;
         const gasPrice = floatGasPrice
@@ -203,12 +215,21 @@ export class MetaTransactionService {
         const totalTakerAssetAmount = swapQuote.bestCaseQuoteInfo.totalTakerAssetAmount;
         const apiMetaTransactionQuote: GetMetaTransactionQuoteResponse = {
             price,
+            sellTokenAddress: params.sellTokenAddress,
+            buyTokenAddress: params.buyTokenAddress,
             zeroExTransactionHash,
             zeroExTransaction,
             buyAmount: makerAssetAmount,
             sellAmount: totalTakerAssetAmount,
             orders: serviceUtils.cleanSignedOrderFields(orders),
             sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
+            gasPrice,
+            estimatedGas,
+            gas: estimatedGas,
+            protocolFee,
+            minimumProtocolFee,
+            estimatedGasTokenRefund: ZERO,
+            value: protocolFee,
         };
         return apiMetaTransactionQuote;
     }

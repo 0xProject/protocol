@@ -6,7 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import * as isValidUUID from 'uuid-validate';
 
 import { CHAIN_ID } from '../config';
-import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
+import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL, ZERO } from '../constants';
 import { TransactionEntity } from '../entities';
 import {
     GeneralErrorCodes,
@@ -158,6 +158,13 @@ export class MetaTransactionHandlers {
                 sellTokenAddress,
                 buyTokenAddress,
                 sources: metaTransactionPrice.sources,
+                value: metaTransactionPrice.protocolFee,
+                gasPrice: metaTransactionPrice.gasPrice,
+                gas: metaTransactionPrice.estimatedGas,
+                estimatedGas: metaTransactionPrice.estimatedGas,
+                protocolFee: metaTransactionPrice.protocolFee,
+                minimumProtocolFee: metaTransactionPrice.minimumProtocolFee,
+                estimatedGasTokenRefund: ZERO,
             };
             res.status(HttpStatus.OK).send(metaTransactionPriceResponse);
         } catch (e) {

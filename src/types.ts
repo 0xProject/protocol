@@ -395,9 +395,6 @@ interface BasePriceResponse {
     sellTokenAddress: string;
     buyTokenAddress: string;
     sources: GetSwapQuoteResponseLiquiditySource[];
-}
-
-export interface GetSwapPriceResponse extends BasePriceResponse {
     value: BigNumber;
     gasPrice: BigNumber;
     gas: BigNumber;
@@ -407,16 +404,14 @@ export interface GetSwapPriceResponse extends BasePriceResponse {
     minimumProtocolFee: BigNumber;
 }
 
+export interface GetSwapPriceResponse extends BasePriceResponse {}
+
 export type GetTokenPricesResponse = Price[];
 
-export interface GetMetaTransactionQuoteResponse {
-    price: BigNumber;
+export interface GetMetaTransactionQuoteResponse extends BasePriceResponse {
     zeroExTransactionHash: string;
     zeroExTransaction: ZeroExTransaction;
     orders: SignedOrder[];
-    buyAmount: BigNumber;
-    sellAmount: BigNumber;
-    sources: GetSwapQuoteResponseLiquiditySource[];
 }
 
 export interface GetMetaTransactionPriceResponse extends BasePriceResponse {}
@@ -440,6 +435,10 @@ export interface CalculateMetaTransactionPriceResponse {
     takerAddress: string;
     swapQuote: MarketSellSwapQuote | MarketBuySwapQuote;
     sources: GetSwapQuoteResponseLiquiditySource[];
+    gasPrice: BigNumber;
+    protocolFee: BigNumber;
+    minimumProtocolFee: BigNumber;
+    estimatedGas: BigNumber;
 }
 
 export interface PostTransactionResponse {
