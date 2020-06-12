@@ -226,14 +226,24 @@ const EXCLUDED_SOURCES = (() => {
         case ChainId.Kovan:
             return [ERC20BridgeSource.Kyber];
         default:
-            return [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap];
+            return [
+                ERC20BridgeSource.Eth2Dai,
+                ERC20BridgeSource.Kyber,
+                ERC20BridgeSource.Uniswap,
+                ERC20BridgeSource.UniswapV2,
+                ERC20BridgeSource.UniswapV2Eth,
+                ERC20BridgeSource.MultiBridge,
+            ];
     }
 })();
 
 export const GAS_SCHEDULE: { [key in ERC20BridgeSource]: number } = {
     [ERC20BridgeSource.Native]: 1.5e5,
     [ERC20BridgeSource.Uniswap]: 3e5,
+    [ERC20BridgeSource.UniswapV2]: 3.5e5,
+    [ERC20BridgeSource.UniswapV2Eth]: 4e5,
     [ERC20BridgeSource.LiquidityProvider]: 3e5,
+    [ERC20BridgeSource.MultiBridge]: 6.5e5,
     [ERC20BridgeSource.Eth2Dai]: 5.5e5,
     [ERC20BridgeSource.Kyber]: 8e5,
     [ERC20BridgeSource.CurveUsdcDai]: 9e5,

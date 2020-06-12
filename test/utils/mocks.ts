@@ -30,6 +30,8 @@ export const rfqtIndicativeQuoteResponse = {
 export const liquiditySources0xOnly = [
     { name: '0x', proportion: '1' },
     { name: 'Uniswap', proportion: '0' },
+    { name: 'Uniswap_V2', proportion: '0' },
+    { name: 'Uniswap_V2_ETH', proportion: '0' },
     { name: 'Eth2Dai', proportion: '0' },
     { name: 'Kyber', proportion: '0' },
     { name: 'Curve_USDC_DAI', proportion: '0' },
@@ -38,4 +40,5 @@ export const liquiditySources0xOnly = [
     { name: 'Curve_USDC_DAI_USDT_BUSD', proportion: '0' },
     { name: 'Curve_USDC_DAI_USDT_SUSD', proportion: '0' },
     { name: 'LiquidityProvider', proportion: '0' },
+    { name: 'MultiBridge', proportion: '0' },
 ];

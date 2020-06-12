@@ -1,3 +1,4 @@
+import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
 import { constants, expect, signingUtils, transactionHashUtils } from '@0x/contracts-test-utils';
@@ -66,11 +67,20 @@ describe(SUITE_NAME, () => {
         await teardownApiAsync(SUITE_NAME);
     });
 
+    const excludedSources = [
+        ERC20BridgeSource.Uniswap,
+        ERC20BridgeSource.UniswapV2,
+        ERC20BridgeSource.UniswapV2Eth,
+        ERC20BridgeSource.Kyber,
+        ERC20BridgeSource.LiquidityProvider,
+        ERC20BridgeSource.Eth2Dai,
+        ERC20BridgeSource.MultiBridge,
+    ];
     const DEFAULT_QUERY_PARAMS = {
         buyToken: 'ZRX',
         sellToken: 'WETH',
         buyAmount,
-        excludedSources: 'Uniswap,Eth2Dai,Kyber,LiquidityProvider',
+        excludedSources: excludedSources.join(','),
     };
 
     async function assertFailureAsync(baseRoute: string, testCase: TestCase): Promise<void> {

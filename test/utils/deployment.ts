@@ -95,6 +95,7 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
 
     // Wait for the dependencies to boot up.
     await waitForDependencyStartupAsync(up);
+    await sleepAsync(5); // tslint:disable-line:custom-no-magic-numbers
     await confirmPostgresConnectivityAsync();
 }
 
