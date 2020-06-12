@@ -42,7 +42,7 @@
         "prettier_target": "{.,test/**,src/**}/*.{ts,tsx,json,md}"
     },
     "resolutions": {
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-e936c7c50",
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-5dcd3f398",
         "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-e936c7c50"
     },
     "release": {
@@ -126,7 +126,7 @@
         "@0x/assert": "^3.0.4",
         "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-b6fe17711",
         "@0x/connect": "^6.0.4",
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-e936c7c50",
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-5dcd3f398",
         "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-e936c7c50",
         "@0x/contracts-dev-utils": "0xProject/gitpkg-registry#0x-contracts-dev-utils-v1.3.3-110e1afa8",
         "@0x/json-schemas": "^5.0.4",
