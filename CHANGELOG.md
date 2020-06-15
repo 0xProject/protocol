@@ -1,3 +1,16 @@
+# [1.8.0](https://github.com/0xProject/0x-api/compare/v1.7.0...v1.8.0) (2020-06-15)
+
+
+### Bug Fixes
+
+* uniswap v2 buys ([#253](https://github.com/0xProject/0x-api/issues/253)) ([225db22](https://github.com/0xProject/0x-api/commit/225db22b71f36344f71c53178c41eb1648b1cbba))
+
+
+### Features
+
+* Add support for UniswapV2 and MultiBridge ([#250](https://github.com/0xProject/0x-api/issues/250)) ([29636e7](https://github.com/0xProject/0x-api/commit/29636e7a2d69e2077ee1a496b99767e02239f737)), closes [#252](https://github.com/0xProject/0x-api/issues/252)
+* add transaction price information to meta-txn endpoints for UI ([#248](https://github.com/0xProject/0x-api/issues/248)) ([d26d6c6](https://github.com/0xProject/0x-api/commit/d26d6c6958798dddbb889cdf74e01285eacbd7f6))
+
 # [1.7.0](https://github.com/0xProject/0x-api/compare/v1.6.0...v1.7.0) (2020-06-08)
 
 
