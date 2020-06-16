@@ -37,6 +37,7 @@ export class TransactionWatcherSignerService {
     private readonly _transactionWatcherTimer: NodeJS.Timer;
     // Metrics
     private readonly _signerBalancesGauge: Gauge<string>;
+    private readonly _livenessGauge: Gauge<string>;
     private readonly _transactionsUpdateCounter: Counter<string>;
     private readonly _gasPriceSummary: Summary<string>;
 
@@ -106,6 +107,10 @@ export class TransactionWatcherSignerService {
                 name: 'signer_gas_price_summary',
                 help: 'Observed gas prices by the signer in gwei',
                 labelNames: [SIGNER_ADDRESS_LABEL],
+            });
+            this._livenessGauge = new Gauge({
+                name: 'signer_liveness_gauge',
+                help: 'Indicator of signer liveness, where 1 is ready to sign 0 is not signing',
             });
         }
     }
@@ -498,6 +503,7 @@ export class TransactionWatcherSignerService {
             statusKV = new KeyValueEntity(SIGNER_STATUS_DB_KEY);
         }
         const isLive = await this._isSignerLiveAsync();
+        this._livenessGauge.set(isLive ? 1 : 0);
         const statusContent: TransactionWatcherSignerStatus = {
             live: isLive,
             // HACK: We save the time to force the updatedAt update else it will be a noop when state hasn't changed
