@@ -22,9 +22,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-b6fe17711":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.4.0-f14b6f2ba":
   version "4.4.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/6b5de262d21ea5888f8385080b3954be5a786de7"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/bb8498654e8c753be460de7b026e0019ae08b8ea"
   dependencies:
     "@0x/assert" "^3.0.7"
     "@0x/contract-addresses" "^4.9.0"
@@ -70,13 +70,13 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-5dcd3f398", "@0x/contract-addresses@^4.9.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-f14b6f2ba", "@0x/contract-addresses@^4.9.0":
   version "4.9.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/b0fda6400cca1e9ae6901f0dfd0cc6769443c1d2"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/8aa115995636ca07134a1634c084778c5ac05b76"
 
-"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-e936c7c50", "@0x/contract-wrappers@^13.6.3":
+"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-f14b6f2ba", "@0x/contract-wrappers@^13.6.3":
   version "13.6.3"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/39535ea8a21512aa5ad05e6c27a302311572da92"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/2206976cd1ff3d458b5551e2b3135aebd2ceeca8"
   dependencies:
     "@0x/assert" "^3.0.7"
     "@0x/base-contract" "^6.2.1"
@@ -273,6 +273,18 @@
     "@0x/utils" "^5.4.1"
     bn.js "^4.11.8"
     ethereum-types "^3.1.0"
+
+"@0x/contracts-zero-ex@0xProject/gitpkg-registry#0x-contracts-zero-ex-v0.1.0-f14b6f2ba":
+  version "0.1.0"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/963254db067233cdc0a7f7d377ae73b59fdcdd70"
+  dependencies:
+    "@0x/base-contract" "^6.2.1"
+    "@0x/types" "^3.1.2"
+    "@0x/typescript-typings" "^5.0.2"
+    "@0x/utils" "^5.4.1"
+    "@0x/web3-wrapper" "^7.0.7"
+    ethereum-types "^3.1.0"
+    ethereumjs-util "^5.1.1"
 
 "@0x/dev-utils@^3.2.1":
   version "3.2.1"
