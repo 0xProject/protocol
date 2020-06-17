@@ -285,7 +285,7 @@ describe(SUITE_NAME, () => {
                     },
                 );
             });
-            it.skip('should fail validation when taker can not actually fill', async () => {
+            it('should fail validation when taker can not actually fill', async () => {
                 const wethContract = new WETH9Contract(contractAddresses.etherToken, provider);
                 await wethContract
                     .approve(contractAddresses.erc20Proxy, new BigNumber(0))

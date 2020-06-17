@@ -24,6 +24,7 @@ import {
     RFQT_SKIP_BUY_REQUESTS,
 } from '../config';
 import {
+    DEFAULT_VALIDATION_GAS_LIMIT,
     GAS_LIMIT_BUFFER_MULTIPLIER,
     GST2_WALLET_ADDRESSES,
     ONE,
@@ -86,7 +87,16 @@ export class SwapService {
     }
 
     public async calculateSwapQuoteAsync(params: CalculateSwapQuoteParams): Promise<GetSwapQuoteResponse> {
-        const { buyAmount, buyTokenAddress, sellTokenAddress, isETHSell, from, affiliateAddress } = params;
+        const {
+            buyAmount,
+            buyTokenAddress,
+            sellTokenAddress,
+            isETHSell,
+            from,
+            affiliateAddress,
+            // tslint:disable-next-line:boolean-naming
+            skipValidation,
+        } = params;
         const swapQuote = await this._getMarketBuyOrSellQuoteAsync(params);
 
         const attributedSwapQuote = serviceUtils.attributeSwapQuoteOrders(swapQuote);
@@ -115,9 +125,7 @@ export class SwapService {
         );
 
         let conservativeBestCaseGasEstimate = new BigNumber(worstCaseGas).plus(gasTokenGasCost);
-        // Temporarily disable validation
-        // if (!skipValidation && from) {
-        if (false) {
+        if (!skipValidation && from) {
             // Force a revert error if the takerAddress does not have enough ETH.
             const txDataValue = isETHSell
                 ? BigNumber.min(value, await this._web3Wrapper.getBalanceInWeiAsync(from))
@@ -135,7 +143,10 @@ export class SwapService {
         // Add a buffer to get the worst case gas estimate
         const worstCaseGasEstimate = conservativeBestCaseGasEstimate.times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue();
         // Cap the refund at 50% our best estimate
-        const estimatedGasTokenRefund = BigNumber.min(conservativeBestCaseGasEstimate.div(2), gasTokenRefund);
+        const estimatedGasTokenRefund = BigNumber.min(
+            conservativeBestCaseGasEstimate.div(2),
+            gasTokenRefund,
+        ).decimalPlaces(0);
         const { price, guaranteedPrice } = await this._getSwapQuotePriceAsync(
             buyAmount,
             buyTokenAddress,
@@ -275,12 +286,8 @@ export class SwapService {
     }
 
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
-        // Perform this concurrently
-        // if the call fails the gas estimation will also fail, we can throw a more helpful
-        // error message than gas estimation failure
-        const estimateGasPromise = this._web3Wrapper.estimateGasAsync(txData).catch(_e => 0);
-        await this._throwIfCallIsRevertErrorAsync(txData);
-        const gas = await estimateGasPromise;
+        const gas = await this._web3Wrapper.estimateGasAsync(txData).catch(_e => DEFAULT_VALIDATION_GAS_LIMIT);
+        await this._throwIfCallIsRevertErrorAsync({ ...txData, gas });
         return new BigNumber(gas);
     }
 
@@ -291,9 +298,20 @@ export class SwapService {
             callResult = await this._web3Wrapper.callAsync(txData);
         } catch (e) {
             // RPCSubprovider can throw if .error exists on the response payload
-            // This `error` response occurs from Parity nodes (incl Alchemy) but not on INFURA (geth)
-            revertError = decodeThrownErrorAsRevertError(e);
-            throw revertError;
+            // This `error` response occurs from Parity nodes (incl Alchemy) and Geth nodes >= 1.9.14
+            // Geth 1.9.15
+            if (e.message && /execution reverted/.test(e.message) && e.data) {
+                try {
+                    revertError = RevertError.decode(e.data, false);
+                } catch (e) {
+                    // No revert error
+                }
+            } else {
+                revertError = decodeThrownErrorAsRevertError(e);
+            }
+            if (revertError) {
+                throw revertError;
+            }
         }
         try {
             revertError = RevertError.decode(callResult, false);

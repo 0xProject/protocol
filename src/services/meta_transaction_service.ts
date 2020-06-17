@@ -21,6 +21,7 @@ import {
     RFQT_SKIP_BUY_REQUESTS,
 } from '../config';
 import {
+    DEFAULT_VALIDATION_GAS_LIMIT,
     ONE_GWEI,
     ONE_MINUTE_MS,
     ONE_SECOND_MS,
@@ -265,6 +266,7 @@ export class MetaTransactionService {
                 from: PUBLIC_ADDRESS_FOR_ETH_CALLS,
                 gasPrice,
                 value: protocolFee,
+                gas: DEFAULT_VALIDATION_GAS_LIMIT,
             });
         } catch (err) {
             // we reach into the underlying revert and throw it instead of
@@ -296,7 +298,6 @@ export class MetaTransactionService {
         protocolFee: BigNumber,
     ): Promise<PartialTxParams> {
         const gasPrice = zeroExTransaction.gasPrice;
-        // TODO(dekz): our pattern is to eth_call and estimateGas in parallel and return the result of eth_call validations
         const gas = await this._contractWrappers.exchange
             .executeTransaction(zeroExTransaction, signature)
             .estimateGasAsync({

@@ -217,7 +217,7 @@ describe(SUITE_NAME, () => {
                 },
             );
         });
-        it.skip('should throw a validation error if takerAddress cannot complete the quote', async () => {
+        it('should throw a validation error if takerAddress cannot complete the quote', async () => {
             // The taker does not have an allowance
             await quoteAndExpectAsync(
                 {
