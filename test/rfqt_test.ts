@@ -79,7 +79,7 @@ describe(SUITE_NAME, () => {
             requestParams: {
                 sellTokenAddress: contractAddresses.etherToken,
                 buyTokenAddress: contractAddresses.zrxToken,
-                sellAmountBaseUnits: DEFAULT_SELL_AMOUNT,
+                sellAmountBaseUnits: DEFAULT_SELL_AMOUNT.toString(),
                 buyAmountBaseUnits: undefined,
                 takerAddress,
             },
