@@ -77,10 +77,10 @@ describe(SUITE_NAME, () => {
             responseCode: 200,
             requestApiKey: 'koolApiKey1',
             requestParams: {
-                sellToken: contractAddresses.etherToken,
-                buyToken: contractAddresses.zrxToken,
-                sellAmount: DEFAULT_SELL_AMOUNT.toString(),
-                buyAmount: undefined,
+                sellTokenAddress: contractAddresses.etherToken,
+                buyTokenAddress: contractAddresses.zrxToken,
+                sellAmountBaseUnits: DEFAULT_SELL_AMOUNT,
+                buyAmountBaseUnits: undefined,
                 takerAddress,
             },
         };
@@ -118,7 +118,7 @@ describe(SUITE_NAME, () => {
                     [
                         {
                             ...DEFAULT_RFQT_RESPONSE_DATA,
-                            responseData: ganacheZrxWethOrder1,
+                            responseData: { signedOrder: ganacheZrxWethOrder1 },
                         },
                     ],
                     async () => {
@@ -236,7 +236,7 @@ describe(SUITE_NAME, () => {
                     [
                         {
                             ...DEFAULT_RFQT_RESPONSE_DATA,
-                            responseData: ganacheZrxWethOrder1,
+                            responseData: { signedOrder: ganacheZrxWethOrder1 },
                         },
                     ],
                     async () => {
