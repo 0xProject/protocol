@@ -667,4 +667,14 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: '0xbe0037eaf2d64fe5529bca93c18c9702d3930376',
         },
     },
+    {
+        symbol: 'COMP',
+        name: 'Compound',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xc00e94cb662c3520282e6f5717214004a7f26888',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
