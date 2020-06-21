@@ -11,7 +11,7 @@ import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ERC20TokenContract, WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
-import { BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
+import { BigNumber, decodeThrownErrorAsRevertError, NULL_ADDRESS, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
@@ -190,7 +190,9 @@ export class SwapService {
         // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
         // Equivalent to performing multiple swap quotes selling sellToken and buying 1 whole buy token
         const takerAssetData = assetDataUtils.encodeERC20AssetData(sellToken.tokenAddress);
-        const queryAssetData = TokenMetadatasForChains.filter(m => m.symbol !== sellToken.symbol);
+        const queryAssetData = TokenMetadatasForChains.filter(m => m.symbol !== sellToken.symbol).filter(
+            m => m.tokenAddresses[CHAIN_ID] !== NULL_ADDRESS,
+        );
         const chunkSize = 20;
         const assetDataChunks = _.chunk(queryAssetData, chunkSize);
         const allResults = _.flatten(
@@ -226,7 +228,7 @@ export class SwapService {
                 const { makerAssetAmount, totalTakerAssetAmount } = quote.bestCaseQuoteInfo;
                 const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
                 const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
-                const price = unitTakerAssetAmount.dividedBy(unitMakerAssetAmount).decimalPlaces(buyTokenDecimals);
+                const price = unitTakerAssetAmount.dividedBy(unitMakerAssetAmount).decimalPlaces(sellTokenDecimals);
                 return {
                     symbol: queryAssetData[i].symbol,
                     price,
