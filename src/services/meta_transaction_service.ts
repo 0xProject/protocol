@@ -329,6 +329,7 @@ export class MetaTransactionService {
         zeroExTransaction: ZeroExTransactionWithoutDomain,
         signature: string,
         protocolFee: BigNumber,
+        apiKey: string,
         affiliateAddress?: string,
     ): Promise<PostTransactionResponse> {
         const data = serviceUtils.attributeCallData(
@@ -344,6 +345,7 @@ export class MetaTransactionService {
             to: this._contractWrappers.exchange.address,
             data,
             value: protocolFee,
+            apiKey,
             gasPrice: zeroExTransaction.gasPrice,
             expectedMinedInSec: META_TXN_RELAY_EXPECTED_MINED_SEC,
         });

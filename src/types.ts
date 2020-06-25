@@ -9,6 +9,23 @@ import {
 } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
+import { MetaTransactionRateLimiter } from './utils/rate-limiters';
+import { MetaTransactionRateLimitConfig } from './utils/rate-limiters/types';
+
+export {
+    AvailableRateLimiter,
+    DatabaseKeysUsedForRateLimiter,
+    MetaTransactionDailyLimiterConfig,
+    MetaTransactionRateLimitConfig,
+    MetaTransactionRateLimiterAllowedResponse,
+    MetaTransactionRateLimiterContext,
+    MetaTransactionRateLimiterRejectedResponse,
+    MetaTransactionRateLimiterResponse,
+    MetaTransactionRollingLimiterConfig,
+    MetaTransactionRollingValueLimiterConfig,
+    RollingLimiterIntervalUnit,
+} from './utils/rate-limiters/types';
+
 export enum OrderWatcherLifeCycleEvents {
     Added,
     Removed,
@@ -568,5 +585,18 @@ export interface TransactionWatcherSignerServiceConfig {
     heartbeatIntervalMs: number;
     unstickGasMultiplier: number;
     numBlocksUntilConfirmed: number;
+    rateLimiter?: MetaTransactionRateLimiter;
+}
+
+export interface HttpServiceConfig {
+    httpPort: number;
+    ethereumRpcUrl: string;
+    httpKeepAliveTimeout: number;
+    httpHeadersTimeout: number;
+    enablePrometheusMetrics: boolean;
+    prometheusPort: number;
+    meshWebsocketUri?: string;
+    meshHttpUri?: string;
+    metaTxnRateLimiters?: MetaTransactionRateLimitConfig;
 }
 // tslint:disable-line:max-file-line-count

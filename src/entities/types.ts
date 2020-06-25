@@ -2,6 +2,8 @@ import { BigNumber } from '@0x/utils';
 
 export interface TransactionEntityOpts {
     refHash: string;
+    apiKey?: string;
+    txHash?: string;
     takerAddress?: string;
     status: string;
     expectedMinedInSec: number;
@@ -12,7 +14,6 @@ export interface TransactionEntityOpts {
     nonce?: number;
     gasPrice?: BigNumber;
     gas?: number;
-    txHash?: string;
     gasUsed?: number;
     blockNumber?: number;
     // Ethereum tx status, 1 == success, 0 == failure

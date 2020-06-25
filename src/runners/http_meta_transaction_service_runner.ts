@@ -6,13 +6,14 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import * as defaultConfig from '../config';
+import { defaultHttpServiceWithRateLimiterConfig } from '../config';
 import { META_TRANSACTION_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { errorHandler } from '../middleware/error_handling';
 import { requestLogger } from '../middleware/request_logger';
 import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
+import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
 /**
@@ -32,15 +33,15 @@ process.on('unhandledRejection', err => {
 
 if (require.main === module) {
     (async () => {
-        const provider = providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL);
-        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultConfig);
-        await runHttpServiceAsync(dependencies, defaultConfig);
+        const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
+        await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
     })().catch(error => logger.error(error));
 }
 
 async function runHttpServiceAsync(
     dependencies: AppDependencies,
-    config: { HTTP_PORT: string },
+    config: HttpServiceConfig,
     _app?: core.Express,
 ): Promise<Server> {
     const app = _app || express();
@@ -48,12 +49,15 @@ async function runHttpServiceAsync(
     app.use(cors());
     app.use(bodyParser.json());
     app.get('/', rootHandler);
-    const server = app.listen(config.HTTP_PORT, () => {
-        logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!`);
+    const server = app.listen(config.httpPort, () => {
+        logger.info(`API (HTTP) listening on port ${config.httpPort}!`);
     });
 
     if (dependencies.metaTransactionService) {
-        app.use(META_TRANSACTION_PATH, createMetaTransactionRouter(dependencies.metaTransactionService));
+        app.use(
+            META_TRANSACTION_PATH,
+            createMetaTransactionRouter(dependencies.metaTransactionService, dependencies.rateLimiter),
+        );
     } else {
         logger.error(`Could not run meta transaction service, exiting`);
         process.exit(1);

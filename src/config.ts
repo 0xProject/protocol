@@ -16,7 +16,8 @@ import {
     NULL_BYTES,
 } from './constants';
 import { TokenMetadatasForChains } from './token_metadatas_for_networks';
-import { ChainId } from './types';
+import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
+import { parseUtils } from './utils/parse_utils';
 
 enum EnvVarType {
     AddressList,
@@ -35,7 +36,13 @@ enum EnvVarType {
     APIKeys,
     PrivateKeys,
     RfqtMakerAssetOfferings,
+    RateLimitConfig,
 }
+
+// Log level for pino.js
+export const LOG_LEVEL: string = _.isEmpty(process.env.LOG_LEVEL)
+    ? 'info'
+    : assertEnvVarType('LOG_LEVEL', process.env.LOG_LEVEL, EnvVarType.NonEmptyString);
 
 // Network port to listen on
 export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
@@ -204,6 +211,16 @@ export const META_TXN_MAX_GAS_PRICE_GWEI: BigNumber = _.isEmpty(process.env.META
     ? new BigNumber(50)
     : assertEnvVarType('META_TXN_MAX_GAS_PRICE_GWEI', process.env.META_TXN_MAX_GAS_PRICE_GWEI, EnvVarType.UnitAmount);
 
+export const META_TXN_RATE_LIMITER_CONFIG: MetaTransactionRateLimitConfig | undefined = _.isEmpty(
+    process.env.META_TXN_RATE_LIMIT_TYPE,
+)
+    ? undefined
+    : assertEnvVarType(
+          'META_TXN_RATE_LIMITER_CONFIG',
+          process.env.META_TXN_RATE_LIMITER_CONFIG,
+          EnvVarType.RateLimitConfig,
+      );
+
 // Whether or not prometheus metrics should be enabled.
 // tslint:disable-next-line:boolean-naming
 export const ENABLE_PROMETHEUS_METRICS: boolean = _.isEmpty(process.env.ENABLE_PROMETHEUS_METRICS)
@@ -268,6 +285,22 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     sampleDistributionBase: 1.05,
     feeSchedule,
     gasSchedule: GAS_SCHEDULE,
+};
+
+export const defaultHttpServiceConfig: HttpServiceConfig = {
+    httpPort: HTTP_PORT,
+    ethereumRpcUrl: ETHEREUM_RPC_URL,
+    httpKeepAliveTimeout: HTTP_KEEP_ALIVE_TIMEOUT,
+    httpHeadersTimeout: HTTP_HEADERS_TIMEOUT,
+    enablePrometheusMetrics: ENABLE_PROMETHEUS_METRICS,
+    prometheusPort: PROMETHEUS_PORT,
+    meshWebsocketUri: MESH_WEBSOCKET_URI,
+    meshHttpUri: MESH_HTTP_URI,
+};
+
+export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {
+    ...defaultHttpServiceConfig,
+    metaTxnRateLimiters: META_TXN_RATE_LIMITER_CONFIG,
 };
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
@@ -343,6 +376,9 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be supplied`);
             }
             return value;
+        case EnvVarType.RateLimitConfig:
+            assert.isString(name, value);
+            return parseUtils.parseJsonStringForMetaTransactionRateLimitConfigOrThrow(value);
         case EnvVarType.APIKeys:
             assert.isString(name, value);
             const apiKeys = (value as string).split(',');
@@ -353,7 +389,6 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 }
             });
             return apiKeys;
-
         case EnvVarType.RfqtMakerAssetOfferings:
             const offerings: RfqtMakerAssetOfferings = JSON.parse(value);
             // tslint:disable-next-line:forin

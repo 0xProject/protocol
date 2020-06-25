@@ -3,10 +3,14 @@ import * as asyncHandler from 'express-async-handler';
 
 import { MetaTransactionHandlers } from '../handlers/meta_transaction_handlers';
 import { MetaTransactionService } from '../services/meta_transaction_service';
+import { MetaTransactionRateLimiter } from '../utils/rate-limiters';
 
-export const createMetaTransactionRouter = (metaTransactionService: MetaTransactionService): express.Router => {
+export const createMetaTransactionRouter = (
+    metaTransactionService: MetaTransactionService,
+    rateLimiter?: MetaTransactionRateLimiter,
+): express.Router => {
     const router = express.Router();
-    const handlers = new MetaTransactionHandlers(metaTransactionService);
+    const handlers = new MetaTransactionHandlers(metaTransactionService, rateLimiter);
     router.get('/', asyncHandler(MetaTransactionHandlers.rootAsync.bind(MetaTransactionHandlers)));
     /**
      * GET price endpoint returns the price the taker can expect to receive by

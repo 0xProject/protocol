@@ -18,6 +18,7 @@ import { KeyValueEntity, TransactionEntity } from '../entities';
 import { logger } from '../logger';
 import { TransactionStates, TransactionWatcherSignerServiceConfig, TransactionWatcherSignerStatus } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
+import { isRateLimitedMetaTransactionResponse, MetaTransactionRateLimiter } from '../utils/rate-limiters';
 import { Signer } from '../utils/signer';
 import { utils } from '../utils/utils';
 
@@ -40,6 +41,7 @@ export class TransactionWatcherSignerService {
     private readonly _livenessGauge: Gauge<string>;
     private readonly _transactionsUpdateCounter: Counter<string>;
     private readonly _gasPriceSummary: Summary<string>;
+    private readonly _rateLimiter?: MetaTransactionRateLimiter;
 
     public static getSortedSignersByAvailability(signerMap: Map<string, { balance: number; count: number }>): string[] {
         return Array.from(signerMap.entries())
@@ -61,6 +63,7 @@ export class TransactionWatcherSignerService {
     }
     constructor(dbConnection: Connection, config: TransactionWatcherSignerServiceConfig) {
         this._config = config;
+        this._rateLimiter = this._config.rateLimiter;
         this._transactionRepository = dbConnection.getRepository(TransactionEntity);
         this._kvRepository = dbConnection.getRepository(KeyValueEntity);
         this._web3Wrapper = new Web3Wrapper(config.provider);
@@ -264,6 +267,27 @@ export class TransactionWatcherSignerService {
         });
         logger.trace(`found ${unsignedTransactions.length} transactions to sign and broadcast`);
         for (const tx of unsignedTransactions) {
+            if (this._rateLimiter !== undefined) {
+                const rateLimitResponse = await this._rateLimiter.isAllowedAsync({
+                    apiKey: tx.apiKey,
+                    takerAddress: tx.takerAddress,
+                });
+                if (isRateLimitedMetaTransactionResponse(rateLimitResponse)) {
+                    logger.warn({
+                        message: `cancelling transaction because of rate limiting: ${rateLimitResponse.reason}`,
+                        refHash: tx.refHash,
+                        from: tx.from,
+                        takerAddress: tx.takerAddress,
+                        // NOTE: to not leak full keys we log only the part of
+                        // the API key that was rate limited.
+                        // tslint:disable-next-line:custom-no-magic-numbers
+                        apiKey: tx.apiKey.substring(0, 8),
+                    });
+                    tx.status = TransactionStates.Cancelled;
+                    await this._updateTxEntityAsync(tx);
+                    continue;
+                }
+            }
             if (TransactionWatcherSignerService._isUnsubmittedTxExpired(tx)) {
                 logger.error({
                     message: `found a transaction in an unsubmitted state waiting longer than ${TX_HASH_RESPONSE_WAIT_TIME_MS}ms`,
@@ -271,7 +295,7 @@ export class TransactionWatcherSignerService {
                     from: tx.from,
                 });
                 tx.status = TransactionStates.Cancelled;
-                await this._transactionRepository.save(tx);
+                await this._updateTxEntityAsync(tx);
                 continue;
             }
             try {

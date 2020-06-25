@@ -15,9 +15,22 @@ import { OrderBookService } from './services/orderbook_service';
 import { StakingDataService } from './services/staking_data_service';
 import { SwapService } from './services/swap_service';
 import { TransactionWatcherSignerService } from './services/transaction_watcher_signer_service';
-import { WebsocketSRAOpts } from './types';
+import {
+    HttpServiceConfig,
+    MetaTransactionDailyLimiterConfig,
+    MetaTransactionRollingLimiterConfig,
+    WebsocketSRAOpts,
+} from './types';
 import { MeshClient } from './utils/mesh_client';
 import { OrderStoreDbAdapter } from './utils/order_store_db_adapter';
+import {
+    AvailableRateLimiter,
+    DatabaseKeysUsedForRateLimiter,
+    MetaTransactionDailyLimiter,
+    MetaTransactionRateLimiter,
+    MetaTransactionRollingLimiter,
+} from './utils/rate-limiters';
+import { MetaTransactionComposableLimiter } from './utils/rate-limiters/meta_transaction_composable_rate_limiter';
 
 export interface AppDependencies {
     connection: Connection;
@@ -30,6 +43,7 @@ export interface AppDependencies {
     websocketOpts: Partial<WebsocketSRAOpts>;
     transactionWatcherService?: TransactionWatcherSignerService;
     metricsService?: MetricsService;
+    rateLimiter?: MetaTransactionRateLimiter;
 }
 
 /**
@@ -38,27 +52,28 @@ export interface AppDependencies {
  */
 export async function getDefaultAppDependenciesAsync(
     provider: SupportedProvider,
-    config: {
-        // hack (xianny): the Mesh client constructor has a fire-and-forget promise so we are unable
-        // to catch initialisation errors. Allow the calling function to skip Mesh initialization by
-        // not providing a websocket URI
-        MESH_WEBSOCKET_URI?: string;
-        MESH_HTTP_URI?: string;
-        ENABLE_PROMETHEUS_METRICS: boolean;
-    },
+    config: HttpServiceConfig,
 ): Promise<AppDependencies> {
     const connection = await getDBConnectionAsync();
     const stakingDataService = new StakingDataService(connection);
 
     let meshClient: MeshClient | undefined;
-    if (config.MESH_WEBSOCKET_URI !== undefined) {
-        meshClient = new MeshClient(config.MESH_WEBSOCKET_URI, config.MESH_HTTP_URI);
+    // hack (xianny): the Mesh client constructor has a fire-and-forget promise so we are unable
+    // to catch initialisation errors. Allow the calling function to skip Mesh initialization by
+    // not providing a websocket URI
+    if (config.meshWebsocketUri !== undefined) {
+        meshClient = new MeshClient(config.meshWebsocketUri, config.meshHttpUri);
     } else {
         logger.warn(`Skipping Mesh client creation because no URI provided`);
     }
     let metricsService: MetricsService | undefined;
-    if (config.ENABLE_PROMETHEUS_METRICS) {
+    if (config.enablePrometheusMetrics) {
         metricsService = new MetricsService();
+    }
+
+    let rateLimiter: MetaTransactionRateLimiter | undefined;
+    if (config.metaTxnRateLimiters !== undefined) {
+        rateLimiter = createMetaTransactionRateLimiterFromConfig(connection, config);
     }
 
     const orderBookService = new OrderBookService(connection, meshClient);
@@ -84,6 +99,7 @@ export async function getDefaultAppDependenciesAsync(
         provider,
         websocketOpts,
         metricsService,
+        rateLimiter,
     };
 }
 /**
@@ -96,14 +112,7 @@ export async function getDefaultAppDependenciesAsync(
  */
 export async function getAppAsync(
     dependencies: AppDependencies,
-    config: {
-        HTTP_PORT: number;
-        ETHEREUM_RPC_URL: string;
-        HTTP_KEEP_ALIVE_TIMEOUT: number;
-        HTTP_HEADERS_TIMEOUT: number;
-        ENABLE_PROMETHEUS_METRICS: boolean;
-        PROMETHEUS_PORT: number;
-    },
+    config: HttpServiceConfig,
 ): Promise<{ app: Express.Application; server: Server }> {
     const app = express();
     const { server, wsService } = await runHttpServiceAsync(dependencies, config, app);
@@ -124,6 +133,46 @@ export async function getAppAsync(
     });
 
     return { app, server };
+}
+
+function createMetaTransactionRateLimiterFromConfig(
+    dbConnection: Connection,
+    config: HttpServiceConfig,
+): MetaTransactionRateLimiter {
+    const rateLimiterConfigEntries = Object.entries(config.metaTxnRateLimiters);
+    const configuredRateLimiters = rateLimiterConfigEntries
+        .map(entries => {
+            const [dbField, rateLimiters] = entries;
+
+            return Object.entries(rateLimiters).map(rateLimiterEntry => {
+                const [limiterType, value] = rateLimiterEntry;
+                switch (limiterType) {
+                    case AvailableRateLimiter.Daily: {
+                        const dailyConfig = value as MetaTransactionDailyLimiterConfig;
+                        return new MetaTransactionDailyLimiter(
+                            dbField as DatabaseKeysUsedForRateLimiter,
+                            dbConnection,
+                            dailyConfig,
+                        );
+                    }
+                    case AvailableRateLimiter.Rolling: {
+                        const rollingConfig = value as MetaTransactionRollingLimiterConfig;
+                        return new MetaTransactionRollingLimiter(
+                            dbField as DatabaseKeysUsedForRateLimiter,
+                            dbConnection,
+                            rollingConfig,
+                        );
+                    }
+                    default:
+                        throw new Error('unknown rate limiter type');
+                }
+            });
+        })
+        .reduce((prev, cur, []) => {
+            return prev.concat(...cur);
+        });
+
+    return new MetaTransactionComposableLimiter(configuredRateLimiters);
 }
 
 /**

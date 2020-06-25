@@ -11,7 +11,16 @@ import {
     createSwapServiceFromOrderBookService,
     getAppAsync,
 } from '../src/app';
-import * as config from '../src/config';
+import {
+    CHAIN_ID,
+    defaultHttpServiceConfig,
+    defaultHttpServiceWithRateLimiterConfig,
+    ETHEREUM_RPC_URL,
+    META_TXN_MAX_GAS_PRICE_GWEI,
+    META_TXN_RELAY_EXPECTED_MINED_SEC,
+    META_TXN_RELAY_PRIVATE_KEYS,
+    META_TXN_SIGNING_ENABLED,
+} from '../src/config';
 import { META_TRANSACTION_PATH, SRA_PATH } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { TransactionEntity } from '../src/entities';
@@ -54,17 +63,17 @@ async function _waitUntilStatusAsync(
 describe('transaction watcher service', () => {
     before(async () => {
         const providerEngine = new Web3ProviderEngine();
-        providerEngine.addProvider(new RPCSubprovider(config.ETHEREUM_RPC_URL));
+        providerEngine.addProvider(new RPCSubprovider(ETHEREUM_RPC_URL));
         providerUtils.startProviderEngine(providerEngine);
         provider = providerEngine;
         connection = await getDBConnectionAsync();
         const txWatcherConfig: TransactionWatcherSignerServiceConfig = {
             provider: providerEngine,
-            chainId: config.CHAIN_ID,
-            signerPrivateKeys: config.META_TXN_RELAY_PRIVATE_KEYS,
-            expectedMinedInSec: config.META_TXN_RELAY_EXPECTED_MINED_SEC,
-            isSigningEnabled: config.META_TXN_SIGNING_ENABLED,
-            maxGasPriceGwei: config.META_TXN_MAX_GAS_PRICE_GWEI,
+            chainId: CHAIN_ID,
+            signerPrivateKeys: META_TXN_RELAY_PRIVATE_KEYS,
+            expectedMinedInSec: META_TXN_RELAY_EXPECTED_MINED_SEC,
+            isSigningEnabled: META_TXN_SIGNING_ENABLED,
+            maxGasPriceGwei: META_TXN_MAX_GAS_PRICE_GWEI,
             minSignerEthBalance: 0.1,
             transactionPollingIntervalMs: 100,
             heartbeatIntervalMs: 1000,
@@ -79,7 +88,10 @@ describe('transaction watcher service', () => {
         const stakingDataService = new StakingDataService(connection);
         const websocketOpts = { path: SRA_PATH };
         const swapService = createSwapServiceFromOrderBookService(orderBookService, provider);
-        const meshClient = new MeshClient(config.MESH_WEBSOCKET_URI, config.MESH_HTTP_URI);
+        const meshClient = new MeshClient(
+            defaultHttpServiceConfig.meshWebsocketUri,
+            defaultHttpServiceConfig.meshHttpUri,
+        );
         const metricsService = new MetricsService();
         metaTxnUser = new TestMetaTxnUser();
         ({ app } = await getAppAsync(
@@ -94,7 +106,7 @@ describe('transaction watcher service', () => {
                 websocketOpts,
                 metricsService,
             },
-            config,
+            defaultHttpServiceWithRateLimiterConfig,
         ));
     });
     it('sends a signed zeroex transaction correctly', async () => {

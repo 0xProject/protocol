@@ -1,11 +1,12 @@
 import { APIOrder } from '@0x/types';
 import * as pino from 'pino';
 
-import { LOGGER_INCLUDE_TIMESTAMP, MAX_ORDER_EXPIRATION_BUFFER_SECONDS } from './config';
+import { LOG_LEVEL, LOGGER_INCLUDE_TIMESTAMP, MAX_ORDER_EXPIRATION_BUFFER_SECONDS } from './config';
 import { ONE_SECOND_MS } from './constants';
 import { ExpiredOrderError } from './errors';
 
 export const logger = pino({
+    level: LOG_LEVEL,
     useLevelLabels: true,
     timestamp: LOGGER_INCLUDE_TIMESTAMP,
 });

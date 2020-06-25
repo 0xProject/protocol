@@ -6,7 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import * as isValidUUID from 'uuid-validate';
 
 import { CHAIN_ID } from '../config';
-import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL, ZERO } from '../constants';
+import { API_KEY_HEADER, DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL, ZERO } from '../constants';
 import { TransactionEntity } from '../entities';
 import {
     GeneralErrorCodes,
@@ -29,20 +29,24 @@ import {
     ZeroExTransactionWithoutDomain,
 } from '../types';
 import { parseUtils } from '../utils/parse_utils';
+import { isRateLimitedMetaTransactionResponse, MetaTransactionRateLimiter } from '../utils/rate-limiters';
 import { schemaUtils } from '../utils/schema_utils';
 import { findTokenAddressOrThrowApiError } from '../utils/token_metadata_utils';
 
 export class MetaTransactionHandlers {
     private readonly _metaTransactionService: MetaTransactionService;
+    private readonly _rateLimiter?: MetaTransactionRateLimiter;
+
     public static rootAsync(_req: express.Request, res: express.Response): void {
         const message = `This is the root of the Meta Transaction API. Visit ${META_TRANSACTION_DOCS_URL} for details about this API.`;
         res.status(HttpStatus.OK).send({ message });
     }
-    constructor(metaTransactionService: MetaTransactionService) {
+    constructor(metaTransactionService: MetaTransactionService, rateLimiter?: MetaTransactionRateLimiter) {
         this._metaTransactionService = metaTransactionService;
+        this._rateLimiter = rateLimiter;
     }
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const apiKey = req.header('0x-api-key');
+        const apiKey = req.header(API_KEY_HEADER);
         if (apiKey !== undefined && !isValidUUID(apiKey)) {
             res.status(HttpStatus.BAD_REQUEST).send({
                 code: GeneralErrorCodes.InvalidAPIKey,
@@ -245,11 +249,37 @@ export class MetaTransactionHandlers {
                     });
                     return;
                 }
+                if (this._rateLimiter !== undefined) {
+                    const rateLimitResponse = await this._rateLimiter.isAllowedAsync({
+                        apiKey,
+                        takerAddress: zeroExTransaction.signerAddress,
+                    });
+                    if (isRateLimitedMetaTransactionResponse(rateLimitResponse)) {
+                        const ethereumTxn = await this._metaTransactionService.generatePartialExecuteTransactionEthereumTransactionAsync(
+                            zeroExTransaction,
+                            signature,
+                            protocolFee,
+                        );
+                        res.status(HttpStatus.TOO_MANY_REQUESTS).send({
+                            code: GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker,
+                            reason: rateLimitResponse.reason,
+                            ethereumTransaction: {
+                                data: ethereumTxn.data,
+                                gasPrice: ethereumTxn.gasPrice,
+                                gas: ethereumTxn.gas,
+                                value: ethereumTxn.value,
+                                to: ethereumTxn.to,
+                            },
+                        });
+                        return;
+                    }
+                }
                 const { ethereumTransactionHash } = await this._metaTransactionService.submitZeroExTransactionAsync(
                     zeroExTransactionHash,
                     zeroExTransaction,
                     signature,
                     protocolFee,
+                    apiKey,
                     affiliateAddress,
                 );
                 res.status(HttpStatus.OK).send({

@@ -6,7 +6,7 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import * as defaultConfig from '../config';
+import { defaultHttpServiceWithRateLimiterConfig } from '../config';
 import { META_TRANSACTION_PATH, METRICS_PATH, SRA_PATH, STAKING_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -19,6 +19,7 @@ import { createSRARouter } from '../routers/sra_router';
 import { createStakingRouter } from '../routers/staking_router';
 import { createSwapRouter } from '../routers/swap_router';
 import { WebsocketService } from '../services/websocket_service';
+import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
 /**
@@ -39,9 +40,9 @@ process.on('unhandledRejection', err => {
 
 if (require.main === module) {
     (async () => {
-        const provider = providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL);
-        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultConfig);
-        await runHttpServiceAsync(dependencies, defaultConfig);
+        const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
+        await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
     })().catch(error => logger.error(error.stack));
 }
 
@@ -58,12 +59,7 @@ export interface HttpServices {
  */
 export async function runHttpServiceAsync(
     dependencies: AppDependencies,
-    config: {
-        HTTP_PORT: number;
-        HTTP_KEEP_ALIVE_TIMEOUT: number;
-        HTTP_HEADERS_TIMEOUT: number;
-        PROMETHEUS_PORT: number;
-    },
+    config: HttpServiceConfig,
     _app?: core.Express,
 ): Promise<HttpServices> {
     const app = _app || express();
@@ -72,14 +68,14 @@ export async function runHttpServiceAsync(
     app.use(bodyParser.json());
 
     app.get('/', rootHandler);
-    const server = app.listen(config.HTTP_PORT, () => {
-        logger.info(`API (HTTP) listening on port ${config.HTTP_PORT}!`);
+    const server = app.listen(config.httpPort, () => {
+        logger.info(`API (HTTP) listening on port ${config.httpPort}!`);
     });
     server.on('error', err => {
         logger.error(err);
     });
-    server.keepAliveTimeout = config.HTTP_KEEP_ALIVE_TIMEOUT;
-    server.headersTimeout = config.HTTP_HEADERS_TIMEOUT;
+    server.keepAliveTimeout = config.httpKeepAliveTimeout;
+    server.headersTimeout = config.httpHeadersTimeout;
 
     // transform all values of `req.query.[xx]Address` to lowercase
     app.use(addressNormalizer);
@@ -92,7 +88,10 @@ export async function runHttpServiceAsync(
 
     // Meta transaction http service
     if (dependencies.metaTransactionService) {
-        app.use(META_TRANSACTION_PATH, createMetaTransactionRouter(dependencies.metaTransactionService));
+        app.use(
+            META_TRANSACTION_PATH,
+            createMetaTransactionRouter(dependencies.metaTransactionService, dependencies.rateLimiter),
+        );
     } else {
         logger.error(`API running without meta transactions service`);
     }
@@ -105,7 +104,7 @@ export async function runHttpServiceAsync(
     }
     if (dependencies.metricsService) {
         const metricsRouter = createMetricsRouter(dependencies.metricsService);
-        if (config.PROMETHEUS_PORT === config.HTTP_PORT) {
+        if (config.prometheusPort === config.httpPort) {
             // if the target prometheus port is the same as the base app port,
             // we just add the router to latter.
             app.use(METRICS_PATH, metricsRouter);
@@ -113,8 +112,8 @@ export async function runHttpServiceAsync(
             // otherwise we create a separate server for metrics.
             const metricsApp = express();
             metricsApp.use(METRICS_PATH, metricsRouter);
-            const metricsServer = metricsApp.listen(config.PROMETHEUS_PORT, () => {
-                logger.info(`Metrics (HTTP) listening on port ${defaultConfig.PROMETHEUS_PORT}`);
+            const metricsServer = metricsApp.listen(config.prometheusPort, () => {
+                logger.info(`Metrics (HTTP) listening on port ${config.prometheusPort}`);
             });
             metricsServer.on('error', err => {
                 logger.error(err);
