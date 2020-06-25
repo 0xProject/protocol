@@ -1,6 +1,6 @@
 import { TxData } from '@0x/contract-wrappers';
 import { SupportedProvider, Web3Wrapper } from '@0x/dev-utils';
-import { NonceTrackerSubprovider, PrivateKeyWalletSubprovider, Web3ProviderEngine } from '@0x/subproviders';
+import { PrivateKeyWalletSubprovider, Web3ProviderEngine } from '@0x/subproviders';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { utils as web3WrapperUtils } from '@0x/web3-wrapper/lib/src/utils';
 
@@ -12,17 +12,14 @@ import { SubproviderAdapter } from './subprovider_adapter';
 export class Signer {
     public readonly publicAddress: string;
     private readonly _provider: SupportedProvider;
-    private readonly _nonceTrackerSubprovider: NonceTrackerSubprovider;
     private readonly _privateWalletSubprovider: PrivateKeyWalletSubprovider;
     private readonly _web3Wrapper: Web3Wrapper;
 
     private static _createWeb3Provider(
         provider: SupportedProvider,
         privateWalletSubprovider: PrivateKeyWalletSubprovider,
-        nonceTrackerSubprovider: NonceTrackerSubprovider,
     ): SupportedProvider {
         const providerEngine = new Web3ProviderEngine();
-        providerEngine.addProvider(nonceTrackerSubprovider);
         providerEngine.addProvider(privateWalletSubprovider);
         providerEngine.addProvider(new SubproviderAdapter(provider));
         providerUtils.startProviderEngine(providerEngine);
@@ -31,12 +28,7 @@ export class Signer {
 
     constructor(privateKeyHex: string, provider: SupportedProvider) {
         this._privateWalletSubprovider = new PrivateKeyWalletSubprovider(privateKeyHex);
-        this._nonceTrackerSubprovider = new NonceTrackerSubprovider();
-        this._provider = Signer._createWeb3Provider(
-            provider,
-            this._privateWalletSubprovider,
-            this._nonceTrackerSubprovider,
-        );
+        this._provider = Signer._createWeb3Provider(provider, this._privateWalletSubprovider);
         this._web3Wrapper = new Web3Wrapper(this._provider);
         this.publicAddress = (this._privateWalletSubprovider as any)._address;
     }
@@ -111,12 +103,7 @@ export class Signer {
     }
 
     private async _getNonceAsync(senderAddress: string): Promise<string> {
-        // HACK(fabio): NonceTrackerSubprovider doesn't expose the subsequent nonce
-        // to use so we fetch it from its private instance variable
-        let nonce = (this._nonceTrackerSubprovider as any)._nonceCache[senderAddress];
-        if (nonce === undefined) {
-            nonce = await this._getTransactionCountAsync(senderAddress);
-        }
+        const nonce = await this._getTransactionCountAsync(senderAddress);
         return nonce;
     }
     private async _getTransactionCountAsync(address: string): Promise<string> {
