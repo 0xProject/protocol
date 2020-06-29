@@ -1,3 +1,16 @@
+# [1.10.0](https://github.com/0xProject/0x-api/compare/v1.9.0...v1.10.0) (2020-06-29)
+
+
+### Bug Fixes
+
+* meta txn limiting - synchronize db ([#270](https://github.com/0xProject/0x-api/issues/270)) ([a3448ab](https://github.com/0xProject/0x-api/commit/a3448ab002072d39f50bc33b5970b431b24ba813))
+* remove NonceTrackerSubprovider ([#271](https://github.com/0xProject/0x-api/issues/271)) ([7b8aa6e](https://github.com/0xProject/0x-api/commit/7b8aa6e9c09443d951bf92db5342af5186586caf))
+
+
+### Features
+
+* Add UMA token to 0x API metadata registry ([#266](https://github.com/0xProject/0x-api/issues/266)) ([a057aee](https://github.com/0xProject/0x-api/commit/a057aeec257a738896288ea6c665d96eba5f9d0a))
+
 # [1.9.0](https://github.com/0xProject/0x-api/compare/v1.8.0...v1.9.0) (2020-06-22)
 
 
