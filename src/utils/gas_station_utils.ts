@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/utils';
 
-import { ETH_GAS_STATION_API_BASE_URL, ONE_SECOND_MS } from '../constants';
+import { ETH_GAS_STATION_API_URL, ONE_SECOND_MS } from '../constants';
 
 let previousGasInfo;
 let lastAccessed;
@@ -10,7 +10,7 @@ const getGasInfoAsync = async () => {
     const now = Date.now() / ONE_SECOND_MS;
     if (!previousGasInfo || now - CACHE_EXPIRY_SEC > lastAccessed) {
         try {
-            const res = await fetch(`${ETH_GAS_STATION_API_BASE_URL}/json/ethgasAPI.json`);
+            const res = await fetch(ETH_GAS_STATION_API_URL);
             previousGasInfo = await res.json();
             lastAccessed = now;
         } catch (e) {
