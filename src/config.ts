@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
 
 import {
+    DEFAULT_ETH_GAS_STATION_API_URL,
     DEFAULT_EXPECTED_MINED_SEC,
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,
@@ -230,6 +231,11 @@ export const ENABLE_PROMETHEUS_METRICS: boolean = _.isEmpty(process.env.ENABLE_P
 export const PROMETHEUS_PORT: number = _.isEmpty(process.env.PROMETHEUS_PORT)
     ? 8080
     : assertEnvVarType('PROMETHEUS_PORT', process.env.PROMETHEUS_PORT, EnvVarType.Port);
+
+// Eth Gas Station URL
+export const ETH_GAS_STATION_API_URL: string = _.isEmpty(process.env.ETH_GAS_STATION_API_URL)
+    ? DEFAULT_ETH_GAS_STATION_API_URL
+    : assertEnvVarType('ETH_GAS_STATION_API_URL', process.env.ETH_GAS_STATION_API_URL, EnvVarType.Url);
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;

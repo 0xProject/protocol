@@ -1,6 +1,7 @@
 import { BigNumber } from '@0x/utils';
 
-import { ETH_GAS_STATION_API_URL, ONE_SECOND_MS } from '../constants';
+import { ETH_GAS_STATION_API_URL } from '../config';
+import { ONE_SECOND_MS } from '../constants';
 
 let previousGasInfo;
 let lastAccessed;

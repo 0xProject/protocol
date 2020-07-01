@@ -13,6 +13,7 @@ import { Connection, Repository } from 'typeorm';
 import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
     CHAIN_ID,
+    ETH_GAS_STATION_API_URL,
     LIQUIDITY_POOL_REGISTRY_ADDRESS,
     META_TXN_RELAY_EXPECTED_MINED_SEC,
     META_TXN_SUBMIT_WHITELISTED_API_KEYS,
@@ -77,6 +78,7 @@ export class MetaTransactionService {
                 warningLogger: logger.warn.bind(logger),
                 infoLogger: logger.info.bind(logger),
             },
+            ethGasStationUrl: ETH_GAS_STATION_API_URL,
             permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
