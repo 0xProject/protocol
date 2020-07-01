@@ -1,7 +1,6 @@
 import {
     ExtensionContractType,
     Orderbook,
-    ProtocolFeeUtils,
     SwapQuote,
     SwapQuoteConsumer,
     SwapQuoter,
@@ -29,7 +28,6 @@ import {
     GAS_LIMIT_BUFFER_MULTIPLIER,
     GST2_WALLET_ADDRESSES,
     ONE,
-    PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     UNWRAP_QUOTE_GAS,
     WRAP_QUOTE_GAS,
@@ -55,7 +53,6 @@ export class SwapService {
     private readonly _web3Wrapper: Web3Wrapper;
     private readonly _wethContract: WETH9Contract;
     private readonly _gasTokenContract: ERC20TokenContract;
-    private readonly _protocolFeeUtils: ProtocolFeeUtils;
     private readonly _forwarderAddress: string;
 
     constructor(orderbook: Orderbook, provider: SupportedProvider) {
@@ -83,10 +80,6 @@ export class SwapService {
         this._gasTokenContract = new ERC20TokenContract(
             getTokenMetadataIfExists('GST2', CHAIN_ID).tokenAddress,
             this._provider,
-        );
-        this._protocolFeeUtils = new ProtocolFeeUtils(
-            PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-            swapQuoterOpts.ethGasStationUrl,
         );
         this._forwarderAddress = contractAddresses.forwarder;
     }
@@ -267,7 +260,7 @@ export class SwapService {
         const value = isUnwrap ? ZERO : amount;
         const affiliatedData = serviceUtils.attributeCallData(data, affiliateAddress);
         // TODO: consider not using protocol fee utils due to lack of need for an aggresive gas price for wrapping/unwrapping
-        const gasPrice = providedGasPrice || (await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync());
+        const gasPrice = providedGasPrice || (await this._swapQuoter.getGasPriceEstimationOrThrowAsync());
         const gasEstimate = isUnwrap ? UNWRAP_QUOTE_GAS : WRAP_QUOTE_GAS;
         const apiSwapQuote: GetSwapQuoteResponse = {
             price: ONE,
