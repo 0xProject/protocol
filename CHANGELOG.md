@@ -1,3 +1,12 @@
+## [1.10.1](https://github.com/0xProject/0x-api/compare/v1.10.0...v1.10.1) (2020-07-06)
+
+
+### Bug Fixes
+
+* egs polling and forwarder buy ([#274](https://github.com/0xProject/0x-api/issues/274)) ([94587d0](https://github.com/0xProject/0x-api/commit/94587d0cee1d7693d616a88e1e4b8b8f895e84fe))
+* specify ethgasstation url ([#273](https://github.com/0xProject/0x-api/issues/273)) ([16eabc0](https://github.com/0xProject/0x-api/commit/16eabc090e15c694861b1ef20f9a9a60a5b3f1b8))
+* Update to ethgasstation proxy endpoint ([#272](https://github.com/0xProject/0x-api/issues/272)) ([6d0874f](https://github.com/0xProject/0x-api/commit/6d0874ff1410a310f5534b3730f98c208ccfd5dc))
+
 # [1.10.0](https://github.com/0xProject/0x-api/compare/v1.9.0...v1.10.0) (2020-06-29)
 
 
