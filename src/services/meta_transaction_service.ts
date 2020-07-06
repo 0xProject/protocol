@@ -1,5 +1,5 @@
 import { Orderbook, SwapQuoter, SwapQuoterOpts } from '@0x/asset-swapper';
-import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
+import { OrderPrunerPermittedFeeTypes, SwapQuoteRequestOpts } from '@0x/asset-swapper/lib/src/types';
 import { ContractWrappers } from '@0x/contract-wrappers';
 import { DevUtilsContract } from '@0x/contracts-dev-utils';
 import { generatePseudoRandomSalt, SupportedProvider, ZeroExTransaction } from '@0x/order-utils';
@@ -113,9 +113,8 @@ export class MetaTransactionService {
                 takerAddress,
             };
         }
-        const assetSwapperOpts = {
+        const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-            slippagePercentage,
             bridgeSlippage: slippagePercentage,
             excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
             rfqt: _rfqt,

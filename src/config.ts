@@ -283,6 +283,8 @@ const feeSchedule: { [key in ERC20BridgeSource]: BigNumber } = Object.assign(
     })),
 );
 
+export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
+
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     excludedSources: EXCLUDED_SOURCES,
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,

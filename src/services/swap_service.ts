@@ -1,12 +1,13 @@
 import {
     ExtensionContractType,
     Orderbook,
+    RfqtRequestOpts,
     SwapQuote,
     SwapQuoteConsumer,
     SwapQuoter,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
-import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
+import { OrderPrunerPermittedFeeTypes, SwapQuoteRequestOpts } from '@0x/asset-swapper/lib/src/types';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ERC20TokenContract, WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
@@ -21,6 +22,7 @@ import {
     LIQUIDITY_POOL_REGISTRY_ADDRESS,
     RFQT_API_KEY_WHITELIST,
     RFQT_MAKER_ASSET_OFFERINGS,
+    RFQT_REQUEST_MAX_RESPONSE_MS,
     RFQT_SKIP_BUY_REQUESTS,
 } from '../config';
 import {
@@ -338,7 +340,7 @@ export class SwapService {
             rfqt,
             // tslint:disable-next-line:boolean-naming
         } = params;
-        let _rfqt;
+        let _rfqt: RfqtRequestOpts | undefined;
         if (apiKey !== undefined && (isETHSell || from !== undefined)) {
             _rfqt = {
                 ...rfqt,
@@ -348,11 +350,11 @@ export class SwapService {
                 // forwarder contract. If it's not, then we want to request quotes with the taker set to the
                 // API's takerAddress query parameter, which in this context is known as `from`.
                 takerAddress: isETHSell ? this._forwarderAddress : from || '',
+                makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
             };
         }
-        const assetSwapperOpts = {
+        const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-            slippagePercentage,
             bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
             excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId

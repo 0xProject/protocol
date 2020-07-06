@@ -1,4 +1,10 @@
-import { ERC20BridgeSource, MarketBuySwapQuote, MarketSellSwapQuote, SupportedProvider } from '@0x/asset-swapper';
+import {
+    ERC20BridgeSource,
+    MarketBuySwapQuote,
+    MarketSellSwapQuote,
+    RfqtRequestOpts,
+    SupportedProvider,
+} from '@0x/asset-swapper';
 import { AcceptedOrderInfo, RejectedOrderInfo } from '@0x/mesh-rpc-client';
 import {
     APIOrder,
@@ -511,11 +517,7 @@ export interface CalculateSwapQuoteParams {
     excludedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
     apiKey?: string;
-    rfqt?: {
-        intentOnFilling?: boolean;
-        isIndicative?: boolean;
-        skipBuyRequests?: boolean;
-    };
+    rfqt?: Partial<RfqtRequestOpts>;
     skipValidation: boolean;
 }
 
