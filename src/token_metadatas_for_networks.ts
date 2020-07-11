@@ -687,4 +687,14 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'BZRX',
+        name: 'bZx Protocol Token',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x1c74cff0376fb4031cd7492cd6db2d66c3f2c6b9',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
