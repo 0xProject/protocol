@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/0xProject/0x-api/compare/v1.10.1...v1.10.2) (2020-07-13)
+
+
+### Bug Fixes
+
+* Changes latency to be capped at 600ms, added some extra typing ([#275](https://github.com/0xProject/0x-api/issues/275)) ([cd545c8](https://github.com/0xProject/0x-api/commit/cd545c8200a9abe6d53a894a76b89ab40220c327))
+
 ## [1.10.1](https://github.com/0xProject/0x-api/compare/v1.10.0...v1.10.1) (2020-07-06)
 
 
