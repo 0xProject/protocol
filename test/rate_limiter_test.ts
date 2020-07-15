@@ -3,7 +3,6 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import 'mocha';
 import { Connection, Repository } from 'typeorm';
 
-import { getDBConnectionAsync } from '../src/db_connection';
 import { TransactionEntity } from '../src/entities';
 import { TransactionStates } from '../src/types';
 import { parseUtils } from '../src/utils/parse_utils';
@@ -17,6 +16,7 @@ import {
 import { MetaTransactionComposableLimiter } from '../src/utils/rate-limiters/meta_transaction_composable_rate_limiter';
 import { MetaTransactionRollingValueLimiter } from '../src/utils/rate-limiters/meta_transaction_value_limiter';
 
+import { getTestDBConnectionAsync } from './utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 const SUITE_NAME = 'rate limiter tests';
@@ -95,9 +95,7 @@ const cleanTransactions = async (): Promise<void> => {
 describe(SUITE_NAME, () => {
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await getTestDBConnectionAsync();
 
         transactionRepository = connection.getRepository(TransactionEntity);
         dailyLimiter = new MetaTransactionDailyLimiter(DatabaseKeysUsedForRateLimiter.ApiKey, connection, {

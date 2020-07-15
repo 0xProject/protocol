@@ -1,6 +1,17 @@
-// tslint:disable:custom-no-magic-numbers
+// tslint:disable:custom-no-magic-numbers max-file-line-count
 import { assert } from '@0x/assert';
-import { ERC20BridgeSource, RfqtMakerAssetOfferings, SwapQuoteRequestOpts } from '@0x/asset-swapper';
+import {
+    BlockParamLiteral,
+    CurveFillData,
+    ERC20BridgeSource,
+    FeeSchedule,
+    RfqtMakerAssetOfferings,
+    SamplerOverrides,
+    SwapQuoteRequestOpts,
+    SwapQuoterOpts,
+    UniswapV2FillData,
+} from '@0x/asset-swapper';
+import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
@@ -15,6 +26,7 @@ import {
     DEFAULT_RFQT_SKIP_BUY_REQUESTS,
     NULL_ADDRESS,
     NULL_BYTES,
+    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
 } from './constants';
 import { TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
@@ -179,6 +191,8 @@ export const RFQT_SKIP_BUY_REQUESTS: boolean = _.isEmpty(process.env.RFQT_SKIP_B
     ? DEFAULT_RFQT_SKIP_BUY_REQUESTS
     : assertEnvVarType('RFQT_SKIP_BUY_REQUESTS', process.env.RFQT_SKIP_BUY_REQUESTS, EnvVarType.Boolean);
 
+export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
+
 // Whitelisted 0x API keys that can use the meta-txn /submit endpoint
 export const META_TXN_SUBMIT_WHITELISTED_API_KEYS: string[] =
     process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS === undefined
@@ -254,45 +268,112 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Kyber,
                 ERC20BridgeSource.Uniswap,
                 ERC20BridgeSource.UniswapV2,
-                ERC20BridgeSource.UniswapV2Eth,
                 ERC20BridgeSource.MultiBridge,
+                ERC20BridgeSource.Balancer,
             ];
     }
 })();
 
-export const GAS_SCHEDULE: { [key in ERC20BridgeSource]: number } = {
-    [ERC20BridgeSource.Native]: 1.5e5,
-    [ERC20BridgeSource.Uniswap]: 3e5,
-    [ERC20BridgeSource.UniswapV2]: 3.5e5,
-    [ERC20BridgeSource.UniswapV2Eth]: 4e5,
-    [ERC20BridgeSource.LiquidityProvider]: 3e5,
-    [ERC20BridgeSource.MultiBridge]: 6.5e5,
-    [ERC20BridgeSource.Eth2Dai]: 5.5e5,
-    [ERC20BridgeSource.Kyber]: 8e5,
-    [ERC20BridgeSource.CurveUsdcDai]: 9e5,
-    [ERC20BridgeSource.CurveUsdcDaiUsdt]: 9e5,
-    [ERC20BridgeSource.CurveUsdcDaiUsdtTusd]: 10e5,
-    [ERC20BridgeSource.CurveUsdcDaiUsdtBusd]: 10e5,
-    [ERC20BridgeSource.CurveUsdcDaiUsdtSusd]: 6e5,
+export const GAS_SCHEDULE_V0: FeeSchedule = {
+    [ERC20BridgeSource.Native]: () => 1.5e5,
+    [ERC20BridgeSource.Uniswap]: () => 3e5,
+    [ERC20BridgeSource.LiquidityProvider]: () => 3e5,
+    [ERC20BridgeSource.Eth2Dai]: () => 5.5e5,
+    [ERC20BridgeSource.Kyber]: () => 8e5,
+    [ERC20BridgeSource.Curve]: fillData => {
+        switch ((fillData as CurveFillData).poolAddress.toLowerCase()) {
+            case '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56':
+            case '0x52ea46506b9cc5ef470c5bf89f17dc28bb35d85c':
+                return 9e5;
+            case '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51':
+            case '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27':
+                return 10e5;
+            case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
+                return 6e5;
+            default:
+                throw new Error('Unrecognized Curve address');
+        }
+    },
+    [ERC20BridgeSource.MultiBridge]: () => 6.5e5,
+    [ERC20BridgeSource.UniswapV2]: fillData => {
+        let gas = 3e5;
+        if ((fillData as UniswapV2FillData).tokenAddressPath.length > 2) {
+            gas += 5e4;
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.Balancer]: () => 4.5e5,
 };
 
-const feeSchedule: { [key in ERC20BridgeSource]: BigNumber } = Object.assign(
+const FEE_SCHEDULE_V0: FeeSchedule = Object.assign(
     {},
-    ...(Object.keys(GAS_SCHEDULE) as ERC20BridgeSource[]).map(k => ({
-        [k]: new BigNumber(GAS_SCHEDULE[k] + 1.5e5),
+    ...(Object.keys(GAS_SCHEDULE_V0) as ERC20BridgeSource[]).map(k => ({
+        [k]: fillData => new BigNumber(1.5e5).plus(GAS_SCHEDULE_V0[k](fillData)),
     })),
 );
 
-export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
-
-export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
+export const ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS: Partial<SwapQuoteRequestOpts> = {
     excludedSources: EXCLUDED_SOURCES,
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
     sampleDistributionBase: 1.05,
-    feeSchedule,
-    gasSchedule: GAS_SCHEDULE,
+    feeSchedule: FEE_SCHEDULE_V0,
+    gasSchedule: GAS_SCHEDULE_V0,
+    shouldBatchBridgeOrders: true,
+    runLimit: 2 ** 13,
+};
+
+export const GAS_SCHEDULE_V1: FeeSchedule = {
+    ...GAS_SCHEDULE_V0,
+};
+
+const FEE_SCHEDULE_V1: FeeSchedule = Object.assign(
+    {},
+    ...(Object.keys(GAS_SCHEDULE_V0) as ERC20BridgeSource[]).map(k => ({
+        [k]:
+            k === ERC20BridgeSource.Native
+                ? fillData => new BigNumber(1.5e5).plus(GAS_SCHEDULE_V1[k](fillData))
+                : fillData => GAS_SCHEDULE_V1[k](fillData),
+    })),
+);
+
+export const ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS: Partial<SwapQuoteRequestOpts> = {
+    excludedSources: EXCLUDED_SOURCES,
+    bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
+    numSamples: 13,
+    sampleDistributionBase: 1.05,
+    feeSchedule: FEE_SCHEDULE_V1,
+    gasSchedule: GAS_SCHEDULE_V1,
+    shouldBatchBridgeOrders: false,
+    runLimit: 2 ** 13,
+};
+
+export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
+    switch (CHAIN_ID) {
+        case ChainId.Ganache:
+        case ChainId.Kovan:
+            return { overrides: {}, block: BlockParamLiteral.Latest };
+        default:
+            return undefined;
+    }
+})();
+
+export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
+    chainId: CHAIN_ID,
+    expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+    liquidityProviderRegistryAddress: LIQUIDITY_POOL_REGISTRY_ADDRESS,
+    rfqt: {
+        takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
+        makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
+        skipBuyRequests: RFQT_SKIP_BUY_REQUESTS,
+        // warningLogger: logger.warn.bind(logger),
+        // infoLogger: logger.info.bind(logger),
+    },
+    ethGasStationUrl: ETH_GAS_STATION_API_URL,
+    permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
+    samplerOverrides: SAMPLER_OVERRIDES,
 };
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {

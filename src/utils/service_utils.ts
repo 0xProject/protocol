@@ -11,7 +11,7 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, GAS_SCHEDULE } from '../config';
+import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, GAS_SCHEDULE_V0 } from '../config';
 import {
     DEFAULT_TOKEN_DECIMALS,
     GAS_BURN_COST,
@@ -156,7 +156,7 @@ export const serviceUtils = {
                 gasTokenGasCost: ZERO,
             };
         }
-        const costOfBridgeFills = BigNumber.sum(...bridgeFills.map(o => GAS_SCHEDULE[o.source]))
+        const costOfBridgeFills = BigNumber.sum(...bridgeFills.map(o => GAS_SCHEDULE_V0[o.source](o.fillData)))
             .plus(bridgeFills.length * SSTORE_COST)
             .plus(SSTORE_INIT_COST);
         const usedGasTokens = BigNumber.min(

@@ -50,7 +50,7 @@ type ALL_SUBSCRIPTION_OPTS = 'ALL_SUBSCRIPTION_OPTS';
 export class WebsocketService {
     private readonly _server: WebSocket.Server;
     private readonly _meshClient: MeshClient;
-    private readonly _pongIntervalId: number;
+    private readonly _pongIntervalId: NodeJS.Timeout;
     private readonly _requestIdToSocket: Map<string, WrappedWebSocket> = new Map(); // requestId to WebSocket mapping
     private readonly _requestIdToSubscriptionOpts: Map<
         string,

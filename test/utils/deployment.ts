@@ -7,6 +7,8 @@ import { promisify } from 'util';
 import { HTTP_PORT } from '../../src/config';
 import { getDBConnectionAsync } from '../../src/db_connection';
 
+import { getTestDBConnectionAsync } from './db_connection';
+
 const apiRootDir = path.normalize(path.resolve(`${__dirname}/../../../`));
 const testRootDir = `${apiRootDir}/test`;
 
@@ -87,7 +89,8 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
         env: {
             ...process.env,
             ETHEREUM_RPC_URL: 'http://ganache:8545',
-            ETHEREUM_CHAIN_ID: '1337',
+            ETHEREUM_CHAIN_ID: '1337', // mesh env var
+            CHAIN_ID: '1337', // 0x API env var
         },
     });
     directLogs(up, suiteName, 'up', logType);
@@ -95,8 +98,10 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
 
     // Wait for the dependencies to boot up.
     await waitForDependencyStartupAsync(up);
-    await sleepAsync(5); // tslint:disable-line:custom-no-magic-numbers
+    await sleepAsync(10); // tslint:disable-line:custom-no-magic-numbers
     await confirmPostgresConnectivityAsync();
+    // Create a test db connection in this instance, and synchronize it
+    await getTestDBConnectionAsync();
 }
 
 /**
@@ -139,7 +144,7 @@ export async function setupMeshAsync(suiteName: string, logType?: LogType): Prom
 
     // HACK(jalextowle): For some reason, Mesh Clients would connect to
     // the old mesh node. Try to remove this.
-    await sleepAsync(10); // tslint:disable-line:custom-no-magic-numbers
+    await sleepAsync(15); // tslint:disable-line:custom-no-magic-numbers
 }
 
 /**

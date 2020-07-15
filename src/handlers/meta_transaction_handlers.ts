@@ -169,6 +169,7 @@ export class MetaTransactionHandlers {
                 protocolFee: metaTransactionPrice.protocolFee,
                 minimumProtocolFee: metaTransactionPrice.minimumProtocolFee,
                 estimatedGasTokenRefund: ZERO,
+                allowanceTarget: metaTransactionPrice.allowanceTarget,
             };
             res.status(HttpStatus.OK).send(metaTransactionPriceResponse);
         } catch (e) {

@@ -17,12 +17,7 @@ import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import {
-    CalculateSwapQuoteParams,
-    GetSwapPriceResponse,
-    GetSwapQuoteRequestParams,
-    GetSwapQuoteResponse,
-} from '../types';
+import { CalculateSwapQuoteParams, GetSwapQuoteRequestParams, GetSwapQuoteResponse, SwapVersion } from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import {
@@ -41,9 +36,14 @@ export class SwapHandlers {
     constructor(swapService: SwapService) {
         this._swapService = swapService;
     }
-    public async getSwapQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
+
+    public async getSwapQuoteAsync(
+        swapVersion: SwapVersion,
+        req: express.Request,
+        res: express.Response,
+    ): Promise<void> {
         const params = parseGetSwapQuoteRequestParams(req, 'quote');
-        const quote = await this._calculateSwapQuoteAsync(params);
+        const quote = await this._calculateSwapQuoteAsync(params, swapVersion);
         if (params.rfqt !== undefined) {
             logger.info({
                 firmQuoteServed: {
@@ -71,26 +71,13 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send({ records: filteredTokens });
     }
     // tslint:disable-next-line:prefer-function-over-method
-    public async getSwapPriceAsync(req: express.Request, res: express.Response): Promise<void> {
+    public async getSwapPriceAsync(
+        swapVersion: SwapVersion,
+        req: express.Request,
+        res: express.Response,
+    ): Promise<void> {
         const params = parseGetSwapQuoteRequestParams(req, 'price');
-        params.skipValidation = true;
-        const quote = await this._calculateSwapQuoteAsync(params);
-        const {
-            price,
-            value,
-            gasPrice,
-            gas,
-            estimatedGas,
-            protocolFee,
-            minimumProtocolFee,
-            buyAmount,
-            sellAmount,
-            sources,
-            orders,
-            buyTokenAddress,
-            sellTokenAddress,
-            estimatedGasTokenRefund,
-        } = quote;
+        const quote = await this._calculateSwapQuoteAsync({ ...params, skipValidation: true }, swapVersion);
         logger.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
@@ -99,24 +86,25 @@ export class SwapHandlers {
                 sellToken: params.sellToken,
                 buyAmount: params.buyAmount,
                 sellAmount: params.sellAmount,
-                makers: orders.map(o => o.makerAddress),
+                makers: quote.orders.map(o => o.makerAddress),
             },
         });
 
-        const response: GetSwapPriceResponse = {
-            price,
-            value,
-            gasPrice,
-            gas,
-            estimatedGas,
-            protocolFee,
-            minimumProtocolFee,
-            buyTokenAddress,
-            buyAmount,
-            sellTokenAddress,
-            sellAmount,
-            sources,
-            estimatedGasTokenRefund,
+        const response = {
+            price: quote.price,
+            value: quote.value,
+            gasPrice: quote.gasPrice,
+            gas: quote.gas,
+            estimatedGas: quote.estimatedGas,
+            protocolFee: quote.protocolFee,
+            minimumProtocolFee: quote.minimumProtocolFee,
+            buyTokenAddress: quote.buyTokenAddress,
+            buyAmount: quote.buyAmount,
+            sellTokenAddress: quote.sellTokenAddress,
+            sellAmount: quote.sellAmount,
+            sources: quote.sources,
+            estimatedGasTokenRefund: quote.estimatedGasTokenRefund,
+            allowanceTarget: quote.allowanceTarget,
         };
         res.status(HttpStatus.OK).send(response);
     }
@@ -137,7 +125,10 @@ export class SwapHandlers {
         const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
         res.status(HttpStatus.OK).send({ records });
     }
-    private async _calculateSwapQuoteAsync(params: GetSwapQuoteRequestParams): Promise<GetSwapQuoteResponse> {
+    private async _calculateSwapQuoteAsync(
+        params: GetSwapQuoteRequestParams,
+        swapVersion: SwapVersion,
+    ): Promise<GetSwapQuoteResponse> {
         const {
             sellToken,
             buyToken,
@@ -155,10 +146,11 @@ export class SwapHandlers {
         } = params;
 
         const isETHSell = isETHSymbol(sellToken);
+        const isETHBuy = isETHSymbol(buyToken);
         const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
         const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
         const isWrap = isETHSell && isWETHSymbolOrAddress(buyToken, CHAIN_ID);
-        const isUnwrap = isWETHSymbolOrAddress(sellToken, CHAIN_ID) && isETHSymbol(buyToken);
+        const isUnwrap = isWETHSymbolOrAddress(sellToken, CHAIN_ID) && isETHBuy;
         // if token addresses are the same but a unwrap or wrap operation is requested, ignore error
         if (!isUnwrap && !isWrap && sellTokenAddress === buyTokenAddress) {
             throw new ValidationError(
@@ -172,8 +164,8 @@ export class SwapHandlers {
             );
         }
 
-        // if sellToken is not WETH and buyToken is ETH, throw
-        if (!isWETHSymbolOrAddress(sellToken, CHAIN_ID) && isETHSymbol(buyToken)) {
+        // if V0 (no ExchangeProxy) and buyToken is ETH, throw
+        if (swapVersion === SwapVersion.V0 && !isUnwrap && isETHSymbol(buyToken)) {
             throw new ValidationError([
                 {
                     field: 'buyToken',
@@ -190,6 +182,7 @@ export class SwapHandlers {
             sellAmount,
             from: takerAddress,
             isETHSell,
+            isETHBuy,
             slippagePercentage,
             gasPrice,
             excludedSources,
@@ -203,8 +196,8 @@ export class SwapHandlers {
                           isIndicative: rfqt.isIndicative,
                       },
             skipValidation,
+            swapVersion,
         };
-
         try {
             let swapQuote: GetSwapQuoteResponse;
             if (isUnwrap) {

@@ -14,7 +14,7 @@
         "integration-test": "mocha --require source-map-support/register --require make-promises-safe lib/integration-test/**/*_test.js --timeout 200000 --exit",
         "test": "yarn test:rest && yarn test:rfqt",
         "test:rest": "env-cmd -f ./test/test_env mocha --exclude lib/test/rfqt_test.js --require source-map-support/register --require make-promises-safe lib/test/**/*_test.js --timeout 200000 --exit",
-        "test:rfqt": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe lib/test/rfqt_test.js --timeout 200000 --exit",
+        "test:rfqt": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe lib/test/rfqt_**.js --timeout 200000 --exit",
         "dev": "nodemon -r dotenv/config src/index.ts | pino-pretty",
         "dev:service:http": "nodemon -r dotenv/config src/runners/http_service_runner.ts | pino-pretty",
         "dev:service:sra_http": "nodemon -r dotenv/config src/runners/http_sra_service_runner.ts | pino-pretty",
@@ -24,6 +24,7 @@
         "dev:service:order_watcher": "nodemon -r dotenv/config src/runners/order_watcher_service_runner.ts | pino-pretty",
         "dev:service:transaction_watcher": "nodemon -r dotenv/config src/runners/transaction_watcher_signer_service_runner.ts | pino-pretty",
         "watch": "tsc -w",
+        "fix": "tslint --project . --format stylish --fix && yarn prettier",
         "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
         "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",
         "start": "node -r dotenv/config lib/src/index.js",
@@ -40,11 +41,6 @@
     },
     "config": {
         "prettier_target": "{.,test/**,src/**}/*.{ts,tsx,json,md}"
-    },
-    "resolutions": {
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-f14b6f2ba",
-        "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-f14b6f2ba",
-        "@0x/contracts-zero-ex": "0xProject/gitpkg-registry#0x-contracts-zero-ex-v0.1.0-f14b6f2ba"
     },
     "release": {
         "plugins": [
@@ -96,6 +92,7 @@
         "@0x/tslint-config": "^4.0.0",
         "@0x/types": "^3.1.1",
         "@0x/typescript-typings": "^5.0.1",
+        "@balancer-labs/sor": "^0.3.0",
         "@semantic-release/changelog": "^5.0.1",
         "@semantic-release/exec": "^5.0.0",
         "@semantic-release/git": "^9.0.0",
@@ -122,22 +119,21 @@
         "supertest": "^4.0.2",
         "ts-node": "^8.4.1",
         "tslint": "^5.19.0",
-        "typescript": "3.0.1"
+        "typescript": "^3.9.6"
     },
     "dependencies": {
         "@0x/assert": "^3.0.4",
-        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.5.0-0eb0d4d45",
+        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-916f6785b",
         "@0x/connect": "^6.0.4",
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.9.0-f14b6f2ba",
-        "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.6.3-f14b6f2ba",
-        "@0x/contracts-dev-utils": "0xProject/gitpkg-registry#0x-contracts-dev-utils-v1.3.3-110e1afa8",
-        "@0x/contracts-zero-ex": "0xProject/gitpkg-registry#0x-contracts-zero-ex-v0.1.0-f14b6f2ba",
+        "@0x/contract-addresses": "^4.11.0",
+        "@0x/contract-wrappers": "^13.7.0",
+        "@0x/contracts-dev-utils": "^1.3.4",
         "@0x/json-schemas": "^5.0.4",
         "@0x/mesh-rpc-client": "^9.3.0",
-        "@0x/order-utils": "^10.1.1",
+        "@0x/order-utils": "^10.3.0",
         "@0x/subproviders": "^6.0.4",
         "@0x/types": "^3.1.1",
-        "@0x/utils": "^5.4.0",
+        "@0x/utils": "^5.5.0",
         "@0x/web3-wrapper": "^7.0.7",
         "@types/uuid": "^7.0.2",
         "@types/uuid-validate": "^0.0.1",
@@ -146,7 +142,7 @@
         "cors": "^2.8.5",
         "debug": "^4.1.1",
         "dotenv": "^8.1.0",
-        "ethereum-types": "0xProject/gitpkg-registry#ethereum-types-v3.1.0-110e1afa8",
+        "ethereum-types": "^3.2.0",
         "express": "^4.17.1",
         "express-async-handler": "^1.1.4",
         "http-status-codes": "^1.3.2",

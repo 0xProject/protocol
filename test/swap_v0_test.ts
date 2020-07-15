@@ -1,6 +1,4 @@
 import { ERC20BridgeSource } from '@0x/asset-swapper';
-import { WETH9Contract } from '@0x/contract-wrappers';
-import { DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
 import { ObjectMap, SignedOrder } from '@0x/types';
@@ -17,7 +15,6 @@ import { GetSwapQuoteResponse } from '../src/types';
 
 import {
     CONTRACT_ADDRESSES,
-    MAX_INT,
     MAX_MINT_AMOUNT,
     SYMBOL_TO_ADDRESS,
     UNKNOWN_TOKEN_ADDRESS,
@@ -31,8 +28,8 @@ import { setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } fr
 import { constructRoute, httpGetAsync } from './utils/http_utils';
 import { MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
 
-const SUITE_NAME = '/swap/v1';
-const SWAP_PATH = `${BASE_SWAP_PATH}/v1`;
+const SUITE_NAME = '/swap/v0';
+const SWAP_PATH = `${BASE_SWAP_PATH}/v0`;
 
 const excludedSources = [
     ERC20BridgeSource.Uniswap,
@@ -41,7 +38,6 @@ const excludedSources = [
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.Eth2Dai,
     ERC20BridgeSource.MultiBridge,
-    ERC20BridgeSource.Balancer,
 ];
 
 const DEFAULT_QUERY_PARAMS = {
@@ -56,7 +52,7 @@ describe(SUITE_NAME, () => {
     let meshUtils: MeshTestUtils;
     let accounts: string[];
     let takerAddress: string;
-    const invalidTakerAddress: string = '0x0000000000000000000000000000000000000001';
+    let makerAddress: string;
 
     let blockchainLifecycle: BlockchainLifecycle;
     let provider: Web3ProviderEngine;
@@ -75,7 +71,7 @@ describe(SUITE_NAME, () => {
         blockchainLifecycle = new BlockchainLifecycle(web3Wrapper);
 
         accounts = await web3Wrapper.getAvailableAddressesAsync();
-        [, /* makerAdddress, */ takerAddress] = accounts;
+        [makerAddress, takerAddress] = accounts;
 
         // Set up liquidity.
         await blockchainLifecycle.startAsync();
@@ -116,17 +112,6 @@ describe(SUITE_NAME, () => {
                 takerAssetAmount: ONE_THOUSAND_IN_BASE,
             },
         ]);
-        const wethToken = new WETH9Contract(CONTRACT_ADDRESSES.etherToken, provider);
-        const zrxToken = new DummyERC20TokenContract(CONTRACT_ADDRESSES.zrxToken, provider);
-        // EP setup so maker address can take
-        await zrxToken.mint(MAX_MINT_AMOUNT).awaitTransactionSuccessAsync({ from: takerAddress });
-        await wethToken.deposit().awaitTransactionSuccessAsync({ from: takerAddress, value: MAKER_WETH_AMOUNT });
-        await wethToken
-            .approve(CONTRACT_ADDRESSES.exchangeProxyAllowanceTarget, MAX_INT)
-            .awaitTransactionSuccessAsync({ from: takerAddress });
-        await zrxToken
-            .approve(CONTRACT_ADDRESSES.exchangeProxyAllowanceTarget, MAX_INT)
-            .awaitTransactionSuccessAsync({ from: takerAddress });
     });
     after(async () => {
         await blockchainLifecycle.revertAsync();
@@ -167,7 +152,6 @@ describe(SUITE_NAME, () => {
                         buyTokenAddress: parameters.buyToken.startsWith('0x')
                             ? parameters.buyToken
                             : SYMBOL_TO_ADDRESS[parameters.buyToken],
-                        allowanceTarget: CONTRACT_ADDRESSES.exchangeProxyAllowanceTarget,
                     });
                 });
             }
@@ -199,14 +183,14 @@ describe(SUITE_NAME, () => {
                 },
             );
         });
-        it('should return a ExchangeProxy transaction for sellToken=ETH', async () => {
+        it('should return a Forwarder transaction for sellToken=ETH', async () => {
             await quoteAndExpectAsync(
                 {
                     sellToken: 'WETH',
                     sellAmount: '1234',
                 },
                 {
-                    to: CONTRACT_ADDRESSES.exchangeProxy,
+                    to: CONTRACT_ADDRESSES.exchange,
                 },
             );
             await quoteAndExpectAsync(
@@ -215,7 +199,7 @@ describe(SUITE_NAME, () => {
                     sellAmount: '1234',
                 },
                 {
-                    to: CONTRACT_ADDRESSES.exchangeProxy,
+                    to: CONTRACT_ADDRESSES.forwarder,
                 },
             );
         });
@@ -223,7 +207,7 @@ describe(SUITE_NAME, () => {
             // The maker has an allowance
             await quoteAndExpectAsync(
                 {
-                    takerAddress,
+                    takerAddress: makerAddress,
                     sellToken: 'WETH',
                     buyToken: 'ZRX',
                     sellAmount: '10000',
@@ -237,13 +221,13 @@ describe(SUITE_NAME, () => {
             // The taker does not have an allowance
             await quoteAndExpectAsync(
                 {
-                    takerAddress: invalidTakerAddress,
+                    takerAddress,
                     sellToken: 'WETH',
                     buyToken: 'ZRX',
                     sellAmount: '10000',
                 },
                 {
-                    revertErrorReason: 'SpenderERC20TransferFromFailedError',
+                    revertErrorReason: 'IncompleteFillError',
                 },
             );
         });
@@ -256,6 +240,32 @@ describe(SUITE_NAME, () => {
                     estimatedGasTokenRefund: '0',
                 },
             );
+        });
+    });
+
+    describe('/tokens', () => {
+        it('should return a list of known tokens', async () => {
+            const response = await httpGetAsync({ route: `${SWAP_PATH}/tokens` });
+            expect(response.type).to.be.eq('application/json');
+            expect(response.status).to.be.eq(HttpStatus.OK);
+            // tslint:disable-next-line:no-unused-expression
+            expect(response.body.records).to.be.an('array').that.is.not.empty;
+        });
+    });
+
+    describe('/prices', () => {
+        it('should return accurate pricing', async () => {
+            // Defaults to WETH.
+            const response = await httpGetAsync({ route: `${SWAP_PATH}/prices` });
+            expect(response.type).to.be.eq('application/json');
+            expect(response.status).to.be.eq(HttpStatus.OK);
+            expect(response.body.records[0].price).to.be.eq('0.3');
+        });
+        it('should respect the sellToken parameter', async () => {
+            const response = await httpGetAsync({ route: `${SWAP_PATH}/prices?sellToken=ZRX` });
+            expect(response.type).to.be.eq('application/json');
+            expect(response.status).to.be.eq(HttpStatus.OK);
+            expect(response.body.records[0].price).to.be.eq('1000');
         });
     });
 });
@@ -273,7 +283,6 @@ interface QuoteAssertion {
     estimatedGasTokenRefund: string;
     validationErrors: ValidationErrorItem[];
     revertErrorReason: string;
-    allowanceTarget: string;
 }
 
 async function quoteAndExpectAsync(

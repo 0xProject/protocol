@@ -70,11 +70,11 @@ describe(SUITE_NAME, () => {
     const excludedSources = [
         ERC20BridgeSource.Uniswap,
         ERC20BridgeSource.UniswapV2,
-        ERC20BridgeSource.UniswapV2Eth,
         ERC20BridgeSource.Kyber,
         ERC20BridgeSource.LiquidityProvider,
         ERC20BridgeSource.Eth2Dai,
         ERC20BridgeSource.MultiBridge,
+        ERC20BridgeSource.Balancer,
     ];
     const DEFAULT_QUERY_PARAMS = {
         buyToken: 'ZRX',

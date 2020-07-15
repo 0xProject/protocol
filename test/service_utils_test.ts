@@ -18,7 +18,7 @@ describe(SUITE_NAME, () => {
                 {
                     fills: [
                         {
-                            source: ERC20BridgeSource.CurveUsdcDai,
+                            source: ERC20BridgeSource.Uniswap,
                         },
                     ],
                 },
@@ -27,16 +27,16 @@ describe(SUITE_NAME, () => {
                 fakeOrders,
                 MAX_INT,
             );
-            expect(usedGasTokens).to.be.eq(22);
-            expect(gasTokenRefund.toNumber()).to.be.eq(5280000);
-            expect(gasTokenGasCost.toNumber()).to.be.eq(151140);
+            expect(usedGasTokens).to.be.eq(8);
+            expect(gasTokenRefund.toNumber()).to.be.eq(1920000);
+            expect(gasTokenGasCost.toNumber()).to.be.eq(54960);
         });
         it('does not return an estimate when there are bridge fills but no gas tokens', () => {
             const fakeOrders: any = [
                 {
                     fills: [
                         {
-                            source: ERC20BridgeSource.CurveUsdcDai,
+                            source: ERC20BridgeSource.Uniswap,
                         },
                     ],
                 },

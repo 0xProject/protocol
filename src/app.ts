@@ -168,10 +168,9 @@ function createMetaTransactionRateLimiterFromConfig(
                 }
             });
         })
-        .reduce((prev, cur, []) => {
+        .reduce((prev, cur) => {
             return prev.concat(...cur);
-        });
-
+        }, []);
     return new MetaTransactionComposableLimiter(configuredRateLimiters);
 }
 

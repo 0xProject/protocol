@@ -89,6 +89,11 @@ export class RevertAPIError extends BadRequestError {
     }
 }
 
+export class InsufficientFundsError extends BadRequestError {
+    public statusCode = HttpStatus.BAD_REQUEST;
+    public generalErrorCode = GeneralErrorCodes.InsufficientFundsError;
+}
+
 export enum GeneralErrorCodes {
     ValidationError = 100,
     MalformedJson = 101,
@@ -99,6 +104,7 @@ export enum GeneralErrorCodes {
     UnableToSubmitOnBehalfOfTaker = 106,
     InvalidAPIKey = 107,
     ServiceDisabled = 108,
+    InsufficientFundsError = 109,
 }
 
 export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = {
@@ -111,6 +117,7 @@ export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = 
     [GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker]: 'Unable to submit transaction on behalf of taker',
     [GeneralErrorCodes.InvalidAPIKey]: 'Invalid API key',
     [GeneralErrorCodes.ServiceDisabled]: 'Service disabled',
+    [GeneralErrorCodes.InsufficientFundsError]: 'Insufficient funds for transaction',
 };
 
 export enum ValidationErrorCodes {
