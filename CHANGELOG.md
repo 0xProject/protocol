@@ -1,3 +1,11 @@
+# [1.11.0](https://github.com/0xProject/0x-api/compare/v1.10.2...v1.11.0) (2020-07-20)
+
+
+### Features
+
+* support ExchangeProxy for swap quotes (Swap V1) ([#262](https://github.com/0xProject/0x-api/issues/262)) ([3415d63](https://github.com/0xProject/0x-api/commit/3415d636df4591188d7a46b10597e511e4659003)), closes [#268](https://github.com/0xProject/0x-api/issues/268) [#269](https://github.com/0xProject/0x-api/issues/269) [#282](https://github.com/0xProject/0x-api/issues/282)
+* Updates BZRX token address to new BZRX token ([#279](https://github.com/0xProject/0x-api/issues/279)) ([8032d96](https://github.com/0xProject/0x-api/commit/8032d96173e17f1f050741efb1f63a1edac2d9e5))
+
 ## [1.10.2](https://github.com/0xProject/0x-api/compare/v1.10.1...v1.10.2) (2020-07-13)
 
 
