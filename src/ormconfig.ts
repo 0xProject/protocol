@@ -13,6 +13,6 @@ export const config: ConnectionOptions = {
     logging: true,
     logger: 'debug',
     extra: {
-        connectionLimit: 50,
+        max: 50,
     },
 };

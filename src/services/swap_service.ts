@@ -8,7 +8,7 @@ import {
     SwapQuoteGetOutputOpts,
     SwapQuoter,
 } from '@0x/asset-swapper';
-import { SwapQuoteRequestOpts } from '@0x/asset-swapper/lib/src/types';
+import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/types';
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ERC20TokenContract, WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
@@ -64,8 +64,16 @@ export class SwapService {
 
     constructor(orderbook: Orderbook, provider: SupportedProvider) {
         this._provider = provider;
-        this._swapQuoter = new SwapQuoter(this._provider, orderbook, SWAP_QUOTER_OPTS);
-        this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, SWAP_QUOTER_OPTS);
+        const swapQuoterOpts: Partial<SwapQuoterOpts> = {
+            ...SWAP_QUOTER_OPTS,
+            rfqt: {
+                ...SWAP_QUOTER_OPTS.rfqt,
+                warningLogger: logger.warn.bind(logger),
+                infoLogger: logger.info.bind(logger),
+            },
+        };
+        this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
+        this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
         this._web3Wrapper = new Web3Wrapper(this._provider);
 
         this._contractAddresses = getContractAddressesForChainOrThrow(CHAIN_ID);
@@ -398,13 +406,13 @@ export class SwapService {
                 takerAddress,
             };
         }
+        const swapQuoteRequestOpts =
+            swapVersion === SwapVersion.V0 ? ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS;
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
-            ...(swapVersion === SwapVersion.V0
-                ? ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS
-                : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS),
+            ...swapQuoteRequestOpts,
             bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
-            excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
+            excludedSources: swapQuoteRequestOpts.excludedSources.concat(...(excludedSources || [])),
             rfqt: _rfqt,
         };
         if (sellAmount !== undefined) {

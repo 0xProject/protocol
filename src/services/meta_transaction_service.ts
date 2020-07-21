@@ -1,5 +1,4 @@
-import { Orderbook, SwapQuoter } from '@0x/asset-swapper';
-import { SwapQuoteRequestOpts } from '@0x/asset-swapper/lib/src/types';
+import { Orderbook, SwapQuoter, SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper';
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ContractWrappers } from '@0x/contract-wrappers';
 import { DevUtilsContract } from '@0x/contracts-dev-utils';
@@ -64,7 +63,15 @@ export class MetaTransactionService {
     }
     constructor(orderbook: Orderbook, provider: SupportedProvider, dbConnection: Connection) {
         this._provider = provider;
-        this._swapQuoter = new SwapQuoter(this._provider, orderbook, SWAP_QUOTER_OPTS);
+        const swapQuoterOpts: Partial<SwapQuoterOpts> = {
+            ...SWAP_QUOTER_OPTS,
+            rfqt: {
+                ...SWAP_QUOTER_OPTS.rfqt,
+                warningLogger: logger.warn.bind(logger),
+                infoLogger: logger.info.bind(logger),
+            },
+        };
+        this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._contractWrappers = new ContractWrappers(this._provider, { chainId: CHAIN_ID });
         this._web3Wrapper = new Web3Wrapper(this._provider);
         this._devUtils = new DevUtilsContract(this._contractWrappers.contractAddresses.devUtils, this._provider);
@@ -100,7 +107,7 @@ export class MetaTransactionService {
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
             bridgeSlippage: slippagePercentage,
-            excludedSources, // TODO(dave4506): overrides the excluded sources selected by chainId
+            excludedSources: ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS.excludedSources.concat(...(excludedSources || [])),
             rfqt: _rfqt,
         };
 
