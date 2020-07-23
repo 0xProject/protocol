@@ -9,7 +9,8 @@ export const config: ConnectionOptions = {
     type: 'postgres',
     url: POSTGRES_URI,
     entities,
-    synchronize: true,
+    // Disable synchronization in production
+    synchronize: process.env.NODE_ENV && process.env.NODE_ENV === 'test',
     logging: true,
     logger: 'debug',
     extra: {
