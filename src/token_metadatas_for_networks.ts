@@ -697,4 +697,14 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'renBTC',
+        name: 'renBTC',
+        decimals: 8,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
