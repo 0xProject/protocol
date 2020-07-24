@@ -32,9 +32,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-0f2d9d210":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-9a16f5736":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/bfb580a5f31ff85a98eae3203eb5e38bd9a0f175"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/3a630c5dc216a3d5eaa6b2789658a5f3eb5fd4dd"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/contract-addresses" "^4.11.0"
@@ -85,17 +85,17 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@^4.11.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-9a16f5736", "@0x/contract-addresses@^4.11.0":
   version "4.11.0"
-  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-4.11.0.tgz#945aa81035bfc5605306c39c5f76656b204e01e2"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/ac7f02c026aec51e0395c862b40cea0fc6937f88"
 
-"@0x/contract-artifacts@^3.7.1":
+"@0x/contract-artifacts@0xProject/gitpkg-registry#0x-contract-artifacts-v3.7.1-9a16f5736", "@0x/contract-artifacts@^3.7.1":
   version "3.7.1"
-  resolved "https://registry.yarnpkg.com/@0x/contract-artifacts/-/contract-artifacts-3.7.1.tgz#368b6e229585c10e43478f6ea21e962a93db986b"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/28e6aeaed435e2e1407b2ab5ee15152181bfdb9b"
 
-"@0x/contract-wrappers@^13.7.0", "@0x/contract-wrappers@^13.8.0":
+"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.8.0-9a16f5736", "@0x/contract-wrappers@^13.7.0", "@0x/contract-wrappers@^13.8.0":
   version "13.8.0"
-  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.8.0.tgz#565c57354dd7b50c843babc56b18b7c997e701e0"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c1683a6ab3fa8ff4a2d924195c82647f026a3aba"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"

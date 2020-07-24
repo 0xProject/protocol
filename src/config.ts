@@ -283,7 +283,7 @@ export const GAS_SCHEDULE_V0: FeeSchedule = {
     [ERC20BridgeSource.Eth2Dai]: () => 5.5e5,
     [ERC20BridgeSource.Kyber]: () => 8e5,
     [ERC20BridgeSource.Curve]: fillData => {
-        switch ((fillData as CurveFillData).poolAddress.toLowerCase()) {
+        switch ((fillData as CurveFillData).curve.poolAddress.toLowerCase()) {
             case '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56':
             case '0x52ea46506b9cc5ef470c5bf89f17dc28bb35d85c':
                 return 9e5;
@@ -291,6 +291,8 @@ export const GAS_SCHEDULE_V0: FeeSchedule = {
             case '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27':
                 return 10e5;
             case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
+            case '0x93054188d876f558f4a66b2ef1d97d16edf0895b':
+            case '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714':
                 return 6e5;
             default:
                 throw new Error('Unrecognized Curve address');
@@ -369,7 +371,6 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     rfqt: {
         takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
         makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
-        skipBuyRequests: RFQT_SKIP_BUY_REQUESTS,
     },
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
