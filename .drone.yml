@@ -10,10 +10,6 @@ steps:
   - name: publish-sha
     image: plugins/ecr
     settings:
-      access_key:
-        from_secret: aws_ecr_key
-      secret_key:
-        from_secret: aws_ecr_secret
       repo:
         from_secret: ecr_repo
       registry:
