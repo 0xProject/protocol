@@ -1,6 +1,6 @@
 name: 0x-api-pipeline-sha
 kind: pipeline
-type: docker
+type: kubernetes
 
 platform:
   os: linux
@@ -25,10 +25,12 @@ trigger:
   event:
     exclude:
     - pull_request
+node_selector:
+  drone-builds: true
 ---
 name: 0x-api-pipeline
 kind: pipeline
-type: docker
+type: kubernetes
 
 platform:
   os: linux
@@ -52,3 +54,5 @@ trigger:
   event:
     include:
       - push
+node_selector:
+  drone-builds: true
