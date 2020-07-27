@@ -1,3 +1,18 @@
+# [1.12.0](https://github.com/0xProject/0x-api/compare/v1.11.0...v1.12.0) (2020-07-27)
+
+
+### Bug Fixes
+
+* synchronization false unless tests ([#292](https://github.com/0xProject/0x-api/issues/292)) ([e050a22](https://github.com/0xProject/0x-api/commit/e050a226d42eaa0eb9f07ef994b2f59b56d8b46f))
+
+
+### Features
+
+* Curve BTC Bridge ([#294](https://github.com/0xProject/0x-api/issues/294)) ([82f9276](https://github.com/0xProject/0x-api/commit/82f9276bc70bdeda4c8564952e9f6e675bc88021))
+* Depth Chart API endpoint ([#290](https://github.com/0xProject/0x-api/issues/290)) ([540f92e](https://github.com/0xProject/0x-api/commit/540f92ea81bf48921bea4ddf00336d9e3abf9e99))
+* Graceful Shutdowns ([#280](https://github.com/0xProject/0x-api/issues/280)) ([5736c74](https://github.com/0xProject/0x-api/commit/5736c74ca537f5a469012a61da3d4da77e281cd7))
+* Update protocol fee to 70k. Yield to event loop in path optimizer ([#285](https://github.com/0xProject/0x-api/issues/285)) ([a996c7b](https://github.com/0xProject/0x-api/commit/a996c7b284ac3f3e56d12861702397a3ed9ea17e))
+
 # [1.11.0](https://github.com/0xProject/0x-api/compare/v1.10.2...v1.11.0) (2020-07-20)
 
 
