@@ -62,6 +62,11 @@ export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
     ? 3000
     : assertEnvVarType('HTTP_PORT', process.env.HTTP_PORT, EnvVarType.Port);
 
+// Network port for the healthcheck service at /healthz, if not provided, it uses the HTTP_PORT value.
+export const HEALTHCHECK_HTTP_PORT = _.isEmpty(process.env.HEALTHCHECK_HTTP_PORT)
+    ? HTTP_PORT
+    : assertEnvVarType('HEALTHCHECK_HTTP_PORT', process.env.HEALTHCHECK_HTTP_PORT, EnvVarType.Port);
+
 // Number of milliseconds of inactivity the servers waits for additional
 // incoming data aftere it finished writing last response before a socket will
 // be destroyed.
@@ -379,6 +384,7 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,
+    healthcheckHttpPort: HEALTHCHECK_HTTP_PORT,
     ethereumRpcUrl: ETHEREUM_RPC_URL,
     httpKeepAliveTimeout: HTTP_KEEP_ALIVE_TIMEOUT,
     httpHeadersTimeout: HTTP_HEADERS_TIMEOUT,

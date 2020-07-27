@@ -1,5 +1,3 @@
-import bodyParser = require('body-parser');
-import * as cors from 'cors';
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
@@ -12,7 +10,6 @@ import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
-import { requestLogger } from '../middleware/request_logger';
 import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
 import { createMetricsRouter } from '../routers/metrics_router';
 import { createSRARouter } from '../routers/sra_router';
@@ -21,6 +18,8 @@ import { createSwapRouter } from '../routers/swap_router';
 import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
+
+import { createDefaultServer } from './utils';
 
 /**
  * http_service_runner hosts endpoints for staking, sra, swap and meta-txns (minus the /submit endpoint)
@@ -63,19 +62,12 @@ export async function runHttpServiceAsync(
     _app?: core.Express,
 ): Promise<HttpServices> {
     const app = _app || express();
-    app.use(requestLogger());
-    app.use(cors());
-    app.use(bodyParser.json());
+    const server = createDefaultServer(dependencies, config, app);
 
     app.get('/', rootHandler);
-    const server = app.listen(config.httpPort, () => {
-        logger.info(`API (HTTP) listening on port ${config.httpPort}!`);
-    });
     server.on('error', err => {
         logger.error(err);
     });
-    server.keepAliveTimeout = config.httpKeepAliveTimeout;
-    server.headersTimeout = config.httpHeadersTimeout;
 
     // transform all values of `req.query.[xx]Address` to lowercase
     app.use(addressNormalizer);
@@ -132,7 +124,7 @@ export async function runHttpServiceAsync(
         logger.error(`Could not establish mesh connection, exiting`);
         process.exit(1);
     }
-
+    server.listen(config.httpPort);
     return {
         server,
         wsService,

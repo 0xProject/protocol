@@ -1,5 +1,3 @@
-import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
@@ -11,10 +9,11 @@ import { META_TRANSACTION_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { errorHandler } from '../middleware/error_handling';
-import { requestLogger } from '../middleware/request_logger';
 import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
+
+import { createDefaultServer } from './utils';
 
 /**
  * This module can be used to run the Meta Transaction HTTP service standalone
@@ -45,14 +44,8 @@ async function runHttpServiceAsync(
     _app?: core.Express,
 ): Promise<Server> {
     const app = _app || express();
-    app.use(requestLogger());
-    app.use(cors());
-    app.use(bodyParser.json());
+    const server = createDefaultServer(dependencies, config, app);
     app.get('/', rootHandler);
-    const server = app.listen(config.httpPort, () => {
-        logger.info(`API (HTTP) listening on port ${config.httpPort}!`);
-    });
-
     if (dependencies.metaTransactionService) {
         app.use(
             META_TRANSACTION_PATH,
@@ -63,5 +56,6 @@ async function runHttpServiceAsync(
         process.exit(1);
     }
     app.use(errorHandler);
+    server.listen(config.httpPort);
     return server;
 }
