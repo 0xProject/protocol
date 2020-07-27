@@ -537,6 +537,47 @@ describe(SUITE_NAME, () => {
                         },
                     );
                 });
+                it('should succeed when includedSources is RFQT', async () => {
+                    return rfqtMocker.withMockedRfqtFirmQuotes(
+                        [
+                            {
+                                ...DEFAULT_RFQT_RESPONSE_DATA,
+                                responseData: { signedOrder: ganacheZrxWethOrder1 },
+                            },
+                        ],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/quote?intentOnFilling=true&buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&includedSources=RFQT&skipValidation=true`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.OK)
+                                .expect('Content-Type', /json/);
+                            const responseJson = JSON.parse(appResponse.text);
+                            expect(responseJson.orders.length).to.equal(1);
+                            expect(responseJson.orders[0]).to.eql(ganacheZrxWethOrder1);
+                        },
+                    );
+                });
+                it('should not succeed when includedSources is RFQT and no taker address is specified', async () => {
+                    return rfqtMocker.withMockedRfqtFirmQuotes(
+                        [
+                            {
+                                ...DEFAULT_RFQT_RESPONSE_DATA,
+                                responseData: { signedOrder: ganacheZrxWethOrder1 },
+                            },
+                        ],
+                        async () => {
+                            await request(app)
+                                .get(
+                                    `${SWAP_PATH}/quote?intentOnFilling=true&buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&includedSources=RFQT&skipValidation=true`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.BAD_REQUEST)
+                                .expect('Content-Type', /json/);
+                        },
+                    );
+                });
                 it('should fail when taker address is not supplied', async () => {
                     const appResponse = await request(app)
                         .get(

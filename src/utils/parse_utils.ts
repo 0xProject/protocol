@@ -1,6 +1,7 @@
 import { assert } from '@0x/assert';
 import { ERC20BridgeSource } from '@0x/asset-swapper';
 
+import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
 import {
     MetaTransactionDailyLimiterConfig,
     MetaTransactionRateLimitConfig,
@@ -10,7 +11,124 @@ import {
 
 import { AvailableRateLimiter, DatabaseKeysUsedForRateLimiter, RollingLimiterIntervalUnit } from './rate-limiters';
 
+interface ParseRequestForExcludedSourcesParams {
+    takerAddress?: string;
+    excludedSources?: string;
+    includedSources?: string;
+    intentOnFilling?: string;
+    apiKey?: string;
+}
+
+/**
+ * This constant contains, as keys, all ERC20BridgeSource types except from `Native`.
+ * As we add more bridge sources to AssetSwapper, we want to keep ourselves accountable to add
+ * them to this constant. Since there isn't a good way to enumerate over enums, we use a obect type.
+ * The type has been defined in a way that the code won't compile if a new ERC20BridgeSource is added.
+ */
+const ALL_EXCEPT_NATIVE: { [key in Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>]: boolean } = {
+    Uniswap: true,
+    Balancer: true,
+    Curve: true,
+    Eth2Dai: true,
+    Kyber: true,
+    LiquidityProvider: true,
+    MultiBridge: true,
+    Uniswap_V2: true,
+};
+
 export const parseUtils = {
+    parseRequestForExcludedSources(
+        request: ParseRequestForExcludedSourcesParams,
+        validApiKeys: string[],
+        endpoint: 'price' | 'quote',
+    ): { excludedSources: ERC20BridgeSource[]; nativeExclusivelyRFQT: boolean } {
+        // Ensure that both filtering arguments cannot be present.
+        if (request.excludedSources !== undefined && request.includedSources !== undefined) {
+            throw new ValidationError([
+                {
+                    field: 'excludedSources',
+                    code: ValidationErrorCodes.IncorrectFormat,
+                    reason: ValidationErrorReasons.ConflictingFilteringArguments,
+                },
+                {
+                    field: 'includedSources',
+                    code: ValidationErrorCodes.IncorrectFormat,
+                    reason: ValidationErrorReasons.ConflictingFilteringArguments,
+                },
+            ]);
+        }
+
+        // If excludedSources is present, parse the string array and return
+        if (request.excludedSources !== undefined) {
+            return {
+                excludedSources: parseUtils.parseStringArrForERC20BridgeSources(request.excludedSources.split(',')),
+                nativeExclusivelyRFQT: false,
+            };
+        }
+
+        if (request.includedSources !== undefined) {
+            // Only RFQT is eligible as of now
+            if (request.includedSources === 'RFQT') {
+                // We assume that if a `takerAddress` key is present, it's value was already validated by the JSON
+                // schema.
+                if (request.takerAddress === undefined) {
+                    throw new ValidationError([
+                        {
+                            field: 'takerAddress',
+                            code: ValidationErrorCodes.RequiredField,
+                            reason: ValidationErrorReasons.TakerAddressInvalid,
+                        },
+                    ]);
+                }
+
+                // We enforce a valid API key - we don't want to fail silently.
+                if (request.apiKey === undefined) {
+                    throw new ValidationError([
+                        {
+                            field: '0x-api-key',
+                            code: ValidationErrorCodes.RequiredField,
+                            reason: ValidationErrorReasons.InvalidApiKey,
+                        },
+                    ]);
+                }
+                if (!validApiKeys.includes(request.apiKey)) {
+                    throw new ValidationError([
+                        {
+                            field: '0x-api-key',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: ValidationErrorReasons.InvalidApiKey,
+                        },
+                    ]);
+                }
+
+                // If the user is requesting a firm quote, we want to make sure that `intentOnFilling` is set to "true".
+                if (endpoint === 'quote' && request.intentOnFilling !== 'true') {
+                    throw new ValidationError([
+                        {
+                            field: 'intentOnFilling',
+                            code: ValidationErrorCodes.RequiredField,
+                            reason: ValidationErrorReasons.RequiresIntentOnFilling,
+                        },
+                    ]);
+                }
+
+                return {
+                    nativeExclusivelyRFQT: true,
+                    excludedSources: Object.keys(ALL_EXCEPT_NATIVE) as ERC20BridgeSource[],
+                };
+            } else {
+                throw new ValidationError([
+                    {
+                        field: 'includedSources',
+                        code: ValidationErrorCodes.IncorrectFormat,
+                        reason: ValidationErrorReasons.ArgumentNotYetSupported,
+                    },
+                ]);
+            }
+        }
+
+        return { excludedSources: [], nativeExclusivelyRFQT: false };
+    },
     parseStringArrForERC20BridgeSources(excludedSources: string[]): ERC20BridgeSource[] {
         // Need to compare value of the enum instead of the key, as values are used by asset-swapper
         // CurveUsdcDaiUsdt = 'Curve_USDC_DAI_USDT' is excludedSources=Curve_USDC_DAI_USDT

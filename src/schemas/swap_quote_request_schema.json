@@ -22,7 +22,7 @@
         "excludedSources": {
             "type": "string"
         },
-        "apiKey": {
+        "includedSources": {
             "type": "string"
         },
         "intentOnFilling": {

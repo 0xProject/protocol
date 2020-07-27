@@ -131,10 +131,16 @@ export enum ValidationErrorCodes {
     InvalidOrder = 1007,
     InternalError = 1008,
     TokenNotSupported = 1009,
+    FieldInvalid = 1010,
 }
 
 export enum ValidationErrorReasons {
     PercentageOutOfRange = 'MUST_BE_LESS_THAN_OR_EQUAL_TO_ONE',
+    ConflictingFilteringArguments = 'CONFLICTING_FILTERING_ARGUMENTS',
+    ArgumentNotYetSupported = 'ARGUMENT_NOT_YET_SUPPORTED',
+    InvalidApiKey = 'INVALID_API_KEY',
+    TakerAddressInvalid = 'TAKER_ADDRESS_INVALID',
+    RequiresIntentOnFilling = 'REQUIRES_INTENT_ON_FILLING',
 }
 export abstract class AlertError {
     public abstract message: string;
