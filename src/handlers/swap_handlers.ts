@@ -4,7 +4,12 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { CHAIN_ID } from '../config';
-import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, SWAP_DOCS_URL } from '../constants';
+import {
+    DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    MARKET_DEPTH_DEFAULT_DISTRIBUTION,
+    MARKET_DEPTH_MAX_SAMPLES,
+    SWAP_DOCS_URL,
+} from '../constants';
 import {
     InternalServerError,
     RevertAPIError,
@@ -125,6 +130,27 @@ export class SwapHandlers {
         const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
         res.status(HttpStatus.OK).send({ records });
     }
+
+    public async getMarketDepthAsync(req: express.Request, res: express.Response): Promise<void> {
+        const makerToken = getTokenMetadataIfExists(req.query.buyToken as string, CHAIN_ID);
+        const takerToken = getTokenMetadataIfExists(req.query.sellToken as string, CHAIN_ID);
+        const response = await this._swapService.calculateMarketDepthAsync({
+            buyToken: makerToken,
+            sellToken: takerToken,
+            sellAmount: new BigNumber(req.query.sellAmount as string),
+            // tslint:disable-next-line:radix custom-no-magic-numbers
+            numSamples: req.query.numSamples ? parseInt(req.query.numSamples as string) : MARKET_DEPTH_MAX_SAMPLES,
+            sampleDistributionBase: req.query.sampleDistributionBase
+                ? parseFloat(req.query.sampleDistributionBase as string)
+                : MARKET_DEPTH_DEFAULT_DISTRIBUTION,
+            excludedSources:
+                req.query.excludedSources === undefined
+                    ? []
+                    : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(',')),
+        });
+        res.status(HttpStatus.OK).send({ ...response, buyToken: makerToken, sellToken: takerToken });
+    }
+
     private async _calculateSwapQuoteAsync(
         params: GetSwapQuoteRequestParams,
         swapVersion: SwapVersion,

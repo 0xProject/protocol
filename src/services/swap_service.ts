@@ -12,6 +12,7 @@ import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ERC20TokenContract, WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
+import { MarketOperation } from '@0x/types';
 import { BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
@@ -38,6 +39,8 @@ import { InsufficientFundsError } from '../errors';
 import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import {
+    BucketedPriceDepth,
+    CalaculateMarketDepthParams,
     CalculateSwapQuoteParams,
     GetSwapQuoteResponse,
     GetTokenPricesResponse,
@@ -46,6 +49,7 @@ import {
     SwapVersion,
     TokenMetadata,
 } from '../types';
+import { marketDepthUtils } from '../utils/market_depth_utils';
 import { createResultCache, ResultCache } from '../utils/result_cache';
 import { serviceUtils } from '../utils/service_utils';
 import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
@@ -267,6 +271,58 @@ export class SwapService {
             })
             .filter(p => p) as GetTokenPricesResponse;
         return prices;
+    }
+
+    public async calculateMarketDepthAsync(
+        params: CalaculateMarketDepthParams,
+    ): Promise<{
+        asks: { depth: BucketedPriceDepth[] };
+        bids: { depth: BucketedPriceDepth[] };
+    }> {
+        const { buyToken, sellToken, sellAmount, numSamples, sampleDistributionBase, excludedSources } = params;
+        const marketDepth = await this._swapQuoter.getBidAskLiquidityForMakerTakerAssetPairAsync(
+            buyToken.tokenAddress,
+            sellToken.tokenAddress,
+            sellAmount,
+            {
+                numSamples,
+                excludedSources: [...(excludedSources || []), ERC20BridgeSource.MultiBridge],
+                sampleDistributionBase,
+            },
+        );
+
+        const maxEndSlippagePercentage = 20;
+        const scalePriceByDecimals = (priceDepth: BucketedPriceDepth[]) =>
+            priceDepth.map(b => ({
+                ...b,
+                price: b.price.times(new BigNumber(10).pow(sellToken.decimals - buyToken.decimals)),
+            }));
+        const askDepth = scalePriceByDecimals(
+            marketDepthUtils.calculateDepthForSide(
+                marketDepth.asks,
+                MarketOperation.Sell,
+                numSamples * 2,
+                sampleDistributionBase,
+                maxEndSlippagePercentage,
+            ),
+        );
+        const bidDepth = scalePriceByDecimals(
+            marketDepthUtils.calculateDepthForSide(
+                marketDepth.bids,
+                MarketOperation.Buy,
+                numSamples * 2,
+                sampleDistributionBase,
+                maxEndSlippagePercentage,
+            ),
+        );
+        return {
+            // We're buying buyToken and SELLING sellToken (DAI) (50k)
+            // Price goes from HIGH to LOW
+            asks: { depth: askDepth },
+            // We're BUYING sellToken (DAI) (50k) and selling buyToken
+            // Price goes from LOW to HIGH
+            bids: { depth: bidDepth },
+        };
     }
 
     private async _getSwapQuoteForWethAsync(

@@ -89,3 +89,8 @@ export const GST2_WALLET_ADDRESSES = {
     [ChainId.Kovan]: NULL_ADDRESS,
     [ChainId.Ganache]: NULL_ADDRESS,
 };
+
+// Market Depth
+export const MARKET_DEPTH_MAX_SAMPLES = 50;
+export const MARKET_DEPTH_DEFAULT_DISTRIBUTION = 1.05;
+export const MARKET_DEPTH_END_PRICE_SLIPPAGE_PERC = 20;
