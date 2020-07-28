@@ -85,9 +85,9 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-9a16f5736", "@0x/contract-addresses@^4.11.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-e29087d16", "@0x/contract-addresses@^4.11.0":
   version "4.11.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/ac7f02c026aec51e0395c862b40cea0fc6937f88"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/e0f108707128e1e8ee21ea115817d638273edd18"
 
 "@0x/contract-artifacts@0xProject/gitpkg-registry#0x-contract-artifacts-v3.7.1-9a16f5736", "@0x/contract-artifacts@^3.7.1":
   version "3.7.1"

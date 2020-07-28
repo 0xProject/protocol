@@ -263,7 +263,14 @@ const EXCLUDED_SOURCES = (() => {
         case ChainId.Mainnet:
             return [];
         case ChainId.Kovan:
-            return [ERC20BridgeSource.Kyber];
+            return [
+                ERC20BridgeSource.Kyber,
+                ERC20BridgeSource.Balancer,
+                ERC20BridgeSource.Curve,
+                ERC20BridgeSource.Eth2Dai,
+                ERC20BridgeSource.Uniswap,
+                ERC20BridgeSource.LiquidityProvider,
+            ];
         default:
             return [
                 ERC20BridgeSource.Eth2Dai,

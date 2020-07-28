@@ -122,7 +122,7 @@
         "typescript": "^3.9.6"
     },
     "resolutions": {
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-9a16f5736",
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-e29087d16",
         "@0x/contract-artifacts": "0xProject/gitpkg-registry#0x-contract-artifacts-v3.7.1-9a16f5736",
         "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.8.0-9a16f5736"
     },
