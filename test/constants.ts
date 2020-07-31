@@ -18,3 +18,4 @@ export const SYMBOL_TO_ADDRESS: ObjectMap<string> = {
     ZRX: ZRX_TOKEN_ADDRESS,
     WETH: WETH_TOKEN_ADDRESS,
 };
+export const AFFILIATE_DATA_SELECTOR = '869584cd';
