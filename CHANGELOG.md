@@ -1,3 +1,17 @@
+# [1.13.0](https://github.com/0xProject/0x-api/compare/v1.12.0...v1.13.0) (2020-08-03)
+
+
+### Bug Fixes
+
+* Kovan deploy UniswapV2 ([#304](https://github.com/0xProject/0x-api/issues/304)) ([f4fb99b](https://github.com/0xProject/0x-api/commit/f4fb99b13bcd10dfbaa68a7160b677ae6ed9eda0))
+* Kovan ERC20BridgeSampler ([#299](https://github.com/0xProject/0x-api/issues/299)) ([56f7a90](https://github.com/0xProject/0x-api/commit/56f7a9072ae3deb9264dbd8e291678dd75cffdea))
+
+
+### Features
+
+* added a unique identifier to the quote within the timestamp metadata … ([#281](https://github.com/0xProject/0x-api/issues/281)) ([d992563](https://github.com/0xProject/0x-api/commit/d992563bf4198d2b9b922b301133f33478083658))
+* Rfqt included ([#293](https://github.com/0xProject/0x-api/issues/293)) ([965dedb](https://github.com/0xProject/0x-api/commit/965dedbe3c52c24b84fe2c3ad8ced5daa38eda67))
+
 # [1.12.0](https://github.com/0xProject/0x-api/compare/v1.11.0...v1.12.0) (2020-07-27)
 
 
