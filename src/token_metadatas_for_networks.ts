@@ -730,7 +730,7 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
     {
         symbol: 'YFI',
         name: 'yearn.finance',
-        decimals: 8,
+        decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e',
             [ChainId.Kovan]: NULL_ADDRESS,
