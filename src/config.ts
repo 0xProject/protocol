@@ -267,8 +267,6 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Kyber,
                 ERC20BridgeSource.Balancer,
                 ERC20BridgeSource.Curve,
-                ERC20BridgeSource.Eth2Dai,
-                ERC20BridgeSource.Uniswap,
                 ERC20BridgeSource.LiquidityProvider,
             ];
         default:
