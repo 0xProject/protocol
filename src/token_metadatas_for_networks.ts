@@ -707,4 +707,54 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'BAL',
+        name: 'Balancer',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xba100000625a3754423978a60c9317c58a424e3d',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'LEND',
+        name: 'Aave',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x80fb784b7ed66730e8b1dbd9820afd29931aab03',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'YFI',
+        name: 'yearn.finance',
+        decimals: 8,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'AMPL',
+        name: 'Ampleforth',
+        decimals: 9,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xd46ba6d942050d489dbd938a2c909a5d5039a161',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'KEEP',
+        name: 'Keep',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x85eee30c52b0b379b046fb0f85f4f3dc3009afec',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
