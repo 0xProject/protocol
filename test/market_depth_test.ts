@@ -160,31 +160,31 @@ describe(SUITE_NAME, () => {
                     MarketOperation.Sell,
                 );
                 const [first, second, third, fourth] = allocated;
-                expect(first.cumulative).to.be.bignumber.eq(20);
-                expect(first.bucketTotal).to.be.bignumber.eq(20);
+                expect(first.cumulative).to.be.bignumber.eq(2);
+                expect(first.bucketTotal).to.be.bignumber.eq(2);
                 expect(first.bucket).to.be.eq(0);
                 expect(first.price).to.be.bignumber.eq(10);
-                expect(first.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(20);
+                expect(first.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(2);
 
-                expect(second.cumulative).to.be.bignumber.eq(20);
+                expect(second.cumulative).to.be.bignumber.eq(2);
                 expect(second.bucketTotal).to.be.bignumber.eq(0);
                 expect(second.bucket).to.be.eq(1);
                 expect(second.price).to.be.bignumber.eq(8);
-                expect(second.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(20);
+                expect(second.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(2);
 
-                expect(third.cumulative).to.be.bignumber.eq(28);
-                expect(third.bucketTotal).to.be.bignumber.eq(8);
+                expect(third.cumulative).to.be.bignumber.eq(4);
+                expect(third.bucketTotal).to.be.bignumber.eq(2);
                 expect(third.bucket).to.be.eq(2);
                 expect(third.price).to.be.bignumber.eq(4);
-                expect(third.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(8);
-                expect(third.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(20);
+                expect(third.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(2);
+                expect(third.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(2);
 
-                expect(fourth.cumulative).to.be.bignumber.eq(28);
+                expect(fourth.cumulative).to.be.bignumber.eq(4);
                 expect(fourth.bucketTotal).to.be.bignumber.eq(0);
                 expect(fourth.bucket).to.be.eq(3);
                 expect(fourth.price).to.be.bignumber.eq(1);
-                expect(fourth.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(8);
-                expect(fourth.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(20);
+                expect(fourth.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(2);
+                expect(fourth.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(2);
             });
             it('does not allocate to a bucket if there is none available', async () => {
                 const buckets = [B(10)];
@@ -216,18 +216,18 @@ describe(SUITE_NAME, () => {
                 expect(first.bucket).to.be.eq(0);
                 expect(first.price).to.be.bignumber.eq(1);
 
-                expect(second.cumulative).to.be.bignumber.eq(8);
-                expect(second.bucketTotal).to.be.bignumber.eq(8);
+                expect(second.cumulative).to.be.bignumber.eq(2);
+                expect(second.bucketTotal).to.be.bignumber.eq(2);
                 expect(second.bucket).to.be.eq(1);
                 expect(second.price).to.be.bignumber.eq(4);
-                expect(second.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(8);
+                expect(second.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(2);
 
-                expect(third.cumulative).to.be.bignumber.eq(28);
-                expect(third.bucketTotal).to.be.bignumber.eq(20);
+                expect(third.cumulative).to.be.bignumber.eq(4);
+                expect(third.bucketTotal).to.be.bignumber.eq(2);
                 expect(third.bucket).to.be.eq(2);
                 expect(third.price).to.be.bignumber.eq(10);
-                expect(third.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(20);
-                expect(third.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(8);
+                expect(third.sources[ERC20BridgeSource.Uniswap]).to.be.bignumber.eq(2);
+                expect(third.sources[ERC20BridgeSource.Native]).to.be.bignumber.eq(2);
             });
         });
     });
@@ -258,39 +258,39 @@ describe(SUITE_NAME, () => {
                 {
                     price: B(10),
                     bucket: 0,
-                    bucketTotal: B(10),
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    bucketTotal: B(1),
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
                 {
                     price: B(9.5),
                     bucket: 1,
                     bucketTotal: ZERO,
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
                 {
                     price: B(9),
                     bucket: 2,
                     bucketTotal: ZERO,
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
                 {
                     price: B(8.5),
                     bucket: 3,
                     bucketTotal: ZERO,
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
-                // Native is the sample for the sample for 2 (16) (overriding thhe 1 sample), since we didn't sample for 10 it does
+                // Native is the sample for the sample for 2 (overriding the 1 sample), since we didn't sample for 10 it does
                 // not contain the entire order
                 {
                     price: B(8),
                     bucket: 4,
-                    bucketTotal: B(16),
-                    cumulative: B(26),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10), [ERC20BridgeSource.Native]: B(16) },
+                    bucketTotal: B(2),
+                    cumulative: B(3),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1), [ERC20BridgeSource.Native]: B(2) },
                 },
             ]);
         });
@@ -321,37 +321,37 @@ describe(SUITE_NAME, () => {
                 {
                     price: B(10),
                     bucket: 0,
-                    bucketTotal: B(10),
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    bucketTotal: B(1),
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
                 {
                     price: B(9.5),
                     bucket: 1,
                     bucketTotal: ZERO,
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
                 {
                     price: B(9),
                     bucket: 2,
                     bucketTotal: ZERO,
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
                 {
                     price: B(8.5),
                     bucket: 3,
                     bucketTotal: ZERO,
-                    cumulative: B(10),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10) },
+                    cumulative: B(1),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1) },
                 },
                 {
                     price: B(8),
                     bucket: 4,
-                    bucketTotal: B(80),
-                    cumulative: B(90),
-                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(10), [ERC20BridgeSource.Native]: B(80) },
+                    bucketTotal: B(10),
+                    cumulative: B(11),
+                    sources: { ...emptySources, [ERC20BridgeSource.Uniswap]: B(1), [ERC20BridgeSource.Native]: B(10) },
                 },
             ]);
         });

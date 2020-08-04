@@ -143,9 +143,9 @@ export const marketDepthUtils = {
     distributeSamplesToBuckets: (depthSide: MarketDepthSide, buckets: BigNumber[], side: MarketOperation) => {
         const allocatedBuckets = buckets.map((b, i) => ({ price: b, bucket: i, bucketTotal: ZERO, sources: {} }));
         const getBucketId = (price: BigNumber): number => {
-            return buckets.findIndex(b =>
-                side === MarketOperation.Sell ? price.isGreaterThanOrEqualTo(b) : price.isLessThanOrEqualTo(b),
-            );
+            return buckets.findIndex(b => {
+                return side === MarketOperation.Sell ? price.isGreaterThanOrEqualTo(b) : price.isLessThanOrEqualTo(b);
+            });
         };
         const sampleToSourceKey = (sample: DexSample<FillData>): string => {
             const source = sample.source;
@@ -178,7 +178,7 @@ export const marketDepthUtils = {
                 if (sample.output.isZero()) {
                     continue;
                 }
-                const price = sample.output.dividedBy(sample.input);
+                const price = sample.output.dividedBy(sample.input).decimalPlaces(MAX_DECIMALS);
                 const bucketId = getBucketId(price);
                 if (bucketId === -1) {
                     // No bucket available so we ignore
@@ -188,15 +188,13 @@ export const marketDepthUtils = {
                 // If two samples from the same source have landed in the same bucket, take the latter
                 bucket.bucketTotal =
                     bucket.sources[source] && !bucket.sources[source].isZero()
-                        ? bucket.bucketTotal.minus(bucket.sources[source]).plus(sample.output)
-                        : bucket.bucketTotal.plus(sample.output);
-                bucket.sources[source] = sample.output;
+                        ? bucket.bucketTotal.minus(bucket.sources[source]).plus(sample.input)
+                        : bucket.bucketTotal.plus(sample.input);
+                bucket.sources[source] = sample.input;
             }
         }
-        let totalCumulative = ZERO;
         // Normalize the source names back and create a cumulative total
         const normalizedCumulativeBuckets = allocatedBuckets.map((b, bucketIndex) => {
-            totalCumulative = totalCumulative.plus(b.bucketTotal);
             // Sum all of the various pools which fall under once source (Balancer, Uniswap, Curve...)
             const findLastNonEmptyBucketResult = (source: ERC20BridgeSource) => {
                 let lastValue = ZERO;
@@ -222,9 +220,10 @@ export const marketDepthUtils = {
             for (const source of Object.values(ERC20BridgeSource)) {
                 // Add the previous bucket
                 const previousValue = findLastNonEmptyBucketResult(source);
-                b.sources[source] = previousValue.plus(b.sources[source] || ZERO);
+                b.sources[source] = BigNumber.max(previousValue, b.sources[source] || ZERO);
             }
-            return { ...b, cumulative: totalCumulative, sources: b.sources };
+            const cumulative = BigNumber.sum(...Object.values<BigNumber>(b.sources));
+            return { ...b, cumulative, sources: b.sources };
         });
         return normalizedCumulativeBuckets;
     },
