@@ -25,6 +25,7 @@ import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { CalculateSwapQuoteParams, GetSwapQuoteRequestParams, GetSwapQuoteResponse, SwapVersion } from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
+import { serviceUtils } from '../utils/service_utils';
 import {
     findTokenAddressOrThrowApiError,
     getTokenMetadataIfExists,
@@ -311,6 +312,13 @@ const parseGetSwapQuoteRequestParams = (
         endpoint,
     );
 
+    // Determine if any other sources should be excluded
+    const updatedExcludedSources = serviceUtils.determineExcludedSources(
+        excludedSources,
+        apiKey,
+        RFQT_API_KEY_WHITELIST,
+    );
+
     const affiliateAddress = req.query.affiliateAddress as string;
     const rfqt: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'> =
         takerAddress && apiKey
@@ -330,7 +338,7 @@ const parseGetSwapQuoteRequestParams = (
         buyAmount,
         slippagePercentage,
         gasPrice,
-        excludedSources,
+        excludedSources: updatedExcludedSources,
         affiliateAddress,
         rfqt,
         skipValidation,

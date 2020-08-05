@@ -139,7 +139,24 @@ export const serviceUtils = {
         }
         return decimals;
     },
-
+    /**
+     * Returns a new list of excluded sources that may contain additional excluded sources that were determined to be excluded.
+     * @param currentExcludedSources the current list of `excludedSources`
+     * @param apiKey the `0x-api-key` that was passed into the headers
+     * @param allowedApiKeys an array of eligible API keys
+     * @returns a copy of `currentExcludedSources` which may include additional excluded sources
+     */
+    determineExcludedSources(
+        currentExcludedSources: ERC20BridgeSource[],
+        apiKey: string | undefined,
+        allowedApiKeys: string[],
+    ): ERC20BridgeSource[] {
+        const isAPIEnabled = allowedApiKeys.includes(apiKey);
+        if (!isAPIEnabled && !currentExcludedSources.includes(ERC20BridgeSource.LiquidityProvider)) {
+            return currentExcludedSources.concat(ERC20BridgeSource.LiquidityProvider);
+        }
+        return currentExcludedSources;
+    },
     convertSourceBreakdownToArray(sourceBreakdown: SwapQuoteOrdersBreakdown): GetSwapQuoteResponseLiquiditySource[] {
         const defaultSourceBreakdown: SwapQuoteOrdersBreakdown = Object.assign(
             {},

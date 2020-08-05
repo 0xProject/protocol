@@ -12,6 +12,35 @@ const SUITE_NAME = 'serviceUtils test';
 
 // tslint:disable:custom-no-magic-numbers
 describe(SUITE_NAME, () => {
+    describe('excludeProprietarySources', () => {
+        it('will exclude liquidity provider if an API key is not present or invalid', () => {
+            const tests = ['foo', undefined, 'lol'];
+            for (const test of tests) {
+                const result = serviceUtils.determineExcludedSources([ERC20BridgeSource.Balancer], test, ['bar']);
+                expect(result).to.eql([ERC20BridgeSource.Balancer, ERC20BridgeSource.LiquidityProvider]);
+            }
+        });
+
+        it('will not add a duplicate entry for LiquidityProvider if already present', () => {
+            const result = serviceUtils.determineExcludedSources([ERC20BridgeSource.LiquidityProvider], 'foo', ['bar']);
+            expect(result).to.eql([ERC20BridgeSource.LiquidityProvider]);
+        });
+
+        it('will not modify the existing excluded sources if a valid API key is present', () => {
+            const tests: Array<[ERC20BridgeSource[], string]> = [
+                [[], 'bar'],
+                [[ERC20BridgeSource.Curve, ERC20BridgeSource.Eth2Dai], 'bar'],
+                [[ERC20BridgeSource.LiquidityProvider, ERC20BridgeSource.Eth2Dai], 'bar'],
+            ];
+            for (const test of tests) {
+                const [currentExcludedSources, apiKey] = test;
+                const newExcludedSources = serviceUtils.determineExcludedSources(currentExcludedSources, apiKey, [
+                    'bar',
+                ]);
+                expect(newExcludedSources).to.eql(currentExcludedSources);
+            }
+        });
+    });
     describe('getEstimatedGasTokenRefundInfo', () => {
         it('returns an estimate when there are gasTokens and bridge fills', () => {
             const fakeOrders: any = [
