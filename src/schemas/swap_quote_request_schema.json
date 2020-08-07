@@ -32,6 +32,15 @@
         "skipValidation": {
             "type": "string",
             "enum": ["true", "false"]
+        },
+        "sellTokenPercentageFee": {
+            "$ref": "/numberSchema"
+        },
+        "buyTokenPercentageFee": {
+            "$ref": "/numberSchema"
+        },
+        "feeRecipient": {
+            "$ref": "/addressSchema"
         }
     },
     "required": ["sellToken", "buyToken"],

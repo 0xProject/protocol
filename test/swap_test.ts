@@ -1,17 +1,30 @@
 import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
-import { expect } from '@0x/contracts-test-utils';
+import {
+    assertRoughlyEquals,
+    constants,
+    expect,
+    getRandomFloat,
+    getRandomInteger,
+    randomAddress,
+} from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
-import { ObjectMap, SignedOrder } from '@0x/types';
+import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as HttpStatus from 'http-status-codes';
+import * as _ from 'lodash';
 import 'mocha';
 
 import * as config from '../src/config';
-import { SWAP_PATH as BASE_SWAP_PATH } from '../src/constants';
-import { ValidationErrorItem } from '../src/errors';
+import {
+    AFFILIATE_FEE_TRANSFORMER_GAS,
+    GAS_LIMIT_BUFFER_MULTIPLIER,
+    ONE,
+    SWAP_PATH as BASE_SWAP_PATH,
+} from '../src/constants';
+import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
 import { logger } from '../src/logger';
 import { GetSwapQuoteResponse } from '../src/types';
 
@@ -140,7 +153,7 @@ describe(SUITE_NAME, () => {
                 {
                     validationErrors: [
                         {
-                            code: 1004,
+                            code: ValidationErrorCodes.ValueOutOfRange,
                             field: 'buyAmount',
                             reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
                         },
@@ -160,7 +173,7 @@ describe(SUITE_NAME, () => {
             for (const parameters of parameterPermutations) {
                 it(`should return a valid quote with ${JSON.stringify(parameters)}`, async () => {
                     await quoteAndExpectAsync(parameters, {
-                        buyAmount: parameters.buyAmount,
+                        buyAmount: new BigNumber(parameters.buyAmount),
                         sellTokenAddress: parameters.sellToken.startsWith('0x')
                             ? parameters.sellToken
                             : SYMBOL_TO_ADDRESS[parameters.sellToken],
@@ -174,13 +187,16 @@ describe(SUITE_NAME, () => {
         });
 
         it('should respect buyAmount', async () => {
-            await quoteAndExpectAsync({ buyAmount: '1234' }, { buyAmount: '1234' });
+            await quoteAndExpectAsync({ buyAmount: '1234' }, { buyAmount: new BigNumber(1234) });
         });
         it('should respect sellAmount', async () => {
-            await quoteAndExpectAsync({ sellAmount: '1234' }, { sellAmount: '1234' });
+            await quoteAndExpectAsync({ sellAmount: '1234' }, { sellAmount: new BigNumber(1234) });
         });
         it('should respect gasPrice', async () => {
-            await quoteAndExpectAsync({ sellAmount: '1234', gasPrice: '150000000000' }, { gasPrice: '150000000000' });
+            await quoteAndExpectAsync(
+                { sellAmount: '1234', gasPrice: '150000000000' },
+                { gasPrice: new BigNumber('150000000000') },
+            );
         });
         it('should respect excludedSources', async () => {
             await quoteAndExpectAsync(
@@ -191,7 +207,7 @@ describe(SUITE_NAME, () => {
                 {
                     validationErrors: [
                         {
-                            code: 1004,
+                            code: ValidationErrorCodes.ValueOutOfRange,
                             field: 'sellAmount',
                             reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
                         },
@@ -229,7 +245,7 @@ describe(SUITE_NAME, () => {
                     sellAmount: '10000',
                 },
                 {
-                    sellAmount: '10000',
+                    sellAmount: new BigNumber(10000),
                 },
             );
         });
@@ -253,27 +269,140 @@ describe(SUITE_NAME, () => {
                     sellAmount: '1234',
                 },
                 {
-                    estimatedGasTokenRefund: '0',
+                    estimatedGasTokenRefund: constants.ZERO_AMOUNT,
                 },
             );
+        });
+
+        describe('affiliate fees', () => {
+            const sellQuoteParams = {
+                ...DEFAULT_QUERY_PARAMS,
+                sellAmount: getRandomInteger(1, 100000).toString(),
+            };
+            const buyQuoteParams = {
+                ...DEFAULT_QUERY_PARAMS,
+                buyAmount: getRandomInteger(1, 100000).toString(),
+            };
+            let sellQuoteWithoutFee: GetSwapQuoteResponse;
+            let buyQuoteWithoutFee: GetSwapQuoteResponse;
+
+            before(async () => {
+                const sellQuoteRoute = constructRoute({
+                    baseRoute: `${SWAP_PATH}/quote`,
+                    queryParams: sellQuoteParams,
+                });
+                const sellQuoteResponse = await httpGetAsync({ route: sellQuoteRoute });
+                sellQuoteWithoutFee = sellQuoteResponse.body;
+
+                const buyQuoteRoute = constructRoute({
+                    baseRoute: `${SWAP_PATH}/quote`,
+                    queryParams: buyQuoteParams,
+                });
+                const buyQuoteResponse = await httpGetAsync({ route: buyQuoteRoute });
+                buyQuoteWithoutFee = buyQuoteResponse.body;
+            });
+            it('can add a buy token affiliate fee to a sell quote', async () => {
+                const feeRecipient = randomAddress();
+                const buyTokenPercentageFee = getRandomFloat(0, 1);
+                await quoteAndExpectAsync(
+                    {
+                        ...sellQuoteParams,
+                        feeRecipient,
+                        buyTokenPercentageFee: buyTokenPercentageFee.toString(),
+                    },
+                    _.omit(
+                        {
+                            ...sellQuoteWithoutFee,
+                            buyAmount: new BigNumber(sellQuoteWithoutFee.buyAmount).dividedBy(
+                                ONE.plus(buyTokenPercentageFee),
+                            ),
+                            estimatedGas: new BigNumber(sellQuoteWithoutFee.estimatedGas).plus(
+                                AFFILIATE_FEE_TRANSFORMER_GAS,
+                            ),
+                            gas: new BigNumber(sellQuoteWithoutFee.gas).plus(
+                                AFFILIATE_FEE_TRANSFORMER_GAS.times(GAS_LIMIT_BUFFER_MULTIPLIER),
+                            ),
+                            price: new BigNumber(sellQuoteWithoutFee.price).dividedBy(ONE.plus(buyTokenPercentageFee)),
+                            guaranteedPrice: new BigNumber(sellQuoteWithoutFee.guaranteedPrice).dividedBy(
+                                ONE.plus(buyTokenPercentageFee),
+                            ),
+                        },
+                        'data',
+                    ),
+                );
+            });
+            it('can add a buy token affiliate fee to a buy quote', async () => {
+                const feeRecipient = randomAddress();
+                const buyTokenPercentageFee = getRandomFloat(0, 1);
+                await quoteAndExpectAsync(
+                    {
+                        ...buyQuoteParams,
+                        feeRecipient,
+                        buyTokenPercentageFee: buyTokenPercentageFee.toString(),
+                    },
+                    _.omit(
+                        {
+                            ...buyQuoteWithoutFee,
+                            estimatedGas: new BigNumber(buyQuoteWithoutFee.estimatedGas).plus(
+                                AFFILIATE_FEE_TRANSFORMER_GAS,
+                            ),
+                            gas: new BigNumber(buyQuoteWithoutFee.gas).plus(
+                                AFFILIATE_FEE_TRANSFORMER_GAS.times(GAS_LIMIT_BUFFER_MULTIPLIER),
+                            ),
+                            price: new BigNumber(buyQuoteWithoutFee.price).times(ONE.plus(buyTokenPercentageFee)),
+                            guaranteedPrice: new BigNumber(buyQuoteWithoutFee.guaranteedPrice).times(
+                                ONE.plus(buyTokenPercentageFee),
+                            ),
+                        },
+                        ['data', 'sellAmount'],
+                    ),
+                );
+            });
+            it('validation error if given a non-zero sell token fee', async () => {
+                const feeRecipient = randomAddress();
+                await quoteAndExpectAsync(
+                    {
+                        ...sellQuoteParams,
+                        feeRecipient,
+                        sellTokenPercentageFee: '0.01',
+                    },
+                    {
+                        validationErrors: [
+                            {
+                                code: ValidationErrorCodes.UnsupportedOption,
+                                field: 'sellTokenPercentageFee',
+                                reason: ValidationErrorReasons.ArgumentNotYetSupported,
+                            },
+                        ],
+                    },
+                );
+            });
+            it('validation error if given an invalid percentage', async () => {
+                const feeRecipient = randomAddress();
+                await quoteAndExpectAsync(
+                    {
+                        ...sellQuoteParams,
+                        feeRecipient,
+                        buyTokenPercentageFee: '1.01',
+                    },
+                    {
+                        validationErrors: [
+                            {
+                                code: ValidationErrorCodes.ValueOutOfRange,
+                                field: 'buyTokenPercentageFee',
+                                reason: ValidationErrorReasons.PercentageOutOfRange,
+                            },
+                        ],
+                    },
+                );
+            });
         });
     });
 });
 
-interface QuoteAssertion {
-    buyAmount: string;
-    sellAmount: string;
-    price: string;
-    guaranteedPrice: string;
-    gasPrice: string;
-    to: string;
-    signedOrders: SignedOrder[];
-    sellTokenAddress: string;
-    buyTokenAddress: string;
-    estimatedGasTokenRefund: string;
+interface QuoteAssertion extends GetSwapQuoteResponse {
     validationErrors: ValidationErrorItem[];
     revertErrorReason: string;
-    allowanceTarget: string;
 }
 
 async function quoteAndExpectAsync(
@@ -308,9 +437,14 @@ async function quoteAndExpectAsync(
     expectCorrectQuote(response.body, quoteAssertions);
 }
 
+const PRECISION = 4;
 function expectCorrectQuote(quoteResponse: GetSwapQuoteResponse, quoteAssertions: Partial<QuoteAssertion>): void {
     for (const property of Object.keys(quoteAssertions)) {
-        expect(quoteResponse[property]).to.be.eql(quoteAssertions[property]);
+        if (BigNumber.isBigNumber(quoteAssertions[property])) {
+            assertRoughlyEquals(quoteResponse[property], quoteAssertions[property], PRECISION);
+        } else {
+            expect(quoteResponse[property], property).to.eql(quoteAssertions[property]);
+        }
     }
     // Only have 0x liquidity for now.
     expect(quoteResponse.sources).to.be.eql([

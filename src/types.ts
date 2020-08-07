@@ -385,6 +385,12 @@ export interface GasTokenRefundInfo {
     gasTokenRefund: BigNumber;
 }
 
+export interface AffiliateFeeAmounts {
+    gasCost: BigNumber;
+    sellTokenFeeAmount: BigNumber;
+    buyTokenFeeAmount: BigNumber;
+}
+
 export interface SwapQuoteResponsePartialTransaction {
     to: string;
     data: string;
@@ -486,6 +492,12 @@ export interface ZeroExTransactionWithoutDomain {
     data: string;
 }
 
+export interface PercentageFee {
+    recipient: string;
+    sellTokenPercentageFee: number;
+    buyTokenPercentageFee: number;
+}
+
 export interface GetSwapQuoteRequestParams {
     sellToken: string;
     buyToken: string;
@@ -499,6 +511,7 @@ export interface GetSwapQuoteRequestParams {
     rfqt?: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'>;
     skipValidation: boolean;
     apiKey?: string;
+    affiliateFee: PercentageFee;
 }
 
 export interface GetTransactionRequestParams {
@@ -527,6 +540,7 @@ export interface CalculateSwapQuoteParams {
     rfqt?: Partial<RfqtRequestOpts>;
     skipValidation: boolean;
     swapVersion: SwapVersion;
+    affiliateFee: PercentageFee;
 }
 
 export interface GetSwapQuoteResponseLiquiditySource {
