@@ -757,4 +757,34 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'mUSD',
+        name: 'mStable USD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'bUSD',
+        name: 'Binance USD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x4Fabb145d64652a948d72533023f6E7A623C7C53',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'PAX',
+        name: 'Paxos Standard',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
