@@ -777,14 +777,4 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
-    {
-        symbol: 'PAX',
-        name: 'Paxos Standard',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
 ];

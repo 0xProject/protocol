@@ -73,12 +73,12 @@ describe(SUITE_NAME, () => {
     describe('sampleNativeOrders', () => {
         it('can partially fill a sample amount', async () => {
             const nativePath = [{ input: B(100), output: B(200), source: ERC20BridgeSource.Native }];
-            const output = marketDepthUtils.sampleNativeOrders(nativePath, B(10));
+            const output = marketDepthUtils.sampleNativeOrders(nativePath, B(10), MarketOperation.Sell);
             expect(output).to.be.bignumber.eq(B(20));
         });
         it('returns zero if it cannot fully fill the amount', async () => {
             const nativePath = [{ input: B(100), output: B(200), source: ERC20BridgeSource.Native }];
-            const output = marketDepthUtils.sampleNativeOrders(nativePath, B(101));
+            const output = marketDepthUtils.sampleNativeOrders(nativePath, B(101), MarketOperation.Sell);
             expect(output).to.be.bignumber.eq(ZERO);
         });
         it('runs across multiple orders', async () => {
@@ -86,7 +86,7 @@ describe(SUITE_NAME, () => {
                 { input: B(50), output: B(200), source: ERC20BridgeSource.Native },
                 { input: B(50), output: B(50), source: ERC20BridgeSource.Native },
             ];
-            const output = marketDepthUtils.sampleNativeOrders(nativePath, B(100));
+            const output = marketDepthUtils.sampleNativeOrders(nativePath, B(100), MarketOperation.Sell);
             expect(output).to.be.bignumber.eq(B(250));
         });
     });
@@ -100,7 +100,10 @@ describe(SUITE_NAME, () => {
                 { input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
                 { input: B(2), output: B(20), source: ERC20BridgeSource.Uniswap },
             ];
-            const results = marketDepthUtils.normalizeMarketDepthToSampleOutput([uniPath, nativePath]);
+            const results = marketDepthUtils.normalizeMarketDepthToSampleOutput(
+                [uniPath, nativePath],
+                MarketOperation.Sell,
+            );
             expect(results).to.deep.include(uniPath);
             expect(results).to.deep.include([
                 { input: B(1), output: B(4), source: ERC20BridgeSource.Native },

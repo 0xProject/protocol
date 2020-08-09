@@ -70,8 +70,13 @@ export const marketDepthUtils = {
                   );
         return sampleAmounts;
     },
-    sampleNativeOrders: (path: Array<DexSample<NativeFillData>>, targetInput: BigNumber): BigNumber => {
-        const sortedPath = path.sort((a, b) => b.output.dividedBy(b.input).comparedTo(a.output.dividedBy(a.input)));
+    sampleNativeOrders: (
+        path: Array<DexSample<NativeFillData>>,
+        targetInput: BigNumber,
+        side: MarketOperation,
+    ): BigNumber => {
+        let sortedPath = path.sort((a, b) => b.output.dividedBy(b.input).comparedTo(a.output.dividedBy(a.input)));
+        sortedPath = side === MarketOperation.Sell ? sortedPath : sortedPath.reverse();
         let totalOutput = ZERO;
         let totalInput = ZERO;
         for (const fill of sortedPath) {
@@ -89,7 +94,7 @@ export const marketDepthUtils = {
         }
         return totalOutput;
     },
-    normalizeMarketDepthToSampleOutput: (depthSide: MarketDepthSide): MarketDepthSide => {
+    normalizeMarketDepthToSampleOutput: (depthSide: MarketDepthSide, side: MarketOperation): MarketDepthSide => {
         // Native is not a "sampled" output, here we convert it to be a accumulated sample output
         const nativeIndexIfExists = depthSide.findIndex(
             s => s[0] && s[0].source === ERC20BridgeSource.Native && s[0].output,
@@ -99,14 +104,20 @@ export const marketDepthUtils = {
         }
         // We should now have [1, 10, 100] sample amounts
         const sampleAmounts = marketDepthUtils.getSampleAmountsFromDepthSide(depthSide);
-        const nativeSamples = sampleAmounts.map(a => ({
-            input: a,
-            output: marketDepthUtils.sampleNativeOrders(
+        const nativeSamples = sampleAmounts.map(a => {
+            const sample = marketDepthUtils.sampleNativeOrders(
                 depthSide[nativeIndexIfExists] as Array<DexSample<NativeFillData>>,
                 a,
-            ),
-            source: ERC20BridgeSource.Native,
-        }));
+                side,
+            );
+            const input = a;
+            const output = sample;
+            return {
+                input,
+                output,
+                source: ERC20BridgeSource.Native,
+            };
+        });
         const normalizedDepth = [
             ...depthSide.filter(s => s[0] && s[0].source !== ERC20BridgeSource.Native),
             nativeSamples,
@@ -235,7 +246,7 @@ export const marketDepthUtils = {
         bucketDistribution: number = MARKET_DEPTH_DEFAULT_DISTRIBUTION,
         maxEndSlippagePercentage: number = MARKET_DEPTH_END_PRICE_SLIPPAGE_PERC,
     ): BucketedPriceDepth[] => {
-        const depthSide = marketDepthUtils.normalizeMarketDepthToSampleOutput(rawDepthSide);
+        const depthSide = marketDepthUtils.normalizeMarketDepthToSampleOutput(rawDepthSide, side);
         const [startPrice, endPrice] = marketDepthUtils.calculateStartEndBucketPrice(
             depthSide,
             side,

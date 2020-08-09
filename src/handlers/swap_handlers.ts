@@ -6,6 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import { CHAIN_ID, RFQT_API_KEY_WHITELIST } from '../config';
 import {
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    DEFAULT_TOKEN_DECIMALS,
     MARKET_DEPTH_DEFAULT_DISTRIBUTION,
     MARKET_DEPTH_MAX_SAMPLES,
     SWAP_DOCS_URL,
@@ -133,8 +134,25 @@ export class SwapHandlers {
     }
 
     public async getMarketDepthAsync(req: express.Request, res: express.Response): Promise<void> {
-        const makerToken = getTokenMetadataIfExists(req.query.buyToken as string, CHAIN_ID);
-        const takerToken = getTokenMetadataIfExists(req.query.sellToken as string, CHAIN_ID);
+        const makerToken = {
+            decimals: DEFAULT_TOKEN_DECIMALS,
+            tokenAddress: req.query.buyToken,
+            ...getTokenMetadataIfExists(req.query.buyToken as string, CHAIN_ID),
+        };
+        const takerToken = {
+            decimals: DEFAULT_TOKEN_DECIMALS,
+            tokenAddress: req.query.sellToken,
+            ...getTokenMetadataIfExists(req.query.sellToken as string, CHAIN_ID),
+        };
+        if (makerToken.tokenAddress === takerToken.tokenAddress) {
+            throw new ValidationError([
+                {
+                    field: 'buyToken',
+                    code: ValidationErrorCodes.InvalidAddress,
+                    reason: `Invalid pair ${takerToken.tokenAddress}/${makerToken.tokenAddress}`,
+                },
+            ]);
+        }
         const response = await this._swapService.calculateMarketDepthAsync({
             buyToken: makerToken,
             sellToken: takerToken,
