@@ -1,3 +1,19 @@
+# [1.14.0](https://github.com/0xProject/0x-api/compare/v1.13.0...v1.14.0) (2020-08-10)
+
+
+### Bug Fixes
+
+* handle addresses in depth ([#313](https://github.com/0xProject/0x-api/issues/313)) ([ce6978b](https://github.com/0xProject/0x-api/commit/ce6978b9cb3cc34c0b0354b0ef5309f3e87fb572))
+* return input in depth-chart ([#307](https://github.com/0xProject/0x-api/issues/307)) ([a3fa961](https://github.com/0xProject/0x-api/commit/a3fa961dff4b25b60599e6ad18de20c780706de1))
+* source regression ([#306](https://github.com/0xProject/0x-api/issues/306)) ([cdcfc78](https://github.com/0xProject/0x-api/commit/cdcfc78ed544524173afb60ea02eedc7e0c46d60))
+* update asset-swapper optimizer for splits ([#311](https://github.com/0xProject/0x-api/issues/311)) ([5b212c9](https://github.com/0xProject/0x-api/commit/5b212c9c226ff952fe1b64db4fffe636967a25fe))
+
+
+### Features
+
+* Add support for buy token affiliate fees ([#310](https://github.com/0xProject/0x-api/issues/310)) ([2866253](https://github.com/0xProject/0x-api/commit/28662535489b07cd6d1f8971aa817ec8030413ef))
+* ethToInputRate cost routing ([#315](https://github.com/0xProject/0x-api/issues/315)) ([e542c98](https://github.com/0xProject/0x-api/commit/e542c98e23a307ef0fada5ccdbea2d41d8a332fe))
+
 # [1.13.0](https://github.com/0xProject/0x-api/compare/v1.12.0...v1.13.0) (2020-08-03)
 
 
