@@ -2,6 +2,7 @@ import { RfqtRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
+import _ = require('lodash');
 
 import { CHAIN_ID, RFQT_API_KEY_WHITELIST } from '../config';
 import {
@@ -34,6 +35,8 @@ import {
     isWETHSymbolOrAddress,
 } from '../utils/token_metadata_utils';
 
+import { quoteReportUtils } from './../utils/quote_report_utils';
+
 export class SwapHandlers {
     private readonly _swapService: SwapService;
     public static rootAsync(_req: express.Request, res: express.Response): void {
@@ -63,8 +66,16 @@ export class SwapHandlers {
                     makers: quote.orders.map(order => order.makerAddress),
                 },
             });
+            if (quote.quoteReport && params.rfqt && params.rfqt.intentOnFilling) {
+                quoteReportUtils.logQuoteReport({
+                    quoteReport: quote.quoteReport,
+                    submissionBy: 'taker',
+                    decodedUniqueId: quote.decodedUniqueId,
+                });
+            }
         }
-        res.status(HttpStatus.OK).send(quote);
+        const cleanedQuote = _.omit(quote, 'quoteReport', 'decodedUniqueId');
+        res.status(HttpStatus.OK).send(cleanedQuote);
     }
     // tslint:disable-next-line:prefer-function-over-method
     public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {

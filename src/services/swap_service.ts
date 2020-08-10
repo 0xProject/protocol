@@ -121,14 +121,14 @@ export class SwapService {
             protocolFeeInWeiAmount: bestCaseProtocolFee,
         } = attributedSwapQuote.bestCaseQuoteInfo;
         const { protocolFeeInWeiAmount: protocolFee, gas: worstCaseGas } = attributedSwapQuote.worstCaseQuoteInfo;
-        const { orders, gasPrice, sourceBreakdown } = attributedSwapQuote;
+        const { orders, gasPrice, sourceBreakdown, quoteReport } = attributedSwapQuote;
 
         const {
             gasCost: affiliateFeeGasCost,
             buyTokenFeeAmount,
             sellTokenFeeAmount,
         } = serviceUtils.getAffiliateFeeAmounts(swapQuote, affiliateFee);
-        const { to, value, data } = await this._getSwapQuotePartialTransactionAsync(
+        const { to, value, data, decodedUniqueId } = await this._getSwapQuotePartialTransactionAsync(
             swapQuote,
             isETHSell,
             isETHBuy,
@@ -221,6 +221,8 @@ export class SwapService {
             sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
             orders: serviceUtils.cleanSignedOrderFields(orders),
             allowanceTarget,
+            decodedUniqueId,
+            quoteReport,
         };
         return apiSwapQuote;
     }
@@ -360,7 +362,7 @@ export class SwapService {
             : this._wethContract.deposit()
         ).getABIEncodedTransactionData();
         const value = isUnwrap ? ZERO : amount;
-        const affiliatedData = serviceUtils.attributeCallData(data, affiliateAddress);
+        const attributedCalldata = serviceUtils.attributeCallData(data, affiliateAddress);
         // TODO: consider not using protocol fee utils due to lack of need for an aggresive gas price for wrapping/unwrapping
         const gasPrice = providedGasPrice || (await this._swapQuoter.getGasPriceEstimationOrThrowAsync());
         const gasEstimate = isUnwrap ? UNWRAP_QUOTE_GAS : WRAP_QUOTE_GAS;
@@ -368,7 +370,8 @@ export class SwapService {
             price: ONE,
             guaranteedPrice: ONE,
             to: this._wethContract.address,
-            data: affiliatedData,
+            data: attributedCalldata.affiliatedData,
+            decodedUniqueId: attributedCalldata.decodedUniqueId,
             value,
             gas: gasEstimate,
             estimatedGas: gasEstimate,
@@ -537,11 +540,12 @@ export class SwapService {
             toAddress: to,
         } = await this._swapQuoteConsumer.getCalldataOrThrowAsync(swapQuote, opts);
 
-        const affiliatedData = serviceUtils.attributeCallData(data, affiliateAddress);
+        const { affiliatedData, decodedUniqueId } = serviceUtils.attributeCallData(data, affiliateAddress);
         return {
             to,
             value,
             data: affiliatedData,
+            decodedUniqueId,
         };
     }
 

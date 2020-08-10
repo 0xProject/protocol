@@ -1,4 +1,11 @@
-import { Orderbook, SwapQuoter, SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper';
+import {
+    MarketBuySwapQuote,
+    MarketSellSwapQuote,
+    Orderbook,
+    SwapQuoter,
+    SwapQuoteRequestOpts,
+    SwapQuoterOpts,
+} from '@0x/asset-swapper';
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ContractWrappers } from '@0x/contract-wrappers';
 import { DevUtilsContract } from '@0x/contracts-dev-utils';
@@ -41,6 +48,7 @@ import {
     ZeroExTransactionWithoutDomain,
 } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
+import { quoteReportUtils } from '../utils/quote_report_utils';
 import { serviceUtils } from '../utils/service_utils';
 import { utils } from '../utils/utils';
 
@@ -111,7 +119,7 @@ export class MetaTransactionService {
             rfqt: _rfqt,
         };
 
-        let swapQuote;
+        let swapQuote: MarketSellSwapQuote | MarketBuySwapQuote | undefined;
         if (sellAmount !== undefined) {
             swapQuote = await this._swapQuoter.getMarketSellSwapQuoteAsync(
                 buyTokenAddress,
@@ -129,7 +137,7 @@ export class MetaTransactionService {
         } else {
             throw new Error('sellAmount or buyAmount required');
         }
-        const { gasPrice } = swapQuote;
+        const { gasPrice, quoteReport } = swapQuote;
         const { gas, protocolFeeInWeiAmount: protocolFee } = swapQuote.worstCaseQuoteInfo;
         const makerAssetAmount = swapQuote.bestCaseQuoteInfo.makerAssetAmount;
         const totalTakerAssetAmount = swapQuote.bestCaseQuoteInfo.totalTakerAssetAmount;
@@ -162,6 +170,7 @@ export class MetaTransactionService {
             protocolFee,
             minimumProtocolFee: protocolFee,
             allowanceTarget,
+            quoteReport,
         };
         return response;
     }
@@ -177,6 +186,7 @@ export class MetaTransactionService {
             estimatedGas,
             protocolFee,
             minimumProtocolFee,
+            quoteReport,
         } = await this.calculateMetaTransactionPriceAsync(params, 'quote');
 
         const floatGasPrice = swapQuote.gasPrice;
@@ -205,6 +215,11 @@ export class MetaTransactionService {
                 this._contractWrappers.contractAddresses.exchange,
             )
             .callAsync();
+
+        // log quote report and associate with txn hash if this is an RFQT firm quote
+        if (quoteReport) {
+            quoteReportUtils.logQuoteReport({ submissionBy: 'metaTxn', quoteReport, zeroExTransactionHash });
+        }
 
         const makerAssetAmount = swapQuote.bestCaseQuoteInfo.makerAssetAmount;
         const totalTakerAssetAmount = swapQuote.bestCaseQuoteInfo.totalTakerAssetAmount;
@@ -339,7 +354,7 @@ export class MetaTransactionService {
             status: TransactionStates.Unsubmitted,
             takerAddress: zeroExTransaction.signerAddress,
             to: this._contractWrappers.exchange.address,
-            data,
+            data: data.affiliatedData,
             value: protocolFee,
             apiKey,
             gasPrice: zeroExTransaction.gasPrice,

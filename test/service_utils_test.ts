@@ -103,7 +103,7 @@ describe(SUITE_NAME, () => {
         it('it returns a reasonable ID and timestamp', () => {
             const fakeCallData = '0x0000000000000';
             const fakeAffiliate = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-            const attributedCallData = serviceUtils.attributeCallData(fakeCallData, fakeAffiliate);
+            const attributedCallData = serviceUtils.attributeCallData(fakeCallData, fakeAffiliate).affiliatedData;
             const currentTime = new Date();
 
             // parse out items from call data to ensure they are reasonable values

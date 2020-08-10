@@ -60,7 +60,13 @@ export const serviceUtils = {
         return attributedSwapQuote;
     },
 
-    attributeCallData(data: string, affiliateAddress?: string): string {
+    attributeCallData(
+        data: string,
+        affiliateAddress?: string,
+    ): {
+        affiliatedData: string;
+        decodedUniqueId: string;
+    } {
         const affiliateAddressOrDefault = affiliateAddress ? affiliateAddress : FEE_RECIPIENT_ADDRESS;
         const affiliateCallDataEncoder = new AbiEncoder.Method({
             constant: true,
@@ -89,7 +95,7 @@ export const serviceUtils = {
         // Encode additional call data and return
         const encodedAffiliateData = affiliateCallDataEncoder.encode([affiliateAddressOrDefault, uniqueIdentifier]);
         const affiliatedData = `${data}${encodedAffiliateData.slice(2)}`;
-        return affiliatedData;
+        return { affiliatedData, decodedUniqueId: `${randomNumber}-${timestampInSeconds}` };
     },
 
     // tslint:disable-next-line:prefer-function-over-method
