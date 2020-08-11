@@ -1,5 +1,6 @@
 // tslint:disable:max-file-line-count
 import { ERC20BridgeSource, rfqtMocker, SignedOrder } from '@0x/asset-swapper';
+import { quoteRequestorHttpClient } from '@0x/asset-swapper/lib/src/utils/quote_requestor';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
@@ -158,6 +159,7 @@ describe(SUITE_NAME, () => {
                             expect(responseJson.orders.length).to.equal(1);
                             expect(responseJson.orders[0]).to.eql(signedOrder);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should not include an RFQ-T order when intentOnFilling === false', async () => {
@@ -188,6 +190,7 @@ describe(SUITE_NAME, () => {
                             expect(validationErrors.length).to.eql(1);
                             expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should not include an RFQ-T order when intentOnFilling is omitted', async () => {
@@ -275,6 +278,7 @@ describe(SUITE_NAME, () => {
                             expect(responseJson.orders.length).to.equal(1);
                             expect(responseJson.orders[0]).to.eql(signedOrder);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should fail when bad api key used', async () => {
@@ -356,6 +360,7 @@ describe(SUITE_NAME, () => {
                             expect(responseJson.sellAmount).to.equal('100000000000000000');
                             expect(responseJson.sources).to.deep.include.members([{ name: '0x', proportion: '1' }]);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should fail silently when RFQ-T provider gives an error response', async () => {
@@ -380,6 +385,7 @@ describe(SUITE_NAME, () => {
                             expect(validationErrors.length).to.eql(1);
                             expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
             });
@@ -417,6 +423,7 @@ describe(SUITE_NAME, () => {
                         expect(validationErrors.length).to.eql(1);
                         expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                     },
+                    quoteRequestorHttpClient,
                 );
             });
         });
@@ -475,6 +482,7 @@ describe(SUITE_NAME, () => {
                             expect(responseJson.orders.length).to.equal(1);
                             expect(responseJson.orders[0]).to.eql(ganacheZrxWethOrder1);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should not include an RFQ-T order when intentOnFilling === false', async () => {
@@ -505,6 +513,7 @@ describe(SUITE_NAME, () => {
                             expect(validationErrors.length).to.eql(1);
                             expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should not include an RFQ-T order when intentOnFilling is omitted', async () => {
@@ -535,6 +544,7 @@ describe(SUITE_NAME, () => {
                             expect(validationErrors.length).to.eql(1);
                             expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should succeed when includedSources is RFQT', async () => {
@@ -557,6 +567,7 @@ describe(SUITE_NAME, () => {
                             expect(responseJson.orders.length).to.equal(1);
                             expect(responseJson.orders[0]).to.eql(ganacheZrxWethOrder1);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should not succeed when includedSources is RFQT and no taker address is specified', async () => {
@@ -576,6 +587,7 @@ describe(SUITE_NAME, () => {
                                 .expect(HttpStatus.BAD_REQUEST)
                                 .expect('Content-Type', /json/);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should fail when taker address is not supplied', async () => {
@@ -633,6 +645,7 @@ describe(SUITE_NAME, () => {
                             expect(responseJson.orders.length).to.equal(1);
                             expect(responseJson.orders[0]).to.eql(ganacheZrxWethOrder1);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should fail when bad api key used', async () => {
@@ -666,6 +679,7 @@ describe(SUITE_NAME, () => {
                             expect(validationErrors.length).to.eql(1);
                             expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should fail validation when taker can not actually fill', async () => {
@@ -689,6 +703,7 @@ describe(SUITE_NAME, () => {
                                 .expect(HttpStatus.BAD_REQUEST)
                                 .expect('Content-Type', /json/);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should get an indicative quote from an RFQ-T provider', async () => {
@@ -714,6 +729,7 @@ describe(SUITE_NAME, () => {
                             expect(responseJson.sellAmount).to.equal('100000000000000000');
                             expect(responseJson.sources).to.deep.include.members([{ name: '0x', proportion: '1' }]);
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
                 it('should fail silently when RFQ-T provider gives an error response', async () => {
@@ -738,6 +754,7 @@ describe(SUITE_NAME, () => {
                             expect(validationErrors.length).to.eql(1);
                             expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                         },
+                        quoteRequestorHttpClient,
                     );
                 });
             });
@@ -773,6 +790,7 @@ describe(SUITE_NAME, () => {
                         expect(validationErrors.length).to.eql(1);
                         expect(validationErrors[0].reason).to.eql('INSUFFICIENT_ASSET_LIQUIDITY');
                     },
+                    quoteRequestorHttpClient,
                 );
             });
         });

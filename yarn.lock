@@ -32,9 +32,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-e6367f07f":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-ece93fed7":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/1d995d0e5cb1f76864a3a2bc1a43b520f4587678"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/df94aa37686361deb6de82945c37d011c2232974"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/contract-addresses" "^4.11.0"
@@ -46,7 +46,7 @@
     "@0x/quote-server" "^2.0.2"
     "@0x/utils" "^5.5.1"
     "@0x/web3-wrapper" "^7.2.0"
-    "@balancer-labs/sor" "^0.3.0"
+    "@balancer-labs/sor" "0.3.2"
     axios "^0.19.2"
     axios-mock-adapter "^1.18.1"
     decimal.js "^10.2.0"
@@ -717,6 +717,16 @@
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.9.6.tgz#a9102eb5cadedf3f31d08a9ecf294af7827ea29f"
   dependencies:
     regenerator-runtime "^0.13.4"
+
+"@balancer-labs/sor@0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@balancer-labs/sor/-/sor-0.3.2.tgz#b05c63a07031c2ea13ed0d2670f5105cfaa40523"
+  integrity sha512-wmYmTm/zhnRPd/OaqzJJGo9mRIp4PvNNS/AG0EVWJmLmZvYkm2sl6/dBL3KC88rub9duVQr2M8BHCosseFuGLw==
+  dependencies:
+    bignumber.js "^9.0.0"
+    ethers "^4.0.39"
+    isomorphic-fetch "^2.2.1"
+    typescript "^3.8.3"
 
 "@balancer-labs/sor@^0.3.0":
   version "0.3.0"
