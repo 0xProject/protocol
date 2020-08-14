@@ -36,7 +36,7 @@ import {
     WRAP_QUOTE_GAS,
     ZERO,
 } from '../constants';
-import { InsufficientFundsError } from '../errors';
+import { InsufficientFundsError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import {
@@ -74,8 +74,12 @@ export class SwapService {
             ...SWAP_QUOTER_OPTS,
             rfqt: {
                 ...SWAP_QUOTER_OPTS.rfqt,
-                warningLogger: logger.warn.bind(logger),
-                infoLogger: logger.info.bind(logger),
+                // tslint:disable-next-line:no-empty
+                warningLogger: () => {},
+                // tslint:disable-next-line:no-empty
+                infoLogger: () => {},
+                // warningLogger: logger.warn.bind(logger),
+                // infoLogger: logger.info.bind(logger),
             },
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
@@ -449,6 +453,16 @@ export class SwapService {
             affiliateFee,
         } = params;
         let _rfqt: RfqtRequestOpts | undefined;
+        const isAllExcluded = Object.values(ERC20BridgeSource).every(s => excludedSources.includes(s));
+        if (isAllExcluded) {
+            throw new ValidationError([
+                {
+                    field: 'excludedSources',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: 'Request excluded all sources',
+                },
+            ]);
+        }
         if (apiKey !== undefined && (isETHSell || from !== undefined)) {
             let takerAddress;
             switch (swapVersion) {

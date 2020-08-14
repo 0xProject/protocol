@@ -777,4 +777,14 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'CRV',
+        name: 'Curve DAO Token',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xd533a949740bb3306d119cc777fa900ba034cd52',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
