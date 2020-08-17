@@ -208,8 +208,8 @@ describe(SUITE_NAME, () => {
                     validationErrors: [
                         {
                             code: ValidationErrorCodes.ValueOutOfRange,
-                            field: 'sellAmount',
-                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
+                            field: 'excludedSources',
+                            reason: 'Request excluded all sources',
                         },
                     ],
                 },

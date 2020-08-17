@@ -176,8 +176,8 @@ describe(SUITE_NAME, () => {
                     validationErrors: [
                         {
                             code: 1004,
-                            field: 'sellAmount',
-                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
+                            field: 'excludedSources',
+                            reason: 'Request excluded all sources',
                         },
                     ],
                 },
