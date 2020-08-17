@@ -1,3 +1,18 @@
+# [1.15.0](https://github.com/0xProject/0x-api/compare/v1.14.0...v1.15.0) (2020-08-17)
+
+
+### Bug Fixes
+
+* added new asset swapper ([#316](https://github.com/0xProject/0x-api/issues/316)) ([029a58a](https://github.com/0xProject/0x-api/commit/029a58a21e31a05cba06825824d05d1f2da4b5b4))
+* excluded sources test ([#322](https://github.com/0xProject/0x-api/issues/322)) ([1327261](https://github.com/0xProject/0x-api/commit/13272610d206ba53b2f7b60d012bc0a0cd9a181b))
+* lower db pool connections ([#318](https://github.com/0xProject/0x-api/issues/318)) ([d9cb04d](https://github.com/0xProject/0x-api/commit/d9cb04de8beec57584e3c68ecc67622905a107f6))
+* lower db pool connections ([#319](https://github.com/0xProject/0x-api/issues/319)) ([bc9f218](https://github.com/0xProject/0x-api/commit/bc9f2184ac96d7b45b80a58be684f2e6b50622ae))
+
+
+### Features
+
+* Log QuoteReport to Kibana ([#298](https://github.com/0xProject/0x-api/issues/298)) ([7bd6d4d](https://github.com/0xProject/0x-api/commit/7bd6d4dec81abb09216cb8842f6de9adbf4d3a10))
+
 # [1.14.0](https://github.com/0xProject/0x-api/compare/v1.13.0...v1.14.0) (2020-08-10)
 
 
