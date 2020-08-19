@@ -36,16 +36,9 @@ let dependencies: AppDependencies;
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const SUITE_NAME = 'rfqt tests';
-const excludedSources = [
-    ERC20BridgeSource.Uniswap,
-    ERC20BridgeSource.UniswapV2,
-    ERC20BridgeSource.Kyber,
-    ERC20BridgeSource.LiquidityProvider,
-    ERC20BridgeSource.Eth2Dai,
-    ERC20BridgeSource.MultiBridge,
-    ERC20BridgeSource.Balancer,
-];
-const DEFAULT_EXCLUDED_SOURCES = excludedSources.join(',');
+
+const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
+const DEFAULT_EXCLUDED_SOURCES = EXCLUDED_SOURCES.join(',');
 const DEFAULT_SELL_AMOUNT = new BigNumber(100000000000000000);
 
 describe(SUITE_NAME, () => {

@@ -10,7 +10,7 @@ import {
     SwapQuoter,
 } from '@0x/asset-swapper';
 import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/types';
-import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ContractAddresses } from '@0x/contract-addresses';
 import { ERC20TokenContract, WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { MarketOperation } from '@0x/types';
@@ -68,7 +68,7 @@ export class SwapService {
     private readonly _gstBalanceResultCache: ResultCache<BigNumber>;
     private readonly _tokenDecimalResultCache: ResultCache<number>;
 
-    constructor(orderbook: Orderbook, provider: SupportedProvider) {
+    constructor(orderbook: Orderbook, provider: SupportedProvider, contractAddresses: ContractAddresses) {
         this._provider = provider;
         const swapQuoterOpts: Partial<SwapQuoterOpts> = {
             ...SWAP_QUOTER_OPTS,
@@ -81,12 +81,13 @@ export class SwapService {
                 // warningLogger: logger.warn.bind(logger),
                 // infoLogger: logger.info.bind(logger),
             },
+            contractAddresses,
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
         this._web3Wrapper = new Web3Wrapper(this._provider);
 
-        this._contractAddresses = getContractAddressesForChainOrThrow(CHAIN_ID);
+        this._contractAddresses = contractAddresses;
         this._wethContract = new WETH9Contract(this._contractAddresses.etherToken, this._provider);
         const gasTokenContract = new ERC20TokenContract(
             getTokenMetadataIfExists('GST2', CHAIN_ID).tokenAddress,
@@ -247,7 +248,7 @@ export class SwapService {
         const queryAssetData = TokenMetadatasForChains.filter(m => m.symbol !== sellToken.symbol).filter(
             m => m.tokenAddresses[CHAIN_ID] !== NULL_ADDRESS,
         );
-        const chunkSize = 20;
+        const chunkSize = 15;
         const assetDataChunks = _.chunk(queryAssetData, chunkSize);
         const allResults = _.flatten(
             await Promise.all(
@@ -264,7 +265,8 @@ export class SwapService {
                             ...ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
                             bridgeSlippage: 0,
                             maxFallbackSlippage: 0,
-                            numSamples: 3,
+                            numSamples: 1,
+                            shouldBatchBridgeOrders: false,
                         },
                     );
                     return quotes;

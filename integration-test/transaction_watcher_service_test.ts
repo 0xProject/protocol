@@ -10,6 +10,7 @@ import {
     createMetaTxnServiceFromOrderBookService,
     createSwapServiceFromOrderBookService,
     getAppAsync,
+    getContractAddressesForNetworkOrThrowAsync,
 } from '../src/app';
 import {
     CHAIN_ID,
@@ -29,7 +30,7 @@ import { MetricsService } from '../src/services/metrics_service';
 import { OrderBookService } from '../src/services/orderbook_service';
 import { StakingDataService } from '../src/services/staking_data_service';
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
-import { TransactionStates, TransactionWatcherSignerServiceConfig } from '../src/types';
+import { ChainId, TransactionStates, TransactionWatcherSignerServiceConfig } from '../src/types';
 import { MeshClient } from '../src/utils/mesh_client';
 import { utils } from '../src/utils/utils';
 
@@ -67,9 +68,11 @@ describe('transaction watcher service', () => {
         providerUtils.startProviderEngine(providerEngine);
         provider = providerEngine;
         connection = await getDBConnectionAsync();
+        const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, ChainId.Ganache);
         const txWatcherConfig: TransactionWatcherSignerServiceConfig = {
             provider: providerEngine,
             chainId: CHAIN_ID,
+            contractAddresses,
             signerPrivateKeys: META_TXN_RELAY_PRIVATE_KEYS,
             expectedMinedInSec: META_TXN_RELAY_EXPECTED_MINED_SEC,
             isSigningEnabled: META_TXN_SIGNING_ENABLED,
@@ -84,10 +87,15 @@ describe('transaction watcher service', () => {
         txWatcher = new TransactionWatcherSignerService(connection, txWatcherConfig);
         await txWatcher.syncTransactionStatusAsync();
         const orderBookService = new OrderBookService(connection);
-        const metaTransactionService = createMetaTxnServiceFromOrderBookService(orderBookService, provider, connection);
+        const metaTransactionService = createMetaTxnServiceFromOrderBookService(
+            orderBookService,
+            provider,
+            connection,
+            contractAddresses,
+        );
         const stakingDataService = new StakingDataService(connection);
         const websocketOpts = { path: SRA_PATH };
-        const swapService = createSwapServiceFromOrderBookService(orderBookService, provider);
+        const swapService = createSwapServiceFromOrderBookService(orderBookService, provider, contractAddresses);
         const meshClient = new MeshClient(
             defaultHttpServiceConfig.meshWebsocketUri,
             defaultHttpServiceConfig.meshHttpUri,
@@ -96,6 +104,7 @@ describe('transaction watcher service', () => {
         metaTxnUser = new TestMetaTxnUser();
         ({ app } = await getAppAsync(
             {
+                contractAddresses,
                 orderBookService,
                 metaTransactionService,
                 stakingDataService,

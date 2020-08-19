@@ -1,4 +1,5 @@
 import {
+    ContractAddresses,
     ERC20BridgeSource,
     MarketBuySwapQuote,
     MarketSellSwapQuote,
@@ -604,6 +605,7 @@ export interface TransactionWatcherSignerStatus {
 export interface TransactionWatcherSignerServiceConfig {
     provider: SupportedProvider;
     chainId: number;
+    contractAddresses: ContractAddresses;
     signerPrivateKeys: string[];
     expectedMinedInSec: number;
     isSigningEnabled: boolean;

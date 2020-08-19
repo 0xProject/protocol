@@ -68,7 +68,10 @@ export class TransactionWatcherSignerService {
         this._kvRepository = dbConnection.getRepository(KeyValueEntity);
         this._web3Wrapper = new Web3Wrapper(config.provider);
         this._signers = new Map<string, Signer>();
-        this._contractWrappers = new ContractWrappers(config.provider, { chainId: config.chainId });
+        this._contractWrappers = new ContractWrappers(config.provider, {
+            chainId: config.chainId,
+            contractAddresses: config.contractAddresses,
+        });
         this._availableSignerPublicAddresses = config.signerPrivateKeys.map(key => {
             const signer = new Signer(key, config.provider);
             this._signers.set(signer.publicAddress, signer);

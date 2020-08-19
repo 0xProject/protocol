@@ -6,7 +6,7 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
-import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ContractAddresses } from '@0x/contract-addresses';
 import { ContractWrappers } from '@0x/contract-wrappers';
 import { DevUtilsContract } from '@0x/contracts-dev-utils';
 import { generatePseudoRandomSalt, SupportedProvider, ZeroExTransaction } from '@0x/order-utils';
@@ -67,9 +67,14 @@ export class MetaTransactionService {
         return META_TXN_SUBMIT_WHITELISTED_API_KEYS.includes(apiKey);
     }
     private static _calculateProtocolFee(numOrders: number, gasPrice: BigNumber): BigNumber {
-        return new BigNumber(150000).times(gasPrice).times(numOrders);
+        return new BigNumber(70000).times(gasPrice).times(numOrders);
     }
-    constructor(orderbook: Orderbook, provider: SupportedProvider, dbConnection: Connection) {
+    constructor(
+        orderbook: Orderbook,
+        provider: SupportedProvider,
+        dbConnection: Connection,
+        contractAddresses: ContractAddresses,
+    ) {
         this._provider = provider;
         const swapQuoterOpts: Partial<SwapQuoterOpts> = {
             ...SWAP_QUOTER_OPTS,
@@ -78,15 +83,16 @@ export class MetaTransactionService {
                 warningLogger: logger.warn.bind(logger),
                 infoLogger: logger.info.bind(logger),
             },
+            contractAddresses,
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
-        this._contractWrappers = new ContractWrappers(this._provider, { chainId: CHAIN_ID });
+        this._contractWrappers = new ContractWrappers(this._provider, { chainId: CHAIN_ID, contractAddresses });
         this._web3Wrapper = new Web3Wrapper(this._provider);
         this._devUtils = new DevUtilsContract(this._contractWrappers.contractAddresses.devUtils, this._provider);
         this._connection = dbConnection;
         this._transactionEntityRepository = this._connection.getRepository(TransactionEntity);
         this._kvRepository = this._connection.getRepository(KeyValueEntity);
-        this._contractAddresses = getContractAddressesForChainOrThrow(CHAIN_ID);
+        this._contractAddresses = contractAddresses;
     }
     public async calculateMetaTransactionPriceAsync(
         params: CalculateMetaTransactionQuoteParams,

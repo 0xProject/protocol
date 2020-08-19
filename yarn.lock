@@ -32,24 +32,27 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-ece93fed7":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-52aafcc19":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/df94aa37686361deb6de82945c37d011c2232974"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c432a615ce96f64a9590cffad74268c4fd8cd3c8"
   dependencies:
     "@0x/assert" "^3.0.9"
+    "@0x/base-contract" "^6.2.3"
     "@0x/contract-addresses" "^4.11.0"
-    "@0x/contract-artifacts" "^3.7.1"
     "@0x/contract-wrappers" "^13.8.0"
     "@0x/json-schemas" "^5.1.0"
     "@0x/order-utils" "^10.3.0"
     "@0x/orderbook" "^2.2.7"
     "@0x/quote-server" "^2.0.2"
+    "@0x/types" "^3.2.0"
+    "@0x/typescript-typings" "^5.1.1"
     "@0x/utils" "^5.5.1"
     "@0x/web3-wrapper" "^7.2.0"
     "@balancer-labs/sor" "0.3.2"
     axios "^0.19.2"
     axios-mock-adapter "^1.18.1"
     decimal.js "^10.2.0"
+    ethereum-types "^3.2.0"
     ethereumjs-util "^5.1.1"
     heartbeats "^5.0.1"
     lodash "^4.17.11"
@@ -85,17 +88,13 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-d5180d3eb", "@0x/contract-addresses@^4.11.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-52aafcc19", "@0x/contract-addresses@^4.11.0":
   version "4.11.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/4496ad9c10cf4bf373be00e7af72230158f12838"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/a1764c5dafca50c3975b5f3e563ed13ffb9620fa"
 
-"@0x/contract-artifacts@0xProject/gitpkg-registry#0x-contract-artifacts-v3.7.1-9a16f5736", "@0x/contract-artifacts@^3.7.1":
-  version "3.7.1"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/28e6aeaed435e2e1407b2ab5ee15152181bfdb9b"
-
-"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.8.0-9a16f5736", "@0x/contract-wrappers@^13.7.0", "@0x/contract-wrappers@^13.8.0":
+"@0x/contract-wrappers@^13.7.0", "@0x/contract-wrappers@^13.8.0":
   version "13.8.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c1683a6ab3fa8ff4a2d924195c82647f026a3aba"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/cd9ebfd6172a243d14a067d5e61fd14f478bdfa5"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"
@@ -721,7 +720,6 @@
 "@balancer-labs/sor@0.3.2":
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/@balancer-labs/sor/-/sor-0.3.2.tgz#b05c63a07031c2ea13ed0d2670f5105cfaa40523"
-  integrity sha512-wmYmTm/zhnRPd/OaqzJJGo9mRIp4PvNNS/AG0EVWJmLmZvYkm2sl6/dBL3KC88rub9duVQr2M8BHCosseFuGLw==
   dependencies:
     bignumber.js "^9.0.0"
     ethers "^4.0.39"

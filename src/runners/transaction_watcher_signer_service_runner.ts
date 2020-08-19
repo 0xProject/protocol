@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { Connection } from 'typeorm';
 
+import { getContractAddressesForNetworkOrThrowAsync } from '../app';
 import * as defaultConfig from '../config';
 import {
     META_TXN_MIN_SIGNER_ETH_BALANCE,
@@ -53,8 +54,11 @@ export async function runTransactionWatcherServiceAsync(connection: Connection):
             logger.error(err);
         });
     }
+    const provider = providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL);
+    const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, defaultConfig.CHAIN_ID);
     const config: TransactionWatcherSignerServiceConfig = {
-        provider: providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL),
+        provider,
+        contractAddresses,
         chainId: defaultConfig.CHAIN_ID,
         signerPrivateKeys: defaultConfig.META_TXN_RELAY_PRIVATE_KEYS,
         expectedMinedInSec: defaultConfig.META_TXN_RELAY_EXPECTED_MINED_SEC,

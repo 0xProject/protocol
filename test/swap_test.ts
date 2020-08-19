@@ -43,24 +43,16 @@ import {
 import { setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync } from './utils/http_utils';
 import { MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
+import { liquiditySources0xOnly } from './utils/mocks';
 
 const SUITE_NAME = '/swap/v1';
 const SWAP_PATH = `${BASE_SWAP_PATH}/v1`;
 
-const excludedSources = [
-    ERC20BridgeSource.Uniswap,
-    ERC20BridgeSource.UniswapV2,
-    ERC20BridgeSource.Kyber,
-    ERC20BridgeSource.LiquidityProvider,
-    ERC20BridgeSource.Eth2Dai,
-    ERC20BridgeSource.MultiBridge,
-    ERC20BridgeSource.Balancer,
-];
-
+const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
 const DEFAULT_QUERY_PARAMS = {
     buyToken: 'ZRX',
     sellToken: 'WETH',
-    excludedSources: excludedSources.join(','),
+    excludedSources: EXCLUDED_SOURCES.join(','),
 };
 
 const ONE_THOUSAND_IN_BASE = new BigNumber('1000000000000000000000');
@@ -431,7 +423,7 @@ async function quoteAndExpectAsync(
         return;
     }
     if (response.status !== HttpStatus.OK) {
-        logger.warn(response);
+        logger.warn(response.body);
     }
     expect(response.status).to.be.eq(HttpStatus.OK);
     expectCorrectQuote(response.body, quoteAssertions);
@@ -447,15 +439,5 @@ function expectCorrectQuote(quoteResponse: GetSwapQuoteResponse, quoteAssertions
         }
     }
     // Only have 0x liquidity for now.
-    expect(quoteResponse.sources).to.be.eql([
-        { name: '0x', proportion: '1' },
-        { name: 'Uniswap', proportion: '0' },
-        { name: 'Uniswap_V2', proportion: '0' },
-        { name: 'Eth2Dai', proportion: '0' },
-        { name: 'Kyber', proportion: '0' },
-        { name: 'Curve', proportion: '0' },
-        { name: 'LiquidityProvider', proportion: '0' },
-        { name: 'MultiBridge', proportion: '0' },
-        { name: 'Balancer', proportion: '0' },
-    ]);
+    expect(quoteResponse.sources).to.be.eql(liquiditySources0xOnly);
 }

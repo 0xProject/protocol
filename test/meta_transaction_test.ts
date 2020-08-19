@@ -1,5 +1,5 @@
 import { ERC20BridgeSource } from '@0x/asset-swapper';
-import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ContractAddresses } from '@0x/contract-addresses';
 import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
 import { constants, expect, signingUtils, transactionHashUtils } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
@@ -10,10 +10,11 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
 
+import { getContractAddressesForNetworkOrThrowAsync } from '../src/app';
 import * as config from '../src/config';
 import { META_TRANSACTION_PATH, ONE_SECOND_MS, TEN_MINUTES_MS } from '../src/constants';
 import { GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
-import { GetMetaTransactionQuoteResponse } from '../src/types';
+import { ChainId, GetMetaTransactionQuoteResponse } from '../src/types';
 
 import { setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync, httpPostAsync } from './utils/http_utils';
@@ -54,8 +55,8 @@ describe(SUITE_NAME, () => {
         accounts = await web3Wrapper.getAvailableAddressesAsync();
         [, takerAddress] = accounts;
 
-        chainId = await web3Wrapper.getChainIdAsync();
-        contractAddresses = getContractAddressesForChainOrThrow(chainId);
+        chainId = ChainId.Ganache;
+        contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chainId);
         buyTokenAddress = contractAddresses.zrxToken;
         sellTokenAddress = contractAddresses.etherToken;
 
@@ -67,20 +68,12 @@ describe(SUITE_NAME, () => {
         await teardownApiAsync(SUITE_NAME);
     });
 
-    const excludedSources = [
-        ERC20BridgeSource.Uniswap,
-        ERC20BridgeSource.UniswapV2,
-        ERC20BridgeSource.Kyber,
-        ERC20BridgeSource.LiquidityProvider,
-        ERC20BridgeSource.Eth2Dai,
-        ERC20BridgeSource.MultiBridge,
-        ERC20BridgeSource.Balancer,
-    ];
+    const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
     const DEFAULT_QUERY_PARAMS = {
         buyToken: 'ZRX',
         sellToken: 'WETH',
         buyAmount,
-        excludedSources: excludedSources.join(','),
+        excludedSources: EXCLUDED_SOURCES.join(','),
     };
 
     async function assertFailureAsync(baseRoute: string, testCase: TestCase): Promise<void> {

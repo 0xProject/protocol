@@ -1,8 +1,17 @@
-import { Orderbook, SupportedProvider } from '@0x/asset-swapper';
+import {
+    artifacts,
+    ContractAddresses,
+    ERC20BridgeSamplerContract,
+    Orderbook,
+    SupportedProvider,
+} from '@0x/asset-swapper';
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { Web3Wrapper } from '@0x/dev-utils';
 import * as express from 'express';
 import { Server } from 'http';
 import { Connection } from 'typeorm';
 
+import { CHAIN_ID } from './config';
 import { SRA_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
 import { logger } from './logger';
@@ -16,6 +25,7 @@ import { StakingDataService } from './services/staking_data_service';
 import { SwapService } from './services/swap_service';
 import { TransactionWatcherSignerService } from './services/transaction_watcher_signer_service';
 import {
+    ChainId,
     HttpServiceConfig,
     MetaTransactionDailyLimiterConfig,
     MetaTransactionRollingLimiterConfig,
@@ -33,6 +43,7 @@ import {
 import { MetaTransactionComposableLimiter } from './utils/rate-limiters/meta_transaction_composable_rate_limiter';
 
 export interface AppDependencies {
+    contractAddresses: ContractAddresses;
     connection: Connection;
     stakingDataService: StakingDataService;
     meshClient?: MeshClient;
@@ -46,6 +57,57 @@ export interface AppDependencies {
     rateLimiter?: MetaTransactionRateLimiter;
 }
 
+async function deploySamplerContractAsync(
+    provider: SupportedProvider,
+    chainId: ChainId,
+): Promise<ERC20BridgeSamplerContract> {
+    const web3Wrapper = new Web3Wrapper(provider);
+    const _chainId = await web3Wrapper.getChainIdAsync();
+    if (_chainId !== chainId) {
+        throw new Error(`Incorrect Chain Id: ${_chainId}`);
+    }
+    const [account] = await web3Wrapper.getAvailableAddressesAsync();
+    try {
+        const sampler = await ERC20BridgeSamplerContract.deployFrom0xArtifactAsync(
+            artifacts.ERC20BridgeSampler,
+            provider,
+            { from: account },
+            {},
+        );
+        logger.info(`Deployed ERC20BridgeSamplerContract on network ${chainId}: ${sampler.address}`);
+        return sampler;
+    } catch (err) {
+        logger.error(`Failed to deploy ERC20BridgeSamplerContract on network ${chainId}: ${err}`);
+        throw err;
+    }
+}
+
+let contractAddresses_: ContractAddresses | undefined;
+
+/**
+ * Determines the contract addresses needed for the network. For testing (ganache)
+ * required contracts are deployed
+ * @param provider provider to the network, used for ganache deployment
+ * @param chainId the network chain id
+ */
+export async function getContractAddressesForNetworkOrThrowAsync(
+    provider: SupportedProvider,
+    chainId: ChainId,
+): Promise<ContractAddresses> {
+    if (contractAddresses_) {
+        return contractAddresses_;
+    }
+    let contractAddresses = getContractAddressesForChainOrThrow(chainId);
+    // In a testnet where the environment does not support overrides
+    // so we deploy the latest sampler
+    if (chainId === ChainId.Ganache) {
+        const sampler = await deploySamplerContractAsync(provider, chainId);
+        contractAddresses = { ...contractAddresses, erc20BridgeSampler: sampler.address };
+    }
+    contractAddresses_ = contractAddresses;
+    return contractAddresses_;
+}
+
 /**
  * Instantiates dependencies required to run the app. Uses default settings based on config
  * @param config should contain a URI for mesh to listen to, and the ethereum RPC URL
@@ -54,6 +116,7 @@ export async function getDefaultAppDependenciesAsync(
     provider: SupportedProvider,
     config: HttpServiceConfig,
 ): Promise<AppDependencies> {
+    const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
     const connection = await getDBConnectionAsync();
     const stakingDataService = new StakingDataService(connection);
 
@@ -80,16 +143,22 @@ export async function getDefaultAppDependenciesAsync(
 
     let swapService: SwapService | undefined;
     try {
-        swapService = createSwapServiceFromOrderBookService(orderBookService, provider);
+        swapService = createSwapServiceFromOrderBookService(orderBookService, provider, contractAddresses);
     } catch (err) {
         logger.error(err.stack);
     }
 
-    const metaTransactionService = createMetaTxnServiceFromOrderBookService(orderBookService, provider, connection);
+    const metaTransactionService = createMetaTxnServiceFromOrderBookService(
+        orderBookService,
+        provider,
+        connection,
+        contractAddresses,
+    );
 
     const websocketOpts = { path: SRA_PATH };
 
     return {
+        contractAddresses,
         connection,
         stakingDataService,
         meshClient,
@@ -180,11 +249,12 @@ function createMetaTransactionRateLimiterFromConfig(
 export function createSwapServiceFromOrderBookService(
     orderBookService: OrderBookService,
     provider: SupportedProvider,
+    contractAddresses: ContractAddresses,
 ): SwapService {
     const orderStore = new OrderStoreDbAdapter(orderBookService);
     const orderProvider = new OrderBookServiceOrderProvider(orderStore, orderBookService);
     const orderBook = new Orderbook(orderProvider, orderStore);
-    return new SwapService(orderBook, provider);
+    return new SwapService(orderBook, provider, contractAddresses);
 }
 
 /**
@@ -195,9 +265,10 @@ export function createMetaTxnServiceFromOrderBookService(
     orderBookService: OrderBookService,
     provider: SupportedProvider,
     dbConnection: Connection,
+    contractAddresses: ContractAddresses,
 ): MetaTransactionService {
     const orderStore = new OrderStoreDbAdapter(orderBookService);
     const orderProvider = new OrderBookServiceOrderProvider(orderStore, orderBookService);
     const orderBook = new Orderbook(orderProvider, orderStore);
-    return new MetaTransactionService(orderBook, provider, dbConnection);
+    return new MetaTransactionService(orderBook, provider, dbConnection, contractAddresses);
 }
