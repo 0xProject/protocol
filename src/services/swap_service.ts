@@ -76,12 +76,8 @@ export class SwapService {
             ...SWAP_QUOTER_OPTS,
             rfqt: {
                 ...SWAP_QUOTER_OPTS.rfqt,
-                // tslint:disable-next-line:no-empty
-                warningLogger: () => {},
-                // tslint:disable-next-line:no-empty
-                infoLogger: () => {},
-                // warningLogger: logger.warn.bind(logger),
-                // infoLogger: logger.info.bind(logger),
+                warningLogger: logger.warn.bind(logger),
+                infoLogger: logger.info.bind(logger),
             },
             contractAddresses,
         };
