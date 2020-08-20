@@ -21,7 +21,9 @@ import * as _ from 'lodash';
 import {
     ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS,
+    BASE_GAS_COST_V1,
     CHAIN_ID,
+    PROTOCOL_FEE_MULTIPLIER,
     RFQT_REQUEST_MAX_RESPONSE_MS,
     SWAP_QUOTER_OPTS,
 } from '../config';
@@ -154,7 +156,8 @@ export class SwapService {
         );
         let conservativeBestCaseGasEstimate = new BigNumber(worstCaseGas)
             .plus(gasTokenGasCost)
-            .plus(affiliateFeeGasCost);
+            .plus(affiliateFeeGasCost)
+            .plus(swapVersion === SwapVersion.V1 ? BASE_GAS_COST_V1 : 0);
 
         if (!skipValidation && from) {
             const estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
@@ -167,8 +170,13 @@ export class SwapService {
             // Take the max of the faux estimate or the real estimate
             conservativeBestCaseGasEstimate = BigNumber.max(estimateGasCallResult, conservativeBestCaseGasEstimate);
         }
+        // If any sources can be undeterministic in gas costs, we add a buffer
+        const hasUndeterministicFills = _.flatten(swapQuote.orders.map(order => order.fills)).some(fill =>
+            [ERC20BridgeSource.Native, ERC20BridgeSource.Kyber, ERC20BridgeSource.MultiBridge].includes(fill.source),
+        );
+        const undeterministicMultiplier = hasUndeterministicFills ? GAS_LIMIT_BUFFER_MULTIPLIER : 1;
         // Add a buffer to get the worst case gas estimate
-        const worstCaseGasEstimate = conservativeBestCaseGasEstimate.times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue();
+        const worstCaseGasEstimate = conservativeBestCaseGasEstimate.times(undeterministicMultiplier).integerValue();
         // Cap the refund at 50% our best estimate
         const estimatedGasTokenRefund = BigNumber.min(
             conservativeBestCaseGasEstimate.div(2),
@@ -196,7 +204,9 @@ export class SwapService {
                 const nativeFills = _.flatten(swapQuote.orders.map(order => order.fills)).filter(
                     fill => fill.source === ERC20BridgeSource.Native,
                 );
-                adjustedWorstCaseProtocolFee = new BigNumber(150000).times(gasPrice).times(nativeFills.length);
+                adjustedWorstCaseProtocolFee = new BigNumber(PROTOCOL_FEE_MULTIPLIER)
+                    .times(gasPrice)
+                    .times(nativeFills.length);
                 adjustedValue = isETHSell
                     ? adjustedWorstCaseProtocolFee.plus(swapQuote.worstCaseQuoteInfo.takerAssetAmount)
                     : adjustedWorstCaseProtocolFee;
