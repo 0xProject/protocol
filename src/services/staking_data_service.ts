@@ -120,13 +120,13 @@ export class StakingDataService {
     }
 
     public async getStakingPoolAllTimeRewardsAsync(poolId: string): Promise<AllTimePoolStats> {
-        const [rawAllTimePoolRewards, rawTotalPoolProtocolFeesGenerated] = await Promise.all<
-            RawAllTimePoolRewards[],
-            RawPoolTotalProtocolFeesGenerated[]
-        >([
-            this._connection.query(queries.allTimePoolRewardsQuery, [poolId]),
-            this._connection.query(queries.poolTotalProtocolFeesGeneratedQuery, [poolId]),
-        ]);
+        const rawAllTimePoolRewards = (await this._connection.query(queries.allTimePoolRewardsQuery, [
+            poolId,
+        ])) as RawAllTimePoolRewards[];
+        const rawTotalPoolProtocolFeesGenerated = (await this._connection.query(
+            queries.poolTotalProtocolFeesGeneratedQuery,
+            [poolId],
+        )) as RawPoolTotalProtocolFeesGenerated[];
 
         const rawAllTimePoolRewardsHead = _.head(rawAllTimePoolRewards);
         const rawTotalPoolProtocolFeesGeneratedHead = _.head(rawTotalPoolProtocolFeesGenerated);
@@ -150,19 +150,14 @@ export class StakingDataService {
     }
 
     public async getStakingPoolWithStatsAsync(poolId: string): Promise<PoolWithStats> {
-        const [
-            pool,
-            rawCurrentEpochPoolStats,
-            rawNextEpochPoolStats,
-            rawPoolSevenDayProtocolFeesGenerated,
-            rawAvgReward,
-        ] = await Promise.all([
-            this.getStakingPoolAsync(poolId),
-            this._connection.query(queries.currentEpochPoolStatsQuery, [poolId]),
-            this._connection.query(queries.nextEpochPoolStatsQuery, [poolId]),
-            this._connection.query(queries.poolSevenDayProtocolFeesGeneratedQuery, [poolId]),
-            this._connection.query(queries.poolAvgRewardsQuery, [poolId]),
-        ]);
+        const pool = await this.getStakingPoolAsync(poolId);
+        const rawCurrentEpochPoolStats = await this._connection.query(queries.currentEpochPoolStatsQuery, [poolId]);
+        const rawNextEpochPoolStats = await this._connection.query(queries.nextEpochPoolStatsQuery, [poolId]);
+        const rawPoolSevenDayProtocolFeesGenerated = await this._connection.query(
+            queries.poolSevenDayProtocolFeesGeneratedQuery,
+            [poolId],
+        );
+        const rawAvgReward = await this._connection.query(queries.poolAvgRewardsQuery, [poolId]);
 
         const currentEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawCurrentEpochPoolStats[0]);
         const nextEpochPoolStats = stakingUtils.getEpochPoolStatsFromRaw(rawNextEpochPoolStats[0]);
@@ -183,19 +178,13 @@ export class StakingDataService {
     }
 
     public async getStakingPoolsWithStatsAsync(): Promise<PoolWithStats[]> {
-        const [
-            pools,
-            rawCurrentEpochPoolStats,
-            rawNextEpochPoolStats,
-            rawPoolSevenDayProtocolFeesGenerated,
-            rawPoolsAvgRewards,
-        ] = await Promise.all([
-            this.getStakingPoolsAsync(),
-            this._connection.query(queries.currentEpochPoolsStatsQuery),
-            this._connection.query(queries.nextEpochPoolsStatsQuery),
-            this._connection.query(queries.sevenDayProtocolFeesGeneratedQuery),
-            this._connection.query(queries.poolsAvgRewardsQuery),
-        ]);
+        const pools = await this.getStakingPoolsAsync();
+        const rawCurrentEpochPoolStats = await this._connection.query(queries.currentEpochPoolsStatsQuery);
+        const rawNextEpochPoolStats = await this._connection.query(queries.nextEpochPoolsStatsQuery);
+        const rawPoolSevenDayProtocolFeesGenerated = await this._connection.query(
+            queries.sevenDayProtocolFeesGeneratedQuery,
+        );
+        const rawPoolsAvgRewards = await this._connection.query(queries.poolsAvgRewardsQuery);
         const currentEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawCurrentEpochPoolStats);
         const nextEpochPoolStats = stakingUtils.getEpochPoolsStatsFromRaw(rawNextEpochPoolStats);
         const poolProtocolFeesGenerated = stakingUtils.getPoolsProtocolFeesGeneratedFromRaw(
@@ -219,13 +208,12 @@ export class StakingDataService {
     }
 
     public async getDelegatorCurrentEpochAsync(delegatorAddress: string): Promise<EpochDelegatorStats> {
-        const [rawDelegatorDeposited, rawDelegatorStaked] = await Promise.all<
-            RawDelegatorDeposited[],
-            RawDelegatorStaked[]
-        >([
-            this._connection.query(queries.currentEpochDelegatorDepositedQuery, [delegatorAddress]),
-            this._connection.query(queries.currentEpochDelegatorStakedQuery, [delegatorAddress]),
-        ]);
+        const rawDelegatorDeposited = (await this._connection.query(queries.currentEpochDelegatorDepositedQuery, [
+            delegatorAddress,
+        ])) as RawDelegatorDeposited[];
+        const rawDelegatorStaked = (await this._connection.query(queries.currentEpochDelegatorStakedQuery, [
+            delegatorAddress,
+        ])) as RawDelegatorStaked[];
 
         const zrxDeposited = stakingUtils.getZrxStakedFromRawDelegatorDeposited(rawDelegatorDeposited);
         const { zrxStaked, poolData } = stakingUtils.getDelegatorStakedFromRaw(rawDelegatorStaked);
@@ -238,13 +226,12 @@ export class StakingDataService {
     }
 
     public async getDelegatorNextEpochAsync(delegatorAddress: string): Promise<EpochDelegatorStats> {
-        const [rawDelegatorDeposited, rawDelegatorStaked] = await Promise.all<
-            RawDelegatorDeposited[],
-            RawDelegatorStaked[]
-        >([
-            this._connection.query(queries.nextEpochDelegatorDepositedQuery, [delegatorAddress]),
-            this._connection.query(queries.nextEpochDelegatorStakedQuery, [delegatorAddress]),
-        ]);
+        const rawDelegatorDeposited = (await this._connection.query(queries.nextEpochDelegatorDepositedQuery, [
+            delegatorAddress,
+        ])) as RawDelegatorDeposited[];
+        const rawDelegatorStaked = (await this._connection.query(queries.nextEpochDelegatorStakedQuery, [
+            delegatorAddress,
+        ])) as RawDelegatorStaked[];
 
         const zrxDeposited = stakingUtils.getZrxStakedFromRawDelegatorDeposited(rawDelegatorDeposited);
         const { zrxStaked, poolData } = stakingUtils.getDelegatorStakedFromRaw(rawDelegatorStaked);

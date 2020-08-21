@@ -26,11 +26,9 @@ export class StakingHandlers {
     }
     public async getStakingPoolByIdAsync(req: express.Request, res: express.Response): Promise<void> {
         const poolId = req.params.id;
-        const [pool, epochRewards, allTimeStats] = await Promise.all([
-            this._stakingDataService.getStakingPoolWithStatsAsync(poolId),
-            this._stakingDataService.getStakingPoolEpochRewardsAsync(poolId),
-            this._stakingDataService.getStakingPoolAllTimeRewardsAsync(poolId),
-        ]);
+        const pool = await this._stakingDataService.getStakingPoolWithStatsAsync(poolId);
+        const epochRewards = await this._stakingDataService.getStakingPoolEpochRewardsAsync(poolId);
+        const allTimeStats = await this._stakingDataService.getStakingPoolAllTimeRewardsAsync(poolId);
 
         const response: StakingPoolResponse = {
             poolId,
@@ -67,19 +65,15 @@ export class StakingHandlers {
 
         let response: StakingEpochsResponse | StakingEpochsWithFeesResponse;
         if (isWithFees) {
-            const [currentEpoch, nextEpoch] = await Promise.all([
-                this._stakingDataService.getCurrentEpochWithFeesAsync(),
-                this._stakingDataService.getNextEpochWithFeesAsync(),
-            ]);
+            const currentEpoch = await this._stakingDataService.getCurrentEpochWithFeesAsync();
+            const nextEpoch = await this._stakingDataService.getNextEpochWithFeesAsync();
             response = {
                 currentEpoch,
                 nextEpoch,
             };
         } else {
-            const [currentEpoch, nextEpoch] = await Promise.all([
-                this._stakingDataService.getCurrentEpochAsync(),
-                this._stakingDataService.getNextEpochAsync(),
-            ]);
+            const currentEpoch = await this._stakingDataService.getCurrentEpochAsync();
+            const nextEpoch = await this._stakingDataService.getNextEpochAsync();
             response = {
                 currentEpoch,
                 nextEpoch,
@@ -99,11 +93,9 @@ export class StakingHandlers {
         const delegatorAddress = req.params.id;
         const normalizedAddress = delegatorAddress && delegatorAddress.toLowerCase();
 
-        const [forCurrentEpoch, forNextEpoch, allTime] = await Promise.all([
-            this._stakingDataService.getDelegatorCurrentEpochAsync(normalizedAddress),
-            this._stakingDataService.getDelegatorNextEpochAsync(normalizedAddress),
-            this._stakingDataService.getDelegatorAllTimeStatsAsync(normalizedAddress),
-        ]);
+        const forCurrentEpoch = await this._stakingDataService.getDelegatorCurrentEpochAsync(normalizedAddress);
+        const forNextEpoch = await this._stakingDataService.getDelegatorNextEpochAsync(normalizedAddress);
+        const allTime = await this._stakingDataService.getDelegatorAllTimeStatsAsync(normalizedAddress);
 
         const response: StakingDelegatorResponse = {
             delegatorAddress,
