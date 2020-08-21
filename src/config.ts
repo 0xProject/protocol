@@ -265,6 +265,7 @@ const EXCLUDED_SOURCES = (() => {
         case ChainId.Kovan:
             return [
                 ERC20BridgeSource.Balancer,
+                ERC20BridgeSource.Bancor,
                 ERC20BridgeSource.Curve,
                 ERC20BridgeSource.Kyber,
                 ERC20BridgeSource.LiquidityProvider,
@@ -273,6 +274,7 @@ const EXCLUDED_SOURCES = (() => {
         default:
             return [
                 ERC20BridgeSource.Balancer,
+                ERC20BridgeSource.Bancor,
                 ERC20BridgeSource.Curve,
                 ERC20BridgeSource.Eth2Dai,
                 ERC20BridgeSource.Kyber,
@@ -316,6 +318,7 @@ export const GAS_SCHEDULE_V0: FeeSchedule = {
         return gas;
     },
     [ERC20BridgeSource.Balancer]: () => 4.5e5,
+    [ERC20BridgeSource.Bancor]: () => 4.5e5,
     [ERC20BridgeSource.MStable]: () => 8.5e5,
 };
 
