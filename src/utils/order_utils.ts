@@ -95,7 +95,7 @@ const getEpochStatsAsync = async (connection: Connection) => {
             TEN_MINUTES_MS,
         );
     }
-    return PIN_CACHE.getResultAsync();
+    return (await PIN_CACHE.getResultAsync()).result;
 };
 
 export const orderUtils = {
@@ -306,7 +306,7 @@ export const orderUtils = {
         // skip it an only use pinned MMers. A deployed staking system that allows this
         // functionality to be tested would improve the testing infrastructure.
         try {
-            currentPoolStats = await getEpochStatsAsync(connection);
+            currentPoolStats = (await getEpochStatsAsync(connection)) || [];
         } catch (error) {
             logger.warn(`currentEpochPoolsStatsQuery threw an error: ${error}`);
         }
