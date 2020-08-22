@@ -29,11 +29,13 @@ import {
     TAKER_FEE_ASSET_DATA,
     TAKER_FEE_UNIT_AMOUNT,
 } from '../config';
-import { MAX_TOKEN_SUPPLY_POSSIBLE, NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
+import { MAX_TOKEN_SUPPLY_POSSIBLE, NULL_ADDRESS, ONE_SECOND_MS, TEN_MINUTES_MS } from '../constants';
 import { SignedOrderEntity } from '../entities';
 import { logger } from '../logger';
 import * as queries from '../queries/staking_queries';
 import { APIOrderWithMetaData, PinResult, RawEpochPoolStats } from '../types';
+
+import { createResultCache } from './result_cache';
 
 const DEFAULT_ERC721_ASSET = {
     minAmount: new BigNumber(0),
@@ -82,6 +84,18 @@ const assetDataToAsset = (assetData: string): Asset => {
         ...defaultAsset,
         assetData,
     } as Asset; // tslint:disable-line:no-object-literal-type-assertion
+};
+
+// Cache the expensive query of current epoch stats
+let PIN_CACHE;
+const getEpochStatsAsync = async (connection: Connection) => {
+    if (!PIN_CACHE) {
+        PIN_CACHE = createResultCache<any[]>(
+            () => connection.query(queries.currentEpochPoolsStatsQuery),
+            TEN_MINUTES_MS,
+        );
+    }
+    return PIN_CACHE.getResultAsync();
 };
 
 export const orderUtils = {
@@ -292,7 +306,7 @@ export const orderUtils = {
         // skip it an only use pinned MMers. A deployed staking system that allows this
         // functionality to be tested would improve the testing infrastructure.
         try {
-            currentPoolStats = await connection.query(queries.currentEpochPoolsStatsQuery);
+            currentPoolStats = await getEpochStatsAsync(connection);
         } catch (error) {
             logger.warn(`currentEpochPoolsStatsQuery threw an error: ${error}`);
         }

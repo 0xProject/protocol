@@ -71,14 +71,18 @@ export class OrderBookService {
         baseAssetData: string,
         quoteAssetData: string,
     ): Promise<OrderbookResponse> {
-        const [bidSignedOrderEntities, askSignedOrderEntities] = await Promise.all([
-            this._connection.manager.find(SignedOrderEntity, {
-                where: { takerAssetData: baseAssetData, makerAssetData: quoteAssetData },
-            }),
-            this._connection.manager.find(SignedOrderEntity, {
-                where: { takerAssetData: quoteAssetData, makerAssetData: baseAssetData },
-            }),
-        ]);
+        const orderEntities = await this._connection.manager.find(SignedOrderEntity, {
+            where: {
+                takerAssetData: In([baseAssetData, quoteAssetData]),
+                makerAssetData: In([baseAssetData, quoteAssetData]),
+            },
+        });
+        const bidSignedOrderEntities = orderEntities.filter(
+            o => o.takerAssetData === baseAssetData && o.makerAssetData === quoteAssetData,
+        );
+        const askSignedOrderEntities = orderEntities.filter(
+            o => o.takerAssetData === quoteAssetData && o.makerAssetData === baseAssetData,
+        );
         const bidApiOrders: APIOrder[] = (bidSignedOrderEntities as Array<Required<SignedOrderEntity>>)
             .map(orderUtils.deserializeOrderToAPIOrder)
             .filter(orderUtils.isFreshOrder)
