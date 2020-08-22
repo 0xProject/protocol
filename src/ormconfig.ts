@@ -15,5 +15,6 @@ export const config: ConnectionOptions = {
     logger: 'debug',
     extra: {
         max: 15,
+        statement_timeout: 10000,
     },
 };
