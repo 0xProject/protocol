@@ -145,6 +145,7 @@
         "cors": "^2.8.5",
         "debug": "^4.1.1",
         "dotenv": "^8.1.0",
+        "elastic-apm-node": "^3.7.0",
         "ethereum-types": "^3.2.0",
         "express": "^4.17.1",
         "express-async-handler": "^1.1.4",
