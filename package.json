@@ -122,11 +122,11 @@
         "typescript": "^3.9.6"
     },
     "resolutions": {
-        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-af7823850"
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-ec248bd18"
     },
     "dependencies": {
         "@0x/assert": "^3.0.4",
-        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-af7823850",
+        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-f97d17863",
         "@0x/connect": "^6.0.4",
         "@0x/contract-addresses": "^4.11.0",
         "@0x/contract-wrappers": "^13.7.0",

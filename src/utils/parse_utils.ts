@@ -36,6 +36,7 @@ const ALL_EXCEPT_NATIVE: { [key in Exclude<ERC20BridgeSource, ERC20BridgeSource.
     MultiBridge: true,
     Uniswap_V2: true,
     mStable: true,
+    Mooniswap: true,
 };
 
 export const parseUtils = {

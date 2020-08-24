@@ -61,6 +61,7 @@ export const liquiditySources0xOnly = [
     { name: 'Balancer', proportion: '0' },
     { name: 'Bancor', proportion: '0' },
     { name: 'mStable', proportion: '0' },
+    { name: 'Mooniswap', proportion: '0' },
 ];
 
 export const randomSellQuote = {
