@@ -159,8 +159,9 @@ export const serviceUtils = {
         apiKey: string | undefined,
         allowedApiKeys: string[],
     ): ERC20BridgeSource[] {
-        const isAPIEnabled = allowedApiKeys.includes(apiKey);
-        if (!isAPIEnabled && !currentExcludedSources.includes(ERC20BridgeSource.LiquidityProvider)) {
+        const isWildcardEnabled = allowedApiKeys.length === 1 && allowedApiKeys[0] === '*';
+        const isAPIKeyEnabled = isWildcardEnabled || allowedApiKeys.includes(apiKey);
+        if (!isAPIKeyEnabled && !currentExcludedSources.includes(ERC20BridgeSource.LiquidityProvider)) {
             return currentExcludedSources.concat(ERC20BridgeSource.LiquidityProvider);
         }
         return currentExcludedSources;

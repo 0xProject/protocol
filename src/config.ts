@@ -188,6 +188,10 @@ export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_K
     ? []
     : assertEnvVarType('RFQT_API_KEY_WHITELIST', process.env.RFQT_API_KEY_WHITELIST, EnvVarType.StringList);
 
+export const PLP_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.PLP_API_KEY_WHITELIST)
+    ? []
+    : assertEnvVarType('PLP_API_KEY_WHITELIST', process.env.PLP_API_KEY_WHITELIST, EnvVarType.StringList);
+
 export const RFQT_MAKER_ASSET_OFFERINGS: RfqtMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
     ? {}
     : assertEnvVarType(

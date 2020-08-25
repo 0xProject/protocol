@@ -1,10 +1,10 @@
 import { RfqtRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
-import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber, logUtils, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import _ = require('lodash');
 
-import { CHAIN_ID, RFQT_API_KEY_WHITELIST } from '../config';
+import { CHAIN_ID, PLP_API_KEY_WHITELIST, RFQT_API_KEY_WHITELIST } from '../config';
 import {
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     DEFAULT_TOKEN_DECIMALS,
@@ -372,7 +372,7 @@ const parseGetSwapQuoteRequestParams = (
               buyTokenPercentageFee: 0,
           };
 
-    const apiKey = req.header('0x-api-key');
+    const apiKey: string | undefined = req.header('0x-api-key');
     // tslint:disable-next-line: boolean-naming
     const { excludedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
         {
@@ -386,12 +386,21 @@ const parseGetSwapQuoteRequestParams = (
         endpoint,
     );
 
-    // Determine if any other sources should be excluded
+    // Determine if any other sources should be excluded. This usually has an effect
+    // if an API key is not present, or the API key is ineligible for PLP.
     const updatedExcludedSources = serviceUtils.determineExcludedSources(
         excludedSources,
         apiKey,
-        RFQT_API_KEY_WHITELIST,
+        PLP_API_KEY_WHITELIST,
     );
+
+    logUtils.log({
+        type: 'swapRequest',
+        endpoint,
+        updatedExcludedSources,
+        nativeExclusivelyRFQT,
+        apiKey: apiKey || 'N/A',
+    });
 
     const affiliateAddress = req.query.affiliateAddress as string;
     const rfqt: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'> =

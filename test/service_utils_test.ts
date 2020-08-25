@@ -23,6 +23,14 @@ describe(SUITE_NAME, () => {
             }
         });
 
+        it('will not exclude liquidity if a special wildcard is present', () => {
+            const tests = ['foo', undefined, 'lol'];
+            for (const test of tests) {
+                const result = serviceUtils.determineExcludedSources([ERC20BridgeSource.Balancer], test, ['*']);
+                expect(result).to.eql([ERC20BridgeSource.Balancer]);
+            }
+        });
+
         it('will not add a duplicate entry for LiquidityProvider if already present', () => {
             const result = serviceUtils.determineExcludedSources([ERC20BridgeSource.LiquidityProvider], 'foo', ['bar']);
             expect(result).to.eql([ERC20BridgeSource.LiquidityProvider]);
