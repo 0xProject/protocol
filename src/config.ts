@@ -41,6 +41,7 @@ enum EnvVarType {
     ETHAddressHex,
     UnitAmount,
     Url,
+    UrlList,
     WhitelistAllTokens,
     Boolean,
     FeeAssetData,
@@ -163,6 +164,11 @@ export const SRA_ORDER_EXPIRATION_BUFFER_SECONDS: number = _.isEmpty(process.env
 export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
     ? DEFAULT_LOCAL_POSTGRES_URI
     : assertEnvVarType('POSTGRES_URI', process.env.POSTGRES_URI, EnvVarType.Url);
+
+export const POSTGRES_READ_REPLICA_URIS: string[] | undefined = _.isEmpty(process.env.POSTGRES_READ_REPLICA_URIS)
+    ? undefined
+    : assertEnvVarType('POSTGRES_READ_REPLICA_URIS', process.env.POSTGRES_READ_REPLICA_URIS, EnvVarType.UrlList);
+
 // Should the logger include time field in the output logs, defaults to true.
 export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIMESTAMP)
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
@@ -488,6 +494,11 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
         case EnvVarType.Url:
             assert.isUri(name, value);
             return value;
+        case EnvVarType.UrlList:
+            assert.isString(name, value);
+            const urlList = (value as string).split(',');
+            urlList.forEach((url, i) => assert.isUri(`${name}[${i}]`, url));
+            return urlList;
         case EnvVarType.Boolean:
             return value === 'true';
         case EnvVarType.UnitAmount:
