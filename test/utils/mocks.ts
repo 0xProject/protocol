@@ -62,6 +62,7 @@ export const liquiditySources0xOnly = [
     { name: 'Bancor', proportion: '0' },
     { name: 'mStable', proportion: '0' },
     { name: 'Mooniswap', proportion: '0' },
+    { name: 'MultiHop', proportion: '0' },
 ];
 
 export const randomSellQuote = {
@@ -113,4 +114,5 @@ export const randomSellQuote = {
     },
     sourceBreakdown: {},
     takerAssetFillAmount: new BigNumber('401019713908867904'),
+    isTwoHop: false,
 };

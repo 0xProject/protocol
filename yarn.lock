@@ -32,14 +32,15 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-b065d8015":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-16936feac":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/1c056f69427b46ea1ae9d627b15481ae21ecd4d3"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/839740ebcd0a170c79a0f1f85a0809c0fdcf3f24"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"
     "@0x/contract-addresses" "^4.11.0"
     "@0x/contract-wrappers" "^13.8.0"
+    "@0x/contracts-erc20-bridge-sampler" "^1.7.0"
     "@0x/json-schemas" "^5.1.0"
     "@0x/order-utils" "^10.3.0"
     "@0x/orderbook" "^2.2.7"

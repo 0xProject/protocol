@@ -551,6 +551,8 @@ export interface CalculateSwapQuoteParams {
 export interface GetSwapQuoteResponseLiquiditySource {
     name: string;
     proportion: BigNumber;
+    intermediateToken?: string;
+    hops?: string[];
 }
 
 export interface PinResult {

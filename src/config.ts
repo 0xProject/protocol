@@ -5,10 +5,12 @@ import {
     CurveFillData,
     ERC20BridgeSource,
     FeeSchedule,
+    MultiHopFillData,
     RfqtMakerAssetOfferings,
     SamplerOverrides,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
+    TokenAdjacencyGraph,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
 import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
@@ -27,9 +29,10 @@ import {
     NULL_BYTES,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
 } from './constants';
-import { TokenMetadatasForChains } from './token_metadatas_for_networks';
+import { TokenMetadataAndChainAddresses, TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
 import { parseUtils } from './utils/parse_utils';
+import { getTokenMetadataIfExists } from './utils/token_metadata_utils';
 
 enum EnvVarType {
     AddressList,
@@ -295,6 +298,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Uniswap,
                 ERC20BridgeSource.UniswapV2,
                 ERC20BridgeSource.Mooniswap,
+                ERC20BridgeSource.MultiHop,
             ];
     }
 })();
@@ -343,7 +347,7 @@ const FEE_SCHEDULE_V0: FeeSchedule = Object.assign(
 );
 
 export const ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS: Partial<SwapQuoteRequestOpts> = {
-    excludedSources: EXCLUDED_SOURCES,
+    excludedSources: [...EXCLUDED_SOURCES, ERC20BridgeSource.MultiHop],
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
@@ -393,11 +397,20 @@ export const GAS_SCHEDULE_V1: FeeSchedule = {
     [ERC20BridgeSource.Balancer]: () => 1.5e5,
     [ERC20BridgeSource.MStable]: () => 7e5,
     [ERC20BridgeSource.Mooniswap]: () => 2.2e5,
+    [ERC20BridgeSource.MultiHop]: fillData => {
+        const firstHop = (fillData as MultiHopFillData).firstHopSource;
+        const secondHop = (fillData as MultiHopFillData).secondHopSource;
+        const firstHopGas =
+            GAS_SCHEDULE_V1[firstHop.source] === undefined ? 0 : GAS_SCHEDULE_V1[firstHop.source](firstHop.fillData);
+        const secondHopGas =
+            GAS_SCHEDULE_V1[secondHop.source] === undefined ? 0 : GAS_SCHEDULE_V1[secondHop.source](secondHop.fillData);
+        return new BigNumber(firstHopGas).plus(secondHopGas).toNumber();
+    },
 };
 
 const FEE_SCHEDULE_V1: FeeSchedule = Object.assign(
     {},
-    ...(Object.keys(GAS_SCHEDULE_V0) as ERC20BridgeSource[]).map(k => ({
+    ...(Object.keys(GAS_SCHEDULE_V1) as ERC20BridgeSource[]).map(k => ({
         [k]:
             k === ERC20BridgeSource.Native
                 ? fillData => PROTOCOL_FEE_MULTIPLIER.plus(GAS_SCHEDULE_V1[k](fillData))
@@ -427,6 +440,23 @@ export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
     }
 })();
 
+const tokenAdjacencyGraph: TokenAdjacencyGraph = Object.values(TokenMetadatasForChains).reduce(
+    (acc: TokenAdjacencyGraph, t: TokenMetadataAndChainAddresses) => {
+        const tokenKey = t.tokenAddresses[CHAIN_ID];
+        const intermediateTokens = [
+            getTokenMetadataIfExists('WETH', CHAIN_ID),
+            getTokenMetadataIfExists('DAI', CHAIN_ID),
+            getTokenMetadataIfExists('USDC', CHAIN_ID),
+            getTokenMetadataIfExists('WBTC', CHAIN_ID),
+        ]
+            .map(m => m && m.tokenAddress)
+            .filter(m => m && m !== tokenKey);
+        acc[tokenKey] = intermediateTokens;
+        return acc;
+    },
+    {},
+);
+
 export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     chainId: CHAIN_ID,
     expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
@@ -438,6 +468,7 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
+    tokenAdjacencyGraph,
 };
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {

@@ -313,7 +313,12 @@ export class SwapService {
             sellAmount,
             {
                 numSamples,
-                excludedSources: [...(excludedSources || []), ERC20BridgeSource.MultiBridge],
+                excludedSources: [
+                    ...(excludedSources || []),
+                    ERC20BridgeSource.MultiBridge,
+                    ERC20BridgeSource.Bancor,
+                    ERC20BridgeSource.MultiHop,
+                ],
                 sampleDistributionBase,
             },
         );

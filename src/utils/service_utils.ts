@@ -172,19 +172,22 @@ export const serviceUtils = {
             ...Object.values(ERC20BridgeSource).map(s => ({ [s]: ZERO })),
         );
 
-        const breakdown: GetSwapQuoteResponseLiquiditySource[] = [];
-        return Object.entries({ ...defaultSourceBreakdown, ...sourceBreakdown }).reduce(
-            (acc: GetSwapQuoteResponseLiquiditySource[], [source, percentage]) => {
-                return [
-                    ...acc,
-                    {
-                        name: source === ERC20BridgeSource.Native ? '0x' : source,
-                        proportion: new BigNumber(percentage.toPrecision(PERCENTAGE_SIG_DIGITS)),
-                    },
-                ];
-            },
-            breakdown,
-        );
+        return Object.entries({ ...defaultSourceBreakdown, ...sourceBreakdown }).reduce((acc, [source, breakdown]) => {
+            let obj;
+            if (source === ERC20BridgeSource.MultiHop && !BigNumber.isBigNumber(breakdown)) {
+                obj = {
+                    ...breakdown,
+                    name: ERC20BridgeSource.MultiHop,
+                    proportion: new BigNumber(breakdown.proportion.toPrecision(PERCENTAGE_SIG_DIGITS)),
+                };
+            } else {
+                obj = {
+                    name: source === ERC20BridgeSource.Native ? '0x' : source,
+                    proportion: new BigNumber((breakdown as BigNumber).toPrecision(PERCENTAGE_SIG_DIGITS)),
+                };
+            }
+            return [...acc, obj];
+        }, []);
     },
     getEstimatedGasTokenRefundInfo(orders: OptimizedMarketOrder[], gasTokenBalance: BigNumber): GasTokenRefundInfo {
         const bridgeFills = _.flatten(orders.map(order => order.fills)).filter(
