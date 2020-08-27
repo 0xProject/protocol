@@ -32,9 +32,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-c3ca3e418":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-a2f0d5eed":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/e8831e1fd2021a1d3416ba4ecedda1aac5cb6ac7"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/1a1ad572c72dac97a9c80426c99db280fc1bec48"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"
@@ -90,9 +90,9 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-b065d8015", "@0x/contract-addresses@^4.11.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-a2f0d5eed", "@0x/contract-addresses@^4.11.0":
   version "4.11.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/ec60bee2ff68b9cbad8206a3c370d54e2743be21"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/465c3ead807fc57a022cef760ace1a5d44933460"
 
 "@0x/contract-wrappers@^13.7.0", "@0x/contract-wrappers@^13.8.0":
   version "13.8.0"

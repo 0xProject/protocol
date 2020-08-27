@@ -308,7 +308,7 @@ export const GAS_SCHEDULE_V0: FeeSchedule = {
     [ERC20BridgeSource.Uniswap]: () => 3e5,
     [ERC20BridgeSource.LiquidityProvider]: () => 3e5,
     [ERC20BridgeSource.Eth2Dai]: () => 5.5e5,
-    [ERC20BridgeSource.Kyber]: () => 8e5,
+    [ERC20BridgeSource.Kyber]: () => 6e5,
     [ERC20BridgeSource.Curve]: fillData => {
         switch ((fillData as CurveFillData).curve.poolAddress.toLowerCase()) {
             case '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56':
@@ -367,7 +367,7 @@ export const GAS_SCHEDULE_V1: FeeSchedule = {
     [ERC20BridgeSource.Uniswap]: () => 1.1e5,
     [ERC20BridgeSource.LiquidityProvider]: () => 1.3e5,
     [ERC20BridgeSource.Eth2Dai]: () => 4e5,
-    [ERC20BridgeSource.Kyber]: () => 6e5,
+    [ERC20BridgeSource.Kyber]: () => 5e5,
     [ERC20BridgeSource.Curve]: fillData => {
         switch ((fillData as CurveFillData).curve.poolAddress.toLowerCase()) {
             case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
