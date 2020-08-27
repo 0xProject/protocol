@@ -309,7 +309,7 @@ export class SwapHandlers {
                     },
                 ]);
             }
-            logger.info('Uncaught error', e);
+            logger.info('Uncaught error', e.message, e.stack);
             throw new InternalServerError(e.message);
         }
     }
