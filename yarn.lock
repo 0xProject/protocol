@@ -32,9 +32,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-a2f0d5eed":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-7b0a1c363":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/1a1ad572c72dac97a9c80426c99db280fc1bec48"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/8b0f0a0177c362f7ffc735fb99020fa866108b00"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"

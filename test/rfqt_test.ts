@@ -17,7 +17,7 @@ import * as request from 'supertest';
 
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import { defaultHttpServiceWithRateLimiterConfig } from '../src/config';
-import { SWAP_PATH as BASE_SWAP_PATH } from '../src/constants';
+import { NULL_ADDRESS, SWAP_PATH as BASE_SWAP_PATH } from '../src/constants';
 
 import { CONTRACT_ADDRESSES } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
@@ -216,7 +216,7 @@ describe(SUITE_NAME, () => {
                         },
                     );
                 });
-                it('should fail when taker address is not supplied', async () => {
+                it('should fail when taker address is not supplied for a firm quote', async () => {
                     const appResponse = await request(app)
                         .get(
                             `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
@@ -347,6 +347,31 @@ describe(SUITE_NAME, () => {
                                 .expect(HttpStatus.OK)
                                 .expect('Content-Type', /json/);
 
+                            const responseJson = JSON.parse(appResponse.text);
+                            expect(responseJson.buyAmount).to.equal('100000000000000000');
+                            expect(responseJson.price).to.equal('1');
+                            expect(responseJson.sellAmount).to.equal('100000000000000000');
+                            expect(responseJson.sources).to.deep.include.members([{ name: '0x', proportion: '1' }]);
+                        },
+                        quoteRequestorHttpClient,
+                    );
+                });
+                it('should succeed when taker address is not supplied for an indicative quote', async () => {
+                    return rfqtMocker.withMockedRfqtIndicativeQuotes(
+                        [
+                            {
+                                ...DEFAULT_RFQT_RESPONSE_DATA,
+                                responseData: rfqtIndicativeQuoteResponse,
+                            },
+                        ],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.OK)
+                                .expect('Content-Type', /json/);
                             const responseJson = JSON.parse(appResponse.text);
                             expect(responseJson.buyAmount).to.equal('100000000000000000');
                             expect(responseJson.price).to.equal('1');
@@ -583,7 +608,7 @@ describe(SUITE_NAME, () => {
                         quoteRequestorHttpClient,
                     );
                 });
-                it('should fail when taker address is not supplied', async () => {
+                it('should fail when taker address is not supplied for a firm quote', async () => {
                     const appResponse = await request(app)
                         .get(
                             `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
@@ -716,6 +741,31 @@ describe(SUITE_NAME, () => {
                                 .expect(HttpStatus.OK)
                                 .expect('Content-Type', /json/);
 
+                            const responseJson = JSON.parse(appResponse.text);
+                            expect(responseJson.buyAmount).to.equal('100000000000000000');
+                            expect(responseJson.price).to.equal('1');
+                            expect(responseJson.sellAmount).to.equal('100000000000000000');
+                            expect(responseJson.sources).to.deep.include.members([{ name: '0x', proportion: '1' }]);
+                        },
+                        quoteRequestorHttpClient,
+                    );
+                });
+                it('should succeed when taker address is not supplied for an indicative quote', async () => {
+                    const response = {
+                        ...DEFAULT_RFQT_RESPONSE_DATA,
+                        responseData: rfqtIndicativeQuoteResponse,
+                    };
+                    response.requestParams.takerAddress = NULL_ADDRESS;
+                    return rfqtMocker.withMockedRfqtIndicativeQuotes(
+                        [response],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.OK)
+                                .expect('Content-Type', /json/);
                             const responseJson = JSON.parse(appResponse.text);
                             expect(responseJson.buyAmount).to.equal('100000000000000000');
                             expect(responseJson.price).to.equal('1');

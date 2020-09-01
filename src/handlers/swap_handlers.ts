@@ -403,14 +403,24 @@ const parseGetSwapQuoteRequestParams = (
     });
 
     const affiliateAddress = req.query.affiliateAddress as string;
-    const rfqt: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'> =
-        takerAddress && apiKey
-            ? {
-                  intentOnFilling: endpoint === 'quote' && req.query.intentOnFilling === 'true',
-                  isIndicative: endpoint === 'price',
-                  nativeExclusivelyRFQT,
-              }
-            : undefined;
+    const rfqt: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'> = (() => {
+        if (apiKey) {
+            if (endpoint === 'quote' && takerAddress) {
+                return {
+                    intentOnFilling: req.query.intentOnFilling === 'true',
+                    isIndicative: false,
+                    nativeExclusivelyRFQT,
+                };
+            } else if (endpoint === 'price') {
+                return {
+                    intentOnFilling: false,
+                    isIndicative: true,
+                    nativeExclusivelyRFQT,
+                };
+            }
+        }
+        return undefined;
+    })();
     // tslint:disable-next-line:boolean-naming
     const skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
     return {

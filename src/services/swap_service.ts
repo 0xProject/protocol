@@ -476,7 +476,10 @@ export class SwapService {
                 },
             ]);
         }
-        if (apiKey !== undefined && (isETHSell || from !== undefined)) {
+        // Only enable RFQT if there's an API key and either (a) it's a
+        // forwarder transaction (isETHSell===true), (b) there's a taker
+        // address present, or (c) it's an indicative quote.
+        if (apiKey !== undefined && (isETHSell || from !== undefined || (rfqt && rfqt.isIndicative))) {
             let takerAddress;
             switch (swapVersion) {
                 case SwapVersion.V0:
@@ -498,9 +501,6 @@ export class SwapService {
                 ...rfqt,
                 intentOnFilling: rfqt && rfqt.intentOnFilling ? true : false,
                 apiKey,
-                // If this is a forwarder transaction, then we want to request quotes with the taker as the
-                // forwarder contract. If it's not, then we want to request quotes with the taker set to the
-                // API's takerAddress query parameter, which in this context is known as `from`.
                 makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
                 takerAddress,
             };
