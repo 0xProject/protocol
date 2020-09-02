@@ -38,8 +38,8 @@ const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const SUITE_NAME = 'rfqt tests';
 
 const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
-const DEFAULT_EXCLUDED_SOURCES = EXCLUDED_SOURCES.join(',');
 const DEFAULT_SELL_AMOUNT = new BigNumber(100000000000000000);
+const DEFAULT_QUERY = `buyToken=ZRX&sellToken=WETH&excludedSources=${EXCLUDED_SOURCES.join(',')}&gasPrice=1`;
 
 describe(SUITE_NAME, () => {
     const contractAddresses: ContractAddresses = CONTRACT_ADDRESSES;
@@ -142,7 +142,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -173,7 +173,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=false&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=false&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -204,7 +204,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -219,7 +219,7 @@ describe(SUITE_NAME, () => {
                 it('should fail when taker address is not supplied for a firm quote', async () => {
                     const appResponse = await request(app)
                         .get(
-                            `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                            `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&intentOnFilling=true`,
                         )
                         .set('0x-api-key', 'koolApiKey1')
                         .expect(HttpStatus.BAD_REQUEST)
@@ -238,7 +238,7 @@ describe(SUITE_NAME, () => {
 
                     const appResponse = await request(app)
                         .get(
-                            `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&buyAmount=${buyAmount.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                            `${SWAP_PATH}/quote?${DEFAULT_QUERY}&buyAmount=${buyAmount.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                         )
                         .set('0x-api-key', 'koolApiKey1')
                         .expect(HttpStatus.BAD_REQUEST)
@@ -262,7 +262,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -296,7 +296,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'badApiKey')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -322,7 +322,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -341,7 +341,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/price?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -367,7 +367,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/price?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -393,7 +393,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/price?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -431,7 +431,7 @@ describe(SUITE_NAME, () => {
                     async () => {
                         const appResponse = await request(app)
                             .get(
-                                `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                             )
                             .set('0x-api-key', 'koolApiKey1')
                             .expect(HttpStatus.BAD_REQUEST)
@@ -490,7 +490,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -521,7 +521,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=false&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=false&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -552,7 +552,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -576,7 +576,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?intentOnFilling=true&buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&includedSources=RFQT&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?intentOnFilling=true&buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&includedSources=RFQT&skipValidation=true&gasPrice=1`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -599,7 +599,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?intentOnFilling=true&buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&includedSources=RFQT&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?intentOnFilling=true&buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&includedSources=RFQT&skipValidation=true&gasPrice=1`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -611,7 +611,7 @@ describe(SUITE_NAME, () => {
                 it('should fail when taker address is not supplied for a firm quote', async () => {
                     const appResponse = await request(app)
                         .get(
-                            `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                            `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&intentOnFilling=true`,
                         )
                         .set('0x-api-key', 'koolApiKey1')
                         .expect(HttpStatus.BAD_REQUEST)
@@ -630,7 +630,7 @@ describe(SUITE_NAME, () => {
 
                     const appResponse = await request(app)
                         .get(
-                            `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&buyAmount=${buyAmount.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                            `${SWAP_PATH}/quote?${DEFAULT_QUERY}&buyAmount=${buyAmount.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                         )
                         .set('0x-api-key', 'koolApiKey1')
                         .expect(HttpStatus.BAD_REQUEST)
@@ -654,7 +654,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -688,7 +688,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'badApiKey')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -715,7 +715,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             await request(app)
                                 .get(
-                                    `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -735,7 +735,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/price?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -761,7 +761,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                    `${SWAP_PATH}/price?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&skipValidation=true`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.OK)
@@ -787,7 +787,7 @@ describe(SUITE_NAME, () => {
                         async () => {
                             const appResponse = await request(app)
                                 .get(
-                                    `${SWAP_PATH}/price?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&excludedSources=${DEFAULT_EXCLUDED_SOURCES}`,
+                                    `${SWAP_PATH}/price?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}`,
                                 )
                                 .set('0x-api-key', 'koolApiKey1')
                                 .expect(HttpStatus.BAD_REQUEST)
@@ -823,7 +823,7 @@ describe(SUITE_NAME, () => {
                     async () => {
                         const appResponse = await request(app)
                             .get(
-                                `${SWAP_PATH}/quote?buyToken=ZRX&sellToken=WETH&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&excludedSources=${DEFAULT_EXCLUDED_SOURCES}&skipValidation=true`,
+                                `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true&skipValidation=true`,
                             )
                             .set('0x-api-key', 'koolApiKey1')
                             .expect(HttpStatus.BAD_REQUEST)

@@ -356,6 +356,7 @@ export const ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS: Partial<SwapQuoteRequestOpts> 
     gasSchedule: GAS_SCHEDULE_V0,
     shouldBatchBridgeOrders: true,
     runLimit: 2 ** 8,
+    shouldGenerateQuoteReport: false,
 };
 
 export const BASE_GAS_COST_V1 = new BigNumber(1.3e5);
@@ -428,6 +429,7 @@ export const ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS: Partial<SwapQuoteRequestOpts> 
     gasSchedule: GAS_SCHEDULE_V1,
     shouldBatchBridgeOrders: false,
     runLimit: 2 ** 8,
+    shouldGenerateQuoteReport: false,
 };
 
 export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
