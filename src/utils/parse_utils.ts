@@ -19,27 +19,6 @@ interface ParseRequestForExcludedSourcesParams {
     apiKey?: string;
 }
 
-/**
- * This constant contains, as keys, all ERC20BridgeSource types except from `Native`.
- * As we add more bridge sources to AssetSwapper, we want to keep ourselves accountable to add
- * them to this constant. Since there isn't a good way to enumerate over enums, we use a obect type.
- * The type has been defined in a way that the code won't compile if a new ERC20BridgeSource is added.
- */
-const ALL_EXCEPT_NATIVE: { [key in Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>]: boolean } = {
-    Uniswap: true,
-    Balancer: true,
-    Bancor: true,
-    Curve: true,
-    Eth2Dai: true,
-    Kyber: true,
-    LiquidityProvider: true,
-    MultiBridge: true,
-    Uniswap_V2: true,
-    mStable: true,
-    Mooniswap: true,
-    MultiHop: true,
-};
-
 export const parseUtils = {
     parseRequestForExcludedSources(
         request: ParseRequestForExcludedSourcesParams,
@@ -118,7 +97,7 @@ export const parseUtils = {
 
                 return {
                     nativeExclusivelyRFQT: true,
-                    excludedSources: Object.keys(ALL_EXCEPT_NATIVE) as ERC20BridgeSource[],
+                    excludedSources: Object.values(ERC20BridgeSource).filter(t => t !== ERC20BridgeSource.Native),
                 };
             } else {
                 throw new ValidationError([

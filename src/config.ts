@@ -6,14 +6,15 @@ import {
     ERC20BridgeSource,
     FeeSchedule,
     MultiHopFillData,
+    OrderPrunerPermittedFeeTypes,
     RfqtMakerAssetOfferings,
     SamplerOverrides,
+    SushiSwapFillData,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
-import { OrderPrunerPermittedFeeTypes } from '@0x/asset-swapper/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
@@ -284,6 +285,8 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.LiquidityProvider,
                 ERC20BridgeSource.MStable,
                 ERC20BridgeSource.Mooniswap,
+                ERC20BridgeSource.Swerve,
+                ERC20BridgeSource.SushiSwap,
             ];
         default:
             return [
@@ -299,6 +302,8 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.UniswapV2,
                 ERC20BridgeSource.Mooniswap,
                 ERC20BridgeSource.MultiHop,
+                ERC20BridgeSource.Swerve,
+                ERC20BridgeSource.SushiSwap,
             ];
     }
 })();
@@ -333,6 +338,14 @@ export const GAS_SCHEDULE_V0: FeeSchedule = {
         }
         return gas;
     },
+    [ERC20BridgeSource.SushiSwap]: fillData => {
+        let gas = 3e5;
+        if ((fillData as SushiSwapFillData).tokenAddressPath.length > 2) {
+            gas += 5e4;
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.Swerve]: () => 6e5,
     [ERC20BridgeSource.Balancer]: () => 4.5e5,
     [ERC20BridgeSource.Bancor]: () => 4.5e5,
     [ERC20BridgeSource.MStable]: () => 8.5e5,
@@ -395,9 +408,17 @@ export const GAS_SCHEDULE_V1: FeeSchedule = {
         }
         return gas;
     },
+    [ERC20BridgeSource.SushiSwap]: fillData => {
+        let gas = 1.5e5;
+        if ((fillData as SushiSwapFillData).tokenAddressPath.length > 2) {
+            gas += 5e4;
+        }
+        return gas;
+    },
     [ERC20BridgeSource.Balancer]: () => 1.5e5,
     [ERC20BridgeSource.MStable]: () => 7e5,
     [ERC20BridgeSource.Mooniswap]: () => 2.2e5,
+    [ERC20BridgeSource.Swerve]: () => 1.5e5,
     [ERC20BridgeSource.MultiHop]: fillData => {
         const firstHop = (fillData as MultiHopFillData).firstHopSource;
         const secondHop = (fillData as MultiHopFillData).secondHopSource;

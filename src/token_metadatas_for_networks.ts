@@ -787,4 +787,44 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'SUSHI',
+        name: 'Sushi',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x6b3595068778dd592e39a122f4f5a5cf09c90fe2',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'swUSD',
+        name: 'Swerve.fi swUSD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x77C6E4a580c0dCE4E5c7a17d0bc077188a83A059',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'SWRV',
+        name: 'Swerve DAO Token',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xB8BAa0e4287890a5F79863aB62b7F175ceCbD433',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'sBTC',
+        name: 'Synth sBTC',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
