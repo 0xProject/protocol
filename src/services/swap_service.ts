@@ -505,6 +505,10 @@ export class SwapService {
                 takerAddress,
             };
         }
+
+        // only generate quote reports for rfqt firm quotes
+        const shouldGenerateQuoteReport = rfqt && rfqt.intentOnFilling;
+
         const swapQuoteRequestOpts =
             swapVersion === SwapVersion.V0 ? ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS;
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
@@ -513,6 +517,7 @@ export class SwapService {
             gasPrice: providedGasPrice,
             excludedSources: swapQuoteRequestOpts.excludedSources.concat(...(excludedSources || [])),
             rfqt: _rfqt,
+            shouldGenerateQuoteReport,
         };
         if (sellAmount !== undefined) {
             return this._swapQuoter.getMarketSellSwapQuoteAsync(

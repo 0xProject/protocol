@@ -118,11 +118,16 @@ export class MetaTransactionService {
                 takerAddress,
             };
         }
+
+        // only generate quote reports for rfqt firm quotes
+        const shouldGenerateQuoteReport = _rfqt && _rfqt.intentOnFilling;
+
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
             bridgeSlippage: slippagePercentage,
             excludedSources: ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS.excludedSources.concat(...(excludedSources || [])),
             rfqt: _rfqt,
+            shouldGenerateQuoteReport,
         };
 
         let swapQuote: MarketSellSwapQuote | MarketBuySwapQuote | undefined;
