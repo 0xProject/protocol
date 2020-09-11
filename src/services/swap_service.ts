@@ -164,11 +164,15 @@ export class SwapService {
                 gasPrice,
             });
             // Take the max of the faux estimate or the real estimate
-            conservativeBestCaseGasEstimate = BigNumber.max(estimateGasCallResult, conservativeBestCaseGasEstimate);
+            conservativeBestCaseGasEstimate = BigNumber.max(
+                // Add a little buffer to eth_estimateGas as it is not always correct
+                estimateGasCallResult.times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue(),
+                conservativeBestCaseGasEstimate,
+            );
         }
         // If any sources can be undeterministic in gas costs, we add a buffer
         const hasUndeterministicFills = _.flatten(swapQuote.orders.map(order => order.fills)).some(fill =>
-            [ERC20BridgeSource.Native, ERC20BridgeSource.Kyber, ERC20BridgeSource.MultiBridge].includes(fill.source),
+            [ERC20BridgeSource.Native, ERC20BridgeSource.MultiBridge].includes(fill.source),
         );
         const undeterministicMultiplier = hasUndeterministicFills ? GAS_LIMIT_BUFFER_MULTIPLIER : 1;
         // Add a buffer to get the worst case gas estimate
