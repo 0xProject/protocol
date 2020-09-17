@@ -35,6 +35,8 @@ import {
     ONE,
     TEN_MINUTES_MS,
     UNWRAP_QUOTE_GAS,
+    UNWRAP_WETH_GAS,
+    WRAP_ETH_GAS,
     WRAP_QUOTE_GAS,
     ZERO,
 } from '../constants';
@@ -152,8 +154,13 @@ export class SwapService {
         );
         let conservativeBestCaseGasEstimate = new BigNumber(worstCaseGas)
             .plus(gasTokenGasCost)
-            .plus(affiliateFeeGasCost)
-            .plus(swapVersion === SwapVersion.V1 ? BASE_GAS_COST_V1 : 0);
+            .plus(affiliateFeeGasCost);
+        if (swapVersion === SwapVersion.V1) {
+            conservativeBestCaseGasEstimate = conservativeBestCaseGasEstimate
+                .plus(BASE_GAS_COST_V1)
+                .plus(isETHSell ? WRAP_ETH_GAS : 0)
+                .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
+        }
 
         if (!skipValidation && from) {
             const estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
