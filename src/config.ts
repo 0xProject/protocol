@@ -275,7 +275,7 @@ export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 const EXCLUDED_SOURCES = (() => {
     switch (CHAIN_ID) {
         case ChainId.Mainnet:
-            return [ERC20BridgeSource.Bancor];
+            return [];
         case ChainId.Kovan:
             return [
                 ERC20BridgeSource.Balancer,

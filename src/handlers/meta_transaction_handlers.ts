@@ -1,5 +1,5 @@
 import { assert } from '@0x/assert';
-import { SwapQuoterError } from '@0x/asset-swapper';
+import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -23,6 +23,7 @@ import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { MetaTransactionService } from '../services/meta_transaction_service';
 import {
+    ChainId,
     GetMetaTransactionPriceResponse,
     GetMetaTransactionStatusResponse,
     GetTransactionRequestParams,
@@ -31,7 +32,7 @@ import {
 import { parseUtils } from '../utils/parse_utils';
 import { isRateLimitedMetaTransactionResponse, MetaTransactionRateLimiter } from '../utils/rate-limiters';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddressOrThrowApiError } from '../utils/token_metadata_utils';
+import { findTokenAddressOrThrowApiError, getTokenMetadataIfExists } from '../utils/token_metadata_utils';
 
 export class MetaTransactionHandlers {
     private readonly _metaTransactionService: MetaTransactionService;
@@ -59,15 +60,13 @@ export class MetaTransactionHandlers {
         // parse query params
         const {
             takerAddress,
-            sellToken,
-            buyToken,
+            sellTokenAddress,
+            buyTokenAddress,
             sellAmount,
             buyAmount,
             slippagePercentage,
             excludedSources,
         } = parseGetTransactionRequestParams(req);
-        const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
-        const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
         try {
             const metaTransactionQuote = await this._metaTransactionService.calculateMetaTransactionQuoteAsync({
                 takerAddress,
@@ -131,15 +130,13 @@ export class MetaTransactionHandlers {
         // parse query params
         const {
             takerAddress,
-            sellToken,
-            buyToken,
+            sellTokenAddress,
+            buyTokenAddress,
             sellAmount,
             buyAmount,
             slippagePercentage,
             excludedSources,
         } = parseGetTransactionRequestParams(req);
-        const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
-        const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
         try {
             const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
                 {
@@ -353,6 +350,9 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
     const takerAddress = req.query.takerAddress as string;
     const sellToken = req.query.sellToken as string;
     const buyToken = req.query.buyToken as string;
+    const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
+    const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
+
     const sellAmount = req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount as string);
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);
     const slippagePercentage = parseFloat(req.query.slippagePercentage as string) || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE;
@@ -365,11 +365,24 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
             },
         ]);
     }
-    const excludedSources =
+    const _excludedSources =
         req.query.excludedSources === undefined
             ? undefined
             : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(','));
-    return { takerAddress, sellToken, buyToken, sellAmount, buyAmount, slippagePercentage, excludedSources };
+    // Exclude Bancor as a source unless swap involves BNT token
+    const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet).tokenAddress;
+    const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
+    const excludedSources = isBNT ? _excludedSources : _excludedSources.concat(ERC20BridgeSource.Bancor);
+
+    return {
+        takerAddress,
+        sellTokenAddress,
+        buyTokenAddress,
+        sellAmount,
+        buyAmount,
+        slippagePercentage,
+        excludedSources,
+    };
 };
 
 interface PostTransactionRequestBody {

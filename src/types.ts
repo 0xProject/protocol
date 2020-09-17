@@ -521,8 +521,8 @@ export interface GetSwapQuoteRequestParams {
 
 export interface GetTransactionRequestParams {
     takerAddress: string;
-    sellToken: string;
-    buyToken: string;
+    sellTokenAddress: string;
+    buyTokenAddress: string;
     sellAmount?: BigNumber;
     buyAmount?: BigNumber;
     slippagePercentage?: number;

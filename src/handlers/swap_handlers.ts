@@ -1,4 +1,4 @@
-import { RfqtRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
+import { ERC20BridgeSource, RfqtRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -24,7 +24,13 @@ import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas/schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
-import { CalculateSwapQuoteParams, GetSwapQuoteRequestParams, GetSwapQuoteResponse, SwapVersion } from '../types';
+import {
+    CalculateSwapQuoteParams,
+    ChainId,
+    GetSwapQuoteRequestParams,
+    GetSwapQuoteResponse,
+    SwapVersion,
+} from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { serviceUtils } from '../utils/service_utils';
@@ -193,7 +199,7 @@ export class SwapHandlers {
             takerAddress,
             slippagePercentage,
             gasPrice,
-            excludedSources,
+            excludedSources: _excludedSources,
             affiliateAddress,
             rfqt,
             // tslint:disable-next-line:boolean-naming
@@ -241,6 +247,11 @@ export class SwapHandlers {
                 },
             ]);
         }
+
+        // Exclude Bancor as a source unless swap involves BNT token
+        const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet).tokenAddress;
+        const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
+        const excludedSources = isBNT ? _excludedSources : _excludedSources.concat(ERC20BridgeSource.Bancor);
 
         const calculateSwapQuoteParams: CalculateSwapQuoteParams = {
             buyTokenAddress,

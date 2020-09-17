@@ -32,15 +32,14 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-0ba79b060":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-b3053dfb9":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/4ca47a7ba6a6c95aa3fde2da2ffbb048228ebcd5"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/06a845099c1a526fc802eb20c1f7a9fa46514f02"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"
     "@0x/contract-addresses" "^4.11.0"
     "@0x/contract-wrappers" "^13.8.0"
-    "@0x/contracts-erc20-bridge-sampler" "^1.7.0"
     "@0x/json-schemas" "^5.1.0"
     "@0x/order-utils" "^10.3.0"
     "@0x/orderbook" "^2.2.7"
@@ -50,7 +49,7 @@
     "@0x/utils" "^5.5.1"
     "@0x/web3-wrapper" "^7.2.0"
     "@balancer-labs/sor" "0.3.2"
-    "@bancor/sdk" "^0.2.5"
+    "@bancor/sdk" "^0.2.9"
     axios "^0.19.2"
     axios-mock-adapter "^1.18.1"
     decimal.js "^10.2.0"
@@ -90,9 +89,9 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-68a0fca24", "@0x/contract-addresses@^4.11.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-3da05f281", "@0x/contract-addresses@^4.11.0":
   version "4.11.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/8ca73d97aafdf95b4802e4bd1ec708b433461e8a"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/60a1cff1259502e90675515db88988fa9144c562"
 
 "@0x/contract-wrappers@^13.7.0", "@0x/contract-wrappers@^13.8.0":
   version "13.8.0"
@@ -744,9 +743,9 @@
     isomorphic-fetch "^2.2.1"
     typescript "^3.8.3"
 
-"@bancor/sdk@^0.2.5":
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/@bancor/sdk/-/sdk-0.2.5.tgz#dda2d6a91bc130684d83e5d395c00677cd0fdd71"
+"@bancor/sdk@^0.2.9":
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/@bancor/sdk/-/sdk-0.2.9.tgz#2e4c168dc9d667709e3ed85eac3b15362c5676d8"
   dependencies:
     "@types/text-encoding" "0.0.35"
     decimal.js "^10.2.0"
