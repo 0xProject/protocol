@@ -367,7 +367,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
     }
     const _excludedSources =
         req.query.excludedSources === undefined
-            ? undefined
+            ? []
             : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(','));
     // Exclude Bancor as a source unless swap involves BNT token
     const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet).tokenAddress;
