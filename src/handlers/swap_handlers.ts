@@ -183,6 +183,10 @@ export class SwapHandlers {
                 req.query.excludedSources === undefined
                     ? []
                     : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(',')),
+            includedSources:
+                req.query.includedSources === undefined
+                    ? []
+                    : parseUtils.parseStringArrForERC20BridgeSources((req.query.includedSources as string).split(',')),
         });
         res.status(HttpStatus.OK).send({ ...response, buyToken: makerToken, sellToken: takerToken });
     }
@@ -199,7 +203,8 @@ export class SwapHandlers {
             takerAddress,
             slippagePercentage,
             gasPrice,
-            excludedSources: _excludedSources,
+            excludedSources,
+            includedSources,
             affiliateAddress,
             rfqt,
             // tslint:disable-next-line:boolean-naming
@@ -251,7 +256,7 @@ export class SwapHandlers {
         // Exclude Bancor as a source unless swap involves BNT token
         const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet).tokenAddress;
         const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
-        const excludedSources = isBNT ? _excludedSources : _excludedSources.concat(ERC20BridgeSource.Bancor);
+        const excludedSourcesWithBNT = isBNT ? excludedSources : excludedSources.concat(ERC20BridgeSource.Bancor);
 
         const calculateSwapQuoteParams: CalculateSwapQuoteParams = {
             buyTokenAddress,
@@ -263,7 +268,8 @@ export class SwapHandlers {
             isETHBuy,
             slippagePercentage,
             gasPrice,
-            excludedSources,
+            excludedSources: excludedSourcesWithBNT,
+            includedSources,
             affiliateAddress,
             apiKey,
             rfqt:
@@ -277,6 +283,7 @@ export class SwapHandlers {
             skipValidation,
             swapVersion,
             affiliateFee,
+            isMetaTransaction: false,
         };
         try {
             let swapQuote: GetSwapQuoteResponse;
@@ -385,7 +392,7 @@ const parseGetSwapQuoteRequestParams = (
 
     const apiKey: string | undefined = req.header('0x-api-key');
     // tslint:disable-next-line: boolean-naming
-    const { excludedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
+    const { excludedSources, includedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
         {
             excludedSources: req.query.excludedSources as string | undefined,
             includedSources: req.query.includedSources as string | undefined,
@@ -443,6 +450,7 @@ const parseGetSwapQuoteRequestParams = (
         slippagePercentage,
         gasPrice,
         excludedSources: updatedExcludedSources,
+        includedSources,
         affiliateAddress,
         rfqt,
         skipValidation,

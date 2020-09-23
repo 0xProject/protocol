@@ -207,6 +207,16 @@ describe(SUITE_NAME, () => {
                 },
             );
         });
+        it('should respect includedSources', async () => {
+            await quoteAndExpectAsync(
+                {
+                    sellAmount: '1234',
+                    excludedSources: '',
+                    includedSources: [ERC20BridgeSource.Native].join(','),
+                },
+                { sellAmount: new BigNumber(1234) },
+            );
+        });
         it('should return a ExchangeProxy transaction for sellToken=ETH', async () => {
             await quoteAndExpectAsync(
                 {
@@ -295,7 +305,7 @@ describe(SUITE_NAME, () => {
             });
             it('can add a buy token affiliate fee to a sell quote', async () => {
                 const feeRecipient = randomAddress();
-                const buyTokenPercentageFee = getRandomFloat(0, 1);
+                const buyTokenPercentageFee = getRandomFloat(0, 1).dp(3);
                 await quoteAndExpectAsync(
                     {
                         ...sellQuoteParams,
@@ -325,7 +335,7 @@ describe(SUITE_NAME, () => {
             });
             it('can add a buy token affiliate fee to a buy quote', async () => {
                 const feeRecipient = randomAddress();
-                const buyTokenPercentageFee = getRandomFloat(0, 1);
+                const buyTokenPercentageFee = getRandomFloat(0, 1).dp(3);
                 await quoteAndExpectAsync(
                     {
                         ...buyQuoteParams,

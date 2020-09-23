@@ -32,9 +32,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-b3053dfb9":
-  version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/06a845099c1a526fc802eb20c1f7a9fa46514f02"
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-beta-fcbac51ed":
+  version "4.6.0-beta"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/9ed257cbbeccb265449e5ef8651b8d4b93c54ca2"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"
@@ -89,13 +89,13 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-3da05f281", "@0x/contract-addresses@^4.11.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-68a0fca24", "@0x/contract-addresses@^4.11.0":
   version "4.11.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/60a1cff1259502e90675515db88988fa9144c562"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/8ca73d97aafdf95b4802e4bd1ec708b433461e8a"
 
-"@0x/contract-wrappers@^13.7.0", "@0x/contract-wrappers@^13.8.0":
-  version "13.8.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/cd9ebfd6172a243d14a067d5e61fd14f478bdfa5"
+"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.8.0-uniswap-vip-beta-deedfd886", "@0x/contract-wrappers@^13.8.0":
+  version "13.8.0-uniswap-vip-beta"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/da3810ca09cdab29800dccbe5e42ce606d96af6b"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"
@@ -394,9 +394,9 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/order-utils@0xProject/gitpkg-registry#0x-order-utils-v10.3.0-beta-bd3387a40", "@0x/order-utils@^10.2.4", "@0x/order-utils@^10.3.0":
+"@0x/order-utils@0xProject/gitpkg-registry#0x-order-utils-v10.3.0-beta-deedfd886", "@0x/order-utils@^10.2.4", "@0x/order-utils@^10.3.0":
   version "10.3.0-beta"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/0de7d0e5d49ef3c5f4320f48fcc14d25fafbfea2"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/aef1ce87034e9f4e9a3e52514676a552d100cbc7"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/contract-addresses" "^4.11.0"

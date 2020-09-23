@@ -66,6 +66,7 @@ export class MetaTransactionHandlers {
             buyAmount,
             slippagePercentage,
             excludedSources,
+            includedSources,
         } = parseGetTransactionRequestParams(req);
         try {
             const metaTransactionQuote = await this._metaTransactionService.calculateMetaTransactionQuoteAsync({
@@ -77,6 +78,7 @@ export class MetaTransactionHandlers {
                 from: takerAddress,
                 slippagePercentage,
                 excludedSources,
+                includedSources,
                 apiKey,
             });
             res.status(HttpStatus.OK).send(metaTransactionQuote);
@@ -136,6 +138,7 @@ export class MetaTransactionHandlers {
             buyAmount,
             slippagePercentage,
             excludedSources,
+            includedSources,
         } = parseGetTransactionRequestParams(req);
         try {
             const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
@@ -148,6 +151,7 @@ export class MetaTransactionHandlers {
                     from: takerAddress,
                     slippagePercentage,
                     excludedSources,
+                    includedSources,
                     apiKey,
                 },
                 'price',
@@ -369,6 +373,10 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
         req.query.excludedSources === undefined
             ? []
             : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(','));
+    const includedSources =
+        req.query.includedSources === undefined
+            ? undefined
+            : parseUtils.parseStringArrForERC20BridgeSources((req.query.includedSources as string).split(','));
     // Exclude Bancor as a source unless swap involves BNT token
     const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet).tokenAddress;
     const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
@@ -382,6 +390,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
         buyAmount,
         slippagePercentage,
         excludedSources,
+        includedSources,
     };
 };
 

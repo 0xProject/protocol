@@ -8,18 +8,6 @@ import { parseUtils } from '../src/utils/parse_utils';
 const SUITE_NAME = 'parseUtils';
 
 describe(SUITE_NAME, () => {
-    it('raises a ValidationError if includedSources is anything else than RFQT', async () => {
-        expect(() => {
-            parseUtils.parseRequestForExcludedSources(
-                {
-                    includedSources: 'Uniswap',
-                },
-                [],
-                'price',
-            );
-        }).throws();
-    });
-
     it('raises a ValidationError if includedSources is RFQT and a taker is not specified', async () => {
         expect(() => {
             parseUtils.parseRequestForExcludedSources(
@@ -67,9 +55,9 @@ describe(SUITE_NAME, () => {
         expect(nativeExclusivelyRFQT).to.eql(false);
     });
 
-    it('returns excludedSources correctly when includedSources=RFQT', async () => {
+    it('correctly handles includedSources=RFQT', async () => {
         // tslint:disable-next-line: boolean-naming
-        const { excludedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
+        const { excludedSources, includedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
             {
                 includedSources: 'RFQT',
                 takerAddress: NULL_ADDRESS,
@@ -79,17 +67,24 @@ describe(SUITE_NAME, () => {
             'price',
         );
         expect(nativeExclusivelyRFQT).to.eql(true);
+        expect(excludedSources).to.deep.eq([]);
+        expect(includedSources).to.deep.eq(['Native']);
+    });
 
-        // Ensure that all sources of liquidity are excluded aside from `Native`.
-        const allPossibleSources: Set<ERC20BridgeSource> = new Set(
-            Object.keys(ERC20BridgeSource).map(s => ERC20BridgeSource[s]),
+    it('correctly handles includedSources=RFQT,Native', async () => {
+        // tslint:disable-next-line: boolean-naming
+        const { excludedSources, includedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
+            {
+                includedSources: 'RFQT,Native',
+                takerAddress: NULL_ADDRESS,
+                apiKey: 'ipsum',
+            },
+            ['lorem', 'ipsum'],
+            'price',
         );
-        for (const source of excludedSources) {
-            allPossibleSources.delete(source);
-        }
-        const allPossibleSourcesArray = Array.from(allPossibleSources);
-        expect(allPossibleSourcesArray.length).to.eql(1);
-        expect(allPossibleSourcesArray[0]).to.eql(ERC20BridgeSource.Native);
+        expect(nativeExclusivelyRFQT).to.eql(false);
+        expect(excludedSources).to.deep.eq([]);
+        expect(includedSources).to.deep.eq(['Native']);
     });
 
     it('raises a ValidationError if includedSources and excludedSources are both present', async () => {

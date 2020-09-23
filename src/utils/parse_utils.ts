@@ -19,14 +19,23 @@ interface ParseRequestForExcludedSourcesParams {
     apiKey?: string;
 }
 
+export interface ParseRequestForExcludedSourcesResult {
+    excludedSources: ERC20BridgeSource[];
+    includedSources: ERC20BridgeSource[];
+    nativeExclusivelyRFQT: boolean;
+}
+
 export const parseUtils = {
     parseRequestForExcludedSources(
         request: ParseRequestForExcludedSourcesParams,
         validApiKeys: string[],
         endpoint: 'price' | 'quote',
-    ): { excludedSources: ERC20BridgeSource[]; nativeExclusivelyRFQT: boolean } {
+    ): ParseRequestForExcludedSourcesResult {
+        const excludedIds = request.excludedSources ? request.excludedSources.split(',') : [];
+        const includedIds = request.includedSources ? request.includedSources.split(',') : [];
+
         // Ensure that both filtering arguments cannot be present.
-        if (request.excludedSources !== undefined && request.includedSources !== undefined) {
+        if (excludedIds.length !== 0 && includedIds.length !== 0) {
             throw new ValidationError([
                 {
                     field: 'excludedSources',
@@ -41,85 +50,82 @@ export const parseUtils = {
             ]);
         }
 
-        // If excludedSources is present, parse the string array and return
-        if (request.excludedSources !== undefined) {
+        // If excludedSources is present, just return those.
+        if (excludedIds.length > 0) {
             return {
-                excludedSources: parseUtils.parseStringArrForERC20BridgeSources(request.excludedSources.split(',')),
+                excludedSources: parseUtils.parseStringArrForERC20BridgeSources(excludedIds),
+                includedSources: [],
                 nativeExclusivelyRFQT: false,
             };
         }
 
-        if (request.includedSources !== undefined) {
-            // Only RFQT is eligible as of now
-            if (request.includedSources === 'RFQT') {
-                // We assume that if a `takerAddress` key is present, it's value was already validated by the JSON
-                // schema.
-                if (request.takerAddress === undefined) {
-                    throw new ValidationError([
-                        {
-                            field: 'takerAddress',
-                            code: ValidationErrorCodes.RequiredField,
-                            reason: ValidationErrorReasons.TakerAddressInvalid,
-                        },
-                    ]);
-                }
-
-                // We enforce a valid API key - we don't want to fail silently.
-                if (request.apiKey === undefined) {
-                    throw new ValidationError([
-                        {
-                            field: '0x-api-key',
-                            code: ValidationErrorCodes.RequiredField,
-                            reason: ValidationErrorReasons.InvalidApiKey,
-                        },
-                    ]);
-                }
-                if (!validApiKeys.includes(request.apiKey)) {
-                    throw new ValidationError([
-                        {
-                            field: '0x-api-key',
-                            code: ValidationErrorCodes.FieldInvalid,
-                            reason: ValidationErrorReasons.InvalidApiKey,
-                        },
-                    ]);
-                }
-
-                // If the user is requesting a firm quote, we want to make sure that `intentOnFilling` is set to "true".
-                if (endpoint === 'quote' && request.intentOnFilling !== 'true') {
-                    throw new ValidationError([
-                        {
-                            field: 'intentOnFilling',
-                            code: ValidationErrorCodes.RequiredField,
-                            reason: ValidationErrorReasons.RequiresIntentOnFilling,
-                        },
-                    ]);
-                }
-
-                return {
-                    nativeExclusivelyRFQT: true,
-                    excludedSources: Object.values(ERC20BridgeSource).filter(t => t !== ERC20BridgeSource.Native),
-                };
-            } else {
+        // Is RFQT is being explicitly requested?
+        if (includedIds.includes('RFQT')) {
+            // We assume that if a `takerAddress` key is present, it's value was already validated by the JSON
+            // schema.
+            if (request.takerAddress === undefined) {
                 throw new ValidationError([
                     {
-                        field: 'includedSources',
-                        code: ValidationErrorCodes.IncorrectFormat,
-                        reason: ValidationErrorReasons.ArgumentNotYetSupported,
+                        field: 'takerAddress',
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: ValidationErrorReasons.TakerAddressInvalid,
                     },
                 ]);
             }
+
+            // We enforce a valid API key - we don't want to fail silently.
+            if (request.apiKey === undefined) {
+                throw new ValidationError([
+                    {
+                        field: '0x-api-key',
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: ValidationErrorReasons.InvalidApiKey,
+                    },
+                ]);
+            }
+            if (!validApiKeys.includes(request.apiKey)) {
+                throw new ValidationError([
+                    {
+                        field: '0x-api-key',
+                        code: ValidationErrorCodes.FieldInvalid,
+                        reason: ValidationErrorReasons.InvalidApiKey,
+                    },
+                ]);
+            }
+
+            // If the user is requesting a firm quote, we want to make sure that `intentOnFilling` is set to "true".
+            if (endpoint === 'quote' && request.intentOnFilling !== 'true') {
+                throw new ValidationError([
+                    {
+                        field: 'intentOnFilling',
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: ValidationErrorReasons.RequiresIntentOnFilling,
+                    },
+                ]);
+            }
+
+            return {
+                excludedSources: [],
+                includedSources: parseUtils.parseStringArrForERC20BridgeSources(['0x', ...includedIds]),
+                nativeExclusivelyRFQT: !includedIds.includes('0x') && !includedIds.includes('Native'),
+            };
         }
 
-        return { excludedSources: [], nativeExclusivelyRFQT: false };
+        return { excludedSources: [], includedSources: [], nativeExclusivelyRFQT: false };
     },
-    parseStringArrForERC20BridgeSources(excludedSources: string[]): ERC20BridgeSource[] {
+    parseStringArrForERC20BridgeSources(sources: string[]): ERC20BridgeSource[] {
         // Need to compare value of the enum instead of the key, as values are used by asset-swapper
-        // CurveUsdcDaiUsdt = 'Curve_USDC_DAI_USDT' is excludedSources=Curve_USDC_DAI_USDT
-        return excludedSources
-            .map(source => (source === '0x' ? 'Native' : source))
-            .filter((source: string) =>
-                Object.keys(ERC20BridgeSource).find((k: any) => ERC20BridgeSource[k] === source),
-            ) as ERC20BridgeSource[];
+        // CurveUsdcDaiUsdt = 'Curve_USDC_DAI_USDT' is sources=Curve_USDC_DAI_USDT
+        // Also remove duplicates by assigning to an object then converting to keys.
+        return Object.keys(
+            Object.assign(
+                {},
+                ...sources
+                    .map(source => (source === '0x' ? 'Native' : source))
+                    .filter(source => Object.values(ERC20BridgeSource).includes(source as ERC20BridgeSource))
+                    .map(s => ({ [s]: s })),
+            ),
+        ) as ERC20BridgeSource[];
     },
     parseJsonStringForMetaTransactionRateLimitConfigOrThrow(configString: string): MetaTransactionRateLimitConfig {
         const parsedConfig = JSON.parse(configString);

@@ -512,6 +512,7 @@ export interface GetSwapQuoteRequestParams {
     slippagePercentage?: number;
     gasPrice?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
+    includedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
     rfqt?: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'>;
     skipValidation: boolean;
@@ -527,6 +528,7 @@ export interface GetTransactionRequestParams {
     buyAmount?: BigNumber;
     slippagePercentage?: number;
     excludedSources?: ERC20BridgeSource[];
+    includedSources?: ERC20BridgeSource[];
 }
 
 export interface CalculateSwapQuoteParams {
@@ -537,9 +539,11 @@ export interface CalculateSwapQuoteParams {
     from: string | undefined;
     isETHSell: boolean;
     isETHBuy: boolean;
+    isMetaTransaction: boolean;
     slippagePercentage?: number;
     gasPrice?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
+    includedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
     apiKey?: string;
     rfqt?: Partial<RfqtRequestOpts>;
@@ -569,6 +573,7 @@ export interface CalculateMetaTransactionQuoteParams {
     from: string | undefined;
     slippagePercentage?: number;
     excludedSources?: ERC20BridgeSource[];
+    includedSources?: ERC20BridgeSource[];
     apiKey: string | undefined;
 }
 
@@ -640,6 +645,7 @@ export interface CalaculateMarketDepthParams {
     numSamples: number;
     sampleDistributionBase: number;
     excludedSources?: ERC20BridgeSource[];
+    includedSources?: ERC20BridgeSource[];
 }
 
 export interface BucketedPriceDepth {

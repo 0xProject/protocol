@@ -8,6 +8,7 @@ import {
     SwapQuoteConsumer,
     SwapQuoteGetOutputOpts,
     SwapQuoter,
+    UniswapV2FillData,
 } from '@0x/asset-swapper';
 import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/types';
 import { ContractAddresses } from '@0x/contract-addresses';
@@ -110,6 +111,7 @@ export class SwapService {
             sellTokenAddress,
             isETHSell,
             isETHBuy,
+            isMetaTransaction,
             from,
             affiliateAddress,
             // tslint:disable-next-line:boolean-naming
@@ -137,6 +139,7 @@ export class SwapService {
             swapQuote,
             isETHSell,
             isETHBuy,
+            isMetaTransaction,
             affiliateAddress,
             swapVersion,
             { recipient: affiliateFee.recipient, buyTokenFeeAmount, sellTokenFeeAmount },
@@ -156,10 +159,16 @@ export class SwapService {
             .plus(gasTokenGasCost)
             .plus(affiliateFeeGasCost);
         if (swapVersion === SwapVersion.V1) {
-            conservativeBestCaseGasEstimate = conservativeBestCaseGasEstimate
-                .plus(BASE_GAS_COST_V1)
-                .plus(isETHSell ? WRAP_ETH_GAS : 0)
-                .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
+            // HACK(dorothy-zbornak): Until we have proper gas schedules for VIP routes in
+            // asset-swapper, `worstCaseGas` will be too low for uniswap VIP routes, because
+            // we intentionally underprice the `UniswapV2` gas in the V1 fee schedule (for now).
+            // So we have to manually set the worst case to 100
+            conservativeBestCaseGasEstimate = isUniswapVipCallData(data)
+                ? getUniswapVipAdjustedWorstCaseGas(swapQuote, params)
+                : conservativeBestCaseGasEstimate
+                      .plus(BASE_GAS_COST_V1)
+                      .plus(isETHSell ? WRAP_ETH_GAS : 0)
+                      .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
         }
 
         if (!skipValidation && from) {
@@ -317,7 +326,15 @@ export class SwapService {
         asks: { depth: BucketedPriceDepth[] };
         bids: { depth: BucketedPriceDepth[] };
     }> {
-        const { buyToken, sellToken, sellAmount, numSamples, sampleDistributionBase, excludedSources } = params;
+        const {
+            buyToken,
+            sellToken,
+            sellAmount,
+            numSamples,
+            sampleDistributionBase,
+            excludedSources,
+            includedSources,
+        } = params;
         const marketDepth = await this._swapQuoter.getBidAskLiquidityForMakerTakerAssetPairAsync(
             buyToken.tokenAddress,
             sellToken.tokenAddress,
@@ -330,6 +347,7 @@ export class SwapService {
                     ERC20BridgeSource.Bancor,
                     ERC20BridgeSource.MultiHop,
                 ],
+                includedSources,
                 sampleDistributionBase,
             },
         );
@@ -471,6 +489,7 @@ export class SwapService {
             isETHSell,
             from,
             excludedSources,
+            includedSources,
             apiKey,
             rfqt,
             swapVersion,
@@ -527,6 +546,7 @@ export class SwapService {
             bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
             excludedSources: swapQuoteRequestOpts.excludedSources.concat(...(excludedSources || [])),
+            includedSources,
             rfqt: _rfqt,
             shouldGenerateQuoteReport,
         };
@@ -556,6 +576,7 @@ export class SwapService {
         swapQuote: SwapQuote,
         isFromETH: boolean,
         isToETH: boolean,
+        isMetaTransaction: boolean,
         affiliateAddress: string,
         swapVersion: SwapVersion,
         affiliateFee: AffiliateFee,
@@ -570,7 +591,7 @@ export class SwapService {
             case SwapVersion.V1:
                 opts = {
                     useExtensionContract: ExtensionContractType.ExchangeProxy,
-                    extensionContractOpts: { isFromETH, isToETH, affiliateFee },
+                    extensionContractOpts: { isFromETH, isToETH, isMetaTransaction, affiliateFee },
                 };
                 break;
             default:
@@ -641,4 +662,24 @@ export class SwapService {
         };
     }
 }
+
+// (HACK:dorothy-zbornak): Remove this once asset-swapper has proper VIP route gas
+// scheduling.
+// tslint:disable: custom-no-magic-numbers no-unnecessary-type-assertion
+function getUniswapVipAdjustedWorstCaseGas(quote: SwapQuote, params: CalculateSwapQuoteParams): BigNumber {
+    const path = (quote.orders[0].fills[0].fillData as UniswapV2FillData).tokenAddressPath;
+    let totalCost = 108e3;
+    if (params.isETHSell) {
+        totalCost += 18e3;
+    } else if (params.isETHBuy) {
+        totalCost += 8e3;
+    }
+    totalCost += Math.max(0, path.length - 2) * 50e3; // +50k for each hop.
+    return new BigNumber(totalCost);
+}
+
+function isUniswapVipCallData(callData: string): boolean {
+    return callData.startsWith('0xd9627aa4');
+}
+
 // tslint:disable:max-file-line-count
