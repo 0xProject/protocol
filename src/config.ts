@@ -325,6 +325,7 @@ export const GAS_SCHEDULE_V0: FeeSchedule = {
             case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
             case '0x93054188d876f558f4a66b2ef1d97d16edf0895b':
             case '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714':
+            case '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7':
                 return 6e5;
             default:
                 throw new Error('Unrecognized Curve address');
@@ -387,6 +388,7 @@ export const GAS_SCHEDULE_V1: FeeSchedule = {
             case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
             case '0x93054188d876f558f4a66b2ef1d97d16edf0895b':
             case '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714':
+            case '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7':
                 return 1.5e5;
             case '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56':
                 return 7.5e5;
