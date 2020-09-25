@@ -2,6 +2,7 @@ import {
     AffiliateFee,
     ERC20BridgeSource,
     ExtensionContractType,
+    getSwapMinBuyAmount,
     Orderbook,
     RfqtRequestOpts,
     SwapQuote,
@@ -621,40 +622,39 @@ export class SwapService {
         affiliateFee: PercentageFee,
     ): Promise<SwapQuoteResponsePrice> {
         const { makerAssetAmount, totalTakerAssetAmount } = swapQuote.bestCaseQuoteInfo;
-        const {
-            makerAssetAmount: guaranteedMakerAssetAmount,
-            totalTakerAssetAmount: guaranteedTotalTakerAssetAmount,
-        } = swapQuote.worstCaseQuoteInfo;
+        const { totalTakerAssetAmount: guaranteedTotalTakerAssetAmount } = swapQuote.worstCaseQuoteInfo;
+        const guaranteedMakerAssetAmount = getSwapMinBuyAmount(swapQuote);
         const buyTokenDecimals = (await this._tokenDecimalResultCache.getResultAsync(buyTokenAddress)).result;
         const sellTokenDecimals = (await this._tokenDecimalResultCache.getResultAsync(sellTokenAddress)).result;
         const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
         const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
-        // Best price
-        const price =
-            buyAmount === undefined
-                ? unitMakerAssetAmount
-                      .dividedBy(affiliateFee.buyTokenPercentageFee + 1)
-                      .dividedBy(unitTakerAssetAmount)
-                      .decimalPlaces(sellTokenDecimals)
-                : unitTakerAssetAmount
-                      .dividedBy(unitMakerAssetAmount)
-                      .times(affiliateFee.buyTokenPercentageFee + 1)
-                      .decimalPlaces(buyTokenDecimals);
-        // Guaranteed price before revert occurs
         const guaranteedUnitMakerAssetAmount = Web3Wrapper.toUnitAmount(guaranteedMakerAssetAmount, buyTokenDecimals);
         const guaranteedUnitTakerAssetAmount = Web3Wrapper.toUnitAmount(
             guaranteedTotalTakerAssetAmount,
             sellTokenDecimals,
         );
+        const affiliateFeeUnitMakerAssetAmount = guaranteedUnitMakerAssetAmount.times(
+            affiliateFee.buyTokenPercentageFee,
+        );
+        // Best price
+        const price =
+            buyAmount === undefined
+                ? unitMakerAssetAmount
+                      .minus(affiliateFeeUnitMakerAssetAmount)
+                      .dividedBy(unitTakerAssetAmount)
+                      .decimalPlaces(sellTokenDecimals)
+                : unitTakerAssetAmount
+                      .dividedBy(unitMakerAssetAmount.minus(affiliateFeeUnitMakerAssetAmount))
+                      .decimalPlaces(buyTokenDecimals);
+        // Guaranteed price before revert occurs
         const guaranteedPrice =
             buyAmount === undefined
                 ? guaranteedUnitMakerAssetAmount
-                      .dividedBy(affiliateFee.buyTokenPercentageFee + 1)
+                      .minus(affiliateFeeUnitMakerAssetAmount)
                       .dividedBy(guaranteedUnitTakerAssetAmount)
                       .decimalPlaces(sellTokenDecimals)
                 : guaranteedUnitTakerAssetAmount
-                      .dividedBy(guaranteedUnitMakerAssetAmount)
-                      .times(affiliateFee.buyTokenPercentageFee + 1)
+                      .dividedBy(guaranteedUnitMakerAssetAmount.minus(affiliateFeeUnitMakerAssetAmount))
                       .decimalPlaces(buyTokenDecimals);
         return {
             price,

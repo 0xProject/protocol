@@ -1,5 +1,6 @@
 import {
     ERC20BridgeSource,
+    getSwapMinBuyAmount,
     MarketBuySwapQuote,
     MarketSellSwapQuote,
     OptimizedMarketOrder,
@@ -219,10 +220,8 @@ export const serviceUtils = {
         };
     },
     getAffiliateFeeAmounts(quote: SwapQuote, fee: PercentageFee): AffiliateFeeAmounts {
-        const buyTokenFeeAmount = quote.worstCaseQuoteInfo.makerAssetAmount
-            .times(fee.buyTokenPercentageFee)
-            .dividedBy(fee.buyTokenPercentageFee + 1)
-            .integerValue(BigNumber.ROUND_DOWN);
+        const minBuyAmount = getSwapMinBuyAmount(quote);
+        const buyTokenFeeAmount = minBuyAmount.times(fee.buyTokenPercentageFee).integerValue(BigNumber.ROUND_DOWN);
         return {
             sellTokenFeeAmount: ZERO,
             buyTokenFeeAmount,

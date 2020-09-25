@@ -1,14 +1,7 @@
 import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
-import {
-    assertRoughlyEquals,
-    constants,
-    expect,
-    getRandomFloat,
-    getRandomInteger,
-    randomAddress,
-} from '@0x/contracts-test-utils';
+import { assertRoughlyEquals, constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -21,7 +14,6 @@ import * as config from '../src/config';
 import {
     AFFILIATE_FEE_TRANSFORMER_GAS,
     GAS_LIMIT_BUFFER_MULTIPLIER,
-    ONE,
     SWAP_PATH as BASE_SWAP_PATH,
 } from '../src/constants';
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
@@ -305,7 +297,11 @@ describe(SUITE_NAME, () => {
             });
             it('can add a buy token affiliate fee to a sell quote', async () => {
                 const feeRecipient = randomAddress();
-                const buyTokenPercentageFee = getRandomFloat(0, 1).dp(3);
+                const buyTokenPercentageFee = new BigNumber(0.05);
+                const minBuyAmount = new BigNumber(sellQuoteWithoutFee.guaranteedPrice)
+                    .times(sellQuoteWithoutFee.sellAmount)
+                    .integerValue();
+                const feeAmount = minBuyAmount.times(buyTokenPercentageFee).integerValue(BigNumber.ROUND_DOWN);
                 await quoteAndExpectAsync(
                     {
                         ...sellQuoteParams,
@@ -315,19 +311,17 @@ describe(SUITE_NAME, () => {
                     _.omit(
                         {
                             ...sellQuoteWithoutFee,
-                            buyAmount: new BigNumber(sellQuoteWithoutFee.buyAmount).dividedBy(
-                                ONE.plus(buyTokenPercentageFee),
-                            ),
+                            buyAmount: new BigNumber(sellQuoteWithoutFee.buyAmount).minus(feeAmount),
                             estimatedGas: new BigNumber(sellQuoteWithoutFee.estimatedGas).plus(
                                 AFFILIATE_FEE_TRANSFORMER_GAS,
                             ),
                             gas: new BigNumber(sellQuoteWithoutFee.gas).plus(
                                 AFFILIATE_FEE_TRANSFORMER_GAS.times(GAS_LIMIT_BUFFER_MULTIPLIER),
                             ),
-                            price: new BigNumber(sellQuoteWithoutFee.price).dividedBy(ONE.plus(buyTokenPercentageFee)),
-                            guaranteedPrice: new BigNumber(sellQuoteWithoutFee.guaranteedPrice).dividedBy(
-                                ONE.plus(buyTokenPercentageFee),
-                            ),
+                            price: new BigNumber(sellQuoteWithoutFee.buyAmount)
+                                .minus(feeAmount)
+                                .div(sellQuoteWithoutFee.sellAmount),
+                            guaranteedPrice: minBuyAmount.minus(feeAmount).div(sellQuoteWithoutFee.sellAmount),
                         },
                         'data',
                     ),
@@ -335,7 +329,10 @@ describe(SUITE_NAME, () => {
             });
             it('can add a buy token affiliate fee to a buy quote', async () => {
                 const feeRecipient = randomAddress();
-                const buyTokenPercentageFee = getRandomFloat(0, 1).dp(3);
+                const buyTokenPercentageFee = new BigNumber(0.05);
+                const minBuyAmount = new BigNumber(buyQuoteParams.buyAmount);
+                const feeAmount = minBuyAmount.times(buyTokenPercentageFee).integerValue(BigNumber.ROUND_DOWN);
+                const scaledBuyAmount = minBuyAmount.plus(feeAmount);
                 await quoteAndExpectAsync(
                     {
                         ...buyQuoteParams,
@@ -345,18 +342,24 @@ describe(SUITE_NAME, () => {
                     _.omit(
                         {
                             ...buyQuoteWithoutFee,
+                            sellAmount: scaledBuyAmount
+                                .div(buyQuoteParams.buyAmount)
+                                .times(buyQuoteWithoutFee.sellAmount),
+                            buyAmount: scaledBuyAmount.minus(scaledBuyAmount.times(buyTokenPercentageFee)),
                             estimatedGas: new BigNumber(buyQuoteWithoutFee.estimatedGas).plus(
                                 AFFILIATE_FEE_TRANSFORMER_GAS,
                             ),
                             gas: new BigNumber(buyQuoteWithoutFee.gas).plus(
                                 AFFILIATE_FEE_TRANSFORMER_GAS.times(GAS_LIMIT_BUFFER_MULTIPLIER),
                             ),
-                            price: new BigNumber(buyQuoteWithoutFee.price).times(ONE.plus(buyTokenPercentageFee)),
-                            guaranteedPrice: new BigNumber(buyQuoteWithoutFee.guaranteedPrice).times(
-                                ONE.plus(buyTokenPercentageFee),
+                            price: new BigNumber(buyQuoteWithoutFee.sellAmount).div(
+                                new BigNumber(buyQuoteWithoutFee.buyAmount).minus(feeAmount),
+                            ),
+                            guaranteedPrice: new BigNumber(buyQuoteWithoutFee.sellAmount).div(
+                                minBuyAmount.minus(feeAmount),
                             ),
                         },
-                        ['data', 'sellAmount'],
+                        'data',
                     ),
                 );
             });

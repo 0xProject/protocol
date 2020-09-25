@@ -55,7 +55,8 @@ export const parseUtils = {
             return {
                 excludedSources: parseUtils.parseStringArrForERC20BridgeSources(excludedIds),
                 includedSources: [],
-                nativeExclusivelyRFQT: false,
+                // Exclude open orderbook if 'Mesh' is excluded.
+                nativeExclusivelyRFQT: excludedIds.includes('Mesh'),
             };
         }
 
@@ -111,7 +112,11 @@ export const parseUtils = {
             };
         }
 
-        return { excludedSources: [], includedSources: [], nativeExclusivelyRFQT: false };
+        return {
+            excludedSources: [],
+            includedSources: parseUtils.parseStringArrForERC20BridgeSources(includedIds),
+            nativeExclusivelyRFQT: false,
+        };
     },
     parseStringArrForERC20BridgeSources(sources: string[]): ERC20BridgeSource[] {
         // Need to compare value of the enum instead of the key, as values are used by asset-swapper

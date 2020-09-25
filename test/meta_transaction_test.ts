@@ -23,7 +23,7 @@ import { liquiditySources0xOnly } from './utils/mocks';
 
 const SUITE_NAME = 'meta transactions tests';
 
-describe(SUITE_NAME, () => {
+describe.only(SUITE_NAME, () => {
     let accounts: string[];
     let chainId: number;
     let contractAddresses: ContractAddresses;
@@ -39,7 +39,7 @@ describe(SUITE_NAME, () => {
     let zrx: DummyERC20TokenContract;
 
     before(async () => {
-        await setupApiAsync(SUITE_NAME);
+        await setupApiAsync(SUITE_NAME, { apiLogType: 0 });
 
         // connect to ganache and run contract migrations
         const ganacheConfigs = {
