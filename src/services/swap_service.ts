@@ -267,7 +267,11 @@ export class SwapService {
         return this._getSwapQuoteForWethAsync(params, true);
     }
 
-    public async getTokenPricesAsync(sellToken: TokenMetadata, unitAmount: BigNumber): Promise<GetTokenPricesResponse> {
+    public async getTokenPricesAsync(
+        swapVersion: SwapVersion,
+        sellToken: TokenMetadata,
+        unitAmount: BigNumber,
+    ): Promise<GetTokenPricesResponse> {
         // Gets the price for buying 1 unit (not base unit as this is different between tokens with differing decimals)
         // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
         // Equivalent to performing multiple swap quotes selling sellToken and buying 1 whole buy token
@@ -289,7 +293,9 @@ export class SwapService {
                         takerAssetData,
                         amounts,
                         {
-                            ...ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
+                            ...(swapVersion === SwapVersion.V0
+                                ? ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS
+                                : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS),
                             bridgeSlippage: 0,
                             maxFallbackSlippage: 0,
                             numSamples: 1,

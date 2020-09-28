@@ -133,7 +133,11 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send(response);
     }
     // tslint:disable-next-line:prefer-function-over-method
-    public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
+    public async getTokenPricesAsync(
+        swapVersion: SwapVersion,
+        req: express.Request,
+        res: express.Response,
+    ): Promise<void> {
         const symbolOrAddress = (req.query.sellToken as string) || 'WETH';
         const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
         if (!baseAsset) {
@@ -146,7 +150,7 @@ export class SwapHandlers {
             ]);
         }
         const unitAmount = new BigNumber(1);
-        const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
+        const records = await this._swapService.getTokenPricesAsync(swapVersion, baseAsset, unitAmount);
         res.status(HttpStatus.OK).send({ records });
     }
 
