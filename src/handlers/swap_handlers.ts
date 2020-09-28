@@ -1,3 +1,4 @@
+// tslint:disable:max-file-line-count
 import { ERC20BridgeSource, RfqtRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
@@ -29,9 +30,11 @@ import {
     ChainId,
     GetSwapQuoteRequestParams,
     GetSwapQuoteResponse,
+    SourceComparison,
     SwapVersion,
 } from '../types';
 import { parseUtils } from '../utils/parse_utils';
+import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { serviceUtils } from '../utils/service_utils';
 import {
@@ -81,7 +84,25 @@ export class SwapHandlers {
             }
         }
         const cleanedQuote = _.omit(quote, 'quoteReport', 'decodedUniqueId');
-        res.status(HttpStatus.OK).send(cleanedQuote);
+        let quoteResponse = cleanedQuote;
+        const { quoteReport } = quote;
+        if (params.includePriceComparisons && quoteReport) {
+            const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
+                ...quote,
+                quoteReport,
+            });
+
+            if (priceComparisons) {
+                quoteResponse = {
+                    ...cleanedQuote,
+                    priceComparisons: priceComparisons.map(pc => ({
+                        ...pc,
+                        name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
+                    })),
+                };
+            }
+        }
+        res.status(HttpStatus.OK).send(quoteResponse);
     }
     // tslint:disable-next-line:prefer-function-over-method
     public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
@@ -114,6 +135,15 @@ export class SwapHandlers {
             },
         });
 
+        let priceComparisons: SourceComparison[] | undefined;
+        const { quoteReport } = quote;
+        if (params.includePriceComparisons && quoteReport) {
+            priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
+                ...quote,
+                quoteReport,
+            });
+        }
+
         const response = {
             price: quote.price,
             value: quote.value,
@@ -129,7 +159,14 @@ export class SwapHandlers {
             sources: quote.sources,
             estimatedGasTokenRefund: quote.estimatedGasTokenRefund,
             allowanceTarget: quote.allowanceTarget,
+            priceComparisons: priceComparisons
+                ? priceComparisons.map(pc => ({
+                      ...pc,
+                      name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
+                  }))
+                : undefined,
         };
+
         res.status(HttpStatus.OK).send(response);
     }
     // tslint:disable-next-line:prefer-function-over-method
@@ -215,6 +252,8 @@ export class SwapHandlers {
             skipValidation,
             apiKey,
             affiliateFee,
+            // tslint:disable-next-line:boolean-naming
+            includePriceComparisons,
         } = params;
 
         const isETHSell = isETHSymbol(sellToken);
@@ -288,6 +327,7 @@ export class SwapHandlers {
             swapVersion,
             affiliateFee,
             isMetaTransaction: false,
+            includePriceComparisons,
         };
         try {
             let swapQuote: GetSwapQuoteResponse;
@@ -445,6 +485,9 @@ const parseGetSwapQuoteRequestParams = (
     })();
     // tslint:disable-next-line:boolean-naming
     const skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
+
+    // tslint:disable-next-line:boolean-naming
+    const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;
     return {
         takerAddress,
         sellToken,
@@ -460,5 +503,6 @@ const parseGetSwapQuoteRequestParams = (
         skipValidation,
         apiKey,
         affiliateFee,
+        includePriceComparisons,
     };
 };

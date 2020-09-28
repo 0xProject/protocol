@@ -30,6 +30,7 @@ import {
     ZeroExTransactionWithoutDomain,
 } from '../types';
 import { parseUtils } from '../utils/parse_utils';
+import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { isRateLimitedMetaTransactionResponse, MetaTransactionRateLimiter } from '../utils/rate-limiters';
 import { schemaUtils } from '../utils/schema_utils';
 import { findTokenAddressOrThrowApiError, getTokenMetadataIfExists } from '../utils/token_metadata_utils';
@@ -67,6 +68,8 @@ export class MetaTransactionHandlers {
             slippagePercentage,
             excludedSources,
             includedSources,
+            // tslint:disable-next-line:boolean-naming
+            includePriceComparisons,
         } = parseGetTransactionRequestParams(req);
         try {
             const metaTransactionQuote = await this._metaTransactionService.calculateMetaTransactionQuoteAsync({
@@ -80,6 +83,7 @@ export class MetaTransactionHandlers {
                 excludedSources,
                 includedSources,
                 apiKey,
+                includePriceComparisons,
             });
             res.status(HttpStatus.OK).send(metaTransactionQuote);
         } catch (e) {
@@ -130,6 +134,7 @@ export class MetaTransactionHandlers {
         // HACK typescript typing does not allow this valid json-schema
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema as any);
         // parse query params
+        const params = parseGetTransactionRequestParams(req);
         const {
             takerAddress,
             sellTokenAddress,
@@ -139,6 +144,8 @@ export class MetaTransactionHandlers {
             slippagePercentage,
             excludedSources,
             includedSources,
+            // tslint:disable-next-line:boolean-naming
+            includePriceComparisons,
         } = parseGetTransactionRequestParams(req);
         try {
             const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
@@ -153,6 +160,7 @@ export class MetaTransactionHandlers {
                     excludedSources,
                     includedSources,
                     apiKey,
+                    includePriceComparisons,
                 },
                 'price',
             );
@@ -172,7 +180,28 @@ export class MetaTransactionHandlers {
                 estimatedGasTokenRefund: ZERO,
                 allowanceTarget: metaTransactionPrice.allowanceTarget,
             };
-            res.status(HttpStatus.OK).send(metaTransactionPriceResponse);
+
+            let priceResponse = metaTransactionPriceResponse;
+            const { quoteReport } = metaTransactionPrice;
+            if (params.includePriceComparisons && quoteReport) {
+                const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
+                    ...metaTransactionPrice,
+                    quoteReport,
+                    buyTokenAddress,
+                    sellTokenAddress,
+                });
+
+                if (priceComparisons) {
+                    priceResponse = {
+                        ...metaTransactionPriceResponse,
+                        priceComparisons: priceComparisons.map(pc => ({
+                            ...pc,
+                            name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
+                        })),
+                    };
+                }
+            }
+            res.status(HttpStatus.OK).send(priceResponse);
         } catch (e) {
             // If this is already a transformed error then just re-throw
             if (isAPIError(e)) {
@@ -373,6 +402,10 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
         req.query.excludedSources === undefined
             ? []
             : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(','));
+
+    // tslint:disable-next-line:boolean-naming
+    const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;
+
     const includedSources =
         req.query.includedSources === undefined
             ? undefined
@@ -391,6 +424,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
         slippagePercentage,
         excludedSources,
         includedSources,
+        includePriceComparisons,
     };
 };
 

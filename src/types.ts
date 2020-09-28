@@ -421,6 +421,19 @@ export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransactio
     estimatedGasTokenRefund: BigNumber;
     allowanceTarget?: string;
     quoteReport?: QuoteReport;
+    priceComparisons?: Array<SourceComparison | RenamedNativeSourceComparison>;
+}
+
+interface RenamedNativeSourceComparison {
+    name: '0x';
+    price: BigNumber | null;
+    gas: BigNumber | null;
+}
+
+export interface SourceComparison {
+    name: ERC20BridgeSource;
+    price: BigNumber | null;
+    gas: BigNumber | null;
 }
 
 export interface Price {
@@ -443,6 +456,7 @@ interface BasePriceResponse {
     estimatedGasTokenRefund: BigNumber;
     minimumProtocolFee: BigNumber;
     allowanceTarget?: string;
+    priceComparisons?: Array<SourceComparison | RenamedNativeSourceComparison>;
 }
 
 export interface GetSwapPriceResponse extends BasePriceResponse {}
@@ -518,6 +532,7 @@ export interface GetSwapQuoteRequestParams {
     skipValidation: boolean;
     apiKey?: string;
     affiliateFee: PercentageFee;
+    includePriceComparisons: boolean;
 }
 
 export interface GetTransactionRequestParams {
@@ -529,6 +544,7 @@ export interface GetTransactionRequestParams {
     slippagePercentage?: number;
     excludedSources?: ERC20BridgeSource[];
     includedSources?: ERC20BridgeSource[];
+    includePriceComparisons: boolean;
 }
 
 export interface CalculateSwapQuoteParams {
@@ -550,6 +566,7 @@ export interface CalculateSwapQuoteParams {
     skipValidation: boolean;
     swapVersion: SwapVersion;
     affiliateFee: PercentageFee;
+    includePriceComparisons: boolean;
 }
 
 export interface GetSwapQuoteResponseLiquiditySource {
@@ -575,6 +592,7 @@ export interface CalculateMetaTransactionQuoteParams {
     excludedSources?: ERC20BridgeSource[];
     includedSources?: ERC20BridgeSource[];
     apiKey: string | undefined;
+    includePriceComparisons: boolean;
 }
 
 export enum TransactionStates {
