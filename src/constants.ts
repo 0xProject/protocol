@@ -27,7 +27,7 @@ export const MESH_ORDERS_BATCH_HTTP_BYTE_LENGTH = 2500000;
 
 // Swap Quoter
 export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 60; // Ignore orders that expire in 60 seconds
-export const GAS_LIMIT_BUFFER_PERCENTAGE = 0.1; // Add 10% to the estimated gas limit
+const GAS_LIMIT_BUFFER_PERCENTAGE = 0.1; // Add 10% to the estimated gas limit
 export const GAS_LIMIT_BUFFER_MULTIPLIER = GAS_LIMIT_BUFFER_PERCENTAGE + 1;
 export const DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE = 0.01; // 1% Slippage
 export const DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE = 0.015; // 1.5% Slippage in a fallback route
@@ -38,10 +38,10 @@ export const DEFAULT_TOKEN_DECIMALS = 18;
 export const FIRST_PAGE = 1;
 export const PERCENTAGE_SIG_DIGITS = 4;
 export const PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS = 6000;
-export const TX_BASE_GAS = 21000;
-export const UNWRAP_WETH_GAS = new BigNumber(39000);
+export const TX_BASE_GAS = new BigNumber(21000);
+export const UNWRAP_WETH_GAS = new BigNumber(25000);
 export const WRAP_ETH_GAS = UNWRAP_WETH_GAS;
-export const UNWRAP_QUOTE_GAS = UNWRAP_WETH_GAS.plus(TX_BASE_GAS);
+export const UNWRAP_QUOTE_GAS = TX_BASE_GAS.plus(UNWRAP_WETH_GAS);
 export const WRAP_QUOTE_GAS = UNWRAP_QUOTE_GAS;
 export const AFFILIATE_FEE_TRANSFORMER_GAS = new BigNumber(15000);
 export const ONE_GWEI = new BigNumber(1000000000);

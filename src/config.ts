@@ -9,6 +9,7 @@ import {
     OrderPrunerPermittedFeeTypes,
     RfqtMakerAssetOfferings,
     SamplerOverrides,
+    SOURCE_FLAGS,
     SushiSwapFillData,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -29,6 +30,7 @@ import {
     NULL_ADDRESS,
     NULL_BYTES,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+    TX_BASE_GAS,
 } from './constants';
 import { TokenMetadataAndChainAddresses, TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
@@ -373,58 +375,56 @@ export const ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS: Partial<SwapQuoteRequestOpts> 
     shouldGenerateQuoteReport: false,
 };
 
-export const BASE_GAS_COST_V1 = new BigNumber(1.3e5);
-
 // We are keeping cost in gross gas for just the portion of the fill
 // overhead is then later added ontop of the conservative estimate
 export const GAS_SCHEDULE_V1: FeeSchedule = {
-    [ERC20BridgeSource.Native]: () => 1.5e5,
-    [ERC20BridgeSource.Uniswap]: () => 1.1e5,
-    [ERC20BridgeSource.LiquidityProvider]: () => 1.3e5,
-    [ERC20BridgeSource.Eth2Dai]: () => 4e5,
-    [ERC20BridgeSource.Kyber]: () => 5e5,
+    [ERC20BridgeSource.Native]: () => 150e3,
+    [ERC20BridgeSource.Uniswap]: () => 90e3,
+    [ERC20BridgeSource.LiquidityProvider]: () => 140e3,
+    [ERC20BridgeSource.Eth2Dai]: () => 400e3,
+    [ERC20BridgeSource.Kyber]: () => 500e3,
     [ERC20BridgeSource.Curve]: fillData => {
         switch ((fillData as CurveFillData).curve.poolAddress.toLowerCase()) {
             case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
             case '0x93054188d876f558f4a66b2ef1d97d16edf0895b':
             case '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714':
             case '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7':
-                return 1.5e5;
+                return 150e3;
             case '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56':
-                return 7.5e5;
+                return 750e3;
             case '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51':
-                return 8.5e5;
+                return 850e3;
             case '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27':
-                return 10e5;
+                return 1e6;
             case '0x52ea46506b9cc5ef470c5bf89f17dc28bb35d85c':
-                return 6e5;
+                return 600e3;
             default:
                 throw new Error('Unrecognized Curve address');
         }
     },
-    [ERC20BridgeSource.MultiBridge]: () => 3.5e5,
+    [ERC20BridgeSource.MultiBridge]: () => 350e3,
     [ERC20BridgeSource.UniswapV2]: fillData => {
         // TODO: Different base cost if to/from ETH.
-        let gas = 100e3;
+        let gas = 90e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;
         if (path.length > 2) {
-            gas += (path.length - 2) * 50e3; // +50k for each hop.
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
         }
         return gas;
     },
     [ERC20BridgeSource.SushiSwap]: fillData => {
         // TODO: Different base cost if to/from ETH.
-        let gas = 105e3;
+        let gas = 95e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;
         if (path.length > 2) {
-            gas += (path.length - 2) * 50e3; // +50k for each hop.
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
         }
         return gas;
     },
-    [ERC20BridgeSource.Balancer]: () => 1.5e5,
-    [ERC20BridgeSource.MStable]: () => 7e5,
-    [ERC20BridgeSource.Mooniswap]: () => 2.2e5,
-    [ERC20BridgeSource.Swerve]: () => 1.5e5,
+    [ERC20BridgeSource.Balancer]: () => 120e3,
+    [ERC20BridgeSource.MStable]: () => 700e3,
+    [ERC20BridgeSource.Mooniswap]: () => 220e3,
+    [ERC20BridgeSource.Swerve]: () => 150e3,
     [ERC20BridgeSource.MultiHop]: fillData => {
         const firstHop = (fillData as MultiHopFillData).firstHopSource;
         const secondHop = (fillData as MultiHopFillData).secondHopSource;
@@ -432,7 +432,10 @@ export const GAS_SCHEDULE_V1: FeeSchedule = {
             GAS_SCHEDULE_V1[firstHop.source] === undefined ? 0 : GAS_SCHEDULE_V1[firstHop.source](firstHop.fillData);
         const secondHopGas =
             GAS_SCHEDULE_V1[secondHop.source] === undefined ? 0 : GAS_SCHEDULE_V1[secondHop.source](secondHop.fillData);
-        return new BigNumber(firstHopGas).plus(secondHopGas).toNumber();
+        return new BigNumber(firstHopGas)
+            .plus(secondHopGas)
+            .plus(30e3)
+            .toNumber();
     },
 };
 
@@ -454,9 +457,16 @@ export const ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS: Partial<SwapQuoteRequestOpts> 
     sampleDistributionBase: 1.05,
     feeSchedule: FEE_SCHEDULE_V1,
     gasSchedule: GAS_SCHEDULE_V1,
+    exchangeProxyOverhead: (sourceFlags: number) =>
+        [SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags) ? TX_BASE_GAS : new BigNumber(150e3),
     shouldBatchBridgeOrders: false,
     runLimit: 2 ** 8,
     shouldGenerateQuoteReport: false,
+};
+
+export const ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP: Partial<SwapQuoteRequestOpts> = {
+    ...ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS,
+    exchangeProxyOverhead: () => new BigNumber(150e3),
 };
 
 export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {

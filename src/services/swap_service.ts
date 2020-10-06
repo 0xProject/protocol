@@ -9,7 +9,6 @@ import {
     SwapQuoteConsumer,
     SwapQuoteGetOutputOpts,
     SwapQuoter,
-    UniswapV2FillData,
 } from '@0x/asset-swapper';
 import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/types';
 import { ContractAddresses } from '@0x/contract-addresses';
@@ -23,7 +22,7 @@ import * as _ from 'lodash';
 import {
     ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS,
-    BASE_GAS_COST_V1,
+    ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP,
     CHAIN_ID,
     PROTOCOL_FEE_MULTIPLIER,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -160,16 +159,9 @@ export class SwapService {
             .plus(gasTokenGasCost)
             .plus(affiliateFeeGasCost);
         if (swapVersion === SwapVersion.V1) {
-            // HACK(dorothy-zbornak): Until we have proper gas schedules for VIP routes in
-            // asset-swapper, `worstCaseGas` will be too low for uniswap VIP routes, because
-            // we intentionally underprice the `UniswapV2` gas in the V1 fee schedule (for now).
-            // So we have to manually set the worst case to 100
-            conservativeBestCaseGasEstimate = isUniswapVipCallData(data)
-                ? getUniswapVipAdjustedWorstCaseGas(swapQuote, params)
-                : conservativeBestCaseGasEstimate
-                      .plus(BASE_GAS_COST_V1)
-                      .plus(isETHSell ? WRAP_ETH_GAS : 0)
-                      .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
+            conservativeBestCaseGasEstimate = conservativeBestCaseGasEstimate
+                .plus(isETHSell ? WRAP_ETH_GAS : 0)
+                .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
         }
 
         if (!skipValidation && from) {
@@ -494,6 +486,7 @@ export class SwapService {
             slippagePercentage,
             gasPrice: providedGasPrice,
             isETHSell,
+            isMetaTransaction,
             from,
             excludedSources,
             includedSources,
@@ -548,8 +541,19 @@ export class SwapService {
         // only generate quote reports for rfqt firm quotes or when price comparison is requested
         const shouldGenerateQuoteReport = includePriceComparisons || (rfqt && rfqt.intentOnFilling);
 
-        const swapQuoteRequestOpts =
-            swapVersion === SwapVersion.V0 ? ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS;
+        let swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts>;
+        if (swapVersion === SwapVersion.V0) {
+            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS;
+        } else if (
+            isMetaTransaction ||
+            affiliateFee.buyTokenPercentageFee > 0 ||
+            affiliateFee.sellTokenPercentageFee > 0
+        ) {
+            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP;
+        } else {
+            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS;
+        }
+
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...swapQuoteRequestOpts,
             bridgeSlippage: slippagePercentage,
@@ -669,25 +673,6 @@ export class SwapService {
             guaranteedPrice,
         };
     }
-}
-
-// (HACK:dorothy-zbornak): Remove this once asset-swapper has proper VIP route gas
-// scheduling.
-// tslint:disable: custom-no-magic-numbers no-unnecessary-type-assertion
-function getUniswapVipAdjustedWorstCaseGas(quote: SwapQuote, params: CalculateSwapQuoteParams): BigNumber {
-    const path = (quote.orders[0].fills[0].fillData as UniswapV2FillData).tokenAddressPath;
-    let totalCost = 108e3;
-    if (params.isETHSell) {
-        totalCost += 18e3;
-    } else if (params.isETHBuy) {
-        totalCost += 8e3;
-    }
-    totalCost += Math.max(0, path.length - 2) * 50e3; // +50k for each hop.
-    return new BigNumber(totalCost);
-}
-
-function isUniswapVipCallData(callData: string): boolean {
-    return callData.startsWith('0xd9627aa4');
 }
 
 // tslint:disable:max-file-line-count

@@ -48,7 +48,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Uniswap,
                     price,
-                    gas: new BigNumber(1.1e5),
+                    gas: new BigNumber(90e3),
                 },
 
                 // Kyber sample not found
@@ -89,7 +89,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Uniswap,
                     price,
-                    gas: new BigNumber(1.1e5),
+                    gas: new BigNumber(90e3),
                 },
 
                 // Balancer sample not found
@@ -136,7 +136,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Uniswap,
                     price,
-                    gas: new BigNumber(1.1e5),
+                    gas: new BigNumber(90e3),
                 },
 
                 // MStable placeholder instead of invalid 0 amount result
@@ -183,7 +183,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Uniswap,
                     price,
-                    gas: new BigNumber(1.1e5),
+                    gas: new BigNumber(90e3),
                 },
 
                 // MStable placeholder instead of invalid 0 amount result
@@ -306,7 +306,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Uniswap,
                     price,
-                    gas: new BigNumber(1.1e5),
+                    gas: new BigNumber(90e3),
                 },
             ]);
         });
@@ -342,7 +342,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Uniswap,
                     price,
-                    gas: new BigNumber(1.1e5),
+                    gas: new BigNumber(90e3),
                 },
             ]);
         });

@@ -4,7 +4,7 @@ import { PrivateKeyWalletSubprovider, Web3ProviderEngine } from '@0x/subprovider
 import { BigNumber, providerUtils } from '@0x/utils';
 import { utils as web3WrapperUtils } from '@0x/web3-wrapper/lib/src/utils';
 
-import { ETH_TRANSFER_GAS_LIMIT, GAS_LIMIT_BUFFER_PERCENTAGE } from '../constants';
+import { ETH_TRANSFER_GAS_LIMIT, GAS_LIMIT_BUFFER_MULTIPLIER } from '../constants';
 import { logger } from '../logger';
 
 import { SubproviderAdapter } from './subprovider_adapter';
@@ -55,7 +55,7 @@ export class Signer {
         // Boost the gas by a small percentage to buffer transactions
         // where the behaviour isn't always deterministic
         const gas = new BigNumber(estimatedGas)
-            .times(GAS_LIMIT_BUFFER_PERCENTAGE + 1)
+            .times(GAS_LIMIT_BUFFER_MULTIPLIER)
             .integerValue()
             .toNumber();
         logger.info({
