@@ -288,6 +288,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.MStable,
                 ERC20BridgeSource.Mooniswap,
                 ERC20BridgeSource.Swerve,
+                ERC20BridgeSource.Shell,
                 ERC20BridgeSource.SushiSwap,
             ];
         default:
@@ -305,6 +306,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Mooniswap,
                 ERC20BridgeSource.MultiHop,
                 ERC20BridgeSource.Swerve,
+                ERC20BridgeSource.Shell,
                 ERC20BridgeSource.SushiSwap,
             ];
     }
@@ -349,6 +351,7 @@ export const GAS_SCHEDULE_V0: FeeSchedule = {
         return gas;
     },
     [ERC20BridgeSource.Swerve]: () => 6e5,
+    [ERC20BridgeSource.Shell]: () => 4.5e5,
     [ERC20BridgeSource.Balancer]: () => 4.5e5,
     [ERC20BridgeSource.Bancor]: () => 4.5e5,
     [ERC20BridgeSource.MStable]: () => 8.5e5,
@@ -425,6 +428,7 @@ export const GAS_SCHEDULE_V1: FeeSchedule = {
     [ERC20BridgeSource.MStable]: () => 700e3,
     [ERC20BridgeSource.Mooniswap]: () => 220e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
+    [ERC20BridgeSource.Shell]: () => 300e3,
     [ERC20BridgeSource.MultiHop]: fillData => {
         const firstHop = (fillData as MultiHopFillData).firstHopSource;
         const secondHop = (fillData as MultiHopFillData).secondHopSource;

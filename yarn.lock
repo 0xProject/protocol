@@ -32,9 +32,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-86ff5c53b":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v4.6.0-7698f2151":
   version "4.6.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/d371ddc45f05929830c68942b2477af14ea45974"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/93a05227cca782d106e9203cdfb2983a0b6c3b66"
   dependencies:
     "@0x/assert" "^3.0.9"
     "@0x/base-contract" "^6.2.3"
@@ -89,9 +89,9 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-68a0fca24", "@0x/contract-addresses@^4.11.0":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v4.11.0-7698f2151", "@0x/contract-addresses@^4.11.0":
   version "4.11.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/8ca73d97aafdf95b4802e4bd1ec708b433461e8a"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/7f1880af64a3fdd7f9e9f8e0b3bed4cde6c810a9"
 
 "@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.8.0-uniswap-vip-beta-deedfd886", "@0x/contract-wrappers@^13.8.0":
   version "13.8.0-uniswap-vip-beta"
@@ -746,7 +746,6 @@
 "@bancor/sdk@^0.2.9":
   version "0.2.9"
   resolved "https://registry.yarnpkg.com/@bancor/sdk/-/sdk-0.2.9.tgz#2e4c168dc9d667709e3ed85eac3b15362c5676d8"
-  integrity sha512-u+ga5+XPCcqYx6XX0It46Sx4hW9iiDRgaVRwpWzKB3QXh6c/V/R2OljLHH18yrh0uDTLJI7R0XmJa2W8v2wvpQ==
   dependencies:
     "@types/text-encoding" "0.0.35"
     decimal.js "^10.2.0"
