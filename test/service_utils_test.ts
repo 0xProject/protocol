@@ -153,6 +153,7 @@ describe(SUITE_NAME, () => {
             expect(costInfo).to.deep.equal({
                 buyTokenFeeAmount: getSwapMinBuyAmount(randomSellQuote)
                     .times(affiliateFee.buyTokenPercentageFee)
+                    .dividedBy(affiliateFee.buyTokenPercentageFee + 1)
                     .integerValue(BigNumber.ROUND_DOWN),
                 sellTokenFeeAmount: ZERO,
                 gasCost: AFFILIATE_FEE_TRANSFORMER_GAS,

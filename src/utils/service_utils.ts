@@ -221,7 +221,10 @@ export const serviceUtils = {
     },
     getAffiliateFeeAmounts(quote: SwapQuote, fee: PercentageFee): AffiliateFeeAmounts {
         const minBuyAmount = getSwapMinBuyAmount(quote);
-        const buyTokenFeeAmount = minBuyAmount.times(fee.buyTokenPercentageFee).integerValue(BigNumber.ROUND_DOWN);
+        const buyTokenFeeAmount = minBuyAmount
+            .times(fee.buyTokenPercentageFee)
+            .dividedBy(fee.buyTokenPercentageFee + 1)
+            .integerValue(BigNumber.ROUND_DOWN);
         return {
             sellTokenFeeAmount: ZERO,
             buyTokenFeeAmount,
