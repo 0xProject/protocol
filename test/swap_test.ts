@@ -1,7 +1,7 @@
 import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
-import { assertRoughlyEquals, constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
+import { assertRoughlyEquals, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -11,11 +11,7 @@ import * as _ from 'lodash';
 import 'mocha';
 
 import * as config from '../src/config';
-import {
-    AFFILIATE_FEE_TRANSFORMER_GAS,
-    GAS_LIMIT_BUFFER_MULTIPLIER,
-    SWAP_PATH as BASE_SWAP_PATH,
-} from '../src/constants';
+import { AFFILIATE_FEE_TRANSFORMER_GAS, GAS_LIMIT_BUFFER_MULTIPLIER, SWAP_PATH } from '../src/constants';
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
 import { logger } from '../src/logger';
 import { GetSwapQuoteResponse } from '../src/types';
@@ -38,8 +34,6 @@ import { MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
 import { liquiditySources0xOnly } from './utils/mocks';
 
 const SUITE_NAME = '/swap/v1';
-const SWAP_PATH = `${BASE_SWAP_PATH}/v1`;
-
 const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
 const DEFAULT_QUERY_PARAMS = {
     buyToken: 'ZRX',
@@ -257,16 +251,6 @@ describe(SUITE_NAME, () => {
                 },
             );
         });
-        it('should not return estimatedGasTokenRefund: 0 if there are not gas tokens in our wallet', async () => {
-            await quoteAndExpectAsync(
-                {
-                    sellAmount: '1234',
-                },
-                {
-                    estimatedGasTokenRefund: constants.ZERO_AMOUNT,
-                },
-            );
-        });
 
         describe('affiliate fees', () => {
             const sellQuoteParams = {
@@ -431,7 +415,7 @@ async function quoteAndExpectAsync(
     expectCorrectQuote(response.body, quoteAssertions);
 }
 
-const PRECISION = 4;
+const PRECISION = 2;
 function expectCorrectQuote(quoteResponse: GetSwapQuoteResponse, quoteAssertions: Partial<QuoteAssertion>): void {
     for (const property of Object.keys(quoteAssertions)) {
         if (BigNumber.isBigNumber(quoteAssertions[property])) {

@@ -31,7 +31,6 @@ import {
     GetSwapQuoteRequestParams,
     GetSwapQuoteResponse,
     SourceComparison,
-    SwapVersion,
 } from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
@@ -56,13 +55,9 @@ export class SwapHandlers {
         this._swapService = swapService;
     }
 
-    public async getSwapQuoteAsync(
-        swapVersion: SwapVersion,
-        req: express.Request,
-        res: express.Response,
-    ): Promise<void> {
+    public async getSwapQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseGetSwapQuoteRequestParams(req, 'quote');
-        const quote = await this._calculateSwapQuoteAsync(params, swapVersion);
+        const quote = await this._calculateSwapQuoteAsync(params);
         if (params.rfqt !== undefined) {
             logger.info({
                 firmQuoteServed: {
@@ -116,13 +111,9 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send({ records: filteredTokens });
     }
     // tslint:disable-next-line:prefer-function-over-method
-    public async getSwapPriceAsync(
-        swapVersion: SwapVersion,
-        req: express.Request,
-        res: express.Response,
-    ): Promise<void> {
+    public async getSwapPriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseGetSwapQuoteRequestParams(req, 'price');
-        const quote = await this._calculateSwapQuoteAsync({ ...params, skipValidation: true }, swapVersion);
+        const quote = await this._calculateSwapQuoteAsync({ ...params, skipValidation: true });
         logger.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
@@ -157,7 +148,6 @@ export class SwapHandlers {
             sellTokenAddress: quote.sellTokenAddress,
             sellAmount: quote.sellAmount,
             sources: quote.sources,
-            estimatedGasTokenRefund: quote.estimatedGasTokenRefund,
             allowanceTarget: quote.allowanceTarget,
             priceComparisons: priceComparisons
                 ? priceComparisons.map(pc => ({
@@ -170,11 +160,7 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send(response);
     }
     // tslint:disable-next-line:prefer-function-over-method
-    public async getTokenPricesAsync(
-        swapVersion: SwapVersion,
-        req: express.Request,
-        res: express.Response,
-    ): Promise<void> {
+    public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
         const symbolOrAddress = (req.query.sellToken as string) || 'WETH';
         const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
         if (!baseAsset) {
@@ -187,7 +173,7 @@ export class SwapHandlers {
             ]);
         }
         const unitAmount = new BigNumber(1);
-        const records = await this._swapService.getTokenPricesAsync(swapVersion, baseAsset, unitAmount);
+        const records = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount);
         res.status(HttpStatus.OK).send({ records });
     }
 
@@ -232,10 +218,7 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send({ ...response, buyToken: makerToken, sellToken: takerToken });
     }
 
-    private async _calculateSwapQuoteAsync(
-        params: GetSwapQuoteRequestParams,
-        swapVersion: SwapVersion,
-    ): Promise<GetSwapQuoteResponse> {
+    private async _calculateSwapQuoteAsync(params: GetSwapQuoteRequestParams): Promise<GetSwapQuoteResponse> {
         const {
             sellToken,
             buyToken,
@@ -275,27 +258,6 @@ export class SwapHandlers {
             );
         }
 
-        // if V0 (no ExchangeProxy) and buyToken is ETH, throw
-        if (swapVersion === SwapVersion.V0 && !isUnwrap && isETHSymbol(buyToken)) {
-            throw new ValidationError([
-                {
-                    field: 'buyToken',
-                    code: ValidationErrorCodes.TokenNotSupported,
-                    reason: "Buying ETH is unsupported (set to 'WETH' to received wrapped Ether)",
-                },
-            ]);
-        }
-
-        if (swapVersion === SwapVersion.V0 && affiliateFee.buyTokenPercentageFee > 0) {
-            throw new ValidationError([
-                {
-                    field: 'buyTokenPercentageFee',
-                    code: ValidationErrorCodes.UnsupportedOption,
-                    reason: 'Affiliate fees are unsupported in v0',
-                },
-            ]);
-        }
-
         // Exclude Bancor as a source unless swap involves BNT token
         const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet).tokenAddress;
         const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
@@ -324,7 +286,6 @@ export class SwapHandlers {
                           nativeExclusivelyRFQT: rfqt.nativeExclusivelyRFQT,
                       },
             skipValidation,
-            swapVersion,
             affiliateFee,
             isMetaTransaction: false,
             includePriceComparisons,

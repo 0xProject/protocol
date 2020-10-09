@@ -35,7 +35,6 @@ import {
     SUBMITTED_TX_DB_POLLING_INTERVAL_MS,
     TEN_MINUTES_MS,
     TX_HASH_RESPONSE_WAIT_TIME_MS,
-    ZERO,
 } from '../constants';
 import { KeyValueEntity, TransactionEntity } from '../entities';
 import { logger } from '../logger';
@@ -256,7 +255,6 @@ export class MetaTransactionService {
             gas: estimatedGas,
             protocolFee,
             minimumProtocolFee,
-            estimatedGasTokenRefund: ZERO,
             value: protocolFee,
             allowanceTarget,
         };

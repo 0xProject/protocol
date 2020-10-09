@@ -3,7 +3,6 @@ import {
     getSwapMinBuyAmount,
     MarketBuySwapQuote,
     MarketSellSwapQuote,
-    OptimizedMarketOrder,
     SignedOrder,
     SwapQuote,
     SwapQuoteOrdersBreakdown,
@@ -13,23 +12,17 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, GAS_SCHEDULE_V0 } from '../config';
+import { CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
 import {
     AFFILIATE_FEE_TRANSFORMER_GAS,
     DEFAULT_TOKEN_DECIMALS,
-    GAS_BURN_COST,
-    GAS_BURN_REFUND,
-    GST_DIVISOR,
-    GST_INTERACTION_COST,
     HEX_BASE,
     ONE_SECOND_MS,
     PERCENTAGE_SIG_DIGITS,
-    SSTORE_COST,
-    SSTORE_INIT_COST,
     ZERO,
 } from '../constants';
 import { logger } from '../logger';
-import { AffiliateFeeAmounts, GasTokenRefundInfo, GetSwapQuoteResponseLiquiditySource, PercentageFee } from '../types';
+import { AffiliateFeeAmounts, GetSwapQuoteResponseLiquiditySource, PercentageFee } from '../types';
 import { orderUtils } from '../utils/order_utils';
 import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
 
@@ -189,35 +182,6 @@ export const serviceUtils = {
             }
             return [...acc, obj];
         }, []);
-    },
-    getEstimatedGasTokenRefundInfo(orders: OptimizedMarketOrder[], gasTokenBalance: BigNumber): GasTokenRefundInfo {
-        const bridgeFills = _.flatten(orders.map(order => order.fills)).filter(
-            fill => fill.source !== ERC20BridgeSource.Native,
-        );
-        if (_.isEmpty(bridgeFills)) {
-            return {
-                usedGasTokens: 0,
-                gasTokenRefund: ZERO,
-                gasTokenGasCost: ZERO,
-            };
-        }
-        const costOfBridgeFills = BigNumber.sum(...bridgeFills.map(o => GAS_SCHEDULE_V0[o.source](o.fillData)))
-            .plus(bridgeFills.length * SSTORE_COST)
-            .plus(SSTORE_INIT_COST);
-        const usedGasTokens = BigNumber.min(
-            gasTokenBalance,
-            costOfBridgeFills
-                .plus(GST_INTERACTION_COST)
-                .div(GST_DIVISOR)
-                .integerValue(BigNumber.ROUND_DOWN),
-        );
-        const gasTokenRefund = usedGasTokens.multipliedBy(GAS_BURN_REFUND);
-        const gasTokenGasCost = usedGasTokens.multipliedBy(GAS_BURN_COST);
-        return {
-            usedGasTokens: usedGasTokens.toNumber(),
-            gasTokenRefund,
-            gasTokenGasCost,
-        };
     },
     getAffiliateFeeAmounts(quote: SwapQuote, fee: PercentageFee): AffiliateFeeAmounts {
         const minBuyAmount = getSwapMinBuyAmount(quote);

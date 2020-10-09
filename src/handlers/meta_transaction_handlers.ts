@@ -6,7 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import * as isValidUUID from 'uuid-validate';
 
 import { CHAIN_ID } from '../config';
-import { API_KEY_HEADER, DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL, ZERO } from '../constants';
+import { API_KEY_HEADER, DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
 import { TransactionEntity } from '../entities';
 import {
     GeneralErrorCodes,
@@ -177,7 +177,6 @@ export class MetaTransactionHandlers {
                 estimatedGas: metaTransactionPrice.estimatedGas,
                 protocolFee: metaTransactionPrice.protocolFee,
                 minimumProtocolFee: metaTransactionPrice.minimumProtocolFee,
-                estimatedGasTokenRefund: ZERO,
                 allowanceTarget: metaTransactionPrice.allowanceTarget,
             };
 

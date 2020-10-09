@@ -373,7 +373,6 @@ export const ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS: Partial<SwapQuoteRequestOpts> 
     sampleDistributionBase: 1.05,
     feeSchedule: FEE_SCHEDULE_V0,
     gasSchedule: GAS_SCHEDULE_V0,
-    shouldBatchBridgeOrders: true,
     runLimit: 2 ** 8,
     shouldGenerateQuoteReport: false,
 };
@@ -463,7 +462,6 @@ export const ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS: Partial<SwapQuoteRequestOpts> 
     gasSchedule: GAS_SCHEDULE_V1,
     exchangeProxyOverhead: (sourceFlags: number) =>
         [SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags) ? TX_BASE_GAS : new BigNumber(150e3),
-    shouldBatchBridgeOrders: false,
     runLimit: 2 ** 8,
     shouldGenerateQuoteReport: false,
 };

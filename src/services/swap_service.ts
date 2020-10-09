@@ -12,7 +12,7 @@ import {
 } from '@0x/asset-swapper';
 import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/types';
 import { ContractAddresses } from '@0x/contract-addresses';
-import { ERC20TokenContract, WETH9Contract } from '@0x/contract-wrappers';
+import { WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
@@ -20,7 +20,6 @@ import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
 import {
-    ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP,
     CHAIN_ID,
@@ -31,7 +30,6 @@ import {
 import {
     DEFAULT_VALIDATION_GAS_LIMIT,
     GAS_LIMIT_BUFFER_MULTIPLIER,
-    GST2_WALLET_ADDRESSES,
     NULL_ADDRESS,
     ONE,
     TEN_MINUTES_MS,
@@ -53,13 +51,11 @@ import {
     PercentageFee,
     SwapQuoteResponsePartialTransaction,
     SwapQuoteResponsePrice,
-    SwapVersion,
     TokenMetadata,
 } from '../types';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { createResultCache, ResultCache } from '../utils/result_cache';
 import { serviceUtils } from '../utils/service_utils';
-import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
 
 export class SwapService {
     private readonly _provider: SupportedProvider;
@@ -70,7 +66,6 @@ export class SwapService {
     private readonly _contractAddresses: ContractAddresses;
     // Result caches, stored for a few minutes and refetched
     // when the result has expired
-    private readonly _gstBalanceResultCache: ResultCache<BigNumber>;
     private readonly _tokenDecimalResultCache: ResultCache<number>;
 
     constructor(orderbook: Orderbook, provider: SupportedProvider, contractAddresses: ContractAddresses) {
@@ -90,13 +85,6 @@ export class SwapService {
 
         this._contractAddresses = contractAddresses;
         this._wethContract = new WETH9Contract(this._contractAddresses.etherToken, this._provider);
-        const gasTokenContract = new ERC20TokenContract(
-            getTokenMetadataIfExists('GST2', CHAIN_ID).tokenAddress,
-            this._provider,
-        );
-        this._gstBalanceResultCache = createResultCache<BigNumber>(() =>
-            gasTokenContract.balanceOf(GST2_WALLET_ADDRESSES[CHAIN_ID]).callAsync(),
-        );
         this._tokenDecimalResultCache = createResultCache<number>(
             (tokenAddress: string) => serviceUtils.fetchTokenDecimalsIfRequiredAsync(tokenAddress, this._web3Wrapper),
             // tslint:disable-next-line:custom-no-magic-numbers
@@ -116,7 +104,6 @@ export class SwapService {
             affiliateAddress,
             // tslint:disable-next-line:boolean-naming
             skipValidation,
-            swapVersion,
             affiliateFee,
         } = params;
         const swapQuote = await this._getMarketBuyOrSellQuoteAsync(params);
@@ -141,28 +128,13 @@ export class SwapService {
             isETHBuy,
             isMetaTransaction,
             affiliateAddress,
-            swapVersion,
             { recipient: affiliateFee.recipient, buyTokenFeeAmount, sellTokenFeeAmount },
         );
 
-        let gst2Balance = ZERO;
-        try {
-            gst2Balance = (await this._gstBalanceResultCache.getResultAsync()).result;
-        } catch (err) {
-            logger.error(err);
-        }
-        const { gasTokenRefund, gasTokenGasCost } = serviceUtils.getEstimatedGasTokenRefundInfo(
-            attributedSwapQuote.orders,
-            gst2Balance,
-        );
         let conservativeBestCaseGasEstimate = new BigNumber(worstCaseGas)
-            .plus(gasTokenGasCost)
-            .plus(affiliateFeeGasCost);
-        if (swapVersion === SwapVersion.V1) {
-            conservativeBestCaseGasEstimate = conservativeBestCaseGasEstimate
-                .plus(isETHSell ? WRAP_ETH_GAS : 0)
-                .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
-        }
+            .plus(affiliateFeeGasCost)
+            .plus(isETHSell ? WRAP_ETH_GAS : 0)
+            .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
 
         if (!skipValidation && from) {
             const estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
@@ -186,11 +158,6 @@ export class SwapService {
         const undeterministicMultiplier = hasUndeterministicFills ? GAS_LIMIT_BUFFER_MULTIPLIER : 1;
         // Add a buffer to get the worst case gas estimate
         const worstCaseGasEstimate = conservativeBestCaseGasEstimate.times(undeterministicMultiplier).integerValue();
-        // Cap the refund at 50% our best estimate
-        const estimatedGasTokenRefund = BigNumber.min(
-            conservativeBestCaseGasEstimate.div(2),
-            gasTokenRefund,
-        ).decimalPlaces(0);
         const { price, guaranteedPrice } = await this._getSwapQuotePriceAsync(
             buyAmount,
             buyTokenAddress,
@@ -199,30 +166,19 @@ export class SwapService {
             affiliateFee,
         );
 
-        // set the allowance target based on version. V0 is legacy param to support transition to v1
-        let erc20AllowanceTarget = NULL_ADDRESS;
         let adjustedWorstCaseProtocolFee = protocolFee;
         let adjustedValue = value;
-        switch (swapVersion) {
-            case SwapVersion.V0:
-                erc20AllowanceTarget = this._contractAddresses.erc20Proxy;
-                break;
-            case SwapVersion.V1:
-                erc20AllowanceTarget = this._contractAddresses.exchangeProxyAllowanceTarget;
-                // With v1 we are able to fill bridges directly so the protocol fee is lower
-                const nativeFills = _.flatten(swapQuote.orders.map(order => order.fills)).filter(
-                    fill => fill.source === ERC20BridgeSource.Native,
-                );
-                adjustedWorstCaseProtocolFee = new BigNumber(PROTOCOL_FEE_MULTIPLIER)
-                    .times(gasPrice)
-                    .times(nativeFills.length);
-                adjustedValue = isETHSell
-                    ? adjustedWorstCaseProtocolFee.plus(swapQuote.worstCaseQuoteInfo.takerAssetAmount)
-                    : adjustedWorstCaseProtocolFee;
-                break;
-            default:
-                throw new Error(`Unsupported Swap version: ${swapVersion}`);
-        }
+
+        const erc20AllowanceTarget = this._contractAddresses.exchangeProxyAllowanceTarget;
+        // With v1 we are able to fill bridges directly so the protocol fee is lower
+        const nativeFills = _.flatten(swapQuote.orders.map(order => order.fills)).filter(
+            fill => fill.source === ERC20BridgeSource.Native,
+        );
+        adjustedWorstCaseProtocolFee = new BigNumber(PROTOCOL_FEE_MULTIPLIER).times(gasPrice).times(nativeFills.length);
+        adjustedValue = isETHSell
+            ? adjustedWorstCaseProtocolFee.plus(swapQuote.worstCaseQuoteInfo.takerAssetAmount)
+            : adjustedWorstCaseProtocolFee;
+
         const allowanceTarget = isETHSell ? NULL_ADDRESS : erc20AllowanceTarget;
 
         const apiSwapQuote: GetSwapQuoteResponse = {
@@ -241,7 +197,6 @@ export class SwapService {
             sellTokenAddress,
             buyAmount: makerAssetAmount.minus(buyTokenFeeAmount),
             sellAmount: totalTakerAssetAmount,
-            estimatedGasTokenRefund,
             sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
             orders: serviceUtils.cleanSignedOrderFields(orders),
             allowanceTarget,
@@ -259,11 +214,7 @@ export class SwapService {
         return this._getSwapQuoteForWethAsync(params, true);
     }
 
-    public async getTokenPricesAsync(
-        swapVersion: SwapVersion,
-        sellToken: TokenMetadata,
-        unitAmount: BigNumber,
-    ): Promise<GetTokenPricesResponse> {
+    public async getTokenPricesAsync(sellToken: TokenMetadata, unitAmount: BigNumber): Promise<GetTokenPricesResponse> {
         // Gets the price for buying 1 unit (not base unit as this is different between tokens with differing decimals)
         // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
         // Equivalent to performing multiple swap quotes selling sellToken and buying 1 whole buy token
@@ -285,13 +236,10 @@ export class SwapService {
                         takerAssetData,
                         amounts,
                         {
-                            ...(swapVersion === SwapVersion.V0
-                                ? ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS
-                                : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS),
+                            ...ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS,
                             bridgeSlippage: 0,
                             maxFallbackSlippage: 0,
                             numSamples: 1,
-                            shouldBatchBridgeOrders: false,
                         },
                     );
                     return quotes;
@@ -424,7 +372,6 @@ export class SwapService {
             gasPrice,
             protocolFee: ZERO,
             minimumProtocolFee: ZERO,
-            estimatedGasTokenRefund: ZERO,
             buyTokenAddress,
             sellTokenAddress,
             buyAmount: amount,
@@ -492,7 +439,6 @@ export class SwapService {
             includedSources,
             apiKey,
             rfqt,
-            swapVersion,
             affiliateFee,
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
@@ -512,23 +458,11 @@ export class SwapService {
         // forwarder transaction (isETHSell===true), (b) there's a taker
         // address present, or (c) it's an indicative quote.
         if (apiKey !== undefined && (isETHSell || from !== undefined || (rfqt && rfqt.isIndicative))) {
-            let takerAddress;
-            switch (swapVersion) {
-                case SwapVersion.V0:
-                    // If this is a forwarder transaction, then we want to request quotes with the taker as the
-                    // forwarder contract. If it's not, then we want to request quotes with the taker set to the
-                    // API's takerAddress query parameter, which in this context is known as `from`.
-                    takerAddress = isETHSell ? this._contractAddresses.forwarder : from || '';
-                    break;
-                case SwapVersion.V1:
-                    // In V1 the taker is always the ExchangeProxy's FlashWallet
-                    // as it allows us to optionally transform assets (i.e Deposit ETH into WETH)
-                    // Since the FlashWallet is the taker it needs to be forwarded to the quote provider
-                    takerAddress = this._contractAddresses.exchangeProxyFlashWallet;
-                    break;
-                default:
-                    throw new Error(`Unsupported Swap version: ${swapVersion}`);
-            }
+            // The taker is always the ExchangeProxy's FlashWallet
+            // as it allows us to optionally transform assets (i.e Deposit ETH into WETH)
+            // Since the FlashWallet is the taker it needs to be forwarded to the quote provider
+            const takerAddress = this._contractAddresses.exchangeProxyFlashWallet;
+
             _rfqt = {
                 ...rfqt,
                 intentOnFilling: rfqt && rfqt.intentOnFilling ? true : false,
@@ -541,18 +475,10 @@ export class SwapService {
         // only generate quote reports for rfqt firm quotes or when price comparison is requested
         const shouldGenerateQuoteReport = includePriceComparisons || (rfqt && rfqt.intentOnFilling);
 
-        let swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts>;
-        if (swapVersion === SwapVersion.V0) {
-            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS;
-        } else if (
-            isMetaTransaction ||
-            affiliateFee.buyTokenPercentageFee > 0 ||
-            affiliateFee.sellTokenPercentageFee > 0
-        ) {
-            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP;
-        } else {
-            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS;
-        }
+        const swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts> =
+            isMetaTransaction || affiliateFee.buyTokenPercentageFee > 0 || affiliateFee.sellTokenPercentageFee > 0
+                ? ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP
+                : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS;
 
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...swapQuoteRequestOpts,
@@ -591,25 +517,12 @@ export class SwapService {
         isToETH: boolean,
         isMetaTransaction: boolean,
         affiliateAddress: string,
-        swapVersion: SwapVersion,
         affiliateFee: AffiliateFee,
     ): Promise<SwapQuoteResponsePartialTransaction> {
-        let opts: Partial<SwapQuoteGetOutputOpts> = { useExtensionContract: ExtensionContractType.None };
-        switch (swapVersion) {
-            case SwapVersion.V0:
-                if (isFromETH) {
-                    opts = { useExtensionContract: ExtensionContractType.Forwarder };
-                }
-                break;
-            case SwapVersion.V1:
-                opts = {
-                    useExtensionContract: ExtensionContractType.ExchangeProxy,
-                    extensionContractOpts: { isFromETH, isToETH, isMetaTransaction, affiliateFee },
-                };
-                break;
-            default:
-                throw new Error(`Unsupported Swap version: ${swapVersion}`);
-        }
+        const opts: Partial<SwapQuoteGetOutputOpts> = {
+            useExtensionContract: ExtensionContractType.ExchangeProxy,
+            extensionContractOpts: { isFromETH, isToETH, isMetaTransaction, affiliateFee },
+        };
 
         const {
             calldataHexString: data,
