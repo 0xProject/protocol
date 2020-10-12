@@ -235,7 +235,7 @@ export const poolsAvgRewardsQuery = `
                 , AVG(members_reward) / 1e18 AS avg_member_reward_in_eth
                 , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward_in_eth
                 , AVG(esps.member_zrx_delegated) AS avg_member_stake
-                , AVG((members_reward / 1e18) / esps.member_zrx_delegated) AS avg_member_reward_eth_per_zrx
+                , AVG((members_reward / 1e18) / NULLIF(esps.member_zrx_delegated,0)) AS avg_member_reward_eth_per_zrx
             FROM events.rewards_paid_events rpe
             JOIN staking.current_epoch ce ON rpe.epoch_id > (ce.epoch_id - 4)
             -- subtract one from the reward epoch ID, since reward events are stamped with the epoch
@@ -261,7 +261,7 @@ export const poolAvgRewardsQuery = `
                 , AVG(members_reward) / 1e18 AS avg_member_reward_in_eth
                 , AVG(operator_reward + members_reward) / 1e18 AS avg_total_reward_in_eth
                 , AVG(esps.member_zrx_delegated) AS avg_member_stake
-                , AVG((members_reward / 1e18) / esps.member_zrx_delegated) AS avg_member_reward_eth_per_zrx
+                , AVG((members_reward / 1e18) / NULLIF(esps.member_zrx_delegated,0)) AS avg_member_reward_eth_per_zrx
             FROM events.rewards_paid_events rpe
             JOIN staking.current_epoch ce ON rpe.epoch_id > (ce.epoch_id - 4)
             -- subtract one from the reward epoch ID, since reward events are stamped with the epoch
