@@ -3,6 +3,7 @@ import { assert } from '@0x/assert';
 import {
     BlockParamLiteral,
     CurveFillData,
+    DODOFillData,
     ERC20BridgeSource,
     FeeSchedule,
     MultiHopFillData,
@@ -283,6 +284,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Balancer,
                 ERC20BridgeSource.Bancor,
                 ERC20BridgeSource.Curve,
+                ERC20BridgeSource.Dodo,
                 ERC20BridgeSource.Kyber,
                 ERC20BridgeSource.LiquidityProvider,
                 ERC20BridgeSource.MStable,
@@ -296,6 +298,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Balancer,
                 ERC20BridgeSource.Bancor,
                 ERC20BridgeSource.Curve,
+                ERC20BridgeSource.Dodo,
                 ERC20BridgeSource.Eth2Dai,
                 ERC20BridgeSource.Kyber,
                 ERC20BridgeSource.LiquidityProvider,
@@ -439,6 +442,12 @@ export const GAS_SCHEDULE_V1: FeeSchedule = {
             .plus(secondHopGas)
             .plus(30e3)
             .toNumber();
+    },
+    [ERC20BridgeSource.Dodo]: fillData => {
+        const isSellBase = (fillData as DODOFillData).isSellBase;
+        // Sell base is cheaper as it is natively supported
+        // sell quote requires additional calculation and overhead
+        return isSellBase ? 440e3 : 540e3;
     },
 };
 
