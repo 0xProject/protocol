@@ -1,15 +1,21 @@
-import { BridgeReportSource, QuoteReport } from '@0x/asset-swapper';
+import { BigNumber, BridgeReportSource, QuoteReport } from '@0x/asset-swapper';
 import _ = require('lodash');
 
 import { NUMBER_SOURCES_PER_LOG_LINE } from '../constants';
 import { logger } from '../logger';
 
-interface QuoteReportForTakerTxn {
+interface QuoteReportLogOptionsBase {
+    sellAmount?: BigNumber;
+    buyAmount?: BigNumber;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+}
+interface QuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
     quoteReport: QuoteReport;
     submissionBy: 'taker';
     decodedUniqueId: string;
 }
-interface QuoteReportForMetaTxn {
+interface QuoteReportForMetaTxn extends QuoteReportLogOptionsBase {
     quoteReport: QuoteReport;
     submissionBy: 'metaTxn';
     zeroExTransactionHash: string;
@@ -34,6 +40,10 @@ export const quoteReportUtils = {
         let logBase: { [key: string]: string | boolean } = {
             firmQuoteReport: true,
             submissionBy: logOpts.submissionBy,
+            buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
+            sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,
+            buyTokenAddress: logOpts.buyTokenAddress,
+            sellTokenAddress: logOpts.sellTokenAddress,
         };
         if (logOpts.submissionBy === 'metaTxn') {
             logBase = { ...logBase, zeroExTransactionHash: logOpts.zeroExTransactionHash };

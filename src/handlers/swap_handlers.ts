@@ -75,6 +75,10 @@ export class SwapHandlers {
                     quoteReport: quote.quoteReport,
                     submissionBy: 'taker',
                     decodedUniqueId: quote.decodedUniqueId,
+                    buyTokenAddress: quote.buyTokenAddress,
+                    sellTokenAddress: quote.sellTokenAddress,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
                 });
             }
         }

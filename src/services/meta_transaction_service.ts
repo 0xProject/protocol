@@ -234,7 +234,15 @@ export class MetaTransactionService {
         // log quote report and associate with txn hash if this is an RFQT firm quote
         const shouldLogQuoteReport = quoteReport && params.apiKey !== undefined;
         if (shouldLogQuoteReport) {
-            quoteReportUtils.logQuoteReport({ submissionBy: 'metaTxn', quoteReport, zeroExTransactionHash });
+            quoteReportUtils.logQuoteReport({
+                submissionBy: 'metaTxn',
+                quoteReport,
+                zeroExTransactionHash,
+                buyTokenAddress: params.buyTokenAddress,
+                sellTokenAddress: params.sellTokenAddress,
+                buyAmount: params.buyAmount,
+                sellAmount: params.sellAmount,
+            });
         }
 
         const makerAssetAmount = swapQuote.bestCaseQuoteInfo.makerAssetAmount;
