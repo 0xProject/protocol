@@ -67,7 +67,6 @@ describe(SUITE_NAME, () => {
     after(async () => {
         await teardownApiAsync(SUITE_NAME);
     });
-
     const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
     const DEFAULT_QUERY_PARAMS = {
         buyToken: 'ZRX',
@@ -83,8 +82,8 @@ describe(SUITE_NAME, () => {
         });
         const response = await httpGetAsync({ route });
         expect(response.type).to.be.eq('application/json');
-        expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
         expect(response.body).to.be.deep.eq(testCase.body);
+        expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
     }
 
     interface TestCase {
