@@ -20,8 +20,8 @@ import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
 import {
-    ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS,
-    ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP,
+    ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+    ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
     PROTOCOL_FEE_MULTIPLIER,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -108,7 +108,10 @@ export class SwapService {
         } = params;
         const swapQuote = await this._getMarketBuyOrSellQuoteAsync(params);
 
-        const attributedSwapQuote = serviceUtils.attributeSwapQuoteOrders(swapQuote);
+        const attributedSwapQuote = {
+            ...swapQuote,
+            orders: serviceUtils.attributeSwapQuoteOrders(swapQuote.orders),
+        };
         const {
             makerAssetAmount,
             totalTakerAssetAmount,
@@ -236,7 +239,7 @@ export class SwapService {
                         takerAssetData,
                         amounts,
                         {
-                            ...ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS,
+                            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
                             bridgeSlippage: 0,
                             maxFallbackSlippage: 0,
                             numSamples: 1,
@@ -477,8 +480,8 @@ export class SwapService {
 
         const swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts> =
             isMetaTransaction || affiliateFee.buyTokenPercentageFee > 0 || affiliateFee.sellTokenPercentageFee > 0
-                ? ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS_NO_VIP
-                : ASSET_SWAPPER_MARKET_ORDERS_V1_OPTS;
+                ? ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP
+                : ASSET_SWAPPER_MARKET_ORDERS_OPTS;
 
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...swapQuoteRequestOpts,

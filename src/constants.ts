@@ -17,6 +17,7 @@ export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
 export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 export const DEFAULT_VALIDATION_GAS_LIMIT = 10e6;
 export const HEX_BASE = 16;
+export const PROTOCOL_FEE = 70e3;
 
 // The number of orders to post to Mesh at one time
 export const MESH_ORDERS_BATCH_SIZE = 200;
@@ -48,7 +49,7 @@ export const ONE_GWEI = new BigNumber(1000000000);
 export const SRA_PATH = '/sra/v3';
 export const STAKING_PATH = '/staking';
 export const SWAP_PATH = '/swap/v1';
-export const META_TRANSACTION_PATH = '/meta_transaction/v0';
+export const META_TRANSACTION_PATH = '/meta_transaction/v1';
 export const METRICS_PATH = '/metrics';
 export const API_KEY_HEADER = '0x-api-key';
 export const HEALTHCHECK_PATH = '/healthz';

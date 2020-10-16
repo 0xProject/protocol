@@ -1,5 +1,5 @@
 import { ERC20BridgeSource } from '@0x/asset-swapper';
-import { ContractAddresses } from '@0x/contract-addresses';
+import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
 import { constants, expect, signingUtils, transactionHashUtils } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
@@ -10,11 +10,10 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
 
-import { getContractAddressesForNetworkOrThrowAsync } from '../src/app';
 import * as config from '../src/config';
 import { META_TRANSACTION_PATH, ONE_SECOND_MS, TEN_MINUTES_MS } from '../src/constants';
 import { GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
-import { ChainId, GetMetaTransactionQuoteResponse } from '../src/types';
+import { GetMetaTransactionQuoteResponse } from '../src/types';
 
 import { setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync, httpPostAsync } from './utils/http_utils';
@@ -39,7 +38,7 @@ describe(SUITE_NAME, () => {
     let zrx: DummyERC20TokenContract;
 
     before(async () => {
-        await setupApiAsync(SUITE_NAME, { apiLogType: 0 });
+        await setupApiAsync(SUITE_NAME);
 
         // connect to ganache and run contract migrations
         const ganacheConfigs = {
@@ -55,8 +54,8 @@ describe(SUITE_NAME, () => {
         accounts = await web3Wrapper.getAvailableAddressesAsync();
         [, takerAddress] = accounts;
 
-        chainId = ChainId.Ganache;
-        contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chainId);
+        chainId = await web3Wrapper.getChainIdAsync();
+        contractAddresses = getContractAddressesForChainOrThrow(chainId);
         buyTokenAddress = contractAddresses.zrxToken;
         sellTokenAddress = contractAddresses.etherToken;
 
@@ -67,6 +66,7 @@ describe(SUITE_NAME, () => {
     after(async () => {
         await teardownApiAsync(SUITE_NAME);
     });
+
     const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
     const DEFAULT_QUERY_PARAMS = {
         buyToken: 'ZRX',
@@ -345,7 +345,7 @@ describe(SUITE_NAME, () => {
     }
 
     function assertCorrectMetaQuote(testCase: QuoteTestCase): void {
-        expect(testCase.quote.zeroExTransactionHash.length).to.be.eq(66); // tslint:disable-line:custom-no-magic-numbers
+        expect(testCase.quote.mtxHash.length).to.be.eq(66); // tslint:disable-line:custom-no-magic-numbers
         const threeSecondsMS = ONE_SECOND_MS * 3; // tslint:disable-line:custom-no-magic-numbers
         const lowerBound = new BigNumber(Date.now() + TEN_MINUTES_MS - threeSecondsMS)
             .div(ONE_SECOND_MS)
@@ -353,17 +353,17 @@ describe(SUITE_NAME, () => {
         const upperBound = new BigNumber(Date.now() + TEN_MINUTES_MS)
             .div(ONE_SECOND_MS)
             .integerValue(BigNumber.ROUND_CEIL);
-        expect(testCase.quote.zeroExTransaction.expirationTimeSeconds).to.be.bignumber.gte(lowerBound);
-        expect(testCase.quote.zeroExTransaction.expirationTimeSeconds).to.be.bignumber.lte(upperBound);
+        expect(testCase.quote.mtx.expirationTimeSeconds).to.be.bignumber.gte(lowerBound);
+        expect(testCase.quote.mtx.expirationTimeSeconds).to.be.bignumber.lte(upperBound);
 
         // NOTE(jalextowle): We pick only the elements that should be tested
         // against. This avoids altering the original object and running into
         // an edge-case in `expect` around values defined as `undefined`.
         expect({
             price: testCase.quote.price,
-            zeroExTransaction: {
-                signerAddress: testCase.quote.zeroExTransaction.signerAddress,
-                domain: testCase.quote.zeroExTransaction.domain,
+            mtx: {
+                signer: testCase.quote.mtx.signer,
+                domain: testCase.quote.mtx.domain,
             },
             orders: testCase.quote.orders,
             buyAmount: testCase.quote.buyAmount,
@@ -371,9 +371,9 @@ describe(SUITE_NAME, () => {
             sources: testCase.quote.sources,
         }).to.be.eql({
             price: testCase.expectedPrice,
-            zeroExTransaction: {
-                signerAddress: takerAddress,
-                domain: { chainId, verifyingContract: contractAddresses.exchange },
+            mtx: {
+                signer: takerAddress,
+                domain: { chainId, verifyingContract: contractAddresses.exchangeProxy },
             },
             orders: testCase.expectedOrders.map(order => stringifyOrderBigNumbers(order)),
             buyAmount: testCase.expectedBuyAmount,
@@ -575,7 +575,7 @@ describe(SUITE_NAME, () => {
                         expectedOrders: [validationResults.accepted[0].signedOrder],
                         expectedPrice: price,
                     });
-                    transaction = response.body.zeroExTransaction;
+                    transaction = response.body.mtx;
                 });
 
                 it.skip('submitting the quote is successful and money changes hands correctly', async () => {
@@ -597,7 +597,7 @@ describe(SUITE_NAME, () => {
                     const response = await httpPostAsync({
                         route,
                         body: {
-                            zeroExTransaction: transaction,
+                            mtx: transaction,
                             signature,
                         },
                         headers: {
@@ -687,7 +687,7 @@ describe(SUITE_NAME, () => {
                         expectedOrders: validationResults.accepted.map(accepted => accepted.signedOrder),
                         expectedPrice: price,
                     });
-                    transaction = response.body.zeroExTransaction;
+                    transaction = response.body.mtx;
                 });
 
                 it('submitting the quote is successful and money changes hands correctly', async () => {
@@ -709,7 +709,7 @@ describe(SUITE_NAME, () => {
                     const response = await httpPostAsync({
                         route,
                         body: {
-                            zeroExTransaction: transaction,
+                            mtx: transaction,
                             signature,
                         },
                         headers: {

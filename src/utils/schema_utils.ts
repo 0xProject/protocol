@@ -11,7 +11,7 @@ export const schemaUtils = {
         if (validationResult.errors.length === 0) {
             return;
         } else {
-            const validationErrorItems = validationResult.errors.map((schemaValidationError: SchemaValidationError) =>
+            const validationErrorItems = validationResult.errors.map(schemaValidationError =>
                 schemaValidationErrorToValidationErrorItem(schemaValidationError),
             );
             throw new ValidationError(validationErrorItems);
@@ -22,7 +22,9 @@ export const schemaUtils = {
     },
 };
 
-function schemaValidationErrorToValidationErrorItem(schemaValidationError: SchemaValidationError): ValidationErrorItem {
+function schemaValidationErrorToValidationErrorItem(
+    schemaValidationError: Omit<SchemaValidationError, 'stack'>,
+): ValidationErrorItem {
     if (
         [
             'type',

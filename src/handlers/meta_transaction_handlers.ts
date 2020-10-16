@@ -1,6 +1,6 @@
 import { assert } from '@0x/assert';
 import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as isValidUUID from 'uuid-validate';
@@ -9,6 +9,7 @@ import { CHAIN_ID } from '../config';
 import { API_KEY_HEADER, DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
 import { TransactionEntity } from '../entities';
 import {
+    EthSellNotSupportedError,
     GeneralErrorCodes,
     generalErrorCodeToReason,
     InternalServerError,
@@ -24,16 +25,17 @@ import { schemas } from '../schemas/schemas';
 import { MetaTransactionService } from '../services/meta_transaction_service';
 import {
     ChainId,
+    ExchangeProxyMetaTransactionWithoutDomain,
     GetMetaTransactionPriceResponse,
     GetMetaTransactionStatusResponse,
     GetTransactionRequestParams,
-    ZeroExTransactionWithoutDomain,
+    SourceComparison,
 } from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { isRateLimitedMetaTransactionResponse, MetaTransactionRateLimiter } from '../utils/rate-limiters';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddressOrThrowApiError, getTokenMetadataIfExists } from '../utils/token_metadata_utils';
+import { findTokenAddressOrThrowApiError, getTokenMetadataIfExists, isETHSymbol } from '../utils/token_metadata_utils';
 
 export class MetaTransactionHandlers {
     private readonly _metaTransactionService: MetaTransactionService;
@@ -59,6 +61,7 @@ export class MetaTransactionHandlers {
         // HACK typescript typing does not allow this valid json-schema
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema as any);
         // parse query params
+        const params = parseGetTransactionRequestParams(req);
         const {
             takerAddress,
             sellTokenAddress,
@@ -68,9 +71,19 @@ export class MetaTransactionHandlers {
             slippagePercentage,
             excludedSources,
             includedSources,
+            affiliateFee,
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
-        } = parseGetTransactionRequestParams(req);
+        } = params;
+        const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
+        const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
+        const isETHBuy = isETHSymbol(buyToken.symbol);
+
+        // ETH selling isn't supported.
+        if (isETHSymbol(sellToken.symbol)) {
+            throw new EthSellNotSupportedError();
+        }
+
         try {
             const metaTransactionQuote = await this._metaTransactionService.calculateMetaTransactionQuoteAsync({
                 takerAddress,
@@ -78,14 +91,38 @@ export class MetaTransactionHandlers {
                 sellTokenAddress,
                 buyAmount,
                 sellAmount,
-                from: takerAddress,
                 slippagePercentage,
                 excludedSources,
                 includedSources,
                 apiKey,
                 includePriceComparisons,
+                isETHBuy,
+                affiliateFee,
+                from: takerAddress,
+                isETHSell: false,
             });
-            res.status(HttpStatus.OK).send(metaTransactionQuote);
+
+            let priceComparisons: SourceComparison[] | undefined;
+            const { quoteReport, ...quoteResponse } = metaTransactionQuote;
+            if (params.includePriceComparisons && quoteReport) {
+                priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
+                    ...metaTransactionQuote,
+                    quoteReport,
+                    buyTokenAddress,
+                    sellTokenAddress,
+                });
+            }
+            const metaTransactionQuoteResponse = {
+                ...quoteResponse,
+                priceComparisons: priceComparisons
+                    ? priceComparisons.map(pc => ({
+                          ...pc,
+                          name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
+                      }))
+                    : undefined,
+            };
+
+            res.status(HttpStatus.OK).send(metaTransactionQuoteResponse);
         } catch (e) {
             // If this is already a transformed error then just re-throw
             if (isAPIError(e)) {
@@ -144,26 +181,43 @@ export class MetaTransactionHandlers {
             slippagePercentage,
             excludedSources,
             includedSources,
+            affiliateFee,
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
         } = parseGetTransactionRequestParams(req);
+        const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
+        const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
+        const isETHSell = isETHSymbol(sellToken.symbol);
+        const isETHBuy = isETHSymbol(buyToken.symbol);
         try {
-            const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
-                {
-                    takerAddress,
+            const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync({
+                takerAddress,
+                buyTokenAddress,
+                sellTokenAddress,
+                buyAmount,
+                sellAmount,
+                from: takerAddress,
+                slippagePercentage,
+                excludedSources,
+                includedSources,
+                apiKey,
+                includePriceComparisons,
+                isETHBuy,
+                isETHSell,
+                affiliateFee,
+            });
+
+            let priceComparisons: SourceComparison[] | undefined;
+            const { quoteReport } = metaTransactionPrice;
+            if (params.includePriceComparisons && quoteReport) {
+                priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
+                    ...metaTransactionPrice,
+                    quoteReport,
                     buyTokenAddress,
                     sellTokenAddress,
-                    buyAmount,
-                    sellAmount,
-                    from: takerAddress,
-                    slippagePercentage,
-                    excludedSources,
-                    includedSources,
-                    apiKey,
-                    includePriceComparisons,
-                },
-                'price',
-            );
+                });
+            }
+
             const metaTransactionPriceResponse: GetMetaTransactionPriceResponse = {
                 price: metaTransactionPrice.price,
                 buyAmount: metaTransactionPrice.buyAmount,
@@ -178,29 +232,15 @@ export class MetaTransactionHandlers {
                 protocolFee: metaTransactionPrice.protocolFee,
                 minimumProtocolFee: metaTransactionPrice.minimumProtocolFee,
                 allowanceTarget: metaTransactionPrice.allowanceTarget,
+                priceComparisons: priceComparisons
+                    ? priceComparisons.map(pc => ({
+                          ...pc,
+                          name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
+                      }))
+                    : undefined,
             };
 
-            let priceResponse = metaTransactionPriceResponse;
-            const { quoteReport } = metaTransactionPrice;
-            if (params.includePriceComparisons && quoteReport) {
-                const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
-                    ...metaTransactionPrice,
-                    quoteReport,
-                    buyTokenAddress,
-                    sellTokenAddress,
-                });
-
-                if (priceComparisons) {
-                    priceResponse = {
-                        ...metaTransactionPriceResponse,
-                        priceComparisons: priceComparisons.map(pc => ({
-                            ...pc,
-                            name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
-                        })),
-                    };
-                }
-            }
-            res.status(HttpStatus.OK).send(priceResponse);
+            res.status(HttpStatus.OK).send(metaTransactionPriceResponse);
         } catch (e) {
             // If this is already a transformed error then just re-throw
             if (isAPIError(e)) {
@@ -237,7 +277,7 @@ export class MetaTransactionHandlers {
             throw new InternalServerError(e.message);
         }
     }
-    public async submitZeroExTransactionIfWhitelistedAsync(req: express.Request, res: express.Response): Promise<void> {
+    public async submitTransactionIfWhitelistedAsync(req: express.Request, res: express.Response): Promise<void> {
         const apiKey = req.header('0x-api-key');
         const affiliateAddress = req.query.affiliateAddress as string | undefined;
         if (apiKey !== undefined && !isValidUUID(apiKey)) {
@@ -247,24 +287,23 @@ export class MetaTransactionHandlers {
             });
             return;
         }
+        // TODO(kimpers): Refactor this to use published 5.2 @0x/json-schemas
         schemaUtils.validateSchema(req.body, schemas.metaTransactionFillRequestSchema);
 
         // parse the request body
-        const { zeroExTransaction, signature } = parsePostTransactionRequestBody(req);
-        const zeroExTransactionHash = await this._metaTransactionService.getZeroExTransactionHashFromZeroExTransactionAsync(
-            zeroExTransaction,
-        );
-        const transactionInDatabase = await this._metaTransactionService.findTransactionByHashAsync(
-            zeroExTransactionHash,
-        );
+        const { mtx, signature } = parsePostTransactionRequestBody(req);
+        const mtxHash = this._metaTransactionService.getTransactionHash(mtx);
+        const transactionInDatabase = await this._metaTransactionService.findTransactionByHashAsync(mtxHash);
         if (transactionInDatabase !== undefined) {
-            // user attemps to submit a transaction already present in the database
+            // user attemps to submit a mtx already present in the database
             res.status(HttpStatus.OK).send(marshallTransactionEntity(transactionInDatabase));
             return;
         }
         try {
-            const protocolFee = await this._metaTransactionService.validateZeroExTransactionFillAsync(
-                zeroExTransaction,
+            await this._metaTransactionService.validateTransactionIsFillableAsync(mtx, signature);
+
+            const ethTx = await this._metaTransactionService.generatePartialExecuteTransactionEthereumTransactionAsync(
+                mtx,
                 signature,
             );
 
@@ -282,55 +321,41 @@ export class MetaTransactionHandlers {
                 if (this._rateLimiter !== undefined) {
                     const rateLimitResponse = await this._rateLimiter.isAllowedAsync({
                         apiKey,
-                        takerAddress: zeroExTransaction.signerAddress,
+                        takerAddress: mtx.signer,
                     });
                     if (isRateLimitedMetaTransactionResponse(rateLimitResponse)) {
-                        const ethereumTxn = await this._metaTransactionService.generatePartialExecuteTransactionEthereumTransactionAsync(
-                            zeroExTransaction,
-                            signature,
-                            protocolFee,
-                        );
                         res.status(HttpStatus.TOO_MANY_REQUESTS).send({
                             code: GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker,
                             reason: rateLimitResponse.reason,
                             ethereumTransaction: {
-                                data: ethereumTxn.data,
-                                gasPrice: ethereumTxn.gasPrice,
-                                gas: ethereumTxn.gas,
-                                value: ethereumTxn.value,
-                                to: ethereumTxn.to,
+                                data: ethTx.data,
+                                gasPrice: ethTx.gasPrice,
+                                gas: ethTx.gas,
+                                value: ethTx.value,
+                                to: ethTx.to,
                             },
                         });
                         return;
                     }
                 }
-                const { ethereumTransactionHash } = await this._metaTransactionService.submitZeroExTransactionAsync(
-                    zeroExTransactionHash,
-                    zeroExTransaction,
+                const result = await this._metaTransactionService.submitTransactionAsync(
+                    mtxHash,
+                    mtx,
                     signature,
-                    protocolFee,
                     apiKey,
                     affiliateAddress,
                 );
-                res.status(HttpStatus.OK).send({
-                    ethereumTransactionHash,
-                    zeroExTransactionHash,
-                });
+                res.status(HttpStatus.OK).send(result);
             } else {
-                const ethereumTxn = await this._metaTransactionService.generatePartialExecuteTransactionEthereumTransactionAsync(
-                    zeroExTransaction,
-                    signature,
-                    protocolFee,
-                );
                 res.status(HttpStatus.FORBIDDEN).send({
                     code: GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker,
                     reason: generalErrorCodeToReason[GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker],
                     ethereumTransaction: {
-                        data: ethereumTxn.data,
-                        gasPrice: ethereumTxn.gasPrice,
-                        gas: ethereumTxn.gas,
-                        value: ethereumTxn.value,
-                        to: ethereumTxn.to,
+                        data: ethTx.data,
+                        gasPrice: ethTx.gasPrice,
+                        gas: ethTx.gas,
+                        value: ethTx.value,
+                        to: ethTx.to,
                     },
                 });
             }
@@ -414,6 +439,39 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
     const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
     const excludedSources = isBNT ? _excludedSources : _excludedSources.concat(ERC20BridgeSource.Bancor);
 
+    const feeRecipient = req.query.feeRecipient as string;
+    const sellTokenPercentageFee = Number.parseFloat(req.query.sellTokenPercentageFee as string) || 0;
+    const buyTokenPercentageFee = Number.parseFloat(req.query.buyTokenPercentageFee as string) || 0;
+    if (sellTokenPercentageFee > 0) {
+        throw new ValidationError([
+            {
+                field: 'sellTokenPercentageFee',
+                code: ValidationErrorCodes.UnsupportedOption,
+                reason: ValidationErrorReasons.ArgumentNotYetSupported,
+            },
+        ]);
+    }
+    if (buyTokenPercentageFee > 1) {
+        throw new ValidationError([
+            {
+                field: 'buyTokenPercentageFee',
+                code: ValidationErrorCodes.ValueOutOfRange,
+                reason: ValidationErrorReasons.PercentageOutOfRange,
+            },
+        ]);
+    }
+    const affiliateFee = feeRecipient
+        ? {
+              recipient: feeRecipient,
+              sellTokenPercentageFee,
+              buyTokenPercentageFee,
+          }
+        : {
+              recipient: NULL_ADDRESS,
+              sellTokenPercentageFee: 0,
+              buyTokenPercentageFee: 0,
+          };
+
     return {
         takerAddress,
         sellTokenAddress,
@@ -424,26 +482,32 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
         excludedSources,
         includedSources,
         includePriceComparisons,
+        affiliateFee,
     };
 };
 
 interface PostTransactionRequestBody {
-    zeroExTransaction: ZeroExTransactionWithoutDomain;
+    mtx: ExchangeProxyMetaTransactionWithoutDomain;
     signature: string;
 }
 
 const parsePostTransactionRequestBody = (req: any): PostTransactionRequestBody => {
     const requestBody = req.body;
     const signature = requestBody.signature;
-    const zeroExTransaction: ZeroExTransactionWithoutDomain = {
-        salt: new BigNumber(requestBody.zeroExTransaction.salt),
-        expirationTimeSeconds: new BigNumber(requestBody.zeroExTransaction.expirationTimeSeconds),
-        gasPrice: new BigNumber(requestBody.zeroExTransaction.gasPrice),
-        signerAddress: requestBody.zeroExTransaction.signerAddress,
-        data: requestBody.zeroExTransaction.data,
+    const mtx: ExchangeProxyMetaTransactionWithoutDomain = {
+        signer: requestBody.transaction.signer,
+        sender: requestBody.transaction.sender,
+        salt: new BigNumber(requestBody.transaction.salt),
+        expirationTimeSeconds: new BigNumber(requestBody.transaction.expirationTimeSeconds),
+        minGasPrice: new BigNumber(requestBody.transaction.minGasPrice),
+        maxGasPrice: new BigNumber(requestBody.transaction.maxGasPrice),
+        callData: requestBody.transaction.callData,
+        value: new BigNumber(requestBody.transaction.value),
+        feeToken: requestBody.transaction.feeToken,
+        feeAmount: new BigNumber(requestBody.transaction.feeAmount),
     };
     return {
-        zeroExTransaction,
+        mtx,
         signature,
     };
 };
@@ -459,4 +523,4 @@ const marshallTransactionEntity = (tx: TransactionEntity): GetMetaTransactionSta
         expectedMinedInSec: tx.expectedMinedInSec,
         ethereumTxStatus: tx.txStatus,
     };
-};
+}; // tslint:disable-next-line: max-file-line-count

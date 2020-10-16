@@ -7,7 +7,7 @@ import * as request from 'supertest';
 import { Connection, Repository } from 'typeorm';
 
 import {
-    createMetaTxnServiceFromOrderBookService,
+    createMetaTxnServiceFromSwapService,
     createSwapServiceFromOrderBookService,
     getAppAsync,
     getContractAddressesForNetworkOrThrowAsync,
@@ -87,15 +87,15 @@ describe('transaction watcher service', () => {
         txWatcher = new TransactionWatcherSignerService(connection, txWatcherConfig);
         await txWatcher.syncTransactionStatusAsync();
         const orderBookService = new OrderBookService(connection);
-        const metaTransactionService = createMetaTxnServiceFromOrderBookService(
-            orderBookService,
-            provider,
-            connection,
-            contractAddresses,
-        );
         const stakingDataService = new StakingDataService(connection);
         const websocketOpts = { path: SRA_PATH };
         const swapService = createSwapServiceFromOrderBookService(orderBookService, provider, contractAddresses);
+        const metaTransactionService = createMetaTxnServiceFromSwapService(
+            provider,
+            connection,
+            swapService,
+            contractAddresses,
+        );
         const meshClient = new MeshClient(
             defaultHttpServiceConfig.meshWebsocketUri,
             defaultHttpServiceConfig.meshHttpUri,

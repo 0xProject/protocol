@@ -94,6 +94,11 @@ export class InsufficientFundsError extends BadRequestError {
     public generalErrorCode = GeneralErrorCodes.InsufficientFundsError;
 }
 
+export class EthSellNotSupportedError extends BadRequestError {
+    public statusCode = HttpStatus.BAD_REQUEST;
+    public generalErrorCode = GeneralErrorCodes.EthSellNotSupported;
+}
+
 export enum GeneralErrorCodes {
     ValidationError = 100,
     MalformedJson = 101,
@@ -105,6 +110,7 @@ export enum GeneralErrorCodes {
     InvalidAPIKey = 107,
     ServiceDisabled = 108,
     InsufficientFundsError = 109,
+    EthSellNotSupported = 110,
 }
 
 export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = {
@@ -118,6 +124,7 @@ export const generalErrorCodeToReason: { [key in GeneralErrorCodes]: string } = 
     [GeneralErrorCodes.InvalidAPIKey]: 'Invalid API key',
     [GeneralErrorCodes.ServiceDisabled]: 'Service disabled',
     [GeneralErrorCodes.InsufficientFundsError]: 'Insufficient funds for transaction',
+    [GeneralErrorCodes.EthSellNotSupported]: 'ETH selling is not supported',
 };
 
 export enum ValidationErrorCodes {

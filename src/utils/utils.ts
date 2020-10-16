@@ -76,7 +76,7 @@ export const utils = {
         // tslint:disable-next-line:no-inferred-empty-object-type
         return new Promise<void>(resolve => setTimeout(resolve, ms));
     },
-    runWithTimeout: async (fn: () => Promise<any>, timeoutMs: number): Promise<any> => {
+    runWithTimeout: async <T>(fn: () => Promise<T>, timeoutMs: number): Promise<any> => {
         let _timeoutHandle: NodeJS.Timeout;
         // tslint:disable-next-line:no-inferred-empty-object-type
         const timeoutPromise = new Promise((_resolve, reject) => {

@@ -12,7 +12,7 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { GAS_SCHEDULE_V1 } from '../config';
+import { GAS_SCHEDULE } from '../config';
 import { ZERO } from '../constants';
 import { logger } from '../logger';
 import { ChainId, SourceComparison } from '../types';
@@ -22,7 +22,7 @@ import { getTokenMetadataIfExists } from './token_metadata_utils';
 // NOTE: Our internal Uniswap gas usage may be lower than the Uniswap UI usage
 // Therefore we need to adjust the gas estimates to be representative of using the Uniswap UI.
 const gasScheduleWithOverrides: FeeSchedule = {
-    ...GAS_SCHEDULE_V1,
+    ...GAS_SCHEDULE,
     [ERC20BridgeSource.UniswapV2]: fillData => {
         let gas = 1.5e5;
         // tslint:disable-next-line:custom-no-magic-numbers
@@ -101,12 +101,15 @@ export const priceComparisonUtils = {
                 const { liquiditySource, makerAmount, takerAmount } = source;
                 let gas: BigNumber;
                 if (liquiditySource === ERC20BridgeSource.Native) {
+                    // tslint:disable-next-line:no-unnecessary-type-assertion
                     const typedSource = source as NativeRFQTReportSource;
                     gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource]());
                 } else if (liquiditySource === ERC20BridgeSource.MultiHop) {
+                    // tslint:disable-next-line:no-unnecessary-type-assertion
                     const typedSource = source as MultiHopReportSource;
                     gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource](typedSource.fillData));
                 } else {
+                    // tslint:disable-next-line:no-unnecessary-type-assertion
                     const typedSource = source as BridgeReportSource;
                     gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource](typedSource.fillData));
                 }

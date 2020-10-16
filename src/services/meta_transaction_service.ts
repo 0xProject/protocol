@@ -1,32 +1,30 @@
-import {
-    ERC20BridgeSource,
-    MarketBuySwapQuote,
-    MarketSellSwapQuote,
-    Orderbook,
-    SwapQuoter,
-    SwapQuoteRequestOpts,
-    SwapQuoterOpts,
-} from '@0x/asset-swapper';
+import { QuoteReport } from '@0x/asset-swapper';
+import { ContractTxFunctionObj } from '@0x/base-contract';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { ContractWrappers } from '@0x/contract-wrappers';
-import { DevUtilsContract } from '@0x/contracts-dev-utils';
-import { generatePseudoRandomSalt, SupportedProvider, ZeroExTransaction } from '@0x/order-utils';
+import {
+    assetDataUtils,
+    decodeFillQuoteTransformerData,
+    findTransformerNonce,
+    generatePseudoRandomSalt,
+    getExchangeProxyMetaTransactionHash,
+    SupportedProvider,
+} from '@0x/order-utils';
 import { PartialTxParams } from '@0x/subproviders';
-import { SignedOrder } from '@0x/types';
+import { ExchangeProxyMetaTransaction, Order, SignedOrder } from '@0x/types';
 import { BigNumber, RevertError } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import { utils as web3WrapperUtils } from '@0x/web3-wrapper/lib/src/utils';
 import { Connection, Repository } from 'typeorm';
 
 import {
-    ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
     CHAIN_ID,
     META_TXN_RELAY_EXPECTED_MINED_SEC,
     META_TXN_SUBMIT_WHITELISTED_API_KEYS,
-    SWAP_QUOTER_OPTS,
+    PROTOCOL_FEE_MULTIPLIER,
 } from '../config';
 import {
     DEFAULT_VALIDATION_GAS_LIMIT,
+    NULL_ADDRESS,
     ONE_GWEI,
     ONE_MINUTE_MS,
     ONE_SECOND_MS,
@@ -35,290 +33,171 @@ import {
     SUBMITTED_TX_DB_POLLING_INTERVAL_MS,
     TEN_MINUTES_MS,
     TX_HASH_RESPONSE_WAIT_TIME_MS,
+    ZERO,
 } from '../constants';
 import { KeyValueEntity, TransactionEntity } from '../entities';
 import { logger } from '../logger';
 import {
-    CalculateMetaTransactionPriceResponse,
     CalculateMetaTransactionQuoteParams,
+    CalculateMetaTransactionQuoteResponse,
+    CalculateSwapQuoteParams,
+    ExchangeProxyMetaTransactionWithoutDomain,
     GetMetaTransactionQuoteResponse,
+    GetSwapQuoteResponse,
     PostTransactionResponse,
     TransactionStates,
     TransactionWatcherSignerStatus,
-    ZeroExTransactionWithoutDomain,
 } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
-import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { serviceUtils } from '../utils/service_utils';
 import { utils } from '../utils/utils';
 
+interface SwapService {
+    calculateSwapQuoteAsync(params: CalculateSwapQuoteParams): Promise<GetSwapQuoteResponse>;
+}
+
+interface Transformation {
+    deploymentNonce: BigNumber;
+    data: string;
+}
+
+interface TxHashObject {
+    txHash: string;
+}
+
 export class MetaTransactionService {
     private readonly _provider: SupportedProvider;
-    private readonly _swapQuoter: SwapQuoter;
     private readonly _contractWrappers: ContractWrappers;
-    private readonly _web3Wrapper: Web3Wrapper;
-    private readonly _devUtils: DevUtilsContract;
     private readonly _connection: Connection;
     private readonly _transactionEntityRepository: Repository<TransactionEntity>;
     private readonly _kvRepository: Repository<KeyValueEntity>;
+    private readonly _swapService: SwapService;
     private readonly _contractAddresses: ContractAddresses;
+    private readonly _fillQuoteTransformerDeploymentNonce: number;
 
     public static isEligibleForFreeMetaTxn(apiKey: string): boolean {
         return META_TXN_SUBMIT_WHITELISTED_API_KEYS.includes(apiKey);
     }
-    private static _calculateProtocolFee(numOrders: number, gasPrice: BigNumber): BigNumber {
-        return new BigNumber(70000).times(gasPrice).times(numOrders);
-    }
+
     constructor(
-        orderbook: Orderbook,
         provider: SupportedProvider,
         dbConnection: Connection,
+        swapService: SwapService,
         contractAddresses: ContractAddresses,
     ) {
         this._provider = provider;
-        const swapQuoterOpts: Partial<SwapQuoterOpts> = {
-            ...SWAP_QUOTER_OPTS,
-            rfqt: {
-                ...SWAP_QUOTER_OPTS.rfqt,
-                warningLogger: logger.warn.bind(logger),
-                infoLogger: logger.info.bind(logger),
-            },
-            contractAddresses,
-        };
-        this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
-        this._contractWrappers = new ContractWrappers(this._provider, { chainId: CHAIN_ID, contractAddresses });
-        this._web3Wrapper = new Web3Wrapper(this._provider);
-        this._devUtils = new DevUtilsContract(this._contractWrappers.contractAddresses.devUtils, this._provider);
+        this._contractWrappers = new ContractWrappers(this._provider, { chainId: CHAIN_ID });
         this._connection = dbConnection;
         this._transactionEntityRepository = this._connection.getRepository(TransactionEntity);
         this._kvRepository = this._connection.getRepository(KeyValueEntity);
+        this._swapService = swapService;
         this._contractAddresses = contractAddresses;
+        this._fillQuoteTransformerDeploymentNonce = findTransformerNonce(
+            this._contractAddresses.transformers.fillQuoteTransformer,
+            this._contractAddresses.exchangeProxyTransformerDeployer,
+        );
     }
+
     public async calculateMetaTransactionPriceAsync(
         params: CalculateMetaTransactionQuoteParams,
-        endpoint: 'price' | 'quote',
-    ): Promise<CalculateMetaTransactionPriceResponse> {
-        const {
-            takerAddress,
-            sellAmount,
-            buyAmount,
-            buyTokenAddress,
-            sellTokenAddress,
-            slippagePercentage,
-            excludedSources,
-            apiKey,
-            // tslint:disable-next-line:boolean-naming
-            includePriceComparisons,
-        } = params;
-
-        let _rfqt;
-        if (apiKey !== undefined) {
-            _rfqt = {
-                intentOnFilling: endpoint === 'quote',
-                isIndicative: endpoint === 'price',
-                apiKey,
-                takerAddress,
-            };
-        }
-
-        // only generate quote reports for rfqt firm quotes or when price comparison is requested
-        const shouldGenerateQuoteReport = includePriceComparisons || (_rfqt && _rfqt.intentOnFilling);
-
-        const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
-            ...ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS,
-            bridgeSlippage: slippagePercentage,
-            excludedSources: ASSET_SWAPPER_MARKET_ORDERS_V0_OPTS.excludedSources.concat(...(excludedSources || [])),
-            rfqt: _rfqt,
-            shouldGenerateQuoteReport,
-        };
-
-        let swapQuote: MarketSellSwapQuote | MarketBuySwapQuote | undefined;
-        if (sellAmount !== undefined) {
-            swapQuote = await this._swapQuoter.getMarketSellSwapQuoteAsync(
-                buyTokenAddress,
-                sellTokenAddress,
-                sellAmount,
-                assetSwapperOpts,
-            );
-        } else if (buyAmount !== undefined) {
-            swapQuote = await this._swapQuoter.getMarketBuySwapQuoteAsync(
-                buyTokenAddress,
-                sellTokenAddress,
-                buyAmount,
-                assetSwapperOpts,
-            );
-        } else {
-            throw new Error('sellAmount or buyAmount required');
-        }
-        const { gasPrice, quoteReport } = swapQuote;
-        const { gas, protocolFeeInWeiAmount: protocolFee } = swapQuote.worstCaseQuoteInfo;
-        const makerAssetAmount = swapQuote.bestCaseQuoteInfo.makerAssetAmount;
-        const totalTakerAssetAmount = swapQuote.bestCaseQuoteInfo.totalTakerAssetAmount;
-
-        const buyTokenDecimals = await serviceUtils.fetchTokenDecimalsIfRequiredAsync(
-            buyTokenAddress,
-            this._web3Wrapper,
-        );
-        const sellTokenDecimals = await serviceUtils.fetchTokenDecimalsIfRequiredAsync(
-            sellTokenAddress,
-            this._web3Wrapper,
-        );
-        const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
-        const unitTakerAssetAMount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
-        const price =
-            buyAmount === undefined
-                ? unitMakerAssetAmount.dividedBy(unitTakerAssetAMount).decimalPlaces(sellTokenDecimals)
-                : unitTakerAssetAMount.dividedBy(unitMakerAssetAmount).decimalPlaces(buyTokenDecimals);
-        const allowanceTarget = this._contractAddresses.erc20Proxy;
-
-        const response: CalculateMetaTransactionPriceResponse = {
-            takerAddress,
-            buyAmount: makerAssetAmount,
-            sellAmount: totalTakerAssetAmount,
-            price,
-            swapQuote,
-            sources: serviceUtils.convertSourceBreakdownToArray(swapQuote.sourceBreakdown),
-            estimatedGas: new BigNumber(gas),
-            gasPrice,
-            protocolFee,
-            minimumProtocolFee: protocolFee,
-            allowanceTarget,
-            quoteReport,
-        };
-        return response;
+    ): Promise<CalculateMetaTransactionQuoteResponse> {
+        return this._calculateMetaTransactionQuoteAsync(params, false);
     }
+
     public async calculateMetaTransactionQuoteAsync(
         params: CalculateMetaTransactionQuoteParams,
-    ): Promise<GetMetaTransactionQuoteResponse> {
-        const metaTransactionPriceResponse = await this.calculateMetaTransactionPriceAsync(params, 'quote');
-        const {
-            takerAddress,
-            sellAmount,
-            buyAmount,
-            swapQuote,
-            price,
-            estimatedGas,
-            protocolFee,
-            minimumProtocolFee,
-            quoteReport,
-        } = metaTransactionPriceResponse;
+    ): Promise<GetMetaTransactionQuoteResponse & { quoteReport?: QuoteReport }> {
+        const quote = await this._calculateMetaTransactionQuoteAsync(params, true);
+        const commonQuoteFields = {
+            price: quote.price,
+            sellTokenAddress: params.sellTokenAddress,
+            buyTokenAddress: params.buyTokenAddress,
+            buyAmount: quote.buyAmount,
+            sellAmount: quote.sellAmount,
+            orders: quote.orders,
+            sources: quote.sources,
+            gasPrice: quote.gasPrice,
+            estimatedGas: quote.estimatedGas,
+            gas: quote.estimatedGas,
+            protocolFee: quote.protocolFee,
+            minimumProtocolFee: quote.minimumProtocolFee,
+            estimatedGasTokenRefund: ZERO,
+            value: quote.protocolFee,
+            allowanceTarget: quote.allowanceTarget,
+            quoteReport: quote.quoteReport,
+        };
 
-        const floatGasPrice = swapQuote.gasPrice;
-        const gasPrice = floatGasPrice
-            .div(ONE_GWEI)
-            .integerValue(BigNumber.ROUND_UP)
-            .times(ONE_GWEI);
-        const attributedSwapQuote = serviceUtils.attributeSwapQuoteOrders(swapQuote);
-        const { orders, sourceBreakdown } = attributedSwapQuote;
-        const signatures = orders.map(order => order.signature);
+        const shouldLogQuoteReport = quote.quoteReport && params.apiKey !== undefined;
 
-        const zeroExTransaction = this._generateZeroExTransaction(
-            orders,
-            sellAmount,
-            buyAmount,
-            signatures,
-            takerAddress,
-            gasPrice,
+        // Go through the Exchange Proxy.
+        const epmtx = this._generateExchangeProxyMetaTransaction(
+            quote.callData,
+            quote.takerAddress,
+            normalizeGasPrice(quote.gasPrice),
+            calculateProtocolFeeRequiredForOrders(normalizeGasPrice(quote.gasPrice), quote.orders),
         );
 
-        // use the DevUtils contract to generate the transaction hash
-        const zeroExTransactionHash = await this._devUtils
-            .getTransactionHash(
-                zeroExTransaction,
-                new BigNumber(CHAIN_ID),
-                this._contractWrappers.contractAddresses.exchange,
-            )
-            .callAsync();
+        const mtxHash = getExchangeProxyMetaTransactionHash(epmtx);
 
         // log quote report and associate with txn hash if this is an RFQT firm quote
-        const shouldLogQuoteReport = quoteReport && params.apiKey !== undefined;
         if (shouldLogQuoteReport) {
             quoteReportUtils.logQuoteReport({
                 submissionBy: 'metaTxn',
-                quoteReport,
-                zeroExTransactionHash,
+                quoteReport: quote.quoteReport,
+                zeroExTransactionHash: mtxHash,
                 buyTokenAddress: params.buyTokenAddress,
                 sellTokenAddress: params.sellTokenAddress,
                 buyAmount: params.buyAmount,
                 sellAmount: params.sellAmount,
             });
         }
-
-        const makerAssetAmount = swapQuote.bestCaseQuoteInfo.makerAssetAmount;
-        const totalTakerAssetAmount = swapQuote.bestCaseQuoteInfo.totalTakerAssetAmount;
-        const allowanceTarget = this._contractAddresses.erc20Proxy;
-        const apiMetaTransactionQuote: GetMetaTransactionQuoteResponse = {
-            price,
-            sellTokenAddress: params.sellTokenAddress,
-            buyTokenAddress: params.buyTokenAddress,
-            zeroExTransactionHash,
-            zeroExTransaction,
-            buyAmount: makerAssetAmount,
-            sellAmount: totalTakerAssetAmount,
-            orders: serviceUtils.cleanSignedOrderFields(orders),
-            sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
-            gasPrice,
-            estimatedGas,
-            gas: estimatedGas,
-            protocolFee,
-            minimumProtocolFee,
-            value: protocolFee,
-            allowanceTarget,
+        return {
+            ...commonQuoteFields,
+            mtx: epmtx,
+            mtxHash,
         };
-
-        let quoteResponse = apiMetaTransactionQuote;
-        if (params.includePriceComparisons && quoteReport) {
-            const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
-                ...metaTransactionPriceResponse,
-                quoteReport,
-                buyTokenAddress: params.buyTokenAddress,
-                sellTokenAddress: params.sellTokenAddress,
-            });
-
-            if (priceComparisons) {
-                quoteResponse = {
-                    ...apiMetaTransactionQuote,
-                    priceComparisons: priceComparisons.map(pc => ({
-                        ...pc,
-                        name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
-                    })),
-                };
-            }
-        }
-        return quoteResponse;
     }
+
     public async findTransactionByHashAsync(refHash: string): Promise<TransactionEntity | undefined> {
         return this._transactionEntityRepository.findOne({
             where: [{ refHash }, { txHash: refHash }],
         });
     }
-    public async validateZeroExTransactionFillAsync(
-        zeroExTransaction: ZeroExTransactionWithoutDomain,
+
+    public async validateTransactionIsFillableAsync(
+        mtx: ExchangeProxyMetaTransactionWithoutDomain,
         signature: string,
-    ): Promise<BigNumber> {
-        // Verify 0x txn won't expire in next 60 seconds
-        const sixtySecondsFromNow = new BigNumber(Date.now() + ONE_MINUTE_MS).dividedBy(ONE_SECOND_MS);
-        if (zeroExTransaction.expirationTimeSeconds.lte(sixtySecondsFromNow)) {
-            throw new Error('zeroExTransaction expirationTimeSeconds in less than 60 seconds from now');
+    ): Promise<void> {
+        const { executeCall, protocolFee, gasPrice } = this._getMetaTransactionExecutionDetails(mtx, signature);
+
+        if (mtx.maxGasPrice.lt(gasPrice) || mtx.minGasPrice.gt(gasPrice)) {
+            throw new Error('mtx gas price out of range');
+        }
+        if (!mtx.value.eq(protocolFee)) {
+            throw new Error('mtx value mismatch');
+        }
+        if (mtx.sender !== NULL_ADDRESS) {
+            throw new Error('mtx sender mismatch');
         }
 
-        const [, orders] = await this._devUtils.decodeZeroExTransactionData(zeroExTransaction.data).callAsync();
+        // Must not expire in the next 60 seconds.
+        const sixtySecondsFromNow = (Date.now() + ONE_MINUTE_MS) / ONE_SECOND_MS;
+        if (mtx.expirationTimeSeconds.lte(sixtySecondsFromNow)) {
+            throw new Error('mtx expirationTimeSeconds in less than 60 seconds from now');
+        }
 
-        const gasPrice = zeroExTransaction.gasPrice;
-        const currentFastGasPrice = await ethGasStationUtils.getGasPriceOrThrowAsync();
         // Make sure gasPrice is not 3X the current fast EthGasStation gas price
+        const currentFastGasPrice = await ethGasStationUtils.getGasPriceOrThrowAsync();
         // tslint:disable-next-line:custom-no-magic-numbers
         if (currentFastGasPrice.lt(gasPrice) && gasPrice.minus(currentFastGasPrice).gte(currentFastGasPrice.times(3))) {
             throw new Error('Gas price too high');
         }
 
-        const protocolFee = MetaTransactionService._calculateProtocolFee(orders.length, gasPrice);
-
         try {
-            await this._contractWrappers.exchange.executeTransaction(zeroExTransaction, signature).callAsync({
-                from: PUBLIC_ADDRESS_FOR_ETH_CALLS,
+            await executeCall.callAsync({
                 gasPrice,
+                from: PUBLIC_ADDRESS_FOR_ETH_CALLS,
                 value: protocolFee,
                 gas: DEFAULT_VALIDATION_GAS_LIMIT,
             });
@@ -327,49 +206,43 @@ export class MetaTransactionService {
             // catching it at the MetaTransactionHandler level to provide more
             // information.
             if (err.values && err.values.errorData && err.values.errorData !== '0x') {
-                const decodedCallData = RevertError.decode(err.values.errorData, false);
-                throw decodedCallData;
+                throw RevertError.decode(err.values.errorData, false);
             }
             throw err;
         }
+    }
 
-        return protocolFee;
+    public getTransactionHash(mtx: ExchangeProxyMetaTransactionWithoutDomain): string {
+        return getExchangeProxyMetaTransactionHash({
+            ...mtx,
+            domain: {
+                chainId: CHAIN_ID,
+                verifyingContract: this._contractWrappers.exchangeProxy.address,
+            },
+        });
     }
-    public async getZeroExTransactionHashFromZeroExTransactionAsync(
-        zeroExTransaction: ZeroExTransactionWithoutDomain,
-    ): Promise<string> {
-        return this._devUtils
-            .getTransactionHash(
-                zeroExTransaction,
-                new BigNumber(CHAIN_ID),
-                this._contractWrappers.contractAddresses.exchange,
-            )
-            .callAsync();
-    }
+
     public async generatePartialExecuteTransactionEthereumTransactionAsync(
-        zeroExTransaction: ZeroExTransactionWithoutDomain,
+        mtx: ExchangeProxyMetaTransactionWithoutDomain,
         signature: string,
-        protocolFee: BigNumber,
     ): Promise<PartialTxParams> {
-        const gasPrice = zeroExTransaction.gasPrice;
-        const gas = await this._contractWrappers.exchange
-            .executeTransaction(zeroExTransaction, signature)
-            .estimateGasAsync({
-                from: PUBLIC_ADDRESS_FOR_ETH_CALLS,
-                gasPrice,
-                value: protocolFee,
-            });
-
-        const executeTxnCalldata = this._contractWrappers.exchange
-            .executeTransaction(zeroExTransaction, signature)
-            .getABIEncodedTransactionData();
+        const { callTarget, gasPrice, protocolFee, executeCall } = this._getMetaTransactionExecutionDetails(
+            mtx,
+            signature,
+        );
+        const gas = await executeCall.estimateGasAsync({
+            from: PUBLIC_ADDRESS_FOR_ETH_CALLS,
+            gasPrice,
+            value: protocolFee,
+        });
+        const executeTxnCalldata = executeCall.getABIEncodedTransactionData();
 
         const ethereumTxnParams: PartialTxParams = {
             data: executeTxnCalldata,
             gas: web3WrapperUtils.encodeAmountAsHexString(gas),
             gasPrice: web3WrapperUtils.encodeAmountAsHexString(gasPrice),
             value: web3WrapperUtils.encodeAmountAsHexString(protocolFee),
-            to: this._contractWrappers.exchange.address,
+            to: callTarget,
             chainId: CHAIN_ID,
             // NOTE we arent returning nonce and from fields back to the user
             nonce: '',
@@ -378,38 +251,36 @@ export class MetaTransactionService {
 
         return ethereumTxnParams;
     }
-    public async submitZeroExTransactionAsync(
-        zeroExTransactionHash: string,
-        zeroExTransaction: ZeroExTransactionWithoutDomain,
+
+    public async submitTransactionAsync(
+        mtxHash: string,
+        mtx: ExchangeProxyMetaTransactionWithoutDomain,
         signature: string,
-        protocolFee: BigNumber,
         apiKey: string,
         affiliateAddress?: string,
     ): Promise<PostTransactionResponse> {
-        const data = serviceUtils.attributeCallData(
-            this._contractWrappers.exchange
-                .executeTransaction(zeroExTransaction, signature)
-                .getABIEncodedTransactionData(),
-            affiliateAddress,
+        const { callTarget, gasPrice, protocolFee, executeCall, signer } = this._getMetaTransactionExecutionDetails(
+            mtx,
+            signature,
         );
+
+        const txCalldata = serviceUtils.attributeCallData(executeCall.getABIEncodedTransactionData(), affiliateAddress);
         const transactionEntity = TransactionEntity.make({
-            refHash: zeroExTransactionHash,
-            status: TransactionStates.Unsubmitted,
-            takerAddress: zeroExTransaction.signerAddress,
-            to: this._contractWrappers.exchange.address,
-            data: data.affiliatedData,
-            value: protocolFee,
             apiKey,
-            gasPrice: zeroExTransaction.gasPrice,
+            gasPrice,
+            data: txCalldata.affiliatedData,
+            refHash: mtxHash,
+            status: TransactionStates.Unsubmitted,
+            takerAddress: signer,
+            to: callTarget,
+            value: protocolFee,
             expectedMinedInSec: META_TXN_RELAY_EXPECTED_MINED_SEC,
         });
         await this._transactionEntityRepository.save(transactionEntity);
-        const { ethereumTransactionHash } = await this._waitUntilTxHashAsync(transactionEntity);
-        return {
-            ethereumTransactionHash,
-            zeroExTransactionHash,
-        };
+        const { txHash } = await this._waitUntilTxHashAsync(transactionEntity);
+        return { txHash, mtxHash };
     }
+
     public async isSignerLiveAsync(): Promise<boolean> {
         const statusKV = await this._kvRepository.findOne(SIGNER_STATUS_DB_KEY);
         if (utils.isNil(statusKV) || utils.isNil(statusKV.value)) {
@@ -424,55 +295,143 @@ export class MetaTransactionService {
         // tslint:disable-next-line:no-boolean-literal-compare
         return signerStatus.live === true && hasUpdatedRecently;
     }
-    private async _waitUntilTxHashAsync(txEntity: TransactionEntity): Promise<{ ethereumTransactionHash: string }> {
-        return utils.runWithTimeout(async () => {
+
+    private async _waitUntilTxHashAsync(txEntity: TransactionEntity): Promise<TxHashObject> {
+        return utils.runWithTimeout<TxHashObject>(async () => {
             while (true) {
                 const tx = await this._transactionEntityRepository.findOne(txEntity.refHash);
                 if (!utils.isNil(tx) && !utils.isNil(tx.txHash) && !utils.isNil(tx.data)) {
-                    return { ethereumTransactionHash: tx.txHash };
+                    return { txHash: tx.txHash };
                 }
 
                 await utils.delayAsync(SUBMITTED_TX_DB_POLLING_INTERVAL_MS);
             }
         }, TX_HASH_RESPONSE_WAIT_TIME_MS);
     }
-    private _generateZeroExTransaction(
-        orders: SignedOrder[],
-        sellAmount: BigNumber | undefined,
-        buyAmount: BigNumber | undefined,
-        signatures: string[],
+
+    private _generateExchangeProxyMetaTransaction(
+        callData: string,
         takerAddress: string,
         gasPrice: BigNumber,
-    ): ZeroExTransaction {
-        // generate txData for marketSellOrdersFillOrKill or marketBuyOrdersFillOrKill
-        let txData;
-        if (sellAmount !== undefined) {
-            txData = this._contractWrappers.exchange
-                .marketSellOrdersFillOrKill(orders, sellAmount, signatures)
-                .getABIEncodedTransactionData();
-        } else if (buyAmount !== undefined) {
-            txData = this._contractWrappers.exchange
-                .marketBuyOrdersFillOrKill(orders, buyAmount, signatures)
-                .getABIEncodedTransactionData();
-        } else {
-            throw new Error('sellAmount or buyAmount required');
-        }
-
-        // generate the zeroExTransaction object
-        const expirationTimeSeconds = new BigNumber(Date.now() + TEN_MINUTES_MS)
-            .div(ONE_SECOND_MS)
-            .integerValue(BigNumber.ROUND_CEIL);
-        const zeroExTransaction: ZeroExTransaction = {
-            data: txData,
+        protocolFee: BigNumber,
+    ): ExchangeProxyMetaTransaction {
+        return {
+            callData,
+            minGasPrice: gasPrice,
+            maxGasPrice: gasPrice,
+            expirationTimeSeconds: createExpirationTime(),
             salt: generatePseudoRandomSalt(),
-            signerAddress: takerAddress,
-            gasPrice,
-            expirationTimeSeconds,
+            signer: takerAddress,
+            sender: NULL_ADDRESS,
+            feeAmount: ZERO,
+            feeToken: NULL_ADDRESS,
+            value: protocolFee,
             domain: {
                 chainId: CHAIN_ID,
-                verifyingContract: this._contractWrappers.contractAddresses.exchange,
+                verifyingContract: this._contractWrappers.exchangeProxy.address,
             },
         };
-        return zeroExTransaction;
+    }
+
+    private async _calculateMetaTransactionQuoteAsync(
+        params: CalculateMetaTransactionQuoteParams,
+        isQuote: boolean = true,
+    ): Promise<CalculateMetaTransactionQuoteResponse> {
+        const quoteParams = {
+            skipValidation: true,
+            rfqt: {
+                apiKey: params.apiKey,
+                takerAddress: params.takerAddress,
+                intentOnFilling: isQuote,
+                isIndicative: !isQuote,
+            },
+            isMetaTransaction: true,
+            ...params,
+        };
+
+        const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);
+        return {
+            takerAddress: params.takerAddress,
+            price: quote.price,
+            gasPrice: quote.gasPrice,
+            protocolFee: quote.protocolFee,
+            minimumProtocolFee: quote.protocolFee,
+            sources: quote.sources,
+            buyAmount: quote.buyAmount,
+            sellAmount: quote.sellAmount,
+            estimatedGas: quote.estimatedGas,
+            allowanceTarget: quote.allowanceTarget,
+            orders: quote.orders,
+            callData: quote.data,
+            quoteReport: quote.quoteReport,
+        };
+    }
+
+    private _calculateProtocolFeeRequiredForMetaTransaction(mtx: ExchangeProxyMetaTransactionWithoutDomain): BigNumber {
+        const decoded = this._contractWrappers.getAbiDecoder().decodeCalldataOrThrow(mtx.callData, 'IZeroEx');
+        const supportedFunctions = ['transformERC20'];
+        if (!supportedFunctions.includes(decoded.functionName)) {
+            throw new Error('unsupported meta-transaction function');
+        }
+
+        const transformations: Transformation[] = decoded.functionArguments.transformations;
+
+        const fillQuoteTransformations = transformations.filter(
+            t => t.deploymentNonce.toString() === this._fillQuoteTransformerDeploymentNonce.toString(),
+        );
+
+        if (fillQuoteTransformations.length === 0) {
+            throw new Error('Could not find fill quote transformation in decoded calldata');
+        }
+
+        const totalProtocolFeeRequiredForOrders = fillQuoteTransformations.reduce((memo, transformation) => {
+            const decodedFillQuoteTransformerData = decodeFillQuoteTransformerData(transformation.data);
+            const protocolFee = calculateProtocolFeeRequiredForOrders(
+                mtx.maxGasPrice,
+                decodedFillQuoteTransformerData.orders,
+            );
+
+            return memo.plus(protocolFee);
+        }, new BigNumber(0));
+
+        return totalProtocolFeeRequiredForOrders;
+    }
+
+    private _getMetaTransactionExecutionDetails(
+        mtx: ExchangeProxyMetaTransactionWithoutDomain,
+        signature: string,
+    ): {
+        callTarget: string;
+        executeCall: ContractTxFunctionObj<string>;
+        protocolFee: BigNumber;
+        gasPrice: BigNumber;
+        signer: string;
+    } {
+        return {
+            callTarget: this._contractWrappers.exchangeProxy.address,
+            executeCall: this._contractWrappers.exchangeProxy.executeMetaTransaction(mtx, signature),
+            protocolFee: this._calculateProtocolFeeRequiredForMetaTransaction(mtx),
+            gasPrice: mtx.minGasPrice,
+            signer: mtx.signer,
+        };
     }
 }
+
+function normalizeGasPrice(gasPrice: BigNumber): BigNumber {
+    return gasPrice
+        .div(ONE_GWEI)
+        .integerValue(BigNumber.ROUND_UP)
+        .times(ONE_GWEI);
+}
+
+function createExpirationTime(): BigNumber {
+    return new BigNumber(Date.now() + TEN_MINUTES_MS).div(ONE_SECOND_MS).integerValue(BigNumber.ROUND_CEIL);
+}
+
+function calculateProtocolFeeRequiredForOrders(gasPrice: BigNumber, orders: Array<SignedOrder | Order>): BigNumber {
+    const nativeOrderCount = orders.filter(
+        o => !assetDataUtils.isERC20BridgeAssetData(assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData)),
+    ).length;
+    return gasPrice.times(nativeOrderCount).times(PROTOCOL_FEE_MULTIPLIER);
+}
+// tslint:disable-next-line: max-file-line-count
