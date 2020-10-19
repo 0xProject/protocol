@@ -293,6 +293,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Swerve,
                 ERC20BridgeSource.Shell,
                 ERC20BridgeSource.SushiSwap,
+                ERC20BridgeSource.Cream,
             ];
         default:
             return [
@@ -312,6 +313,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Swerve,
                 ERC20BridgeSource.Shell,
                 ERC20BridgeSource.SushiSwap,
+                ERC20BridgeSource.Cream,
             ];
     }
 })();
@@ -374,6 +376,7 @@ export const GAS_SCHEDULE: FeeSchedule = {
         return gas;
     },
     [ERC20BridgeSource.Balancer]: () => 120e3,
+    [ERC20BridgeSource.Cream]: () => 300e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
     [ERC20BridgeSource.Mooniswap]: () => 220e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
