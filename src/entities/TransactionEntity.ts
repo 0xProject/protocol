@@ -42,7 +42,7 @@ export class TransactionEntity {
     public value?: BigNumber;
 
     @Column({ name: 'gas', type: 'int', nullable: true })
-    public gas?: number;
+    public gas?: number | null;
 
     @Column({ name: 'from', type: 'varchar', nullable: true })
     public from?: string;
@@ -51,13 +51,13 @@ export class TransactionEntity {
     public nonce?: number;
 
     @Column({ name: 'gas_used', type: 'int', nullable: true })
-    public gasUsed?: number;
+    public gasUsed?: number | null;
 
     @Column({ name: 'block_number', type: 'bigint', nullable: true, transformer: BigIntTransformer })
     public blockNumber?: number;
 
     @Column({ name: 'tx_status', type: 'int', nullable: true })
-    public txStatus?: number;
+    public txStatus?: number | null;
 
     @Column({ name: 'api_key', type: 'varchar', nullable: true })
     public apiKey?: string;

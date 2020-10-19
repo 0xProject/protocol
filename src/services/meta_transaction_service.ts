@@ -113,8 +113,8 @@ export class MetaTransactionService {
             price: quote.price,
             sellTokenAddress: params.sellTokenAddress,
             buyTokenAddress: params.buyTokenAddress,
-            buyAmount: quote.buyAmount,
-            sellAmount: quote.sellAmount,
+            buyAmount: quote.buyAmount!,
+            sellAmount: quote.sellAmount!,
             orders: quote.orders,
             sources: quote.sources,
             gasPrice: quote.gasPrice,
@@ -141,7 +141,7 @@ export class MetaTransactionService {
         const mtxHash = getExchangeProxyMetaTransactionHash(epmtx);
 
         // log quote report and associate with txn hash if this is an RFQT firm quote
-        if (shouldLogQuoteReport) {
+        if (quote.quoteReport && shouldLogQuoteReport) {
             quoteReportUtils.logQuoteReport({
                 submissionBy: 'metaTxn',
                 quoteReport: quote.quoteReport,
@@ -283,15 +283,15 @@ export class MetaTransactionService {
 
     public async isSignerLiveAsync(): Promise<boolean> {
         const statusKV = await this._kvRepository.findOne(SIGNER_STATUS_DB_KEY);
-        if (utils.isNil(statusKV) || utils.isNil(statusKV.value)) {
+        if (utils.isNil(statusKV) || utils.isNil(statusKV!.value)) {
             logger.error({
                 message: `signer status entry is not present in the database`,
             });
             return false;
         }
-        const signerStatus: TransactionWatcherSignerStatus = JSON.parse(statusKV.value);
+        const signerStatus: TransactionWatcherSignerStatus = JSON.parse(statusKV!.value!);
         const hasUpdatedRecently =
-            !utils.isNil(statusKV.updatedAt) && statusKV.updatedAt.getTime() > Date.now() - TEN_MINUTES_MS;
+            !utils.isNil(statusKV!.updatedAt) && statusKV!.updatedAt!.getTime() > Date.now() - TEN_MINUTES_MS;
         // tslint:disable-next-line:no-boolean-literal-compare
         return signerStatus.live === true && hasUpdatedRecently;
     }
@@ -300,8 +300,8 @@ export class MetaTransactionService {
         return utils.runWithTimeout<TxHashObject>(async () => {
             while (true) {
                 const tx = await this._transactionEntityRepository.findOne(txEntity.refHash);
-                if (!utils.isNil(tx) && !utils.isNil(tx.txHash) && !utils.isNil(tx.data)) {
-                    return { txHash: tx.txHash };
+                if (!utils.isNil(tx) && !utils.isNil(tx!.txHash) && !utils.isNil(tx!.data)) {
+                    return { txHash: tx!.txHash! };
                 }
 
                 await utils.delayAsync(SUBMITTED_TX_DB_POLLING_INTERVAL_MS);
@@ -428,7 +428,7 @@ function createExpirationTime(): BigNumber {
     return new BigNumber(Date.now() + TEN_MINUTES_MS).div(ONE_SECOND_MS).integerValue(BigNumber.ROUND_CEIL);
 }
 
-function calculateProtocolFeeRequiredForOrders(gasPrice: BigNumber, orders: Array<SignedOrder | Order>): BigNumber {
+function calculateProtocolFeeRequiredForOrders(gasPrice: BigNumber, orders: (SignedOrder | Order)[]): BigNumber {
     const nativeOrderCount = orders.filter(
         o => !assetDataUtils.isERC20BridgeAssetData(assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData)),
     ).length;

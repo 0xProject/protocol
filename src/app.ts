@@ -211,12 +211,12 @@ function createMetaTransactionRateLimiterFromConfig(
     dbConnection: Connection,
     config: HttpServiceConfig,
 ): MetaTransactionRateLimiter {
-    const rateLimiterConfigEntries = Object.entries(config.metaTxnRateLimiters);
+    const rateLimiterConfigEntries = Object.entries(config.metaTxnRateLimiters!);
     const configuredRateLimiters = rateLimiterConfigEntries
         .map(entries => {
             const [dbField, rateLimiters] = entries;
 
-            return Object.entries(rateLimiters).map(rateLimiterEntry => {
+            return Object.entries(rateLimiters!).map(rateLimiterEntry => {
                 const [limiterType, value] = rateLimiterEntry;
                 switch (limiterType) {
                     case AvailableRateLimiter.Daily: {

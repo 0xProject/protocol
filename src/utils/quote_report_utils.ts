@@ -37,7 +37,7 @@ export const quoteReportUtils = {
             }),
         };
 
-        let logBase: { [key: string]: string | boolean } = {
+        let logBase: { [key: string]: string | boolean | undefined } = {
             firmQuoteReport: true,
             submissionBy: logOpts.submissionBy,
             buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,

@@ -133,7 +133,7 @@ export const parseUtils = {
         ) as ERC20BridgeSource[];
     },
     parseJsonStringForMetaTransactionRateLimitConfigOrThrow(configString: string): MetaTransactionRateLimitConfig {
-        const parsedConfig = JSON.parse(configString);
+        const parsedConfig: object = JSON.parse(configString);
         Object.entries(parsedConfig).forEach(entry => {
             const [key, value] = entry;
             assert.doesBelongToStringEnum('dbField', key, DatabaseKeysUsedForRateLimiter);

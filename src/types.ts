@@ -407,7 +407,7 @@ export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransactio
     estimatedGas: BigNumber;
     allowanceTarget?: string;
     quoteReport?: QuoteReport;
-    priceComparisons?: Array<SourceComparison | RenamedNativeSourceComparison>;
+    priceComparisons?: (SourceComparison | RenamedNativeSourceComparison)[];
 }
 
 interface RenamedNativeSourceComparison {
@@ -441,7 +441,7 @@ interface BasePriceResponse {
     protocolFee: BigNumber;
     minimumProtocolFee: BigNumber;
     allowanceTarget?: string;
-    priceComparisons?: Array<SourceComparison | RenamedNativeSourceComparison>;
+    priceComparisons?: (SourceComparison | RenamedNativeSourceComparison)[];
 }
 
 export interface GetSwapPriceResponse extends BasePriceResponse {}
@@ -506,7 +506,7 @@ export interface GetSwapQuoteRequestParams {
     buyAmount?: BigNumber;
     slippagePercentage?: number;
     gasPrice?: BigNumber;
-    excludedSources?: ERC20BridgeSource[];
+    excludedSources: ERC20BridgeSource[];
     includedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
     rfqt?: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'>;
@@ -523,7 +523,7 @@ export interface GetTransactionRequestParams {
     sellAmount?: BigNumber;
     buyAmount?: BigNumber;
     slippagePercentage?: number;
-    excludedSources?: ERC20BridgeSource[];
+    excludedSources: ERC20BridgeSource[];
     includedSources?: ERC20BridgeSource[];
     includePriceComparisons: boolean;
     affiliateFee: PercentageFee;
@@ -540,7 +540,7 @@ export interface CalculateSwapQuoteParams {
     isMetaTransaction: boolean;
     slippagePercentage?: number;
     gasPrice?: BigNumber;
-    excludedSources?: ERC20BridgeSource[];
+    excludedSources: ERC20BridgeSource[];
     includedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
     apiKey?: string;
@@ -572,7 +572,7 @@ export interface CalculateMetaTransactionQuoteParams {
     isETHBuy: boolean;
     from: string | undefined;
     slippagePercentage?: number;
-    excludedSources?: ERC20BridgeSource[];
+    excludedSources: ERC20BridgeSource[];
     includedSources?: ERC20BridgeSource[];
     apiKey: string | undefined;
     includePriceComparisons: boolean;
@@ -640,9 +640,14 @@ export interface HttpServiceConfig {
     metaTxnRateLimiters?: MetaTransactionRateLimitConfig;
 }
 
+interface TokenMetadataOptionalSymbol {
+    symbol?: string;
+    decimals: number;
+    tokenAddress: string;
+}
 export interface CalaculateMarketDepthParams {
-    buyToken: TokenMetadata;
-    sellToken: TokenMetadata;
+    buyToken: TokenMetadataOptionalSymbol;
+    sellToken: TokenMetadataOptionalSymbol;
     sellAmount: BigNumber;
     numSamples: number;
     sampleDistributionBase: number;

@@ -37,10 +37,10 @@ export class TransactionWatcherSignerService {
     private readonly _metricsUpdateTimer: NodeJS.Timer;
     private readonly _transactionWatcherTimer: NodeJS.Timer;
     // Metrics
-    private readonly _signerBalancesGauge: Gauge<string>;
-    private readonly _livenessGauge: Gauge<string>;
-    private readonly _transactionsUpdateCounter: Counter<string>;
-    private readonly _gasPriceSummary: Summary<string>;
+    private readonly _signerBalancesGauge!: Gauge<string>;
+    private readonly _livenessGauge!: Gauge<string>;
+    private readonly _transactionsUpdateCounter!: Counter<string>;
+    private readonly _gasPriceSummary!: Summary<string>;
     private readonly _rateLimiter?: MetaTransactionRateLimiter;
 
     public static getSortedSignersByAvailability(signerMap: Map<string, { balance: number; count: number }>): string[] {
@@ -156,10 +156,10 @@ export class TransactionWatcherSignerService {
             throw new Error('signer is currently not live');
         }
         const { ethereumTxnParams, ethereumTransactionHash } = await signer.signAndBroadcastMetaTxAsync(
-            txEntity.to,
-            txEntity.data,
-            txEntity.value,
-            txEntity.gasPrice,
+            txEntity.to!,
+            txEntity.data!,
+            txEntity.value!,
+            txEntity.gasPrice!,
         );
         txEntity.status = TransactionStates.Submitted;
         txEntity.txHash = ethereumTransactionHash;
@@ -169,7 +169,7 @@ export class TransactionWatcherSignerService {
         if (ENABLE_PROMETHEUS_METRICS) {
             this._gasPriceSummary.observe(
                 { [SIGNER_ADDRESS_LABEL]: txEntity.from },
-                Web3Wrapper.toUnitAmount(txEntity.gasPrice, GWEI_DECIMALS).toNumber(),
+                Web3Wrapper.toUnitAmount(txEntity.gasPrice!, GWEI_DECIMALS).toNumber(),
             );
         }
         await this._updateTxEntityAsync(txEntity);
@@ -272,8 +272,8 @@ export class TransactionWatcherSignerService {
         for (const tx of unsignedTransactions) {
             if (this._rateLimiter !== undefined) {
                 const rateLimitResponse = await this._rateLimiter.isAllowedAsync({
-                    apiKey: tx.apiKey,
-                    takerAddress: tx.takerAddress,
+                    apiKey: tx.apiKey!,
+                    takerAddress: tx.takerAddress!,
                 });
                 if (isRateLimitedMetaTransactionResponse(rateLimitResponse)) {
                     logger.warn({
@@ -284,7 +284,7 @@ export class TransactionWatcherSignerService {
                         // NOTE: to not leak full keys we log only the part of
                         // the API key that was rate limited.
                         // tslint:disable-next-line:custom-no-magic-numbers
-                        apiKey: tx.apiKey.substring(0, 8),
+                        apiKey: tx.apiKey!.substring(0, 8),
                     });
                     tx.status = TransactionStates.Cancelled;
                     await this._updateTxEntityAsync(tx);
@@ -340,7 +340,7 @@ export class TransactionWatcherSignerService {
             signerMap.set(signerAddress, { count, balance });
         });
         // TODO(oskar) - move to query builder?
-        const res: Array<{ from: string; count: number }> = await this._transactionRepository.query(
+        const res: { from: string; count: number }[] = await this._transactionRepository.query(
             `SELECT transactions.from, COUNT(*) FROM transactions WHERE status in ('submitted','mempool','stuck') GROUP BY transactions.from`,
         );
         res.filter(result => {
@@ -349,7 +349,7 @@ export class TransactionWatcherSignerService {
             return this._availableSignerPublicAddresses.includes(result.from);
         }).forEach(result => {
             const current = signerMap.get(result.from);
-            signerMap.set(result.from, { ...current, count: result.count });
+            signerMap.set(result.from, { ...current!, count: result.count });
         });
         return TransactionWatcherSignerService.getSortedSignersByAvailability(signerMap);
     }
@@ -394,7 +394,7 @@ export class TransactionWatcherSignerService {
                 });
                 continue;
             }
-            if (!utils.isNil(tx.gasPrice) && tx.gasPrice.isGreaterThanOrEqualTo(targetGasPrice)) {
+            if (!utils.isNil(tx.gasPrice) && tx.gasPrice!.isGreaterThanOrEqualTo(targetGasPrice)) {
                 logger.warn({
                     message:
                         'unsticking of transaction skipped as the targetGasPrice is less than or equal to the gas price it was submitted with',
@@ -460,11 +460,11 @@ export class TransactionWatcherSignerService {
                 if (tx.blockNumber + this._config.numBlocksUntilConfirmed < latestBlockNumber) {
                     const txReceipt = await this._web3Wrapper.getTransactionReceiptIfExistsAsync(tx.txHash);
                     tx.status = TransactionStates.Confirmed;
-                    tx.gasUsed = txReceipt.gasUsed;
+                    tx.gasUsed = txReceipt!.gasUsed;
                     // status type can be a string
-                    tx.txStatus = utils.isNil(txReceipt.status)
+                    tx.txStatus = utils.isNil(txReceipt!.status)
                         ? tx.txStatus
-                        : new BigNumber(txReceipt.status).toNumber();
+                        : new BigNumber(txReceipt!.status!).toNumber();
                     await this._updateTxEntityAsync(tx);
                 }
             }
@@ -549,8 +549,8 @@ export class TransactionWatcherSignerService {
             ).toNumber(),
             maxGasPrice: this._config.maxGasPriceGwei.toNumber(),
         };
-        statusKV.value = JSON.stringify(statusContent);
-        await this._kvRepository.save(statusKV);
+        statusKV!.value = JSON.stringify(statusContent);
+        await this._kvRepository.save(statusKV!);
     }
 }
 // tslint:disable-line:max-file-line-count

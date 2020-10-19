@@ -33,9 +33,9 @@ export class OrderBookService {
         assetDataA?: string,
         assetDataB?: string,
     ): Promise<PaginatedCollection<AssetPairsItem>> {
-        const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity)) as Array<
-            Required<SignedOrderEntity>
-        >;
+        const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity)) as Required<
+            SignedOrderEntity
+        >[];
         const assetPairsItems: AssetPairsItem[] = signedOrderEntities
             .map(orderUtils.deserializeOrder)
             .map(orderUtils.signedOrderToAssetPair);
@@ -83,11 +83,11 @@ export class OrderBookService {
         const askSignedOrderEntities = orderEntities.filter(
             o => o.takerAssetData === quoteAssetData && o.makerAssetData === baseAssetData,
         );
-        const bidApiOrders: APIOrder[] = (bidSignedOrderEntities as Array<Required<SignedOrderEntity>>)
+        const bidApiOrders: APIOrder[] = (bidSignedOrderEntities as Required<SignedOrderEntity>[])
             .map(orderUtils.deserializeOrderToAPIOrder)
             .filter(orderUtils.isFreshOrder)
             .sort((orderA, orderB) => orderUtils.compareBidOrder(orderA.order, orderB.order));
-        const askApiOrders: APIOrder[] = (askSignedOrderEntities as Array<Required<SignedOrderEntity>>)
+        const askApiOrders: APIOrder[] = (askSignedOrderEntities as Required<SignedOrderEntity>[])
             .map(orderUtils.deserializeOrderToAPIOrder)
             .filter(orderUtils.isFreshOrder)
             .sort((orderA, orderB) => orderUtils.compareAskOrder(orderA.order, orderB.order));
@@ -121,7 +121,7 @@ export class OrderBookService {
         const filterObject = _.pickBy(filterObjectWithValuesIfExist, _.identity.bind(_));
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: filterObject,
-        })) as Array<Required<SignedOrderEntity>>;
+        })) as Required<SignedOrderEntity>[];
         const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder);
 
         // check for expired orders
@@ -145,7 +145,7 @@ export class OrderBookService {
         };
         const signedOrderEntities = (await this._connection.manager.find(SignedOrderEntity, {
             where: filterObject,
-        })) as Array<Required<SignedOrderEntity>>;
+        })) as Required<SignedOrderEntity>[];
         const apiOrders = signedOrderEntities.map(orderUtils.deserializeOrderToAPIOrder);
 
         // check for expired orders

@@ -97,7 +97,7 @@ describe('transaction watcher service', () => {
             contractAddresses,
         );
         const meshClient = new MeshClient(
-            defaultHttpServiceConfig.meshWebsocketUri,
+            defaultHttpServiceConfig.meshWebsocketUri!,
             defaultHttpServiceConfig.meshHttpUri,
         );
         const metricsService = new MetricsService();

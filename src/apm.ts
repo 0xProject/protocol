@@ -3,18 +3,19 @@
 import * as apm from 'elastic-apm-node';
 apm.start({ active: process.env.ELASTIC_APM_ACTIVE === 'true' });
 
-const wrapper = function(orig, name) {
-    return function wrapped(...args) {
+const wrapper = function(orig: any, name: any) {
+    return function wrapped(...args: any[]) {
         var span = apm.startSpan(name);
+        // @ts-ignore
         const result = orig.apply(this, args);
         if (result && result.then) {
             return new Promise((resolve, reject) => {
                 result
-                    .then(re => {
+                    .then((re: any) => {
                         span && span.end();
                         resolve(re);
                     })
-                    .catch(err => {
+                    .catch((err: Error) => {
                         span && span.end();
                         reject(err);
                     });

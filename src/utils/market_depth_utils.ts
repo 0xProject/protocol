@@ -71,7 +71,7 @@ export const marketDepthUtils = {
         return sampleAmounts;
     },
     sampleNativeOrders: (
-        path: Array<DexSample<NativeFillData>>,
+        path: DexSample<NativeFillData>[],
         targetInput: BigNumber,
         side: MarketOperation,
     ): BigNumber => {
@@ -106,7 +106,7 @@ export const marketDepthUtils = {
         const sampleAmounts = marketDepthUtils.getSampleAmountsFromDepthSide(depthSide);
         const nativeSamples = sampleAmounts.map(a => {
             const sample = marketDepthUtils.sampleNativeOrders(
-                depthSide[nativeIndexIfExists] as Array<DexSample<NativeFillData>>,
+                depthSide[nativeIndexIfExists] as DexSample<NativeFillData>[],
                 a,
                 side,
             );
@@ -152,7 +152,12 @@ export const marketDepthUtils = {
     },
 
     distributeSamplesToBuckets: (depthSide: MarketDepthSide, buckets: BigNumber[], side: MarketOperation) => {
-        const allocatedBuckets = buckets.map((b, i) => ({ price: b, bucket: i, bucketTotal: ZERO, sources: {} }));
+        const allocatedBuckets: {
+            price: BigNumber;
+            bucket: number;
+            bucketTotal: BigNumber;
+            sources: { [key: string]: BigNumber };
+        }[] = buckets.map((b, i) => ({ price: b, bucket: i, bucketTotal: ZERO, sources: {} }));
         const getBucketId = (price: BigNumber): number => {
             return buckets.findIndex(b => {
                 return side === MarketOperation.Sell ? price.isGreaterThanOrEqualTo(b) : price.isLessThanOrEqualTo(b);

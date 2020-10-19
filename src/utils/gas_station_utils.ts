@@ -3,9 +3,13 @@ import { BigNumber } from '@0x/utils';
 import { ETH_GAS_STATION_API_URL } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 
-let previousGasInfo;
-let lastAccessed;
+let previousGasInfo: GasInfoResponse;
+let lastAccessed: number;
 const CACHE_EXPIRY_SEC = 60;
+
+interface GasInfoResponse {
+    fast: number;
+}
 
 const getGasInfoAsync = async () => {
     const now = Date.now() / ONE_SECOND_MS;

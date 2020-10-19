@@ -358,7 +358,6 @@ describe(SUITE_NAME, () => {
             const response = await httpPostAsync({
                 route: `${SRA_PATH}/order`,
                 body: {
-                    chainId,
                     ...order,
                 },
             });

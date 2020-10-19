@@ -1,7 +1,7 @@
 import { APIOrder } from '@0x/types';
 import * as pino from 'pino';
 
-import { LOG_LEVEL, LOGGER_INCLUDE_TIMESTAMP, MAX_ORDER_EXPIRATION_BUFFER_SECONDS } from './config';
+import { LOGGER_INCLUDE_TIMESTAMP, LOG_LEVEL, MAX_ORDER_EXPIRATION_BUFFER_SECONDS } from './config';
 import { ONE_SECOND_MS } from './constants';
 import { ExpiredOrderError } from './errors';
 

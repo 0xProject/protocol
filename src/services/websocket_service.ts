@@ -3,7 +3,7 @@ import { assetDataUtils } from '@0x/order-utils';
 import {
     APIOrder,
     AssetProxyId,
-    ERC20AssetData,
+    MultiAssetDataWithRecursiveDecoding,
     OrdersChannelMessageTypes,
     OrdersChannelSubscriptionOpts,
     SignedOrder,
@@ -67,7 +67,12 @@ export class WebsocketService {
         } else if (orderUtils.isStaticCallAssetData(decodedAssetData)) {
             // do nothing
         } else {
-            data = [...data, (decodedAssetData as ERC20AssetData).tokenAddress];
+            data = [
+                ...data,
+                // tslint:disable-next-line:no-unnecessary-type-assertion
+                (decodedAssetData as Exclude<typeof decodedAssetData, MultiAssetDataWithRecursiveDecoding>)
+                    .tokenAddress,
+            ];
         }
         return { data, assetProxyId: decodedAssetData.assetProxyId };
     }

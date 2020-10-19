@@ -418,10 +418,10 @@ async function quoteAndExpectAsync(
 const PRECISION = 2;
 function expectCorrectQuote(quoteResponse: GetSwapQuoteResponse, quoteAssertions: Partial<QuoteAssertion>): void {
     for (const property of Object.keys(quoteAssertions)) {
-        if (BigNumber.isBigNumber(quoteAssertions[property])) {
-            assertRoughlyEquals(quoteResponse[property], quoteAssertions[property], PRECISION);
+        if (BigNumber.isBigNumber(quoteAssertions[property as keyof QuoteAssertion])) {
+            assertRoughlyEquals((quoteResponse as any)[property], (quoteAssertions as any)[property], PRECISION);
         } else {
-            expect(quoteResponse[property], property).to.eql(quoteAssertions[property]);
+            expect((quoteResponse as any)[property], property).to.eql((quoteAssertions as any)[property]);
         }
     }
     // Only have 0x liquidity for now.

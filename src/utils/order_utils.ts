@@ -35,7 +35,7 @@ import { logger } from '../logger';
 import * as queries from '../queries/staking_queries';
 import { APIOrderWithMetaData, PinResult, RawPool } from '../types';
 
-import { createResultCache } from './result_cache';
+import { createResultCache, ResultCache } from './result_cache';
 
 const DEFAULT_ERC721_ASSET = {
     minAmount: new BigNumber(0),
@@ -87,7 +87,7 @@ const assetDataToAsset = (assetData: string): Asset => {
 };
 
 // Cache the expensive query of current epoch stats
-let PIN_CACHE;
+let PIN_CACHE: ResultCache<any>;
 const getPoolsAsync = async (connection: Connection) => {
     if (!PIN_CACHE) {
         PIN_CACHE = createResultCache<any[]>(() => connection.query(queries.stakingPoolsQuery), TEN_MINUTES_MS);

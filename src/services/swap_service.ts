@@ -73,7 +73,7 @@ export class SwapService {
         const swapQuoterOpts: Partial<SwapQuoterOpts> = {
             ...SWAP_QUOTER_OPTS,
             rfqt: {
-                ...SWAP_QUOTER_OPTS.rfqt,
+                ...SWAP_QUOTER_OPTS.rfqt!,
                 warningLogger: logger.warn.bind(logger),
                 infoLogger: logger.info.bind(logger),
             },
@@ -419,7 +419,9 @@ export class SwapService {
             }
         }
         try {
-            revertError = RevertError.decode(callResult, false);
+            if (callResult) {
+                revertError = RevertError.decode(callResult, false);
+            }
         } catch (e) {
             // No revert error
         }
@@ -487,7 +489,7 @@ export class SwapService {
             ...swapQuoteRequestOpts,
             bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
-            excludedSources: swapQuoteRequestOpts.excludedSources.concat(...(excludedSources || [])),
+            excludedSources: swapQuoteRequestOpts.excludedSources?.concat(...(excludedSources || [])),
             includedSources,
             rfqt: _rfqt,
             shouldGenerateQuoteReport,
@@ -519,7 +521,7 @@ export class SwapService {
         isFromETH: boolean,
         isToETH: boolean,
         isMetaTransaction: boolean,
-        affiliateAddress: string,
+        affiliateAddress: string | undefined,
         affiliateFee: AffiliateFee,
     ): Promise<SwapQuoteResponsePartialTransaction> {
         const opts: Partial<SwapQuoteGetOutputOpts> = {
@@ -543,7 +545,7 @@ export class SwapService {
     }
 
     private async _getSwapQuotePriceAsync(
-        buyAmount: BigNumber,
+        buyAmount: BigNumber | undefined,
         buyTokenAddress: string,
         sellTokenAddress: string,
         swapQuote: SwapQuote,

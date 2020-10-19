@@ -7,7 +7,7 @@ import 'mocha';
 import { ZERO } from '../src/constants';
 import { marketDepthUtils } from '../src/utils/market_depth_utils';
 
-const B = v => new BigNumber(v);
+const B = (v: number | string) => new BigNumber(v);
 
 // tslint:disable:custom-no-magic-numbers
 
@@ -255,7 +255,7 @@ describe(SUITE_NAME, () => {
                 1, // distribution
                 20, // max end perc
             );
-            const emptySources = {};
+            const emptySources: { [key: string]: BigNumber } = {};
             Object.values(ERC20BridgeSource).forEach(s => (emptySources[s] = ZERO));
             expect(result).to.be.deep.eq([
                 {
@@ -318,7 +318,7 @@ describe(SUITE_NAME, () => {
                 1, // distribution
                 20, // max end perc
             );
-            const emptySources = {};
+            const emptySources: { [key: string]: BigNumber } = {};
             Object.values(ERC20BridgeSource).forEach(s => (emptySources[s] = ZERO));
             expect(result).to.be.deep.eq([
                 {

@@ -13,7 +13,7 @@ import { MetricsService } from '../src/services/metrics_service';
 const SUITE_NAME = 'metrics tests';
 const metricsPath = '/metrics';
 
-let app;
+let app: express.Express;
 
 const expectMetric = async (testApp: core.Express, metricName: string, value?: string): Promise<void> => {
     await request(testApp)

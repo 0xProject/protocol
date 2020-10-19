@@ -3,6 +3,7 @@ import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
+import * as _ from 'lodash';
 import * as isValidUUID from 'uuid-validate';
 
 import { CHAIN_ID } from '../config';
@@ -77,10 +78,10 @@ export class MetaTransactionHandlers {
         } = params;
         const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
         const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
-        const isETHBuy = isETHSymbol(buyToken.symbol);
+        const isETHBuy = isETHSymbol(buyToken!.symbol);
 
         // ETH selling isn't supported.
-        if (isETHSymbol(sellToken.symbol)) {
+        if (isETHSymbol(sellToken!.symbol)) {
             throw new EthSellNotSupportedError();
         }
 
@@ -187,8 +188,8 @@ export class MetaTransactionHandlers {
         } = parseGetTransactionRequestParams(req);
         const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
         const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
-        const isETHSell = isETHSymbol(sellToken.symbol);
-        const isETHBuy = isETHSymbol(buyToken.symbol);
+        const isETHSell = isETHSymbol(sellToken!.symbol);
+        const isETHBuy = isETHSymbol(buyToken!.symbol);
         try {
             const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync({
                 takerAddress,
@@ -220,8 +221,8 @@ export class MetaTransactionHandlers {
 
             const metaTransactionPriceResponse: GetMetaTransactionPriceResponse = {
                 price: metaTransactionPrice.price,
-                buyAmount: metaTransactionPrice.buyAmount,
-                sellAmount: metaTransactionPrice.sellAmount,
+                buyAmount: metaTransactionPrice.buyAmount!,
+                sellAmount: metaTransactionPrice.sellAmount!,
                 sellTokenAddress,
                 buyTokenAddress,
                 sources: metaTransactionPrice.sources,
@@ -435,7 +436,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
             ? undefined
             : parseUtils.parseStringArrForERC20BridgeSources((req.query.includedSources as string).split(','));
     // Exclude Bancor as a source unless swap involves BNT token
-    const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet).tokenAddress;
+    const bntAddress = getTokenMetadataIfExists('bnt', ChainId.Mainnet)!.tokenAddress;
     const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
     const excludedSources = isBNT ? _excludedSources : _excludedSources.concat(ERC20BridgeSource.Bancor);
 
@@ -521,6 +522,6 @@ const marshallTransactionEntity = (tx: TransactionEntity): GetMetaTransactionSta
         updatedAt: tx.updatedAt,
         blockNumber: tx.blockNumber,
         expectedMinedInSec: tx.expectedMinedInSec,
-        ethereumTxStatus: tx.txStatus,
+        ethereumTxStatus: _.isNil(tx.txStatus) ? undefined : tx.txStatus,
     };
 }; // tslint:disable-next-line: max-file-line-count

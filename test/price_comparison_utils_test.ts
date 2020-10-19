@@ -9,9 +9,9 @@ import { ChainId } from '../src/types';
 import { priceComparisonUtils } from '../src/utils/price_comparison_utils';
 import { getTokenMetadataIfExists } from '../src/utils/token_metadata_utils';
 
-const WETH = getTokenMetadataIfExists('WETH', ChainId.Mainnet);
-const DAI = getTokenMetadataIfExists('DAI', ChainId.Mainnet);
-const USDC = getTokenMetadataIfExists('USDC', ChainId.Mainnet);
+const WETH = getTokenMetadataIfExists('WETH', ChainId.Mainnet)!;
+const DAI = getTokenMetadataIfExists('DAI', ChainId.Mainnet)!;
+const USDC = getTokenMetadataIfExists('USDC', ChainId.Mainnet)!;
 const buyAmount = new BigNumber('23318242912334152626');
 const sellAmount = new BigNumber('70100000000000000');
 

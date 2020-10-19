@@ -28,7 +28,7 @@ export interface LoggingConfig {
     dependencyLogType?: LogType;
 }
 
-let start: ChildProcessWithoutNullStreams;
+let start: ChildProcessWithoutNullStreams | undefined;
 
 /**
  * Sets up a 0x-api instance.

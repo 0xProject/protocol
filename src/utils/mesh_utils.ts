@@ -16,7 +16,7 @@ import { orderUtils } from './order_utils';
 
 export const meshUtils = {
     orderInfosToApiOrders: (
-        orderEvent: Array<OrderEvent | AcceptedOrderInfo | RejectedOrderInfo | OrderInfo>,
+        orderEvent: (OrderEvent | AcceptedOrderInfo | RejectedOrderInfo | OrderInfo)[],
     ): APIOrderWithMetaData[] => {
         return orderEvent.map(e => meshUtils.orderInfoToAPIOrder(e));
     },

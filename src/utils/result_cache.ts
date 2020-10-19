@@ -14,7 +14,7 @@ export const createResultCache = <T>(
     fn: (fnArgs?: any) => Promise<T>,
     cacheExpiryMs: number = TEN_MINUTES_MS,
 ): ResultCache<T> => {
-    const resultCache = {};
+    const resultCache: { [key: string]: { timestamp: number; result: T } } = {};
     return {
         getResultAsync: async (getArgs?: any): Promise<CachedResult<T>> => {
             let timestamp = resultCache[getArgs] && resultCache[getArgs].timestamp;

@@ -285,19 +285,19 @@ describe(SUITE_NAME, () => {
             const expectedDailyConfig = { allowedDailyLimit: 1 };
             const configString = `{"api_key":{"daily": ${JSON.stringify(expectedDailyConfig)}}}`;
             const config = parseUtils.parseJsonStringForMetaTransactionRateLimitConfigOrThrow(configString);
-            expect(config.api_key.daily).to.be.deep.equal(expectedDailyConfig);
+            expect(config.api_key!.daily).to.be.deep.equal(expectedDailyConfig);
         });
         it('should parse rolling configuration properly', () => {
             const expectedRollingConfig = { allowedLimit: 1, intervalNumber: 1, intervalUnit: 'hours' };
             const configString = `{"api_key":{"rolling": ${JSON.stringify(expectedRollingConfig)}}}`;
             const config = parseUtils.parseJsonStringForMetaTransactionRateLimitConfigOrThrow(configString);
-            expect(config.api_key.rolling).to.be.deep.equal(expectedRollingConfig);
+            expect(config.api_key!.rolling).to.be.deep.equal(expectedRollingConfig);
         });
         it('should parse rolling value configuration properly', () => {
             const expectedRollingValueConfig = { allowedLimitEth: 1, intervalNumber: 1, intervalUnit: 'hours' };
             const configString = `{"api_key":{"rollingValue": ${JSON.stringify(expectedRollingValueConfig)}}}`;
             const config = parseUtils.parseJsonStringForMetaTransactionRateLimitConfigOrThrow(configString);
-            expect(config.api_key.rollingValue).to.be.deep.equal(expectedRollingValueConfig);
+            expect(config.api_key!.rollingValue).to.be.deep.equal(expectedRollingValueConfig);
         });
         it('should parse a full configuration', () => {
             const expectedConfig = {

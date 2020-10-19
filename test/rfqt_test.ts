@@ -86,8 +86,8 @@ describe(SUITE_NAME, () => {
 
     describe('v1', async () => {
         const SWAP_PATH = `${BASE_SWAP_PATH}`;
-        let DEFAULT_RFQT_RESPONSE_DATA;
-        let signedOrder;
+        let DEFAULT_RFQT_RESPONSE_DATA: object;
+        let signedOrder: SignedOrder;
         before(async () => {
             const flashWalletAddress = CONTRACT_ADDRESSES.exchangeProxyFlashWallet;
             DEFAULT_RFQT_RESPONSE_DATA = {
@@ -137,7 +137,7 @@ describe(SUITE_NAME, () => {
                             {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: { signedOrder },
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -168,7 +168,7 @@ describe(SUITE_NAME, () => {
                             {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: rfqtIndicativeQuoteResponse,
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -199,7 +199,7 @@ describe(SUITE_NAME, () => {
                             {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: rfqtIndicativeQuoteResponse,
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -257,7 +257,7 @@ describe(SUITE_NAME, () => {
                             {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: { signedOrder },
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -291,7 +291,7 @@ describe(SUITE_NAME, () => {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: signedOrder,
                                 requestApiKey: 'badApiKey',
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -317,7 +317,7 @@ describe(SUITE_NAME, () => {
                             {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: signedOrder,
-                            },
+                            } as any,
                         ],
                         async () => {
                             await request(app)
@@ -336,7 +336,7 @@ describe(SUITE_NAME, () => {
                             {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: rfqtIndicativeQuoteResponse,
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -362,7 +362,7 @@ describe(SUITE_NAME, () => {
                             {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: rfqtIndicativeQuoteResponse,
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -388,7 +388,7 @@ describe(SUITE_NAME, () => {
                                 ...DEFAULT_RFQT_RESPONSE_DATA,
                                 responseData: {},
                                 responseCode: 500,
-                            },
+                            } as any,
                         ],
                         async () => {
                             const appResponse = await request(app)
@@ -426,7 +426,7 @@ describe(SUITE_NAME, () => {
                         {
                             ...DEFAULT_RFQT_RESPONSE_DATA,
                             responseData: signedOrder,
-                        },
+                        } as any,
                     ],
                     async () => {
                         const appResponse = await request(app)
