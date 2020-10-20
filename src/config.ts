@@ -11,6 +11,7 @@ import {
     OrderPrunerPermittedFeeTypes,
     RfqtMakerAssetOfferings,
     SamplerOverrides,
+    SnowSwapFillData,
     SOURCE_FLAGS,
     SushiSwapFillData,
     SwapQuoteRequestOpts,
@@ -291,6 +292,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.MStable,
                 ERC20BridgeSource.Mooniswap,
                 ERC20BridgeSource.Swerve,
+                ERC20BridgeSource.SnowSwap,
                 ERC20BridgeSource.Shell,
                 ERC20BridgeSource.SushiSwap,
                 ERC20BridgeSource.Cream,
@@ -311,6 +313,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Mooniswap,
                 ERC20BridgeSource.MultiHop,
                 ERC20BridgeSource.Swerve,
+                ERC20BridgeSource.SnowSwap,
                 ERC20BridgeSource.Shell,
                 ERC20BridgeSource.SushiSwap,
                 ERC20BridgeSource.Cream,
@@ -338,7 +341,7 @@ export const GAS_SCHEDULE: FeeSchedule = {
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 500e3,
     [ERC20BridgeSource.Curve]: fillData => {
-        switch ((fillData as CurveFillData).curve.poolAddress.toLowerCase()) {
+        switch ((fillData as CurveFillData).pool.poolAddress.toLowerCase()) {
             case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
             case '0x93054188d876f558f4a66b2ef1d97d16edf0895b':
             case '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714':
@@ -380,6 +383,16 @@ export const GAS_SCHEDULE: FeeSchedule = {
     [ERC20BridgeSource.MStable]: () => 700e3,
     [ERC20BridgeSource.Mooniswap]: () => 220e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
+    [ERC20BridgeSource.SnowSwap]: fillData => {
+        switch ((fillData as SnowSwapFillData).pool.poolAddress.toLowerCase()) {
+            case '0xbf7ccd6c446acfcc5df023043f2167b62e81899b':
+                return 1000e3;
+            case '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b':
+                return 1500e3;
+            default:
+                throw new Error('Unrecognized SnowSwap address');
+        }
+    },
     [ERC20BridgeSource.Shell]: () => 300e3,
     [ERC20BridgeSource.MultiHop]: fillData => {
         const firstHop = (fillData as MultiHopFillData).firstHopSource;

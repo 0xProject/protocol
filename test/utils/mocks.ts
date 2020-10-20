@@ -66,6 +66,7 @@ export const liquiditySources0xOnly = [
     { name: 'MultiHop', proportion: '0' },
     { name: 'Shell', proportion: '0' },
     { name: 'Swerve', proportion: '0' },
+    { name: 'SnowSwap', proportion: '0' },
     { name: 'SushiSwap', proportion: '0' },
     { name: 'DODO', proportion: '0' },
 ];

@@ -837,4 +837,64 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: 'yUSD',
+        name: 'yearn Curve.fi yDAI/yUSDC/yUSDT/yTUSD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x5dbcf33d8c2e976c6b560249878e6f1491bca25c',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'ybCRV',
+        name: 'yearn Curve.fi yDAI/yUSDC/yUSDT/yBUSD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x2994529c0652d127b7842094103715ec5299bbed',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'yUSDC',
+        name: 'yearn USDC',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x597ad1e0c13bfe8025993d9e79c69e1c0233522e',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'yDAI',
+        name: 'yearn DAI',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xacd43e627e64355f1861cec6d3a6688b31a6f952',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'yUSDT',
+        name: 'yearn USDT',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x2f08119c6f07c006695e079aafc638b8789faf18',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'yTUSD',
+        name: 'yearn TUSD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x37d19d1c4e1fa9dc47bd1ea12f742a0887eda74a',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];

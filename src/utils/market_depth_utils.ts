@@ -171,7 +171,7 @@ export const marketDepthUtils = {
             switch (source) {
                 case ERC20BridgeSource.Curve:
                     // tslint:disable-next-line:no-unnecessary-type-assertion
-                    return `${source}:${(sample.fillData as CurveFillData).curve.poolAddress}`;
+                    return `${source}:${(sample.fillData as CurveFillData).pool.poolAddress}`;
                 case ERC20BridgeSource.Balancer:
                     // tslint:disable-next-line:no-unnecessary-type-assertion
                     return `${source}:${(sample.fillData as BalancerFillData).poolAddress}`;
