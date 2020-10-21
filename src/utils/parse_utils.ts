@@ -56,7 +56,8 @@ export const parseUtils = {
                 excludedSources: parseUtils.parseStringArrForERC20BridgeSources(excludedIds),
                 includedSources: [],
                 // Exclude open orderbook if 'Mesh' is excluded.
-                nativeExclusivelyRFQT: excludedIds.includes('Mesh'),
+                nativeExclusivelyRFQT:
+                    excludedIds.includes('Mesh') && !excludedIds.includes('0x') && !excludedIds.includes('Native'),
             };
         }
 
