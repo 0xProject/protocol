@@ -26,7 +26,8 @@
                 "note": "Reorder transformer deployments",
                 "pr": 2693
             }
-        ]
+        ],
+        "timestamp": 1603265572
     },
     {
         "version": "6.4.0",

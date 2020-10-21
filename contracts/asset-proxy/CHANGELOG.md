@@ -5,6 +5,18 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.5.0 - _October 21, 2020_
+
+    * Update `CurveBridge` to support more varied curves (#2633)
+    * Export DexForwarderBridgeContract (#2656)
+    * Add BancorBridge and IBancorNetwork,  (#2650)
+    * Added `MStableBridge` (#2662)
+    * Added `MooniswapBridge` (#2675)
+    * Reworked `KyberBridge` (#2683)
+    * Added `CreamBridge` (#2715)
+    * Added `ShellBridge` (#2722)
+    * Added `DODOBridge` (#2701)
+
 ## v3.4.0 - _July 15, 2020_
 
     * Fix instability with DFB. (#2616)

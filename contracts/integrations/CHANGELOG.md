@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v2.7.0 - _October 21, 2020_
+
+    * Update curveBridge tests (#2633)
+    * Add EP RFQT + MTX tests (#2692)
+
 ## v2.6.0 - _July 15, 2020_
 
     * Add `BalancerBridge` mainnet tests (#2613)

@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v10.4.0 - _October 21, 2020_
+
+    * Add gitpkg. (#2649)
+    * Fix `decodeAffiliateFeeTransformerData` (#2658)
+    * Add `refundReceiver` field to `FillQuoteTransformer.TransformData`. (#2657)
+    * Add `findTransformerNonce()` and `getTransformerAddress()` functions. (#2657)
+    * Fix EP signature utils schema assertion. (#2657)
+    * Add `rfqtTakerAddress` to `FillQuoteTransformerData` (#2692)
+
 ## v10.3.0 - _July 15, 2020_
 
     * Add ERC20 Transformer utils and export useful constants. (#2604)

@@ -38,7 +38,8 @@
                 "note": "Added `DODOBridge`",
                 "pr": 2701
             }
-        ]
+        ],
+        "timestamp": 1603265572
     },
     {
         "version": "3.4.0",

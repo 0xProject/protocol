@@ -166,7 +166,8 @@
                 "note": "Support DODO Trade Allowed parameter to automatically disable the pool",
                 "pr": 2732
             }
-        ]
+        ],
+        "timestamp": 1603265572
     },
     {
         "version": "4.6.0",

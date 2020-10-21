@@ -5,6 +5,24 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.12.0 - _October 21, 2020_
+
+    * Update `CurveBridge` address on all networks (#2633)
+    * Redeploy `ERC20BridgeSampler` on Kovan (#2644)
+    * Deploy `UniswapV2Bridge` on Kovan (#2652)
+    * Redeploy previously unverified contracts on testnets (#2656)
+    * Deploy `BancorBridge` on Mainnet (#2650)
+    * Deploy FQT (#2667)
+    * Deploy `MStableBridge` on Mainnet (#2662)
+    * Deploy `MooniswapBridge` on Mainnet (#2675)
+    * Redeploy `MooniswapBridge` on Mainnet (#2681)
+    * Redeploy `KyberBridge` on Mainnet (#2683)
+    * Update transformer deployer and transformers for champagne-problems deployment (#2693)
+    * Deploy `BancorBridge` on Mainnet (#2699)
+    * Deploy `ShellBridge` on Mainnet (#2722)
+    * Deploy `DodoBridge` on Mainnet (#2701)
+    * Deploy `CreamBridge` on Mainnet (#2715)
+
 ## v4.11.0 - _July 15, 2020_
 
     * Update ganache snapshot Exchange Proxy addresses (#2612)

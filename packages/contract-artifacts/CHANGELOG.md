@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.8.0 - _October 21, 2020_
+
+    * Add `IZeroEx` artifact (#2626)
+    * Update `ERC20BridgeSampler` artifact (#2633)
+    * Remove `ERC20BridgeSampler` artifact (#2647)
+    * Regenerate artifacts (#2703)
+    * Update IZeroEx artifact for LiquidityProviderFeature (#2691)
+
 ## v3.7.1 - _July 15, 2020_
 
     * Dependencies updated

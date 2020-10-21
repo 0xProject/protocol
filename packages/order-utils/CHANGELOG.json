@@ -26,7 +26,8 @@
                 "note": "Add `rfqtTakerAddress` to `FillQuoteTransformerData`",
                 "pr": 2692
             }
-        ]
+        ],
+        "timestamp": 1603265572
     },
     {
         "version": "10.3.0",

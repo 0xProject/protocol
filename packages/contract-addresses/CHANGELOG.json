@@ -62,7 +62,8 @@
                 "note": "Deploy `CreamBridge` on Mainnet",
                 "pr": 2715
             }
-        ]
+        ],
+        "timestamp": 1603265572
     },
     {
         "version": "4.11.0",

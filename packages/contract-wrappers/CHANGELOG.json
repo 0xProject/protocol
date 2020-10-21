@@ -22,7 +22,8 @@
                 "note": "Update IZeroEx wrapper for LiquidityProviderFeature",
                 "pr": 2691
             }
-        ]
+        ],
+        "timestamp": 1603265572
     },
     {
         "version": "13.8.0",

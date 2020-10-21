@@ -70,7 +70,8 @@
                 "note": "Added `CREAM` into FQT",
                 "pr": 2715
             }
-        ]
+        ],
+        "timestamp": 1603265572
     },
     {
         "version": "0.2.0",

@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.9.0 - _October 21, 2020_
+
+    * Add `IZeroEx` wrapper (#2626)
+    * Update `ERC20BridgeSampler` wrapper (#2633)
+    * Add `exchangeProxy` to `ContractWrappers` type. (#2649)
+    * Regenerate wrappers (#2703)
+    * Update IZeroEx wrapper for LiquidityProviderFeature (#2691)
+
 ## v13.8.0 - _July 15, 2020_
 
     * Export `GethCallOverrides` (#2620)

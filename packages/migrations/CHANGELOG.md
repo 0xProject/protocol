@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.4.1 - _October 21, 2020_
+
+    * Change test protocol fee to 70000. (#2637)
+    * Refactor `migration.ts` a little (#2656)
+    * Add bancorBridge to addresses (#2650)
+    * Update EP migration. (#2657)
+    * Add mooniswap addresses to `BridgeAdapter` deployment (#2692)
+    * Reorder transformer deployments (#2693)
+
 ## v6.4.0 - _July 15, 2020_
 
     * Add Exchange Proxy migration. (#2612)
