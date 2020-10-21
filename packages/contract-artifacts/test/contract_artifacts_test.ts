@@ -1,10 +1,10 @@
 import * as chai from 'chai';
-import {get} from 'lodash';
+import { get } from 'lodash';
 import 'mocha';
 
 import * as artifacts from '../src/index';
 
-import {FORBIDDEN_PROPERTIES, REQUIRED_PROPERTIES} from '../src/transform';
+import { FORBIDDEN_PROPERTIES, REQUIRED_PROPERTIES } from '../src/transform';
 
 const expect = chai.expect;
 
@@ -27,7 +27,7 @@ const CONTRACTS_WITH_PURE_FNS = [
 
 describe('Contract Artifacts', () => {
     it('should not include forbidden attributes', () => {
-        const forbiddenPropertiesByArtifact: {[name: string]: string[]} = {};
+        const forbiddenPropertiesByArtifact: { [name: string]: string[] } = {};
         for (const [artifactName, artifact] of Object.entries(artifacts)) {
             for (const forbiddenProperty of FORBIDDEN_PROPERTIES) {
                 const rejectedValue = get(artifact, forbiddenProperty);

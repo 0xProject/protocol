@@ -76,6 +76,10 @@ lib
 /contracts/erc1155/build/
 /contracts/extensions/build/
 /contracts/exchange-forwarder/build/
+/packages/asset-swapper/generated-artifacts
+/packages/asset-swapper/generated-wrappers
+/packages/asset-swapper/test/generated-artifacts
+/packages/asset-swapper/test/generated-wrappers
 package.json
 packages/*/docs
 *.sol
