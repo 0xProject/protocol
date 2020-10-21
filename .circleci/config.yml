@@ -117,6 +117,7 @@ jobs:
             - run: yarn wsrun test:circleci @0x/contract-wrappers-test
             - run: yarn wsrun test:circleci @0x/migrations
             - run: yarn wsrun test:circleci @0x/order-utils
+            - run: yarn wsrun test:circleci @0x/asset-swapper
             - save_cache:
                   key: coverage-contract-wrappers-test-{{ .Environment.CIRCLE_SHA1 }}
                   paths:
@@ -193,13 +194,14 @@ workflows:
             - test-doc-generation:
                   requires:
                       - build
-            - submit-coverage:
-                  requires:
-                      # Disabled until we begin actively developing on these packages again.
-                      # - test-exchange-ganache
-                      # - test-integrations-ganache
-                      # - test-contracts-staking-ganache
-                      # - test-contracts-extra-ganache
-                      - test-contracts-rest-ganache
-                      - test-rest
-                      - static-tests
+            # Disabled until this repo has a coveralls API key
+            # - submit-coverage:
+            #       requires:
+            #           # Disabled until we begin actively developing on these packages again.
+            #           # - test-exchange-ganache
+            #           # - test-integrations-ganache
+            #           # - test-contracts-staking-ganache
+            #           # - test-contracts-extra-ganache
+            #           - test-contracts-rest-ganache
+            #           - test-rest
+            #           - static-tests
