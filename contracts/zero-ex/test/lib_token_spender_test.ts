@@ -8,7 +8,7 @@ import {
 import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
 
 import { artifacts } from './artifacts';
-import { TestTokenSpenderERC20TokenContract, TestTokenSpenderERC20TokenEvents, TestLibTokenSpenderContract, TestLibTokenSpenderEvents } from './wrappers';
+import { TestLibTokenSpenderContract, TestLibTokenSpenderEvents, TestTokenSpenderERC20TokenContract, TestTokenSpenderERC20TokenEvents } from './wrappers';
 
 blockchainTests.resets('LibTokenSpender library', env => {
     let tokenSpender: TestLibTokenSpenderContract;
@@ -34,7 +34,6 @@ blockchainTests.resets('LibTokenSpender library', env => {
         const FALSE_RETURN_AMOUNT = 1338;
         const REVERT_RETURN_AMOUNT = 1339;
         const TRIGGER_FALLBACK_SUCCESS_AMOUNT = 1340;
-        const TRIGGER_FALLBACK_FAILURE_AMOUNT = 1341;
 
         it('spendERC20Tokens() successfully calls compliant ERC20 token', async () => {
             const tokenFrom = randomAddress();
@@ -142,7 +141,7 @@ blockchainTests.resets('LibTokenSpender library', env => {
             const tx = tokenSpender
                 .spendERC20Tokens(tokenSpender.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
-            return expect(tx).to.revertWith("LibTokenSpender/CANNOT_INVOKE_SELF");
+            return expect(tx).to.revertWith('LibTokenSpender/CANNOT_INVOKE_SELF');
         });
     });
 
