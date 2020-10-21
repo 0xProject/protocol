@@ -51,7 +51,7 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/utils",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.2",
-        "@0x/contracts-gen": "2.0.11",
+        "@0x/contracts-gen": "2.0.13",
         "@0x/contracts-test-utils": "^5.3.4",
         "@0x/dev-utils": "^3.3.3",
         "@0x/order-utils": "^10.3.0",

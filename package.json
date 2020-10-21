@@ -50,7 +50,8 @@
         "lint": "wsrun lint $PKG --fast-exit --parallel --exclude-missing",
         "lint:stages": "wsrun lint $PKG --fast-exit --stages --exclude-missing",
         "lint:contracts": "wsrun lint -p ${npm_package_config_contractsPackages} -c --fast-exit --stages --exclude-missing",
-        "upgrade_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x|ethereum-types'",
+        "upgrade_org_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x|ethereum-types'",
+        "upgrade_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js",
         "verdaccio": "docker run --rm -i -p 4873:4873 0xorg/verdaccio"
     },
     "config": {

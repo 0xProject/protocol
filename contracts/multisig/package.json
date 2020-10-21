@@ -52,7 +52,7 @@
         "@0x/abi-gen": "^5.4.2",
         "@0x/contracts-asset-proxy": "^3.4.0",
         "@0x/contracts-erc20": "^3.2.1",
-        "@0x/contracts-gen": "2.0.11",
+        "@0x/contracts-gen": "2.0.13",
         "@0x/contracts-test-utils": "^5.3.4",
         "@0x/contracts-utils": "^4.5.1",
         "@0x/dev-utils": "^3.3.3",
