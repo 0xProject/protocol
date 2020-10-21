@@ -40,19 +40,19 @@ blockchainTests.resets('ProtocolFees', env => {
             const poolId = hexUtils.random();
             const amount1 = new BigNumber(123456);
             const amount2 = new BigNumber(456789);
-            let receipt = await protocolFees
+            await protocolFees
                 .collectProtocolFee(poolId, amount1, weth.address)
                 .awaitTransactionSuccessAsync({ from: payer });
 
-            receipt = await protocolFees
+            await protocolFees
                 .transferFeesForPool(poolId, staking.address, weth.address)
                 .awaitTransactionSuccessAsync();
 
-            receipt = await protocolFees
+            await protocolFees
                 .collectProtocolFee(poolId, amount2, weth.address)
                 .awaitTransactionSuccessAsync({ from: payer });
 
-            receipt = await protocolFees
+            await protocolFees
                 .transferFeesForPool(poolId, staking.address, weth.address)
                 .awaitTransactionSuccessAsync();
 
