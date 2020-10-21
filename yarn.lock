@@ -1128,17 +1128,17 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/ts-doc-gen@^0.0.26":
-  version "0.0.26"
-  resolved "https://registry.yarnpkg.com/@0x/ts-doc-gen/-/ts-doc-gen-0.0.26.tgz#1447988533f12104d228e8100c77ddb817804a9c"
-  integrity sha512-NrA2jWPZGlEf28A6qabABSi6yhoAKg0KUONjjITl74vLNli4IXPDQXQ7Dzuxb/LFx0YtiinZzgj+w8LnUo8NVA==
+"@0x/ts-doc-gen@^0.0.28":
+  version "0.0.28"
+  resolved "https://registry.yarnpkg.com/@0x/ts-doc-gen/-/ts-doc-gen-0.0.28.tgz#075f53268e99ece6448515a3347b1d51fe92365f"
+  integrity sha512-8dicq0vUzIl21EE2+6xNw6fTjGlFhp1RjP5nJggI1af468B95x04gCb0xkaVkG8lGQgMrnqPNiMSx0b7WJlbWg==
   dependencies:
     "@0x/typescript-typings" "^5.0.1"
     "@0x/utils" "^5.1.1"
     glob "^7.1.4"
     promisify-child-process "^3.1.1"
     rimraf "^2.6.3"
-    typedoc "^0.16.11"
+    typedoc "~0.16.11"
     typedoc-plugin-markdown "~2.2.17"
     yargs "^10.0.3"
 
@@ -14030,7 +14030,7 @@ typedoc@^0.15.0:
     typedoc-default-themes "^0.6.3"
     typescript "3.7.x"
 
-typedoc@^0.16.11:
+typedoc@~0.16.11:
   version "0.16.11"
   resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.16.11.tgz#95f862c6eba78533edc9af7096d2295b718eddc1"
   integrity sha512-YEa5i0/n0yYmLJISJ5+po6seYfJQJ5lQYcHCPF9ffTF92DB/TAZO/QrazX5skPHNPtmlIht5FdTXCM2kC7jQFQ==
