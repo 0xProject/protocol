@@ -59,7 +59,7 @@
         "nonContractPackages": "@0x/order-utils @0x/migrations @0x/contract-wrappers @0x/contract-addresses @0x/contract-artifacts @0x/contract-wrappers-test",
         "ignoreTestsForPackages": "@0x/contracts-integrations @0x/contracts-staking @0x/contracts-exchange @0x/contracts-exchange-forwarder @0x/contracts-coordinator",
         "mnemonic": "concert load couple harbor equip island argue ramp clarify fence smart topic",
-        "packagesWithDocPages": "@0x/contract-wrappers @0x/order-utils @0x/migrations @0x/contracts-asset-proxy @0x/contracts-coordinator @0x/contracts-dev-utils @0x/contracts-erc20 @0x/contracts-erc721 @0x/contracts-erc1155 @0x/contracts-exchange @0x/contracts-exchange-forwarder @0x/contracts-exchange-libs @0x/contracts-extensions @0x/contracts-staking @0x/contracts-zero-ex",
+        "packagesWithDocPages": "@0x/contract-wrappers @0x/order-utils @0x/migrations",
         "ignoreDependencyVersions": "@types/styled-components @types/node",
         "ignoreDependencyVersionsForPackage": "contract-wrappers"
     },
