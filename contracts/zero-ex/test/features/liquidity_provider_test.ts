@@ -2,11 +2,7 @@ import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contra
 import { blockchainTests, constants, expect, randomAddress, verifyEventsFromLogs } from '@0x/contracts-test-utils';
 import { BigNumber, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
 
-import {
-    IOwnableFeatureContract,
-    IZeroExContract,
-    LiquidityProviderFeatureContract,
-} from '../../src/wrappers';
+import { IOwnableFeatureContract, IZeroExContract, LiquidityProviderFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';

@@ -8,7 +8,12 @@ import {
 import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
 
 import { artifacts } from './artifacts';
-import { TestLibTokenSpenderContract, TestLibTokenSpenderEvents, TestTokenSpenderERC20TokenContract, TestTokenSpenderERC20TokenEvents } from './wrappers';
+import {
+    TestLibTokenSpenderContract,
+    TestLibTokenSpenderEvents,
+    TestTokenSpenderERC20TokenContract,
+    TestTokenSpenderERC20TokenEvents,
+} from './wrappers';
 
 blockchainTests.resets('LibTokenSpender library', env => {
     let tokenSpender: TestLibTokenSpenderContract;
@@ -153,7 +158,9 @@ blockchainTests.resets('LibTokenSpender library', env => {
             await token
                 .setBalanceAndAllowanceOf(tokenOwner, balance, tokenSpender.address, allowance)
                 .awaitTransactionSuccessAsync();
-            const spendableBalance = await tokenSpender.getSpendableERC20BalanceOf(token.address, tokenOwner).callAsync();
+            const spendableBalance = await tokenSpender
+                .getSpendableERC20BalanceOf(token.address, tokenOwner)
+                .callAsync();
             expect(spendableBalance).to.bignumber.eq(BigNumber.min(balance, allowance));
         });
     });
