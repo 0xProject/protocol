@@ -98,8 +98,8 @@ describe(SUITE_NAME, () => {
                     sellTokenAddress: contractAddresses.etherToken,
                     buyTokenAddress: contractAddresses.zrxToken,
                     sellAmountBaseUnits: DEFAULT_SELL_AMOUNT.toString(),
-                    buyAmountBaseUnits: undefined,
                     takerAddress: flashWalletAddress,
+                    comparisonPrice: undefined,
                 },
             };
             const order: SignedOrder = {
