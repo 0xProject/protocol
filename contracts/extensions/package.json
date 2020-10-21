@@ -60,7 +60,6 @@
         "@0x/contracts-exchange": "^3.2.7",
         "@0x/contracts-exchange-libs": "^4.3.7",
         "@0x/contracts-gen": "2.0.13",
-        "@0x/contracts-test-utils": "^5.3.4",
         "@0x/contracts-utils": "^4.5.1",
         "@0x/dev-utils": "^3.3.3",
         "@0x/order-utils": "^10.3.0",
@@ -92,6 +91,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.2.6",
+        "@0x/contracts-test-utils": "^5.3.4",
         "@0x/typescript-typings": "^5.1.4",
         "ethereum-types": "^3.3.2"
     },
