@@ -42,13 +42,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/0xProject/0x-monorepo.git"
+        "url": "https://github.com/0xProject/protocol.git"
     },
     "license": "Apache-2.0",
     "bugs": {
-        "url": "https://github.com/0xProject/0x-monorepo/issues"
+        "url": "https://github.com/0xProject/protocol/issues"
     },
-    "homepage": "https://github.com/0xProject/0x-monorepo/contracts/utils/README.md",
+    "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/utils",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.2",
         "@0x/contracts-gen": "2.0.11",

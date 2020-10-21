@@ -36,12 +36,12 @@
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/0xProject/0x-monorepo.git"
+        "url": "https://github.com/0xProject/protocol.git"
     },
     "bugs": {
-        "url": "https://github.com/0xProject/0x-monorepo/issues"
+        "url": "https://github.com/0xProject/protocol/issues"
     },
-    "homepage": "https://github.com/0xProject/0x-monorepo/packages/order-utils/README.md",
+    "homepage": "https://github.com/0xProject/protocol/tree/main/packages/order-utils",
     "devDependencies": {
         "@0x/dev-utils": "^3.3.3",
         "@0x/subproviders": "^6.1.4",

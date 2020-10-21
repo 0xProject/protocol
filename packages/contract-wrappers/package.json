@@ -39,13 +39,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/0xProject/0x-monorepo.git"
+        "url": "https://github.com/0xProject/protocol.git"
     },
     "license": "Apache-2.0",
     "bugs": {
-        "url": "https://github.com/0xProject/0x-monorepo/issues"
+        "url": "https://github.com/0xProject/protocol/issues"
     },
-    "homepage": "https://github.com/0xProject/0x-monorepo/packages/contract-wrappers/README.md",
+    "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-wrappers",
     "devDependencies": {
         "@0x/ts-doc-gen": "^0.0.22",
         "@0x/tslint-config": "^4.1.3",
