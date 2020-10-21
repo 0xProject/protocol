@@ -165,21 +165,22 @@ workflows:
     main:
         jobs:
             - build
-            - test-exchange-ganache:
-                  requires:
-                      - build
-            - test-integrations-ganache:
-                  requires:
-                      - build
-            - test-contracts-staking-ganache:
-                  requires:
-                      - build
-            - test-contracts-rest-ganache:
-                  requires:
-                      - build
+            # Disabled until we begin actively developing on these packages again.
+            # - test-exchange-ganache:
+            #       requires:
+            #           - build
+            # - test-integrations-ganache:
+            #       requires:
+            #           - build
+            # - test-contracts-staking-ganache:
+            #       requires:
+            #           - build
             # - test-contracts-extra-ganache:
             #       requires:
             #           - build
+            - test-contracts-rest-ganache:
+                  requires:
+                      - build
             - test-rest:
                   requires:
                       - build
@@ -194,9 +195,11 @@ workflows:
                       - build
             - submit-coverage:
                   requires:
+                      # Disabled until we begin actively developing on these packages again.
+                      # - test-exchange-ganache
+                      # - test-integrations-ganache
+                      # - test-contracts-staking-ganache
                       # - test-contracts-extra-ganache
                       - test-contracts-rest-ganache
-                      - test-contracts-staking-ganache
-                      - test-exchange-ganache
                       - test-rest
                       - static-tests
