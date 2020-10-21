@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-zero-ex",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "engines": {
         "node": ">=6.12"
     },
@@ -54,11 +54,11 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/zero-ex",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.3",
+        "@0x/contracts-erc20": "^3.2.2",
         "@0x/contracts-gen": "2.0.13",
-        "@0x/contracts-erc20": "^3.2.1",
-        "@0x/contracts-test-utils": "^5.3.4",
+        "@0x/contracts-test-utils": "^5.3.5",
         "@0x/dev-utils": "^3.3.4",
-        "@0x/order-utils": "^10.3.0",
+        "@0x/order-utils": "^10.4.0",
         "@0x/sol-compiler": "^4.2.3",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.3",
