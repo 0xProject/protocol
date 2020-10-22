@@ -8,7 +8,14 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
 import { constants } from '../constants';
-import { LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts } from '../types';
+import {
+    LogFunction,
+    MarketOperation,
+    RfqtFirmQuoteValidator,
+    RfqtMakerAssetOfferings,
+    RfqtQuoteObserver,
+    RfqtRequestOpts,
+} from '../types';
 
 import { ONE_SECOND_MS } from './market_operation_utils/constants';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
@@ -141,6 +148,8 @@ export class QuoteRequestor {
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
+        private readonly _firmQuoteValidator?: RfqtFirmQuoteValidator,
+        private readonly _quoteObserver?: RfqtQuoteObserver,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
     }
@@ -174,8 +183,8 @@ export class QuoteRequestor {
             'firm',
         );
 
-        const result: RFQTFirmQuote[] = [];
-        firmQuoteResponses.forEach(firmQuoteResponse => {
+        const validatedResponses: Array<{ response: RFQTFirmQuote; makerUri: string }> = [];
+        firmQuoteResponses.forEach(async firmQuoteResponse => {
             const orderWithStringInts = firmQuoteResponse.response.signedOrder;
 
             try {
@@ -228,11 +237,21 @@ export class QuoteRequestor {
             // Store makerUri for looking up later
             this._orderSignatureToMakerUri[orderWithBigNumberInts.signature] = firmQuoteResponse.makerUri;
 
-            // Passed all validation, add it to result
-            result.push({ signedOrder: orderWithBigNumberInts });
+            // Passed all validation
+            validatedResponses.push({
+                response: { signedOrder: orderWithBigNumberInts },
+                makerUri: firmQuoteResponse.makerUri,
+            });
             return;
         });
-        return result;
+
+        if (this._quoteObserver !== undefined) {
+            this._quoteObserver.onValidQuotes(validatedResponses);
+        }
+
+        return this._firmQuoteValidator === undefined
+            ? validatedResponses.map(validatedResponse => validatedResponse.response)
+            : this._firmQuoteValidator.filterInvalidQuotesAsync(validatedResponses);
     }
 
     public async requestRfqtIndicativeQuotesAsync(
@@ -282,22 +301,29 @@ export class QuoteRequestor {
         const validResponses = validResponsesWithStringInts.map(result => {
             const response = result.response;
             return {
-                ...response,
-                makerAssetAmount: new BigNumber(response.makerAssetAmount),
-                takerAssetAmount: new BigNumber(response.takerAssetAmount),
-                expirationTimeSeconds: new BigNumber(response.expirationTimeSeconds),
+                ...result,
+                response: {
+                    ...response,
+                    makerAssetAmount: new BigNumber(response.makerAssetAmount),
+                    takerAssetAmount: new BigNumber(response.takerAssetAmount),
+                    expirationTimeSeconds: new BigNumber(response.expirationTimeSeconds),
+                },
             };
         });
 
-        const responses = validResponses.filter(response => {
-            if (this._isExpirationTooSoon(response.expirationTimeSeconds)) {
-                this._warningLogger(response, 'Expiry too soon in RFQ-T indicative quote, filtering out');
+        const resultsWithSufficientExpiry = validResponses.filter(result => {
+            if (this._isExpirationTooSoon(result.response.expirationTimeSeconds)) {
+                this._warningLogger(result, 'Expiry too soon in RFQ-T indicative quote, filtering out');
                 return false;
             }
             return true;
         });
 
-        return responses;
+        if (this._quoteObserver !== undefined) {
+            this._quoteObserver.onValidQuotes(resultsWithSufficientExpiry);
+        }
+
+        return resultsWithSufficientExpiry.map(result => result.response);
     }
 
     /**
