@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../src';
-import { BRIDGE_ADDRESSES_BY_CHAIN, IS_PRICE_AWARE_RFQ_ENABLED } from '../src/constants';
+import { constants as assetSwapperConstants, IS_PRICE_AWARE_RFQ_ENABLED } from '../src/constants';
 import { getRfqtIndicativeQuotesAsync, MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
@@ -38,6 +38,7 @@ import {
     ERC20BridgeSource,
     FillData,
     GenerateOptimizedOrdersOpts,
+    GetMarketOrdersOpts,
     MarketSideLiquidity,
     NativeFillData,
 } from '../src/utils/market_operation_utils/types';
@@ -70,7 +71,7 @@ describe('MarketOperationUtils tests', () => {
     const contractAddresses = {
         ...getContractAddressesForChainOrThrow(CHAIN_ID),
         multiBridge: NULL_ADDRESS,
-        ...BRIDGE_ADDRESSES_BY_CHAIN[CHAIN_ID],
+        ...assetSwapperConstants.BRIDGE_ADDRESSES_BY_CHAIN[CHAIN_ID],
     };
 
     function getMockedQuoteRequestor(
@@ -526,13 +527,15 @@ describe('MarketOperationUtils tests', () => {
                 FILL_AMOUNT,
                 _.times(NUM_SAMPLES, i => DEFAULT_RATES[ERC20BridgeSource.Native][i]),
             );
-            const DEFAULT_OPTS = {
+            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> = {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
                 maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
                 allowFallback: false,
+                gasSchedule: {},
+                feeSchedule: {},
             };
 
             beforeEach(() => {
@@ -1432,7 +1435,7 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         numSamples: 4,
                         excludedSources: [
-                            ...DEFAULT_OPTS.excludedSources,
+                            ...(DEFAULT_OPTS.excludedSources as ERC20BridgeSource[]),
                             ERC20BridgeSource.Eth2Dai,
                             ERC20BridgeSource.Kyber,
                             ERC20BridgeSource.Bancor,
@@ -1453,13 +1456,15 @@ describe('MarketOperationUtils tests', () => {
                 FILL_AMOUNT,
                 _.times(NUM_SAMPLES, () => DEFAULT_RATES[ERC20BridgeSource.Native][0]),
             );
-            const DEFAULT_OPTS = {
+            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> = {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
                 maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
                 allowFallback: false,
+                gasSchedule: {},
+                feeSchedule: {},
             };
 
             beforeEach(() => {
@@ -1873,7 +1878,7 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         numSamples: 4,
                         excludedSources: [
-                            ...DEFAULT_OPTS.excludedSources,
+                            ...(DEFAULT_OPTS.excludedSources as ERC20BridgeSource[]),
                             ERC20BridgeSource.Eth2Dai,
                             ERC20BridgeSource.Kyber,
                         ],
