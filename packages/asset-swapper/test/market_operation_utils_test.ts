@@ -15,6 +15,7 @@ import { BigNumber, fromTokenUnitAmount, hexUtils, NULL_ADDRESS } from '@0x/util
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
+
 import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../src';
 import { BRIDGE_ADDRESSES_BY_CHAIN, IS_PRICE_AWARE_RFQ_ENABLED } from '../src/constants';
 import { getRfqtIndicativeQuotesAsync, MarketOperationUtils } from '../src/utils/market_operation_utils/';

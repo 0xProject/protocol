@@ -3,6 +3,7 @@ import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-w
 import { TakerRequestQueryParams } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+
 import {
     ERC20BridgeSource,
     GetMarketOrdersOpts,
