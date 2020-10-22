@@ -163,7 +163,7 @@ export const DEFAULT_GAS_SCHEDULE: FeeSchedule = {
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 500e3,
     [ERC20BridgeSource.Curve]: fillData => {
-        switch ((fillData as CurveFillData).curve.poolAddress.toLowerCase()) {
+        switch ((fillData as CurveFillData).pool.poolAddress.toLowerCase()) {
             case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
             case '0x93054188d876f558f4a66b2ef1d97d16edf0895b':
             case '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714':
