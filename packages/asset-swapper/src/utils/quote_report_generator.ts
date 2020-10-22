@@ -15,7 +15,7 @@ import {
 import { QuoteRequestor } from './quote_requestor';
 
 export interface BridgeReportSource {
-    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
+    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop>;
     makerAmount: BigNumber;
     takerAmount: BigNumber;
     fillData?: FillData;
@@ -114,8 +114,8 @@ export function generateQuoteReport(
 function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeReportSource {
     const liquiditySource = ds.source;
 
-    if (liquiditySource === ERC20BridgeSource.Native) {
-        throw new Error(`Unexpected liquidity source Native`);
+    if (liquiditySource === ERC20BridgeSource.MultiHop || liquiditySource === ERC20BridgeSource.Native) {
+        throw new Error(`Unexpected liquidity source ${liquiditySource}`);
     }
 
     // input and output map to different values
