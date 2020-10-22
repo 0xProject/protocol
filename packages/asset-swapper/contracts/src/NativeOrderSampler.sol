@@ -19,7 +19,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
@@ -131,8 +131,8 @@ contract NativeOrderSampler {
         view
         returns (uint256, uint256)
     {
-        uint256 fromTokenDecimals = LibERC20Token.decimals(makerTokenAddress);
-        uint256 toTokenDecimals = LibERC20Token.decimals(takerTokenAddress);
+        uint256 fromTokenDecimals = LibERC20TokenV06.compatDecimals(IERC20TokenV06(makerTokenAddress));
+        uint256 toTokenDecimals = LibERC20TokenV06.compatDecimals(IERC20TokenV06(takerTokenAddress));
         return (fromTokenDecimals, toTokenDecimals);
     }
 
