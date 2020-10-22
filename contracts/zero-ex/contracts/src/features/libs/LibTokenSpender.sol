@@ -61,14 +61,15 @@ library LibTokenSpender {
             returndatacopy(add(ptr, 0x20), 0, rdsize) // reuse memory
 
             // Check for ERC20 success. ERC20 tokens should return a boolean,
-            // but some don't. We accept 0-length return data as success.
+            // but some don't. We accept 0-length return data as success, or at
+            // least 32 bytes that starts with a 32-byte boolean true.
             success := and(
                 success,                             // call itself succeeded
                 or(
                     iszero(rdsize),                  // no return data, or
                     and(
-                        eq(rdsize, 32),              // exactly 32 bytes
-                        eq(mload(add(ptr, 0x20)), 1) // and the value is 1 (true)
+                        iszero(lt(rdsize, 32)),      // at least 32 bytes
+                        eq(mload(add(ptr, 0x20)), 1) // starts with uint256(1)
                     )
                 )
             )

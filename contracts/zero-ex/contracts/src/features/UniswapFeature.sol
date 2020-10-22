@@ -167,17 +167,24 @@ contract UniswapFeature is
 
                             let rdsize := returndatasize()
 
-                            returndatacopy(0xB00, 0, rdsize) // reuse memory
+                            // Copy only the first 32 bytes of return data. We
+                            // only care about reading a boolean in the success
+                            // case, and we discard the return data in the
+                            // failure case.
+                            returndatacopy(0xC00, 0, 0x20)
 
-                            // Check for ERC20 success. ERC20 tokens should return a boolean,
-                            // but some don't. We accept 0-length return data as success.
+                            // Check for ERC20 success. ERC20 tokens should
+                            // return a boolean, but some return nothing or
+                            // extra data. We accept 0-length return data as
+                            // success, or at least 32 bytes that starts with
+                            // a 32-byte boolean true.
                             success := and(
-                                success,                             // call itself succeeded
+                                success,                         // call itself succeeded
                                 or(
-                                    iszero(rdsize),                  // no return data, or
+                                    iszero(rdsize),              // no return data, or
                                     and(
-                                        eq(rdsize, 32),              // exactly 32 bytes
-                                        eq(mload(0xB00), 1)          // and the value is 1 (true)
+                                        iszero(lt(rdsize, 32)),  // at least 32 bytes
+                                        eq(mload(0xC00), 1)      // starts with uint256(1)
                                     )
                                 )
                             )
