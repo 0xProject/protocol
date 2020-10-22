@@ -82,7 +82,6 @@ export {
     ZeroExProvider,
 } from 'ethereum-types';
 export { artifacts } from './artifacts';
-export { BRIDGE_ADDRESSES_BY_CHAIN, DEFAULT_GAS_SCHEDULE } from './constants';
 export { InsufficientAssetLiquidityError } from './errors';
 export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { getSwapMinBuyAmount } from './quote_consumers/utils';
@@ -121,7 +120,11 @@ export {
     SwapQuoterRfqtOpts,
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
-export { SOURCE_FLAGS } from './utils/market_operation_utils/constants';
+export {
+    BRIDGE_ADDRESSES_BY_CHAIN,
+    DEFAULT_GAS_SCHEDULE,
+    SOURCE_FLAGS,
+} from './utils/market_operation_utils/constants';
 export {
     Parameters,
     SamplerContractCall,
@@ -152,13 +155,13 @@ export {
     NativeCollapsedFill,
     NativeFillData,
     OptimizedMarketOrder,
+    SnowSwapFillData,
+    SnowSwapInfo,
     SourceInfo,
     SourceQuoteOperation,
     SushiSwapFillData,
     SwerveFillData,
     SwerveInfo,
-    SnowSwapFillData,
-    SnowSwapInfo,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';

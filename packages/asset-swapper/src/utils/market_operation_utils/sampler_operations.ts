@@ -1,6 +1,6 @@
 import { SupportedProvider } from '@0x/dev-utils';
 import { SignedOrder } from '@0x/types';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { ERC20BridgeSamplerContract } from '../../wrappers';
@@ -1054,7 +1054,7 @@ export class SamplerOperations {
         const _sources = BATCH_SOURCE_FILTERS.exclude(
             liquidityProviderRegistryAddress ? [] : [ERC20BridgeSource.LiquidityProvider],
         )
-            .exclude(multiBridgeAddress ? [] : [ERC20BridgeSource.MultiBridge])
+            .exclude(multiBridgeAddress || multiBridgeAddress === NULL_ADDRESS ? [] : [ERC20BridgeSource.MultiBridge])
             .getAllowed(sources);
         return _.flatten(
             _sources.map(
