@@ -20,17 +20,26 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 
-/// @dev Feature to swap directly with an on-chain liquidity provider.
-interface ILiquidityProviderFeature {
-    function sellToLiquidityProvider(
-        address makerToken,
-        address takerToken,
-        address payable providerAddress,
-        address recipient,
-        uint256 sellAmount,
-        uint256 minBuyAmount
+interface ILiquidityProviderSandbox {
+    function executeBridgeTransferFrom(
+        address target,
+        address makerAssetAddress,
+        address taker,
+        uint256 minMakerAssetAmount
     )
-        external
-        payable
-        returns (uint256 boughtAmount);
+        external;
+
+    function executeSellEthForToken(
+        address target,
+        address taker,
+        uint256 minMakerAssetAmount
+    )
+        external;
+
+    function executeSellTokenForEth(
+        address target,
+        address taker,
+        uint256 minMakerAssetAmount
+    )
+        external;
 }

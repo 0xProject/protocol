@@ -20,12 +20,33 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "../src/vendor/v3/IERC20Bridge.sol";
+import "../src/vendor/ILiquidityProvider.sol";
 
 
-contract TestBridge is
-    IERC20Bridge
+contract TestLiquidityProvider is
+    ILiquidityProvider
 {
+    event ERC20BridgeTransfer(
+        address inputToken,
+        address outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount,
+        address from,
+        address to
+    );
+
+    event SellEthForToken(
+        address taker,
+        uint256 minMakerAssetAmount,
+        uint256 ethBalance
+    );
+
+    event SellTokenForEth(
+        address taker,
+        uint256 minMakerAssetAmount,
+        uint256 tokenBalance
+    );
+
     IERC20TokenV06 public immutable xAsset;
     IERC20TokenV06 public immutable yAsset;
 
@@ -35,6 +56,8 @@ contract TestBridge is
         xAsset = xAsset_;
         yAsset = yAsset_;
     }
+
+    receive() external payable {}
 
     /// @dev Transfers `amount` of the ERC20 `tokenAddress` from `from` to `to`.
     /// @param tokenAddress The address of the ERC20 token to transfer.
@@ -65,5 +88,45 @@ contract TestBridge is
             to
         );
         return 0xdecaf000;
+    }
+
+    /// @dev Trades ETH for token. ETH must be sent to the contract prior to
+    ///      calling this function to trigger the trade.
+    /// @param taker The recipient of the bought tokens.
+    /// @param minMakerAssetAmount The minimum amount of maker asset to buy.
+    /// @return makerAssetAmount The amount of tokens bought.
+    function sellEthForToken(
+        address taker,
+        uint256 minMakerAssetAmount
+    )
+        external
+        override
+        returns (uint256 makerAssetAmount)
+    {
+        emit SellEthForToken(
+            taker,
+            minMakerAssetAmount,
+            address(this).balance
+        );
+    }
+
+    /// @dev Trades token for ETH. The token must be sent to the contract prior
+    ///      to calling this function to trigger the trade.
+    /// @param taker The recipient of the bought ETH.
+    /// @param minMakerAssetAmount The minimum amount of ETH to buy.
+    /// @return makerAssetAmount The amount of ETH bought.
+    function sellTokenForEth(
+        address payable taker,
+        uint256 minMakerAssetAmount
+    )
+        external
+        override
+        returns (uint256 makerAssetAmount)
+    {
+        emit SellTokenForEth(
+            taker,
+            minMakerAssetAmount,
+            xAsset.balanceOf(address(this))
+        );
     }
 }

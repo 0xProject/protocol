@@ -20,15 +20,13 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../errors/LibLiquidityProviderRichErrors.sol";
+import "../external/ILiquidityProviderSandbox.sol";
+import "../external/LiquidityProviderSandbox.sol";
 import "../fixins/FixinCommon.sol";
 import "../migrations/LibMigrate.sol";
-import "../storage/LibLiquidityProviderStorage.sol";
-import "../vendor/v3/IERC20Bridge.sol";
 import "./IFeature.sol";
 import "./ILiquidityProviderFeature.sol";
 import "./libs/LibTokenSpender.sol";
@@ -39,7 +37,6 @@ contract LiquidityProviderFeature is
     ILiquidityProviderFeature,
     FixinCommon
 {
-    using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
@@ -50,16 +47,14 @@ contract LiquidityProviderFeature is
 
     /// @dev ETH pseudo-token address.
     address constant internal ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    /// @dev The WETH contract address.
-    IEtherTokenV06 public immutable weth;
+    /// @dev The sandbox contract address.
+    ILiquidityProviderSandbox public immutable sandbox;
 
-    /// @dev Store the WETH address in an immutable.
-    /// @param weth_ The weth token.
-    constructor(IEtherTokenV06 weth_)
+    constructor(address zeroEx)
         public
         FixinCommon()
     {
-        weth = weth_;
+        sandbox = new LiquidityProviderSandbox(zeroEx);
     }
 
     /// @dev Initialize and register this feature.
@@ -70,15 +65,14 @@ contract LiquidityProviderFeature is
         returns (bytes4 success)
     {
         _registerFeatureFunction(this.sellToLiquidityProvider.selector);
-        _registerFeatureFunction(this.setLiquidityProviderForMarket.selector);
-        _registerFeatureFunction(this.getLiquidityProviderForMarket.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
     function sellToLiquidityProvider(
         address makerToken,
         address takerToken,
-        address payable recipient,
+        address payable providerAddress,
+        address recipient,
         uint256 sellAmount,
         uint256 minBuyAmount
     )
@@ -87,15 +81,12 @@ contract LiquidityProviderFeature is
         payable
         returns (uint256 boughtAmount)
     {
-        address providerAddress = getLiquidityProviderForMarket(makerToken, takerToken);
         if (recipient == address(0)) {
             recipient = msg.sender;
         }
 
         if (takerToken == ETH_TOKEN_ADDRESS) {
-            // Wrap ETH.
-            weth.deposit{value: sellAmount}();
-            weth.transfer(providerAddress, sellAmount);
+            providerAddress.transfer(sellAmount);
         } else {
             LibTokenSpender.spendERC20Tokens(
                 IERC20TokenV06(takerToken),
@@ -105,30 +96,33 @@ contract LiquidityProviderFeature is
             );
         }
 
-        if (makerToken == ETH_TOKEN_ADDRESS) {
-            uint256 balanceBefore = weth.balanceOf(address(this));
-            IERC20Bridge(providerAddress).bridgeTransferFrom(
-                address(weth),
-                address(0),
-                address(this),
-                minBuyAmount,
-                ""
+        if (takerToken == ETH_TOKEN_ADDRESS) {
+            uint256 balanceBefore = IERC20TokenV06(makerToken).balanceOf(recipient);
+            sandbox.executeSellEthForToken(
+                providerAddress,
+                recipient,
+                minBuyAmount
             );
-            boughtAmount = weth.balanceOf(address(this)).safeSub(balanceBefore);
-            // Unwrap wETH and send ETH to recipient.
-            weth.withdraw(boughtAmount);
-            recipient.transfer(boughtAmount);
+            boughtAmount = IERC20TokenV06(makerToken).balanceOf(recipient).safeSub(balanceBefore);
+        } else if (makerToken == ETH_TOKEN_ADDRESS) {
+            uint256 balanceBefore = recipient.balance;
+            sandbox.executeSellTokenForEth(
+                providerAddress,
+                recipient,
+                minBuyAmount
+            );
+            boughtAmount = recipient.balance.safeSub(balanceBefore);
         } else {
             uint256 balanceBefore = IERC20TokenV06(makerToken).balanceOf(recipient);
-            IERC20Bridge(providerAddress).bridgeTransferFrom(
+            sandbox.executeBridgeTransferFrom(
+                providerAddress,
                 makerToken,
-                address(0),
                 recipient,
-                minBuyAmount,
-                ""
+                minBuyAmount
             );
             boughtAmount = IERC20TokenV06(makerToken).balanceOf(recipient).safeSub(balanceBefore);
         }
+
         if (boughtAmount < minBuyAmount) {
             LibLiquidityProviderRichErrors.LiquidityProviderIncompleteSellError(
                 providerAddress,
@@ -137,63 +131,6 @@ contract LiquidityProviderFeature is
                 sellAmount,
                 boughtAmount,
                 minBuyAmount
-            ).rrevert();
-        }
-    }
-
-    /// @dev Sets address of the liquidity provider for a market given
-    ///      (xAsset, yAsset).
-    /// @param xAsset First asset managed by the liquidity provider.
-    /// @param yAsset Second asset managed by the liquidity provider.
-    /// @param providerAddress Address of the liquidity provider.
-    function setLiquidityProviderForMarket(
-        address xAsset,
-        address yAsset,
-        address providerAddress
-    )
-        external
-        override
-        onlyOwner
-    {
-        LibLiquidityProviderStorage.getStorage()
-            .addressBook[xAsset][yAsset] = providerAddress;
-        LibLiquidityProviderStorage.getStorage()
-            .addressBook[yAsset][xAsset] = providerAddress;
-        emit LiquidityProviderForMarketUpdated(
-            xAsset,
-            yAsset,
-            providerAddress
-        );
-    }
-
-    /// @dev Returns the address of the liquidity provider for a market given
-    ///     (xAsset, yAsset), or reverts if pool does not exist.
-    /// @param xAsset First asset managed by the liquidity provider.
-    /// @param yAsset Second asset managed by the liquidity provider.
-    /// @return providerAddress Address of the liquidity provider.
-    function getLiquidityProviderForMarket(
-        address xAsset,
-        address yAsset
-    )
-        public
-        view
-        override
-        returns (address providerAddress)
-    {
-        if (xAsset == ETH_TOKEN_ADDRESS) {
-            providerAddress = LibLiquidityProviderStorage.getStorage()
-                .addressBook[address(weth)][yAsset];
-        } else if (yAsset == ETH_TOKEN_ADDRESS) {
-            providerAddress = LibLiquidityProviderStorage.getStorage()
-                .addressBook[xAsset][address(weth)];
-        } else {
-            providerAddress = LibLiquidityProviderStorage.getStorage()
-                .addressBook[xAsset][yAsset];
-        }
-        if (providerAddress == address(0)) {
-            LibLiquidityProviderRichErrors.NoLiquidityProviderForMarketError(
-                xAsset,
-                yAsset
             ).rrevert();
         }
     }
