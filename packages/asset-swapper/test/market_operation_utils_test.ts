@@ -17,10 +17,11 @@ import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../src';
-import { constants as assetSwapperConstants, IS_PRICE_AWARE_RFQ_ENABLED } from '../src/constants';
+import { IS_PRICE_AWARE_RFQ_ENABLED } from '../src/constants';
 import { getRfqtIndicativeQuotesAsync, MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
+    BRIDGE_ADDRESSES_BY_CHAIN,
     BUY_SOURCE_FILTER,
     POSITIVE_INF,
     SELL_SOURCE_FILTER,
@@ -71,7 +72,7 @@ describe('MarketOperationUtils tests', () => {
     const contractAddresses = {
         ...getContractAddressesForChainOrThrow(CHAIN_ID),
         multiBridge: NULL_ADDRESS,
-        ...assetSwapperConstants.BRIDGE_ADDRESSES_BY_CHAIN[CHAIN_ID],
+        ...BRIDGE_ADDRESSES_BY_CHAIN[CHAIN_ID],
     };
 
     function getMockedQuoteRequestor(
