@@ -8,7 +8,7 @@ import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-t
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { constants, IS_PRICE_AWARE_RFQ_ENABLED } from './constants';
+import { BRIDGE_ADDRESSES_BY_CHAIN, constants, IS_PRICE_AWARE_RFQ_ENABLED } from './constants';
 import {
     AssetSwapperContractAddresses,
     CalculateSwapQuoteOpts,
@@ -181,7 +181,7 @@ export class SwapQuoter {
         this._rfqtOptions = rfqt;
         this._contractAddresses = options.contractAddresses || {
             ...getContractAddressesForChainOrThrow(chainId),
-            ...constants.BRIDGE_ADDRESSES_BY_CHAIN[chainId],
+            ...BRIDGE_ADDRESSES_BY_CHAIN[chainId],
         };
         this._devUtilsContract = new DevUtilsContract(this._contractAddresses.devUtils, provider);
         this._protocolFeeUtils = ProtocolFeeUtils.getInstance(

@@ -74,6 +74,11 @@ export const BUY_SOURCE_FILTER = new SourceFilters(
 );
 
 /**
+ *  0x Protocol Fee Multiplier
+ */
+export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
+
+/**
  * Sources to poll for ETH fee price estimates.
  */
 export const FEE_QUOTE_SOURCES = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
@@ -402,6 +407,17 @@ export const DEFAULT_GAS_SCHEDULE: FeeSchedule = {
         return isSellBase ? 440e3 : 540e3;
     },
 };
+
+export const DEFAULT_FEE_SCHEDULE: FeeSchedule = Object.assign(
+    {},
+    ...(Object.keys(DEFAULT_GAS_SCHEDULE) as ERC20BridgeSource[]).map(k => ({
+        [k]:
+            k === ERC20BridgeSource.Native
+                ? (fillData: FillData) => PROTOCOL_FEE_MULTIPLIER.plus(DEFAULT_GAS_SCHEDULE[k]!(fillData))
+                : (fillData: FillData) => DEFAULT_GAS_SCHEDULE[k]!(fillData),
+    })),
+);
+
 // tslint:enable:custom-no-magic-numbers
 
 export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
@@ -414,7 +430,7 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
     maxFallbackSlippage: 0.05,
     numSamples: 13,
     sampleDistributionBase: 1.05,
-    feeSchedule: DEFAULT_GAS_SCHEDULE,
+    feeSchedule: DEFAULT_FEE_SCHEDULE,
     gasSchedule: DEFAULT_GAS_SCHEDULE,
     exchangeProxyOverhead: () => ZERO_AMOUNT,
     allowFallback: true,

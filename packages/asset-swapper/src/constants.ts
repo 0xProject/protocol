@@ -14,11 +14,7 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from './types';
-import {
-    BRIDGE_ADDRESSES_BY_CHAIN,
-    DEFAULT_GAS_SCHEDULE,
-    DEFAULT_GET_MARKET_ORDERS_OPTS,
-} from './utils/market_operation_utils/constants';
+import { DEFAULT_GET_MARKET_ORDERS_OPTS } from './utils/market_operation_utils/constants';
 
 const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
 const NULL_BYTES = '0x';
@@ -109,6 +105,12 @@ export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
 // https://github.com/0xProject/0x-monorepo/pull/2735
 export const IS_PRICE_AWARE_RFQ_ENABLED: boolean = false;
 
+export {
+    BRIDGE_ADDRESSES_BY_CHAIN,
+    DEFAULT_FEE_SCHEDULE,
+    DEFAULT_GAS_SCHEDULE,
+} from './utils/market_operation_utils/constants';
+
 export const constants = {
     ETH_GAS_STATION_API_URL,
     PROTOCOL_FEE_MULTIPLIER,
@@ -135,6 +137,4 @@ export const constants = {
     BRIDGE_ASSET_DATA_PREFIX: '0xdc1600f3',
     DEFAULT_INFO_LOGGER,
     DEFAULT_WARNING_LOGGER,
-    BRIDGE_ADDRESSES_BY_CHAIN,
-    DEFAULT_GAS_SCHEDULE,
 };
