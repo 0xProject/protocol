@@ -39,6 +39,8 @@ blockchainTests.resets('LibTokenSpender library', env => {
         const FALSE_RETURN_AMOUNT = 1338;
         const REVERT_RETURN_AMOUNT = 1339;
         const TRIGGER_FALLBACK_SUCCESS_AMOUNT = 1340;
+        const EXTRA_RETURN_TRUE_AMOUNT = 1341;
+        const EXTRA_RETURN_FALSE_AMOUNT = 1342;
 
         it('spendERC20Tokens() successfully calls compliant ERC20 token', async () => {
             const tokenFrom = randomAddress();
@@ -135,6 +137,47 @@ blockchainTests.resets('LibTokenSpender library', env => {
                     },
                 ],
                 TestLibTokenSpenderEvents.FallbackCalled,
+            );
+        });
+
+        it('spendERC20Tokens() allows extra data after true', async () => {
+            const tokenFrom = randomAddress();
+            const tokenTo = randomAddress();
+            const tokenAmount = new BigNumber(EXTRA_RETURN_TRUE_AMOUNT);
+
+            const receipt = await tokenSpender
+                .spendERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .awaitTransactionSuccessAsync();
+            verifyEventsFromLogs(
+                receipt.logs,
+                [
+                    {
+                        sender: tokenSpender.address,
+                        from: tokenFrom,
+                        to: tokenTo,
+                        amount: tokenAmount,
+                    },
+                ],
+                TestTokenSpenderERC20TokenEvents.TransferFromCalled,
+            );
+        });
+
+        it('spendERC20Tokens() reverts when there\'s extra data after false', async () => {
+            const tokenFrom = randomAddress();
+            const tokenTo = randomAddress();
+            const tokenAmount = new BigNumber(EXTRA_RETURN_FALSE_AMOUNT);
+
+            const tx = tokenSpender
+                .spendERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .awaitTransactionSuccessAsync();
+            return expect(tx).to.revertWith(
+                new ZeroExRevertErrors.Spender.SpenderERC20TransferFromFailedError(
+                    token.address,
+                    tokenFrom,
+                    tokenTo,
+                    tokenAmount,
+                    hexUtils.leftPad(EXTRA_RETURN_FALSE_AMOUNT, 64),
+                ),
             );
         });
 

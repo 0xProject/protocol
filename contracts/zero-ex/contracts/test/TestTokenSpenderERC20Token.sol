@@ -38,6 +38,8 @@ contract TestTokenSpenderERC20Token is
     uint256 constant private FALSE_RETURN_AMOUNT = 1338;
     uint256 constant private REVERT_RETURN_AMOUNT = 1339;
     uint256 constant private TRIGGER_FALLBACK_SUCCESS_AMOUNT = 1340;
+    uint256 constant private EXTRA_RETURN_TRUE_AMOUNT = 1341;
+    uint256 constant private EXTRA_RETURN_FALSE_AMOUNT = 1342;
 
     function transferFrom(address from, address to, uint256 amount)
         public
@@ -56,6 +58,16 @@ contract TestTokenSpenderERC20Token is
         }
         if (amount == TRIGGER_FALLBACK_SUCCESS_AMOUNT) {
             return false;
+        }
+        if (amount == EXTRA_RETURN_TRUE_AMOUNT
+            || amount == EXTRA_RETURN_FALSE_AMOUNT) {
+            bool ret = amount == EXTRA_RETURN_TRUE_AMOUNT;
+
+            assembly {
+                mstore(0x00, ret)
+                mstore(0x20, amount) // just something extra to return
+                return(0, 0x40)
+            }
         }
         return true;
     }
