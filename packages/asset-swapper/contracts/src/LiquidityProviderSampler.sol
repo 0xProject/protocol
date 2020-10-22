@@ -132,7 +132,7 @@ contract LiquidityProviderSampler is
         }
 
         bytes memory callData = abi.encodeWithSelector(
-        ILiquidityProviderRegistry(0).getLiquidityProviderForMarket.selector,
+        ILiquidityProviderRegistry.getLiquidityProviderForMarket.selector,
             takerToken,
             makerToken
         );
