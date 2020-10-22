@@ -163,15 +163,13 @@ contract UniswapFeature is
                             mstore(0xB24, pair)
                             mstore(0xB44, sellAmount)
 
-                            let success := call(gas(), sellToken, 0, 0xB00, 0x64, 0, 0)
-
-                            let rdsize := returndatasize()
-
                             // Copy only the first 32 bytes of return data. We
                             // only care about reading a boolean in the success
                             // case, and we discard the return data in the
                             // failure case.
-                            returndatacopy(0xC00, 0, 0x20)
+                            let success := call(gas(), sellToken, 0, 0xB00, 0x64, 0xC00, 0x20)
+
+                            let rdsize := returndatasize()
 
                             // Check for ERC20 success. ERC20 tokens should
                             // return a boolean, but some return nothing or
