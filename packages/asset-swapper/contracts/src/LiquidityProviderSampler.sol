@@ -130,15 +130,15 @@ contract LiquidityProviderSampler is
         if (registryAddress == address(0)) {
             return address(0);
         }
-        try
-            ILiquidityProviderRegistry(registryAddress).getLiquidityProviderForMarket
-                (takerToken, makerToken)
-            returns (address provider)
-        {
-            return provider;
-        } catch (bytes memory) {
-            // Swallow failures, leaving all results as zero.
-            return address(0);
+
+        bytes memory callData = abi.encodeWithSelector(
+        ILiquidityProviderRegistry(0).getLiquidityProviderForMarket.selector,
+            takerToken,
+            makerToken
+        );
+        (bool didSucceed, bytes memory returnData) = registryAddress.staticcall(callData);
+        if (didSucceed && returnData.length == 32) {
+            return LibBytesV06.readAddress(returnData, 12);
         }
     }
 
