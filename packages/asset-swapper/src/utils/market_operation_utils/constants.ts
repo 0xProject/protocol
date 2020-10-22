@@ -1,5 +1,6 @@
-import { DEFAULT_GAS_SCHEDULE } from '@0x/asset-swapper/src/constants';
 import { BigNumber } from '@0x/utils';
+
+import { DEFAULT_GAS_SCHEDULE } from '../../constants';
 
 import { SourceFilters } from './source_filters';
 import { CurveFunctionSelectors, CurveInfo, ERC20BridgeSource, GetMarketOrdersOpts } from './types';
