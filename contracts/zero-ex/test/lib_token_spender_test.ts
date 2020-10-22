@@ -162,7 +162,7 @@ blockchainTests.resets('LibTokenSpender library', env => {
             );
         });
 
-        it('spendERC20Tokens() reverts when there\'s extra data after false', async () => {
+        it("spendERC20Tokens() reverts when there's extra data after false", async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(EXTRA_RETURN_FALSE_AMOUNT);
