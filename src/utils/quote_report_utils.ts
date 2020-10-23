@@ -1,4 +1,4 @@
-import { BigNumber, BridgeReportSource, QuoteReport } from '@0x/asset-swapper';
+import { BigNumber, BridgeReportSource, QuoteReport, QuoteReportSource } from '@0x/asset-swapper';
 import _ = require('lodash');
 
 import { NUMBER_SOURCES_PER_LOG_LINE } from '../constants';
@@ -21,6 +21,18 @@ interface QuoteReportForMetaTxn extends QuoteReportLogOptionsBase {
     zeroExTransactionHash: string;
 }
 type QuoteReportLogOptions = QuoteReportForTakerTxn | QuoteReportForMetaTxn;
+
+/**
+ * In order to avoid the logger to output unnecessary data that break the Quote Report ETL
+ * proess, we intentionally exclude fields that can contain huge output data.
+ * @param source the quote report source
+ */
+const omitFillData = (source: QuoteReportSource) => {
+    return {
+        ...source,
+        fillData: undefined,
+    };
+};
 
 export const quoteReportUtils = {
     logQuoteReport(logOpts: QuoteReportLogOptions): void {
@@ -52,7 +64,7 @@ export const quoteReportUtils = {
         }
 
         // Deliver in chunks since Kibana can't handle logs large requests
-        const sourcesConsideredChunks = _.chunk(qr.sourcesConsidered, NUMBER_SOURCES_PER_LOG_LINE);
+        const sourcesConsideredChunks = _.chunk(qr.sourcesConsidered.map(omitFillData), NUMBER_SOURCES_PER_LOG_LINE);
         sourcesConsideredChunks.forEach((chunk, i) => {
             logger.info({
                 ...logBase,
@@ -61,7 +73,7 @@ export const quoteReportUtils = {
                 sourcesConsideredChunkLength: sourcesConsideredChunks.length,
             });
         });
-        const sourcesDeliveredChunks = _.chunk(qr.sourcesDelivered, NUMBER_SOURCES_PER_LOG_LINE);
+        const sourcesDeliveredChunks = _.chunk(qr.sourcesDelivered.map(omitFillData), NUMBER_SOURCES_PER_LOG_LINE);
         sourcesDeliveredChunks.forEach((chunk, i) => {
             logger.info({
                 ...logBase,
