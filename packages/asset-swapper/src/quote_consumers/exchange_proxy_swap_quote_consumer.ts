@@ -96,9 +96,16 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         const buyToken = getTokenFromAssetData(quote.makerAssetData);
         const sellAmount = quote.worstCaseQuoteInfo.totalTakerAssetAmount;
         let minBuyAmount = getSwapMinBuyAmount(quote);
+        let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
+        if (isFromETH) {
+            ethAmount = ethAmount.plus(sellAmount);
+        }
+        const { buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
 
         // VIP routes.
-        if (isDirectUniswapCompatible(quote, optsWithDefaults)) {
+        if (
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
+        ) {
             const source = quote.orders[0].fills[0].source;
             const fillData = quote.orders[0].fills[0].fillData as UniswapV2FillData;
             return {
@@ -119,6 +126,23 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+            };
+        }
+
+        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
             };
@@ -198,8 +222,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
 
         // This transformer pays affiliate fees.
-        const { buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
-
         if (buyTokenFeeAmount.isGreaterThan(0) && feeRecipient !== NULL_ADDRESS) {
             transforms.push({
                 deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
@@ -216,7 +238,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             // Adjust the minimum buy amount by the fee.
             minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
         }
-
         if (sellTokenFeeAmount.isGreaterThan(0) && feeRecipient !== NULL_ADDRESS) {
             throw new Error('Affiliate fees denominated in sell token are not yet supported');
         }
@@ -240,11 +261,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             )
             .getABIEncodedTransactionData();
 
-        let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
-        if (isFromETH) {
-            ethAmount = ethAmount.plus(sellAmount);
-        }
-
         return {
             calldataHexString,
             ethAmount,
@@ -266,7 +282,11 @@ function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
     return quote.type === MarketOperation.Buy;
 }
 
-function isDirectUniswapCompatible(quote: SwapQuote, opts: ExchangeProxyContractOpts): boolean {
+function isDirectSwapCompatible(
+    quote: SwapQuote,
+    opts: ExchangeProxyContractOpts,
+    sources: ERC20BridgeSource[],
+): boolean {
     // Must not be a mtx.
     if (opts.isMetaTransaction) {
         return false;
@@ -285,8 +305,7 @@ function isDirectUniswapCompatible(quote: SwapQuote, opts: ExchangeProxyContract
         return false;
     }
     const fill = order.fills[0];
-    // And that fill must be uniswap v2 or sushiswap.
-    if (![ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap].includes(fill.source)) {
+    if (!sources.includes(fill.source)) {
         return false;
     }
     return true;
