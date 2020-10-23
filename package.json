@@ -23,7 +23,7 @@
         "run:publish:gha": "run-s install:all rebuild script:publish:gha",
         "script:prepublish_checks": "node ./node_modules/@0x/monorepo-scripts/lib/prepublish_checks.js",
         "script:publish": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo protocol",
-        "script:publish:gha": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo tools --auto-commit --no-upload-docs --yes",
+        "script:publish:gha": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo protocol --auto-commit --no-upload-docs --yes",
         "install:all": "yarn install",
         "wsrun": "wsrun",
         "lerna": "lerna",
