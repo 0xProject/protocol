@@ -912,10 +912,10 @@
     web3-providers "^2.0.0-alpha.1"
     websocket "^1.0.29"
 
-"@0x/monorepo-scripts@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@0x/monorepo-scripts/-/monorepo-scripts-2.0.3.tgz#4766b31329e9323eceb34abedbcff4113ffeb2d1"
-  integrity sha512-jqycycIFZb+5g1Am9sOCHojXpqHx+7RPzjx3d4X/X0rQ6C/kct9dcSnWcMxStb9G411BcKjSpkTuW3c1FQeGIg==
+"@0x/monorepo-scripts@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@0x/monorepo-scripts/-/monorepo-scripts-2.0.4.tgz#26e5d868197e371408a400b22768ef7840d83c0c"
+  integrity sha512-swxC+UZFdAKgcCrVpWmgydLNJXdOdTE5g6kiGIsiHMWBxIfAVjbXnHCpri6VYX16Jk2iu04F3STFJ0QlhfQmCA==
   dependencies:
     "@0x/types" "^3.2.4"
     "@0x/utils" "^5.6.3"

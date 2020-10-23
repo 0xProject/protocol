@@ -1,0 +1,48 @@
+name: publish
+
+on:
+  workflow_dispatch:
+      inputs:
+          ci_status:
+              description: 'required CI status'
+              default: 'success'
+              required: true
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - name: 'check successful status'
+              run: |
+                  REF_STATUS=$(curl -s \
+                  'https://api.github.com/repos/${{ github.repository }}/commits/${{ github.ref }}/status' \
+                  | jq .state)
+                  [[ "${REF_STATUS}" == '"${{ github.event.inputs.ci_status }}"' ]] || \
+                  (echo "::error ::${{ github.ref }} does not have a successful CI status" && false)
+            - uses: actions/checkout@v2
+              with:
+                ref: 'development'
+                fetch-depth: 0
+            - uses: actions/setup-node@v1
+            - uses: actions/setup-python@v2
+              with:
+                node-version: 10
+            - name: 'configure git'
+              run: |
+                  git config --global user.email "github-actions@github.com"
+                  git config --global user.name "Github Actions"
+            - name: 'install dependencies'
+              run: |
+                  yarn -D
+            - name: 'build and publish'
+              run: |
+                  echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+                  npm run run:publish:gha
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+                  GITHUB_TOKEN: ${{ github.token }}
+            - name: 'merge into main branch'
+              run: |
+                  git checkout main && \
+                  git merge ${{ github.ref }} && \
+                  git push
