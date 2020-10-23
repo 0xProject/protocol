@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.4.0",
+        "changes": [
+            {
+                "note": "Use the exchange proxy as the primary allowance target",
+                "pr": 3
+            }
+        ]
+    },
+    {
         "version": "0.3.0",
         "changes": [
             {

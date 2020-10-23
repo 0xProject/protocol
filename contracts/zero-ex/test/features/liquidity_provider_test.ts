@@ -2,12 +2,7 @@ import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contra
 import { blockchainTests, constants, expect, randomAddress, verifyEventsFromLogs } from '@0x/contracts-test-utils';
 import { BigNumber, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
 
-import {
-    IOwnableFeatureContract,
-    IZeroExContract,
-    LiquidityProviderFeatureContract,
-    TokenSpenderFeatureContract,
-} from '../../src/wrappers';
+import { IOwnableFeatureContract, IZeroExContract, LiquidityProviderFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
@@ -23,16 +18,7 @@ blockchainTests('LiquidityProvider feature', env => {
 
     before(async () => {
         [owner, taker] = await env.getAccountAddressesAsync();
-        zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {
-            tokenSpender: (await TokenSpenderFeatureContract.deployFrom0xArtifactAsync(
-                artifacts.TestTokenSpender,
-                env.provider,
-                env.txDefaults,
-                artifacts,
-            )).address,
-        });
-        const tokenSpender = new TokenSpenderFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis);
-        const allowanceTarget = await tokenSpender.getAllowanceTarget().callAsync();
+        zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {});
 
         token = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
             erc20Artifacts.DummyERC20Token,
@@ -52,7 +38,7 @@ blockchainTests('LiquidityProvider feature', env => {
             artifacts,
         );
         await token
-            .approve(allowanceTarget, constants.INITIAL_ERC20_ALLOWANCE)
+            .approve(zeroEx.address, constants.INITIAL_ERC20_ALLOWANCE)
             .awaitTransactionSuccessAsync({ from: taker });
 
         feature = new LiquidityProviderFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis);

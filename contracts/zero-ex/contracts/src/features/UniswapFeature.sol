@@ -157,17 +157,49 @@ contract UniswapFeature is
                     switch eq(sellToken, ETH_TOKEN_ADDRESS_32)
                         case 0 {
                             // For the first pair we need to transfer sellTokens into the
-                            // pair contract using `AllowanceTarget.executeCall()`
-                            mstore(0xB00, ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32)
-                            mstore(0xB04, sellToken)
-                            mstore(0xB24, 0x40)
-                            mstore(0xB44, 0x64)
-                            mstore(0xB64, TRANSFER_FROM_CALL_SELECTOR_32)
-                            mstore(0xB68, caller())
-                            mstore(0xB88, pair)
-                            mstore(0xBA8, sellAmount)
-                            if iszero(call(gas(), mload(0xA60), 0, 0xB00, 0xC8, 0x00, 0x0)) {
-                                bubbleRevert()
+                            // pair contract.
+                            mstore(0xB00, TRANSFER_FROM_CALL_SELECTOR_32)
+                            mstore(0xB04, caller())
+                            mstore(0xB24, pair)
+                            mstore(0xB44, sellAmount)
+
+                            // Copy only the first 32 bytes of return data. We
+                            // only care about reading a boolean in the success
+                            // case, and we discard the return data in the
+                            // failure case.
+                            let success := call(gas(), sellToken, 0, 0xB00, 0x64, 0xC00, 0x20)
+
+                            let rdsize := returndatasize()
+
+                            // Check for ERC20 success. ERC20 tokens should
+                            // return a boolean, but some return nothing or
+                            // extra data. We accept 0-length return data as
+                            // success, or at least 32 bytes that starts with
+                            // a 32-byte boolean true.
+                            success := and(
+                                success,                         // call itself succeeded
+                                or(
+                                    iszero(rdsize),              // no return data, or
+                                    and(
+                                        iszero(lt(rdsize, 32)),  // at least 32 bytes
+                                        eq(mload(0xC00), 1)      // starts with uint256(1)
+                                    )
+                                )
+                            )
+
+                            if iszero(success) {
+                                // Try to fall back to the allowance target.
+                                mstore(0xB00, ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32)
+                                mstore(0xB04, sellToken)
+                                mstore(0xB24, 0x40)
+                                mstore(0xB44, 0x64)
+                                mstore(0xB64, TRANSFER_FROM_CALL_SELECTOR_32)
+                                mstore(0xB68, caller())
+                                mstore(0xB88, pair)
+                                mstore(0xBA8, sellAmount)
+                                if iszero(call(gas(), mload(0xA60), 0, 0xB00, 0xC8, 0x00, 0x0)) {
+                                    bubbleRevert()
+                                }
                             }
                         }
                         default {
