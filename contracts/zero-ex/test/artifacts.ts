@@ -64,6 +64,7 @@ import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransa
 import * as MixinAdapterAddresses from '../test/generated-artifacts/MixinAdapterAddresses.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
+import * as MixinDodo from '../test/generated-artifacts/MixinDodo.json';
 import * as MixinKyber from '../test/generated-artifacts/MixinKyber.json';
 import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json';
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
@@ -174,6 +175,7 @@ export const artifacts = {
     MixinAdapterAddresses: MixinAdapterAddresses as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,
+    MixinDodo: MixinDodo as ContractArtifact,
     MixinKyber: MixinKyber as ContractArtifact,
     MixinMStable: MixinMStable as ContractArtifact,
     MixinMooniswap: MixinMooniswap as ContractArtifact,

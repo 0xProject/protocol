@@ -47,6 +47,7 @@ import * as MStableBridge from '../test/generated-artifacts/MStableBridge.json';
 import * as MultiAssetProxy from '../test/generated-artifacts/MultiAssetProxy.json';
 import * as Ownable from '../test/generated-artifacts/Ownable.json';
 import * as ShellBridge from '../test/generated-artifacts/ShellBridge.json';
+import * as SnowSwapBridge from '../test/generated-artifacts/SnowSwapBridge.json';
 import * as StaticCallProxy from '../test/generated-artifacts/StaticCallProxy.json';
 import * as SushiSwapBridge from '../test/generated-artifacts/SushiSwapBridge.json';
 import * as SwerveBridge from '../test/generated-artifacts/SwerveBridge.json';
@@ -86,6 +87,7 @@ export const artifacts = {
     MixinGasToken: MixinGasToken as ContractArtifact,
     MooniswapBridge: MooniswapBridge as ContractArtifact,
     ShellBridge: ShellBridge as ContractArtifact,
+    SnowSwapBridge: SnowSwapBridge as ContractArtifact,
     SushiSwapBridge: SushiSwapBridge as ContractArtifact,
     SwerveBridge: SwerveBridge as ContractArtifact,
     UniswapBridge: UniswapBridge as ContractArtifact,

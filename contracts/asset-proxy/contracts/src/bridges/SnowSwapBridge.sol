@@ -30,12 +30,12 @@ import "../interfaces/ICurve.sol";
 
 // solhint-disable not-rely-on-time
 // solhint-disable space-after-comma
-contract SwerveBridge is
+contract SnowSwapBridge is
     IERC20Bridge,
     IWallet,
     DeploymentConstants
 {
-    struct SwerveBridgeData {
+    struct SnowSwapBridgeData {
         address curveAddress;
         bytes4 exchangeFunctionSelector;
         address fromTokenAddress;
@@ -63,10 +63,10 @@ contract SwerveBridge is
         external
         returns (bytes4 success)
     {
-        // Decode the bridge data to get the SwerveBridgeData metadata.
-        SwerveBridgeData memory data = abi.decode(bridgeData, (SwerveBridgeData));
+        // Decode the bridge data to get the SnowSwap metadata.
+        SnowSwapBridgeData memory data = abi.decode(bridgeData, (SnowSwapBridgeData));
 
-        require(toTokenAddress != data.fromTokenAddress, "SwerveBridge/INVALID_PAIR");
+        require(toTokenAddress != data.fromTokenAddress, "SnowSwapBridge/INVALID_PAIR");
         uint256 fromTokenBalance = IERC20Token(data.fromTokenAddress).balanceOf(address(this));
         // Grant an allowance to the exchange to spend `fromTokenAddress` token.
         LibERC20Token.approveIfBelow(data.fromTokenAddress, data.curveAddress, fromTokenBalance);

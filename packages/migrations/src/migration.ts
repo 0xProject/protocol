@@ -330,6 +330,9 @@ export async function runMigrationsAsync(
             shellBridge: NULL_ADDRESS,
             creamBridge: NULL_ADDRESS,
             shell: NULL_ADDRESS,
+            dodoBridge: NULL_ADDRESS,
+            dodoHelper: NULL_ADDRESS,
+            snowSwapBridge: NULL_ADDRESS,
             weth: etherToken.address,
         },
     );

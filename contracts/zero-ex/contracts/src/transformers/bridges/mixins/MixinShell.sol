@@ -69,7 +69,7 @@ contract MixinShell is
             sellAmount
         );
 
-        uint256 buyAmount = SHELL.originSwap(
+        boughtAmount = SHELL.originSwap(
             fromTokenAddress,
             address(buyToken),
              // Sell all tokens we hold.
@@ -79,6 +79,6 @@ contract MixinShell is
             // deadline
             block.timestamp + 1
         );
-        return buyAmount;
+        return boughtAmount;
     }
 }

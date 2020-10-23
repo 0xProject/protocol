@@ -79,6 +79,9 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 shellBridge: NULL_ADDRESS,
                 shell: NULL_ADDRESS,
                 creamBridge: NULL_ADDRESS,
+                dodoBridge: NULL_ADDRESS,
+                dodoHelper: NULL_ADDRESS,
+                snowSwapBridge: NULL_ADDRESS,
             },
         );
         transformer = await FillQuoteTransformerContract.deployFrom0xArtifactAsync(

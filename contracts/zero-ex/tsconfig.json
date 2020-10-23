@@ -86,6 +86,7 @@
         "test/generated-artifacts/MixinAdapterAddresses.json",
         "test/generated-artifacts/MixinBalancer.json",
         "test/generated-artifacts/MixinCurve.json",
+        "test/generated-artifacts/MixinDodo.json",
         "test/generated-artifacts/MixinKyber.json",
         "test/generated-artifacts/MixinMStable.json",
         "test/generated-artifacts/MixinMooniswap.json",

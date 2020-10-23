@@ -26,11 +26,13 @@ contract MixinAdapterAddresses
         address balancerBridge;
         address creamBridge;
         address curveBridge;
+        address dodoBridge;
         address kyberBridge;
         address mooniswapBridge;
         address mStableBridge;
         address oasisBridge;
         address shellBridge;
+        address snowSwapBridge;
         address swerveBridge;
         address sushiswapBridge;
         address uniswapBridge;
@@ -43,6 +45,7 @@ contract MixinAdapterAddresses
         address uniswapExchangeFactory;
         address mStable;
         address shell;
+        address dodoHelper;
         // Other
         address weth;
     }
