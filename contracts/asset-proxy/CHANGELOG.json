@@ -39,7 +39,7 @@
                 "pr": 2701
             },
             {
-                "note": "Add `SwerveBridge` (duplicate of CurveBridge)",
+                "note": "Add `SwerveBridge` and `SnowSwapBridge` (duplicate of CurveBridge)",
                 "pr": 2707
             }
         ],

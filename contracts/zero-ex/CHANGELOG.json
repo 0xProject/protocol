@@ -69,6 +69,10 @@
             {
                 "note": "Added `CREAM` into FQT",
                 "pr": 2715
+            },
+            {
+                "note": "Add `Swerve`, `SnowSwap`, `DODO` and `SushiSwap` into FQT",
+                "pr": 7
             }
         ],
         "timestamp": 1603265572
