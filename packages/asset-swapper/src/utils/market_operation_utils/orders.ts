@@ -181,9 +181,9 @@ function getBridgeAddressFromFill(fill: CollapsedFill, opts: CreateOrderFromPath
         case ERC20BridgeSource.Curve:
             return opts.contractAddresses.curveBridge;
         case ERC20BridgeSource.Swerve:
-            return '0xf9786d5eb1de47fa56a8f7bb387653c6d410bfee';
+            return opts.contractAddresses.swerveBridge;
         case ERC20BridgeSource.SnowSwap:
-            return '0xb1dbe83d15236ec10fdb214c6b89774b454754fd';
+            return opts.contractAddresses.snowswapBridge;
         case ERC20BridgeSource.Bancor:
             return opts.contractAddresses.bancorBridge;
         case ERC20BridgeSource.Balancer:

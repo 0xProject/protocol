@@ -401,4 +401,6 @@ export interface BridgeContractAddresses {
     shellBridge: string;
     dodoBridge: string;
     creamBridge: string;
+    swerveBridge: string;
+    snowswapBridge: string;
 }

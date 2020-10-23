@@ -305,6 +305,8 @@ const EMPTY_BRIDGE_ADDRESSES: BridgeContractAddresses = {
     shellBridge: NULL_ADDRESS,
     dodoBridge: NULL_ADDRESS,
     creamBridge: NULL_ADDRESS,
+    snowswapBridge: NULL_ADDRESS,
+    swerveBridge: NULL_ADDRESS,
 };
 
 export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAddresses } = {
@@ -323,6 +325,8 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
         shellBridge: '0x21fb3862eed7911e0f8219a077247b849846728d',
         dodoBridge: '0xe9da66965a9344aab2167e6813c03f043cc7a6ca',
         creamBridge: '0xb9d4bf2c8dab828f4ffb656acdb6c2b497d44f25',
+        swerveBridge: '0xf9786d5eb1de47fa56a8f7bb387653c6d410bfee',
+        snowswapBridge: '0xb1dbe83d15236ec10fdb214c6b89774b454754fd',
     },
     [ChainId.Kovan]: {
         ...EMPTY_BRIDGE_ADDRESSES,
