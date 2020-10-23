@@ -71,7 +71,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 uniswapV2Bridge: NULL_ADDRESS,
                 kyberNetworkProxy: NULL_ADDRESS,
                 oasis: NULL_ADDRESS,
-                sushiswapV2Router: NULL_ADDRESS,
+                sushiswapRouter: NULL_ADDRESS,
                 uniswapV2Router: NULL_ADDRESS,
                 uniswapExchangeFactory: NULL_ADDRESS,
                 mStable: NULL_ADDRESS,

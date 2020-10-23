@@ -30,13 +30,13 @@ contract MixinSushiswap is
 {
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the `SushiswapV2Router02` contract.
-    IUniswapV2Router02 private immutable SUSHISWAP_V2_ROUTER;
+    /// @dev Mainnet address of the `SushiswapRouter` contract.
+    IUniswapV2Router02 private immutable SUSHISWAP_ROUTER;
 
     constructor(AdapterAddresses memory addresses)
         public
     {
-        SUSHISWAP_V2_ROUTER = IUniswapV2Router02(addresses.sushiswapV2Router);
+        SUSHISWAP_ROUTER = IUniswapV2Router02(addresses.sushiswapRouter);
     }
 
     function _tradeSushiswap(
@@ -58,11 +58,11 @@ contract MixinSushiswap is
         );
         // Grant the Uniswap router an allowance to sell the first token.
         IERC20TokenV06(path[0]).approveIfBelow(
-            address(SUSHISWAP_V2_ROUTER),
+            address(SUSHISWAP_ROUTER),
             sellAmount
         );
 
-        uint[] memory amounts = SUSHISWAP_V2_ROUTER.swapExactTokensForTokens(
+        uint[] memory amounts = SUSHISWAP_ROUTER.swapExactTokensForTokens(
              // Sell all tokens we hold.
             sellAmount,
              // Minimum buy amount.

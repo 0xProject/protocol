@@ -40,7 +40,7 @@ contract MixinAdapterAddresses
         // Exchanges
         address kyberNetworkProxy;
         address oasis;
-        address sushiswapV2Router;
+        address sushiswapRouter;
         address uniswapV2Router;
         address uniswapExchangeFactory;
         address mStable;
