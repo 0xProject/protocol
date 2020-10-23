@@ -6,7 +6,8 @@
                 "note": "Use the exchange proxy as the primary allowance target",
                 "pr": 3
             }
-        ]
+        ],
+        "timestamp": 1603487270
     },
     {
         "version": "0.3.0",

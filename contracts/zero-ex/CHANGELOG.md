@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.4.0 - _October 23, 2020_
+
+    * Use the exchange proxy as the primary allowance target (#3)
+
 ## v0.3.0 - _October 21, 2020_
 
     * Internal audit fixes (#2657)

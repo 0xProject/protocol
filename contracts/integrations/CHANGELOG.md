@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v2.7.1 - _October 23, 2020_
+
+    * Dependencies updated
+
 ## v2.7.0 - _October 21, 2020_
 
     * Update curveBridge tests (#2633)

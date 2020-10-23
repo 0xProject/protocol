@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.7.1 - _October 23, 2020_
+
+    * Dependencies updated
+
 ## v4.7.0 - _October 21, 2020_
 
     * Return quoteReport from SwapQuoter functions (#2627)
