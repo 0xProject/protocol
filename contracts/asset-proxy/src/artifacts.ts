@@ -49,6 +49,7 @@ import * as Ownable from '../generated-artifacts/Ownable.json';
 import * as ShellBridge from '../generated-artifacts/ShellBridge.json';
 import * as StaticCallProxy from '../generated-artifacts/StaticCallProxy.json';
 import * as SushiSwapBridge from '../generated-artifacts/SushiSwapBridge.json';
+import * as SwerveBridge from '../generated-artifacts/SwerveBridge.json';
 import * as TestBancorBridge from '../generated-artifacts/TestBancorBridge.json';
 import * as TestChaiBridge from '../generated-artifacts/TestChaiBridge.json';
 import * as TestDexForwarderBridge from '../generated-artifacts/TestDexForwarderBridge.json';
@@ -86,6 +87,7 @@ export const artifacts = {
     MooniswapBridge: MooniswapBridge as ContractArtifact,
     ShellBridge: ShellBridge as ContractArtifact,
     SushiSwapBridge: SushiSwapBridge as ContractArtifact,
+    SwerveBridge: SwerveBridge as ContractArtifact,
     UniswapBridge: UniswapBridge as ContractArtifact,
     UniswapV2Bridge: UniswapV2Bridge as ContractArtifact,
     IAssetData: IAssetData as ContractArtifact,
