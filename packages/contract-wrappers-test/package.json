@@ -1,6 +1,6 @@
 {
     "name": "@0x/contract-wrappers-test",
-    "version": "12.2.17",
+    "version": "12.2.18",
     "engines": {
         "node": ">=6.12"
     },
@@ -34,7 +34,7 @@
         "@0x/contract-wrappers": "^13.9.0",
         "@0x/contracts-test-utils": "^5.3.5",
         "@0x/dev-utils": "^3.3.4",
-        "@0x/migrations": "^6.4.1",
+        "@0x/migrations": "^6.4.2",
         "@0x/order-utils": "^10.4.0",
         "@0x/subproviders": "^6.1.5",
         "@0x/ts-doc-gen": "^0.0.28",
