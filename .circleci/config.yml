@@ -28,6 +28,7 @@ jobs:
                   path: ~/repo/packages/abi-gen/test-cli/output
             - store_artifacts:
                   path: ~/repo/packages/contract-wrappers/generated_docs
+            - run: git diff --exit-code yarn.lock
     test-exchange-ganache:
         resource_class: medium+
         docker:
