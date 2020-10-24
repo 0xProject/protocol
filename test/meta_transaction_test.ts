@@ -121,7 +121,7 @@ describe(SUITE_NAME, () => {
                     {
                         field: 'instance',
                         code: ValidationErrorCodes.IncorrectFormat,
-                        reason: 'is not exactly one from <sellAmount>,<buyAmount>',
+                        reason: 'is not exactly one from sellAmount,buyAmount',
                     },
                 ],
             },
@@ -140,7 +140,7 @@ describe(SUITE_NAME, () => {
                     {
                         field: 'instance',
                         code: ValidationErrorCodes.IncorrectFormat,
-                        reason: 'is not exactly one from <sellAmount>,<buyAmount>',
+                        reason: 'is not exactly one from sellAmount,buyAmount',
                     },
                 ],
             },
