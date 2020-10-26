@@ -11,7 +11,6 @@ import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DeploymentConstants from '../test/generated-artifacts/DeploymentConstants.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DummyLiquidityProvider from '../test/generated-artifacts/DummyLiquidityProvider.json';
-import * as DummyLiquidityProviderRegistry from '../test/generated-artifacts/DummyLiquidityProviderRegistry.json';
 import * as ERC20BridgeSampler from '../test/generated-artifacts/ERC20BridgeSampler.json';
 import * as Eth2DaiSampler from '../test/generated-artifacts/Eth2DaiSampler.json';
 import * as IBalancer from '../test/generated-artifacts/IBalancer.json';
@@ -19,7 +18,6 @@ import * as ICurve from '../test/generated-artifacts/ICurve.json';
 import * as IEth2Dai from '../test/generated-artifacts/IEth2Dai.json';
 import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
 import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvider.json';
-import * as ILiquidityProviderRegistry from '../test/generated-artifacts/ILiquidityProviderRegistry.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
@@ -65,7 +63,6 @@ export const artifacts = {
     IEth2Dai: IEth2Dai as ContractArtifact,
     IKyberNetwork: IKyberNetwork as ContractArtifact,
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
-    ILiquidityProviderRegistry: ILiquidityProviderRegistry as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
     IMooniswap: IMooniswap as ContractArtifact,
     IMultiBridge: IMultiBridge as ContractArtifact,
@@ -73,7 +70,6 @@ export const artifacts = {
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
     IUniswapV2Router01: IUniswapV2Router01 as ContractArtifact,
     DummyLiquidityProvider: DummyLiquidityProvider as ContractArtifact,
-    DummyLiquidityProviderRegistry: DummyLiquidityProviderRegistry as ContractArtifact,
     TestERC20BridgeSampler: TestERC20BridgeSampler as ContractArtifact,
     TestNativeOrderSampler: TestNativeOrderSampler as ContractArtifact,
 };

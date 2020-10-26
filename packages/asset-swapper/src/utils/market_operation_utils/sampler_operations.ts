@@ -7,11 +7,17 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BalancerPoolsCache, computeBalancerBuyQuote, computeBalancerSellQuote } from './balancer_utils';
 import { BancorService } from './bancor_service';
-import { MAINNET_SUSHI_SWAP_ROUTER, MAX_UINT256, NULL_BYTES, ZERO_AMOUNT } from './constants';
+import {
+    LIQUIDITY_PROVIDER_REGISTRY,
+    MAINNET_SUSHI_SWAP_ROUTER,
+    MAX_UINT256,
+    NULL_BYTES,
+    ZERO_AMOUNT,
+} from './constants';
 import { CreamPoolsCache } from './cream_utils';
 import { getCurveInfosForPair, getSnowSwapInfosForPair, getSwerveInfosForPair } from './curve_utils';
 import { getKyberReserveIdsForPair } from './kyber_utils';
-import { getMultiBridgeIntermediateToken } from './multibridge_utils';
+import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { getShellsForPair } from './shell_utils';
@@ -28,8 +34,8 @@ import {
     HopInfo,
     KyberFillData,
     LiquidityProviderFillData,
+    LiquidityProviderRegistry,
     MooniswapFillData,
-    MultiBridgeFillData,
     MultiHopFillData,
     ShellFillData,
     SnowSwapFillData,
@@ -47,7 +53,6 @@ import {
  */
 export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
     ERC20BridgeSource.MultiHop,
-    ERC20BridgeSource.MultiBridge,
     ERC20BridgeSource.Native,
 ]);
 /**
@@ -80,6 +85,8 @@ export class SamplerOperations {
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
         protected readonly getBancorServiceFn?: () => BancorService, // for dependency injection in tests
+        protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = {},
+        public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
     ) {}
 
     public async getBancorServiceAsync(): Promise<BancorService> {
@@ -221,64 +228,32 @@ export class SamplerOperations {
     }
 
     public getLiquidityProviderSellQuotes(
-        registryAddress: string,
+        providerAddress: string,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<LiquidityProviderFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.LiquidityProvider,
-            fillData: {} as LiquidityProviderFillData, // tslint:disable-line:no-object-literal-type-assertion
+            fillData: { poolAddress: providerAddress },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromLiquidityProviderRegistry,
-            params: [registryAddress, takerToken, makerToken, takerFillAmounts],
-            callback: (callResults: string, fillData: LiquidityProviderFillData): BigNumber[] => {
-                const [samples, poolAddress] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], string]>(
-                    'sampleSellsFromLiquidityProviderRegistry',
-                    callResults,
-                );
-                fillData.poolAddress = poolAddress;
-                return samples;
-            },
+            function: this._samplerContract.sampleSellsFromLiquidityProvider,
+            params: [providerAddress, takerToken, makerToken, takerFillAmounts],
         });
     }
 
     public getLiquidityProviderBuyQuotes(
-        registryAddress: string,
+        providerAddress: string,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<LiquidityProviderFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.LiquidityProvider,
-            fillData: {} as LiquidityProviderFillData, // tslint:disable-line:no-object-literal-type-assertion
+            fillData: { poolAddress: providerAddress },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromLiquidityProviderRegistry,
-            params: [registryAddress, takerToken, makerToken, makerFillAmounts],
-            callback: (callResults: string, fillData: LiquidityProviderFillData): BigNumber[] => {
-                const [samples, poolAddress] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], string]>(
-                    'sampleBuysFromLiquidityProviderRegistry',
-                    callResults,
-                );
-                fillData.poolAddress = poolAddress;
-                return samples;
-            },
-        });
-    }
-
-    public getMultiBridgeSellQuotes(
-        multiBridgeAddress: string,
-        makerToken: string,
-        intermediateToken: string,
-        takerToken: string,
-        takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<MultiBridgeFillData> {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.MultiBridge,
-            fillData: { poolAddress: multiBridgeAddress },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromMultiBridge,
-            params: [multiBridgeAddress, takerToken, intermediateToken, makerToken, takerFillAmounts],
+            function: this._samplerContract.sampleBuysFromLiquidityProvider,
+            params: [providerAddress, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -670,14 +645,12 @@ export class SamplerOperations {
         takerToken: string,
         sellAmount: BigNumber,
         wethAddress: string,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
-        liquidityProviderRegistryAddress?: string,
     ): BatchedOperation<Array<DexSample<MultiHopFillData>>> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
         if (_sources.length === 0) {
             return SamplerOperations.constant([]);
         }
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph, wethAddress);
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph, wethAddress);
         const subOps = intermediateTokens.map(intermediateToken => {
             const firstHopOps = this._getSellQuoteOperations(
                 _sources,
@@ -685,8 +658,6 @@ export class SamplerOperations {
                 takerToken,
                 [ZERO_AMOUNT],
                 wethAddress,
-                tokenAdjacencyGraph,
-                liquidityProviderRegistryAddress,
             );
             const secondHopOps = this._getSellQuoteOperations(
                 _sources,
@@ -694,8 +665,6 @@ export class SamplerOperations {
                 intermediateToken,
                 [ZERO_AMOUNT],
                 wethAddress,
-                tokenAdjacencyGraph,
-                liquidityProviderRegistryAddress,
             );
             return new SamplerContractOperation({
                 contract: this._samplerContract,
@@ -748,14 +717,12 @@ export class SamplerOperations {
         takerToken: string,
         buyAmount: BigNumber,
         wethAddress: string,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
-        liquidityProviderRegistryAddress?: string,
     ): BatchedOperation<Array<DexSample<MultiHopFillData>>> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
         if (_sources.length === 0) {
             return SamplerOperations.constant([]);
         }
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph, wethAddress);
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph, wethAddress);
         const subOps = intermediateTokens.map(intermediateToken => {
             const firstHopOps = this._getBuyQuoteOperations(
                 _sources,
@@ -763,8 +730,6 @@ export class SamplerOperations {
                 takerToken,
                 [new BigNumber(0)],
                 wethAddress,
-                tokenAdjacencyGraph, // TODO is this a bad idea?
-                liquidityProviderRegistryAddress,
             );
             const secondHopOps = this._getBuyQuoteOperations(
                 _sources,
@@ -772,8 +737,6 @@ export class SamplerOperations {
                 intermediateToken,
                 [new BigNumber(0)],
                 wethAddress,
-                tokenAdjacencyGraph,
-                liquidityProviderRegistryAddress,
             );
             return new SamplerContractOperation({
                 contract: this._samplerContract,
@@ -936,52 +899,42 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmount: BigNumber,
-        liquidityProviderRegistryAddress?: string,
-        multiBridgeAddress?: string,
+        wethAddress: string,
     ): BatchedOperation<BigNumber> {
         if (makerToken.toLowerCase() === takerToken.toLowerCase()) {
             return SamplerOperations.constant(new BigNumber(1));
         }
-        const getSellQuotes = this.getSellQuotes(
+        const subOps = this._getSellQuoteOperations(
             sources,
             makerToken,
             takerToken,
             [takerFillAmount],
-            NULL_ADDRESS, // weth address
-            {}, // token adjacency
-            liquidityProviderRegistryAddress,
-            multiBridgeAddress,
+            NULL_ADDRESS,
+            {},
         );
         return {
             encodeCall: () => {
-                const encodedCall = getSellQuotes.encodeCall();
-                // All soures were excluded
-                if (encodedCall === NULL_BYTES) {
-                    return NULL_BYTES;
-                }
-                return this._samplerContract.batchCall([encodedCall]).getABIEncodedTransactionData();
+                const subCalls = subOps.map(op => op.encodeCall());
+                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
             },
             handleCallResults: callResults => {
-                if (callResults === NULL_BYTES) {
-                    return ZERO_AMOUNT;
-                }
                 const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
                     'batchCall',
                     callResults,
                 );
-                const samples = getSellQuotes.handleCallResults(rawSubCallResults[0]);
+                const samples = subOps.map((op, i) => op.handleCallResults(rawSubCallResults[i]));
                 if (samples.length === 0) {
                     return ZERO_AMOUNT;
                 }
                 const flatSortedSamples = samples
                     .reduce((acc, v) => acc.concat(...v))
-                    .filter(v => !v.output.isZero())
-                    .sort((a, b) => a.output.comparedTo(b.output));
+                    .filter(v => !v.isZero())
+                    .sort((a, b) => a.comparedTo(b));
                 if (flatSortedSamples.length === 0) {
                     return ZERO_AMOUNT;
                 }
                 const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
-                return medianSample.output.div(medianSample.input);
+                return medianSample.div(takerFillAmount);
             },
         };
     }
@@ -992,20 +945,8 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmounts: BigNumber[],
         wethAddress: string,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
-        liquidityProviderRegistryAddress?: string,
-        multiBridgeAddress?: string,
     ): BatchedOperation<DexSample[][]> {
-        const subOps = this._getSellQuoteOperations(
-            sources,
-            makerToken,
-            takerToken,
-            takerFillAmounts,
-            wethAddress,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistryAddress,
-            multiBridgeAddress,
-        );
+        const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, takerFillAmounts, wethAddress);
         return {
             encodeCall: () => {
                 const subCalls = subOps.map(op => op.encodeCall());
@@ -1035,18 +976,8 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
         wethAddress: string,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
-        liquidityProviderRegistryAddress?: string,
     ): BatchedOperation<DexSample[][]> {
-        const subOps = this._getBuyQuoteOperations(
-            sources,
-            makerToken,
-            takerToken,
-            makerFillAmounts,
-            wethAddress,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistryAddress,
-        );
+        const subOps = this._getBuyQuoteOperations(sources, makerToken, takerToken, makerFillAmounts, wethAddress);
         return {
             encodeCall: () => {
                 const subCalls = subOps.map(op => op.encodeCall());
@@ -1076,138 +1007,108 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmounts: BigNumber[],
         wethAddress: string,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
-        liquidityProviderRegistryAddress?: string,
-        multiBridgeAddress?: string,
+        tokenAdjacencyGraph = this.tokenAdjacencyGraph,
     ): SourceQuoteOperation[] {
-        const _sources = BATCH_SOURCE_FILTERS.exclude(
-            liquidityProviderRegistryAddress ? [] : [ERC20BridgeSource.LiquidityProvider],
-        )
-            .exclude(multiBridgeAddress || multiBridgeAddress === NULL_ADDRESS ? [] : [ERC20BridgeSource.MultiBridge])
-            .getAllowed(sources);
-
         // Find the adjacent tokens in the provided tooken adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
         const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph, wethAddress);
-
+        const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
         return _.flatten(
-            _sources.map(
-                (source): SourceQuoteOperation | SourceQuoteOperation[] => {
-                    switch (source) {
-                        case ERC20BridgeSource.Eth2Dai:
-                            return this.getEth2DaiSellQuotes(makerToken, takerToken, takerFillAmounts);
-                        case ERC20BridgeSource.Uniswap:
-                            return this.getUniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
-                        case ERC20BridgeSource.UniswapV2:
-                            const ops = [this.getUniswapV2SellQuotes([takerToken, makerToken], takerFillAmounts)];
-                            intermediateTokens.forEach(t => {
-                                ops.push(this.getUniswapV2SellQuotes([takerToken, t, makerToken], takerFillAmounts));
-                            });
-                            return ops;
-                        case ERC20BridgeSource.SushiSwap:
-                            const sushiOps = [this.getSushiSwapSellQuotes([takerToken, makerToken], takerFillAmounts)];
-                            intermediateTokens.forEach(t => {
-                                sushiOps.push(
-                                    this.getSushiSwapSellQuotes([takerToken, t, makerToken], takerFillAmounts),
-                                );
-                            });
-                            return sushiOps;
-                        case ERC20BridgeSource.Kyber:
-                            return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
-                                this.getKyberSellQuotes(reserveId, makerToken, takerToken, takerFillAmounts),
-                            );
-                        case ERC20BridgeSource.Curve:
-                            return getCurveInfosForPair(takerToken, makerToken).map(pool =>
-                                this.getCurveSellQuotes(
-                                    pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
-                                    takerFillAmounts,
-                                ),
-                            );
-                        case ERC20BridgeSource.Swerve:
-                            return getSwerveInfosForPair(takerToken, makerToken).map(pool =>
-                                this.getSwerveSellQuotes(
-                                    pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
-                                    takerFillAmounts,
-                                ),
-                            );
-                        case ERC20BridgeSource.SnowSwap:
-                            return getSnowSwapInfosForPair(takerToken, makerToken).map(pool =>
-                                this.getSnowSwapSellQuotes(
-                                    pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
-                                    takerFillAmounts,
-                                ),
-                            );
-                        case ERC20BridgeSource.LiquidityProvider:
-                            if (liquidityProviderRegistryAddress === undefined) {
-                                throw new Error(
-                                    'Cannot sample liquidity from a LiquidityProvider liquidity pool, if a registry is not provided.',
-                                );
-                            }
-                            return this.getLiquidityProviderSellQuotes(
-                                liquidityProviderRegistryAddress,
-                                makerToken,
-                                takerToken,
+            _sources.map((source): SourceQuoteOperation | SourceQuoteOperation[] => {
+                switch (source) {
+                    case ERC20BridgeSource.Eth2Dai:
+                        return this.getEth2DaiSellQuotes(makerToken, takerToken, takerFillAmounts);
+                    case ERC20BridgeSource.Uniswap:
+                        return this.getUniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
+                    case ERC20BridgeSource.UniswapV2:
+                        const ops = [this.getUniswapV2SellQuotes([takerToken, makerToken], takerFillAmounts)];
+                        intermediateTokens.forEach(t => {
+                            ops.push(this.getUniswapV2SellQuotes([takerToken, t, makerToken], takerFillAmounts));
+                        });
+                        return ops;
+                    case ERC20BridgeSource.SushiSwap:
+                        const sushiOps = [this.getSushiSwapSellQuotes([takerToken, makerToken], takerFillAmounts)];
+                        intermediateTokens.forEach(t => {
+                            sushiOps.push(this.getSushiSwapSellQuotes([takerToken, t, makerToken], takerFillAmounts));
+                        });
+                        return sushiOps;
+                    case ERC20BridgeSource.Kyber:
+                        return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
+                            this.getKyberSellQuotes(reserveId, makerToken, takerToken, takerFillAmounts),
+                        );
+                    case ERC20BridgeSource.Curve:
+                        return getCurveInfosForPair(takerToken, makerToken).map(pool =>
+                            this.getCurveSellQuotes(
+                                pool,
+                                pool.tokens.indexOf(takerToken),
+                                pool.tokens.indexOf(makerToken),
                                 takerFillAmounts,
-                            );
-                        case ERC20BridgeSource.MultiBridge:
-                            if (multiBridgeAddress === undefined) {
-                                throw new Error(
-                                    'Cannot sample liquidity from MultiBridge if an address is not provided.',
-                                );
-                            }
-                            const intermediateToken = getMultiBridgeIntermediateToken(takerToken, makerToken);
-                            return this.getMultiBridgeSellQuotes(
-                                multiBridgeAddress,
-                                makerToken,
-                                intermediateToken,
-                                takerToken,
+                            ),
+                        );
+                    case ERC20BridgeSource.Swerve:
+                        return getSwerveInfosForPair(takerToken, makerToken).map(pool =>
+                            this.getSwerveSellQuotes(
+                                pool,
+                                pool.tokens.indexOf(takerToken),
+                                pool.tokens.indexOf(makerToken),
                                 takerFillAmounts,
+                            ),
+                        );
+                    case ERC20BridgeSource.SnowSwap:
+                        return getSnowSwapInfosForPair(takerToken, makerToken).map(pool =>
+                            this.getSnowSwapSellQuotes(
+                                pool,
+                                pool.tokens.indexOf(takerToken),
+                                pool.tokens.indexOf(makerToken),
+                                takerFillAmounts,
+                            ),
+                        );
+                    case ERC20BridgeSource.LiquidityProvider:
+                        return getLiquidityProvidersForPair(
+                            this.liquidityProviderRegistry,
+                            takerToken,
+                            makerToken,
+                        ).map(pool =>
+                            this.getLiquidityProviderSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                        );
+                    case ERC20BridgeSource.MStable:
+                        return this.getMStableSellQuotes(makerToken, takerToken, takerFillAmounts);
+                    case ERC20BridgeSource.Mooniswap:
+                        return this.getMooniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
+                    case ERC20BridgeSource.Balancer:
+                        return this.balancerPoolsCache
+                            .getCachedPoolAddressesForPair(takerToken, makerToken)!
+                            .map(poolAddress =>
+                                this.getBalancerSellQuotes(
+                                    poolAddress,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                    ERC20BridgeSource.Balancer,
+                                ),
                             );
-                        case ERC20BridgeSource.MStable:
-                            return this.getMStableSellQuotes(makerToken, takerToken, takerFillAmounts);
-                        case ERC20BridgeSource.Mooniswap:
-                            return this.getMooniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
-                        case ERC20BridgeSource.Balancer:
-                            return this.balancerPoolsCache
-                                .getCachedPoolAddressesForPair(takerToken, makerToken)!
-                                .map(poolAddress =>
-                                    this.getBalancerSellQuotes(
-                                        poolAddress,
-                                        makerToken,
-                                        takerToken,
-                                        takerFillAmounts,
-                                        ERC20BridgeSource.Balancer,
-                                    ),
-                                );
-                        case ERC20BridgeSource.Cream:
-                            return this.creamPoolsCache
-                                .getCachedPoolAddressesForPair(takerToken, makerToken)!
-                                .map(poolAddress =>
-                                    this.getBalancerSellQuotes(
-                                        poolAddress,
-                                        makerToken,
-                                        takerToken,
-                                        takerFillAmounts,
-                                        ERC20BridgeSource.Cream,
-                                    ),
-                                );
-                        case ERC20BridgeSource.Shell:
-                            return getShellsForPair(takerToken, makerToken).map(pool =>
-                                this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                    case ERC20BridgeSource.Cream:
+                        return this.creamPoolsCache
+                            .getCachedPoolAddressesForPair(takerToken, makerToken)!
+                            .map(poolAddress =>
+                                this.getBalancerSellQuotes(
+                                    poolAddress,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                    ERC20BridgeSource.Cream,
+                                ),
                             );
-                        case ERC20BridgeSource.Dodo:
-                            return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
-                        default:
-                            throw new Error(`Unsupported sell sample source: ${source}`);
-                    }
-                },
-            ),
+                    case ERC20BridgeSource.Shell:
+                        return getShellsForPair(takerToken, makerToken).map(pool =>
+                            this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                        );
+                    case ERC20BridgeSource.Dodo:
+                        return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
+                    default:
+                        throw new Error(`Unsupported sell sample source: ${source}`);
+                }
+            }),
         );
     }
 
@@ -1217,121 +1118,107 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
         wethAddress: string,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
-        liquidityProviderRegistryAddress?: string,
     ): SourceQuoteOperation[] {
-        const _sources = BATCH_SOURCE_FILTERS.exclude(
-            liquidityProviderRegistryAddress ? [] : [ERC20BridgeSource.LiquidityProvider],
-        ).getAllowed(sources);
-
         // Find the adjacent tokens in the provided tooken adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph, wethAddress);
-
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph, wethAddress);
+        const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
         return _.flatten(
-            _sources.map(
-                (source): SourceQuoteOperation | SourceQuoteOperation[] => {
-                    switch (source) {
-                        case ERC20BridgeSource.Eth2Dai:
-                            return this.getEth2DaiBuyQuotes(makerToken, takerToken, makerFillAmounts);
-                        case ERC20BridgeSource.Uniswap:
-                            return this.getUniswapBuyQuotes(makerToken, takerToken, makerFillAmounts);
-                        case ERC20BridgeSource.UniswapV2:
-                            const ops = [this.getUniswapV2BuyQuotes([takerToken, makerToken], makerFillAmounts)];
-                            intermediateTokens.forEach(t => {
-                                ops.push(this.getUniswapV2BuyQuotes([takerToken, t, makerToken], makerFillAmounts));
-                            });
-                            return ops;
-                        case ERC20BridgeSource.SushiSwap:
-                            const sushiOps = [this.getSushiSwapBuyQuotes([takerToken, makerToken], makerFillAmounts)];
-                            intermediateTokens.forEach(t => {
-                                sushiOps.push(
-                                    this.getSushiSwapBuyQuotes([takerToken, t, makerToken], makerFillAmounts),
-                                );
-                            });
-                            return sushiOps;
-                        case ERC20BridgeSource.Kyber:
-                            return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
-                                this.getKyberBuyQuotes(reserveId, makerToken, takerToken, makerFillAmounts),
-                            );
-                        case ERC20BridgeSource.Curve:
-                            return getCurveInfosForPair(takerToken, makerToken).map(pool =>
-                                this.getCurveBuyQuotes(
-                                    pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
-                                    makerFillAmounts,
-                                ),
-                            );
-                        case ERC20BridgeSource.Swerve:
-                            return getSwerveInfosForPair(takerToken, makerToken).map(pool =>
-                                this.getSwerveBuyQuotes(
-                                    pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
-                                    makerFillAmounts,
-                                ),
-                            );
-                        case ERC20BridgeSource.SnowSwap:
-                            return getSnowSwapInfosForPair(takerToken, makerToken).map(pool =>
-                                this.getSnowSwapBuyQuotes(
-                                    pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
-                                    makerFillAmounts,
-                                ),
-                            );
-                        case ERC20BridgeSource.LiquidityProvider:
-                            if (liquidityProviderRegistryAddress === undefined) {
-                                throw new Error(
-                                    'Cannot sample liquidity from a LiquidityProvider liquidity pool, if a registry is not provided.',
-                                );
-                            }
-                            return this.getLiquidityProviderBuyQuotes(
-                                liquidityProviderRegistryAddress,
-                                makerToken,
-                                takerToken,
+            _sources.map((source): SourceQuoteOperation | SourceQuoteOperation[] => {
+                switch (source) {
+                    case ERC20BridgeSource.Eth2Dai:
+                        return this.getEth2DaiBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                    case ERC20BridgeSource.Uniswap:
+                        return this.getUniswapBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                    case ERC20BridgeSource.UniswapV2:
+                        const ops = [this.getUniswapV2BuyQuotes([takerToken, makerToken], makerFillAmounts)];
+                        intermediateTokens.forEach(t => {
+                            ops.push(this.getUniswapV2BuyQuotes([takerToken, t, makerToken], makerFillAmounts));
+                        });
+                        return ops;
+                    case ERC20BridgeSource.SushiSwap:
+                        const sushiOps = [this.getSushiSwapBuyQuotes([takerToken, makerToken], makerFillAmounts)];
+                        intermediateTokens.forEach(t => {
+                            sushiOps.push(this.getSushiSwapBuyQuotes([takerToken, t, makerToken], makerFillAmounts));
+                        });
+                        return sushiOps;
+                    case ERC20BridgeSource.Kyber:
+                        return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
+                            this.getKyberBuyQuotes(reserveId, makerToken, takerToken, makerFillAmounts),
+                        );
+                    case ERC20BridgeSource.Curve:
+                        return getCurveInfosForPair(takerToken, makerToken).map(pool =>
+                            this.getCurveBuyQuotes(
+                                pool,
+                                pool.tokens.indexOf(takerToken),
+                                pool.tokens.indexOf(makerToken),
                                 makerFillAmounts,
+                            ),
+                        );
+                    case ERC20BridgeSource.Swerve:
+                        return getSwerveInfosForPair(takerToken, makerToken).map(pool =>
+                            this.getSwerveBuyQuotes(
+                                pool,
+                                pool.tokens.indexOf(takerToken),
+                                pool.tokens.indexOf(makerToken),
+                                makerFillAmounts,
+                            ),
+                        );
+                    case ERC20BridgeSource.SnowSwap:
+                        return getSnowSwapInfosForPair(takerToken, makerToken).map(pool =>
+                            this.getSnowSwapBuyQuotes(
+                                pool,
+                                pool.tokens.indexOf(takerToken),
+                                pool.tokens.indexOf(makerToken),
+                                makerFillAmounts,
+                            ),
+                        );
+                    case ERC20BridgeSource.LiquidityProvider:
+                        return getLiquidityProvidersForPair(
+                            this.liquidityProviderRegistry,
+                            takerToken,
+                            makerToken,
+                        ).map(pool =>
+                            this.getLiquidityProviderBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                        );
+                    case ERC20BridgeSource.MStable:
+                        return this.getMStableBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                    case ERC20BridgeSource.Mooniswap:
+                        return this.getMooniswapBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                    case ERC20BridgeSource.Balancer:
+                        return this.balancerPoolsCache
+                            .getCachedPoolAddressesForPair(takerToken, makerToken)!
+                            .map(poolAddress =>
+                                this.getBalancerBuyQuotes(
+                                    poolAddress,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                    ERC20BridgeSource.Balancer,
+                                ),
                             );
-                        case ERC20BridgeSource.MStable:
-                            return this.getMStableBuyQuotes(makerToken, takerToken, makerFillAmounts);
-                        case ERC20BridgeSource.Mooniswap:
-                            return this.getMooniswapBuyQuotes(makerToken, takerToken, makerFillAmounts);
-                        case ERC20BridgeSource.Balancer:
-                            return this.balancerPoolsCache
-                                .getCachedPoolAddressesForPair(takerToken, makerToken)!
-                                .map(poolAddress =>
-                                    this.getBalancerBuyQuotes(
-                                        poolAddress,
-                                        makerToken,
-                                        takerToken,
-                                        makerFillAmounts,
-                                        ERC20BridgeSource.Balancer,
-                                    ),
-                                );
-                        case ERC20BridgeSource.Cream:
-                            return this.creamPoolsCache
-                                .getCachedPoolAddressesForPair(takerToken, makerToken)!
-                                .map(poolAddress =>
-                                    this.getBalancerBuyQuotes(
-                                        poolAddress,
-                                        makerToken,
-                                        takerToken,
-                                        makerFillAmounts,
-                                        ERC20BridgeSource.Cream,
-                                    ),
-                                );
-                        case ERC20BridgeSource.Shell:
-                            return getShellsForPair(takerToken, makerToken).map(pool =>
-                                this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                    case ERC20BridgeSource.Cream:
+                        return this.creamPoolsCache
+                            .getCachedPoolAddressesForPair(takerToken, makerToken)!
+                            .map(poolAddress =>
+                                this.getBalancerBuyQuotes(
+                                    poolAddress,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                    ERC20BridgeSource.Cream,
+                                ),
                             );
-                        case ERC20BridgeSource.Dodo:
-                            return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
-                        default:
-                            throw new Error(`Unsupported buy sample source: ${source}`);
-                    }
-                },
-            ),
+                    case ERC20BridgeSource.Shell:
+                        return getShellsForPair(takerToken, makerToken).map(pool =>
+                            this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                        );
+                    case ERC20BridgeSource.Dodo:
+                        return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                    default:
+                        throw new Error(`Unsupported buy sample source: ${source}`);
+                }
+            }),
         );
     }
 }

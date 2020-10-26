@@ -78,7 +78,6 @@ export async function getRfqtIndicativeQuotesAsync(
 
 export class MarketOperationUtils {
     private readonly _wethAddress: string;
-    private readonly _multiBridge: string;
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
     private readonly _feeSources = new SourceFilters(FEE_QUOTE_SOURCES);
@@ -108,19 +107,10 @@ export class MarketOperationUtils {
         private readonly _sampler: DexOrderSampler,
         private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
-        private readonly _liquidityProviderRegistry: string = NULL_ADDRESS,
     ) {
         this._wethAddress = contractAddresses.etherToken.toLowerCase();
-        this._multiBridge = contractAddresses.multiBridge.toLowerCase();
-        const optionalQuoteSources = [];
-        if (this._liquidityProviderRegistry !== NULL_ADDRESS) {
-            optionalQuoteSources.push(ERC20BridgeSource.LiquidityProvider);
-        }
-        if (this._multiBridge !== NULL_ADDRESS) {
-            optionalQuoteSources.push(ERC20BridgeSource.MultiBridge);
-        }
-        this._buySources = BUY_SOURCE_FILTER.validate(optionalQuoteSources);
-        this._sellSources = SELL_SOURCE_FILTER.validate(optionalQuoteSources);
+        this._buySources = BUY_SOURCE_FILTER;
+        this._sellSources = SELL_SOURCE_FILTER;
     }
 
     /**
@@ -181,8 +171,7 @@ export class MarketOperationUtils {
                 makerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
+                this._wethAddress,
             ),
             // Get ETH -> taker token price.
             this._sampler.getMedianSellRate(
@@ -190,8 +179,7 @@ export class MarketOperationUtils {
                 takerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
+                this._wethAddress,
             ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
@@ -200,9 +188,6 @@ export class MarketOperationUtils {
                 takerToken,
                 sampleAmounts,
                 this._wethAddress,
-                _opts.tokenAdjacencyGraph,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
             ),
             this._sampler.getTwoHopSellQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
@@ -210,8 +195,6 @@ export class MarketOperationUtils {
                 takerToken,
                 takerAmount,
                 this._wethAddress,
-                _opts.tokenAdjacencyGraph,
-                this._liquidityProviderRegistry,
             ),
         );
 
@@ -332,8 +315,7 @@ export class MarketOperationUtils {
                 makerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
+                this._wethAddress,
             ),
             // Get ETH -> taker token price.
             this._sampler.getMedianSellRate(
@@ -341,8 +323,7 @@ export class MarketOperationUtils {
                 takerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
+                this._wethAddress,
             ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
@@ -351,8 +332,6 @@ export class MarketOperationUtils {
                 takerToken,
                 sampleAmounts,
                 this._wethAddress,
-                _opts.tokenAdjacencyGraph,
-                this._liquidityProviderRegistry,
             ),
             this._sampler.getTwoHopBuyQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
@@ -360,8 +339,6 @@ export class MarketOperationUtils {
                 takerToken,
                 makerAmount,
                 this._wethAddress,
-                _opts.tokenAdjacencyGraph,
-                this._liquidityProviderRegistry,
             ),
         );
         const isPriceAwareRfqEnabled =
@@ -391,10 +368,6 @@ export class MarketOperationUtils {
             offChainBalancerQuotes,
             offChainCreamQuotes,
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
-        // Attach the MultiBridge address to the sample fillData
-        (dexQuotes.find(quotes => quotes[0] && quotes[0].source === ERC20BridgeSource.MultiBridge) || []).forEach(
-            q => (q.fillData = { poolAddress: this._multiBridge }),
-        );
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         return {
             side: MarketOperation.Buy,

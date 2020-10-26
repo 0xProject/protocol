@@ -150,7 +150,6 @@ export {
     MarketDepth,
     MarketDepthSide,
     MooniswapFillData,
-    MultiBridgeFillData,
     MultiHopFillData,
     NativeCollapsedFill,
     NativeFillData,
