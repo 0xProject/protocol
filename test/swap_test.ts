@@ -15,11 +15,14 @@ import { AFFILIATE_FEE_TRANSFORMER_GAS, GAS_LIMIT_BUFFER_MULTIPLIER, SWAP_PATH }
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
 import { logger } from '../src/logger';
 import { GetSwapQuoteResponse } from '../src/types';
+import { isETHSymbolOrAddress } from '../src/utils/token_metadata_utils';
 
 import {
     CONTRACT_ADDRESSES,
+    ETH_TOKEN_ADDRESS,
     MAX_INT,
     MAX_MINT_AMOUNT,
+    NULL_ADDRESS,
     SYMBOL_TO_ADDRESS,
     UNKNOWN_TOKEN_ADDRESS,
     UNKNOWN_TOKEN_ASSET_DATA,
@@ -147,6 +150,10 @@ describe(SUITE_NAME, () => {
                 { buyToken: ZRX_TOKEN_ADDRESS, sellToken: 'WETH', buyAmount: '1000' },
                 { buyToken: ZRX_TOKEN_ADDRESS, sellToken: WETH_TOKEN_ADDRESS, buyAmount: '1000' },
                 { buyToken: 'ZRX', sellToken: UNKNOWN_TOKEN_ADDRESS, buyAmount: '1000' },
+                { buyToken: 'ZRX', sellToken: 'ETH', buyAmount: '1000' },
+                { buyToken: 'ETH', sellToken: 'ZRX', buyAmount: '1000' },
+                { buyToken: 'ZRX', sellToken: ETH_TOKEN_ADDRESS, buyAmount: '1000' },
+                { buyToken: ETH_TOKEN_ADDRESS, sellToken: 'ZRX', buyAmount: '1000' },
             ];
             for (const parameters of parameterPermutations) {
                 it(`should return a valid quote with ${JSON.stringify(parameters)}`, async () => {
@@ -158,7 +165,9 @@ describe(SUITE_NAME, () => {
                         buyTokenAddress: parameters.buyToken.startsWith('0x')
                             ? parameters.buyToken
                             : SYMBOL_TO_ADDRESS[parameters.buyToken],
-                        allowanceTarget: CONTRACT_ADDRESSES.exchangeProxyAllowanceTarget,
+                        allowanceTarget: isETHSymbolOrAddress(parameters.sellToken)
+                            ? NULL_ADDRESS
+                            : CONTRACT_ADDRESSES.exchangeProxyAllowanceTarget,
                     });
                 });
             }

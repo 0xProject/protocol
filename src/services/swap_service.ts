@@ -13,7 +13,7 @@ import {
 import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/types';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
-import { assetDataUtils, SupportedProvider } from '@0x/order-utils';
+import { assetDataUtils, ETH_TOKEN_ADDRESS, SupportedProvider } from '@0x/order-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
@@ -196,8 +196,9 @@ export class SwapService {
             gasPrice,
             protocolFee: adjustedWorstCaseProtocolFee,
             minimumProtocolFee: BigNumber.min(adjustedWorstCaseProtocolFee, bestCaseProtocolFee),
-            buyTokenAddress,
-            sellTokenAddress,
+            // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
+            buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyTokenAddress,
+            sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellTokenAddress,
             buyAmount: makerAssetAmount.minus(buyTokenFeeAmount),
             sellAmount: totalTakerAssetAmount,
             sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),

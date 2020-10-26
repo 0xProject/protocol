@@ -36,7 +36,11 @@ import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { isRateLimitedMetaTransactionResponse, MetaTransactionRateLimiter } from '../utils/rate-limiters';
 import { schemaUtils } from '../utils/schema_utils';
-import { findTokenAddressOrThrowApiError, getTokenMetadataIfExists, isETHSymbol } from '../utils/token_metadata_utils';
+import {
+    findTokenAddressOrThrowApiError,
+    getTokenMetadataIfExists,
+    isETHSymbolOrAddress,
+} from '../utils/token_metadata_utils';
 
 export class MetaTransactionHandlers {
     private readonly _metaTransactionService: MetaTransactionService;
@@ -78,10 +82,10 @@ export class MetaTransactionHandlers {
         } = params;
         const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
         const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
-        const isETHBuy = isETHSymbol(buyToken!.symbol);
+        const isETHBuy = isETHSymbolOrAddress(buyToken!.symbol);
 
         // ETH selling isn't supported.
-        if (isETHSymbol(sellToken!.symbol)) {
+        if (isETHSymbolOrAddress(sellToken!.symbol)) {
             throw new EthSellNotSupportedError();
         }
 
@@ -98,9 +102,9 @@ export class MetaTransactionHandlers {
                 apiKey,
                 includePriceComparisons,
                 isETHBuy,
+                isETHSell: false,
                 affiliateFee,
                 from: takerAddress,
-                isETHSell: false,
             });
 
             let priceComparisons: SourceComparison[] | undefined;
@@ -188,8 +192,13 @@ export class MetaTransactionHandlers {
         } = parseGetTransactionRequestParams(req);
         const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
         const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
-        const isETHSell = isETHSymbol(sellToken!.symbol);
-        const isETHBuy = isETHSymbol(buyToken!.symbol);
+        const isETHBuy = isETHSymbolOrAddress(buyToken!.symbol);
+
+        // ETH selling isn't supported.
+        if (isETHSymbolOrAddress(sellToken!.symbol)) {
+            throw new EthSellNotSupportedError();
+        }
+
         try {
             const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync({
                 takerAddress,
@@ -204,7 +213,7 @@ export class MetaTransactionHandlers {
                 apiKey,
                 includePriceComparisons,
                 isETHBuy,
-                isETHSell,
+                isETHSell: false,
                 affiliateFee,
             });
 

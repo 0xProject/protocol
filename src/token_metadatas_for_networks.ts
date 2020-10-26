@@ -1,3 +1,5 @@
+import { ETH_TOKEN_ADDRESS } from '@0x/order-utils';
+
 import { NULL_ADDRESS } from './constants';
 import { ChainId } from './types';
 
@@ -35,6 +37,16 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Mainnet]: '0x1985365e9f78359a9B6AD760e32412f4a445E862',
             [ChainId.Kovan]: '0x4e5cb5a0caca30d1ad27d8cd8200a907854fb518',
             [ChainId.Ganache]: '0x34d402f14d58e001d8efbe6585051bf9706aa064',
+        },
+    },
+    {
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: ETH_TOKEN_ADDRESS,
+            [ChainId.Kovan]: ETH_TOKEN_ADDRESS,
+            [ChainId.Ganache]: ETH_TOKEN_ADDRESS,
         },
     },
     {

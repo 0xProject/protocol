@@ -1,3 +1,5 @@
+import { ETH_TOKEN_ADDRESS } from '@0x/order-utils';
+
 import { ADDRESS_HEX_LENGTH, ETH_SYMBOL, WETH_SYMBOL } from '../constants';
 import { ValidationError, ValidationErrorCodes } from '../errors';
 import { TokenMetadataAndChainAddresses, TokenMetadatasForChains } from '../token_metadatas_for_networks';
@@ -16,7 +18,7 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
             tm => tm.tokenAddresses[chainId].toLowerCase() === tokenAddressOrSymbol.toLowerCase(),
         );
     } else {
-        const normalizedSymbol = (isETHSymbol(tokenAddressOrSymbol) ? 'WETH' : tokenAddressOrSymbol).toLowerCase();
+        const normalizedSymbol = tokenAddressOrSymbol.toLowerCase();
         entry = TokenMetadatasForChains.find(tm => tm.symbol.toLowerCase() === normalizedSymbol);
     }
 
@@ -30,12 +32,15 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
 }
 
 /**
- *  Returns true if this symbol represents ETH
+ *  Returns true if this symbol or address represents ETH
  *
- * @param tokenSymbol the symbol of the token
+ * @param tokenSymbolOrAddress the symbol of the token
  */
-export function isETHSymbol(tokenSymbol: string): boolean {
-    return tokenSymbol.toLowerCase() === ETH_SYMBOL.toLowerCase();
+export function isETHSymbolOrAddress(tokenSymbolOrAddress: string): boolean {
+    return (
+        tokenSymbolOrAddress.toLowerCase() === ETH_SYMBOL.toLowerCase() ||
+        tokenSymbolOrAddress.toLowerCase() === ETH_TOKEN_ADDRESS.toLowerCase()
+    );
 }
 
 /**

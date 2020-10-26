@@ -51,7 +51,10 @@ import {
 import { ethGasStationUtils } from '../utils/gas_station_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { serviceUtils } from '../utils/service_utils';
+import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
 import { utils } from '../utils/utils';
+
+const WETHToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;
 
 interface SwapService {
     calculateSwapQuoteAsync(params: CalculateSwapQuoteParams): Promise<GetSwapQuoteResponse>;
@@ -347,6 +350,9 @@ export class MetaTransactionService {
             },
             isMetaTransaction: true,
             ...params,
+            // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
+            buyTokenAddress: params.isETHBuy ? WETHToken.tokenAddress : params.buyTokenAddress,
+            sellTokenAddress: params.sellTokenAddress,
         };
 
         const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);

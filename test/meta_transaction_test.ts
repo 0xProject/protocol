@@ -15,12 +15,14 @@ import { META_TRANSACTION_PATH, ONE_SECOND_MS, TEN_MINUTES_MS } from '../src/con
 import { GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
 import { GetMetaTransactionQuoteResponse } from '../src/types';
 
+import { ETH_TOKEN_ADDRESS, WETH_ASSET_DATA, ZRX_ASSET_DATA, ZRX_TOKEN_ADDRESS } from './constants';
 import { setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync, httpPostAsync } from './utils/http_utils';
-import { DEFAULT_MAKER_ASSET_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
+import { DEFAULT_MAKER_ASSET_AMOUNT, MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
 import { liquiditySources0xOnly } from './utils/mocks';
 
 const SUITE_NAME = 'meta transactions tests';
+const ONE_THOUSAND_IN_BASE = new BigNumber('1000000000000000000000');
 
 describe(SUITE_NAME, () => {
     let accounts: string[];
@@ -432,6 +434,44 @@ describe(SUITE_NAME, () => {
                     expectedOrders: [validationResults.accepted[0].signedOrder],
                     expectedPrice: '1',
                 });
+            });
+
+            it('should support buying ETH by symbol and 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', async () => {
+                for (const buyToken of ['ETH', ETH_TOKEN_ADDRESS]) {
+                    await meshUtils.addPartialOrdersAsync([
+                        {
+                            makerAssetData: ZRX_ASSET_DATA,
+                            takerAssetData: WETH_ASSET_DATA,
+                            makerAssetAmount: ONE_THOUSAND_IN_BASE,
+                            takerAssetAmount: ONE_THOUSAND_IN_BASE,
+                        },
+                        {
+                            makerAssetData: WETH_ASSET_DATA,
+                            takerAssetData: ZRX_ASSET_DATA,
+                            makerAssetAmount: MAKER_WETH_AMOUNT,
+                            takerAssetAmount: ONE_THOUSAND_IN_BASE,
+                        },
+                    ]);
+                    const args = {
+                        baseRoute: `${META_TRANSACTION_PATH}/quote`,
+                        queryParams: {
+                            buyToken,
+                            sellToken: 'ZRX',
+                            buyAmount: '1000',
+                            excludedSources: EXCLUDED_SOURCES.join(','),
+                            takerAddress,
+                        },
+                    };
+                    const route = constructRoute(args);
+                    const response = await httpGetAsync({ route });
+                    expect(response.type).to.be.eq('application/json');
+                    expect(response.status).to.be.eq(HttpStatus.OK);
+                    expect(response.body).to.include({
+                        buyAmount: '1000',
+                        buyTokenAddress: ETH_TOKEN_ADDRESS,
+                        sellTokenAddress: ZRX_TOKEN_ADDRESS,
+                    });
+                }
             });
 
             it('should return a quote of the cheaper order in Mesh', async () => {
