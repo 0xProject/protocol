@@ -32,7 +32,7 @@ blockchainTests.resets('ProtocolFees', env => {
             weth.address,
         );
         await weth.mint(payer, constants.ONE_ETHER).awaitTransactionSuccessAsync();
-        await weth.approve(protocolFees.address, constants.ONE_ETHER).awaitTransactionSuccessAsync();
+        await weth.approve(protocolFees.address, constants.ONE_ETHER).awaitTransactionSuccessAsync({ from: payer });
     });
 
     describe('_collectProtocolFee()', () => {

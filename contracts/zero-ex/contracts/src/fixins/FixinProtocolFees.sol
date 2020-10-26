@@ -21,6 +21,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../external/FeeCollector.sol";
+import "../features/libs/LibTokenSpender.sol";
 
 /// @dev Helpers for collecting protocol fees.
 abstract contract FixinProtocolFees {
@@ -50,7 +51,7 @@ abstract contract FixinProtocolFees {
 
         if (msg.value == 0) {
             // WETH
-            require(weth.transferFrom(msg.sender, address(feeCollector), amount));
+            LibTokenSpender.spendERC20Tokens(weth, msg.sender, address(feeCollector), amount);
         } else {
             // ETH
             (bool success,) = address(feeCollector).call{value: amount}("");
@@ -80,13 +81,13 @@ abstract contract FixinProtocolFees {
             feeCollector.initialize(weth, staking, poolId);
         }
 
-        if (address(feeCollector).balance > 0) {
+        if (address(feeCollector).balance > 1) {
             feeCollector.convertToWeth(weth);
         }
 
         uint256 bal = weth.balanceOf(address(feeCollector));
         if (bal > 1) {
-            // leave 1 wei behind to avoid high SSTORE cost of zero-->non-zero
+            // Leave 1 wei behind to avoid high SSTORE cost of zero-->non-zero.
             staking.payProtocolFee(
                 address(feeCollector),
                 address(feeCollector),
