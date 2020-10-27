@@ -169,7 +169,10 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         {
             type: 'tuple[]',
             name: 'transformations',
-            components: [{ type: 'uint32', name: 'deploymentNonce' }, { type: 'bytes', name: 'data' }],
+            components: [
+                { type: 'uint32', name: 'deploymentNonce' },
+                { type: 'bytes', name: 'data' },
+            ],
         },
     ]);
 
@@ -187,17 +190,21 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
     const liquidityProviderEncoder = AbiEncoder.createMethod('sellToLiquidityProvider', [
         { type: 'address', name: 'makerToken' },
         { type: 'address', name: 'takerToken' },
+        { type: 'address', name: 'target' },
         { type: 'address', name: 'recipient' },
         { type: 'uint256', name: 'sellAmount' },
         { type: 'uint256', name: 'minBuyAmount' },
+        { type: 'bytes', name: 'auxiliaryData' },
     ]);
 
     interface LiquidityProviderArgs {
         makerToken: string;
         takerToken: string;
+        target: string;
         recipient: string;
         sellAmount: BigNumber;
         minBuyAmount: BigNumber;
+        auxiliaryData: string;
     }
 
     describe('getCalldataOrThrow()', () => {
@@ -396,9 +403,11 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(callArgs).to.deep.equal({
                 makerToken: MAKER_TOKEN,
                 takerToken: TAKER_TOKEN,
+                target: quote.orders[0].makerAddress,
                 recipient: constants.NULL_ADDRESS,
                 sellAmount: quote.worstCaseQuoteInfo.totalTakerAssetAmount,
                 minBuyAmount: getSwapMinBuyAmount(quote),
+                auxiliaryData: constants.NULL_BYTES,
             });
         });
     });

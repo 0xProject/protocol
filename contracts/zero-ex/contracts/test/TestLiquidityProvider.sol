@@ -26,25 +26,26 @@ import "../src/vendor/ILiquidityProvider.sol";
 contract TestLiquidityProvider is
     ILiquidityProvider
 {
-    event ERC20BridgeTransfer(
-        address inputToken,
-        address outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount,
-        address from,
-        address to
+    event SellTokenForToken(
+        address takerToken,
+        address makerToken,
+        address recipient,
+        uint256 minBuyAmount,
+        uint256 takerTokenBalance
     );
 
     event SellEthForToken(
-        address taker,
-        uint256 minMakerAssetAmount,
+        address makerToken,
+        address recipient,
+        uint256 minBuyAmount,
         uint256 ethBalance
     );
 
     event SellTokenForEth(
-        address taker,
-        uint256 minMakerAssetAmount,
-        uint256 tokenBalance
+        address takerToken,
+        address recipient,
+        uint256 minBuyAmount,
+        uint256 takerTokenBalance
     );
 
     IERC20TokenV06 public immutable xAsset;
@@ -59,74 +60,82 @@ contract TestLiquidityProvider is
 
     receive() external payable {}
 
-    /// @dev Transfers `amount` of the ERC20 `tokenAddress` from `from` to `to`.
-    /// @param tokenAddress The address of the ERC20 token to transfer.
-    /// @param from Address to transfer asset from.
-    /// @param to Address to transfer asset to.
-    /// @param amount Amount of asset to transfer.
-    /// @param bridgeData Arbitrary asset data needed by the bridge contract.
-    /// @return success The magic bytes `0xdc1600f3` if successful.
-    function bridgeTransferFrom(
-        address tokenAddress,
-        address from,
-        address to,
-        uint256 amount,
-        bytes calldata bridgeData
+    /// @dev Trades `takerToken` for `makerToken`. The amount of `takerToken`
+    ///      to sell must be transferred to the contract prior to calling this
+    ///      function to trigger the trade.
+    /// @param takerToken The token being sold.
+    /// @param makerToken The token being bought.
+    /// @param recipient The recipient of the bought tokens.
+    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
+    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
+    /// @return boughtAmount The amount of `makerToken` bought.
+    function sellTokenForToken(
+        address takerToken,
+        address makerToken,
+        address recipient,
+        uint256 minBuyAmount,
+        bytes calldata auxiliaryData
     )
         external
         override
-        returns (bytes4 success)
+        returns (uint256 boughtAmount)
     {
-        IERC20TokenV06 takerToken = tokenAddress == address(xAsset) ? yAsset : xAsset;
-        uint256 takerTokenBalance = takerToken.balanceOf(address(this));
-        emit ERC20BridgeTransfer(
-            address(takerToken),
-            tokenAddress,
-            takerTokenBalance,
-            amount,
-            from,
-            to
+        emit SellTokenForToken(
+            takerToken,
+            makerToken,
+            recipient,
+            minBuyAmount,
+            IERC20TokenV06(takerToken).balanceOf(address(this))
         );
-        return 0xdecaf000;
     }
 
     /// @dev Trades ETH for token. ETH must be sent to the contract prior to
     ///      calling this function to trigger the trade.
-    /// @param taker The recipient of the bought tokens.
-    /// @param minMakerAssetAmount The minimum amount of maker asset to buy.
-    /// @return makerAssetAmount The amount of tokens bought.
+    /// @param makerToken The token being bought.
+    /// @param recipient The recipient of the bought tokens.
+    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
+    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
+    /// @return boughtAmount The amount of `makerToken` bought.
     function sellEthForToken(
-        address taker,
-        uint256 minMakerAssetAmount
+        address makerToken,
+        address recipient,
+        uint256 minBuyAmount,
+        bytes calldata auxiliaryData
     )
         external
         override
-        returns (uint256 makerAssetAmount)
+        returns (uint256 boughtAmount)
     {
         emit SellEthForToken(
-            taker,
-            minMakerAssetAmount,
+            makerToken,
+            recipient,
+            minBuyAmount,
             address(this).balance
         );
     }
 
     /// @dev Trades token for ETH. The token must be sent to the contract prior
     ///      to calling this function to trigger the trade.
-    /// @param taker The recipient of the bought ETH.
-    /// @param minMakerAssetAmount The minimum amount of ETH to buy.
-    /// @return makerAssetAmount The amount of ETH bought.
+    /// @param takerToken The token being sold.
+    /// @param recipient The recipient of the bought tokens.
+    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.
+    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
+    /// @return boughtAmount The amount of ETH bought.
     function sellTokenForEth(
-        address payable taker,
-        uint256 minMakerAssetAmount
+        address takerToken,
+        address payable recipient,
+        uint256 minBuyAmount,
+        bytes calldata auxiliaryData
     )
         external
         override
-        returns (uint256 makerAssetAmount)
+        returns (uint256 boughtAmount)
     {
         emit SellTokenForEth(
-            taker,
-            minMakerAssetAmount,
-            xAsset.balanceOf(address(this))
+            takerToken,
+            recipient,
+            minBuyAmount,
+            IERC20TokenV06(takerToken).balanceOf(address(this))
         );
     }
 }

@@ -21,25 +21,54 @@ pragma experimental ABIEncoderV2;
 
 
 interface ILiquidityProviderSandbox {
-    function executeBridgeTransferFrom(
+
+    /// @dev Calls `sellTokenForToken` on the given `target` contract to
+    ///      trigger a trade.
+    /// @param target The address of the on-chain liquidity provider.
+    /// @param takerToken The token being sold.
+    /// @param makerToken The token being bought.
+    /// @param recipient The recipient of the bought tokens.
+    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
+    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
+    function executeSellTokenForToken(
         address target,
-        address makerAssetAddress,
-        address taker,
-        uint256 minMakerAssetAmount
+        address takerToken,
+        address makerToken,
+        address recipient,
+        uint256 minBuyAmount,
+        bytes calldata auxiliaryData
     )
         external;
 
+    /// @dev Calls `sellEthForToken` on the given `target` contract to
+    ///      trigger a trade.
+    /// @param target The address of the on-chain liquidity provider.
+    /// @param makerToken The token being bought.
+    /// @param recipient The recipient of the bought tokens.
+    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
+    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
     function executeSellEthForToken(
         address target,
-        address taker,
-        uint256 minMakerAssetAmount
+        address makerToken,
+        address recipient,
+        uint256 minBuyAmount,
+        bytes calldata auxiliaryData
     )
         external;
 
+    /// @dev Calls `sellTokenForEth` on the given `target` contract to
+    ///      trigger a trade.
+    /// @param target The address of the on-chain liquidity provider.
+    /// @param takerToken The token being sold.
+    /// @param recipient The recipient of the bought tokens.
+    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.
+    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
     function executeSellTokenForEth(
         address target,
-        address taker,
-        uint256 minMakerAssetAmount
+        address takerToken,
+        address recipient,
+        uint256 minBuyAmount,
+        bytes calldata auxiliaryData
     )
         external;
 }

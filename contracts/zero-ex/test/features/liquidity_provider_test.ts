@@ -13,7 +13,7 @@ import {
     TestWethContract,
 } from '../wrappers';
 
-blockchainTests.only('LiquidityProvider feature', env => {
+blockchainTests('LiquidityProvider feature', env => {
     let zeroEx: IZeroExContract;
     let feature: LiquidityProviderFeatureContract;
     let sandbox: LiquidityProviderSandboxContract;
@@ -75,21 +75,40 @@ blockchainTests.only('LiquidityProvider feature', env => {
         );
     });
     blockchainTests.resets('Sandbox', () => {
-        it('Cannot call sandbox `executeBridgeTransferFrom` function directly', async () => {
+        it('Cannot call sandbox `executeSellTokenForToken` function directly', async () => {
             const tx = sandbox
-                .executeBridgeTransferFrom(liquidityProvider.address, weth.address, taker, constants.ZERO_AMOUNT)
+                .executeSellTokenForToken(
+                    liquidityProvider.address,
+                    token.address,
+                    weth.address,
+                    taker,
+                    constants.ZERO_AMOUNT,
+                    constants.NULL_BYTES,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(new OwnableRevertErrors.OnlyOwnerError(taker));
         });
         it('Cannot call sandbox `executeSellEthForToken` function directly', async () => {
             const tx = sandbox
-                .executeSellEthForToken(liquidityProvider.address, taker, constants.ZERO_AMOUNT)
+                .executeSellEthForToken(
+                    liquidityProvider.address,
+                    token.address,
+                    taker,
+                    constants.ZERO_AMOUNT,
+                    constants.NULL_BYTES,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(new OwnableRevertErrors.OnlyOwnerError(taker));
         });
         it('Cannot call sandbox `executeSellTokenForEth` function directly', async () => {
             const tx = sandbox
-                .executeSellTokenForEth(liquidityProvider.address, taker, constants.ZERO_AMOUNT)
+                .executeSellTokenForEth(
+                    liquidityProvider.address,
+                    token.address,
+                    taker,
+                    constants.ZERO_AMOUNT,
+                    constants.NULL_BYTES,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(new OwnableRevertErrors.OnlyOwnerError(taker));
         });
@@ -106,21 +125,21 @@ blockchainTests.only('LiquidityProvider feature', env => {
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     constants.ZERO_AMOUNT,
+                    constants.NULL_BYTES,
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 tx.logs,
                 [
                     {
-                        inputToken: token.address,
-                        outputToken: weth.address,
-                        inputTokenAmount: constants.ONE_ETHER,
-                        outputTokenAmount: constants.ZERO_AMOUNT,
-                        from: constants.NULL_ADDRESS,
-                        to: taker,
+                        takerToken: token.address,
+                        makerToken: weth.address,
+                        recipient: taker,
+                        minBuyAmount: constants.ZERO_AMOUNT,
+                        takerTokenBalance: constants.ONE_ETHER,
                     },
                 ],
-                TestLiquidityProviderEvents.ERC20BridgeTransfer,
+                TestLiquidityProviderEvents.SellTokenForToken,
             );
         });
         it('Reverts if cannot fulfill the minimum buy amount', async () => {
@@ -133,6 +152,7 @@ blockchainTests.only('LiquidityProvider feature', env => {
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     minBuyAmount,
+                    constants.NULL_BYTES,
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
@@ -155,14 +175,16 @@ blockchainTests.only('LiquidityProvider feature', env => {
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     constants.ZERO_AMOUNT,
+                    constants.NULL_BYTES,
                 )
                 .awaitTransactionSuccessAsync({ from: taker, value: constants.ONE_ETHER });
             verifyEventsFromLogs(
                 tx.logs,
                 [
                     {
-                        taker,
-                        minMakerAssetAmount: constants.ZERO_AMOUNT,
+                        makerToken: token.address,
+                        recipient: taker,
+                        minBuyAmount: constants.ZERO_AMOUNT,
                         ethBalance: constants.ONE_ETHER,
                     },
                 ],
@@ -178,15 +200,17 @@ blockchainTests.only('LiquidityProvider feature', env => {
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     constants.ZERO_AMOUNT,
+                    constants.NULL_BYTES,
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 tx.logs,
                 [
                     {
-                        taker,
-                        minMakerAssetAmount: constants.ZERO_AMOUNT,
-                        tokenBalance: constants.ONE_ETHER,
+                        takerToken: token.address,
+                        recipient: taker,
+                        minBuyAmount: constants.ZERO_AMOUNT,
+                        takerTokenBalance: constants.ONE_ETHER,
                     },
                 ],
                 TestLiquidityProviderEvents.SellTokenForEth,
