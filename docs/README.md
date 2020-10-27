@@ -1,6 +1,6 @@
 ### Dependencies
 ```bash
-    pip3 install sphinx recommonmark
+    pip3 install sphinx recommonmark sphinx-rtd-theme
 ```
 
 ### Syntax
@@ -15,4 +15,4 @@ open _build/html/index.html
 
 ### Tips
 * Generate RST tables [here](https://www.tablesgenerator.com/text_tables#).
-* Set your editor's ruler to `100` characters.
+* Set your editor's wordwrap to `98` characters.

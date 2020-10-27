@@ -1,0 +1,2 @@
+six
+sphinx-markdown-tables
