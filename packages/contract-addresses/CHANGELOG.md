@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.0.0 - _October 27, 2020_
+
+    * Moved Bridge addresses into Asset-swapper (#4)
+
 ## v4.12.0 - _October 21, 2020_
 
     * Update `CurveBridge` address on all networks (#2633)

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.5.3 - _October 27, 2020_
+
+    * Dependencies updated
+
 ## v4.5.2 - _October 21, 2020_
 
     * Add Ropsten and Rinkeby addresses to `DeploymentConstants` (#2656)

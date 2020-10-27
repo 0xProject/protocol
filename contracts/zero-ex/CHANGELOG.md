@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.5.0 - _October 27, 2020_
+
+    * Add `Swerve`, `SnowSwap`, `DODO` and `SushiSwap` into FQT (#7)
+
 ## v0.4.0 - _October 23, 2020_
 
     * Use the exchange proxy as the primary allowance target (#3)

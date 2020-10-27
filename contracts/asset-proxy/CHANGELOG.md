@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.6.0 - _October 27, 2020_
+
+    * Add `SwerveBridge` and `SnowSwapBridge` (duplicate of `CurveBridge`) (#2707)
+
 ## v3.5.0 - _October 21, 2020_
 
     * Update `CurveBridge` to support more varied curves (#2633)
