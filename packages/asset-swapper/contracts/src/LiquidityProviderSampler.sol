@@ -20,7 +20,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "./interfaces/ILiquidityProvider.sol";
+import "@0x/contracts-zero-ex/contracts/src/vendor/ILiquidityProvider.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 

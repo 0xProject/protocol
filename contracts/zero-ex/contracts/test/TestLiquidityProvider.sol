@@ -20,12 +20,9 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "../src/vendor/ILiquidityProvider.sol";
 
 
-contract TestLiquidityProvider is
-    ILiquidityProvider
-{
+contract TestLiquidityProvider {
     event SellTokenForToken(
         address takerToken,
         address makerToken,
@@ -77,7 +74,6 @@ contract TestLiquidityProvider is
         bytes calldata auxiliaryData
     )
         external
-        override
         returns (uint256 boughtAmount)
     {
         emit SellTokenForToken(
@@ -103,7 +99,6 @@ contract TestLiquidityProvider is
         bytes calldata auxiliaryData
     )
         external
-        override
         returns (uint256 boughtAmount)
     {
         emit SellEthForToken(
@@ -128,7 +123,6 @@ contract TestLiquidityProvider is
         bytes calldata auxiliaryData
     )
         external
-        override
         returns (uint256 boughtAmount)
     {
         emit SellTokenForEth(

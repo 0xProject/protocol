@@ -15,7 +15,6 @@ export * from '../test/generated-wrappers/i_balancer';
 export * from '../test/generated-wrappers/i_curve';
 export * from '../test/generated-wrappers/i_eth2_dai';
 export * from '../test/generated-wrappers/i_kyber_network';
-export * from '../test/generated-wrappers/i_liquidity_provider';
 export * from '../test/generated-wrappers/i_m_stable';
 export * from '../test/generated-wrappers/i_mooniswap';
 export * from '../test/generated-wrappers/i_multi_bridge';

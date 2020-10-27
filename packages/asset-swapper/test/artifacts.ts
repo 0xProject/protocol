@@ -17,7 +17,6 @@ import * as IBalancer from '../test/generated-artifacts/IBalancer.json';
 import * as ICurve from '../test/generated-artifacts/ICurve.json';
 import * as IEth2Dai from '../test/generated-artifacts/IEth2Dai.json';
 import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
-import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvider.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
@@ -62,7 +61,6 @@ export const artifacts = {
     ICurve: ICurve as ContractArtifact,
     IEth2Dai: IEth2Dai as ContractArtifact,
     IKyberNetwork: IKyberNetwork as ContractArtifact,
-    ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
     IMooniswap: IMooniswap as ContractArtifact,
     IMultiBridge: IMultiBridge as ContractArtifact,

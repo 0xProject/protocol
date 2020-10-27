@@ -10,6 +10,7 @@
         "generated-artifacts/IAllowanceTarget.json",
         "generated-artifacts/IERC20Transformer.json",
         "generated-artifacts/IFlashWallet.json",
+        "generated-artifacts/ILiquidityProvider.json",
         "generated-artifacts/IOwnableFeature.json",
         "generated-artifacts/ISimpleFunctionRegistryFeature.json",
         "generated-artifacts/ITokenSpenderFeature.json",
