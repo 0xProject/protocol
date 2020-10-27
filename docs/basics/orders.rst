@@ -218,7 +218,7 @@ Limit orders can be fill with the ``fillLimitOrder()`` or `fillOrKillLimitOrder(
 Cancelling a limit order
 ------------------------
 
-Because there is no way to un-sign an order that has been distributed, limit orders must be cancelled on-chain through either the ``cancelLimitOrder()`` or ``cancelLimitOrdersUpTo()`` functions. Both can only be called by the order's maker.
+Because there is no way to un-sign an order that has been distributed, limit orders must be cancelled on-chain through ``cancelLimitOrder()``, ``batchCancelLimitOrders()`` or ``cancelLimitOrdersUpTo()`` functions. They can only be called by the order's maker.
 
 ``cancelLimitOrder()`` cancels a single limit order created by the caller:
 
@@ -228,6 +228,17 @@ Because there is no way to un-sign an order that has been distributed, limit ord
     function cancelLimitOrder(
         // The order
         LimitOrder calldata order
+    )
+        external;
+
+``batchCancelLimitOrders()`` cancels multiple single limit orders created by the caller:
+
+.. code-block:: solidity
+    :lineno:
+
+    function batchCancelLimitOrders(
+        // The orders
+        LimitOrder[] calldata orders
     )
         external;
 
@@ -282,7 +293,6 @@ RFQ Orders
 
 Some notable differences from regular limit orders are:
 
-* RFQ orders cannot be cancelled.
 * RFQ orders can only be filled once. Even a partial fill will mark the order as ``FILLED``.
 * The only fill restrictions that can be placed on an RFQ order is on the ``tx.origin`` of the transaction.
 * There are no taker token fees.
@@ -448,6 +458,33 @@ RFQ orders can be fill with the ``fillRfqOrder()`` function on the Exchange Prox
         payable
         // How much maker token from the order the taker received.
         returns (uint256 makerTokenFillAmount);
+
+Cancelling a RFQ order
+----------------------
+
+Similar to limit orders, RFQ orders can be cancelled on-chain through ``cancelRfqOrder()`` or ``batchCancelRfqOrders()`` (but there is no ``...UpTo()`` variant). Both can only be called by the order's maker.
+
+``cancelRfqOrder()`` cancels a single limit order created by the caller:
+
+.. code-block:: solidity
+    :lineno:
+
+    function cancelRfqOrder(
+        // The order
+        RfqOrder calldata order
+    )
+        external;
+
+``batchCancelRfqOrders()`` cancels multiple single limit orders created by the caller:
+
+.. code-block:: solidity
+    :lineno:
+
+    function batchCancelRfqOrders(
+        // The orders
+        RfqOrder[] calldata orders
+    )
+        external;
 
 Getting the status of a RFQ order
 ---------------------------------
