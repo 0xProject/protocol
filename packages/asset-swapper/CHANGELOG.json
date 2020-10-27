@@ -172,8 +172,12 @@
                 "pr": 2731
             },
             {
-                "note": "Support DODO Trade Allowed parameter to automatically disable the pool",
+                "note": "Support `DODO` Trade Allowed parameter to automatically disable the pool",
                 "pr": 2732
+            },
+            {
+                "note": "Added `SwerveBridge` and `SnowSwapBridge` deployed addresses",
+                "pr": 7
             }
         ],
         "timestamp": 1603265572
