@@ -82,4 +82,5 @@ lib
 /packages/asset-swapper/test/generated-wrappers
 package.json
 packages/*/docs
+docs/
 *.sol
