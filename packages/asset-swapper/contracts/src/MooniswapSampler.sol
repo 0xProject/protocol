@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2019 ZeroEx Intl.
+  Copyright 2020 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 */
 
-pragma solidity ^0.5.9;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/DeploymentConstants.sol";
-import "./IMooniswap.sol";
+import "./DeploymentConstants.sol";
+import "./interfaces/IMooniswap.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
@@ -37,6 +37,7 @@ contract MooniswapSampler is
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return pool The contract address for the pool
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromMooniswap(
@@ -80,7 +81,7 @@ contract MooniswapSampler is
     )
         public
         view
-        returns (uint256 makerTokenAmount)
+        returns (uint256)
     {
         // Find the pool for the pair.
         IMooniswap pool = IMooniswap(
@@ -88,26 +89,26 @@ contract MooniswapSampler is
         );
         // If there is no pool then return early
         if (address(pool) == address(0)) {
-            return makerTokenAmount;
+            return 0;
         }
         uint256 poolBalance = mooniswapTakerToken == address(0)
             ? address(pool).balance
-            : IERC20Token(mooniswapTakerToken).balanceOf(address(pool));
+            : IERC20TokenV06(mooniswapTakerToken).balanceOf(address(pool));
         // If the pool balance is smaller than the sell amount
         // don't sample to avoid multiplication overflow in buys
         if (poolBalance < takerTokenAmount) {
-            return makerTokenAmount;
+            return 0;
         }
-        (bool didSucceed, bytes memory resultData) =
-            address(pool).staticcall.gas(MOONISWAP_CALL_GAS)(
-                abi.encodeWithSelector(
-                    pool.getReturn.selector,
-                    mooniswapTakerToken,
-                    mooniswapMakerToken,
-                    takerTokenAmount
-                ));
-        if (didSucceed) {
-            makerTokenAmount = abi.decode(resultData, (uint256));
+        try
+            pool.getReturn
+                {gas: MOONISWAP_CALL_GAS}
+                (mooniswapTakerToken, mooniswapMakerToken, takerTokenAmount)
+            returns (uint256 amount)
+        {
+            return amount;
+        } catch (bytes memory) {
+            // Swallow failures, leaving all results as zero.
+            return 0;
         }
     }
 
@@ -115,6 +116,7 @@ contract MooniswapSampler is
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token sell amount for each sample.
+    /// @return pool The contract address for the pool
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromMooniswap(

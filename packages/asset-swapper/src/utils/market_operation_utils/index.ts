@@ -1,11 +1,11 @@
-import { ContractAddresses } from '@0x/contract-addresses';
-import { Web3Wrapper } from '@0x/dev-utils';
 import { RFQTIndicativeQuote } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { MarketOperation, Omit } from '../../types';
+import { IS_PRICE_AWARE_RFQ_ENABLED } from '../../constants';
+import { AssetSwapperContractAddresses, MarketOperation, Omit } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
 
 import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
@@ -105,7 +105,7 @@ export class MarketOperationUtils {
 
     constructor(
         private readonly _sampler: DexOrderSampler,
-        private readonly contractAddresses: ContractAddresses,
+        private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
         private readonly _liquidityProviderRegistry: string = NULL_ADDRESS,
         private readonly _tokenAdjacencyGraph: TokenAdjacencyGraph = {},

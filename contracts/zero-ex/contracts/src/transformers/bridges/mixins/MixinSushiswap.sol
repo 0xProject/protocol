@@ -23,37 +23,23 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "./MixinAdapterAddresses.sol";
+import "./MixinUniswapV2.sol";
 
-interface IShell {
-
-    function originSwap(
-        address from,
-        address to,
-        uint256 fromAmount,
-        uint256 minTargetAmount,
-        uint256 deadline
-    )
-        external
-        returns (uint256 toAmount);
-}
-
-
-
-contract MixinShell is
+contract MixinSushiswap is
     MixinAdapterAddresses
 {
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the `Shell` contract.
-    IShell private immutable SHELL;
+    /// @dev Mainnet address of the `SushiswapRouter` contract.
+    IUniswapV2Router02 private immutable SUSHISWAP_ROUTER;
 
     constructor(AdapterAddresses memory addresses)
         public
     {
-        SHELL = IShell(addresses.shell);
+        SUSHISWAP_ROUTER = IUniswapV2Router02(addresses.sushiswapRouter);
     }
 
-    function _tradeShell(
+    function _tradeSushiswap(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
@@ -61,24 +47,33 @@ contract MixinShell is
         internal
         returns (uint256 boughtAmount)
     {
-        (address fromTokenAddress) = abi.decode(bridgeData, (address));
+        // solhint-disable indent
+        address[] memory path = abi.decode(bridgeData, (address[]));
+        // solhint-enable indent
 
-        // Grant the Shell contract an allowance to sell the first token.
-        IERC20TokenV06(fromTokenAddress).approveIfBelow(
-            address(SHELL),
+        require(path.length >= 2, "SushiswapBridge/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(
+            path[path.length - 1] == address(buyToken),
+            "SushiswapBridge/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+        );
+        // Grant the Uniswap router an allowance to sell the first token.
+        IERC20TokenV06(path[0]).approveIfBelow(
+            address(SUSHISWAP_ROUTER),
             sellAmount
         );
 
-        boughtAmount = SHELL.originSwap(
-            fromTokenAddress,
-            address(buyToken),
+        uint[] memory amounts = SUSHISWAP_ROUTER.swapExactTokensForTokens(
              // Sell all tokens we hold.
             sellAmount,
              // Minimum buy amount.
             1,
-            // deadline
-            block.timestamp + 1
+            // Convert to `buyToken` along this path.
+            path,
+            // Recipient is `this`.
+            address(this),
+            // Expires after this block.
+            block.timestamp
         );
-        return boughtAmount;
+        return amounts[amounts.length-1];
     }
 }

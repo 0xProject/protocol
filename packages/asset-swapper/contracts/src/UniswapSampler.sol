@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2019 ZeroEx Intl.
+  Copyright 2020 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,17 +16,23 @@
 
 */
 
-pragma solidity ^0.5.9;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-asset-proxy/contracts/src/interfaces/IUniswapExchangeFactory.sol";
-import "@0x/contracts-erc20/contracts/src/LibERC20Token.sol";
-import "@0x/contracts-exchange-libs/contracts/src/LibOrder.sol";
-import "@0x/contracts-exchange-libs/contracts/src/LibMath.sol";
-import "@0x/contracts-utils/contracts/src/DeploymentConstants.sol";
-import "@0x/contracts-utils/contracts/src/LibBytes.sol";
+import "./DeploymentConstants.sol";
 import "./interfaces/IUniswapExchangeQuotes.sol";
 import "./SamplerUtils.sol";
+
+
+interface IUniswapExchangeFactory {
+
+    /// @dev Get the exchange for a token.
+    /// @param tokenAddress The address of the token contract.
+    function getExchange(address tokenAddress)
+        external
+        view
+        returns (address);
+}
 
 
 contract UniswapSampler is

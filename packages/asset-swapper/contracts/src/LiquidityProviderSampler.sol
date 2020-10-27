@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2019 ZeroEx Intl.
+  Copyright 2020 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 */
 
-pragma solidity ^0.5.9;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/LibBytes.sol";
+import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "./interfaces/ILiquidityProvider.sol";
 import "./interfaces/ILiquidityProviderRegistry.sol";
 import "./ApproximateBuys.sol";
@@ -66,23 +66,17 @@ contract LiquidityProviderSampler is
         }
 
         for (uint256 i = 0; i < numSamples; i++) {
-            (bool didSucceed, bytes memory resultData) =
-                providerAddress.staticcall.gas(DEFAULT_CALL_GAS)(
-                    abi.encodeWithSelector(
-                        ILiquidityProvider(0).getSellQuote.selector,
-                        takerToken,
-                        makerToken,
-                        takerTokenAmounts[i]
-                    ));
-            uint256 buyAmount = 0;
-            if (didSucceed) {
-                buyAmount = abi.decode(resultData, (uint256));
-            }
-            // Exit early if the amount is too high for the source to serve
-            if (buyAmount == 0) {
+            try
+                ILiquidityProvider(providerAddress).getSellQuote
+                    {gas: DEFAULT_CALL_GAS}
+                    (takerToken, makerToken, takerTokenAmounts[i])
+                returns (uint256 amount)
+            {
+                makerTokenAmounts[i] = amount;
+            } catch (bytes memory) {
+                // Swallow failures, leaving all results as zero.
                 break;
             }
-            makerTokenAmounts[i] = buyAmount;
         }
     }
 
@@ -136,14 +130,15 @@ contract LiquidityProviderSampler is
         if (registryAddress == address(0)) {
             return address(0);
         }
+
         bytes memory callData = abi.encodeWithSelector(
-            ILiquidityProviderRegistry(0).getLiquidityProviderForMarket.selector,
+        ILiquidityProviderRegistry.getLiquidityProviderForMarket.selector,
             takerToken,
             makerToken
         );
         (bool didSucceed, bytes memory returnData) = registryAddress.staticcall(callData);
         if (didSucceed && returnData.length == 32) {
-            return LibBytes.readAddress(returnData, 12);
+            return LibBytesV06.readAddress(returnData, 12);
         }
     }
 
@@ -160,19 +155,16 @@ contract LiquidityProviderSampler is
             abi.decode(takerTokenData, (address, address));
         (address makerToken) =
             abi.decode(makerTokenData, (address));
-        (bool success, bytes memory resultData) =
-            address(this).staticcall(abi.encodeWithSelector(
-                this.sampleSellsFromLiquidityProviderRegistry.selector,
-                plpRegistryAddress,
-                takerToken,
-                makerToken,
-                _toSingleValueArray(sellAmount)
-            ));
-        if (!success) {
+        try
+            this.sampleSellsFromLiquidityProviderRegistry
+                {gas: DEFAULT_CALL_GAS}
+                (plpRegistryAddress, takerToken, makerToken, _toSingleValueArray(sellAmount))
+            returns (uint256[] memory amounts, address)
+        {
+            return amounts[0];
+        } catch (bytes memory) {
+            // Swallow failures, leaving all results as zero.
             return 0;
         }
-        // solhint-disable-next-line indent
-        (uint256[] memory amounts, ) = abi.decode(resultData, (uint256[], address));
-        return amounts[0];
     }
 }

@@ -88,6 +88,7 @@ export { getSwapMinBuyAmount } from './quote_consumers/utils';
 export { SwapQuoter } from './swap_quoter';
 export {
     AffiliateFee,
+    AssetSwapperContractAddresses,
     CalldataInfo,
     ExchangeProxyContractOpts,
     ExchangeProxyRefundReceiver,
@@ -119,7 +120,11 @@ export {
     SwapQuoterRfqtOpts,
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
-export { SOURCE_FLAGS } from './utils/market_operation_utils/constants';
+export {
+    BRIDGE_ADDRESSES_BY_CHAIN,
+    DEFAULT_GAS_SCHEDULE,
+    SOURCE_FLAGS,
+} from './utils/market_operation_utils/constants';
 export {
     Parameters,
     SamplerContractCall,
@@ -150,13 +155,13 @@ export {
     NativeCollapsedFill,
     NativeFillData,
     OptimizedMarketOrder,
+    SnowSwapFillData,
+    SnowSwapInfo,
     SourceInfo,
     SourceQuoteOperation,
     SushiSwapFillData,
     SwerveFillData,
     SwerveInfo,
-    SnowSwapFillData,
-    SnowSwapInfo,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';

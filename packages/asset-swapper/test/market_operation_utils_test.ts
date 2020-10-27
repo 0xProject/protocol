@@ -1,5 +1,5 @@
 // tslint:disable: no-unbound-method
-import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import {
     assertRoughlyEquals,
     constants,
@@ -9,10 +9,10 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { Web3Wrapper } from '@0x/dev-utils';
 import { assetDataUtils, generatePseudoRandomSalt } from '@0x/order-utils';
 import { AssetProxyId, ERC20BridgeAssetData, SignedOrder } from '@0x/types';
 import { BigNumber, fromTokenUnitAmount, hexUtils, NULL_ADDRESS } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
@@ -20,6 +20,7 @@ import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillab
 import { getRfqtIndicativeQuotesAsync, MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
+    BRIDGE_ADDRESSES_BY_CHAIN,
     BUY_SOURCE_FILTER,
     POSITIVE_INF,
     SELL_SOURCE_FILTER,
@@ -37,6 +38,7 @@ import {
     ERC20BridgeSource,
     FillData,
     GenerateOptimizedOrdersOpts,
+    GetMarketOrdersOpts,
     MarketSideLiquidity,
     NativeFillData,
 } from '../src/utils/market_operation_utils/types';
@@ -65,8 +67,12 @@ const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
 
 // tslint:disable: custom-no-magic-numbers promise-function-async
 describe('MarketOperationUtils tests', () => {
-    const CHAIN_ID = 1;
-    const contractAddresses = { ...getContractAddressesForChainOrThrow(CHAIN_ID), multiBridge: NULL_ADDRESS };
+    const CHAIN_ID = ChainId.Mainnet;
+    const contractAddresses = {
+        ...getContractAddressesForChainOrThrow(CHAIN_ID),
+        multiBridge: NULL_ADDRESS,
+        ...BRIDGE_ADDRESSES_BY_CHAIN[CHAIN_ID],
+    };
 
     function getMockedQuoteRequestor(
         type: 'indicative' | 'firm',
@@ -521,13 +527,15 @@ describe('MarketOperationUtils tests', () => {
                 FILL_AMOUNT,
                 _.times(NUM_SAMPLES, i => DEFAULT_RATES[ERC20BridgeSource.Native][i]),
             );
-            const DEFAULT_OPTS = {
+            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> = {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
                 maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
                 allowFallback: false,
+                gasSchedule: {},
+                feeSchedule: {},
             };
 
             beforeEach(() => {
@@ -1379,7 +1387,7 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         numSamples: 4,
                         excludedSources: [
-                            ...DEFAULT_OPTS.excludedSources,
+                            ...(DEFAULT_OPTS.excludedSources as ERC20BridgeSource[]),
                             ERC20BridgeSource.Eth2Dai,
                             ERC20BridgeSource.Kyber,
                             ERC20BridgeSource.Bancor,
@@ -1400,13 +1408,15 @@ describe('MarketOperationUtils tests', () => {
                 FILL_AMOUNT,
                 _.times(NUM_SAMPLES, () => DEFAULT_RATES[ERC20BridgeSource.Native][0]),
             );
-            const DEFAULT_OPTS = {
+            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> = {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
                 maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
                 allowFallback: false,
+                gasSchedule: {},
+                feeSchedule: {},
             };
 
             beforeEach(() => {
@@ -1820,7 +1830,7 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         numSamples: 4,
                         excludedSources: [
-                            ...DEFAULT_OPTS.excludedSources,
+                            ...(DEFAULT_OPTS.excludedSources as ERC20BridgeSource[]),
                             ERC20BridgeSource.Eth2Dai,
                             ERC20BridgeSource.Kyber,
                         ],
