@@ -23,6 +23,7 @@ import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
+    PRICE_AWARE_RFQ_ENABLED,
     PROTOCOL_FEE_MULTIPLIER,
     RFQT_REQUEST_MAX_RESPONSE_MS,
     SWAP_QUOTER_OPTS,
@@ -475,6 +476,7 @@ export class SwapService {
                 apiKey,
                 makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
                 takerAddress,
+                isPriceAwareRFQEnabled: PRICE_AWARE_RFQ_ENABLED,
             };
         }
 

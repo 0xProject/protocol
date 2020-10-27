@@ -270,6 +270,12 @@ export const ETH_GAS_STATION_API_URL: string = _.isEmpty(process.env.ETH_GAS_STA
     ? DEFAULT_ETH_GAS_STATION_API_URL
     : assertEnvVarType('ETH_GAS_STATION_API_URL', process.env.ETH_GAS_STATION_API_URL, EnvVarType.Url);
 
+// If true, Price-Aware RFQ feature will be enabled for RFQ-enabled requests
+// tslint:disable-next-line:boolean-naming
+export const PRICE_AWARE_RFQ_ENABLED: boolean = _.isEmpty(process.env.PRICE_AWARE_RFQ_ENABLED)
+    ? false
+    : assertEnvVarType('PRICE_AWARE_RFQ_ENABLED', process.env.PRICE_AWARE_RFQ_ENABLED, EnvVarType.Boolean);
+
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
