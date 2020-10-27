@@ -1,6 +1,6 @@
 import { SupportedProvider } from '@0x/dev-utils';
 import { SignedOrder } from '@0x/types';
-import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { ERC20BridgeSamplerContract } from '../../wrappers';
