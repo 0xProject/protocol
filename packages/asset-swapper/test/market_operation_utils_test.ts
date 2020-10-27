@@ -755,23 +755,14 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.once());
 
                 const totalAssetAmount = ORDERS.map(o => o.takerAssetAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSellOrdersAsync(
-                    ORDERS,
-                    totalAssetAmount,
-                    DEFAULT_OPTS,
-                );
+                await mockedMarketOpUtils.object.getMarketSellOrdersAsync(ORDERS, totalAssetAmount, DEFAULT_OPTS);
                 mockedMarketOpUtils.verifyAll();
             });
 
             it('optimizer will send in a comparison price to RFQ providers', async () => {
                 // Set up mocked quote requestor, will return an order that is better
                 // than the best of the orders.
-                const mockedQuoteRequestor = TypeMoq.Mock.ofType(
-                    QuoteRequestor,
-                    TypeMoq.MockBehavior.Loose,
-                    false,
-                    {},
-                );
+                const mockedQuoteRequestor = TypeMoq.Mock.ofType(QuoteRequestor, TypeMoq.MockBehavior.Loose, false, {});
 
                 let requestedComparisonPrice: BigNumber | undefined;
                 mockedQuoteRequestor
@@ -822,11 +813,7 @@ describe('MarketOperationUtils tests', () => {
                 mockedMarketOpUtils.callBase = true;
                 mockedMarketOpUtils
                     .setup(mou =>
-                        mou.getMarketSellLiquidityAsync(
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
+                        mou.getMarketSellLiquidityAsync(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                     )
                     .returns(async () => {
                         return {
@@ -865,8 +852,7 @@ describe('MarketOperationUtils tests', () => {
                             intentOnFilling: true,
                             isPriceAwareRFQEnabled: true,
                             quoteRequestor: {
-                                requestRfqtFirmQuotesAsync:
-                                    mockedQuoteRequestor.object.requestRfqtFirmQuotesAsync,
+                                requestRfqtFirmQuotesAsync: mockedQuoteRequestor.object.requestRfqtFirmQuotesAsync,
                             } as any,
                         },
                     },
@@ -876,8 +862,7 @@ describe('MarketOperationUtils tests', () => {
                 expect(requestedComparisonPrice!.toString()).to.eql('320');
                 expect(result.optimizedOrders[0].makerAssetAmount.toString()).to.eql('321000000');
                 expect(result.optimizedOrders[0].takerAssetAmount.toString()).to.eql('1000000000000000000');
-                },
-            );
+            });
 
             it('getMarketSellOrdersAsync() will not rerun the optimizer if no orders are returned', async () => {
                 // Ensure that `_generateOptimizedOrdersAsync` is only called once
@@ -916,11 +901,7 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('getMarketSellOrdersAsync() will rerun the optimizer if one or more indicative are returned', async () => {
-                const requestor = getMockedQuoteRequestor(
-                    'indicative',
-                    [ORDERS[0], ORDERS[1]],
-                    TypeMoq.Times.once(),
-                );
+                const requestor = getMockedQuoteRequestor('indicative', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
 
                 const numOrdersInCall: number[] = [];
                 const numIndicativeQuotesInCall: number[] = [];
@@ -956,8 +937,7 @@ describe('MarketOperationUtils tests', () => {
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
                             quoteRequestor: {
-                                requestRfqtIndicativeQuotesAsync:
-                                    requestor.object.requestRfqtIndicativeQuotesAsync,
+                                requestRfqtIndicativeQuotesAsync: requestor.object.requestRfqtIndicativeQuotesAsync,
                             } as any,
                         },
                     },
@@ -1032,11 +1012,7 @@ describe('MarketOperationUtils tests', () => {
             it('getMarketSellOrdersAsync() will not raise a NoOptimalPath error if no initial path was found during on-chain DEX optimization, but a path was found after RFQ optimization', async () => {
                 let hasFirstOptimizationRun = false;
                 let hasSecondOptimizationRun = false;
-                const requestor = getMockedQuoteRequestor(
-                    'firm',
-                    [ORDERS[0], ORDERS[1]],
-                    TypeMoq.Times.once(),
-                );
+                const requestor = getMockedQuoteRequestor('firm', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
 
                 const mockedMarketOpUtils = TypeMoq.Mock.ofType(
                     MarketOperationUtils,
