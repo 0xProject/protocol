@@ -14,6 +14,7 @@ import {
     FillData,
     GetMarketOrdersOpts,
     MultiHopFillData,
+    SnowSwapFillData,
     SushiSwapFillData,
     UniswapV2FillData,
 } from './types';
@@ -343,7 +344,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
 };
 
 // tslint:disable:custom-no-magic-numbers
-export const DEFAULT_GAS_SCHEDULE: FeeSchedule = {
+export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: () => 150e3,
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: () => 140e3,
@@ -397,8 +398,8 @@ export const DEFAULT_GAS_SCHEDULE: FeeSchedule = {
     [ERC20BridgeSource.MultiHop]: (fillData?: FillData) => {
         const firstHop = (fillData as MultiHopFillData).firstHopSource;
         const secondHop = (fillData as MultiHopFillData).secondHopSource;
-        const firstHopGas = DEFAULT_GAS_SCHEDULE[firstHop.source]!(firstHop.fillData);
-        const secondHopGas = DEFAULT_GAS_SCHEDULE[secondHop.source]!(secondHop.fillData);
+        const firstHopGas = DEFAULT_GAS_SCHEDULE[firstHop.source](firstHop.fillData);
+        const secondHopGas = DEFAULT_GAS_SCHEDULE[secondHop.source](secondHop.fillData);
         return new BigNumber(firstHopGas)
             .plus(secondHopGas)
             .plus(30e3)
@@ -410,15 +411,26 @@ export const DEFAULT_GAS_SCHEDULE: FeeSchedule = {
         // sell quote requires additional calculation and overhead
         return isSellBase ? 440e3 : 540e3;
     },
+    [ERC20BridgeSource.SnowSwap]: fillData => {
+        switch ((fillData as SnowSwapFillData).pool.poolAddress.toLowerCase()) {
+            case '0xbf7ccd6c446acfcc5df023043f2167b62e81899b':
+                return 1000e3;
+            case '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b':
+                return 1500e3;
+            default:
+                throw new Error('Unrecognized SnowSwap address');
+        }
+    },
+    [ERC20BridgeSource.Bancor]: () => 300e3,
 };
 
-export const DEFAULT_FEE_SCHEDULE: FeeSchedule = Object.assign(
+export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.assign(
     {},
     ...(Object.keys(DEFAULT_GAS_SCHEDULE) as ERC20BridgeSource[]).map(k => ({
         [k]:
             k === ERC20BridgeSource.Native
-                ? (fillData: FillData) => PROTOCOL_FEE_MULTIPLIER.plus(DEFAULT_GAS_SCHEDULE[k]!(fillData))
-                : (fillData: FillData) => DEFAULT_GAS_SCHEDULE[k]!(fillData),
+                ? (fillData: FillData) => PROTOCOL_FEE_MULTIPLIER.plus(DEFAULT_GAS_SCHEDULE[k](fillData))
+                : (fillData: FillData) => DEFAULT_GAS_SCHEDULE[k](fillData),
     })),
 );
 
