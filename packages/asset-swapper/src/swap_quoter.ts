@@ -8,7 +8,7 @@ import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-t
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { BRIDGE_ADDRESSES_BY_CHAIN, constants, IS_PRICE_AWARE_RFQ_ENABLED } from './constants';
+import { BRIDGE_ADDRESSES_BY_CHAIN, constants } from './constants';
 import {
     AssetSwapperContractAddresses,
     CalculateSwapQuoteOpts,
