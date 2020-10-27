@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-asset-proxy",
-    "version": "3.5.0",
+    "version": "3.6.0",
     "engines": {
         "node": ">=6.12"
     },
@@ -52,10 +52,10 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/protocol",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.3",
-        "@0x/contract-wrappers": "^13.9.0",
+        "@0x/contract-wrappers": "^13.9.1",
         "@0x/contracts-gen": "2.0.13",
-        "@0x/contracts-test-utils": "^5.3.5",
-        "@0x/contracts-utils": "^4.5.2",
+        "@0x/contracts-test-utils": "^5.3.6",
+        "@0x/contracts-utils": "^4.5.3",
         "@0x/dev-utils": "^3.3.4",
         "@0x/sol-compiler": "^4.2.3",
         "@0x/ts-doc-gen": "^0.0.28",
@@ -80,11 +80,11 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.2.7",
-        "@0x/contracts-erc1155": "^2.1.8",
-        "@0x/contracts-erc20": "^3.2.2",
-        "@0x/contracts-erc721": "^3.1.8",
-        "@0x/contracts-exchange-libs": "^4.3.8",
-        "@0x/order-utils": "^10.4.0",
+        "@0x/contracts-erc1155": "^2.1.9",
+        "@0x/contracts-erc20": "^3.2.3",
+        "@0x/contracts-erc721": "^3.1.9",
+        "@0x/contracts-exchange-libs": "^4.3.9",
+        "@0x/order-utils": "^10.4.1",
         "@0x/types": "^3.2.4",
         "@0x/typescript-typings": "^5.1.5",
         "@0x/utils": "^5.6.3",
