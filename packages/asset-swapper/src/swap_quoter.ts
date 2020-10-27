@@ -8,7 +8,7 @@ import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-t
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { BRIDGE_ADDRESSES_BY_CHAIN, constants, IS_PRICE_AWARE_RFQ_ENABLED } from './constants';
+import { BRIDGE_ADDRESSES_BY_CHAIN, constants } from './constants';
 import {
     AssetSwapperContractAddresses,
     CalculateSwapQuoteOpts,
@@ -701,8 +701,8 @@ export class SwapQuoter {
         }
 
         if (
-            !IS_PRICE_AWARE_RFQ_ENABLED && // Price-aware RFQ is disabled.
             opts.rfqt && // This is an RFQT-enabled API request
+            !opts.rfqt.isPriceAwareRFQEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
             opts.rfqt.intentOnFilling && // The requestor is asking for a firm quote
             opts.rfqt.apiKey &&
             this._isApiKeyWhitelisted(opts.rfqt.apiKey) && // A valid API key was provided
