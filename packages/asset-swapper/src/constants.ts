@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, logUtils } from '@0x/utils';
 
 import {
@@ -42,7 +43,7 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
 
 const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
-    chainId: MAINNET_CHAIN_ID,
+    chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
     ...DEFAULT_ORDER_PRUNER_OPTS,
     samplerGasLimit: 250e6,
@@ -95,6 +96,21 @@ export const DEFAULT_INFO_LOGGER: LogFunction = (obj, msg) =>
 export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
     logUtils.warn(`${msg ? `${msg}: ` : ''}${JSON.stringify(obj)}`);
 
+// This feature flag allows us to merge the price-aware RFQ pricing
+// project while still controlling when to activate the feature. We plan to do some
+// data analysis work and address some of the issues with maker fillable amounts
+// in later milestones. Once the feature is fully rolled out and is providing value
+// and we have assessed that there is no user impact, we will proceed in cleaning up
+// the feature flag.  When that time comes, follow this PR to "undo" the feature flag:
+// https://github.com/0xProject/0x-monorepo/pull/2735
+export const IS_PRICE_AWARE_RFQ_ENABLED: boolean = false;
+
+export {
+    BRIDGE_ADDRESSES_BY_CHAIN,
+    DEFAULT_FEE_SCHEDULE,
+    DEFAULT_GAS_SCHEDULE,
+} from './utils/market_operation_utils/constants';
+
 export const constants = {
     ETH_GAS_STATION_API_URL,
     PROTOCOL_FEE_MULTIPLIER,
@@ -122,12 +138,3 @@ export const constants = {
     DEFAULT_INFO_LOGGER,
     DEFAULT_WARNING_LOGGER,
 };
-
-// This feature flag allows us to merge the price-aware RFQ pricing
-// project while still controlling when to activate the feature. We plan to do some
-// data analysis work and address some of the issues with maker fillable amounts
-// in later milestones. Once the feature is fully rolled out and is providing value
-// and we have assessed that there is no user impact, we will proceed in cleaning up
-// the feature flag.  When that time comes, follow this PR to "undo" the feature flag:
-// https://github.com/0xProject/0x-monorepo/pull/2735
-export const IS_PRICE_AWARE_RFQ_ENABLED: boolean = false;

@@ -22,11 +22,13 @@ pragma experimental ABIEncoderV2;
 import "./mixins/MixinAdapterAddresses.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinCurve.sol";
+import "./mixins/MixinDodo.sol";
 import "./mixins/MixinKyber.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinOasis.sol";
 import "./mixins/MixinShell.sol";
+import "./mixins/MixinSushiswap.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinZeroExBridge.sol";
@@ -35,11 +37,13 @@ contract BridgeAdapter is
     MixinAdapterAddresses,
     MixinBalancer,
     MixinCurve,
+    MixinDodo,
     MixinKyber,
     MixinMooniswap,
     MixinMStable,
     MixinOasis,
     MixinShell,
+    MixinSushiswap,
     MixinUniswap,
     MixinUniswapV2,
     MixinZeroExBridge
@@ -48,11 +52,15 @@ contract BridgeAdapter is
     address private immutable BALANCER_BRIDGE_ADDRESS;
     address private immutable CREAM_BRIDGE_ADDRESS;
     address private immutable CURVE_BRIDGE_ADDRESS;
+    address private immutable DODO_BRIDGE_ADDRESS;
     address private immutable KYBER_BRIDGE_ADDRESS;
     address private immutable MOONISWAP_BRIDGE_ADDRESS;
     address private immutable MSTABLE_BRIDGE_ADDRESS;
     address private immutable OASIS_BRIDGE_ADDRESS;
     address private immutable SHELL_BRIDGE_ADDRESS;
+    address private immutable SNOW_SWAP_BRIDGE_ADDRESS;
+    address private immutable SUSHISWAP_BRIDGE_ADDRESS;
+    address private immutable SWERVE_BRIDGE_ADDRESS;
     address private immutable UNISWAP_BRIDGE_ADDRESS;
     address private immutable UNISWAP_V2_BRIDGE_ADDRESS;
 
@@ -76,11 +84,13 @@ contract BridgeAdapter is
         public
         MixinBalancer()
         MixinCurve()
+        MixinDodo(addresses)
         MixinKyber(addresses)
         MixinMooniswap(addresses)
         MixinMStable(addresses)
         MixinOasis(addresses)
         MixinShell(addresses)
+        MixinSushiswap(addresses)
         MixinUniswap(addresses)
         MixinUniswapV2(addresses)
         MixinZeroExBridge()
@@ -92,9 +102,13 @@ contract BridgeAdapter is
         MSTABLE_BRIDGE_ADDRESS = addresses.mStableBridge;
         OASIS_BRIDGE_ADDRESS = addresses.oasisBridge;
         SHELL_BRIDGE_ADDRESS = addresses.shellBridge;
+        SUSHISWAP_BRIDGE_ADDRESS = addresses.sushiswapBridge;
+        SWERVE_BRIDGE_ADDRESS = addresses.swerveBridge;
         UNISWAP_BRIDGE_ADDRESS = addresses.uniswapBridge;
         UNISWAP_V2_BRIDGE_ADDRESS = addresses.uniswapV2Bridge;
         CREAM_BRIDGE_ADDRESS = addresses.creamBridge;
+        SNOW_SWAP_BRIDGE_ADDRESS = addresses.snowSwapBridge;
+        DODO_BRIDGE_ADDRESS = addresses.dodoBridge;
     }
 
     function trade(
@@ -118,8 +132,16 @@ contract BridgeAdapter is
             "BridgeAdapter/INVALID_BRIDGE_ADDRESS"
         );
 
-        if (bridgeAddress == CURVE_BRIDGE_ADDRESS) {
+        if (bridgeAddress == CURVE_BRIDGE_ADDRESS ||
+            bridgeAddress == SWERVE_BRIDGE_ADDRESS ||
+            bridgeAddress == SNOW_SWAP_BRIDGE_ADDRESS) {
             boughtAmount = _tradeCurve(
+                buyToken,
+                sellAmount,
+                bridgeData
+            );
+        } else if (bridgeAddress == SUSHISWAP_BRIDGE_ADDRESS) {
+            boughtAmount = _tradeSushiswap(
                 buyToken,
                 sellAmount,
                 bridgeData
@@ -136,7 +158,8 @@ contract BridgeAdapter is
                 sellAmount,
                 bridgeData
             );
-        } else if (bridgeAddress == BALANCER_BRIDGE_ADDRESS  || bridgeAddress == CREAM_BRIDGE_ADDRESS) {
+        } else if (bridgeAddress == BALANCER_BRIDGE_ADDRESS ||
+                   bridgeAddress == CREAM_BRIDGE_ADDRESS) {
             boughtAmount = _tradeBalancer(
                 buyToken,
                 sellAmount,
@@ -168,6 +191,12 @@ contract BridgeAdapter is
             );
         } else if (bridgeAddress == SHELL_BRIDGE_ADDRESS) {
             boughtAmount = _tradeShell(
+                buyToken,
+                sellAmount,
+                bridgeData
+            );
+        } else if (bridgeAddress == DODO_BRIDGE_ADDRESS) {
+            boughtAmount = _tradeDodo(
                 buyToken,
                 sellAmount,
                 bridgeData

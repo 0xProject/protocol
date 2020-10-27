@@ -1,5 +1,18 @@
 [
     {
+        "version": "4.8.0",
+        "changes": [
+            {
+                "note": "Moved Bridge addresses into Asset-swapper",
+                "pr": 4
+            },
+            {
+                "note": "Updated Sampler to Solidity 0.6",
+                "pr": 4
+            }
+        ]
+    },
+    {
         "timestamp": 1603487270,
         "version": "4.7.1",
         "changes": [
@@ -172,8 +185,12 @@
                 "pr": 2731
             },
             {
-                "note": "Support DODO Trade Allowed parameter to automatically disable the pool",
+                "note": "Support `DODO` Trade Allowed parameter to automatically disable the pool",
                 "pr": 2732
+            },
+            {
+                "note": "Added `SwerveBridge` and `SnowSwapBridge` deployed addresses",
+                "pr": 7
             }
         ],
         "timestamp": 1603265572

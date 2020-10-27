@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2019 ZeroEx Intl.
+  Copyright 2020 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -15,12 +15,9 @@
   limitations under the License.
 
 */
-pragma solidity ^0.5.9;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-asset-proxy/contracts/src/interfaces/IUniswapExchangeFactory.sol";
-import "@0x/contracts-exchange/contracts/src/interfaces/IExchange.sol";
-import "@0x/contracts-exchange-libs/contracts/src/LibOrder.sol";
 import "../src/ERC20BridgeSampler.sol";
 import "../src/interfaces/IEth2Dai.sol";
 import "../src/interfaces/IKyberNetwork.sol";
@@ -128,6 +125,7 @@ contract TestERC20BridgeSamplerUniswapExchange is
     function getEthToTokenInputPrice(
         uint256 ethSold
     )
+        override
         external
         view
         returns (uint256 tokensBought)
@@ -145,6 +143,7 @@ contract TestERC20BridgeSamplerUniswapExchange is
     function getEthToTokenOutputPrice(
         uint256 tokensBought
     )
+        override
         external
         view
         returns (uint256 ethSold)
@@ -162,6 +161,7 @@ contract TestERC20BridgeSamplerUniswapExchange is
     function getTokenToEthInputPrice(
         uint256 tokensSold
     )
+        override
         external
         view
         returns (uint256 ethBought)
@@ -179,6 +179,7 @@ contract TestERC20BridgeSamplerUniswapExchange is
     function getTokenToEthOutputPrice(
         uint256 ethBought
     )
+        override
         external
         view
         returns (uint256 tokensSold)
@@ -203,6 +204,7 @@ contract TestERC20BridgeSamplerUniswapV2Router01 is
 
     // Deterministic `IUniswapV2Router01.getAmountsOut()`.
     function getAmountsOut(uint256 amountIn, address[] calldata path)
+        override
         external
         view
         returns (uint256[] memory amounts)
@@ -223,6 +225,7 @@ contract TestERC20BridgeSamplerUniswapV2Router01 is
 
     // Deterministic `IUniswapV2Router01.getAmountsInt()`.
     function getAmountsIn(uint256 amountOut, address[] calldata path)
+        override
         external
         view
         returns (uint256[] memory amounts)
@@ -333,6 +336,7 @@ contract TestERC20BridgeSamplerKyberNetwork is
     }
 
     function _getKyberNetworkProxyAddress()
+        override
         internal
         view
         returns (address)
@@ -341,6 +345,7 @@ contract TestERC20BridgeSamplerKyberNetwork is
     }
 
     function _getKyberHintHandlerAddress()
+        override
         internal
         view
         returns (address)
@@ -362,6 +367,7 @@ contract TestERC20BridgeSamplerEth2Dai is
         address payToken,
         uint256 payAmount
     )
+        override
         external
         view
         returns (uint256 buyAmount)
@@ -381,6 +387,7 @@ contract TestERC20BridgeSamplerEth2Dai is
         address buyToken,
         uint256 buyAmount
     )
+        override
         external
         view
         returns (uint256 payAmount)
@@ -414,6 +421,7 @@ contract TestERC20BridgeSamplerUniswapExchangeFactory is
 
     // `IUniswapExchangeFactory.getExchange()`.
     function getExchange(address tokenAddress)
+        override
         external
         view
         returns (address)
@@ -432,7 +440,7 @@ contract TestERC20BridgeSampler is
     TestERC20BridgeSamplerEth2Dai public eth2Dai;
     TestERC20BridgeSamplerKyberNetwork public kyber;
 
-    uint8 private constant MAX_ORDER_STATUS = uint8(LibOrder.OrderStatus.CANCELLED) + 1;
+    uint8 private constant MAX_ORDER_STATUS = uint8(IExchange.OrderStatus.CANCELLED) + 1;
 
     constructor() public ERC20BridgeSampler() {
         uniswap = new TestERC20BridgeSamplerUniswapExchangeFactory();
@@ -450,10 +458,11 @@ contract TestERC20BridgeSampler is
 
     // Overridden to return deterministic states.
     function getOrderFillableTakerAmount(
-        LibOrder.Order memory order,
+        IExchange.Order memory order,
         bytes memory,
         IExchange
     )
+        override
         public
         view
         returns (uint256 fillableTakerAmount)
@@ -463,6 +472,7 @@ contract TestERC20BridgeSampler is
 
     // Overriden to return deterministic decimals.
     function _getTokenDecimals(address tokenAddress)
+        override
         internal
         view
         returns (uint8 decimals)
@@ -472,6 +482,7 @@ contract TestERC20BridgeSampler is
 
     // Overriden to point to a custom contract.
     function _getEth2DaiAddress()
+        override
         internal
         view
         returns (address eth2daiAddress)
@@ -481,6 +492,7 @@ contract TestERC20BridgeSampler is
 
     // Overriden to point to a custom contract.
     function _getUniswapExchangeFactoryAddress()
+        override
         internal
         view
         returns (address uniswapAddress)
@@ -490,6 +502,7 @@ contract TestERC20BridgeSampler is
 
     // Overriden to point to a custom contract.
     function _getUniswapV2Router01Address()
+        override
         internal
         view
         returns (address uniswapV2RouterAddress)
@@ -499,6 +512,7 @@ contract TestERC20BridgeSampler is
 
     // Overriden to point to a custom contract.
     function _getKyberNetworkProxyAddress()
+        override
         internal
         view
         returns (address kyberAddress)
@@ -508,6 +522,7 @@ contract TestERC20BridgeSampler is
 
     // Overriden to point to a custom contract.
     function _getKyberHintHandlerAddress()
+        override
         internal
         view
         returns (address kyberAddress)

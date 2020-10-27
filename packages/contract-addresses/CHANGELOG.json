@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.0.0",
+        "changes": [
+            {
+                "note": "Moved Bridge addresses into Asset-swapper",
+                "pr": 4
+            }
+        ]
+    },
+    {
         "version": "4.12.0",
         "changes": [
             {

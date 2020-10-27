@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2019 ZeroEx Intl.
+  Copyright 2020 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 */
 
-pragma solidity ^0.5.9;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/DeploymentConstants.sol";
+import "./DeploymentConstants.sol";
 import "./interfaces/IUniswapV2Router01.sol";
 
 
@@ -45,21 +45,17 @@ contract UniswapV2Sampler is
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            (bool didSucceed, bytes memory resultData) =
-                _getUniswapV2Router01Address().staticcall.gas(UNISWAPV2_CALL_GAS)(
-                    abi.encodeWithSelector(
-                        IUniswapV2Router01(0).getAmountsOut.selector,
-                        takerTokenAmounts[i],
-                        path
-                    ));
-            uint256 buyAmount = 0;
-            if (didSucceed) {
-                // solhint-disable-next-line indent
-                buyAmount = abi.decode(resultData, (uint256[]))[path.length - 1];
-            } else {
+            try
+                IUniswapV2Router01(_getUniswapV2Router01Address()).getAmountsOut
+                    {gas: UNISWAPV2_CALL_GAS}
+                    (takerTokenAmounts[i], path)
+                returns (uint256[] memory amounts)
+            {
+                makerTokenAmounts[i] = amounts[path.length - 1];
+            } catch (bytes memory) {
+                // Swallow failures, leaving all results as zero.
                 break;
             }
-            makerTokenAmounts[i] = buyAmount;
         }
     }
 
@@ -79,21 +75,17 @@ contract UniswapV2Sampler is
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            (bool didSucceed, bytes memory resultData) =
-                _getUniswapV2Router01Address().staticcall.gas(UNISWAPV2_CALL_GAS)(
-                    abi.encodeWithSelector(
-                        IUniswapV2Router01(0).getAmountsIn.selector,
-                        makerTokenAmounts[i],
-                        path
-                    ));
-            uint256 sellAmount = 0;
-            if (didSucceed) {
-                // solhint-disable-next-line indent
-                sellAmount = abi.decode(resultData, (uint256[]))[0];
-            } else {
+            try
+                IUniswapV2Router01(_getUniswapV2Router01Address()).getAmountsIn
+                    {gas: UNISWAPV2_CALL_GAS}
+                    (makerTokenAmounts[i], path)
+                returns (uint256[] memory amounts)
+            {
+                takerTokenAmounts[i] = amounts[0];
+            } catch (bytes memory) {
+                // Swallow failures, leaving all results as zero.
                 break;
             }
-            takerTokenAmounts[i] = sellAmount;
         }
     }
 }
