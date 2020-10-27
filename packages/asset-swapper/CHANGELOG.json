@@ -1,5 +1,14 @@
 [
     {
+        "version": "4.8.1",
+        "changes": [
+            {
+                "note": "Fix Gas schedule with `SnowSwap` and `Bancor`",
+                "pr": 15
+            }
+        ]
+    },
+    {
         "version": "4.8.0",
         "changes": [
             {
