@@ -1,5 +1,14 @@
 [
     {
+        "version": "3.6.0",
+        "changes": [
+            {
+                "note": "Add `SwerveBridge` and `SnowSwapBridge` (duplicate of `CurveBridge`)",
+                "pr": 2707
+            }
+        ]
+    },
+    {
         "version": "3.5.0",
         "changes": [
             {
@@ -37,10 +46,6 @@
             {
                 "note": "Added `DODOBridge`",
                 "pr": 2701
-            },
-            {
-                "note": "Add `SwerveBridge` and `SnowSwapBridge` (duplicate of CurveBridge)",
-                "pr": 2707
             }
         ],
         "timestamp": 1603265572
