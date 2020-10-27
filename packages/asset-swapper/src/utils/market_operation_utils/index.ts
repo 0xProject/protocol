@@ -5,7 +5,6 @@ import { SignedOrder } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { IS_PRICE_AWARE_RFQ_ENABLED } from '../../constants';
 import { MarketOperation, Omit } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
 
@@ -217,8 +216,9 @@ export class MarketOperationUtils {
             ),
         );
 
+        const isPriceAwareRfqEnabled = _opts.rfqt && _opts.rfqt.isPriceAwareRFQEnabled;
         const rfqtPromise =
-            !IS_PRICE_AWARE_RFQ_ENABLED && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
+            !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
                       nativeOrders[0].makerAssetData,
                       nativeOrders[0].takerAssetData,
@@ -365,8 +365,9 @@ export class MarketOperationUtils {
                 this._liquidityProviderRegistry,
             ),
         );
+        const isPriceAwareRfqEnabled = _opts.rfqt && _opts.rfqt.isPriceAwareRFQEnabled;
         const rfqtPromise =
-            !IS_PRICE_AWARE_RFQ_ENABLED && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
+            !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
                       nativeOrders[0].makerAssetData,
                       nativeOrders[0].takerAssetData,
@@ -678,8 +679,8 @@ export class MarketOperationUtils {
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity
         const { rfqt } = _opts;
         if (
-            IS_PRICE_AWARE_RFQ_ENABLED &&
             rfqt &&
+            rfqt.isPriceAwareRFQEnabled &&
             rfqt.quoteRequestor &&
             marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
         ) {
