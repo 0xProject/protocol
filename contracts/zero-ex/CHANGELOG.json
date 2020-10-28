@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.6.0",
+        "changes": [
+            {
+                "note": "Add support for collecting protocol fees in ETH or WETH",
+                "pr": 2
+            }
+        ]
+    },
+    {
         "timestamp": 1603851023,
         "version": "0.5.1",
         "changes": [
