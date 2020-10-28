@@ -119,8 +119,8 @@ blockchainTests('LiquidityProvider feature', env => {
         it('Successfully executes an ERC20-ERC20 swap', async () => {
             const tx = await feature
                 .sellToLiquidityProvider(
-                    weth.address,
                     token.address,
+                    weth.address,
                     liquidityProvider.address,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
@@ -132,11 +132,11 @@ blockchainTests('LiquidityProvider feature', env => {
                 tx.logs,
                 [
                     {
-                        takerToken: token.address,
-                        makerToken: weth.address,
+                        inputToken: token.address,
+                        outputToken: weth.address,
                         recipient: taker,
                         minBuyAmount: constants.ZERO_AMOUNT,
-                        takerTokenBalance: constants.ONE_ETHER,
+                        inputTokenBalance: constants.ONE_ETHER,
                     },
                 ],
                 TestLiquidityProviderEvents.SellTokenForToken,
@@ -146,8 +146,8 @@ blockchainTests('LiquidityProvider feature', env => {
             const minBuyAmount = new BigNumber(1);
             const tx = feature
                 .sellToLiquidityProvider(
-                    weth.address,
                     token.address,
+                    weth.address,
                     liquidityProvider.address,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
@@ -169,8 +169,8 @@ blockchainTests('LiquidityProvider feature', env => {
         it('Successfully executes an ETH-ERC20 swap', async () => {
             const tx = await feature
                 .sellToLiquidityProvider(
-                    token.address,
                     ETH_TOKEN_ADDRESS,
+                    token.address,
                     liquidityProvider.address,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
@@ -182,7 +182,7 @@ blockchainTests('LiquidityProvider feature', env => {
                 tx.logs,
                 [
                     {
-                        makerToken: token.address,
+                        outputToken: token.address,
                         recipient: taker,
                         minBuyAmount: constants.ZERO_AMOUNT,
                         ethBalance: constants.ONE_ETHER,
@@ -194,8 +194,8 @@ blockchainTests('LiquidityProvider feature', env => {
         it('Successfully executes an ERC20-ETH swap', async () => {
             const tx = await feature
                 .sellToLiquidityProvider(
-                    ETH_TOKEN_ADDRESS,
                     token.address,
+                    ETH_TOKEN_ADDRESS,
                     liquidityProvider.address,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
@@ -207,10 +207,10 @@ blockchainTests('LiquidityProvider feature', env => {
                 tx.logs,
                 [
                     {
-                        takerToken: token.address,
+                        inputToken: token.address,
                         recipient: taker,
                         minBuyAmount: constants.ZERO_AMOUNT,
-                        takerTokenBalance: constants.ONE_ETHER,
+                        inputTokenBalance: constants.ONE_ETHER,
                     },
                 ],
                 TestLiquidityProviderEvents.SellTokenForEth,

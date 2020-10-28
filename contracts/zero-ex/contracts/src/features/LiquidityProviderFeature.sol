@@ -68,23 +68,23 @@ contract LiquidityProviderFeature is
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
-    /// @dev Sells `sellAmount` of `takerToken` to the liquidity provider
-    ///      at the given `target`.
-    /// @param makerToken The token being bought.
-    /// @param takerToken The token being sold.
-    /// @param target The address of the on-chain liquidity provider
+    /// @dev Sells `sellAmount` of `inputToken` to the liquidity provider
+    ///      at the given `provider` address.
+    /// @param inputToken The token being sold.
+    /// @param outputToken The token being bought.
+    /// @param provider The address of the on-chain liquidity provider
     ///        to trade with.
     /// @param recipient The recipient of the bought tokens. If equal to
     ///        address(0), `msg.sender` is assumed to be the recipient.
-    /// @param sellAmount The amount of `takerToken` to sell.
-    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to
+    /// @param sellAmount The amount of `inputToken` to sell.
+    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to
     ///        buy. Reverts if this amount is not satisfied.
-    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
-    /// @return boughtAmount The amount of `makerToken` bought.
+    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
+    /// @return boughtAmount The amount of `outputToken` bought.
     function sellToLiquidityProvider(
-        address makerToken,
-        address takerToken,
-        address payable target,
+        address inputToken,
+        address outputToken,
+        address payable provider,
         address recipient,
         uint256 sellAmount,
         uint256 minBuyAmount,
@@ -99,55 +99,55 @@ contract LiquidityProviderFeature is
             recipient = msg.sender;
         }
 
-        if (takerToken == ETH_TOKEN_ADDRESS) {
-            target.transfer(sellAmount);
+        if (inputToken == ETH_TOKEN_ADDRESS) {
+            provider.transfer(sellAmount);
         } else {
             LibTokenSpender.spendERC20Tokens(
-                IERC20TokenV06(takerToken),
+                IERC20TokenV06(inputToken),
                 msg.sender,
-                target,
+                provider,
                 sellAmount
             );
         }
 
-        if (takerToken == ETH_TOKEN_ADDRESS) {
-            uint256 balanceBefore = IERC20TokenV06(makerToken).balanceOf(recipient);
+        if (inputToken == ETH_TOKEN_ADDRESS) {
+            uint256 balanceBefore = IERC20TokenV06(outputToken).balanceOf(recipient);
             sandbox.executeSellEthForToken(
-                target,
-                makerToken,
+                provider,
+                outputToken,
                 recipient,
                 minBuyAmount,
                 auxiliaryData
             );
-            boughtAmount = IERC20TokenV06(makerToken).balanceOf(recipient).safeSub(balanceBefore);
-        } else if (makerToken == ETH_TOKEN_ADDRESS) {
+            boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
+        } else if (outputToken == ETH_TOKEN_ADDRESS) {
             uint256 balanceBefore = recipient.balance;
             sandbox.executeSellTokenForEth(
-                target,
-                takerToken,
+                provider,
+                inputToken,
                 recipient,
                 minBuyAmount,
                 auxiliaryData
             );
             boughtAmount = recipient.balance.safeSub(balanceBefore);
         } else {
-            uint256 balanceBefore = IERC20TokenV06(makerToken).balanceOf(recipient);
+            uint256 balanceBefore = IERC20TokenV06(outputToken).balanceOf(recipient);
             sandbox.executeSellTokenForToken(
-                target,
-                takerToken,
-                makerToken,
+                provider,
+                inputToken,
+                outputToken,
                 recipient,
                 minBuyAmount,
                 auxiliaryData
             );
-            boughtAmount = IERC20TokenV06(makerToken).balanceOf(recipient).safeSub(balanceBefore);
+            boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
         }
 
         if (boughtAmount < minBuyAmount) {
             LibLiquidityProviderRichErrors.LiquidityProviderIncompleteSellError(
-                target,
-                makerToken,
-                takerToken,
+                provider,
+                outputToken,
+                inputToken,
                 sellAmount,
                 boughtAmount,
                 minBuyAmount

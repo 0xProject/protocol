@@ -24,25 +24,25 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 contract TestLiquidityProvider {
     event SellTokenForToken(
-        address takerToken,
-        address makerToken,
+        address inputToken,
+        address outputToken,
         address recipient,
         uint256 minBuyAmount,
-        uint256 takerTokenBalance
+        uint256 inputTokenBalance
     );
 
     event SellEthForToken(
-        address makerToken,
+        address outputToken,
         address recipient,
         uint256 minBuyAmount,
         uint256 ethBalance
     );
 
     event SellTokenForEth(
-        address takerToken,
+        address inputToken,
         address recipient,
         uint256 minBuyAmount,
-        uint256 takerTokenBalance
+        uint256 inputTokenBalance
     );
 
     IERC20TokenV06 public immutable xAsset;
@@ -57,18 +57,18 @@ contract TestLiquidityProvider {
 
     receive() external payable {}
 
-    /// @dev Trades `takerToken` for `makerToken`. The amount of `takerToken`
+    /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`
     ///      to sell must be transferred to the contract prior to calling this
     ///      function to trigger the trade.
-    /// @param takerToken The token being sold.
-    /// @param makerToken The token being bought.
+    /// @param inputToken The token being sold.
+    /// @param outputToken The token being bought.
     /// @param recipient The recipient of the bought tokens.
-    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
+    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
-    /// @return boughtAmount The amount of `makerToken` bought.
+    /// @return boughtAmount The amount of `outputToken` bought.
     function sellTokenForToken(
-        address takerToken,
-        address makerToken,
+        address inputToken,
+        address outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -77,23 +77,23 @@ contract TestLiquidityProvider {
         returns (uint256 boughtAmount)
     {
         emit SellTokenForToken(
-            takerToken,
-            makerToken,
+            inputToken,
+            outputToken,
             recipient,
             minBuyAmount,
-            IERC20TokenV06(takerToken).balanceOf(address(this))
+            IERC20TokenV06(inputToken).balanceOf(address(this))
         );
     }
 
     /// @dev Trades ETH for token. ETH must be sent to the contract prior to
     ///      calling this function to trigger the trade.
-    /// @param makerToken The token being bought.
+    /// @param outputToken The token being bought.
     /// @param recipient The recipient of the bought tokens.
-    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
+    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
-    /// @return boughtAmount The amount of `makerToken` bought.
+    /// @return boughtAmount The amount of `outputToken` bought.
     function sellEthForToken(
-        address makerToken,
+        address outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -102,7 +102,7 @@ contract TestLiquidityProvider {
         returns (uint256 boughtAmount)
     {
         emit SellEthForToken(
-            makerToken,
+            outputToken,
             recipient,
             minBuyAmount,
             address(this).balance
@@ -111,13 +111,13 @@ contract TestLiquidityProvider {
 
     /// @dev Trades token for ETH. The token must be sent to the contract prior
     ///      to calling this function to trigger the trade.
-    /// @param takerToken The token being sold.
+    /// @param inputToken The token being sold.
     /// @param recipient The recipient of the bought tokens.
     /// @param minBuyAmount The minimum acceptable amount of ETH to buy.
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of ETH bought.
     function sellTokenForEth(
-        address takerToken,
+        address inputToken,
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -126,10 +126,10 @@ contract TestLiquidityProvider {
         returns (uint256 boughtAmount)
     {
         emit SellTokenForEth(
-            takerToken,
+            inputToken,
             recipient,
             minBuyAmount,
-            IERC20TokenV06(takerToken).balanceOf(address(this))
+            IERC20TokenV06(inputToken).balanceOf(address(this))
         );
     }
 }

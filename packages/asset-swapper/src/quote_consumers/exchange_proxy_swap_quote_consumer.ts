@@ -145,7 +145,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         NULL_BYTES,
                     )
                     .getABIEncodedTransactionData(),
-                ethAmount,
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
             };
@@ -288,7 +288,7 @@ function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
 function isDirectSwapCompatible(
     quote: SwapQuote,
     opts: ExchangeProxyContractOpts,
-    sources: ERC20BridgeSource[],
+    directSources: ERC20BridgeSource[],
 ): boolean {
     // Must not be a mtx.
     if (opts.isMetaTransaction) {
@@ -308,7 +308,7 @@ function isDirectSwapCompatible(
         return false;
     }
     const fill = order.fills[0];
-    if (!sources.includes(fill.source)) {
+    if (!directSources.includes(fill.source)) {
         return false;
     }
     return true;

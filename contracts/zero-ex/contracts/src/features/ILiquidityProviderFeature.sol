@@ -23,23 +23,23 @@ pragma experimental ABIEncoderV2;
 /// @dev Feature to swap directly with an on-chain liquidity provider.
 interface ILiquidityProviderFeature {
 
-    /// @dev Sells `sellAmount` of `takerToken` to the liquidity provider
-    ///      at the given `target`.
-    /// @param makerToken The token being bought.
-    /// @param takerToken The token being sold.
-    /// @param target The address of the on-chain liquidity provider
+    /// @dev Sells `sellAmount` of `inputToken` to the liquidity provider
+    ///      at the given `provider` address.
+    /// @param inputToken The token being sold.
+    /// @param outputToken The token being bought.
+    /// @param provider The address of the on-chain liquidity provider
     ///        to trade with.
     /// @param recipient The recipient of the bought tokens. If equal to
     ///        address(0), `msg.sender` is assumed to be the recipient.
-    /// @param sellAmount The amount of `takerToken` to sell.
-    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to
+    /// @param sellAmount The amount of `inputToken` to sell.
+    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to
     ///        buy. Reverts if this amount is not satisfied.
-    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
-    /// @return boughtAmount The amount of `makerToken` bought.
+    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
+    /// @return boughtAmount The amount of `outputToken` bought.
     function sellToLiquidityProvider(
-        address makerToken,
-        address takerToken,
-        address payable target,
+        address inputToken,
+        address outputToken,
+        address payable provider,
         address recipient,
         uint256 sellAmount,
         uint256 minBuyAmount,

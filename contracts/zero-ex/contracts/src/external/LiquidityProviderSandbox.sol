@@ -47,18 +47,18 @@ contract LiquidityProviderSandbox is
         _;
     }
 
-    /// @dev Calls `sellTokenForToken` on the given `target` contract to
+    /// @dev Calls `sellTokenForToken` on the given `provider` contract to
     ///      trigger a trade.
-    /// @param target The address of the on-chain liquidity provider.
-    /// @param takerToken The token being sold.
-    /// @param makerToken The token being bought.
+    /// @param provider The address of the on-chain liquidity provider.
+    /// @param inputToken The token being sold.
+    /// @param outputToken The token being bought.
     /// @param recipient The recipient of the bought tokens.
-    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
-    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
+    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
+    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     function executeSellTokenForToken(
-        address target,
-        address takerToken,
-        address makerToken,
+        address provider,
+        address inputToken,
+        address outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -67,25 +67,25 @@ contract LiquidityProviderSandbox is
         onlyOwner
         override
     {
-        ILiquidityProvider(target).sellTokenForToken(
-            takerToken,
-            makerToken,
+        ILiquidityProvider(provider).sellTokenForToken(
+            inputToken,
+            outputToken,
             recipient,
             minBuyAmount,
             auxiliaryData
         );
     }
 
-    /// @dev Calls `sellEthForToken` on the given `target` contract to
+    /// @dev Calls `sellEthForToken` on the given `provider` contract to
     ///      trigger a trade.
-    /// @param target The address of the on-chain liquidity provider.
-    /// @param makerToken The token being bought.
+    /// @param provider The address of the on-chain liquidity provider.
+    /// @param outputToken The token being bought.
     /// @param recipient The recipient of the bought tokens.
-    /// @param minBuyAmount The minimum acceptable amount of `makerToken` to buy.
-    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
+    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
+    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     function executeSellEthForToken(
-        address target,
-        address makerToken,
+        address provider,
+        address outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -94,24 +94,24 @@ contract LiquidityProviderSandbox is
         onlyOwner
         override
     {
-        ILiquidityProvider(target).sellEthForToken(
-            makerToken,
+        ILiquidityProvider(provider).sellEthForToken(
+            outputToken,
             recipient,
             minBuyAmount,
             auxiliaryData
         );
     }
 
-    /// @dev Calls `sellTokenForEth` on the given `target` contract to
+    /// @dev Calls `sellTokenForEth` on the given `provider` contract to
     ///      trigger a trade.
-    /// @param target The address of the on-chain liquidity provider.
-    /// @param takerToken The token being sold.
+    /// @param provider The address of the on-chain liquidity provider.
+    /// @param inputToken The token being sold.
     /// @param recipient The recipient of the bought tokens.
     /// @param minBuyAmount The minimum acceptable amount of ETH to buy.
-    /// @param auxiliaryData Auxiliary data supplied to the `target` contract.
+    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     function executeSellTokenForEth(
-        address target,
-        address takerToken,
+        address provider,
+        address inputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -120,8 +120,8 @@ contract LiquidityProviderSandbox is
         onlyOwner
         override
     {
-        ILiquidityProvider(target).sellTokenForEth(
-            takerToken,
+        ILiquidityProvider(provider).sellTokenForEth(
+            inputToken,
             payable(recipient),
             minBuyAmount,
             auxiliaryData
