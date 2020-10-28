@@ -17,6 +17,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibOwnableRichErrorsV06.sol";
 import "../vendor/ILiquidityProvider.sol";
+import "../vendor/v3/IERC20Bridge.sol";
 import "./ILiquidityProviderSandbox.sol";
 
 
@@ -67,13 +68,21 @@ contract LiquidityProviderSandbox is
         onlyOwner
         override
     {
-        ILiquidityProvider(provider).sellTokenForToken(
+        try ILiquidityProvider(provider).sellTokenForToken(
             inputToken,
             outputToken,
             recipient,
             minBuyAmount,
             auxiliaryData
-        );
+        ) {} catch {
+            IERC20Bridge(provider).bridgeTransferFrom(
+                outputToken,
+                provider,
+                recipient,
+                minBuyAmount,
+                auxiliaryData
+            );
+        }
     }
 
     /// @dev Calls `sellEthForToken` on the given `provider` contract to
