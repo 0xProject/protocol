@@ -217,7 +217,7 @@ function _nativeOrderToReportSource(
             ...nativeOrderBase,
             isRfqt: true,
             makerUri: foundRfqtMakerUri,
-            ...(comparisonPrice ? {comparisonPrice: comparisonPrice.toString()} : {}),
+            ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toString() } : {}),
         };
         return rfqtSource;
     } else {
