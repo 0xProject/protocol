@@ -65,6 +65,7 @@ export function generateQuoteReport(
     nativeOrders: SignedOrder[],
     orderFillableAmounts: BigNumber[],
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
     const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
@@ -94,6 +95,7 @@ export function generateQuoteReport(
                 return _nativeOrderToReportSource(
                     foundNativeOrder,
                     nativeOrderSignaturesToFillableAmounts[foundNativeOrder.signature],
+                    comparisonPrice,
                     quoteRequestor,
                 );
             } else {
@@ -197,6 +199,7 @@ function _nativeOrderFromCollapsedFill(cf: CollapsedFill): SignedOrder | undefin
 function _nativeOrderToReportSource(
     nativeOrder: SignedOrder,
     fillableAmount: BigNumber,
+    comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): NativeRFQTReportSource | NativeOrderbookReportSource {
     const nativeOrderBase: NativeReportSourceBase = {
@@ -214,6 +217,7 @@ function _nativeOrderToReportSource(
             ...nativeOrderBase,
             isRfqt: true,
             makerUri: foundRfqtMakerUri,
+            ...(comparisonPrice ? {comparisonPrice: comparisonPrice.toString()} : {}),
         };
         return rfqtSource;
     } else {
