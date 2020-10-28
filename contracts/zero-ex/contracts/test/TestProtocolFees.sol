@@ -28,6 +28,7 @@ contract TestProtocolFees is FixinProtocolFees {
         IERC20TokenV06 weth
     )
         external
+        payable
     {
         _collectProtocolFee(poolId, amount, weth);
     }

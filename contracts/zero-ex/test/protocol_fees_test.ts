@@ -40,18 +40,23 @@ blockchainTests.resets('ProtocolFees', env => {
             const poolId = hexUtils.random();
             const amount1 = new BigNumber(123456);
             const amount2 = new BigNumber(456789);
+
+            // Transfer amount1 via WETH.
             await protocolFees
                 .collectProtocolFee(poolId, amount1, weth.address)
                 .awaitTransactionSuccessAsync({ from: payer });
 
+            // Send to staking contract.
             await protocolFees
                 .transferFeesForPool(poolId, staking.address, weth.address)
                 .awaitTransactionSuccessAsync();
 
+            // Transfer amount2 via ETH.
             await protocolFees
                 .collectProtocolFee(poolId, amount2, weth.address)
-                .awaitTransactionSuccessAsync({ from: payer });
+                .awaitTransactionSuccessAsync({ from: payer, value: amount2 });
 
+            // Send to staking contract again.
             await protocolFees
                 .transferFeesForPool(poolId, staking.address, weth.address)
                 .awaitTransactionSuccessAsync();
@@ -59,11 +64,12 @@ blockchainTests.resets('ProtocolFees', env => {
             const balance = await staking.balanceForPool(poolId).callAsync();
             const wethBalance = await weth.balanceOf(staking.address).callAsync();
 
+            // Check that staking accounted for the collected ether properly.
             expect(balance).to.bignumber.eq(wethBalance);
 
-            const total = amount1.plus(amount2);
-            // We leave 1 wei behind for gas reasons.
-            return expect(balance).to.bignumber.eq(total.minus(1));
+            // We leave 1 wei behind, of both ETH and WETH, for gas reasons.
+            const total = amount1.plus(amount2).minus(2);
+            return expect(balance).to.bignumber.eq(total);
         });
     });
 });
