@@ -117,6 +117,7 @@ jobs:
             - run: yarn wsrun test:circleci @0x/contract-wrappers-test
             - run: yarn wsrun test:circleci @0x/migrations
             - run: yarn wsrun test:circleci @0x/order-utils
+            - run: yarn wsrun test:circleci @0x/protocol-utils
             - run: yarn wsrun test:circleci @0x/asset-swapper
             - save_cache:
                   key: coverage-contract-wrappers-test-{{ .Environment.CIRCLE_SHA1 }}
@@ -127,9 +128,9 @@ jobs:
                   paths:
                       - ~/repo/packages/order-utils/coverage/lcov.info
             - save_cache:
-                  key: coverage-web3-wrapper-{{ .Environment.CIRCLE_SHA1 }}
+                  key: coverage-protocol-utils-{{ .Environment.CIRCLE_SHA1 }}
                   paths:
-                      - ~/repo/packages/web3-wrapper/coverage/lcov.info
+                      - ~/repo/packages/protocol-utils/coverage/lcov.info
     static-tests:
         resource_class: large
         working_directory: ~/repo
@@ -157,6 +158,9 @@ jobs:
             - restore_cache:
                   keys:
                       - coverage-order-utils-{{ .Environment.CIRCLE_SHA1 }}
+            - restore_cache:
+                  keys:
+                      - coverage-protocol-utils-{{ .Environment.CIRCLE_SHA1 }}
             - restore_cache:
                   keys:
                       - coverage-contracts-{{ .Environment.CIRCLE_SHA1 }}

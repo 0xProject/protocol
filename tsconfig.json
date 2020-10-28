@@ -38,6 +38,8 @@
         { "path": "./packages/contract-artifacts" },
         { "path": "./packages/contract-wrappers" },
         { "path": "./packages/migrations" },
-        { "path": "./packages/order-utils" }
+        { "path": "./packages/order-utils" },
+        { "path": "./packages/protocol-utils" },
+        { "path": "./packages/protocol-types" }
     ]
 }
