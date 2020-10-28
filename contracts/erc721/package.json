@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-erc721",
-    "version": "3.1.9",
+    "version": "3.1.10",
     "engines": {
         "node": ">=6.12"
     },
@@ -54,8 +54,8 @@
     "devDependencies": {
         "@0x/abi-gen": "^5.4.3",
         "@0x/contracts-gen": "2.0.13",
-        "@0x/contracts-test-utils": "^5.3.6",
-        "@0x/contracts-utils": "^4.5.3",
+        "@0x/contracts-test-utils": "^5.3.7",
+        "@0x/contracts-utils": "^4.5.4",
         "@0x/dev-utils": "^3.3.4",
         "@0x/sol-compiler": "^4.2.3",
         "@0x/ts-doc-gen": "^0.0.28",
