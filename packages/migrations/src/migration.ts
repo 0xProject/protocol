@@ -329,7 +329,6 @@ export async function runMigrationsAsync(
             mStable: NULL_ADDRESS,
             shellBridge: NULL_ADDRESS,
             creamBridge: NULL_ADDRESS,
-            shell: NULL_ADDRESS,
             dodoBridge: NULL_ADDRESS,
             dodoHelper: NULL_ADDRESS,
             snowSwapBridge: NULL_ADDRESS,

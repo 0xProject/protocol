@@ -123,6 +123,10 @@ export interface SushiSwapFillData extends UniswapV2FillData {
     router: string;
 }
 
+export interface ShellFillData extends FillData {
+    poolAddress: string;
+}
+
 export interface LiquidityProviderFillData extends FillData {
     poolAddress: string;
 }

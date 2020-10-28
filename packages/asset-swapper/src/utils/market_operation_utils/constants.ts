@@ -89,8 +89,28 @@ export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } = Object.as
     ...Object.values(ERC20BridgeSource).map((source: ERC20BridgeSource, index) => ({ [source]: 1 << index })),
 );
 
+// Mainnet tokens
+// Not an exhaustive list, just enough so we don't repeat ourselves
+export const TOKENS = {
+    WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    // Stable Coins
+    DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    sUSD: '0x57ab1ec28d129707052df4df418d58a2d46d5f51',
+    TUSD: '0x0000000000085d4780b73119b644ae5ecd22b376',
+    // Bitcoins
+    WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+    RenBTC: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
+    sBTC: '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
+    // Other
+    MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
+};
+
 /**
  * Mainnet Curve configuration
+ * The tokens are in order of their index, which each curve defines
+ * I.e DaiUsdc curve has DAI as index 0 and USDC as index 1
  */
 export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
     DaiUsdc: {
@@ -98,7 +118,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
         poolAddress: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56',
-        tokens: ['0x6b175474e89094c44da98b954eedeac495271d0f', '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'],
+        tokens: [TOKENS.DAI, TOKENS.USDC],
     },
     // DaiUsdcUsdt: {
     //     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -106,9 +126,9 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
     //     buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
     //     poolAddress: '0x52ea46506b9cc5ef470c5bf89f17dc28bb35d85c',
     //     tokens: [
-    //         '0x6b175474e89094c44da98b954eedeac495271d0f',
-    //         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    //         '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    //         TOKENS.DAI,
+    //         TOKENS.USDC,
+    //         TOKENS.USDT,
     //     ],
     // },
     DaiUsdcUsdtTusd: {
@@ -116,12 +136,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
         poolAddress: '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51',
-        tokens: [
-            '0x6b175474e89094c44da98b954eedeac495271d0f',
-            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            '0xdac17f958d2ee523a2206206994597c13d831ec7',
-            '0x0000000000085d4780b73119b644ae5ecd22b376',
-        ],
+        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.TUSD],
     },
     // Looks like it's dying.
     DaiUsdcUsdtBusd: {
@@ -130,10 +145,10 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
         poolAddress: '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27',
         tokens: [
-            '0x6b175474e89094c44da98b954eedeac495271d0f',
-            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            '0xdac17f958d2ee523a2206206994597c13d831ec7',
-            '0x4fabb145d64652a948d72533023f6e7a623c7c53',
+            TOKENS.DAI,
+            TOKENS.USDC,
+            TOKENS.USDT,
+            '0x4fabb145d64652a948d72533023f6e7a623c7c53', // bUSD
         ],
     },
     DaiUsdcUsdtSusd: {
@@ -141,57 +156,41 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: '0xa5407eae9ba41422680e2e00537571bcc53efbfd',
-        tokens: [
-            '0x6b175474e89094c44da98b954eedeac495271d0f',
-            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            '0xdac17f958d2ee523a2206206994597c13d831ec7',
-            '0x57ab1ec28d129707052df4df418d58a2d46d5f51',
-        ],
+        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD],
     },
     RenbtcWbtc: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: '0x93054188d876f558f4a66b2ef1d97d16edf0895b',
-        tokens: ['0xeb4c2781e4eba804ce9a9803c67d0893436bb27d', '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599'],
+        tokens: [TOKENS.RenBTC, TOKENS.WBTC],
     },
     RenbtcWbtcSbtc: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714',
-        tokens: [
-            '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
-            '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-            '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
-        ],
+        tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
     },
     TriPool: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
-        tokens: [
-            '0x6b175474e89094c44da98b954eedeac495271d0f',
-            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            '0xdac17f958d2ee523a2206206994597c13d831ec7',
-        ],
+        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
     },
 };
+
 export const MAINNET_SWERVE_INFOS: { [name: string]: CurveInfo } = {
     swUSD: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: '0x329239599afb305da0a2ec69c58f8a6697f9f88d', // _target: 0xa5407eae9ba41422680e2e00537571bcc53efbfd
-        tokens: [
-            '0x6b175474e89094c44da98b954eedeac495271d0f',
-            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            '0xdac17f958d2ee523a2206206994597c13d831ec7',
-            '0x0000000000085d4780b73119b644ae5ecd22b376',
-        ],
+        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.TUSD],
     },
 };
+
 export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
     yVaultCurve: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -232,10 +231,10 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
     //     buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
     //     poolAddress: '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b',
     //     tokens: [
-    //        '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
-    //        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-    //        '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-    //        '0x0000000000085d4780b73119b644ae5ecd22b376', // TUSD
+    //        TOKENS.DAI,
+    //        TOKENS.USDC,
+    //        TOKENS.USDT,
+    //        TOKENS.TUSD,
     //     ],
     // },
 };
@@ -248,8 +247,7 @@ export const MAINNET_KYBER_RESERVE_IDS: { [name: string]: string } = {
 
 export const MAINNET_KYBER_TOKEN_RESERVE_IDS: { [token: string]: string } = {
     // USDC
-    ['0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48']:
-        '0xaa55534443303041505200000000000000000000000000000000000000000000',
+    [TOKENS.USDC]: '0xaa55534443303041505200000000000000000000000000000000000000000000',
     // AMPL
     ['0xd46ba6d942050d489dbd938a2c909a5d5039a161']:
         '0xaad46ba6d942050d489dbd938a2c909a5d5039a1610000000000000000000000',
@@ -263,8 +261,7 @@ export const MAINNET_KYBER_TOKEN_RESERVE_IDS: { [token: string]: string } = {
     ['0xdd974d5c2e2928dea5f71b9825b8b646686bd200']:
         '0xaa4b4e435f4d4547414c41444f4e000000000000000000000000000000000000',
     // sUSD
-    ['0x57ab1ec28d129707052df4df418d58a2d46d5f51']:
-        '0xaa73555344000000000000000000000000000000000000000000000000000000',
+    [TOKENS.sUSD]: '0xaa73555344000000000000000000000000000000000000000000000000000000',
     // SNX
     ['0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f']:
         '0xaa534e5800000000000000000000000000000000000000000000000000000000',
@@ -277,6 +274,17 @@ export const MAINNET_KYBER_TOKEN_RESERVE_IDS: { [token: string]: string } = {
 };
 
 export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F';
+
+export const MAINNET_SHELL_POOLS = {
+    StableCoins: {
+        poolAddress: '0x2E703D658f8dd21709a7B458967aB4081F8D3d05',
+        tokens: [TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD, TOKENS.DAI],
+    },
+    Bitcoin: {
+        poolAddress: '0x02Af7C867d6Ddd2c87dEcec2E4AFF809ee118FBb',
+        tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
+    },
+};
 
 export const ERC20_PROXY_ID = '0xf47261b0';
 export const WALLET_SIGNATURE = '0x04';
@@ -323,7 +331,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
         mStableBridge: '0x2bf04fcea05f0989a14d9afa37aa376baca6b2b3',
         mooniswapBridge: '0x02b7eca484ad960fca3f7709e0b2ac81eec3069c',
         sushiswapBridge: '0x47ed0262a0b688dcb836d254c6a2e96b6c48a9f5',
-        shellBridge: '0x21fb3862eed7911e0f8219a077247b849846728d',
+        shellBridge: '0xf1c0811e3788caae7dbfae43da9d9131b1a8a148',
         dodoBridge: '0xe9da66965a9344aab2167e6813c03f043cc7a6ca',
         creamBridge: '0xb9d4bf2c8dab828f4ffb656acdb6c2b497d44f25',
         swerveBridge: '0xf9786d5eb1de47fa56a8f7bb387653c6d410bfee',
