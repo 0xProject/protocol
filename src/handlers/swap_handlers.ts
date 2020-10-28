@@ -182,15 +182,23 @@ export class SwapHandlers {
     }
 
     public async getMarketDepthAsync(req: express.Request, res: express.Response): Promise<void> {
+        // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
+        const buyTokenSymbolOrAddress = isETHSymbolOrAddress(req.query.buyToken as string)
+            ? 'WETH'
+            : (req.query.buyToken as string);
+        const sellTokenSymbolOrAddress = isETHSymbolOrAddress(req.query.sellToken as string)
+            ? 'WETH'
+            : (req.query.sellToken as string);
+
         const makerToken = {
             decimals: DEFAULT_TOKEN_DECIMALS,
             tokenAddress: req.query.buyToken as string,
-            ...getTokenMetadataIfExists(req.query.buyToken as string, CHAIN_ID),
+            ...getTokenMetadataIfExists(buyTokenSymbolOrAddress, CHAIN_ID),
         };
         const takerToken = {
             decimals: DEFAULT_TOKEN_DECIMALS,
             tokenAddress: req.query.sellToken as string,
-            ...getTokenMetadataIfExists(req.query.sellToken as string, CHAIN_ID),
+            ...getTokenMetadataIfExists(sellTokenSymbolOrAddress, CHAIN_ID),
         };
         if (makerToken.tokenAddress === takerToken.tokenAddress) {
             throw new ValidationError([
