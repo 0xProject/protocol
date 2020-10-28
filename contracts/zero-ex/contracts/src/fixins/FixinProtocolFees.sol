@@ -31,8 +31,10 @@ abstract contract FixinProtocolFees {
         feeCollectorCodeHash = keccak256(type(FeeCollector).creationCode);
     }
 
-    /// @dev   Collect the specified protocol fee in either WETH or ETH. The
-    ///        fee is stored in a per-pool fee collector contract.
+    /// @dev   Collect the specified protocol fee in either WETH or ETH. If
+    ///        msg.value is non-zero, the fee will be paid in ETH. Otherwise,
+    ///        this function attempts to transfer the fee in WETH. Either way,
+    ///        The fee is stored in a per-pool fee collector contract.
     /// @param poolId The pool ID for which a fee is being collected.
     /// @param amount The amount of ETH/WETH to be collected.
     /// @param weth The WETH token contract.
@@ -43,10 +45,6 @@ abstract contract FixinProtocolFees {
     )
         internal
     {
-        require(
-            msg.value == amount || msg.value == 0,
-            "FixinProtocolFees/WRONG_ETHER_AMOUNT");
-
         FeeCollector feeCollector = _getFeeCollector(poolId);
 
         if (msg.value == 0) {
