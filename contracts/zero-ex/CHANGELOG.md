@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.5.1 - _October 28, 2020_
+
+    * Dependencies updated
+
 ## v0.5.0 - _October 27, 2020_
 
     * Add `Swerve`, `SnowSwap`, `DODO` and `SushiSwap` into FQT (#7)

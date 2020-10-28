@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.8.1 - _October 28, 2020_
+
+    * Fix Gas schedule with `SnowSwap` and `Bancor` (#15)
+
 ## v4.8.0 - _October 27, 2020_
 
     * Moved Bridge addresses into Asset-swapper (#4)

@@ -5,8 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.0.1 - _October 28, 2020_
+
+    * Dependencies updated
+
 ## v5.0.0 - _October 27, 2020_
 
+    * update erc20BridgeSampler address for Kovan (#14)
     * Moved Bridge addresses into Asset-swapper (#4)
 
 ## v4.12.0 - _October 21, 2020_

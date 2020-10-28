@@ -6,7 +6,8 @@
                 "note": "Fix Gas schedule with `SnowSwap` and `Bancor`",
                 "pr": 15
             }
-        ]
+        ],
+        "timestamp": 1603851023
     },
     {
         "version": "4.8.0",
