@@ -55,7 +55,7 @@ abstract contract FixinProtocolFees {
         } else {
             // ETH
             (bool success,) = address(feeCollector).call{value: amount}("");
-            require(success);
+            require(success, "FixinProtocolFees/ETHER_TRANSFER_FALIED");
         }
     }
 
