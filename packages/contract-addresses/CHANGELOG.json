@@ -3,6 +3,10 @@
         "version": "5.0.0",
         "changes": [
             {
+                "note": "update erc20BridgeSampler address for Kovan",
+                "pr": 14
+            },
+            {
                 "note": "Moved Bridge addresses into Asset-swapper",
                 "pr": 4
             }
