@@ -50,6 +50,16 @@ contract LiquidityProviderFeature is
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox public immutable sandbox;
 
+    /// @dev Event for data pipeline.
+    event LiquidityProviderSwap(
+        address inputToken,
+        address outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount,
+        address provider,
+        address recipient
+    );
+
     constructor(address zeroEx)
         public
         FixinCommon()
@@ -153,5 +163,14 @@ contract LiquidityProviderFeature is
                 minBuyAmount
             ).rrevert();
         }
+
+        emit LiquidityProviderSwap(
+            inputToken,
+            outputToken,
+            sellAmount,
+            boughtAmount,
+            provider,
+            recipient
+        );
     }
 }
