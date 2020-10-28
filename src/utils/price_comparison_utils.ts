@@ -1,5 +1,6 @@
 import {
     BridgeReportSource,
+    DEFAULT_GAS_SCHEDULE,
     ERC20BridgeSource,
     FeeSchedule,
     MultiHopReportSource,
@@ -12,7 +13,6 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { GAS_SCHEDULE } from '../config';
 import { ZERO } from '../constants';
 import { logger } from '../logger';
 import { ChainId, SourceComparison } from '../types';
@@ -22,7 +22,7 @@ import { getTokenMetadataIfExists } from './token_metadata_utils';
 // NOTE: Our internal Uniswap gas usage may be lower than the Uniswap UI usage
 // Therefore we need to adjust the gas estimates to be representative of using the Uniswap UI.
 const gasScheduleWithOverrides: FeeSchedule = {
-    ...GAS_SCHEDULE,
+    ...DEFAULT_GAS_SCHEDULE,
     [ERC20BridgeSource.UniswapV2]: fillData => {
         let gas = 1.5e5;
         // tslint:disable-next-line:custom-no-magic-numbers

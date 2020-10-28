@@ -1,5 +1,6 @@
 import {
     AffiliateFee,
+    AssetSwapperContractAddresses,
     ERC20BridgeSource,
     ExtensionContractType,
     getSwapMinBuyAmount,
@@ -9,8 +10,9 @@ import {
     SwapQuoteConsumer,
     SwapQuoteGetOutputOpts,
     SwapQuoter,
+    SwapQuoteRequestOpts,
+    SwapQuoterOpts,
 } from '@0x/asset-swapper';
-import { SwapQuoteRequestOpts, SwapQuoterOpts } from '@0x/asset-swapper/lib/src/types';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { assetDataUtils, ETH_TOKEN_ADDRESS, SupportedProvider } from '@0x/order-utils';
@@ -69,7 +71,7 @@ export class SwapService {
     // when the result has expired
     private readonly _tokenDecimalResultCache: ResultCache<number>;
 
-    constructor(orderbook: Orderbook, provider: SupportedProvider, contractAddresses: ContractAddresses) {
+    constructor(orderbook: Orderbook, provider: SupportedProvider, contractAddresses: AssetSwapperContractAddresses) {
         this._provider = provider;
         const swapQuoterOpts: Partial<SwapQuoterOpts> = {
             ...SWAP_QUOTER_OPTS,

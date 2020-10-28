@@ -3,6 +3,8 @@ require('./apm');
 
 import {
     artifacts,
+    AssetSwapperContractAddresses,
+    BRIDGE_ADDRESSES_BY_CHAIN,
     ContractAddresses,
     ERC20BridgeSamplerContract,
     Orderbook,
@@ -85,7 +87,7 @@ async function deploySamplerContractAsync(
     }
 }
 
-let contractAddresses_: ContractAddresses | undefined;
+let contractAddresses_: AssetSwapperContractAddresses | undefined;
 
 /**
  * Determines the contract addresses needed for the network. For testing (ganache)
@@ -96,18 +98,19 @@ let contractAddresses_: ContractAddresses | undefined;
 export async function getContractAddressesForNetworkOrThrowAsync(
     provider: SupportedProvider,
     chainId: ChainId,
-): Promise<ContractAddresses> {
+): Promise<AssetSwapperContractAddresses> {
     if (contractAddresses_) {
         return contractAddresses_;
     }
     let contractAddresses = getContractAddressesForChainOrThrow(chainId);
+    const bridgeAddresses = BRIDGE_ADDRESSES_BY_CHAIN[chainId];
     // In a testnet where the environment does not support overrides
     // so we deploy the latest sampler
     if (chainId === ChainId.Ganache) {
         const sampler = await deploySamplerContractAsync(provider, chainId);
-        contractAddresses = { ...contractAddresses, erc20BridgeSampler: sampler.address };
+        contractAddresses = { ...contractAddresses, ...bridgeAddresses, erc20BridgeSampler: sampler.address };
     }
-    contractAddresses_ = contractAddresses;
+    contractAddresses_ = { ...contractAddresses, ...bridgeAddresses };
     return contractAddresses_;
 }
 
@@ -252,7 +255,7 @@ function createMetaTransactionRateLimiterFromConfig(
 export function createSwapServiceFromOrderBookService(
     orderBookService: OrderBookService,
     provider: SupportedProvider,
-    contractAddresses: ContractAddresses,
+    contractAddresses: AssetSwapperContractAddresses,
 ): SwapService {
     const orderStore = new OrderStoreDbAdapter(orderBookService);
     const orderProvider = new OrderBookServiceOrderProvider(orderStore, orderBookService);
