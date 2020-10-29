@@ -89,7 +89,7 @@ contract BridgeAdapter is
         MixinMooniswap(addresses)
         MixinMStable(addresses)
         MixinOasis(addresses)
-        MixinShell(addresses)
+        MixinShell()
         MixinSushiswap(addresses)
         MixinUniswap(addresses)
         MixinUniswapV2(addresses)

@@ -391,7 +391,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Mooniswap]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Native]: { order: createOrder() },
         [ERC20BridgeSource.MultiHop]: {},
-        [ERC20BridgeSource.Shell]: {},
+        [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Dodo]: {},
     };

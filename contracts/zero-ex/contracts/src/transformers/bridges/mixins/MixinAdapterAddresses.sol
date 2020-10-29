@@ -44,7 +44,6 @@ contract MixinAdapterAddresses
         address uniswapV2Router;
         address uniswapExchangeFactory;
         address mStable;
-        address shell;
         address dodoHelper;
         // Other
         address weth;

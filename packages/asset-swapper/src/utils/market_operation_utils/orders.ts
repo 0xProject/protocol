@@ -33,6 +33,7 @@ import {
     NativeCollapsedFill,
     OptimizedMarketOrder,
     OrderDomain,
+    ShellFillData,
     SnowSwapFillData,
     SushiSwapFillData,
     SwerveFillData,
@@ -331,6 +332,14 @@ export function createBridgeOrder(
                 createDODOBridgeData(takerToken, dodoFillData.poolAddress, dodoFillData.isSellBase),
             );
             break;
+        case ERC20BridgeSource.Shell:
+            const shellFillData = (fill as CollapsedFill<ShellFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
+            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
+                makerToken,
+                bridgeAddress,
+                createShellBridgeData(takerToken, shellFillData.poolAddress),
+            );
+            break;
         default:
             makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
                 makerToken,
@@ -373,6 +382,14 @@ function createMultiBridgeData(takerToken: string, makerToken: string): string {
 }
 
 function createBalancerBridgeData(takerToken: string, poolAddress: string): string {
+    const encoder = AbiEncoder.create([
+        { name: 'takerToken', type: 'address' },
+        { name: 'poolAddress', type: 'address' },
+    ]);
+    return encoder.encode({ takerToken, poolAddress });
+}
+
+function createShellBridgeData(takerToken: string, poolAddress: string): string {
     const encoder = AbiEncoder.create([
         { name: 'takerToken', type: 'address' },
         { name: 'poolAddress', type: 'address' },

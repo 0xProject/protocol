@@ -51,16 +51,15 @@ contract ShellBridge is
         external
         returns (bytes4 success)
     {
-        // Decode the bridge data to get the `fromTokenAddress`.
-        (address fromTokenAddress) = abi.decode(bridgeData, (address));
+        // Decode the bridge data to get the `fromTokenAddress` and `pool`.
+        (address fromTokenAddress, address pool) = abi.decode(bridgeData, (address, address));
 
         uint256 fromTokenBalance = IERC20Token(fromTokenAddress).balanceOf(address(this));
-        IShell exchange = IShell(_getShellAddress());
         // Grant an allowance to the exchange to spend `fromTokenAddress` token.
-        LibERC20Token.approveIfBelow(fromTokenAddress, address(exchange), fromTokenBalance);
+        LibERC20Token.approveIfBelow(fromTokenAddress, pool, fromTokenBalance);
 
         // Try to sell all of this contract's `fromTokenAddress` token balance.
-        uint256 boughtAmount = exchange.originSwap(
+        uint256 boughtAmount = IShell(pool).originSwap(
             fromTokenAddress,
             toTokenAddress,
             fromTokenBalance,

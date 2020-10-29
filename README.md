@@ -8,7 +8,7 @@ This repository is a monorepo including the 0x protocol smart contracts and nume
 
 [website-url]: https://0x.org
 
-[![CircleCI](https://circleci.com/gh/0xProject/0x-monorepo.svg?style=svg&circle-token=61bf7cd8c9b4e11b132089dfcffdd1be277d1e0c)](https://circleci.com/gh/0xProject/0x-monorepo)
+[![CircleCI](https://circleci.com/gh/0xProject/protocol.svg?style=svg&circle-token=61bf7cd8c9b4e11b132089dfcffdd1be277d1e0c)](https://circleci.com/gh/0xProject/protocool)
 [![Coverage Status](https://coveralls.io/repos/github/0xProject/0x-monorepo/badge.svg?branch=development)](https://coveralls.io/github/0xProject/0x-monorepo?branch=development)
 [![Discord](https://img.shields.io/badge/chat-discord.chat-yellow.svg?style=flat)](https://discordapp.com/invite/d3FTX3M)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -92,7 +92,7 @@ yarn build
 To build a specific package:
 
 ```bash
-PKG=@0x/web3-wrapper yarn build
+PKG=@0x/contract-wrappers yarn build
 ```
 
 To build all contracts packages:
@@ -115,7 +115,7 @@ To watch a specific package and all it's dependent packages:
 PKG=[NPM_PACKAGE_NAME] yarn watch
 
 e.g
-PKG=@0x/web3-wrapper yarn watch
+PKG=@0x/contract-wrappers yarn watch
 ```
 
 ### Clean
@@ -143,7 +143,7 @@ yarn rebuild
 To re-build (clean & build) a specific package & it's deps:
 
 ```bash
-PKG=0x.js yarn rebuild
+PKG=@0x/contract-wrappers yarn rebuild
 ```
 
 ### Lint
@@ -157,7 +157,7 @@ yarn lint
 Lint a specific package:
 
 ```bash
-PKG=0x.js yarn lint
+PKG=@0x/contract-wrappers yarn lint
 ```
 
 ### Run Tests
@@ -171,7 +171,7 @@ yarn test
 Run a specific package's test:
 
 ```bash
-PKG=@0x/web3-wrapper yarn test
+PKG=@0x/contract-wrappers yarn test
 ```
 
 Run all contracts packages tests:

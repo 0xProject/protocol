@@ -44,15 +44,6 @@ contract MixinShell is
 {
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the `Shell` contract.
-    IShell private immutable SHELL;
-
-    constructor(AdapterAddresses memory addresses)
-        public
-    {
-        SHELL = IShell(addresses.shell);
-    }
-
     function _tradeShell(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
@@ -61,15 +52,15 @@ contract MixinShell is
         internal
         returns (uint256 boughtAmount)
     {
-        (address fromTokenAddress) = abi.decode(bridgeData, (address));
+        (address fromTokenAddress, address pool) = abi.decode(bridgeData, (address, address));
 
         // Grant the Shell contract an allowance to sell the first token.
         IERC20TokenV06(fromTokenAddress).approveIfBelow(
-            address(SHELL),
+            pool,
             sellAmount
         );
 
-        boughtAmount = SHELL.originSwap(
+        boughtAmount = IShell(pool).originSwap(
             fromTokenAddress,
             address(buyToken),
              // Sell all tokens we hold.
