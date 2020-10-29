@@ -1,6 +1,7 @@
 import { blockchainTests, constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
 import { encodeWethTransformerData, ETH_TOKEN_ADDRESS } from '@0x/order-utils';
-import { BigNumber, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
@@ -58,8 +59,8 @@ blockchainTests.resets('WethTransformer', env => {
             .executeTransform(amount, transformer.address, data)
             .awaitTransactionSuccessAsync({ value: amount });
         return expect(tx).to.revertWith(
-            new ZeroExRevertErrors.TransformERC20.InvalidTransformDataError(
-                ZeroExRevertErrors.TransformERC20.InvalidTransformDataErrorCode.InvalidTokens,
+            new ExchangeProxyRevertErrors.TransformERC20.InvalidTransformDataError(
+                ExchangeProxyRevertErrors.TransformERC20.InvalidTransformDataErrorCode.InvalidTokens,
                 data,
             ),
         );

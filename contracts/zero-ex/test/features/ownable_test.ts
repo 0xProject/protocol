@@ -1,5 +1,6 @@
 import { blockchainTests, expect, LogDecoder, randomAddress, verifyEventsFromLogs } from '@0x/contracts-test-utils';
-import { hexUtils, OwnableRevertErrors, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors, OwnableRevertErrors } from '@0x/protocol-utils';
+import { hexUtils, StringRevertError } from '@0x/utils';
 
 import { artifacts } from '../artifacts';
 import { initialMigrateAsync } from '../utils/migration';
@@ -88,7 +89,7 @@ blockchainTests.resets('Ownable feature', env => {
                 .migrate(testMigrator.address, failingMigrateFnCallData, newOwner)
                 .awaitTransactionSuccessAsync({ from: owner });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.Ownable.MigrateCallFailedError(
+                new ExchangeProxyRevertErrors.Ownable.MigrateCallFailedError(
                     testMigrator.address,
                     hexUtils.rightPad('0xdeadbeef'),
                 ),
@@ -100,7 +101,7 @@ blockchainTests.resets('Ownable feature', env => {
                 .migrate(testMigrator.address, revertingMigrateFnCallData, newOwner)
                 .awaitTransactionSuccessAsync({ from: owner });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.Ownable.MigrateCallFailedError(
+                new ExchangeProxyRevertErrors.Ownable.MigrateCallFailedError(
                     testMigrator.address,
                     new StringRevertError('OOPSIE').encode(),
                 ),

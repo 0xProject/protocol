@@ -5,7 +5,8 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
+import { BigNumber, hexUtils, StringRevertError } from '@0x/utils';
 
 import { IZeroExContract, TokenSpenderFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
@@ -93,7 +94,7 @@ blockchainTests.resets('TokenSpender feature', env => {
             const tx = feature
                 ._spendERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
-            const expectedError = new ZeroExRevertErrors.Spender.SpenderERC20TransferFromFailedError(
+            const expectedError = new ExchangeProxyRevertErrors.Spender.SpenderERC20TransferFromFailedError(
                 token.address,
                 tokenFrom,
                 tokenTo,
@@ -111,7 +112,7 @@ blockchainTests.resets('TokenSpender feature', env => {
                 ._spendERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.Spender.SpenderERC20TransferFromFailedError(
+                new ExchangeProxyRevertErrors.Spender.SpenderERC20TransferFromFailedError(
                     token.address,
                     tokenFrom,
                     tokenTo,

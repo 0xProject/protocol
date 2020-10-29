@@ -13,8 +13,9 @@ import {
     FillQuoteTransformerData,
     FillQuoteTransformerSide,
 } from '@0x/order-utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
 import { Order } from '@0x/types';
-import { BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
@@ -497,7 +498,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.IncompleteFillSellQuoteError(
+                new ExchangeProxyRevertErrors.TransformERC20.IncompleteFillSellQuoteError(
                     takerToken.address,
                     getExpectedSellQuoteFillResults([filledOrder, ...orders.slice(1)]).takerAssetSpent,
                     qfr.takerAssetSpent,
@@ -523,7 +524,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid.minus(1) });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.IncompleteFillSellQuoteError(
+                new ExchangeProxyRevertErrors.TransformERC20.IncompleteFillSellQuoteError(
                     takerToken.address,
                     getExpectedSellQuoteFillResults([...orders.slice(0, 2)]).takerAssetSpent,
                     qfr.takerAssetSpent,
@@ -577,7 +578,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.IncompleteFillSellQuoteError(
+                new ExchangeProxyRevertErrors.TransformERC20.IncompleteFillSellQuoteError(
                     takerToken.address,
                     getExpectedSellQuoteFillResults(orders.slice(0, 2)).takerAssetSpent,
                     qfr.takerAssetSpent,
@@ -631,7 +632,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.InvalidERC20AssetDataError(BAD_ASSET_DATA),
+                new ExchangeProxyRevertErrors.TransformERC20.InvalidERC20AssetDataError(BAD_ASSET_DATA),
             );
         });
 
@@ -654,7 +655,9 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                     }),
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid });
-            return expect(tx).to.revertWith(new ZeroExRevertErrors.TransformERC20.InvalidTakerFeeTokenError(badToken));
+            return expect(tx).to.revertWith(
+                new ExchangeProxyRevertErrors.TransformERC20.InvalidTakerFeeTokenError(badToken),
+            );
         });
 
         it('respects `maxOrderFillAmounts`', async () => {
@@ -911,7 +914,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.IncompleteFillBuyQuoteError(
+                new ExchangeProxyRevertErrors.TransformERC20.IncompleteFillBuyQuoteError(
                     makerToken.address,
                     qfr.makerAssetBought,
                     qfr.makerAssetBought.plus(1),
@@ -969,7 +972,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.InvalidERC20AssetDataError(BAD_ASSET_DATA),
+                new ExchangeProxyRevertErrors.TransformERC20.InvalidERC20AssetDataError(BAD_ASSET_DATA),
             );
         });
 
@@ -994,7 +997,9 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                     }),
                 )
                 .awaitTransactionSuccessAsync({ value: qfr.protocolFeePaid });
-            return expect(tx).to.revertWith(new ZeroExRevertErrors.TransformERC20.InvalidTakerFeeTokenError(badToken));
+            return expect(tx).to.revertWith(
+                new ExchangeProxyRevertErrors.TransformERC20.InvalidTakerFeeTokenError(badToken),
+            );
         });
 
         it('respects `maxOrderFillAmounts`', async () => {

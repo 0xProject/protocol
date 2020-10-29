@@ -1,6 +1,7 @@
 import { BaseContract } from '@0x/base-contract';
 import { blockchainTests, constants, expect, randomAddress } from '@0x/contracts-test-utils';
-import { BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 import { DataItem, MethodAbi } from 'ethereum-types';
 import * as _ from 'lodash';
 
@@ -169,7 +170,7 @@ blockchainTests.resets('Full migration', env => {
                         const inputs = createFakeInputs(method.inputs);
                         const tx = (contract as any)[fn](...inputs).callAsync();
                         return expect(tx).to.revertWith(
-                            new ZeroExRevertErrors.Common.OnlyCallableBySelfError(env.txDefaults.from),
+                            new ExchangeProxyRevertErrors.Common.OnlyCallableBySelfError(env.txDefaults.from),
                         );
                     });
                 }

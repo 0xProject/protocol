@@ -1,4 +1,4 @@
-export { ZeroExRevertErrors } from '@0x/utils';
+export { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
 export {
     AbiDefinition,
     CompilerOpts,

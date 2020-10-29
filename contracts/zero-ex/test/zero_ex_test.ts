@@ -1,5 +1,6 @@
 import { blockchainTests, constants, expect, verifyEventsFromLogs } from '@0x/contracts-test-utils';
-import { BigNumber, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
 
 import { ZeroExContract } from '../src/wrappers';
 
@@ -66,12 +67,12 @@ blockchainTests.resets('ZeroEx contract', env => {
     it('reverts when calling an unimplmented function', async () => {
         const selector = testFeature.getSelector('unimplmentedFn');
         const tx = testFeature.unimplmentedFn().awaitTransactionSuccessAsync();
-        return expect(tx).to.revertWith(new ZeroExRevertErrors.Proxy.NotImplementedError(selector));
+        return expect(tx).to.revertWith(new ExchangeProxyRevertErrors.Proxy.NotImplementedError(selector));
     });
 
     it('reverts when calling an internal function', async () => {
         const tx = testFeature.internalFn().awaitTransactionSuccessAsync({ from: owner });
-        return expect(tx).to.revertWith(new ZeroExRevertErrors.Common.OnlyCallableBySelfError(owner));
+        return expect(tx).to.revertWith(new ExchangeProxyRevertErrors.Common.OnlyCallableBySelfError(owner));
     });
 
     describe('getFunctionImplementation()', () => {

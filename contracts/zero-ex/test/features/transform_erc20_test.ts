@@ -9,7 +9,8 @@ import {
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
 import { ETH_TOKEN_ADDRESS } from '@0x/order-utils';
-import { AbiEncoder, hexUtils, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors, OwnableRevertErrors } from '@0x/protocol-utils';
+import { AbiEncoder, hexUtils } from '@0x/utils';
 import { DecodedLogEntry } from 'ethereum-types';
 import * as ethjs from 'ethereumjs-util';
 
@@ -426,7 +427,7 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         ],
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
-                const expectedError = new ZeroExRevertErrors.TransformERC20.IncompleteTransformERC20Error(
+                const expectedError = new ExchangeProxyRevertErrors.TransformERC20.IncompleteTransformERC20Error(
                     outputToken.address,
                     outputTokenMintAmount,
                     minOutputTokenAmount,
@@ -460,7 +461,7 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         ],
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
-                const expectedError = new ZeroExRevertErrors.TransformERC20.NegativeTransformERC20OutputError(
+                const expectedError = new ExchangeProxyRevertErrors.TransformERC20.NegativeTransformERC20OutputError(
                     outputToken.address,
                     outputTokenFeeAmount,
                 );
@@ -551,7 +552,7 @@ blockchainTests.resets('TransformERC20 feature', env => {
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 return expect(tx).to.revertWith(
-                    new ZeroExRevertErrors.TransformERC20.TransformerFailedError(
+                    new ExchangeProxyRevertErrors.TransformERC20.TransformerFailedError(
                         undefined,
                         transformations[0].data,
                         constants.NULL_BYTES,

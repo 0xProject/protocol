@@ -6,7 +6,8 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { hexUtils, OwnableRevertErrors, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors, OwnableRevertErrors } from '@0x/protocol-utils';
+import { hexUtils, StringRevertError } from '@0x/utils';
 
 import { artifacts } from './artifacts';
 import { FlashWalletContract, TestCallTargetContract, TestCallTargetEvents } from './wrappers';
@@ -122,12 +123,12 @@ blockchainTests.resets('FlashWallet', env => {
                 .executeCall(callTarget.address, REVERTING_DATA, constants.ZERO_AMOUNT)
                 .callAsync({ from: owner });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.Wallet.WalletExecuteCallFailedError(
+                new ExchangeProxyRevertErrors.Wallet.WalletExecuteCallFailedError(
                     wallet.address,
                     callTarget.address,
                     REVERTING_DATA,
                     constants.ZERO_AMOUNT,
-                    new StringRevertError('TestCallTarget/REVERT'),
+                    new StringRevertError('TestCallTarget/REVERT').encode(),
                 ),
             );
         });
@@ -199,11 +200,11 @@ blockchainTests.resets('FlashWallet', env => {
         it('wallet wraps call revert', async () => {
             const tx = wallet.executeDelegateCall(callTarget.address, REVERTING_DATA).callAsync({ from: owner });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.Wallet.WalletExecuteDelegateCallFailedError(
+                new ExchangeProxyRevertErrors.Wallet.WalletExecuteDelegateCallFailedError(
                     wallet.address,
                     callTarget.address,
                     REVERTING_DATA,
-                    new StringRevertError('TestCallTarget/REVERT'),
+                    new StringRevertError('TestCallTarget/REVERT').encode(),
                 ),
             );
         });

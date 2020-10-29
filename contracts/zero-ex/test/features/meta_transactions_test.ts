@@ -7,8 +7,9 @@ import {
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
 import { getExchangeProxyMetaTransactionHash, signatureUtils } from '@0x/order-utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
-import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
+import { BigNumber, hexUtils, StringRevertError } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { generateCallDataSignature, signCallData } from '../../src/signed_call_data';
@@ -298,7 +299,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                 })
                 .getABIEncodedTransactionData();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     actualCallData,
                     new StringRevertError('FAIL').encode(),
@@ -318,7 +319,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionUnsupportedFunctionError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionUnsupportedFunctionError(
                     mtxHash,
                     hexUtils.slice(mtx.callData, 0, 4),
                 ),
@@ -347,7 +348,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             const receipt = await feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionAlreadyExecutedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionAlreadyExecutedError(
                     mtxHash,
                     receipt.blockNumber,
                 ),
@@ -364,7 +365,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionInsufficientEthError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionInsufficientEthError(
                     mtxHash,
                     callOpts.value,
                     mtx.value,
@@ -382,7 +383,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionGasPriceError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionGasPriceError(
                     mtxHash,
                     callOpts.gasPrice,
                     mtx.minGasPrice,
@@ -401,7 +402,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionGasPriceError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionGasPriceError(
                     mtxHash,
                     callOpts.gasPrice,
                     mtx.minGasPrice,
@@ -422,7 +423,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionExpiredError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionExpiredError(
                     mtxHash,
                     undefined,
                     mtx.expirationTimeSeconds,
@@ -443,7 +444,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionWrongSenderError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionWrongSenderError(
                     mtxHash,
                     sender,
                     requiredSender,
@@ -461,11 +462,11 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionInvalidSignatureError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionInvalidSignatureError(
                     mtxHash,
                     signature,
-                    new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                        ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
+                    new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                        ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                         mtxHash,
                         signers[0],
                         signature,
@@ -496,10 +497,10 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
+                    new ExchangeProxyRevertErrors.Common.IllegalReentrancyError(
                         feature.getSelector('executeMetaTransaction'),
                         REENTRANCY_FLAG_MTX,
                     ).encode(),
@@ -529,10 +530,10 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
+                    new ExchangeProxyRevertErrors.Common.IllegalReentrancyError(
                         feature.getSelector('batchExecuteMetaTransactions'),
                         REENTRANCY_FLAG_MTX,
                     ).encode(),
@@ -562,10 +563,10 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
+                    new ExchangeProxyRevertErrors.Common.IllegalReentrancyError(
                         feature.getSelector('executeMetaTransaction'),
                         REENTRANCY_FLAG_MTX,
                     ).encode(),
@@ -595,10 +596,10 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
+                    new ExchangeProxyRevertErrors.Common.IllegalReentrancyError(
                         feature.getSelector('batchExecuteMetaTransactions'),
                         REENTRANCY_FLAG_MTX,
                     ).encode(),
@@ -659,7 +660,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             const block = await env.web3Wrapper.getBlockNumberAsync();
             const tx = feature.batchExecuteMetaTransactions(mtxs, signatures).callAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionAlreadyExecutedError(mtxHash, block),
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionAlreadyExecutedError(mtxHash, block),
             );
         });
 
@@ -685,7 +686,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.batchExecuteMetaTransactions([mtx], [signature]).callAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     undefined,
                     new StringRevertError('FAIL').encode(),
@@ -715,10 +716,10 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.batchExecuteMetaTransactions([mtx], [signature]).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
+                    new ExchangeProxyRevertErrors.Common.IllegalReentrancyError(
                         feature.getSelector('executeMetaTransaction'),
                         REENTRANCY_FLAG_MTX,
                     ).encode(),
@@ -748,10 +749,10 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.batchExecuteMetaTransactions([mtx], [signature]).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
+                new ExchangeProxyRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
                     mtxHash,
                     undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
+                    new ExchangeProxyRevertErrors.Common.IllegalReentrancyError(
                         feature.getSelector('batchExecuteMetaTransactions'),
                         REENTRANCY_FLAG_MTX,
                     ).encode(),

@@ -1,5 +1,5 @@
 import { blockchainTests, constants, expect, randomAddress } from '@0x/contracts-test-utils';
-import { ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
 import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
@@ -34,7 +34,7 @@ blockchainTests.resets('Transformer (base)', env => {
             const notDeployer = randomAddress();
             const tx = transformer.die(randomAddress()).callAsync({ from: notDeployer });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.OnlyCallableByDeployerError(notDeployer, deployer),
+                new ExchangeProxyRevertErrors.TransformERC20.OnlyCallableByDeployerError(notDeployer, deployer),
             );
         });
 
@@ -42,7 +42,7 @@ blockchainTests.resets('Transformer (base)', env => {
             const callData = transformer.die(randomAddress()).getABIEncodedTransactionData();
             const tx = delegateCaller.executeDelegateCall(transformer.address, callData).callAsync({ from: deployer });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.TransformERC20.InvalidExecutionContextError(
+                new ExchangeProxyRevertErrors.TransformERC20.InvalidExecutionContextError(
                     delegateCaller.address,
                     transformer.address,
                 ),

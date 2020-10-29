@@ -1,6 +1,7 @@
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { blockchainTests, constants, expect, randomAddress, verifyEventsFromLogs } from '@0x/contracts-test-utils';
-import { BigNumber, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors, OwnableRevertErrors } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
 
 import { IOwnableFeatureContract, IZeroExContract, LiquidityProviderFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
@@ -58,11 +59,11 @@ blockchainTests('LiquidityProvider feature', env => {
             const [xAsset, yAsset] = [randomAddress(), randomAddress()];
             let tx = feature.getLiquidityProviderForMarket(xAsset, yAsset).awaitTransactionSuccessAsync();
             expect(tx).to.revertWith(
-                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(xAsset, yAsset),
+                new ExchangeProxyRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(xAsset, yAsset),
             );
             tx = feature.getLiquidityProviderForMarket(yAsset, xAsset).awaitTransactionSuccessAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(yAsset, xAsset),
+                new ExchangeProxyRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(yAsset, xAsset),
             );
         });
         it('can set/get a liquidity provider address for a given market', async () => {
@@ -93,7 +94,10 @@ blockchainTests('LiquidityProvider feature', env => {
                 .getLiquidityProviderForMarket(token.address, weth.address)
                 .awaitTransactionSuccessAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(token.address, weth.address),
+                new ExchangeProxyRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(
+                    token.address,
+                    weth.address,
+                ),
             );
         });
         it('reverts if non-owner attempts to set an address', async () => {
@@ -132,7 +136,7 @@ blockchainTests('LiquidityProvider feature', env => {
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(xAsset, yAsset),
+                new ExchangeProxyRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(xAsset, yAsset),
             );
         });
         it('Successfully executes an ERC20-ERC20 swap', async () => {
@@ -172,7 +176,7 @@ blockchainTests('LiquidityProvider feature', env => {
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.LiquidityProvider.LiquidityProviderIncompleteSellError(
+                new ExchangeProxyRevertErrors.LiquidityProvider.LiquidityProviderIncompleteSellError(
                     liquidityProvider.address,
                     weth.address,
                     token.address,

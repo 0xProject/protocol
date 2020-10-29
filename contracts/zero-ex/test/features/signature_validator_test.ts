@@ -1,7 +1,8 @@
 import { blockchainTests, constants, expect, randomAddress, signingUtils } from '@0x/contracts-test-utils';
 import { signatureUtils } from '@0x/order-utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
 import { SignatureType } from '@0x/types';
-import { hexUtils, ZeroExRevertErrors } from '@0x/utils';
+import { hexUtils } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 import * as _ from 'lodash';
 
@@ -38,8 +39,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             const notSigner = randomAddress();
             const tx = feature.validateHashSignature(hash, notSigner, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                     hash,
                     notSigner,
                     signature,
@@ -53,8 +54,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             const signature = hexUtils.concat(hexUtils.random(65), SignatureType.EthSign);
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                     hash,
                     signer,
                     signature,
@@ -68,8 +69,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             const signature = hexUtils.slice(await signatureUtils.ecSignHashAsync(env.provider, hash, signer), 1);
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.InvalidLength,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.InvalidLength,
                     hash,
                     signer,
                     signature,
@@ -96,8 +97,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             const notSigner = randomAddress();
             const tx = feature.validateHashSignature(hash, notSigner, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                     hash,
                     notSigner,
                     signature,
@@ -111,8 +112,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             const signature = hexUtils.concat(hexUtils.random(65), SignatureType.EIP712);
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                     hash,
                     signer,
                     signature,
@@ -132,8 +133,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             );
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.InvalidLength,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.InvalidLength,
                     hash,
                     signer,
                     signature,
@@ -150,8 +151,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             );
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.AlwaysInvalid,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.AlwaysInvalid,
                     hash,
                     signer,
                     signature,
@@ -168,8 +169,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             );
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.Illegal,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.Illegal,
                     hash,
                     signer,
                     signature,
@@ -186,8 +187,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             );
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.Unsupported,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.Unsupported,
                     hash,
                     signer,
                     signature,
@@ -201,8 +202,8 @@ blockchainTests.resets('SignatureValidator feature', env => {
             const signature = NULL_BYTES;
             const tx = feature.validateHashSignature(hash, signer, signature).callAsync();
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.InvalidLength,
+                new ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationError(
+                    ExchangeProxyRevertErrors.SignatureValidator.SignatureValidationErrorCodes.InvalidLength,
                     hash,
                     signer,
                     signature,

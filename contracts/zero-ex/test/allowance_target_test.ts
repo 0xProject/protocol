@@ -1,5 +1,6 @@
 import { blockchainTests, constants, expect, randomAddress, verifyEventsFromLogs } from '@0x/contracts-test-utils';
-import { AuthorizableRevertErrors, hexUtils, StringRevertError } from '@0x/utils';
+import { AuthorizableRevertErrors } from '@0x/protocol-utils';
+import { hexUtils, StringRevertError } from '@0x/utils';
 
 import { artifacts } from './artifacts';
 import { AllowanceTargetContract, TestCallTargetContract, TestCallTargetEvents } from './wrappers';

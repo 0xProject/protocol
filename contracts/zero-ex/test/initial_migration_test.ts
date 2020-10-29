@@ -1,5 +1,6 @@
 import { blockchainTests, expect, randomAddress } from '@0x/contracts-test-utils';
-import { hexUtils, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors } from '@0x/protocol-utils';
+import { hexUtils } from '@0x/utils';
 
 import { artifacts } from './artifacts';
 import { BootstrapFeatures, deployBootstrapFeaturesAsync } from './utils/migration';
@@ -72,7 +73,7 @@ blockchainTests.resets('Initial migration', env => {
         it('Migrator cannot call bootstrap() again', async () => {
             const tx = migrator.callBootstrap(zeroEx.address).awaitTransactionSuccessAsync();
             const selector = bootstrapFeature.getSelector('bootstrap');
-            return expect(tx).to.revertWith(new ZeroExRevertErrors.Proxy.NotImplementedError(selector));
+            return expect(tx).to.revertWith(new ExchangeProxyRevertErrors.Proxy.NotImplementedError(selector));
         });
 
         it('Bootstrap feature self destructs after deployment', async () => {
@@ -104,7 +105,7 @@ blockchainTests.resets('Initial migration', env => {
         it('_extendSelf() is deregistered', async () => {
             const selector = registry.getSelector('_extendSelf');
             const tx = registry._extendSelf(hexUtils.random(4), randomAddress()).callAsync({ from: zeroEx.address });
-            return expect(tx).to.revertWith(new ZeroExRevertErrors.Proxy.NotImplementedError(selector));
+            return expect(tx).to.revertWith(new ExchangeProxyRevertErrors.Proxy.NotImplementedError(selector));
         });
     });
 });

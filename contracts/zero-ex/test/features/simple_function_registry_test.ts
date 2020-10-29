@@ -1,5 +1,6 @@
 import { blockchainTests, constants, expect, randomAddress, verifyEventsFromLogs } from '@0x/contracts-test-utils';
-import { BigNumber, hexUtils, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
+import { ExchangeProxyRevertErrors, OwnableRevertErrors } from '@0x/protocol-utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 
 import { ZeroExContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
@@ -60,7 +61,10 @@ blockchainTests.resets('SimpleFunctionRegistry feature', env => {
         const rollbackAddress = randomAddress();
         const tx = registry.rollback(testFnSelector, rollbackAddress).awaitTransactionSuccessAsync();
         return expect(tx).to.revertWith(
-            new ZeroExRevertErrors.SimpleFunctionRegistry.NotInRollbackHistoryError(testFnSelector, rollbackAddress),
+            new ExchangeProxyRevertErrors.SimpleFunctionRegistry.NotInRollbackHistoryError(
+                testFnSelector,
+                rollbackAddress,
+            ),
         );
     });
 
@@ -92,7 +96,7 @@ blockchainTests.resets('SimpleFunctionRegistry feature', env => {
         await registry.extend(testFnSelector, testFeatureImpl1.address).awaitTransactionSuccessAsync();
         await registry.extend(testFnSelector, constants.NULL_ADDRESS).awaitTransactionSuccessAsync();
         return expect(testFeature.testFn().callAsync()).to.revertWith(
-            new ZeroExRevertErrors.Proxy.NotImplementedError(testFnSelector),
+            new ExchangeProxyRevertErrors.Proxy.NotImplementedError(testFnSelector),
         );
     });
 
@@ -122,7 +126,7 @@ blockchainTests.resets('SimpleFunctionRegistry feature', env => {
         const rollbackLength = await registry.getRollbackLength(testFnSelector).callAsync();
         expect(rollbackLength).to.bignumber.eq(0);
         return expect(testFeature.testFn().callAsync()).to.revertWith(
-            new ZeroExRevertErrors.Proxy.NotImplementedError(testFnSelector),
+            new ExchangeProxyRevertErrors.Proxy.NotImplementedError(testFnSelector),
         );
     });
 
@@ -163,7 +167,7 @@ blockchainTests.resets('SimpleFunctionRegistry feature', env => {
         await registry.extend(testFnSelector, testFeatureImpl2.address).awaitTransactionSuccessAsync();
         const tx = registry.rollback(testFnSelector, testFeatureImpl1.address).awaitTransactionSuccessAsync();
         return expect(tx).to.revertWith(
-            new ZeroExRevertErrors.SimpleFunctionRegistry.NotInRollbackHistoryError(
+            new ExchangeProxyRevertErrors.SimpleFunctionRegistry.NotInRollbackHistoryError(
                 testFnSelector,
                 testFeatureImpl1.address,
             ),
