@@ -26,7 +26,8 @@ library LibSignatureRichErrors {
         INVALID_LENGTH,
         UNSUPPORTED,
         ILLEGAL,
-        WRONG_SIGNER
+        WRONG_SIGNER,
+        BAD_SIGNATURE_DATA
     }
 
     // solhint-disable func-name-mixedcase
@@ -47,6 +48,21 @@ library LibSignatureRichErrors {
             hash,
             signerAddress,
             signature
+        );
+    }
+
+    function SignatureValidationError(
+        SignatureValidationErrorCodes code,
+        bytes32 hash
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("SignatureValidationError(uint8,bytes32)")),
+            code,
+            hash
         );
     }
 }
