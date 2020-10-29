@@ -81,7 +81,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.2.10",
-        "@0x/contracts-test-utils": "^5.3.7",
+        "@0x/contracts-test-utils": "5.3.7",
         "@0x/utils": "^5.6.4",
         "@0x/web3-wrapper": "^7.2.7",
         "lodash": "^4.17.11"

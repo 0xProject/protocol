@@ -58,7 +58,7 @@
         "@0x/contracts-gen": "2.0.13",
         "@0x/contracts-multisig": "^4.1.10",
         "@0x/contracts-staking": "^2.0.17",
-        "@0x/contracts-test-utils": "^5.3.7",
+        "@0x/contracts-test-utils": "5.3.7",
         "@0x/contracts-utils": "^4.5.4",
         "@0x/dev-utils": "^3.3.6",
         "@0x/sol-compiler": "^4.2.6",

@@ -91,7 +91,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.2.10",
-        "@0x/contracts-test-utils": "^5.3.7",
+        "@0x/contracts-test-utils": "5.3.7",
         "@0x/typescript-typings": "^5.1.5",
         "ethereum-types": "^3.3.3"
     },

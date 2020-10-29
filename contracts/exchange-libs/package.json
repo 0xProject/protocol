@@ -81,7 +81,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.2.10",
-        "@0x/contracts-test-utils": "^5.3.7",
+        "@0x/contracts-test-utils": "5.3.7",
         "@0x/contracts-utils": "^4.5.4",
         "@0x/order-utils": "^10.4.2",
         "@0x/types": "^3.3.0",

@@ -86,7 +86,7 @@
         "@0x/base-contract": "^6.2.10",
         "@0x/contract-addresses": "^5.0.1",
         "@0x/contracts-exchange": "^3.2.10",
-        "@0x/contracts-test-utils": "^5.3.7",
+        "@0x/contracts-test-utils": "5.3.7",
         "@0x/contracts-utils": "^4.5.4",
         "@0x/json-schemas": "^5.3.2",
         "@0x/types": "^3.3.0",
