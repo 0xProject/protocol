@@ -1,7 +1,7 @@
-import { signatureUtils } from '@0x/order-utils';
 import { SupportedProvider } from '@0x/subproviders';
 import { EIP712TypedData } from '@0x/types';
-import { hexUtils, signTypedDataUtils } from '@0x/utils';
+import { hexUtils, providerUtils, signTypedDataUtils } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as ethjs from 'ethereumjs-util';
 
 /**
@@ -33,15 +33,17 @@ export interface Signature extends ECSignature {
 /**
  * Sign a hash with the EthSign signature type on a provider.
  */
-export async function ethSignHashFromProviderAsync(
-    signer: string,
+export async function ethSignHashWithProviderAsync(
     hash: string,
+    signer: string,
     provider: SupportedProvider,
 ): Promise<Signature> {
-    const signatureBytes = await signatureUtils.ecSignHashAsync(provider, hash, signer);
-    const parsed = parsePackedSignatureBytes(signatureBytes);
-    assertSignatureType(parsed, SignatureType.EthSign);
-    return parsed;
+    const w3w = new Web3Wrapper(providerUtils.standardizeOrThrow(provider));
+    const rpcSig = await w3w.signMessageAsync(signer, hash);
+    return {
+        ...parseRpcSignature(rpcSig),
+        signatureType: SignatureType.EthSign,
+    };
 }
 
 /**
@@ -54,6 +56,22 @@ export function ethSignHashWithKey(hash: string, key: string): Signature {
     return {
         ...ecSignHashWithKey(ethHash, key),
         signatureType: SignatureType.EthSign,
+    };
+}
+
+/**
+ * Sign a typed data object with the EIP712 signature type on a provider.
+ */
+export async function eip712SignTypedDataWithProviderAsync(
+    data: EIP712TypedData,
+    signer: string,
+    provider: SupportedProvider,
+): Promise<Signature> {
+    const w3w = new Web3Wrapper(providerUtils.standardizeOrThrow(provider));
+    const rpcSig = await w3w.signTypedDataAsync(signer, data);
+    return {
+        ...parseRpcSignature(rpcSig),
+        signatureType: SignatureType.EIP712,
     };
 }
 
@@ -90,24 +108,33 @@ export function ecSignHashWithKey(hash: string, key: string): ECSignature {
     };
 }
 
-function assertSignatureType(signature: Signature, expectedType: SignatureType): void {
-    if (signature.signatureType !== expectedType) {
-        throw new Error(`Expected signature type to be ${expectedType} but received ${signature.signatureType}.`);
+// Parse a hex signature returned by an RPC call into an `ECSignature`.
+function parseRpcSignature(rpcSig: string): ECSignature {
+    if (hexUtils.size(rpcSig) !== 65) {
+        throw new Error(`Invalid RPC signature length: "${rpcSig}"`);
     }
-}
-
-function parsePackedSignatureBytes(signatureBytes: string): Signature {
-    if (hexUtils.size(signatureBytes) !== 66) {
-        throw new Error(`Expected packed signatureBytes to be 66 bytes long: ${signatureBytes}`);
+    // Some providers encode V as 0,1 instead of 27,28.
+    const VALID_V_VALUES = [0, 1, 27, 28];
+    // Some providers return the signature packed as V,R,S and others R,S,V.
+    // Try to guess which encoding it is (with a slight preference for R,S,V).
+    let v = parseInt(rpcSig.slice(-2), 16);
+    if (VALID_V_VALUES.includes(v)) {
+        // Format is R,S,V
+        v = v >= 27 ? v : v + 27;
+        return {
+            r: hexUtils.slice(rpcSig, 0, 32),
+            s: hexUtils.slice(rpcSig, 32, 64),
+            v,
+        };
     }
-    const typeId = parseInt(signatureBytes.slice(-2), 16) as SignatureType;
-    if (!Object.values(SignatureType).includes(typeId)) {
-        throw new Error(`Invalid signatureBytes type ID detected: ${typeId}`);
+    // Format should be V,R,S
+    if (!VALID_V_VALUES.includes(v)) {
+        throw new Error(`Cannot determine RPC signature layout from V value: "${rpcSig}"`);
     }
+    v = v >= 27 ? v : v + 27;
     return {
-        signatureType: typeId,
-        v: parseInt(signatureBytes.slice(2, 4), 16),
-        r: hexUtils.slice(signatureBytes, 1, 33),
-        s: hexUtils.slice(signatureBytes, 33),
+        v,
+        r: hexUtils.slice(rpcSig, 1, 33),
+        s: hexUtils.slice(rpcSig, 33, 65),
     };
 }

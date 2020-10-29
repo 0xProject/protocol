@@ -105,4 +105,86 @@ library LibSafeMathV06 {
     {
         return a < b ? a : b;
     }
+
+    function safeMul128(uint128 a, uint128 b)
+        internal
+        pure
+        returns (uint128)
+    {
+        if (a == 0) {
+            return 0;
+        }
+        uint128 c = a * b;
+        if (c / a != b) {
+            LibRichErrorsV06.rrevert(LibSafeMathRichErrorsV06.Uint256BinOpError(
+                LibSafeMathRichErrorsV06.BinOpErrorCodes.MULTIPLICATION_OVERFLOW,
+                a,
+                b
+            ));
+        }
+        return c;
+    }
+
+    function safeDiv128(uint128 a, uint128 b)
+        internal
+        pure
+        returns (uint128)
+    {
+        if (b == 0) {
+            LibRichErrorsV06.rrevert(LibSafeMathRichErrorsV06.Uint256BinOpError(
+                LibSafeMathRichErrorsV06.BinOpErrorCodes.DIVISION_BY_ZERO,
+                a,
+                b
+            ));
+        }
+        uint128 c = a / b;
+        return c;
+    }
+
+    function safeSub128(uint128 a, uint128 b)
+        internal
+        pure
+        returns (uint128)
+    {
+        if (b > a) {
+            LibRichErrorsV06.rrevert(LibSafeMathRichErrorsV06.Uint256BinOpError(
+                LibSafeMathRichErrorsV06.BinOpErrorCodes.SUBTRACTION_UNDERFLOW,
+                a,
+                b
+            ));
+        }
+        return a - b;
+    }
+
+    function safeAdd128(uint128 a, uint128 b)
+        internal
+        pure
+        returns (uint128)
+    {
+        uint128 c = a + b;
+        if (c < a) {
+            LibRichErrorsV06.rrevert(LibSafeMathRichErrorsV06.Uint256BinOpError(
+                LibSafeMathRichErrorsV06.BinOpErrorCodes.ADDITION_OVERFLOW,
+                a,
+                b
+            ));
+        }
+        return c;
+    }
+
+    function max128(uint128 a, uint128 b)
+        internal
+        pure
+        returns (uint128)
+    {
+        return a >= b ? a : b;
+    }
+
+    function min128(uint128 a, uint128 b)
+        internal
+        pure
+        returns (uint128)
+    {
+        return a < b ? a : b;
+    }
 }

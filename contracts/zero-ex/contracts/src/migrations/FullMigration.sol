@@ -25,6 +25,7 @@ import "../features/TokenSpenderFeature.sol";
 import "../features/TransformERC20Feature.sol";
 import "../features/SignatureValidatorFeature.sol";
 import "../features/MetaTransactionsFeature.sol";
+import "../features/LimitOrdersFeature.sol";
 import "../external/AllowanceTarget.sol";
 import "./InitialMigration.sol";
 
@@ -42,6 +43,7 @@ contract FullMigration {
         TransformERC20Feature transformERC20;
         SignatureValidatorFeature signatureValidator;
         MetaTransactionsFeature metaTransactions;
+        LimitOrdersFeature limitOrders;
     }
 
     /// @dev Parameters needed to initialize features.
@@ -84,7 +86,7 @@ contract FullMigration {
     /// @param features Features to add to the proxy.
     /// @return _zeroEx The configured ZeroEx contract. Same as the `zeroEx` parameter.
     /// @param migrateOpts Parameters needed to initialize features.
-    function initializeZeroEx(
+    function migrateZeroEx(
         address payable owner,
         ZeroEx zeroEx,
         Features memory features,
@@ -191,6 +193,17 @@ contract FullMigration {
                 address(features.metaTransactions),
                 abi.encodeWithSelector(
                     MetaTransactionsFeature.migrate.selector
+                ),
+                address(this)
+            );
+        }
+        // LimitOrdersFeature
+        {
+            // Register the feature.
+            ownable.migrate(
+                address(features.limitOrders),
+                abi.encodeWithSelector(
+                    LimitOrdersFeature.migrate.selector
                 ),
                 address(this)
             );

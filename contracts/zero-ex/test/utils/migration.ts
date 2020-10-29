@@ -4,6 +4,7 @@ export {
     deployFullFeaturesAsync,
     initialMigrateAsync,
     fullMigrateAsync,
-    FullMigrationOpts,
+    FullMigrationConfig,
+    FullFeaturesDeployConfig,
     FullFeatures,
 } from '../../src/migration';
