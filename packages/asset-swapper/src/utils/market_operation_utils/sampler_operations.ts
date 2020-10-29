@@ -26,6 +26,7 @@ import {
     BalancerFillData,
     BancorFillData,
     BatchedOperation,
+    CoFiXFillData,
     CurveFillData,
     CurveInfo,
     DexSample,
@@ -893,6 +894,49 @@ export class SamplerOperations {
         });
     }
 
+    public getCoFiXSellQuotes(
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<CoFiXFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.CoFiX,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromCoFiX,
+            params: [takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: CoFiXFillData): BigNumber[] => {
+                const [samples, fee, poolAddress] = this._samplerContract.getABIDecodedReturnData<
+                    [BigNumber[], BigNumber, string]
+                >('sampleSellsFromCoFiX', callResults);
+                fillData.poolAddress = poolAddress;
+                fillData.feeInWei = fee;
+                console.log(fillData);
+                return samples;
+            },
+        });
+    }
+
+    public getCoFiXBuyQuotes(
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<CoFiXFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.CoFiX,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromCoFiX,
+            params: [takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: CoFiXFillData): BigNumber[] => {
+                const [samples, fee] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], BigNumber]>(
+                    'sampleBuysFromCoFiX',
+                    callResults,
+                );
+                fillData.feeInWei = fee;
+                return samples;
+            },
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1108,6 +1152,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
+                        case ERC20BridgeSource.CoFiX:
+                            return this.getCoFiXSellQuotes(makerToken, takerToken, takerFillAmounts);
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1231,6 +1277,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                        case ERC20BridgeSource.CoFiX:
+                            return this.getCoFiXBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

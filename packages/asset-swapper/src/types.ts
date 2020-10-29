@@ -419,6 +419,7 @@ export interface BridgeContractAddresses {
     eth2DaiBridge: string;
     kyberBridge: string;
     curveBridge: string;
+    cofixBridge: string;
     multiBridge: string;
     balancerBridge: string;
     bancorBridge: string;

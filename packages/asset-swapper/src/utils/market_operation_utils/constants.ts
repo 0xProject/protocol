@@ -46,6 +46,7 @@ export const SELL_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.CryptoCom,
+    ERC20BridgeSource.CoFiX,
 ]);
 
 /**
@@ -71,6 +72,7 @@ export const BUY_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.CryptoCom,
+    ERC20BridgeSource.CoFiX,
 ]);
 
 /**
@@ -398,6 +400,7 @@ const EMPTY_BRIDGE_ADDRESSES: BridgeContractAddresses = {
     snowswapBridge: NULL_ADDRESS,
     swerveBridge: NULL_ADDRESS,
     cryptoComBridge: NULL_ADDRESS,
+    cofixBridge: NULL_ADDRESS,
 };
 
 export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAddresses } = {
@@ -419,6 +422,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
         swerveBridge: '0xf9786d5eb1de47fa56a8f7bb387653c6d410bfee',
         snowswapBridge: '0xb1dbe83d15236ec10fdb214c6b89774b454754fd',
         cryptoComBridge: '0x015850307f6aab4ac6631923ceefe71b57492c9b',
+        cofixBridge: '0xc0f1cccccccccccccccccccccccccccccccccccc',
     },
     [ChainId.Kovan]: {
         ...EMPTY_BRIDGE_ADDRESSES,
@@ -537,6 +541,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
     },
     [ERC20BridgeSource.Bancor]: () => 300e3,
+    [ERC20BridgeSource.CoFiX]: () => 400e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.assign(

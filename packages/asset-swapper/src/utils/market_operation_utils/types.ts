@@ -50,6 +50,8 @@ export enum ERC20BridgeSource {
     SushiSwap = 'SushiSwap',
     Dodo = 'DODO',
     CryptoCom = 'CryptoCom',
+    // tslint:disable-next-line:enum-naming
+    CoFiX = 'CoFiX',
 }
 
 // tslint:disable: enum-naming
@@ -150,6 +152,11 @@ export interface MooniswapFillData extends FillData {
 export interface DODOFillData extends FillData {
     poolAddress: string;
     isSellBase: boolean;
+}
+
+export interface CoFiXFillData extends FillData {
+    poolAddress: string;
+    feeInWei: BigNumber;
 }
 
 export interface Quote<TFillData = FillData> {

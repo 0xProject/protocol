@@ -62,6 +62,14 @@ contract DeploymentConstants {
     address constant private DODO_REGISTRY = 0x3A97247DF274a17C59A3bd12735ea3FcDFb49950;
     /// @dev Mainnet address of the DODO Helper contract
     address constant private DODO_HELPER = 0x533dA777aeDCE766CEAe696bf90f8541A4bA80Eb;
+    /// @dev Mainnet address of the CoFiX Router contract
+    address constant private COFIX_ROUTER_ADDRESS = 0x26aaD4D82f6c9FA6E34D8c1067429C986A055872;
+    /// @dev Mainnet address of the CoFiX factory contract
+    address constant private COFIX_FACTORY_ADDRESS = 0x66C64ecC3A6014733325a8f2EBEE46B4CA3ED550;
+    /// @dev Mainnet address of the CoFiX Controller contract
+    address constant private COFIX_CONTROLLER_ADDRESS = 0x7e497Be7532CC4954D73c6dF93F016c53CC0C29a;
+    /// @dev Mainnet address of the NEST Oracle contract
+    address constant private NEST_ORACLE_ADDRESS = 0x94F36FAa6bB4f74009637292b09C355CcD3e80Eb;
 
     // // Ropsten addresses ///////////////////////////////////////////////////////
     // /// @dev Mainnet address of the WETH contract.
@@ -336,5 +344,45 @@ contract DeploymentConstants {
         returns (address registry)
     {
         return DODO_HELPER;
+    }
+
+    /// @dev An overridable way to retrieve the CoFiX Router address
+    /// @return registry The CoFiX router contract address.
+    function _getCoFiXRouterAddress()
+        internal
+        view
+        returns (address)
+    {
+        return COFIX_ROUTER_ADDRESS;
+    }
+
+    /// @dev An overridable way to retrieve the CoFiX Factory address
+    /// @return registry The CoFiX factory contract address.
+    function _getCoFiXFactoryAddress()
+        internal
+        view
+        returns (address)
+    {
+        return COFIX_FACTORY_ADDRESS;
+    }
+
+    /// @dev An overridable way to retrieve the CoFiX Router address
+    /// @return registry The CoFiX controller contract address.
+    function _getCoFiXControllerAddress()
+        internal
+        view
+        returns (address)
+    {
+        return COFIX_CONTROLLER_ADDRESS;
+    }
+
+    /// @dev An overridable way to retrieve the CoFiX Router address
+    /// @return registry The NEST oracle contract address.
+    function _getNestOracleAddress()
+        internal
+        view
+        returns (address)
+    {
+        return NEST_ORACLE_ADDRESS;
     }
 }

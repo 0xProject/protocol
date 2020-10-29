@@ -23,6 +23,7 @@ import "./mixins/MixinAdapterAddresses.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCryptoCom.sol";
+import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinKyber.sol";
 import "./mixins/MixinMooniswap.sol";
@@ -37,6 +38,7 @@ import "./mixins/MixinZeroExBridge.sol";
 contract BridgeAdapter is
     MixinAdapterAddresses,
     MixinBalancer,
+    MixinCoFiX,
     MixinCurve,
     MixinCryptoCom,
     MixinDodo,
@@ -55,6 +57,7 @@ contract BridgeAdapter is
     address private immutable CREAM_BRIDGE_ADDRESS;
     address private immutable CURVE_BRIDGE_ADDRESS;
     address private immutable CRYPTO_COM_BRIDGE_ADDRESS;
+    address private immutable COFIX_BRIDGE_ADDRESS;
     address private immutable DODO_BRIDGE_ADDRESS;
     address private immutable KYBER_BRIDGE_ADDRESS;
     address private immutable MOONISWAP_BRIDGE_ADDRESS;
@@ -70,6 +73,7 @@ contract BridgeAdapter is
     constructor(AdapterAddresses memory addresses)
         public
         MixinBalancer()
+        MixinCoFiX()
         MixinCurve()
         MixinCryptoCom(addresses)
         MixinDodo(addresses)
@@ -86,6 +90,7 @@ contract BridgeAdapter is
         BALANCER_BRIDGE_ADDRESS = addresses.balancerBridge;
         CURVE_BRIDGE_ADDRESS = addresses.curveBridge;
         CRYPTO_COM_BRIDGE_ADDRESS = addresses.cryptoComBridge;
+        COFIX_BRIDGE_ADDRESS = addresses.cofixBridge;
         KYBER_BRIDGE_ADDRESS = addresses.kyberBridge;
         MOONISWAP_BRIDGE_ADDRESS = addresses.mooniswapBridge;
         MSTABLE_BRIDGE_ADDRESS = addresses.mStableBridge;
@@ -192,6 +197,12 @@ contract BridgeAdapter is
             );
         } else if (bridgeAddress == CRYPTO_COM_BRIDGE_ADDRESS) {
             boughtAmount = _tradeCryptoCom(
+                buyToken,
+                sellAmount,
+                bridgeData
+            );
+        } else if (bridgeAddress == COFIX_BRIDGE_ADDRESS) {
+            boughtAmount = _tradeCoFiX(
                 buyToken,
                 sellAmount,
                 bridgeData

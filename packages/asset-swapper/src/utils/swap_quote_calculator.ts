@@ -17,6 +17,7 @@ import {
 import { MarketOperationUtils } from './market_operation_utils';
 import { SOURCE_FLAGS } from './market_operation_utils/constants';
 import {
+    CoFiXFillData,
     ERC20BridgeSource,
     FeeSchedule,
     FillData,
@@ -134,12 +135,19 @@ export class SwapQuoteCalculator {
         let makerTokenDecimals: number;
         let takerTokenDecimals: number;
 
-        // Scale fees by gas price.
+        // Scale fees by gas price and additional fees
         const _opts: GetMarketOrdersOpts = {
             ...opts,
-            feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData?: FillData) =>
-                gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
-            ),
+            feeSchedule: _.mapValues(opts.feeSchedule, (gasCost, source) => (fillData?: FillData) => {
+                if (gasCost === undefined) {
+                    return 0;
+                }
+                let gasFee = gasPrice.times(gasCost(fillData));
+                if (source === ERC20BridgeSource.CoFiX) {
+                    gasFee = gasFee.plus((fillData as CoFiXFillData).feeInWei);
+                }
+                return gasFee;
+            }),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
 

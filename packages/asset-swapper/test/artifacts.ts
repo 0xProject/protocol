@@ -7,6 +7,7 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as ApproximateBuys from '../test/generated-artifacts/ApproximateBuys.json';
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
+import * as CoFiXSampler from '../test/generated-artifacts/CoFiXSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DeploymentConstants from '../test/generated-artifacts/DeploymentConstants.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
@@ -14,6 +15,7 @@ import * as DummyLiquidityProvider from '../test/generated-artifacts/DummyLiquid
 import * as ERC20BridgeSampler from '../test/generated-artifacts/ERC20BridgeSampler.json';
 import * as Eth2DaiSampler from '../test/generated-artifacts/Eth2DaiSampler.json';
 import * as IBalancer from '../test/generated-artifacts/IBalancer.json';
+import * as ICoFiX from '../test/generated-artifacts/ICoFiX.json';
 import * as ICurve from '../test/generated-artifacts/ICurve.json';
 import * as IEth2Dai from '../test/generated-artifacts/IEth2Dai.json';
 import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
@@ -40,6 +42,7 @@ import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.
 export const artifacts = {
     ApproximateBuys: ApproximateBuys as ContractArtifact,
     BalancerSampler: BalancerSampler as ContractArtifact,
+    CoFiXSampler: CoFiXSampler as ContractArtifact,
     CurveSampler: CurveSampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,
     DeploymentConstants: DeploymentConstants as ContractArtifact,
@@ -58,6 +61,7 @@ export const artifacts = {
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
     IBalancer: IBalancer as ContractArtifact,
+    ICoFiX: ICoFiX as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
     IEth2Dai: IEth2Dai as ContractArtifact,
     IKyberNetwork: IKyberNetwork as ContractArtifact,

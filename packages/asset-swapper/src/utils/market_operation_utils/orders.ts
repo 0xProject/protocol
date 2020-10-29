@@ -19,6 +19,7 @@ import {
     AggregationError,
     BalancerFillData,
     BancorFillData,
+    CoFiXFillData,
     CollapsedFill,
     CurveFillData,
     DexSample,
@@ -201,6 +202,8 @@ function getBridgeAddressFromFill(fill: CollapsedFill, opts: CreateOrderFromPath
             return opts.contractAddresses.dodoBridge;
         case ERC20BridgeSource.CryptoCom:
             return opts.contractAddresses.cryptoComBridge;
+        case ERC20BridgeSource.CoFiX:
+            return opts.contractAddresses.cofixBridge;
         default:
             break;
     }
@@ -339,6 +342,14 @@ export function createBridgeOrder(
                 createShellBridgeData(takerToken, shellFillData.poolAddress),
             );
             break;
+        case ERC20BridgeSource.CoFiX:
+            const cofixFillData = (fill as CollapsedFill<CoFiXFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
+            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
+                makerToken,
+                bridgeAddress,
+                createCoFiXBridgeData(takerToken, cofixFillData.feeInWei, cofixFillData.poolAddress),
+            );
+            break;
         default:
             makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
                 makerToken,
@@ -415,6 +426,15 @@ function createDODOBridgeData(takerToken: string, poolAddress: string, isSellBas
         { name: 'isSellBase', type: 'bool' },
     ]);
     return encoder.encode({ takerToken, poolAddress, isSellBase });
+}
+
+function createCoFiXBridgeData(takerToken: string, fee: BigNumber, pool: string): string {
+    const encoder = AbiEncoder.create([
+        { name: 'takerToken', type: 'address' },
+        { name: 'fee', type: 'uint256' },
+        { name: 'pool', type: 'address' },
+    ]);
+    return encoder.encode({ takerToken, fee, pool });
 }
 
 function createCurveBridgeData(

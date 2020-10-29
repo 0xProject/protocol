@@ -4,7 +4,6 @@
  * -----------------------------------------------------------------------------
  */
 import { ContractArtifact } from 'ethereum-types';
-
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
@@ -74,6 +73,7 @@ import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadata
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
 import * as MixinAdapterAddresses from '../test/generated-artifacts/MixinAdapterAddresses.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
+import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
 import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
 import * as MixinDodo from '../test/generated-artifacts/MixinDodo.json';
@@ -134,6 +134,7 @@ import * as UniswapFeature from '../test/generated-artifacts/UniswapFeature.json
 import * as WethTransformer from '../test/generated-artifacts/WethTransformer.json';
 import * as ZeroEx from '../test/generated-artifacts/ZeroEx.json';
 import * as ZeroExOptimized from '../test/generated-artifacts/ZeroExOptimized.json';
+
 export const artifacts = {
     IZeroEx: IZeroEx as ContractArtifact,
     ZeroEx: ZeroEx as ContractArtifact,
@@ -212,6 +213,7 @@ export const artifacts = {
     MixinAdapterAddresses: MixinAdapterAddresses as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinCryptoCom: MixinCryptoCom as ContractArtifact,
+    MixinCoFiX: MixinCoFiX as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,
     MixinDodo: MixinDodo as ContractArtifact,
     MixinKyber: MixinKyber as ContractArtifact,
