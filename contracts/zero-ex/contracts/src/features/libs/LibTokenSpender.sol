@@ -27,6 +27,9 @@ import "../ITokenSpenderFeature.sol";
 library LibTokenSpender {
     using LibRichErrorsV06 for bytes;
 
+    // Mask of the lower 20 bytes of a bytes32.
+    uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+
     /// @dev Transfers ERC20 tokens from `owner` to `to`.
     /// @param token The token to spend.
     /// @param owner The owner of the tokens.
@@ -50,11 +53,11 @@ library LibTokenSpender {
 
             // selector for transferFrom(address,address,uint256)
             mstore(ptr, 0x23b872dd00000000000000000000000000000000000000000000000000000000)
-            mstore(add(ptr, 0x04), owner)
-            mstore(add(ptr, 0x24), to)
+            mstore(add(ptr, 0x04), and(owner, ADDRESS_MASK))
+            mstore(add(ptr, 0x24), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x44), amount)
 
-            success := call(gas(), token, 0, ptr, 0x64, 0, 0)
+            success := call(gas(), and(token, ADDRESS_MASK), 0, ptr, 0x64, 0, 0)
 
             let rdsize := returndatasize()
 

@@ -783,6 +783,11 @@
     uuid "^3.3.2"
     websocket "^1.0.26"
 
+"@0x/contract-addresses@^4.0.0":
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-4.12.0.tgz#2adb0bcde763ad13437f782adf25c403107ff428"
+  integrity sha512-0tHRgb03pbnaCgU2gpzLhedjsxe03CHj5cV/u50NTfKR2AkNxJbkvu+Pi11Qs73pw/G2jBmXik3J/SdkQe1NQA==
+
 "@0x/contracts-gen@2.0.13":
   version "2.0.13"
   resolved "https://registry.yarnpkg.com/@0x/contracts-gen/-/contracts-gen-2.0.13.tgz#3e0f3fd10d1f09ebe2a968ba79f1d273fae0763e"

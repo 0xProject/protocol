@@ -1,5 +1,15 @@
 [
     {
+        "version": "4.8.1",
+        "changes": [
+            {
+                "note": "Fix Gas schedule with `SnowSwap` and `Bancor`",
+                "pr": 15
+            }
+        ],
+        "timestamp": 1603851023
+    },
+    {
         "version": "4.8.0",
         "changes": [
             {
@@ -10,7 +20,8 @@
                 "note": "Updated Sampler to Solidity 0.6",
                 "pr": 4
             }
-        ]
+        ],
+        "timestamp": 1603833198
     },
     {
         "timestamp": 1603487270,

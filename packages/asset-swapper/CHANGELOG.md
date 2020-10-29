@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.8.1 - _October 28, 2020_
+
+    * Fix Gas schedule with `SnowSwap` and `Bancor` (#15)
+
+## v4.8.0 - _October 27, 2020_
+
+    * Moved Bridge addresses into Asset-swapper (#4)
+    * Updated Sampler to Solidity 0.6 (#4)
+
 ## v4.7.1 - _October 23, 2020_
 
     * Dependencies updated
@@ -51,7 +60,8 @@ CHANGELOG
     * Added `DODO` (#2701)
     * Fix for some edge cases with `includedSources` and `MultiHop` (#2730)
     * Introduced `excludedFeeSources` to disable sources when determining the price of an asset in ETH (#2731)
-    * Support DODO Trade Allowed parameter to automatically disable the pool (#2732)
+    * Support `DODO` Trade Allowed parameter to automatically disable the pool (#2732)
+    * Added `SwerveBridge` and `SnowSwapBridge` deployed addresses (#7)
 
 ## v4.6.0 - _July 15, 2020_
 

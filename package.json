@@ -20,7 +20,7 @@
         "test:publish:circleci": "yarn npm-cli-login -u test -p test -e test@example.com -r http://localhost:4873 && IS_LOCAL_PUBLISH=true run-s script:publish test:installation:local",
         "run:publish": "run-s install:all script:prepublish_checks rebuild script:publish",
         "run:publish:local": "IS_LOCAL_PUBLISH=true yarn run:publish",
-        "run:publish:gha": "run-s install:all rebuild script:publish:gha",
+        "run:publish:gha": "run-s build script:publish:gha",
         "script:prepublish_checks": "node ./node_modules/@0x/monorepo-scripts/lib/prepublish_checks.js",
         "script:publish": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo protocol",
         "script:publish:gha": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo protocol --auto-commit --no-upload-docs --yes",

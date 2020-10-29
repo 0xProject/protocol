@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v10.4.2 - _October 28, 2020_
+
+    * Dependencies updated
+
+## v10.4.1 - _October 27, 2020_
+
+    * Dependencies updated
+
 ## v10.4.0 - _October 21, 2020_
 
     * Add gitpkg. (#2649)

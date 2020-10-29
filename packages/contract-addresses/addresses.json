@@ -139,7 +139,7 @@
         "staking": "0x73ea24041e03a012c51a45c307e0ba376af0238c",
         "stakingProxy": "0xe94cb304b3f515be7c95fedcfa249a84995fd748",
         "erc20BridgeProxy": "0x3577552c1fb7a44ad76beeb7ab53251668a21f8d",
-        "erc20BridgeSampler": "0xcf9e66851f274aa4721e54526117876d90d51aa1",
+        "erc20BridgeSampler": "0x298a99d3a2b891df04019425542897ac1a867d9d",
         "chaiBridge": "0x0000000000000000000000000000000000000000",
         "dydxBridge": "0xc213707de0454008758071c2edc1365621b8a5c5",
         "godsUnchainedValidator": "0x0000000000000000000000000000000000000000",
