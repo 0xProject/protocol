@@ -42,6 +42,7 @@ export interface NativeOrderbookReportSource extends NativeReportSourceBase {
 export interface NativeRFQTReportSource extends NativeReportSourceBase {
     isRfqt: true;
     makerUri: string;
+    comparisonPrice?: number;
 }
 export type QuoteReportSource =
     | BridgeReportSource
@@ -70,7 +71,7 @@ export function generateQuoteReport(
 ): QuoteReport {
     const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
     const nativeOrderSourcesConsidered = nativeOrders.map((order, idx) =>
-        _nativeOrderToReportSource(order, orderFillableAmounts[idx], quoteRequestor),
+        _nativeOrderToReportSource(order, orderFillableAmounts[idx], comparisonPrice, quoteRequestor),
     );
     const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
         _multiHopSampleToReportSource(quote, marketOperation),
@@ -217,7 +218,7 @@ function _nativeOrderToReportSource(
             ...nativeOrderBase,
             isRfqt: true,
             makerUri: foundRfqtMakerUri,
-            ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toString() } : {}),
+            ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
         };
         return rfqtSource;
     } else {
