@@ -10,7 +10,7 @@
         "test": "test"
     },
     "scripts": {
-        "build": "yarn pre_build && tsc -b",
+        "build": "yarn pre_build && yarn build:ts",
         "build:ci": "yarn build",
         "build:ts": "tsc -b",
         "pre_build": "run-s compile contracts:gen generate_contract_wrappers contracts:copy",
