@@ -276,46 +276,16 @@ export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 
 const EXCLUDED_SOURCES = (() => {
+    const allERC20BridgeSources = Object.values(ERC20BridgeSource);
     switch (CHAIN_ID) {
         case ChainId.Mainnet:
             return [ERC20BridgeSource.MultiBridge];
         case ChainId.Kovan:
-            return [
-                ERC20BridgeSource.Balancer,
-                ERC20BridgeSource.Bancor,
-                ERC20BridgeSource.Curve,
-                ERC20BridgeSource.Dodo,
-                ERC20BridgeSource.Kyber,
-                ERC20BridgeSource.LiquidityProvider,
-                ERC20BridgeSource.MStable,
-                ERC20BridgeSource.Mooniswap,
-                ERC20BridgeSource.Swerve,
-                ERC20BridgeSource.SnowSwap,
-                ERC20BridgeSource.Shell,
-                ERC20BridgeSource.SushiSwap,
-                ERC20BridgeSource.Cream,
-            ];
+            return allERC20BridgeSources.filter(
+                s => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
+            );
         default:
-            return [
-                ERC20BridgeSource.Balancer,
-                ERC20BridgeSource.Bancor,
-                ERC20BridgeSource.Curve,
-                ERC20BridgeSource.Dodo,
-                ERC20BridgeSource.Eth2Dai,
-                ERC20BridgeSource.Kyber,
-                ERC20BridgeSource.LiquidityProvider,
-                ERC20BridgeSource.MultiBridge,
-                ERC20BridgeSource.MStable,
-                ERC20BridgeSource.Uniswap,
-                ERC20BridgeSource.UniswapV2,
-                ERC20BridgeSource.Mooniswap,
-                ERC20BridgeSource.MultiHop,
-                ERC20BridgeSource.Swerve,
-                ERC20BridgeSource.SnowSwap,
-                ERC20BridgeSource.Shell,
-                ERC20BridgeSource.SushiSwap,
-                ERC20BridgeSource.Cream,
-            ];
+            return allERC20BridgeSources.filter(s => s !== ERC20BridgeSource.Native);
     }
 })();
 
