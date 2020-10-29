@@ -60,7 +60,7 @@
         "@0x/contract-addresses": "^5.0.1",
         "@0x/json-schemas": "^5.3.2",
         "@0x/types": "^3.3.0",
-        "@0x/utils": "^5.6.4",
+        "@0x/utils": "^6.0.0",
         "@0x/web3-wrapper": "^7.2.7",
         "ethereum-types": "^3.3.3",
         "ethers": "~4.0.4"
