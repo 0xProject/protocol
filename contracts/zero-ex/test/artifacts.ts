@@ -51,6 +51,7 @@ import * as LibOwnableStorage from '../test/generated-artifacts/LibOwnableStorag
 import * as LibProxyRichErrors from '../test/generated-artifacts/LibProxyRichErrors.json';
 import * as LibProxyStorage from '../test/generated-artifacts/LibProxyStorage.json';
 import * as LibReentrancyGuardStorage from '../test/generated-artifacts/LibReentrancyGuardStorage.json';
+import * as LibSignature from '../test/generated-artifacts/LibSignature.json';
 import * as LibSignatureRichErrors from '../test/generated-artifacts/LibSignatureRichErrors.json';
 import * as LibSignedCallData from '../test/generated-artifacts/LibSignedCallData.json';
 import * as LibSimpleFunctionRegistryRichErrors from '../test/generated-artifacts/LibSimpleFunctionRegistryRichErrors.json';
@@ -90,6 +91,7 @@ import * as TestFillQuoteTransformerExchange from '../test/generated-artifacts/T
 import * as TestFillQuoteTransformerHost from '../test/generated-artifacts/TestFillQuoteTransformerHost.json';
 import * as TestFullMigration from '../test/generated-artifacts/TestFullMigration.json';
 import * as TestInitialMigration from '../test/generated-artifacts/TestInitialMigration.json';
+import * as TestLibSignature from '../test/generated-artifacts/TestLibSignature.json';
 import * as TestLibTokenSpender from '../test/generated-artifacts/TestLibTokenSpender.json';
 import * as TestMetaTransactionsTransformERC20Feature from '../test/generated-artifacts/TestMetaTransactionsTransformERC20Feature.json';
 import * as TestMigrator from '../test/generated-artifacts/TestMigrator.json';
@@ -153,6 +155,7 @@ export const artifacts = {
     TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
+    LibSignature: LibSignature as ContractArtifact,
     LibSignedCallData: LibSignedCallData as ContractArtifact,
     LibTokenSpender: LibTokenSpender as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
@@ -208,6 +211,7 @@ export const artifacts = {
     TestFillQuoteTransformerHost: TestFillQuoteTransformerHost as ContractArtifact,
     TestFullMigration: TestFullMigration as ContractArtifact,
     TestInitialMigration: TestInitialMigration as ContractArtifact,
+    TestLibSignature: TestLibSignature as ContractArtifact,
     TestLibTokenSpender: TestLibTokenSpender as ContractArtifact,
     TestMetaTransactionsTransformERC20Feature: TestMetaTransactionsTransformERC20Feature as ContractArtifact,
     TestMigrator: TestMigrator as ContractArtifact,

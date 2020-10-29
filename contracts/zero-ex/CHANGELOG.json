@@ -5,6 +5,10 @@
             {
                 "note": "Add support for collecting protocol fees in ETH or WETH",
                 "pr": 2
+            },
+            {
+                "note": "Add `LibSignature` library",
+                "pr": 21
             }
         ]
     },
