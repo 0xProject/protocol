@@ -14,6 +14,7 @@ import { getKyberReserveIdsForPair } from './kyber_utils';
 import { getMultiBridgeIntermediateToken } from './multibridge_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { SamplerContractOperation } from './sampler_contract_operation';
+import { getShellsForPair } from './shell_utils';
 import { SourceFilters } from './source_filters';
 import {
     BalancerFillData,
@@ -30,6 +31,7 @@ import {
     MooniswapFillData,
     MultiBridgeFillData,
     MultiHopFillData,
+    ShellFillData,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,
@@ -840,19 +842,29 @@ export class SamplerOperations {
     }
 
     public getShellSellQuotes(
+        poolAddress: string,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation {
+    ): SourceQuoteOperation<ShellFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Shell,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromShell,
-            params: [takerToken, makerToken, takerFillAmounts],
+            params: [poolAddress, takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: ShellFillData): BigNumber[] => {
+                const samples = this._samplerContract.getABIDecodedReturnData<BigNumber[]>(
+                    'sampleSellsFromShell',
+                    callResults,
+                );
+                fillData.poolAddress = poolAddress;
+                return samples;
+            },
         });
     }
 
     public getShellBuyQuotes(
+        poolAddress: string,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -861,7 +873,15 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Shell,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromShell,
-            params: [takerToken, makerToken, makerFillAmounts],
+            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: ShellFillData): BigNumber[] => {
+                const samples = this._samplerContract.getABIDecodedReturnData<BigNumber[]>(
+                    'sampleBuysFromShell',
+                    callResults,
+                );
+                fillData.poolAddress = poolAddress;
+                return samples;
+            },
         });
     }
 
@@ -1172,7 +1192,9 @@ export class SamplerOperations {
                                     ),
                                 );
                         case ERC20BridgeSource.Shell:
-                            return this.getShellSellQuotes(makerToken, takerToken, takerFillAmounts);
+                            return getShellsForPair(takerToken, makerToken).map(pool =>
+                                this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                            );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
                         default:
@@ -1290,7 +1312,9 @@ export class SamplerOperations {
                                     ),
                                 );
                         case ERC20BridgeSource.Shell:
-                            return this.getShellBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                            return getShellsForPair(takerToken, makerToken).map(pool =>
+                                this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                            );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         default:

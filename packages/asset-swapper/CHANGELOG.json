@@ -1,5 +1,14 @@
 [
     {
+        "version": "4.9.0",
+        "changes": [
+            {
+                "note": "Support multiple `Shells` by supplying the `pool` address",
+                "pr": 17
+            }
+        ]
+    },
+    {
         "version": "4.8.1",
         "changes": [
             {

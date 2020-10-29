@@ -77,7 +77,6 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 mStable: NULL_ADDRESS,
                 weth: NULL_ADDRESS,
                 shellBridge: NULL_ADDRESS,
-                shell: NULL_ADDRESS,
                 creamBridge: NULL_ADDRESS,
                 dodoBridge: NULL_ADDRESS,
                 dodoHelper: NULL_ADDRESS,
