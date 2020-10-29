@@ -861,6 +861,32 @@ export class SamplerOperations {
         });
     }
 
+    public getCoFiXSellQuotes(
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.CoFiX,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromCoFiX,
+            params: [takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getCoFiXBuyQuotes(
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.CoFiX,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromCoFiX,
+            params: [takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1066,6 +1092,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
+                        case ERC20BridgeSource.CoFiX:
+                            return this.getCoFiXSellQuotes(makerToken, takerToken, takerFillAmounts);
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1179,6 +1207,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                        case ERC20BridgeSource.CoFiX:
+                            return this.getCoFiXBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

@@ -34,6 +34,7 @@ import "./SushiSwapSampler.sol";
 import "./TwoHopSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
+import "./CoFiXSampler.sol";
 
 
 contract ERC20BridgeSampler is
@@ -51,7 +52,8 @@ contract ERC20BridgeSampler is
     SushiSwapSampler,
     TwoHopSampler,
     UniswapSampler,
-    UniswapV2Sampler
+    UniswapV2Sampler,
+    CoFiXSampler
 {
     /// @dev Call multiple public functions on this contract in a single transaction.
     /// @param callDatas ABI-encoded call data for each function call.

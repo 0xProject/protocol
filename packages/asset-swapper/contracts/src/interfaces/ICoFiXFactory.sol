@@ -21,14 +21,6 @@ pragma solidity ^0.5.9;
 
 interface ICoFiXFactory {
 
-    struct OraclePrice {
-        uint256 ethAmount;
-        uint256 erc20Amount;
-        uint256 blockNum;
-        uint256 K;
-        uint256 theta;
-    }
-
     function getPair(address token)
         external
         view
