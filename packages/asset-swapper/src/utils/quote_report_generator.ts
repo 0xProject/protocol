@@ -42,6 +42,7 @@ export interface NativeOrderbookReportSource extends NativeReportSourceBase {
 export interface NativeRFQTReportSource extends NativeReportSourceBase {
     isRfqt: true;
     makerUri: string;
+    comparisonPrice?: number;
 }
 export type QuoteReportSource =
     | BridgeReportSource
@@ -65,11 +66,12 @@ export function generateQuoteReport(
     nativeOrders: SignedOrder[],
     orderFillableAmounts: BigNumber[],
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
     const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
     const nativeOrderSourcesConsidered = nativeOrders.map((order, idx) =>
-        _nativeOrderToReportSource(order, orderFillableAmounts[idx], quoteRequestor),
+        _nativeOrderToReportSource(order, orderFillableAmounts[idx], comparisonPrice, quoteRequestor),
     );
     const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
         _multiHopSampleToReportSource(quote, marketOperation),
@@ -94,6 +96,7 @@ export function generateQuoteReport(
                 return _nativeOrderToReportSource(
                     foundNativeOrder,
                     nativeOrderSignaturesToFillableAmounts[foundNativeOrder.signature],
+                    comparisonPrice,
                     quoteRequestor,
                 );
             } else {
@@ -197,6 +200,7 @@ function _nativeOrderFromCollapsedFill(cf: CollapsedFill): SignedOrder | undefin
 function _nativeOrderToReportSource(
     nativeOrder: SignedOrder,
     fillableAmount: BigNumber,
+    comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): NativeRFQTReportSource | NativeOrderbookReportSource {
     const nativeOrderBase: NativeReportSourceBase = {
@@ -215,6 +219,9 @@ function _nativeOrderToReportSource(
             isRfqt: true,
             makerUri: foundRfqtMakerUri,
         };
+        if (comparisonPrice) {
+            rfqtSource.comparisonPrice = comparisonPrice.toNumber();
+        }
         return rfqtSource;
     } else {
         // if it's not an rfqt order, treat as normal

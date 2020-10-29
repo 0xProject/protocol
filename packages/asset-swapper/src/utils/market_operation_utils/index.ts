@@ -88,6 +88,7 @@ export class MarketOperationUtils {
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
         optimizerResult: OptimizerResult,
+        comparisonPrice?: BigNumber | undefined,
     ): QuoteReport {
         const { side, dexQuotes, twoHopQuotes, orderFillableAmounts } = marketSideLiquidity;
         const { liquidityDelivered } = optimizerResult;
@@ -98,6 +99,7 @@ export class MarketOperationUtils {
             nativeOrders,
             orderFillableAmounts,
             liquidityDelivered,
+            comparisonPrice,
             quoteRequestor,
         );
     }
@@ -676,6 +678,7 @@ export class MarketOperationUtils {
         }
 
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity
+        let comparisonPrice: BigNumber | undefined;
         const { rfqt } = _opts;
         if (
             rfqt &&
@@ -684,7 +687,6 @@ export class MarketOperationUtils {
             marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
         ) {
             // Calculate a suggested price. For now, this is simply the overall price of the aggregation.
-            let comparisonPrice: BigNumber | undefined;
             if (optimizerResult) {
                 const totalMakerAmount = BigNumber.sum(
                     ...optimizerResult.optimizedOrders.map(order => order.makerAssetAmount),
@@ -781,6 +783,7 @@ export class MarketOperationUtils {
                 _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
                 marketSideLiquidity,
                 optimizerResult,
+                comparisonPrice,
             );
         }
         return { ...optimizerResult, quoteReport };
