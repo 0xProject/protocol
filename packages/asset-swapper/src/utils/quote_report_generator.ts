@@ -218,8 +218,10 @@ function _nativeOrderToReportSource(
             ...nativeOrderBase,
             isRfqt: true,
             makerUri: foundRfqtMakerUri,
-            ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
         };
+        if (comparisonPrice) {
+            rfqtSource.comparisonPrice = comparisonPrice.toNumber();
+        }
         return rfqtSource;
     } else {
         // if it's not an rfqt order, treat as normal
