@@ -12,6 +12,7 @@ import {
     IMetaTransactionsFeatureContract,
     IOwnableFeatureContract,
     ISignatureValidatorFeatureContract,
+    ISimpleFunctionRegistryFeatureContract,
     ITokenSpenderFeatureContract,
     ITransformERC20FeatureContract,
     TestFullMigrationContract,
@@ -25,6 +26,7 @@ blockchainTests.resets('Full migration', env => {
     let zeroEx: ZeroExContract;
     let features: FullFeatures;
     let migrator: TestFullMigrationContract;
+    let registry: ISimpleFunctionRegistryFeatureContract;
     const transformerDeployer = randomAddress();
 
     before(async () => {
@@ -47,6 +49,7 @@ blockchainTests.resets('Full migration', env => {
         await migrator
             .initializeZeroEx(owner, zeroEx.address, features, { transformerDeployer })
             .awaitTransactionSuccessAsync();
+        registry = new ISimpleFunctionRegistryFeatureContract(zeroEx.address, env.provider, env.txDefaults);
     });
 
     it('ZeroEx has the correct owner', async () => {
@@ -157,7 +160,7 @@ blockchainTests.resets('Full migration', env => {
             for (const fn of featureInfo.fns) {
                 it(`${fn} is registered`, async () => {
                     const selector = contract.getSelector(fn);
-                    const impl = await zeroEx.getFunctionImplementation(selector).callAsync();
+                    const impl = await registry.getFunctionImplementation(selector).callAsync();
                     expect(impl).to.not.eq(NULL_ADDRESS);
                 });
 
