@@ -527,6 +527,7 @@ export interface GetTransactionRequestParams {
     includedSources?: ERC20BridgeSource[];
     includePriceComparisons: boolean;
     affiliateFee: PercentageFee;
+    affiliateAddress?: string;
 }
 
 export interface CalculateSwapQuoteParams {
@@ -577,6 +578,7 @@ export interface CalculateMetaTransactionQuoteParams {
     apiKey: string | undefined;
     includePriceComparisons: boolean;
     affiliateFee: PercentageFee;
+    affiliateAddress: string | undefined;
 }
 
 export enum TransactionStates {

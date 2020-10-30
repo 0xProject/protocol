@@ -76,6 +76,7 @@ export class MetaTransactionHandlers {
             slippagePercentage,
             excludedSources,
             includedSources,
+            affiliateAddress,
             affiliateFee,
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
@@ -103,6 +104,7 @@ export class MetaTransactionHandlers {
                 includePriceComparisons,
                 isETHBuy,
                 isETHSell: false,
+                affiliateAddress,
                 affiliateFee,
                 from: takerAddress,
             });
@@ -187,6 +189,7 @@ export class MetaTransactionHandlers {
             excludedSources,
             includedSources,
             affiliateFee,
+            affiliateAddress,
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
         } = parseGetTransactionRequestParams(req);
@@ -215,6 +218,7 @@ export class MetaTransactionHandlers {
                 isETHBuy,
                 isETHSell: false,
                 affiliateFee,
+                affiliateAddress,
             });
 
             let priceComparisons: SourceComparison[] | undefined;
@@ -482,6 +486,8 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
               buyTokenPercentageFee: 0,
           };
 
+    const affiliateAddress = req.query.affiliateAddress as string | undefined;
+
     return {
         takerAddress,
         sellTokenAddress,
@@ -493,6 +499,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
         includedSources,
         includePriceComparisons,
         affiliateFee,
+        affiliateAddress,
     };
 };
 
