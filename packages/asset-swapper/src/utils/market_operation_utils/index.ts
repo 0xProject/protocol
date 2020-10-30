@@ -41,7 +41,6 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
-    TokenAdjacencyGraph,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -109,7 +108,6 @@ export class MarketOperationUtils {
         private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
         private readonly _liquidityProviderRegistry: string = NULL_ADDRESS,
-        private readonly _tokenAdjacencyGraph: TokenAdjacencyGraph = {},
     ) {
         this._wethAddress = contractAddresses.etherToken.toLowerCase();
         this._multiBridge = contractAddresses.multiBridge.toLowerCase();
@@ -182,7 +180,6 @@ export class MarketOperationUtils {
                 makerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._wethAddress,
                 this._liquidityProviderRegistry,
                 this._multiBridge,
             ),
@@ -192,7 +189,6 @@ export class MarketOperationUtils {
                 takerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._wethAddress,
                 this._liquidityProviderRegistry,
                 this._multiBridge,
             ),
@@ -203,6 +199,7 @@ export class MarketOperationUtils {
                 takerToken,
                 sampleAmounts,
                 this._wethAddress,
+                _opts.tokenAdjacencyGraph,
                 this._liquidityProviderRegistry,
                 this._multiBridge,
             ),
@@ -211,8 +208,8 @@ export class MarketOperationUtils {
                 makerToken,
                 takerToken,
                 takerAmount,
-                this._tokenAdjacencyGraph,
                 this._wethAddress,
+                _opts.tokenAdjacencyGraph,
                 this._liquidityProviderRegistry,
             ),
         );
@@ -333,7 +330,6 @@ export class MarketOperationUtils {
                 makerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._wethAddress,
                 this._liquidityProviderRegistry,
                 this._multiBridge,
             ),
@@ -343,7 +339,6 @@ export class MarketOperationUtils {
                 takerToken,
                 this._wethAddress,
                 ONE_ETHER,
-                this._wethAddress,
                 this._liquidityProviderRegistry,
                 this._multiBridge,
             ),
@@ -354,6 +349,7 @@ export class MarketOperationUtils {
                 takerToken,
                 sampleAmounts,
                 this._wethAddress,
+                _opts.tokenAdjacencyGraph,
                 this._liquidityProviderRegistry,
             ),
             this._sampler.getTwoHopBuyQuotes(
@@ -361,8 +357,8 @@ export class MarketOperationUtils {
                 makerToken,
                 takerToken,
                 makerAmount,
-                this._tokenAdjacencyGraph,
                 this._wethAddress,
+                _opts.tokenAdjacencyGraph,
                 this._liquidityProviderRegistry,
             ),
         );
@@ -493,6 +489,7 @@ export class MarketOperationUtils {
                     getNativeOrderTokens(orders[0])[1],
                     [makerAmounts[i]],
                     this._wethAddress,
+                    _opts.tokenAdjacencyGraph,
                 ),
             ),
         ];

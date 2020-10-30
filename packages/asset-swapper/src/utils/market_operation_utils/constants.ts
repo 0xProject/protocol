@@ -459,4 +459,5 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
     exchangeProxyOverhead: () => ZERO_AMOUNT,
     allowFallback: true,
     shouldGenerateQuoteReport: false,
+    tokenAdjacencyGraph: {},
 };

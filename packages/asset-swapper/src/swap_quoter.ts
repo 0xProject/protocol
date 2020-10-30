@@ -6,7 +6,6 @@ import { MeshOrderProviderOpts, Orderbook, SRAPollingOrderProviderOpts } from '@
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
-
 import { artifacts } from './artifacts';
 import { BRIDGE_ADDRESSES_BY_CHAIN, constants } from './constants';
 import {
@@ -166,7 +165,6 @@ export class SwapQuoter {
             samplerGasLimit,
             liquidityProviderRegistryAddress,
             rfqt,
-            tokenAdjacencyGraph,
         } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
@@ -215,7 +213,6 @@ export class SwapQuoter {
                 exchangeAddress: this._contractAddresses.exchange,
             },
             liquidityProviderRegistryAddress,
-            tokenAdjacencyGraph,
         );
         this._swapQuoteCalculator = new SwapQuoteCalculator(this._marketOperationUtils);
     }
