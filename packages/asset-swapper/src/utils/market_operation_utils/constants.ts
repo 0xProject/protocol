@@ -1,5 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
+import { getPoolsWithTokens } from '@balancer-labs/sor';
 
 import { BridgeContractAddresses } from '../../types';
 
@@ -98,13 +99,43 @@ export const TOKENS = {
     USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     sUSD: '0x57ab1ec28d129707052df4df418d58a2d46d5f51',
+    BUSD: '0x4fabb145d64652a948d72533023f6e7a623c7c53',
     TUSD: '0x0000000000085d4780b73119b644ae5ecd22b376',
+    PAX: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
+    GUSD: '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd',
+    HUSD: '0xdf574c24545e5ffecb9a659c229253d4111d87e1',
+    mUSD: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+    USDN: '0x674c6ad92fd080e4004b2312b45f796a192d27a0',
     // Bitcoins
     WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
     RenBTC: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
     sBTC: '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
+    tBTC: '0x8daebade922df735c38c80c7ebd708af50815faa',
+    hBTC: '0x0316eb71485b0ab14103307bf65a021042c6d380',
     // Other
     MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
+};
+
+export const POOLS = {
+    // following the same order in curve.fi:
+    curve_compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56',
+    // curve_USDT: '0x52ea46506b9cc5ef470c5bf89f17dc28bb35d85c',
+    curve_PAX: '0x06364f10b501e868329afbc005b3492902d6c763',
+    curve_y: '0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51',
+    curve_BUSD: '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27',
+    curve_sUSD: '0xa5407eae9ba41422680e2e00537571bcc53efbfd',
+    curve_renBTC: '0x93054188d876f558f4a66b2ef1d97d16edf0895b',
+    curve_sBTC: '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714',
+    curve_HBTC: '0x4ca9b3063ec5866a4b82e437059d2c43d1be596f',
+    curve_TRI: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
+    curve_GUSD: '0x4f062658eaaf2c1ccf8c8e36d6824cdf41167956',
+    curve_HUSD: '0x3ef6a01a0f81d6046290f3e2a8c5b843e738e604',
+    // 12.usdk is dead
+    curve_USDN: '0x0f9cb53ebe405d49a0bbdbd291a65ff571bc83e1',
+    // 14.linkusd is dead
+    curve_mUSD: '0x8474ddbe98f5aa3179b3b3f5942d724afcdec9f6',
+    // 16.rsv is dead
+    curve_tBTC: '0xc25099792e9349c7dd09759744ea681c7de2cb66',
 };
 
 /**
@@ -113,14 +144,14 @@ export const TOKENS = {
  * I.e DaiUsdc curve has DAI as index 0 and USDC as index 1
  */
 export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
-    DaiUsdc: {
+    Compound: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
-        poolAddress: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56',
+        poolAddress: POOLS.curve_compound,
         tokens: [TOKENS.DAI, TOKENS.USDC],
     },
-    // DaiUsdcUsdt: {
+    // USDT: {
     //     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
     //     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
     //     buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
@@ -131,53 +162,97 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
     //         TOKENS.USDT,
     //     ],
     // },
-    DaiUsdcUsdtTusd: {
+    PAX: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: POOLS.curve_PAX,
+        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.PAX],
+    },
+    Y: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
-        poolAddress: '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51',
+        poolAddress: POOLS.curve_y,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.TUSD],
     },
-    // Looks like it's dying.
-    DaiUsdcUsdtBusd: {
+    BUSD: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
-        poolAddress: '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27',
-        tokens: [
-            TOKENS.DAI,
-            TOKENS.USDC,
-            TOKENS.USDT,
-            '0x4fabb145d64652a948d72533023f6e7a623c7c53', // bUSD
-        ],
+        poolAddress: POOLS.curve_BUSD,
+        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.BUSD],
     },
-    DaiUsdcUsdtSusd: {
+    sUSD: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: '0xa5407eae9ba41422680e2e00537571bcc53efbfd',
+        poolAddress: POOLS.curve_sUSD,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD],
     },
-    RenbtcWbtc: {
+    renBTC: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: '0x93054188d876f558f4a66b2ef1d97d16edf0895b',
+        poolAddress: POOLS.curve_renBTC,
         tokens: [TOKENS.RenBTC, TOKENS.WBTC],
     },
-    RenbtcWbtcSbtc: {
+    sBTC: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714',
+        poolAddress: POOLS.curve_sBTC,
         tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
     },
-    TriPool: {
+    HBTC: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
+        poolAddress: POOLS.curve_HBTC,
+        tokens: [TOKENS.hBTC, TOKENS.WBTC],
+    },
+    TRI: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: POOLS.curve_TRI,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+    },
+    // Metapools
+    GUSD: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: POOLS.curve_GUSD,
+        tokens: [TOKENS.GUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+    },
+    HUSD: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: POOLS.curve_HUSD,
+        tokens: [TOKENS.HUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+    },
+    USDN: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: POOLS.curve_USDN,
+        tokens: [TOKENS.USDN, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+    },
+    mUSDPool: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: POOLS.curve_mUSD,
+        tokens: [TOKENS.mUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+    },
+    tBTC: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: POOLS.curve_tBTC,
+        tokens: [TOKENS.tBTC, TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
     },
 };
 
@@ -224,19 +299,6 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
             '0x37d19d1c4e1fa9dc47bd1ea12f742a0887eda74a', // yTUSD
         ],
     },
-    // Gas is too high for these underlying tokens (3M+)
-    // yVaultUSDUnderlying: {
-    //     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
-    //     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
-    //     buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
-    //     poolAddress: '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b',
-    //     tokens: [
-    //        TOKENS.DAI,
-    //        TOKENS.USDC,
-    //        TOKENS.USDT,
-    //        TOKENS.TUSD,
-    //     ],
-    // },
 };
 
 export const MAINNET_KYBER_RESERVE_IDS: { [name: string]: string } = {
@@ -361,19 +423,25 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Curve]: fillData => {
         const poolAddress = (fillData as CurveFillData).pool.poolAddress.toLowerCase();
         switch (poolAddress) {
-            case '0xa5407eae9ba41422680e2e00537571bcc53efbfd':
-            case '0x93054188d876f558f4a66b2ef1d97d16edf0895b':
-            case '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714':
-            case '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7':
+            case POOLS.curve_renBTC:
+            case POOLS.curve_sBTC:
+            case POOLS.curve_sUSD:
+            case POOLS.curve_HBTC:
+            case POOLS.curve_TRI:
                 return 150e3;
-            case '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56':
+            case POOLS.curve_compound:
                 return 750e3;
-            case '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51':
+            case POOLS.curve_PAX:
+            case POOLS.curve_y:
+            case POOLS.curve_BUSD:
                 return 850e3;
-            case '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27':
-                return 1e6;
-            case '0x52ea46506b9cc5ef470c5bf89f17dc28bb35d85c':
-                return 600e3;
+            // metapools
+            case POOLS.curve_GUSD:
+            case POOLS.curve_HUSD:
+            case POOLS.curve_USDN:
+            case POOLS.curve_mUSD:
+            case POOLS.curve_tBTC:
+                return 650e3;
             default:
                 throw new Error(`Unrecognized Curve address: ${poolAddress}`);
         }
