@@ -92,7 +92,7 @@ blockchainTests.resets('ProtocolFees', env => {
 
         it('should revert if insufficient ETH transferred', async () => {
             const tooLittle = constants.ONE_ETHER.minus(1);
-            const tx = collect(pool1, constants.ONE_ETHER, constants.ONE_ETHER.minus(1));
+            const tx = collect(pool1, constants.ONE_ETHER, tooLittle);
             expect(tx).to.revertWith('FixinProtocolFees/ETHER_TRANSFER_FALIED');
         });
 
