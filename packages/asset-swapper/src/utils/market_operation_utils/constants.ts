@@ -1,6 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
-import { getPoolsWithTokens } from '@balancer-labs/sor';
 
 import { BridgeContractAddresses } from '../../types';
 
