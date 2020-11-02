@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.0.0 - _November 2, 2020_
+
+    * Support multiple `Shells` by supplying the `pool` address (#17)
+    * Make use of Token Adjacency in more places. Moved as a parameter for the quote (#24)
+
 ## v4.8.1 - _October 28, 2020_
 
     * Fix Gas schedule with `SnowSwap` and `Bancor` (#15)

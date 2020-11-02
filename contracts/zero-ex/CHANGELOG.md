@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.6.0 - _November 2, 2020_
+
+    * Add support for collecting protocol fees in ETH or WETH (#2)
+    * Add `LibSignature` library (#21)
+
 ## v0.5.1 - _October 28, 2020_
 
     * Dependencies updated
