@@ -182,7 +182,7 @@ export class QuoteRequestor {
         );
 
         const validatedResponses: Array<{ response: RFQTFirmQuote; makerUri: string }> = [];
-        firmQuoteResponses.forEach(async firmQuoteResponse => {
+        firmQuoteResponses.forEach(firmQuoteResponse => {
             const orderWithStringInts = firmQuoteResponse.response.signedOrder;
 
             try {
