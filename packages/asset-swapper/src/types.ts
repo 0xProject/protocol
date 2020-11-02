@@ -1,6 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
-import { RFQTFirmQuote, RFQTIndicativeQuote, TakerRequestQueryParams } from '@0x/quote-server';
+import { RFQTFirmQuote, TakerRequestQueryParams } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
@@ -291,17 +291,12 @@ export interface RfqtFirmQuoteValidator {
     filterInvalidQuotesAsync(quotes: Array<{ response: RFQTFirmQuote; makerUri: string }>): Promise<RFQTFirmQuote[]>;
 }
 
-export interface RfqtQuoteObserver {
-    onValidQuotes(quotes: Array<{ response: RFQTIndicativeQuote | RFQTFirmQuote; makerUri: string }>): void;
-}
-
 export interface SwapQuoterRfqtOpts {
     takerApiKeyWhitelist: string[];
     makerAssetOfferings: RfqtMakerAssetOfferings;
     warningLogger?: LogFunction;
     infoLogger?: LogFunction;
     firmQuoteValidator?: RfqtFirmQuoteValidator;
-    quoteObserver?: RfqtQuoteObserver;
 }
 
 export type AssetSwapperContractAddresses = ContractAddresses & BridgeContractAddresses;

@@ -13,7 +13,6 @@ import {
     MarketOperation,
     RfqtFirmQuoteValidator,
     RfqtMakerAssetOfferings,
-    RfqtQuoteObserver,
     RfqtRequestOpts,
 } from '../types';
 
@@ -149,7 +148,6 @@ export class QuoteRequestor {
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
         private readonly _firmQuoteValidator?: RfqtFirmQuoteValidator,
-        private readonly _quoteObserver?: RfqtQuoteObserver,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
     }
@@ -245,10 +243,6 @@ export class QuoteRequestor {
             return;
         });
 
-        if (this._quoteObserver !== undefined) {
-            this._quoteObserver.onValidQuotes(validatedResponses);
-        }
-
         return this._firmQuoteValidator === undefined
             ? validatedResponses.map(validatedResponse => validatedResponse.response)
             : this._firmQuoteValidator.filterInvalidQuotesAsync(validatedResponses);
@@ -301,29 +295,22 @@ export class QuoteRequestor {
         const validResponses = validResponsesWithStringInts.map(result => {
             const response = result.response;
             return {
-                ...result,
-                response: {
-                    ...response,
-                    makerAssetAmount: new BigNumber(response.makerAssetAmount),
-                    takerAssetAmount: new BigNumber(response.takerAssetAmount),
-                    expirationTimeSeconds: new BigNumber(response.expirationTimeSeconds),
-                },
+                ...response,
+                makerAssetAmount: new BigNumber(response.makerAssetAmount),
+                takerAssetAmount: new BigNumber(response.takerAssetAmount),
+                expirationTimeSeconds: new BigNumber(response.expirationTimeSeconds),
             };
         });
 
-        const resultsWithSufficientExpiry = validResponses.filter(result => {
-            if (this._isExpirationTooSoon(result.response.expirationTimeSeconds)) {
-                this._warningLogger(result, 'Expiry too soon in RFQ-T indicative quote, filtering out');
+        const responses = validResponses.filter(response => {
+            if (this._isExpirationTooSoon(response.expirationTimeSeconds)) {
+                this._warningLogger(response, 'Expiry too soon in RFQ-T indicative quote, filtering out');
                 return false;
             }
             return true;
         });
 
-        if (this._quoteObserver !== undefined) {
-            this._quoteObserver.onValidQuotes(resultsWithSufficientExpiry);
-        }
-
-        return resultsWithSufficientExpiry.map(result => result.response);
+        return responses;
     }
 
     /**
