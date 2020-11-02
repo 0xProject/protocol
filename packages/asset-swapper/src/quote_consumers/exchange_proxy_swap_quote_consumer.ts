@@ -136,8 +136,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(
-                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
                         isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
                         target,
                         NULL_ADDRESS,
                         sellAmount,

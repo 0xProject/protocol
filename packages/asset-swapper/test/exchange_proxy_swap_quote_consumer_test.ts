@@ -169,7 +169,10 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         {
             type: 'tuple[]',
             name: 'transformations',
-            components: [{ type: 'uint32', name: 'deploymentNonce' }, { type: 'bytes', name: 'data' }],
+            components: [
+                { type: 'uint32', name: 'deploymentNonce' },
+                { type: 'bytes', name: 'data' },
+            ],
         },
     ]);
 
@@ -185,8 +188,8 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
     }
 
     const liquidityProviderEncoder = AbiEncoder.createMethod('sellToLiquidityProvider', [
-        { type: 'address', name: 'makerToken' },
-        { type: 'address', name: 'takerToken' },
+        { type: 'address', name: 'inputToken' },
+        { type: 'address', name: 'outputToken' },
         { type: 'address', name: 'target' },
         { type: 'address', name: 'recipient' },
         { type: 'uint256', name: 'sellAmount' },
@@ -195,8 +198,8 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
     ]);
 
     interface LiquidityProviderArgs {
-        makerToken: string;
-        takerToken: string;
+        inputToken: string;
+        outputToken: string;
         target: string;
         recipient: string;
         sellAmount: BigNumber;
@@ -398,8 +401,8 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const callInfo = await consumer.getCalldataOrThrowAsync(quote);
             const callArgs = liquidityProviderEncoder.decode(callInfo.calldataHexString) as LiquidityProviderArgs;
             expect(callArgs).to.deep.equal({
-                makerToken: MAKER_TOKEN,
-                takerToken: TAKER_TOKEN,
+                inputToken: TAKER_TOKEN,
+                outputToken: MAKER_TOKEN,
                 target: quote.orders[0].makerAddress,
                 recipient: constants.NULL_ADDRESS,
                 sellAmount: quote.worstCaseQuoteInfo.totalTakerAssetAmount,
