@@ -317,6 +317,11 @@ export interface GetMarketOrdersOpts {
      * Whether to generate a quote report
      */
     shouldGenerateQuoteReport: boolean;
+    /**
+     * Token addresses with a list of adjacent intermediary tokens to consider
+     * hopping to. E.g DAI->USDC via an adjacent token WETH
+     */
+    tokenAdjacencyGraph: TokenAdjacencyGraph;
 }
 
 /**

@@ -4,12 +4,7 @@ import { TakerRequestQueryParams } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import {
-    ERC20BridgeSource,
-    GetMarketOrdersOpts,
-    OptimizedMarketOrder,
-    TokenAdjacencyGraph,
-} from './utils/market_operation_utils/types';
+import { ERC20BridgeSource, GetMarketOrdersOpts, OptimizedMarketOrder } from './utils/market_operation_utils/types';
 import { QuoteReport } from './utils/quote_report_generator';
 
 /**
@@ -315,7 +310,6 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     ethGasStationUrl?: string;
     rfqt?: SwapQuoterRfqtOpts;
     samplerOverrides?: SamplerOverrides;
-    tokenAdjacencyGraph?: TokenAdjacencyGraph;
 }
 
 /**

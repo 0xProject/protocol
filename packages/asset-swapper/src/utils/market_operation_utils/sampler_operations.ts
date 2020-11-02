@@ -669,8 +669,8 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         sellAmount: BigNumber,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
         wethAddress: string,
+        tokenAdjacencyGraph: TokenAdjacencyGraph,
         liquidityProviderRegistryAddress?: string,
     ): BatchedOperation<Array<DexSample<MultiHopFillData>>> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
@@ -685,6 +685,7 @@ export class SamplerOperations {
                 takerToken,
                 [ZERO_AMOUNT],
                 wethAddress,
+                tokenAdjacencyGraph,
                 liquidityProviderRegistryAddress,
             );
             const secondHopOps = this._getSellQuoteOperations(
@@ -693,6 +694,7 @@ export class SamplerOperations {
                 intermediateToken,
                 [ZERO_AMOUNT],
                 wethAddress,
+                tokenAdjacencyGraph,
                 liquidityProviderRegistryAddress,
             );
             return new SamplerContractOperation({
@@ -745,8 +747,8 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         buyAmount: BigNumber,
-        tokenAdjacencyGraph: TokenAdjacencyGraph,
         wethAddress: string,
+        tokenAdjacencyGraph: TokenAdjacencyGraph,
         liquidityProviderRegistryAddress?: string,
     ): BatchedOperation<Array<DexSample<MultiHopFillData>>> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
@@ -761,6 +763,7 @@ export class SamplerOperations {
                 takerToken,
                 [new BigNumber(0)],
                 wethAddress,
+                tokenAdjacencyGraph, // TODO is this a bad idea?
                 liquidityProviderRegistryAddress,
             );
             const secondHopOps = this._getBuyQuoteOperations(
@@ -769,6 +772,7 @@ export class SamplerOperations {
                 intermediateToken,
                 [new BigNumber(0)],
                 wethAddress,
+                tokenAdjacencyGraph,
                 liquidityProviderRegistryAddress,
             );
             return new SamplerContractOperation({
@@ -932,7 +936,6 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmount: BigNumber,
-        wethAddress: string,
         liquidityProviderRegistryAddress?: string,
         multiBridgeAddress?: string,
     ): BatchedOperation<BigNumber> {
@@ -944,7 +947,8 @@ export class SamplerOperations {
             makerToken,
             takerToken,
             [takerFillAmount],
-            wethAddress,
+            NULL_ADDRESS, // weth address
+            {}, // token adjacency
             liquidityProviderRegistryAddress,
             multiBridgeAddress,
         );
@@ -988,6 +992,7 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmounts: BigNumber[],
         wethAddress: string,
+        tokenAdjacencyGraph: TokenAdjacencyGraph,
         liquidityProviderRegistryAddress?: string,
         multiBridgeAddress?: string,
     ): BatchedOperation<DexSample[][]> {
@@ -997,6 +1002,7 @@ export class SamplerOperations {
             takerToken,
             takerFillAmounts,
             wethAddress,
+            tokenAdjacencyGraph,
             liquidityProviderRegistryAddress,
             multiBridgeAddress,
         );
@@ -1029,6 +1035,7 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
         wethAddress: string,
+        tokenAdjacencyGraph: TokenAdjacencyGraph,
         liquidityProviderRegistryAddress?: string,
     ): BatchedOperation<DexSample[][]> {
         const subOps = this._getBuyQuoteOperations(
@@ -1037,6 +1044,7 @@ export class SamplerOperations {
             takerToken,
             makerFillAmounts,
             wethAddress,
+            tokenAdjacencyGraph,
             liquidityProviderRegistryAddress,
         );
         return {
@@ -1068,6 +1076,7 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmounts: BigNumber[],
         wethAddress: string,
+        tokenAdjacencyGraph: TokenAdjacencyGraph,
         liquidityProviderRegistryAddress?: string,
         multiBridgeAddress?: string,
     ): SourceQuoteOperation[] {
@@ -1076,6 +1085,11 @@ export class SamplerOperations {
         )
             .exclude(multiBridgeAddress || multiBridgeAddress === NULL_ADDRESS ? [] : [ERC20BridgeSource.MultiBridge])
             .getAllowed(sources);
+
+        // Find the adjacent tokens in the provided tooken adjacency graph,
+        // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph, wethAddress);
+
         return _.flatten(
             _sources.map(
                 (source): SourceQuoteOperation | SourceQuoteOperation[] => {
@@ -1086,25 +1100,17 @@ export class SamplerOperations {
                             return this.getUniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.UniswapV2:
                             const ops = [this.getUniswapV2SellQuotes([takerToken, makerToken], takerFillAmounts)];
-                            if (takerToken !== wethAddress && makerToken !== wethAddress) {
-                                ops.push(
-                                    this.getUniswapV2SellQuotes(
-                                        [takerToken, wethAddress, makerToken],
-                                        takerFillAmounts,
-                                    ),
-                                );
-                            }
+                            intermediateTokens.forEach(t => {
+                                ops.push(this.getUniswapV2SellQuotes([takerToken, t, makerToken], takerFillAmounts));
+                            });
                             return ops;
                         case ERC20BridgeSource.SushiSwap:
                             const sushiOps = [this.getSushiSwapSellQuotes([takerToken, makerToken], takerFillAmounts)];
-                            if (takerToken !== wethAddress && makerToken !== wethAddress) {
+                            intermediateTokens.forEach(t => {
                                 sushiOps.push(
-                                    this.getSushiSwapSellQuotes(
-                                        [takerToken, wethAddress, makerToken],
-                                        takerFillAmounts,
-                                    ),
+                                    this.getSushiSwapSellQuotes([takerToken, t, makerToken], takerFillAmounts),
                                 );
-                            }
+                            });
                             return sushiOps;
                         case ERC20BridgeSource.Kyber:
                             return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
@@ -1211,11 +1217,17 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
         wethAddress: string,
+        tokenAdjacencyGraph: TokenAdjacencyGraph,
         liquidityProviderRegistryAddress?: string,
     ): SourceQuoteOperation[] {
         const _sources = BATCH_SOURCE_FILTERS.exclude(
             liquidityProviderRegistryAddress ? [] : [ERC20BridgeSource.LiquidityProvider],
         ).getAllowed(sources);
+
+        // Find the adjacent tokens in the provided tooken adjacency graph,
+        // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph, wethAddress);
+
         return _.flatten(
             _sources.map(
                 (source): SourceQuoteOperation | SourceQuoteOperation[] => {
@@ -1226,19 +1238,17 @@ export class SamplerOperations {
                             return this.getUniswapBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.UniswapV2:
                             const ops = [this.getUniswapV2BuyQuotes([takerToken, makerToken], makerFillAmounts)];
-                            if (takerToken !== wethAddress && makerToken !== wethAddress) {
-                                ops.push(
-                                    this.getUniswapV2BuyQuotes([takerToken, wethAddress, makerToken], makerFillAmounts),
-                                );
-                            }
+                            intermediateTokens.forEach(t => {
+                                ops.push(this.getUniswapV2BuyQuotes([takerToken, t, makerToken], makerFillAmounts));
+                            });
                             return ops;
                         case ERC20BridgeSource.SushiSwap:
                             const sushiOps = [this.getSushiSwapBuyQuotes([takerToken, makerToken], makerFillAmounts)];
-                            if (takerToken !== wethAddress && makerToken !== wethAddress) {
+                            intermediateTokens.forEach(t => {
                                 sushiOps.push(
-                                    this.getSushiSwapBuyQuotes([takerToken, wethAddress, makerToken], makerFillAmounts),
+                                    this.getSushiSwapBuyQuotes([takerToken, t, makerToken], makerFillAmounts),
                                 );
-                            }
+                            });
                             return sushiOps;
                         case ERC20BridgeSource.Kyber:
                             return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>

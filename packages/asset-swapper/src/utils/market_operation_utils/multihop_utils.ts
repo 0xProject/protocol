@@ -34,7 +34,7 @@ export function getIntermediateTokens(
             [wethAddress],
         );
     }
-    return intermediateTokens.filter(
+    return _.uniqBy(intermediateTokens, a => a.toLowerCase()).filter(
         token => token.toLowerCase() !== makerToken.toLowerCase() && token.toLowerCase() !== takerToken.toLowerCase(),
     );
 }

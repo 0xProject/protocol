@@ -1,10 +1,14 @@
 [
     {
-        "version": "4.9.0",
+        "version": "5.0.0",
         "changes": [
             {
                 "note": "Support multiple `Shells` by supplying the `pool` address",
                 "pr": 17
+            },
+            {
+                "note": "Make use of Token Adjacency in more places. Moved as a parameter for the quote",
+                "pr": 24
             }
         ]
     },

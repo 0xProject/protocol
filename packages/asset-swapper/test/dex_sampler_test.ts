@@ -18,7 +18,7 @@ import {
     computeBalancerSellQuote,
 } from '../src/utils/market_operation_utils/balancer_utils';
 import { DexOrderSampler, getSampleAmounts } from '../src/utils/market_operation_utils/sampler';
-import { ERC20BridgeSource } from '../src/utils/market_operation_utils/types';
+import { ERC20BridgeSource, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
 
 import { MockBalancerPoolsCache } from './utils/mock_balancer_pools_cache';
 import { MockBancorService } from './utils/mock_bancor_service';
@@ -35,6 +35,8 @@ describe('DexSampler tests', () => {
 
     const wethAddress = getContractAddressesForChainOrThrow(CHAIN_ID).etherToken;
     const exchangeAddress = getContractAddressesForChainOrThrow(CHAIN_ID).exchange;
+
+    const tokenAdjacencyGraph: TokenAdjacencyGraph = {};
 
     describe('getSampleAmounts()', () => {
         const FILL_AMOUNT = getRandomInteger(1, 1e18);
@@ -175,6 +177,7 @@ describe('DexSampler tests', () => {
                     expectedTakerToken,
                     [toBaseUnitAmount(1000)],
                     wethAddress,
+                    tokenAdjacencyGraph,
                     registry,
                 ),
             );
@@ -211,6 +214,7 @@ describe('DexSampler tests', () => {
                     expectedTakerToken,
                     [toBaseUnitAmount(1000)],
                     wethAddress,
+                    tokenAdjacencyGraph,
                     registry,
                 ),
             );
@@ -252,7 +256,8 @@ describe('DexSampler tests', () => {
                     expectedMakerToken,
                     expectedTakerToken,
                     [toBaseUnitAmount(1000)],
-                    randomAddress(),
+                    wethAddress,
+                    tokenAdjacencyGraph,
                     randomAddress(),
                     multiBridge,
                 ),
@@ -419,6 +424,7 @@ describe('DexSampler tests', () => {
                     expectedTakerToken,
                     expectedTakerFillAmounts,
                     wethAddress,
+                    tokenAdjacencyGraph,
                 ),
             );
             const expectedQuotes = sources.map(s =>
@@ -563,6 +569,7 @@ describe('DexSampler tests', () => {
                     expectedTakerToken,
                     expectedMakerFillAmounts,
                     wethAddress,
+                    tokenAdjacencyGraph,
                 ),
             );
             const expectedQuotes = sources.map(s =>

@@ -41,6 +41,7 @@ import {
     GetMarketOrdersOpts,
     MarketSideLiquidity,
     NativeFillData,
+    TokenAdjacencyGraph,
 } from '../src/utils/market_operation_utils/types';
 
 const MAKER_TOKEN = randomAddress();
@@ -64,6 +65,7 @@ const DEFAULT_EXCLUDED = [
 ];
 const BUY_SOURCES = BUY_SOURCE_FILTER.sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
+const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = {};
 
 // tslint:disable: custom-no-magic-numbers promise-function-async
 describe('MarketOperationUtils tests', () => {
@@ -219,6 +221,7 @@ describe('MarketOperationUtils tests', () => {
         takerToken: string,
         fillAmounts: BigNumber[],
         wethAddress: string,
+        tokenAdjacencyGraph: TokenAdjacencyGraph,
         liquidityProviderAddress?: string,
     ) => DexSample[][];
 
@@ -248,6 +251,7 @@ describe('MarketOperationUtils tests', () => {
             takerToken: string,
             fillAmounts: BigNumber[],
             wethAddress: string,
+            tokenAdjacencyGraph: TokenAdjacencyGraph = TOKEN_ADJACENCY_GRAPH,
             liquidityProviderAddress?: string,
         ) => {
             liquidityPoolParams.liquidityProviderAddress = liquidityProviderAddress;
@@ -258,6 +262,7 @@ describe('MarketOperationUtils tests', () => {
                 takerToken,
                 fillAmounts,
                 wethAddress,
+                TOKEN_ADJACENCY_GRAPH,
                 liquidityProviderAddress,
             );
         };
@@ -548,7 +553,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getSellQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         actualNumSamples = amounts.length;
-                        return DEFAULT_OPS.getSellQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getSellQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                 });
                 await marketOperationUtils.getMarketSellOrdersAsync(ORDERS, FILL_AMOUNT, {
@@ -563,7 +575,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getSellQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         sourcesPolled = sourcesPolled.concat(sources.slice());
-                        return DEFAULT_OPS.getSellQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getSellQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                     getTwoHopSellQuotes: (...args: any[]) => {
                         sourcesPolled.push(ERC20BridgeSource.MultiHop);
@@ -647,7 +666,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getSellQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         sourcesPolled = sourcesPolled.concat(sources.slice());
-                        return DEFAULT_OPS.getSellQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getSellQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                     getTwoHopSellQuotes: (sources: ERC20BridgeSource[], ...args: any[]) => {
                         if (sources.length !== 0) {
@@ -686,7 +712,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getSellQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         sourcesPolled = sourcesPolled.concat(sources.slice());
-                        return DEFAULT_OPS.getSellQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getSellQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                     getTwoHopSellQuotes: (sources: ERC20BridgeSource[], ...args: any[]) => {
                         if (sources.length !== 0) {
@@ -1429,7 +1462,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getBuyQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         actualNumSamples = amounts.length;
-                        return DEFAULT_OPS.getBuyQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getBuyQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                 });
                 await marketOperationUtils.getMarketBuyOrdersAsync(ORDERS, FILL_AMOUNT, {
@@ -1444,7 +1484,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getBuyQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         sourcesPolled = sourcesPolled.concat(sources.slice());
-                        return DEFAULT_OPS.getBuyQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getBuyQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                     getTwoHopBuyQuotes: (sources: ERC20BridgeSource[], ..._args: any[]) => {
                         if (sources.length !== 0) {
@@ -1531,7 +1578,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getBuyQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         sourcesPolled = sourcesPolled.concat(sources.slice());
-                        return DEFAULT_OPS.getBuyQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getBuyQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                     getTwoHopBuyQuotes: (sources: ERC20BridgeSource[], ..._args: any[]) => {
                         if (sources.length !== 0) {
@@ -1570,7 +1624,14 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getBuyQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
                         sourcesPolled = sourcesPolled.concat(sources.slice());
-                        return DEFAULT_OPS.getBuyQuotes(sources, makerToken, takerToken, amounts, wethAddress);
+                        return DEFAULT_OPS.getBuyQuotes(
+                            sources,
+                            makerToken,
+                            takerToken,
+                            amounts,
+                            wethAddress,
+                            TOKEN_ADJACENCY_GRAPH,
+                        );
                     },
                     getTwoHopBuyQuotes: (sources: ERC20BridgeSource[], ..._args: any[]) => {
                         if (sources.length !== 0) {
