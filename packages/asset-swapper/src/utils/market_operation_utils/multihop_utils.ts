@@ -34,7 +34,6 @@ export function getIntermediateTokens(
             [wethAddress],
         );
     }
-    console.log({ intermediateTokens, tokenAdjacencyGraph });
     return _.uniqBy(intermediateTokens, a => a.toLowerCase()).filter(
         token => token.toLowerCase() !== makerToken.toLowerCase() && token.toLowerCase() !== takerToken.toLowerCase(),
     );
