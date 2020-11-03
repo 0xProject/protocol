@@ -7,6 +7,34 @@ import { constants } from '../constants';
 
 // tslint:disable: no-unnecessary-type-assertion completed-docs
 
+/**
+ * Returns 2 flags (one for firm quotes and another for indicative quotes) that serve as rollout flags for the price-aware RFQ feature.
+ * By default, indicative quotes should *always* go through the new price-aware flow. This means that all indicative RFQ requests made to
+ * market makers will contain the new price-aware `suggestedPrice` field.
+ * The `isPriceAwareRFQEnabled` feature flag that is passed in by the 0x API will then control whether firm quotes go through price-aware RFQ.
+ *
+ * NOTE: You may notice how `isIndicativePriceAwareEnabled` is always hard-coded to `true` and is redundant. The reason we keep this parameter here is
+ * to separate the rollout logic from the already-complicated business logic in the Asset Swapper. If there is a need to pause the rollout and shutdown
+ * indicative quotes, it's much easier to do so by changing the output of this function instead of changing multiple files in the asset swapper logic.
+ *
+ * @param isPriceAwareRFQEnabled the feature flag that is passed in by the 0x API.
+ */
+export function getPriceAwareRFQRolloutFlags(
+    isPriceAwareRFQEnabled?: boolean,
+): { isIndicativePriceAwareEnabled: boolean; isFirmPriceAwareEnabled: boolean } {
+    if (isPriceAwareRFQEnabled) {
+        return {
+            isIndicativePriceAwareEnabled: true,
+            isFirmPriceAwareEnabled: true,
+        };
+    } else {
+        return {
+            isIndicativePriceAwareEnabled: true,
+            isFirmPriceAwareEnabled: false,
+        };
+    }
+}
+
 export function isSupportedAssetDataInOrders(orders: SignedOrder[]): boolean {
     const firstOrderMakerAssetData = !!orders[0]
         ? assetDataUtils.decodeAssetDataOrThrow(orders[0].makerAssetData)

@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 
 import { AssetSwapperContractAddresses, MarketOperation, Omit } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
+import { getPriceAwareRFQRolloutFlags } from '../utils';
 
 import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
 import {
@@ -214,7 +215,8 @@ export class MarketOperationUtils {
             ),
         );
 
-        const isPriceAwareRfqEnabled = _opts.rfqt && _opts.rfqt.isPriceAwareRFQEnabled;
+        const isPriceAwareRfqEnabled =
+            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.isPriceAwareRFQEnabled).isIndicativePriceAwareEnabled;
         const rfqtPromise =
             !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
@@ -362,7 +364,8 @@ export class MarketOperationUtils {
                 this._liquidityProviderRegistry,
             ),
         );
-        const isPriceAwareRfqEnabled = _opts.rfqt && _opts.rfqt.isPriceAwareRFQEnabled;
+        const isPriceAwareRfqEnabled =
+            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.isPriceAwareRFQEnabled).isIndicativePriceAwareEnabled;
         const rfqtPromise =
             !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
@@ -677,12 +680,7 @@ export class MarketOperationUtils {
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity
         let comparisonPrice: BigNumber | undefined;
         const { rfqt } = _opts;
-        if (
-            rfqt &&
-            rfqt.isPriceAwareRFQEnabled &&
-            rfqt.quoteRequestor &&
-            marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
-        ) {
+        if (rfqt && rfqt.quoteRequestor && marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)) {
             // Calculate a suggested price. For now, this is simply the overall price of the aggregation.
             if (optimizerResult) {
                 const totalMakerAmount = BigNumber.sum(
@@ -706,8 +704,12 @@ export class MarketOperationUtils {
                 }
             }
 
-            // If we are making an indicative quote, make the RFQT request and then re-run the sampler if new orders come back.
-            if (rfqt.isIndicative) {
+            const { isFirmPriceAwareEnabled, isIndicativePriceAwareEnabled } = getPriceAwareRFQRolloutFlags(
+                rfqt.isPriceAwareRFQEnabled,
+            );
+
+            if (rfqt.isIndicative && isIndicativePriceAwareEnabled) {
+                // An indicative quote is beingh requested, and indicative quotes price-aware enabled. Make the RFQT request and then re-run the sampler if new orders come back.
                 const indicativeQuotes = await getRfqtIndicativeQuotesAsync(
                     nativeOrders[0].makerAssetData,
                     nativeOrders[0].takerAssetData,
@@ -726,8 +728,8 @@ export class MarketOperationUtils {
                         optimizerOpts,
                     );
                 }
-            } else {
-                // A firm quote is being requested. Ensure that `intentOnFilling` is enabled.
+            } else if (!rfqt.isIndicative && isFirmPriceAwareEnabled) {
+                // A firm quote is being requested, and firm quotes price-aware enabled. Ensure that `intentOnFilling` is enabled.
                 if (rfqt.intentOnFilling) {
                     // Extra validation happens when requesting a firm quote, such as ensuring that the takerAddress
                     // is indeed valid.
