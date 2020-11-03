@@ -740,6 +740,16 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
+        symbol: 'AAVE',
+        name: 'Aave',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
         symbol: 'YFI',
         name: 'yearn.finance',
         decimals: 18,
@@ -905,6 +915,166 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x37d19d1c4e1fa9dc47bd1ea12f742a0887eda74a',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'AKRO',
+        name: 'Akropolis',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x8ab7404063ec4dbcfd4598215992dc3f8ec853d7',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'AUDIO',
+        name: 'Audius',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x18aaa7115705e8be94bffebde57af9bfc265b998',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'BAND',
+        name: 'Band Protocol',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xba11d00c5f74255f56a5e366f4f77f5a186d7f55',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'BASED',
+        name: 'Based Money',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x68a118ef45063051eac49c7e647ce5ace48a68a5',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'BUSD',
+        name: 'Binance USD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x4fabb145d64652a948d72533023f6e7a623c7c53',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'CREAM',
+        name: 'Cream',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x2ba592f78db6436527729929aaf6c908497cb200',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'DONUT',
+        name: 'Donut',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xc0f9bd5fa5698b6505f643900ffa515ea5df54a9',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'MTA',
+        name: 'Meta',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xa3bed4e1c75d00fa6f4e5e6922db7261b5e9acd2',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'mUSD',
+        name: 'mStable USD',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'PAXG',
+        name: 'PAX Gold',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x45804880de22913dafe09f4980848ece6ecbaf78',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'PICKLE',
+        name: 'Pickle Finance',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x429881672b9ae42b8eba0e26cd9c73711b891ca5',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'RENZEC',
+        name: 'renZEC',
+        decimals: 8,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x1c5db575e2ff833e46a2e9864c22f4b22e0b37c2',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'REP',
+        name: 'Augur',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x221657776846890989a759ba2973e427dff5c9bb',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'SETH',
+        name: 'sETH',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'STAKE',
+        name: 'xDAI Stake',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x0ae055097c6d159879521c384f1d2123d1f195e6',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'TBTC',
+        name: 'tBTC',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x8daebade922df735c38c80c7ebd708af50815faa',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
