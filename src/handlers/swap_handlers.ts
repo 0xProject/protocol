@@ -8,7 +8,6 @@ import _ = require('lodash');
 import { CHAIN_ID, PLP_API_KEY_WHITELIST, RFQT_API_KEY_WHITELIST } from '../config';
 import {
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-    DEFAULT_TOKEN_DECIMALS,
     MARKET_DEPTH_DEFAULT_DISTRIBUTION,
     MARKET_DEPTH_MAX_SAMPLES,
     SWAP_DOCS_URL,
@@ -190,28 +189,18 @@ export class SwapHandlers {
             ? 'WETH'
             : (req.query.sellToken as string);
 
-        const makerToken = {
-            decimals: DEFAULT_TOKEN_DECIMALS,
-            tokenAddress: req.query.buyToken as string,
-            ...getTokenMetadataIfExists(buyTokenSymbolOrAddress, CHAIN_ID),
-        };
-        const takerToken = {
-            decimals: DEFAULT_TOKEN_DECIMALS,
-            tokenAddress: req.query.sellToken as string,
-            ...getTokenMetadataIfExists(sellTokenSymbolOrAddress, CHAIN_ID),
-        };
-        if (makerToken.tokenAddress === takerToken.tokenAddress) {
+        if (buyTokenSymbolOrAddress === sellTokenSymbolOrAddress) {
             throw new ValidationError([
                 {
                     field: 'buyToken',
                     code: ValidationErrorCodes.InvalidAddress,
-                    reason: `Invalid pair ${takerToken.tokenAddress}/${makerToken.tokenAddress}`,
+                    reason: `Invalid pair ${sellTokenSymbolOrAddress}/${buyTokenSymbolOrAddress}`,
                 },
             ]);
         }
         const response = await this._swapService.calculateMarketDepthAsync({
-            buyToken: makerToken,
-            sellToken: takerToken,
+            buyToken: buyTokenSymbolOrAddress,
+            sellToken: sellTokenSymbolOrAddress,
             sellAmount: new BigNumber(req.query.sellAmount as string),
             // tslint:disable-next-line:radix custom-no-magic-numbers
             numSamples: req.query.numSamples ? parseInt(req.query.numSamples as string) : MARKET_DEPTH_MAX_SAMPLES,
@@ -227,7 +216,7 @@ export class SwapHandlers {
                     ? []
                     : parseUtils.parseStringArrForERC20BridgeSources((req.query.includedSources as string).split(',')),
         });
-        res.status(HttpStatus.OK).send({ ...response, buyToken: makerToken, sellToken: takerToken });
+        res.status(HttpStatus.OK).send(response);
     }
 
     private async _calculateSwapQuoteAsync(params: GetSwapQuoteRequestParams): Promise<GetSwapQuoteResponse> {

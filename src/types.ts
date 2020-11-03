@@ -642,14 +642,14 @@ export interface HttpServiceConfig {
     metaTxnRateLimiters?: MetaTransactionRateLimitConfig;
 }
 
-interface TokenMetadataOptionalSymbol {
+export interface TokenMetadataOptionalSymbol {
     symbol?: string;
     decimals: number;
     tokenAddress: string;
 }
 export interface CalaculateMarketDepthParams {
-    buyToken: TokenMetadataOptionalSymbol;
-    sellToken: TokenMetadataOptionalSymbol;
+    buyToken: string;
+    sellToken: string;
     sellAmount: BigNumber;
     numSamples: number;
     sampleDistributionBase: number;

@@ -328,18 +328,18 @@ export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
     }
 })();
 
-const tokenAdjacencyGraph: TokenAdjacencyGraph = Object.values(TokenMetadatasForChains).reduce(
+export const DEFAULT_INTERMEDIATE_TOKENS = [
+    getTokenMetadataIfExists('WETH', CHAIN_ID)?.tokenAddress,
+    getTokenMetadataIfExists('DAI', CHAIN_ID)?.tokenAddress,
+    getTokenMetadataIfExists('USDC', CHAIN_ID)?.tokenAddress,
+    getTokenMetadataIfExists('USDT', CHAIN_ID)?.tokenAddress,
+    getTokenMetadataIfExists('WBTC', CHAIN_ID)?.tokenAddress,
+].filter(t => t) as string[];
+
+export const DEFAULT_TOKEN_ADJACENCY: TokenAdjacencyGraph = Object.values(TokenMetadatasForChains).reduce(
     (acc: TokenAdjacencyGraph, t: TokenMetadataAndChainAddresses) => {
         const tokenKey = t.tokenAddresses[CHAIN_ID];
-        const intermediateTokens = [
-            getTokenMetadataIfExists('WETH', CHAIN_ID),
-            getTokenMetadataIfExists('DAI', CHAIN_ID),
-            getTokenMetadataIfExists('USDC', CHAIN_ID),
-            getTokenMetadataIfExists('WBTC', CHAIN_ID),
-        ]
-            .map(m => m && m.tokenAddress)
-            .filter(m => m && m !== tokenKey);
-        acc[tokenKey] = intermediateTokens as string[];
+        acc[tokenKey] = DEFAULT_INTERMEDIATE_TOKENS;
         return acc;
     },
     {},
@@ -356,7 +356,6 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
-    tokenAdjacencyGraph,
 };
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {

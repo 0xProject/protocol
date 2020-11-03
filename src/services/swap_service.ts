@@ -25,6 +25,8 @@ import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
+    DEFAULT_INTERMEDIATE_TOKENS,
+    DEFAULT_TOKEN_ADJACENCY,
     PRICE_AWARE_RFQ_ENABLED,
     PROTOCOL_FEE_MULTIPLIER,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -55,10 +57,12 @@ import {
     SwapQuoteResponsePartialTransaction,
     SwapQuoteResponsePrice,
     TokenMetadata,
+    TokenMetadataOptionalSymbol,
 } from '../types';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { createResultCache, ResultCache } from '../utils/result_cache';
 import { serviceUtils } from '../utils/service_utils';
+import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
 
 export class SwapService {
     private readonly _provider: SupportedProvider;
@@ -279,16 +283,21 @@ export class SwapService {
     ): Promise<{
         asks: { depth: BucketedPriceDepth[] };
         bids: { depth: BucketedPriceDepth[] };
+        buyToken: TokenMetadataOptionalSymbol;
+        sellToken: TokenMetadataOptionalSymbol;
     }> {
         const {
-            buyToken,
-            sellToken,
+            buyToken: rawBuyToken,
+            sellToken: rawSellToken,
             sellAmount,
             numSamples,
             sampleDistributionBase,
             excludedSources,
             includedSources,
         } = params;
+        const buyToken = await this._getTokenMetadataAsync(rawBuyToken);
+        const sellToken = await this._getTokenMetadataAsync(rawSellToken);
+
         const marketDepth = await this._swapQuoter.getBidAskLiquidityForMakerTakerAssetPairAsync(
             buyToken.tokenAddress,
             sellToken.tokenAddress,
@@ -337,6 +346,8 @@ export class SwapService {
             // We're BUYING sellToken (DAI) (50k) and selling buyToken
             // Price goes from LOW to HIGH
             bids: { depth: bidDepth },
+            buyToken,
+            sellToken,
         };
     }
 
@@ -437,8 +448,8 @@ export class SwapService {
         const {
             sellAmount,
             buyAmount,
-            buyTokenAddress,
-            sellTokenAddress,
+            buyTokenAddress: rawBuyTokenAddress,
+            sellTokenAddress: rawSellTokenAddress,
             slippagePercentage,
             gasPrice: providedGasPrice,
             isETHSell,
@@ -452,6 +463,9 @@ export class SwapService {
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
         } = params;
+        // Normalize to lower case
+        const sellTokenAddress = rawSellTokenAddress.toLowerCase();
+        const buyTokenAddress = rawBuyTokenAddress.toLowerCase();
         let _rfqt: RfqtRequestOpts | undefined;
         const isAllExcluded = Object.values(ERC20BridgeSource).every(s => excludedSources.includes(s));
         if (isAllExcluded) {
@@ -490,6 +504,13 @@ export class SwapService {
                 ? ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP
                 : ASSET_SWAPPER_MARKET_ORDERS_OPTS;
 
+        // Compute the adjacent tokens for the buy and sell tookens
+        const tokenAdjacencyGraph = {
+            [buyTokenAddress]: DEFAULT_INTERMEDIATE_TOKENS,
+            [sellTokenAddress]: DEFAULT_INTERMEDIATE_TOKENS,
+            ...DEFAULT_TOKEN_ADJACENCY,
+        };
+
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...swapQuoteRequestOpts,
             bridgeSlippage: slippagePercentage,
@@ -498,7 +519,9 @@ export class SwapService {
             includedSources,
             rfqt: _rfqt,
             shouldGenerateQuoteReport,
+            tokenAdjacencyGraph,
         };
+
         if (sellAmount !== undefined) {
             return this._swapQuoter.getMarketSellSwapQuoteAsync(
                 buyTokenAddress,
@@ -559,8 +582,8 @@ export class SwapService {
         const { makerAssetAmount, totalTakerAssetAmount } = swapQuote.bestCaseQuoteInfo;
         const { totalTakerAssetAmount: guaranteedTotalTakerAssetAmount } = swapQuote.worstCaseQuoteInfo;
         const guaranteedMakerAssetAmount = getSwapMinBuyAmount(swapQuote);
-        const buyTokenDecimals = (await this._tokenDecimalResultCache.getResultAsync(buyTokenAddress)).result;
-        const sellTokenDecimals = (await this._tokenDecimalResultCache.getResultAsync(sellTokenAddress)).result;
+        const buyTokenDecimals = (await this._getTokenMetadataAsync(buyTokenAddress)).decimals;
+        const sellTokenDecimals = (await this._getTokenMetadataAsync(sellTokenAddress)).decimals;
         const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
         const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
         const guaranteedUnitMakerAssetAmount = Web3Wrapper.toUnitAmount(guaranteedMakerAssetAmount, buyTokenDecimals);
@@ -594,6 +617,17 @@ export class SwapService {
         return {
             price,
             guaranteedPrice,
+        };
+    }
+
+    private async _getTokenMetadataAsync(symbolOrAddress: string): Promise<TokenMetadataOptionalSymbol> {
+        const mappedMetadata = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
+        if (mappedMetadata) {
+            return mappedMetadata;
+        }
+        return {
+            tokenAddress: symbolOrAddress,
+            decimals: (await this._tokenDecimalResultCache.getResultAsync(symbolOrAddress)).result,
         };
     }
 }
