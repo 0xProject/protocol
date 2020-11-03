@@ -56,7 +56,6 @@ contract MixinZeroExBridge {
         internal
         returns (uint256 boughtAmount)
     {
-        uint256 balanceBefore = buyToken.balanceOf(address(this));
         // Trade the good old fashioned way
         sellToken.compatTransfer(
             bridgeAddress,
@@ -68,8 +67,8 @@ contract MixinZeroExBridge {
                 address(this), // recipient
                 1, // minBuyAmount
                 bridgeData
-        ) {
-            boughtAmount = buyToken.balanceOf(address(this)).safeSub(balanceBefore);
+        ) returns (uint256 _boughtAmount) {
+            boughtAmount = _boughtAmount;
             emit ERC20BridgeTransfer(
                 sellToken,
                 buyToken,
@@ -79,6 +78,7 @@ contract MixinZeroExBridge {
                 address(this)
             );
         } catch {
+            uint256 balanceBefore = buyToken.balanceOf(address(this));
             IERC20Bridge(bridgeAddress).bridgeTransferFrom(
                 address(buyToken),
                 bridgeAddress,
