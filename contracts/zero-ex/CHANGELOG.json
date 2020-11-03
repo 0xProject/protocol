@@ -6,7 +6,8 @@
                 "note": "Trust LP boughtAmount return value",
                 "pr": 29
             }
-        ]
+        ],
+        "timestamp": 1604385937
     },
     {
         "version": "0.7.0",

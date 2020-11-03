@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.8.0 - _November 3, 2020_
+
+    * Trust LP boughtAmount return value (#29)
+
 ## v0.7.0 - _November 3, 2020_
 
     * Change `ProtocolFeeUnfunded` event in FQT (#28)

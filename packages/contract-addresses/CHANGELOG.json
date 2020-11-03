@@ -6,7 +6,8 @@
                 "note": "Redeploy FQT with CORRECT deployer",
                 "pr": 29
             }
-        ]
+        ],
+        "timestamp": 1604385937
     },
     {
         "version": "5.1.0",
