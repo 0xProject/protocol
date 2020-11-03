@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.7.0 - _November 3, 2020_
+
+    * Change `ProtocolFeeUnfunded` event in FQT (#28)
+    * Use new PLP interface in FQT. (#28)
+
 ## v0.6.0 - _November 2, 2020_
 
     * Add support for collecting protocol fees in ETH or WETH (#2)

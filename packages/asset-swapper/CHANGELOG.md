@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.0.1 - _November 3, 2020_
+
+    * Dependencies updated
+
 ## v5.0.0 - _November 2, 2020_
 
     * Support multiple `Shells` by supplying the `pool` address (#17)

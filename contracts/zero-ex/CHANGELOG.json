@@ -10,7 +10,8 @@
                 "note": "Use new PLP interface in FQT.",
                 "pr": 28
             }
-        ]
+        ],
+        "timestamp": 1604376968
     },
     {
         "version": "0.6.0",
