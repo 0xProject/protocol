@@ -81,12 +81,10 @@ export class MetaTransactionHandlers {
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
         } = params;
-        const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
-        const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
-        const isETHBuy = isETHSymbolOrAddress(buyToken!.symbol);
+        const isETHBuy = isETHSymbolOrAddress(buyTokenAddress);
 
         // ETH selling isn't supported.
-        if (isETHSymbolOrAddress(sellToken!.symbol)) {
+        if (isETHSymbolOrAddress(sellTokenAddress)) {
             throw new EthSellNotSupportedError();
         }
 
@@ -193,12 +191,10 @@ export class MetaTransactionHandlers {
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
         } = parseGetTransactionRequestParams(req);
-        const sellToken = getTokenMetadataIfExists(sellTokenAddress, CHAIN_ID);
-        const buyToken = getTokenMetadataIfExists(buyTokenAddress, CHAIN_ID);
-        const isETHBuy = isETHSymbolOrAddress(buyToken!.symbol);
+        const isETHBuy = isETHSymbolOrAddress(buyTokenAddress);
 
         // ETH selling isn't supported.
-        if (isETHSymbolOrAddress(sellToken!.symbol)) {
+        if (isETHSymbolOrAddress(sellTokenAddress)) {
             throw new EthSellNotSupportedError();
         }
 
