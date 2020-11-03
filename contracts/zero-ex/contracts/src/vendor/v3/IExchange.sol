@@ -104,4 +104,9 @@ interface IExchange {
         external
         view
         returns (address proxyAddress);
+
+    function EIP712_EXCHANGE_DOMAIN_HASH()
+        external
+        view
+        returns (bytes32 domainHash);
 }
