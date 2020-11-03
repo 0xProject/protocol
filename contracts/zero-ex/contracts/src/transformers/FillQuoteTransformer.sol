@@ -27,6 +27,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
 import "../vendor/v3/IExchange.sol";
+import "../vendor/v3/LibOrderHash.sol";
 import "./bridges/IBridgeAdapter.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
@@ -104,13 +105,8 @@ contract FillQuoteTransformer is
 
     /// @dev Emitted when a trade is skipped due to a lack of funds
     ///      to pay the 0x Protocol fee.
-    /// @param ethBalance The current eth balance.
-    /// @param ethNeeded The current eth balance required to pay
-    ///        the protocol fee.
-    event ProtocolFeeUnfunded(
-        uint256 ethBalance,
-        uint256 ethNeeded
-    );
+    /// @param orderHash The hash of the order that was skipped.
+    event ProtocolFeeUnfunded(bytes32 orderHash);
 
     /// @dev The Exchange ERC20Proxy ID.
     bytes4 private constant ERC20_ASSET_PROXY_ID = 0xf47261b0;
@@ -450,7 +446,11 @@ contract FillQuoteTransformer is
             }
             // Emit an event if we do not have sufficient ETH to cover the protocol fee.
             if (state.ethRemaining < state.protocolFee) {
-                emit ProtocolFeeUnfunded(state.ethRemaining, state.protocolFee);
+                bytes32 orderHash = LibOrderHash.getTypedDataHash(
+                    order,
+                    exchange.EIP712_EXCHANGE_DOMAIN_HASH()
+                );
+                emit ProtocolFeeUnfunded(orderHash);
                 return results;
             }
             try

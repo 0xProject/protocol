@@ -37,8 +37,6 @@ interface IShell {
         returns (uint256 toAmount);
 }
 
-
-
 contract MixinShell is
     MixinAdapterAddresses
 {

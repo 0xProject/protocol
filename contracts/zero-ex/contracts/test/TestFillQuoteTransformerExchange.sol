@@ -35,6 +35,8 @@ contract TestFillQuoteTransformerExchange {
         uint256 makerAssetMintRatio;
     }
 
+    bytes32 public constant EIP712_EXCHANGE_DOMAIN_HASH = 0xaa81d881b1adbbf115e15b849cb9cdc643cad3c6a90f30eb505954af943247e6;
+
     uint256 private constant PROTOCOL_FEE_MULTIPLIER = 1337;
 
     using LibSafeMathV06 for uint256;
