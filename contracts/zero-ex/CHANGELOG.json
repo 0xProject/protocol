@@ -4,11 +4,11 @@
         "changes": [
             {
                 "note": "Change `ProtocolFeeUnfunded` event in FQT",
-                "pr": "TODO"
+                "pr": 28
             },
             {
                 "note": "Use new PLP interface in FQT.",
-                "pr": "TODO"
+                "pr": 28
             }
         ]
     },

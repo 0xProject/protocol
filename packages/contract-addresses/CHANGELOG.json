@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.1.0",
+        "changes": [
+            {
+                "note": "Deploy new FQT",
+                "pr": 28
+            }
+        ]
+    },
+    {
         "timestamp": 1603851023,
         "version": "5.0.1",
         "changes": [
