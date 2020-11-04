@@ -123,6 +123,11 @@
   version "5.0.1"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/6e999efc275de45fb4d5cfe8d611d1303093e7e9"
 
+"@0x/contract-addresses@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-5.2.0.tgz#489f3411784e2500fd06114da9bc809be3244970"
+  integrity sha512-zUxkUveIxZaFJhazgT8cIwselKIdx2iKV23Jsf28ZMUctL5OkZbGCnT9sLINyvKiFN552yyoNWOMNVLaJm+0vQ==
+
 "@0x/contract-wrappers@^13.8.0":
   version "13.8.0"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/06b1960b304a85bf04f355d945c31649359d58e9"
