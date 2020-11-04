@@ -149,6 +149,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
         poolAddress: POOLS.curve_compound,
         tokens: [TOKENS.DAI, TOKENS.USDC],
+        metaToken: undefined,
     },
     // USDT: {
     //     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -167,6 +168,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_PAX,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.PAX],
+        metaToken: undefined,
     },
     [POOLS.curve_y]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -174,6 +176,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
         poolAddress: POOLS.curve_y,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.TUSD],
+        metaToken: undefined,
     },
     [POOLS.curve_BUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -181,6 +184,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
         poolAddress: POOLS.curve_BUSD,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.BUSD],
+        metaToken: undefined,
     },
     [POOLS.curve_sUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -188,6 +192,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_sUSD,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD],
+        metaToken: undefined,
     },
     [POOLS.curve_renBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -195,6 +200,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_renBTC,
         tokens: [TOKENS.RenBTC, TOKENS.WBTC],
+        metaToken: undefined,
     },
     [POOLS.curve_sBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -202,6 +208,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_sBTC,
         tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
+        metaToken: undefined,
     },
     [POOLS.curve_HBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -209,6 +216,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_HBTC,
         tokens: [TOKENS.hBTC, TOKENS.WBTC],
+        metaToken: undefined,
     },
     [POOLS.curve_TRI]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -216,6 +224,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_TRI,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        metaToken: undefined,
     },
     // Metapools
     [POOLS.curve_GUSD]: {
@@ -224,6 +233,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_GUSD,
         tokens: [TOKENS.GUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        metaToken: TOKENS.GUSD,
     },
     [POOLS.curve_HUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -231,6 +241,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_HUSD,
         tokens: [TOKENS.HUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        metaToken: TOKENS.HUSD,
     },
     [POOLS.curve_USDN]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -238,6 +249,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_USDN,
         tokens: [TOKENS.USDN, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        metaToken: TOKENS.USDN,
     },
     [POOLS.curve_mUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -245,6 +257,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_mUSD,
         tokens: [TOKENS.mUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        metaToken: TOKENS.mUSD,
     },
     [POOLS.curve_tBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -252,6 +265,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_tBTC,
         tokens: [TOKENS.tBTC, TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
+        metaToken: TOKENS.tBTC,
     },
 };
 
@@ -262,6 +276,7 @@ export const MAINNET_SWERVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: '0x329239599afb305da0a2ec69c58f8a6697f9f88d', // _target: 0xa5407eae9ba41422680e2e00537571bcc53efbfd
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.TUSD],
+        metaToken: undefined,
     },
 };
 
@@ -275,6 +290,7 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
             '0x5dbcf33d8c2e976c6b560249878e6f1491bca25c', // yUSD
             '0x2994529c0652d127b7842094103715ec5299bbed', // ybCRV
         ],
+        metaToken: undefined,
     },
     yVaultCurveUnderlying: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
@@ -285,6 +301,7 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
             '0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8', // yCRV
             '0x3b3ac5386837dc563660fb6a0937dfaa5924333b', // bCRV
         ],
+        metaToken: undefined,
     },
     yVaultUSD: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -297,6 +314,7 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
             '0x2f08119c6f07c006695e079aafc638b8789faf18', // yUSDT
             '0x37d19d1c4e1fa9dc47bd1ea12f742a0887eda74a', // yTUSD
         ],
+        metaToken: undefined,
     },
 };
 
@@ -434,7 +452,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
             case POOLS.curve_y:
             case POOLS.curve_BUSD:
                 return 850e3;
-            // metapools
+            // Metapools
             case POOLS.curve_GUSD:
             case POOLS.curve_HUSD:
             case POOLS.curve_USDN:
