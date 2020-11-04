@@ -21,6 +21,10 @@
             {
                 "note": "Add a gas limit to first `LibTokenSpender` and `UniswapFeature` transfer",
                 "pr": 38
+            },
+            {
+                "note": "Convert metatransactions to use `LibSignature`",
+                "pr": 31
             }
         ]
     },
