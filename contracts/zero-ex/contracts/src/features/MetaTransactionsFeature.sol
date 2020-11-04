@@ -349,16 +349,34 @@ contract MetaTransactionsFeature is
                 ).rrevert();
         }
 
-        if (LibSignature.getSignerOfHash(state.hash, state.signature) !=
-                state.mtx.signer) {
+        if (state.signature.length != 66) {
             LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.WRONG_SIGNER,
+                LibSignatureRichErrors.SignatureValidationErrorCodes.INVALID_LENGTH,
                 state.hash,
                 state.mtx.signer,
-                // TODO: Remove this field from SignatureValidationError
-                //       when rich reverts are part of the protocol repo.
-                ""
+                state.signature
             ).rrevert();
+        }
+
+        LibSignature.Signature memory sig = LibSignature.Signature({
+            signatureType: LibSignature.SignatureType(uint8(state.signature[65])),
+            v: uint8(state.signature[0]),
+            r: state.signature.readBytes32(1),
+            s: state.signature.readBytes32(33)
+        });
+
+        if (LibSignature.getSignerOfHash(state.hash, sig) != state.mtx.signer) {
+            LibMetaTransactionsRichErrors
+                .MetaTransactionInvalidSignatureError(
+                    state.hash,
+                    state.signature,
+                    LibSignatureRichErrors.SignatureValidationError(
+                        LibSignatureRichErrors.SignatureValidationErrorCodes.WRONG_SIGNER,
+                        state.hash,
+                        state.mtx.signer,
+                        state.signature
+                    )
+                ).rrevert();
         }
         // Transaction must not have been already executed.
         state.executedBlockNumber = LibMetaTransactionsStorage
