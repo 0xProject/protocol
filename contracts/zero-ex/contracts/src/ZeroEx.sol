@@ -19,14 +19,13 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./migrations/LibBootstrap.sol";
 import "./features/BootstrapFeature.sol";
 import "./storage/LibProxyStorage.sol";
 
 /// @dev An extensible proxy contract that serves as a universal entry point for
 ///      interacting with the 0x protocol.
 contract ZeroEx {
-    uint256 immutable immutableImplsSlot;
+    uint256 immutable private IMMUTABLE_IMPLS_SLOT;
 
     /// @dev Construct this contract and register the `BootstrapFeature` feature.
     ///      After constructing this contract, `bootstrap()` should be called
@@ -45,7 +44,7 @@ contract ZeroEx {
         // local.
         uint256 implsSlot;
         assembly { implsSlot := impls_slot }
-        immutableImplsSlot = implsSlot;
+        IMMUTABLE_IMPLS_SLOT = implsSlot;
     }
 
 
@@ -54,7 +53,7 @@ contract ZeroEx {
     /// @dev Forwards calls to the appropriate implementation contract.
     fallback() external payable {
         // Yul can't directly access immutables.
-        uint256 implsSlot = immutableImplsSlot;
+        uint256 implsSlot = IMMUTABLE_IMPLS_SLOT;
 
         assembly {
             let cdlen := calldatasize()
