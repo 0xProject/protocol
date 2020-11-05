@@ -1,5 +1,13 @@
 [
     {
+        "version": "5.4.0",
+        "changes": [
+                "note": "Update ganache snapshot addresses",
+                "pr": 27
+            }
+        ]
+    },
+    {
         "version": "5.3.0",
         "changes": [
             {
