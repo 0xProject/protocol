@@ -90,7 +90,10 @@ const DEFAULT_SWAP_QUOTE_REQUEST_OPTS: SwapQuoteRequestOpts = {
 
 const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqtRequestOpts> = {
     makerEndpointMaxResponseTimeMs: 1000,
-    isPriceAwareRFQEnabled: false,
+    priceAwareRFQFlag: {
+        isFirmPriceAwareEnabled: false,
+        isIndicativePriceAwareEnabled: false,
+    },
 };
 
 export const DEFAULT_INFO_LOGGER: LogFunction = (obj, msg) =>

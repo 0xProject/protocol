@@ -701,7 +701,7 @@ export class SwapQuoter {
 
         if (
             opts.rfqt && // This is an RFQT-enabled API request
-            !getPriceAwareRFQRolloutFlags(opts.rfqt.isPriceAwareRFQEnabled).isFirmPriceAwareEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
+            !getPriceAwareRFQRolloutFlags(opts.rfqt.priceAwareRFQFlag).isFirmPriceAwareEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
             opts.rfqt.intentOnFilling && // The requestor is asking for a firm quote
             opts.rfqt.apiKey &&
             this._isApiKeyWhitelisted(opts.rfqt.apiKey) && // A valid API key was provided

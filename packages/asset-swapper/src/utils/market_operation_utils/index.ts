@@ -216,7 +216,7 @@ export class MarketOperationUtils {
         );
 
         const isPriceAwareRfqEnabled =
-            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.isPriceAwareRFQEnabled).isIndicativePriceAwareEnabled;
+            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.priceAwareRFQFlag).isIndicativePriceAwareEnabled;
         const rfqtPromise =
             !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
@@ -365,7 +365,7 @@ export class MarketOperationUtils {
             ),
         );
         const isPriceAwareRfqEnabled =
-            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.isPriceAwareRFQEnabled).isIndicativePriceAwareEnabled;
+            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.priceAwareRFQFlag).isIndicativePriceAwareEnabled;
         const rfqtPromise =
             !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
@@ -705,7 +705,7 @@ export class MarketOperationUtils {
             }
 
             const { isFirmPriceAwareEnabled, isIndicativePriceAwareEnabled } = getPriceAwareRFQRolloutFlags(
-                rfqt.isPriceAwareRFQEnabled,
+                rfqt.priceAwareRFQFlag,
             );
 
             if (rfqt.isIndicative && isIndicativePriceAwareEnabled) {
