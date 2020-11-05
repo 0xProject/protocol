@@ -4,7 +4,7 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from '../../src/orders';
 
 /**
- * Generate a ranomd limit order.
+ * Generate a random limit order.
  */
 export function getRandomLimitOrder(fields: Partial<LimitOrderFields> = {}): LimitOrder {
     return new LimitOrder({
@@ -25,7 +25,7 @@ export function getRandomLimitOrder(fields: Partial<LimitOrderFields> = {}): Lim
 }
 
 /**
- * Generate a ranomd RFQ order.
+ * Generate a random RFQ order.
  */
 export function getRandomRfqOrder(fields: Partial<RfqOrderFields> = {}): RfqOrder {
     return new RfqOrder({
