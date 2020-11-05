@@ -64,13 +64,13 @@ abstract contract FixinProtocolFees {
         internal
         returns (uint256 ethProtocolFeePaid, uint256 wethProtocolFeePaid)
     {
-        FeeCollector feeCollector = _getFeeCollector(poolId);
         uint256 protocolFeePaid = _getSingleProtocolFee();
         if (protocolFeePaid == 0) {
             // Nothing to do.
             return (ethProtocolFeePaid, wethProtocolFeePaid);
         }
 
+        FeeCollector feeCollector = _getFeeCollector(poolId);
         if (msg.value < protocolFeePaid) {
             // WETH
             LibTokenSpender.spendERC20Tokens(
