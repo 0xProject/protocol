@@ -69,6 +69,10 @@ library LibLimitOrder {
         uint128 takerTokenFilledAmount;
     }
 
+    uint256 private constant UINT_128_MASK = (1 << 128) - 1;
+    uint256 private constant UINT_64_MASK = (1 << 64) - 1;
+    uint256 private constant ADDRESS_MASK = (1 << 160) - 1;
+
     // The type hash for limit orders, which is:
     // keccak256(abi.encodePacked(
     //     "LimitOrder(",
@@ -134,27 +138,27 @@ library LibLimitOrder {
             let mem := mload(0x40)
             mstore(mem, _LIMIT_ORDER_TYPEHASH)
             // order.makerToken;
-            mstore(add(mem, 0x20), mload(order))
+            mstore(add(mem, 0x20), and(ADDRESS_MASK, mload(order)))
             // order.takerToken;
-            mstore(add(mem, 0x40), mload(add(order, 0x20)))
+            mstore(add(mem, 0x40), and(ADDRESS_MASK, mload(add(order, 0x20))))
             // order.makerAmount;
-            mstore(add(mem, 0x60), mload(add(order, 0x40)))
+            mstore(add(mem, 0x60), and(UINT_128_MASK, mload(add(order, 0x40))))
             // order.takerAmount;
-            mstore(add(mem, 0x80), mload(add(order, 0x60)))
+            mstore(add(mem, 0x80), and(UINT_128_MASK, mload(add(order, 0x60))))
             // order.takerTokenFeeAmount;
-            mstore(add(mem, 0xA0), mload(add(order, 0x80)))
+            mstore(add(mem, 0xA0), and(UINT_128_MASK, mload(add(order, 0x80))))
             // order.maker;
-            mstore(add(mem, 0xC0), mload(add(order, 0xA0)))
+            mstore(add(mem, 0xC0), and(ADDRESS_MASK, mload(add(order, 0xA0))))
             // order.taker;
-            mstore(add(mem, 0xE0), mload(add(order, 0xC0)))
+            mstore(add(mem, 0xE0), and(ADDRESS_MASK, mload(add(order, 0xC0))))
             // order.sender;
-            mstore(add(mem, 0x100), mload(add(order, 0xE0)))
+            mstore(add(mem, 0x100), and(ADDRESS_MASK, mload(add(order, 0xE0))))
             // order.feeRecipient;
-            mstore(add(mem, 0x120), mload(add(order, 0x100)))
+            mstore(add(mem, 0x120), and(ADDRESS_MASK, mload(add(order, 0x100))))
             // order.pool;
             mstore(add(mem, 0x140), mload(add(order, 0x120)))
             // order.expiry;
-            mstore(add(mem, 0x160), mload(add(order, 0x140)))
+            mstore(add(mem, 0x160), and(UINT_64_MASK, mload(add(order, 0x140))))
             // order.salt;
             mstore(add(mem, 0x180), mload(add(order, 0x160)))
             structHash := keccak256(mem, 0x1A0)
@@ -186,21 +190,21 @@ library LibLimitOrder {
             let mem := mload(0x40)
             mstore(mem, _RFQ_ORDER_TYPEHASH)
             // order.makerToken;
-            mstore(add(mem, 0x20), mload(order))
+            mstore(add(mem, 0x20), and(ADDRESS_MASK, mload(order)))
             // order.takerToken;
-            mstore(add(mem, 0x40), mload(add(order, 0x20)))
+            mstore(add(mem, 0x40), and(ADDRESS_MASK, mload(add(order, 0x20))))
             // order.makerAmount;
-            mstore(add(mem, 0x60), mload(add(order, 0x40)))
+            mstore(add(mem, 0x60), and(UINT_128_MASK, mload(add(order, 0x40))))
             // order.takerAmount;
-            mstore(add(mem, 0x80), mload(add(order, 0x60)))
+            mstore(add(mem, 0x80), and(UINT_128_MASK, mload(add(order, 0x60))))
             // order.maker;
-            mstore(add(mem, 0xA0), mload(add(order, 0x80)))
+            mstore(add(mem, 0xA0), and(ADDRESS_MASK, mload(add(order, 0x80))))
             // order.txOrigin;
-            mstore(add(mem, 0xC0), mload(add(order, 0xA0)))
+            mstore(add(mem, 0xC0), and(ADDRESS_MASK, mload(add(order, 0xA0))))
             // order.pool;
             mstore(add(mem, 0xE0), mload(add(order, 0xC0)))
             // order.expiry;
-            mstore(add(mem, 0x100), mload(add(order, 0xE0)))
+            mstore(add(mem, 0x100), and(UINT_64_MASK, mload(add(order, 0xE0))))
             // order.salt;
             mstore(add(mem, 0x120), mload(add(order, 0x100)))
             structHash := keccak256(mem, 0x140)
