@@ -5,9 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.0.3 - _November 5, 2020_
+
+    * Dependencies updated
+
 ## v5.0.2 - _November 3, 2020_
 
     * Dependencies updated
+    * adding Curve pools: PAX, hBTC, metapools: gUSD, hUSD, USDn, mUSD, tBTC (#26)
 
 ## v5.0.1 - _November 3, 2020_
 
