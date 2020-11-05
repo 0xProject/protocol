@@ -5,6 +5,10 @@
         "changes": [
             {
                 "note": "Dependencies updated"
+            },
+            {
+                "note": "adding Curve pools: PAX, hBTC, metapools: gUSD, hUSD, USDn, mUSD, tBTC",
+                "pr": 26
             }
         ]
     },
@@ -20,10 +24,6 @@
     {
         "version": "5.0.0",
         "changes": [
-            {
-                "note": "adding Curve pools: PAX, hBTC, metapools: gUSD, hUSD, USDn, mUSD, tBTC",
-                "pr": 26
-            },
             {
                 "note": "Support multiple `Shells` by supplying the `pool` address",
                 "pr": 17
