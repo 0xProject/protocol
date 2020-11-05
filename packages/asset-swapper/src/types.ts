@@ -234,6 +234,11 @@ export type SwapQuoteOrdersBreakdown = Partial<
     }
 >;
 
+export interface PriceAwareRFQFlags {
+    isIndicativePriceAwareEnabled: boolean;
+    isFirmPriceAwareEnabled: boolean;
+}
+
 /**
  * nativeExclusivelyRFQT: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
  *                        If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
@@ -256,7 +261,7 @@ export interface RfqtRequestOpts {
      * the feature flag.  When that time comes, follow this PR to "undo" the feature flag:
      * https://github.com/0xProject/0x-monorepo/pull/2735
      */
-    isPriceAwareRFQEnabled?: boolean;
+    priceAwareRFQFlag?: PriceAwareRFQFlags;
 }
 
 /**

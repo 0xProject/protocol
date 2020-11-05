@@ -41,6 +41,7 @@ import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { sortingUtils } from './utils/sorting_utils';
 import { SwapQuoteCalculator } from './utils/swap_quote_calculator';
+import { getPriceAwareRFQRolloutFlags } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
 
 export class SwapQuoter {
@@ -700,7 +701,7 @@ export class SwapQuoter {
 
         if (
             opts.rfqt && // This is an RFQT-enabled API request
-            !opts.rfqt.isPriceAwareRFQEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
+            !getPriceAwareRFQRolloutFlags(opts.rfqt.priceAwareRFQFlag).isFirmPriceAwareEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
             opts.rfqt.intentOnFilling && // The requestor is asking for a firm quote
             opts.rfqt.apiKey &&
             this._isApiKeyWhitelisted(opts.rfqt.apiKey) && // A valid API key was provided

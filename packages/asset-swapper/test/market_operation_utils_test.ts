@@ -17,6 +17,7 @@ import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../src';
+import { PriceAwareRFQFlags } from '../src/types';
 import { getRfqtIndicativeQuotesAsync, MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
@@ -66,6 +67,10 @@ const DEFAULT_EXCLUDED = [
 const BUY_SOURCES = BUY_SOURCE_FILTER.sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
 const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = {};
+const PRICE_AWARE_RFQ_ENABLED: PriceAwareRFQFlags = {
+    isFirmPriceAwareEnabled: true,
+    isIndicativePriceAwareEnabled: true,
+};
 
 // tslint:disable: custom-no-magic-numbers promise-function-async
 describe('MarketOperationUtils tests', () => {
@@ -891,7 +896,7 @@ describe('MarketOperationUtils tests', () => {
                             apiKey: 'foo',
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
-                            isPriceAwareRFQEnabled: true,
+                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: mockedQuoteRequestor.object.requestRfqtFirmQuotesAsync,
                             } as any,
@@ -931,7 +936,7 @@ describe('MarketOperationUtils tests', () => {
                         apiKey: 'foo',
                         takerAddress: randomAddress(),
                         intentOnFilling: true,
-                        isPriceAwareRFQEnabled: true,
+                        priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
                         quoteRequestor: {
                             requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
                         } as any,
@@ -974,7 +979,7 @@ describe('MarketOperationUtils tests', () => {
                         rfqt: {
                             isIndicative: true,
                             apiKey: 'foo',
-                            isPriceAwareRFQEnabled: true,
+                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
                             quoteRequestor: {
@@ -1033,7 +1038,7 @@ describe('MarketOperationUtils tests', () => {
                             apiKey: 'foo',
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
-                            isPriceAwareRFQEnabled: true,
+                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
                             } as any,
@@ -1089,7 +1094,7 @@ describe('MarketOperationUtils tests', () => {
                             isIndicative: false,
                             apiKey: 'foo',
                             takerAddress: randomAddress(),
-                            isPriceAwareRFQEnabled: true,
+                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
                             intentOnFilling: true,
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
