@@ -3,13 +3,31 @@ import { CurveInfo, SnowSwapInfo, SwerveInfo } from './types';
 
 // tslint:disable completed-docs
 export function getCurveInfosForPair(takerToken: string, makerToken: string): CurveInfo[] {
-    return Object.values(MAINNET_CURVE_INFOS).filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)));
+    return Object.values(MAINNET_CURVE_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaToken === undefined) ||
+                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+        ),
+    );
 }
 
 export function getSwerveInfosForPair(takerToken: string, makerToken: string): SwerveInfo[] {
-    return Object.values(MAINNET_SWERVE_INFOS).filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)));
+    return Object.values(MAINNET_SWERVE_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaToken === undefined) ||
+                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+        ),
+    );
 }
 
 export function getSnowSwapInfosForPair(takerToken: string, makerToken: string): SnowSwapInfo[] {
-    return Object.values(MAINNET_SNOWSWAP_INFOS).filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)));
+    return Object.values(MAINNET_SNOWSWAP_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaToken === undefined) ||
+                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+        ),
+    );
 }

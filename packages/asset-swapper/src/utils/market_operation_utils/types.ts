@@ -75,6 +75,7 @@ export interface CurveInfo {
     buyQuoteFunctionSelector: CurveFunctionSelectors;
     poolAddress: string;
     tokens: string[];
+    metaToken: string | undefined;
 }
 
 export interface SwerveInfo extends CurveInfo {}

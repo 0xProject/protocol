@@ -5,6 +5,10 @@
         "changes": [
             {
                 "note": "Dependencies updated"
+            },
+            {
+                "note": "adding Curve pools: PAX, hBTC, metapools: gUSD, hUSD, USDn, mUSD, tBTC",
+                "pr": 26
             }
         ]
     },
