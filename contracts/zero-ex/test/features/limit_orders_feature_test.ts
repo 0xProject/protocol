@@ -10,7 +10,7 @@ import { fullMigrateAsync } from '../utils/migration';
 import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
 import { TestMintableERC20TokenContract } from '../wrappers';
 
-blockchainTests.resets.only('LimitOrdersFeature', env => {
+blockchainTests.resets('LimitOrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT } = constants;
     const GAS_PRICE = new BigNumber('123e9');
     const PROTOCOL_FEE_MULTIPLIER = 1337e3;
@@ -1059,6 +1059,14 @@ blockchainTests.resets.only('LimitOrdersFeature', env => {
             });
         });
 
+        it('cannot fill an order with wrong tx.origin', async () => {
+            const order = getTestRfqOrder({ txOrigin: taker });
+            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            return expect(tx).to.revertWith(
+                new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
+            );
+        });
+
         it('cannot fill an expired order', async () => {
             const order = getTestRfqOrder({ expiry: createExpiry(-60) });
             const tx = fillRfqOrderAsync(order);
@@ -1111,5 +1119,66 @@ blockchainTests.resets.only('LimitOrdersFeature', env => {
             // token spender fallthroigh, so we won't get too specific.
             return expect(tx).to.revertWith(new AnyRevertError());
         });
+    });
+
+    describe('fillOrKillLimitOrder()', () => {
+        it('can fully fill an order', async () => {
+            const order = getTestLimitOrder();
+            await prepareBalancesForOrderAsync(order);
+            const receipt = await zeroEx
+                .fillOrKillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), order.takerAmount)
+                .awaitTransactionSuccessAsync({ from: taker, value: SINGLE_PROTOCOL_FEE });
+            verifyEventsFromLogs(
+                receipt.logs,
+                [createLimitOrderFilledEventArgs(order)],
+                IZeroExEvents.LimitOrderFilled,
+            );
+        });
+
+        it('reverts if cannot fill the exact amount', async () => {
+            const order = getTestLimitOrder();
+            await prepareBalancesForOrderAsync(order);
+            const fillAmount = order.takerAmount.plus(1);
+            const tx = zeroEx
+                .fillOrKillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), fillAmount)
+                .awaitTransactionSuccessAsync({ from: taker, value: SINGLE_PROTOCOL_FEE });
+            return expect(tx).to.revertWith(
+                new RevertErrors.FillOrKillFailedError(order.getHash(), order.takerAmount, fillAmount),
+            );
+        });
+    });
+
+    describe('fillOrKillRfqOrder()', () => {
+        it('can fully fill an order', async () => {
+            const order = getTestRfqOrder();
+            await prepareBalancesForOrderAsync(order);
+            const receipt = await zeroEx
+                .fillOrKillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), order.takerAmount)
+                .awaitTransactionSuccessAsync({ from: taker, value: SINGLE_PROTOCOL_FEE });
+            verifyEventsFromLogs(receipt.logs, [createRfqOrderFilledEventArgs(order)], IZeroExEvents.RfqOrderFilled);
+        });
+
+        it('reverts if cannot fill the exact amount', async () => {
+            const order = getTestRfqOrder();
+            await prepareBalancesForOrderAsync(order);
+            const fillAmount = order.takerAmount.plus(1);
+            const tx = zeroEx
+                .fillOrKillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), fillAmount)
+                .awaitTransactionSuccessAsync({ from: taker, value: SINGLE_PROTOCOL_FEE });
+            return expect(tx).to.revertWith(
+                new RevertErrors.FillOrKillFailedError(order.getHash(), order.takerAmount, fillAmount),
+            );
+        });
+    });
+
+    it.skip('RFQ gas benchmark', async () => {
+        const orders = [...new Array(2)].map(() =>
+            getTestRfqOrder({ pool: '0x0000000000000000000000000000000000000000000000000000000000000000' }),
+        );
+        // Fill one to warm up the fee pool.
+        await fillRfqOrderAsync(orders[0]);
+        const receipt = await fillRfqOrderAsync(orders[1]);
+        // tslint:disable-next-line: no-console
+        console.log(receipt.gasUsed);
     });
 });
