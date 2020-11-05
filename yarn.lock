@@ -34,17 +34,17 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.0.0.tgz#b27e8f3e56eb7120760ebc718740bcf2c6fd0e9e"
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v5.0.2-36bd8f68c":
+  version "5.0.2"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/9fa3913f3e512361bcde282c66216502a605648e"
   dependencies:
     "@0x/assert" "^3.0.17"
     "@0x/base-contract" "^6.2.11"
-    "@0x/contract-addresses" "^5.0.1"
-    "@0x/contract-wrappers" "^13.9.3"
+    "@0x/contract-addresses" "^5.2.0"
+    "@0x/contract-wrappers" "^13.9.5"
     "@0x/dev-utils" "^4.0.1"
     "@0x/json-schemas" "^5.3.3"
-    "@0x/order-utils" "^10.4.3"
+    "@0x/order-utils" "^10.4.5"
     "@0x/orderbook" "^2.2.7"
     "@0x/quote-server" "^3.1.0"
     "@0x/types" "^3.3.0"
@@ -149,6 +149,21 @@
     "@0x/assert" "^3.0.17"
     "@0x/base-contract" "^6.2.11"
     "@0x/contract-addresses" "^5.0.1"
+    "@0x/json-schemas" "^5.3.3"
+    "@0x/types" "^3.3.0"
+    "@0x/utils" "^6.1.0"
+    "@0x/web3-wrapper" "^7.2.8"
+    ethereum-types "^3.3.3"
+    ethers "~4.0.4"
+
+"@0x/contract-wrappers@^13.9.5":
+  version "13.9.5"
+  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.9.5.tgz#61635166d5d01606ce2a86b3125fc871d54ce253"
+  integrity sha512-y5KwJDjWSPPqFQpxL8DI2Nzg6PMjo5L88YMCatszqKEd8wCQIE0i+9tDfOSf0YojSccDkajAwQauiFN+3fP91g==
+  dependencies:
+    "@0x/assert" "^3.0.17"
+    "@0x/base-contract" "^6.2.11"
+    "@0x/contract-addresses" "^5.2.0"
     "@0x/json-schemas" "^5.3.3"
     "@0x/types" "^3.3.0"
     "@0x/utils" "^6.1.0"
@@ -484,6 +499,21 @@
     "@0x/assert" "^3.0.17"
     "@0x/contract-addresses" "^5.0.1"
     "@0x/contract-wrappers" "^13.9.3"
+    "@0x/json-schemas" "^5.3.3"
+    "@0x/utils" "^6.1.0"
+    "@0x/web3-wrapper" "^7.2.8"
+    ethereumjs-util "^5.1.1"
+    ethers "~4.0.4"
+    lodash "^4.17.11"
+
+"@0x/order-utils@^10.4.5":
+  version "10.4.5"
+  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.5.tgz#22c8efcf8fad40a40e46407baf571641c2ba62b0"
+  integrity sha512-QowlGt4IZ3ylEcD+SQzbyQChaR4mrxylrxisVYldE2R9lUa0AOx1EksUZ3HVeJVeOz3w+TIjoI44ZwCAM+v8dg==
+  dependencies:
+    "@0x/assert" "^3.0.17"
+    "@0x/contract-addresses" "^5.2.0"
+    "@0x/contract-wrappers" "^13.9.5"
     "@0x/json-schemas" "^5.3.3"
     "@0x/utils" "^6.1.0"
     "@0x/web3-wrapper" "^7.2.8"

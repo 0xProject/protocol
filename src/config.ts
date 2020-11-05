@@ -264,9 +264,18 @@ export const ETH_GAS_STATION_API_URL: string = _.isEmpty(process.env.ETH_GAS_STA
 
 // If true, Price-Aware RFQ feature will be enabled for RFQ-enabled requests
 // tslint:disable-next-line:boolean-naming
-export const PRICE_AWARE_RFQ_ENABLED: boolean = _.isEmpty(process.env.PRICE_AWARE_RFQ_ENABLED)
+export const FIRM_PRICE_AWARE_RFQ_ENABLED: boolean = _.isEmpty(process.env.FIRM_PRICE_AWARE_RFQ_ENABLED)
     ? false
-    : assertEnvVarType('PRICE_AWARE_RFQ_ENABLED', process.env.PRICE_AWARE_RFQ_ENABLED, EnvVarType.Boolean);
+    : assertEnvVarType('FIRM_PRICE_AWARE_RFQ_ENABLED', process.env.FIRM_PRICE_AWARE_RFQ_ENABLED, EnvVarType.Boolean);
+
+// tslint:disable-next-line: boolean-naming
+export const INDICATIVE_PRICE_AWARE_RFQ_ENABLED: boolean = _.isEmpty(process.env.INDICATIVE_PRICE_AWARE_RFQ_ENABLED)
+    ? false
+    : assertEnvVarType(
+          'INDICATIVE_PRICE_AWARE_RFQ_ENABLED',
+          process.env.INDICATIVE_PRICE_AWARE_RFQ_ENABLED,
+          EnvVarType.Boolean,
+      );
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;

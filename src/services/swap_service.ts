@@ -27,7 +27,8 @@ import {
     CHAIN_ID,
     DEFAULT_INTERMEDIATE_TOKENS,
     DEFAULT_TOKEN_ADJACENCY,
-    PRICE_AWARE_RFQ_ENABLED,
+    FIRM_PRICE_AWARE_RFQ_ENABLED,
+    INDICATIVE_PRICE_AWARE_RFQ_ENABLED,
     PROTOCOL_FEE_MULTIPLIER,
     RFQT_REQUEST_MAX_RESPONSE_MS,
     SWAP_QUOTER_OPTS,
@@ -492,7 +493,10 @@ export class SwapService {
                 apiKey,
                 makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
                 takerAddress,
-                isPriceAwareRFQEnabled: PRICE_AWARE_RFQ_ENABLED,
+                priceAwareRFQFlag: {
+                    isFirmPriceAwareEnabled: FIRM_PRICE_AWARE_RFQ_ENABLED,
+                    isIndicativePriceAwareEnabled: INDICATIVE_PRICE_AWARE_RFQ_ENABLED,
+                },
             };
         }
 
