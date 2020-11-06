@@ -25,8 +25,6 @@ import "./storage/LibProxyStorage.sol";
 /// @dev An extensible proxy contract that serves as a universal entry point for
 ///      interacting with the 0x protocol.
 contract ZeroEx {
-    uint256 immutable private IMMUTABLE_IMPLS_SLOT;
-
     /// @dev Construct this contract and register the `BootstrapFeature` feature.
     ///      After constructing this contract, `bootstrap()` should be called
     ///      by `bootstrap()` to seed the initial feature set.
@@ -35,16 +33,8 @@ contract ZeroEx {
         // Temporarily create and register the bootstrap feature.
         // It will deregister itself after `bootstrap()` has been called.
         BootstrapFeature bootstrap = new BootstrapFeature(bootstrapper);
-        mapping(bytes4 => address) storage impls =
-            LibProxyStorage.getStorage().impls;
-        impls[bootstrap.bootstrap.selector] = address(bootstrap);
-
-        // Store the slot for impls so it's accessible as a constant in Yul.
-        // Yul can't directly access immutables, so we have to go through a
-        // local.
-        uint256 implsSlot;
-        assembly { implsSlot := impls_slot }
-        IMMUTABLE_IMPLS_SLOT = implsSlot;
+        LibProxyStorage.getStorage().impls[bootstrap.bootstrap.selector] =
+            address(bootstrap);
     }
 
 
@@ -52,8 +42,9 @@ contract ZeroEx {
 
     /// @dev Forwards calls to the appropriate implementation contract.
     fallback() external payable {
-        // Yul can't directly access immutables.
-        uint256 implsSlot = IMMUTABLE_IMPLS_SLOT;
+        // This is used in assembly below as impls_slot.
+        mapping(bytes4 => address) storage impls =
+            LibProxyStorage.getStorage().impls;
 
         assembly {
             let cdlen := calldatasize()
@@ -69,7 +60,7 @@ contract ZeroEx {
 
             // Slot for impls[selector] is keccak256(selector . impls_slot).
             mstore(0, selector)
-            mstore(0x20, implsSlot)
+            mstore(0x20, impls_slot)
             let slot := keccak256(0, 0x40)
 
             let delegate := sload(slot)
