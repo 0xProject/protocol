@@ -1,4 +1,3 @@
-import { PromiseWithTransactionHash } from '@0x/base-contract';
 import { blockchainTests, constants, expect } from '@0x/contracts-test-utils';
 import { AuthorizableRevertErrors, BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
