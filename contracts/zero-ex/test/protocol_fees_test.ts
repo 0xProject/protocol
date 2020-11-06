@@ -67,7 +67,7 @@ blockchainTests.resets('ProtocolFees', env => {
             const tx = feeCollector
                 .initialize(weth.address, staking.address, pool)
                 .sendTransactionAsync({ from: unauthorized });
-            expect(tx).to.revertWith(new AuthorizableRevertErrors.SenderNotAuthorizedError(unauthorized));
+            return expect(tx).to.revertWith(new AuthorizableRevertErrors.SenderNotAuthorizedError(unauthorized));
         });
     });
 
