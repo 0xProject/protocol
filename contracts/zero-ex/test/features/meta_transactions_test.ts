@@ -465,7 +465,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                     ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                     mtxHash,
                     signers[0],
-                    "0x",
+                    '0x',
                 ),
             );
         });
