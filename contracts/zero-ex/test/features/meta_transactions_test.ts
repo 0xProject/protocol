@@ -461,15 +461,11 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionInvalidSignatureError(
+                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
+                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                     mtxHash,
-                    signature,
-                    new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                        ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
-                        mtxHash,
-                        signers[0],
-                        signature,
-                    ).encode(),
+                    signers[0],
+                    "0x",
                 ),
             );
         });

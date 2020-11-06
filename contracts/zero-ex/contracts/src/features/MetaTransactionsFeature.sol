@@ -48,25 +48,6 @@ contract MetaTransactionsFeature is
     using LibBytesV06 for bytes;
     using LibRichErrorsV06 for bytes;
 
-    /// @dev Intermediate state vars used by `_executeMetaTransactionPrivate()`
-    ///      to avoid stack overflows.
-    struct ExecuteState {
-        // Sender of the meta-transaction.
-        address sender;
-        // Hash of the meta-transaction data.
-        bytes32 hash;
-        // The meta-transaction data.
-        MetaTransactionData mtx;
-        // The meta-transaction signature (by `mtx.signer`).
-        bytes signature;
-        // The selector of the function being called.
-        bytes4 selector;
-        // The ETH balance of this contract before performing the call.
-        uint256 selfBalance;
-        // The block number at which the meta-transaction was executed.
-        uint256 executedBlockNumber;
-    }
-
     /// @dev Arguments for a `TransformERC20.transformERC20()` call.
     struct ExternalTransformERC20Args {
         IERC20TokenV06 inputToken;
@@ -146,11 +127,13 @@ contract MetaTransactionsFeature is
         refundsAttachedEth
         returns (bytes memory returnResult)
     {
-        returnResult = _executeMetaTransactionPrivate(
-            msg.sender,
-            mtx,
-            signature
-        );
+        ExecuteState memory state;
+        state.sender = msg.sender;
+        state.mtx = mtx;
+        state.hash = getMetaTransactionHash(mtx);
+        state.signature = _unpackSignature(signature);
+
+        returnResult = _executeMetaTransactionPrivate(state);
     }
 
     /// @dev Execute multiple meta-transactions.
@@ -176,32 +159,29 @@ contract MetaTransactionsFeature is
         }
         returnResults = new bytes[](mtxs.length);
         for (uint256 i = 0; i < mtxs.length; ++i) {
-            returnResults[i] = _executeMetaTransactionPrivate(
-                msg.sender,
-                mtxs[i],
-                signatures[i]
-            );
+            ExecuteState memory state;
+            state.sender = msg.sender;
+            state.mtx = mtxs[i];
+            state.hash = getMetaTransactionHash(mtxs[i]);
+            state.signature = _unpackSignature(signatures[i]);
+
+            returnResults[i] = _executeMetaTransactionPrivate(state);
         }
     }
 
     /// @dev Execute a meta-transaction via `sender`. Privileged variant.
     ///      Only callable from within.
-    /// @param sender Who is executing the meta-transaction.
-    /// @param mtx The meta-transaction.
-    /// @param signature The signature by `mtx.signer`.
+    /// @param state The `ExecuteState` for this metatransaction, with `sender`,
+    ///              `hash`, `mtx`, and `signature` fields filled.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function _executeMetaTransaction(
-        address sender,
-        MetaTransactionData memory mtx,
-        bytes memory signature
-    )
+    function _executeMetaTransaction(ExecuteState memory state)
         public
         payable
         override
         onlySelf
         returns (bytes memory returnResult)
     {
-        return _executeMetaTransactionPrivate(sender, mtx, signature);
+        return _executeMetaTransactionPrivate(state);
     }
 
     /// @dev Get the block at which a meta-transaction has been executed.
@@ -253,24 +233,13 @@ contract MetaTransactionsFeature is
     }
 
     /// @dev Execute a meta-transaction by `sender`. Low-level, hidden variant.
-    /// @param sender Who is executing the meta-transaction..
-    /// @param mtx The meta-transaction.
-    /// @param signature The signature by `mtx.signer`.
+    /// @param state The `ExecuteState` for this metatransaction, with `sender`,
+    ///              `hash`, `mtx`, and `signature` fields filled.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function _executeMetaTransactionPrivate(
-        address sender,
-        MetaTransactionData memory mtx,
-        bytes memory signature
-    )
+    function _executeMetaTransactionPrivate(ExecuteState memory state)
         private
         returns (bytes memory returnResult)
     {
-        ExecuteState memory state;
-        state.sender = sender;
-        state.hash = getMetaTransactionHash(mtx);
-        state.mtx = mtx;
-        state.signature = signature;
-
         _validateMetaTransaction(state);
 
         // Mark the transaction executed by storing the block at which it was executed.
@@ -280,17 +249,17 @@ contract MetaTransactionsFeature is
             .mtxHashToExecutedBlockNumber[state.hash] = block.number;
 
         // Pay the fee to the sender.
-        if (mtx.feeAmount > 0) {
+        if (state.mtx.feeAmount > 0) {
             _transferERC20Tokens(
-                mtx.feeToken,
-                mtx.signer,
-                sender,
-                mtx.feeAmount
+                state.mtx.feeToken,
+                state.mtx.signer,
+                state.sender,
+                state.mtx.feeAmount
             );
         }
 
         // Execute the call based on the selector.
-        state.selector = mtx.callData.readBytes4(0);
+        state.selector = state.mtx.callData.readBytes4(0);
         if (state.selector == ITransformERC20Feature.transformERC20.selector) {
             returnResult = _executeTransformERC20Call(state);
         } else {
@@ -301,8 +270,8 @@ contract MetaTransactionsFeature is
         emit MetaTransactionExecuted(
             state.hash,
             state.selector,
-            mtx.signer,
-            mtx.sender
+            state.mtx.signer,
+            state.mtx.sender
         );
     }
 
@@ -350,34 +319,16 @@ contract MetaTransactionsFeature is
                 ).rrevert();
         }
 
-        if (state.signature.length != 66) {
+        if (LibSignature.getSignerOfHash(state.hash, state.signature) !=
+                state.mtx.signer) {
             LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.INVALID_LENGTH,
+                LibSignatureRichErrors.SignatureValidationErrorCodes.WRONG_SIGNER,
                 state.hash,
                 state.mtx.signer,
-                state.signature
+                // TODO: Remove this field from SignatureValidationError
+                //       when rich reverts are part of the protocol repo.
+                ""
             ).rrevert();
-        }
-
-        LibSignature.Signature memory sig = LibSignature.Signature({
-            signatureType: LibSignature.SignatureType(uint8(state.signature[65])),
-            v: uint8(state.signature[0]),
-            r: state.signature.readBytes32(1),
-            s: state.signature.readBytes32(33)
-        });
-
-        if (LibSignature.getSignerOfHash(state.hash, sig) != state.mtx.signer) {
-            LibMetaTransactionsRichErrors
-                .MetaTransactionInvalidSignatureError(
-                    state.hash,
-                    state.signature,
-                    LibSignatureRichErrors.SignatureValidationError(
-                        LibSignatureRichErrors.SignatureValidationErrorCodes.WRONG_SIGNER,
-                        state.hash,
-                        state.mtx.signer,
-                        state.signature
-                    )
-                ).rrevert();
         }
         // Transaction must not have been already executed.
         state.executedBlockNumber = LibMetaTransactionsStorage
@@ -487,5 +438,30 @@ contract MetaTransactionsFeature is
                 returnResult
             ).rrevert();
         }
+    }
+
+    /// @dev Convert a `bytes` signature (format: v + r + s + type) to a
+    ///      LibSignature.Signature struct.
+    function _unpackSignature(bytes memory signature)
+        private
+        returns (LibSignature.Signature memory)
+    {
+        if (signature.length != 66) {
+            // TODO: Come up with a better error when rich reverts are part of
+            //       the protocol repo.
+            LibSignatureRichErrors.SignatureValidationError(
+                LibSignatureRichErrors.SignatureValidationErrorCodes.INVALID_LENGTH,
+                bytes32(0), // Intentionally left blank, but see TODO above.
+                address(0), // Ditto.
+                signature
+            ).rrevert();
+        }
+
+        return LibSignature.Signature({
+            signatureType: LibSignature.SignatureType(uint8(signature[65])),
+            v: uint8(signature[0]),
+            r: signature.readBytes32(1),
+            s: signature.readBytes32(33)
+        });
     }
 }
