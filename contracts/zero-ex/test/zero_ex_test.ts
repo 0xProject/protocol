@@ -83,7 +83,7 @@ blockchainTests.resets('ZeroEx contract', env => {
                 // registry.getSelector('extendSelf'),
             ];
             const selectors = [...ownableSelectors, ...registrySelectors];
-            const impls = await Promise.all(selectors.map(s => zeroEx.getFunctionImplementation(s).callAsync()));
+            const impls = await Promise.all(selectors.map(s => registry.getFunctionImplementation(s).callAsync()));
             for (let i = 0; i < impls.length; ++i) {
                 const selector = selectors[i];
                 const impl = impls[i];

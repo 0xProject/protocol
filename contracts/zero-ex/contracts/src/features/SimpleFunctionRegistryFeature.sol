@@ -56,6 +56,7 @@ contract SimpleFunctionRegistryFeature is
         // Register getters.
         _extend(this.getRollbackLength.selector, _implementation);
         _extend(this.getRollbackEntryAtIndex.selector, _implementation);
+        _extend(this.getFunctionImplementation.selector, _implementation);
         return LibBootstrap.BOOTSTRAP_SUCCESS;
     }
 
@@ -149,6 +150,18 @@ contract SimpleFunctionRegistryFeature is
         returns (address impl)
     {
         return LibSimpleFunctionRegistryStorage.getStorage().implHistory[selector][idx];
+    }
+
+    /// @dev Get the implementation contract of a registered function.
+    /// @param selector The function selector.
+    /// @return impl The implementation contract address.
+    function getFunctionImplementation(bytes4 selector)
+        external
+        override
+        view
+        returns (address impl)
+    {
+        return LibProxyStorage.getStorage().impls[selector];
     }
 
     /// @dev Register or replace a function.

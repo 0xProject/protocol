@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.9.0",
+        "changes": [
+            {
+                "note": "Rewrite the ZeroEx contract in Yul",
+                "pr": 23
+            }
+        ]
+    },
+    {
         "version": "0.8.0",
         "changes": [
             {
