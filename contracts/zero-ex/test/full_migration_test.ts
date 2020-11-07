@@ -95,8 +95,7 @@ blockchainTests.resets('Full migration', env => {
             fns: [
                 'executeMetaTransaction',
                 'batchExecuteMetaTransactions',
-                // TODO: Reenable this. Possibly broken due to nested structs?
-                // '_executeMetaTransaction',
+                '_executeMetaTransaction',
                 'getMetaTransactionExecutedBlock',
                 'getMetaTransactionHashExecutedBlock',
                 'getMetaTransactionHash',
