@@ -384,7 +384,15 @@ describe('DexSampler tests', () => {
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue());
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(sampler);
+            const dexOrderSampler = new DexOrderSampler(
+                sampler,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                tokenAdjacencyGraph,
+            );
             const [quotes] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getSellQuotes(
                     sources,
@@ -392,7 +400,6 @@ describe('DexSampler tests', () => {
                     expectedTakerToken,
                     expectedTakerFillAmounts,
                     wethAddress,
-                    tokenAdjacencyGraph,
                 ),
             );
             const expectedQuotes = sources.map(s =>
@@ -529,7 +536,15 @@ describe('DexSampler tests', () => {
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue());
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(sampler);
+            const dexOrderSampler = new DexOrderSampler(
+                sampler,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                tokenAdjacencyGraph,
+            );
             const [quotes] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getBuyQuotes(
                     sources,
@@ -537,7 +552,6 @@ describe('DexSampler tests', () => {
                     expectedTakerToken,
                     expectedMakerFillAmounts,
                     wethAddress,
-                    tokenAdjacencyGraph,
                 ),
             );
             const expectedQuotes = sources.map(s =>
