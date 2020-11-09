@@ -1,13 +1,15 @@
 import { APIOrder, OrderbookResponse, PaginatedCollection } from '@0x/connect';
-import { AssetPairsItem, OrdersRequestOpts, SignedOrder } from '@0x/types';
+import { AcceptedOrderInfo, OrderEventEndState } from '@0x/mesh-rpc-client';
+import { AssetPairsItem, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 import { Connection, In } from 'typeorm';
 
-import { SRA_ORDER_EXPIRATION_BUFFER_SECONDS } from '../config';
+import { SRA_ORDER_EXPIRATION_BUFFER_SECONDS, SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS } from '../config';
 import { SignedOrderEntity } from '../entities';
-import { ValidationError } from '../errors';
+import { PersistentSignedOrderEntity } from '../entities/PersistentSignedOrderEntity';
+import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
 import { alertOnExpiredOrders } from '../logger';
-import { PinResult } from '../types';
+import { APIOrderWithMetaData, PinResult, SRAGetOrdersRequestOpts } from '../types';
 import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
@@ -16,6 +18,9 @@ import { paginationUtils } from '../utils/pagination_utils';
 export class OrderBookService {
     private readonly _meshClient?: MeshClient;
     private readonly _connection: Connection;
+    public static isAllowedPersistentOrders(apiKey: string): boolean {
+        return SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS.includes(apiKey);
+    }
     public async getOrderByHashIfExistsAsync(orderHash: string): Promise<APIOrder | undefined> {
         const signedOrderEntityIfExists = await this._connection.manager.findOne(SignedOrderEntity, orderHash);
         if (signedOrderEntityIfExists === undefined) {
@@ -104,7 +109,7 @@ export class OrderBookService {
     public async getOrdersAsync(
         page: number,
         perPage: number,
-        ordersFilterParams: OrdersRequestOpts,
+        ordersFilterParams: SRAGetOrdersRequestOpts,
     ): Promise<PaginatedCollection<APIOrder>> {
         // Pre-filters
         const filterObjectWithValuesIfExist: Partial<SignedOrder> = {
@@ -128,8 +133,40 @@ export class OrderBookService {
         const { fresh, expired } = orderUtils.groupByFreshness(apiOrders, SRA_ORDER_EXPIRATION_BUFFER_SECONDS);
         alertOnExpiredOrders(expired);
 
-        // Post-filters
-        const filteredApiOrders = orderUtils.filterOrders(fresh, ordersFilterParams);
+        // Join with persistent orders
+        let persistentOrders: APIOrderWithMetaData[] = [];
+        if (ordersFilterParams.unfillable === true) {
+            if (filterObject.makerAddress === undefined) {
+                throw new ValidationError([
+                    {
+                        field: 'makerAddress',
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: ValidationErrorReasons.UnfillableRequiresMakerAddress,
+                    },
+                ]);
+            }
+            const persistentOrderEntities = (await this._connection.manager.find(PersistentSignedOrderEntity, {
+                where: filterObject,
+            })) as Required<PersistentSignedOrderEntity>[];
+            // This should match the states that trigger a removal from the SignedOrders table
+            // Defined in meshUtils.calculateOrderLifecycle
+            const unfillableStates = [
+                OrderEventEndState.Cancelled,
+                OrderEventEndState.Expired,
+                OrderEventEndState.FullyFilled,
+                OrderEventEndState.Invalid,
+                OrderEventEndState.StoppedWatching,
+                OrderEventEndState.Unfunded,
+            ];
+            persistentOrders = persistentOrderEntities.map(orderUtils.deserializeOrderToAPIOrder).filter(apiOrder => {
+                return apiOrder.metaData.state && unfillableStates.includes(apiOrder.metaData.state);
+            });
+        }
+
+        // Post-filters (query fields that don't exist verbatim in the order)
+        const filteredApiOrders = orderUtils.filterOrders(fresh.concat(persistentOrders), ordersFilterParams);
+
+        // Paginate
         const paginatedApiOrders = paginationUtils.paginate(filteredApiOrders, page, perPage);
         return paginatedApiOrders;
     }
@@ -163,8 +200,37 @@ export class OrderBookService {
         return this.addOrdersAsync([signedOrder], pinned);
     }
     public async addOrdersAsync(signedOrders: SignedOrder[], pinned: boolean): Promise<void> {
+        // Order Watcher Service will handle persistence
+        await this._addOrdersAsync(signedOrders, pinned);
+        return;
+    }
+    public async addPersistentOrdersAsync(signedOrders: SignedOrder[], pinned: boolean): Promise<void> {
+        const accepted = await this._addOrdersAsync(signedOrders, pinned);
+        const persistentOrders = accepted.map(orderInfo => {
+            const order = orderInfo.signedOrder;
+            const apiOrder: APIOrderWithMetaData = {
+                order,
+                metaData: {
+                    state: OrderEventEndState.Added,
+                    remainingFillableTakerAssetAmount: orderInfo.fillableTakerAssetAmount,
+                    orderHash: orderInfo.orderHash,
+                },
+            };
+            return orderUtils.serializePersistentOrder(apiOrder);
+        });
+        // MAX SQL variable size is 999. This limit is imposed via Sqlite.
+        // The SELECT query is not entirely effecient and pulls in all attributes
+        // so we need to leave space for the attributes on the model represented
+        // as SQL variables in the "AS" syntax. We leave 99 free for the
+        // signedOrders model
+        await this._connection.manager.save(persistentOrders, { chunk: 900 });
+    }
+    public async splitOrdersByPinningAsync(signedOrders: SignedOrder[]): Promise<PinResult> {
+        return orderUtils.splitOrdersByPinningAsync(this._connection, signedOrders);
+    }
+    private async _addOrdersAsync(signedOrders: SignedOrder[], pinned: boolean): Promise<AcceptedOrderInfo[]> {
         if (this._meshClient) {
-            const { rejected } = await this._meshClient.addOrdersAsync(signedOrders, pinned);
+            const { rejected, accepted } = await this._meshClient.addOrdersAsync(signedOrders, pinned);
             if (rejected.length !== 0) {
                 const validationErrors = rejected.map((r, i) => ({
                     field: `signedOrder[${i}]`,
@@ -174,11 +240,8 @@ export class OrderBookService {
                 throw new ValidationError(validationErrors);
             }
             // Order Watcher Service will handle persistence
-            return;
+            return accepted;
         }
         throw new Error('Could not add order to mesh.');
-    }
-    public async splitOrdersByPinningAsync(signedOrders: SignedOrder[]): Promise<PinResult> {
-        return orderUtils.splitOrdersByPinningAsync(this._connection, signedOrders);
     }
 }

@@ -1,21 +1,21 @@
 import { ConnectionOptions } from 'typeorm';
 
 import { POSTGRES_READ_REPLICA_URIS, POSTGRES_URI } from './config';
-import { KeyValueEntity, SignedOrderEntity, TransactionEntity } from './entities';
+import { KeyValueEntity, PersistentSignedOrderEntity, SignedOrderEntity, TransactionEntity } from './entities';
 
-const entities = [SignedOrderEntity, TransactionEntity, KeyValueEntity];
+const entities = [SignedOrderEntity, PersistentSignedOrderEntity, TransactionEntity, KeyValueEntity];
 
-export const config: ConnectionOptions = {
+const config: ConnectionOptions = {
     type: 'postgres',
     entities,
-    // Disable synchronization in production
-    synchronize: process.env.NODE_ENV ? process.env.NODE_ENV === 'test' : false,
+    synchronize: false,
     logging: true,
     logger: 'debug',
     extra: {
         max: 15,
         statement_timeout: 10000,
     },
+    migrations: ['./lib/migrations/*.js'],
     ...(POSTGRES_READ_REPLICA_URIS
         ? {
               replication: {
@@ -25,3 +25,4 @@ export const config: ConnectionOptions = {
           }
         : { url: POSTGRES_URI }),
 };
+module.exports = config;

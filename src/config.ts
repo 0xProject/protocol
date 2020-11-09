@@ -204,6 +204,16 @@ export const RFQT_MAKER_ASSET_OFFERINGS: RfqtMakerAssetOfferings = _.isEmpty(pro
 // tslint:disable-next-line:boolean-naming
 export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
 
+// Whitelisted 0x API keys that can post orders to the SRA and have them persist indefinitely
+export const SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS: string[] =
+    process.env.SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS === undefined
+        ? []
+        : assertEnvVarType(
+              'SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS',
+              process.env.SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS,
+              EnvVarType.APIKeys,
+          );
+
 // Whitelisted 0x API keys that can use the meta-txn /submit endpoint
 export const META_TXN_SUBMIT_WHITELISTED_API_KEYS: string[] =
     process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS === undefined

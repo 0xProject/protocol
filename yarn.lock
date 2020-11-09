@@ -127,7 +127,6 @@
 "@0x/contract-addresses@^5.2.0":
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-5.2.0.tgz#489f3411784e2500fd06114da9bc809be3244970"
-  integrity sha512-zUxkUveIxZaFJhazgT8cIwselKIdx2iKV23Jsf28ZMUctL5OkZbGCnT9sLINyvKiFN552yyoNWOMNVLaJm+0vQ==
 
 "@0x/contract-wrappers@^13.8.0":
   version "13.8.0"
@@ -404,7 +403,16 @@
     jsonschema "^1.2.0"
     lodash.values "^4.3.0"
 
-"@0x/json-schemas@^5.0.4", "@0x/json-schemas@^5.2.3", "@0x/json-schemas@^5.3.3":
+"@0x/json-schemas@^5.0.7", "@0x/json-schemas@^5.1.0":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-5.2.3.tgz#22125f36fb23ffe757009feb2329aaca88bce982"
+  dependencies:
+    "@0x/typescript-typings" "^5.1.5"
+    "@types/node" "12.12.54"
+    jsonschema "^1.2.0"
+    lodash.values "^4.3.0"
+
+"@0x/json-schemas@^5.2.3", "@0x/json-schemas@^5.3.3":
   version "5.3.3"
   resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-5.3.3.tgz#4b9de100385ca23b0cd58a454165df2e9758e453"
   dependencies:
@@ -413,9 +421,9 @@
     jsonschema "^1.2.0"
     lodash.values "^4.3.0"
 
-"@0x/json-schemas@^5.0.7", "@0x/json-schemas@^5.1.0":
-  version "5.2.3"
-  resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-5.2.3.tgz#22125f36fb23ffe757009feb2329aaca88bce982"
+"@0x/json-schemas@^5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-5.3.1.tgz#61741de5f1a12b033b1872629660905c5fe726e0"
   dependencies:
     "@0x/typescript-typings" "^5.1.5"
     "@types/node" "12.12.54"

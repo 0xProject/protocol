@@ -1,6 +1,6 @@
-import { Connection, createConnection } from 'typeorm';
+import { Connection, ConnectionOptions, createConnection } from 'typeorm';
 
-import { config } from './ormconfig';
+import * as config from './ormconfig';
 
 let connection: Connection;
 
@@ -9,7 +9,7 @@ let connection: Connection;
  */
 export async function getDBConnectionAsync(): Promise<Connection> {
     if (!connection) {
-        connection = await createConnection(config);
+        connection = await createConnection((config as any) as ConnectionOptions);
     }
     return connection;
 }

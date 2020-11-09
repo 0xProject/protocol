@@ -148,6 +148,7 @@ export enum ValidationErrorReasons {
     InvalidApiKey = 'INVALID_API_KEY',
     TakerAddressInvalid = 'TAKER_ADDRESS_INVALID',
     RequiresIntentOnFilling = 'REQUIRES_INTENT_ON_FILLING',
+    UnfillableRequiresMakerAddress = 'MAKER_ADDRESS_REQUIRED_TO_FETCH_UNFILLABLE_ORDERS',
 }
 export abstract class AlertError {
     public abstract message: string;

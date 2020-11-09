@@ -10,7 +10,7 @@ import {
 import { ZERO } from '../constants';
 import { ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { AddedRemovedUpdate, APIOrderWithMetaData } from '../types';
+import { APIOrderWithMetaData, OrdersByLifecycleEvents } from '../types';
 
 import { orderUtils } from './order_utils';
 
@@ -32,8 +32,25 @@ export const meshUtils = {
             metaData: {
                 orderHash: orderEvent.orderHash,
                 remainingFillableTakerAssetAmount,
+                state:
+                    (orderEvent as OrderEvent).endState ||
+                    meshUtils.rejectedCodeToOrderState((orderEvent as RejectedOrderInfo).status.code),
             },
         };
+    },
+    rejectedCodeToOrderState: (code: RejectedCode): OrderEventEndState | undefined => {
+        switch (code) {
+            case RejectedCode.OrderCancelled:
+                return OrderEventEndState.Cancelled;
+            case RejectedCode.OrderExpired:
+                return OrderEventEndState.Expired;
+            case RejectedCode.OrderUnfunded:
+                return OrderEventEndState.Unfunded;
+            case RejectedCode.OrderFullyFilled:
+                return OrderEventEndState.FullyFilled;
+            default:
+                return undefined;
+        }
     },
     rejectedCodeToSRACode: (code: RejectedCode): ValidationErrorCodes => {
         switch (code) {
@@ -57,10 +74,11 @@ export const meshUtils = {
                 return ValidationErrorCodes.InternalError;
         }
     },
-    calculateAddedRemovedUpdated: (orderEvents: OrderEvent[]): AddedRemovedUpdate => {
+    calculateOrderLifecycle: (orderEvents: OrderEvent[]): OrdersByLifecycleEvents => {
         const added: APIOrderWithMetaData[] = [];
         const removed: APIOrderWithMetaData[] = [];
         const updated: APIOrderWithMetaData[] = [];
+        const persistentUpdated: APIOrderWithMetaData[] = [];
         for (const event of orderEvents) {
             const apiOrder = meshUtils.orderInfoToAPIOrder(event);
             switch (event.endState) {
@@ -75,12 +93,14 @@ export const meshUtils = {
                 case OrderEventEndState.StoppedWatching:
                 case OrderEventEndState.Unfunded: {
                     removed.push(apiOrder);
+                    persistentUpdated.push(apiOrder);
                     break;
                 }
                 case OrderEventEndState.Unexpired:
                 case OrderEventEndState.FillabilityIncreased:
                 case OrderEventEndState.Filled: {
                     updated.push(apiOrder);
+                    persistentUpdated.push(apiOrder);
                     break;
                 }
                 default:
@@ -88,6 +108,6 @@ export const meshUtils = {
                     break;
             }
         }
-        return { added, removed, updated };
+        return { added, removed, updated, persistentUpdated };
     },
 };

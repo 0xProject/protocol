@@ -3,10 +3,17 @@ import { assetDataUtils, SignedOrder } from '@0x/order-utils';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
+import * as isValidUUID from 'uuid-validate';
 
 import { FEE_RECIPIENT_ADDRESS, WHITELISTED_TOKENS } from '../config';
 import { SRA_DOCS_URL } from '../constants';
-import { NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
+import {
+    GeneralErrorCodes,
+    generalErrorCodeToReason,
+    NotFoundError,
+    ValidationError,
+    ValidationErrorCodes,
+} from '../errors';
 import { schemas as apiSchemas } from '../schemas/schemas';
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
@@ -56,7 +63,7 @@ export class SRAHandlers {
         }
     }
     public async ordersAsync(req: express.Request, res: express.Response): Promise<void> {
-        schemaUtils.validateSchema(req.query, schemas.ordersRequestOptsSchema);
+        schemaUtils.validateSchema(req.query, apiSchemas.sraGetOrdersRequestSchema);
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const paginatedOrders = await this._orderBook.getOrdersAsync(page, perPage, req.query);
         res.status(HttpStatus.OK).send(paginatedOrders);
@@ -97,6 +104,26 @@ export class SRAHandlers {
             this._orderBook.addOrdersAsync(pinResult.pin, true),
             this._orderBook.addOrdersAsync(pinResult.doNotPin, false),
         ]);
+        res.status(HttpStatus.OK).send();
+    }
+
+    public async postPersistentOrderAsync(req: express.Request, res: express.Response): Promise<void> {
+        const apiKey = req.header('0x-api-key');
+        if (apiKey === undefined || !isValidUUID(apiKey) || !OrderBookService.isAllowedPersistentOrders(apiKey)) {
+            res.status(HttpStatus.BAD_REQUEST).send({
+                code: GeneralErrorCodes.InvalidAPIKey,
+                reason: generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey],
+            });
+            return;
+        }
+        schemaUtils.validateSchema(req.body, apiSchemas.sraPostOrderRequestSchema);
+        const signedOrder = unmarshallOrder(req.body);
+        if (WHITELISTED_TOKENS !== '*') {
+            const allowedTokens: string[] = WHITELISTED_TOKENS;
+            validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.makerAssetData, 'makerAssetData');
+            validateAssetDataIsWhitelistedOrThrow(allowedTokens, signedOrder.takerAssetData, 'takerAssetData');
+        }
+        await this._orderBook.addPersistentOrdersAsync([signedOrder], false);
         res.status(HttpStatus.OK).send();
     }
 }
