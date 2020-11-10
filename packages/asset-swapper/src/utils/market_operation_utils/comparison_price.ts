@@ -35,8 +35,6 @@ export function getComparisonPrices(
 ): ComparisonPrice {
     let wholeOrder: BigNumber | undefined;
 
-    const x = optimizerResult.liquidityDelivered;
-
     let fillArray: FillInfo[];
     // tslint:disable-next-line:prefer-conditional-expression
     if (Array.isArray(optimizerResult.liquidityDelivered)) {
