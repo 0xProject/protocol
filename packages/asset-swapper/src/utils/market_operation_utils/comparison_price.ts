@@ -21,8 +21,9 @@ export interface FillInfo {
 }
 
 /**
- * Takes in an optimizer response and returns a price for RFQ MMs to beat
- * returns the price of the maker asset in terms of the maker asset
+ * Takes in an optimizer response and returns a price for RFQT MMs to beat
+ * returns the price of the taker asset in terms of the maker asset
+ * So the RFQT MM should aim for a higher price
  * @param optimizerResult the output of the optimizer, contains the best orders
  * @param amount the amount specified by the client
  * @param marketSideLiquidity the results from querying liquidity sources
@@ -54,6 +55,7 @@ export function getComparisonPrices(
     let optimalMakerAmount = new BigNumber(0);
     let optimalTakerAmount = new BigNumber(0);
 
+    // account for backup orders by walking up to the amount requested by the taker
     for (const fill of takerSortedFills) {
         if (marketSideLiquidity.side === MarketOperation.Buy) {
             const amountConsumed = BigNumber.min(fill.makerAmount, remainingAmount);
@@ -72,16 +74,16 @@ export function getComparisonPrices(
     }
 
     if (optimalMakerAmount.gt(0)) {
-        const totalMakerAmountUnitAmount = Web3Wrapper.toUnitAmount(
+        const optimalMakerUnitAmount = Web3Wrapper.toUnitAmount(
             optimalMakerAmount,
             marketSideLiquidity.makerTokenDecimals,
         );
-        const totalTakerAmountUnitAmount = Web3Wrapper.toUnitAmount(
+        const optimalTakerUnitAmount = Web3Wrapper.toUnitAmount(
             optimalTakerAmount,
             marketSideLiquidity.takerTokenDecimals,
         );
-        wholeOrder = totalMakerAmountUnitAmount
-            .div(totalTakerAmountUnitAmount)
+        wholeOrder = optimalMakerUnitAmount
+            .div(optimalTakerUnitAmount)
             .decimalPlaces(COMPARISON_PRICE_DECIMALS);
     }
 
@@ -98,6 +100,8 @@ function _collapsedFillToFillInfo(collapsedFill: CollapsedFill, marketOperation:
             makerAmount: possibleNativeCollapsedFill.fillData.order.fillableMakerAssetAmount,
             takerAmount: possibleNativeCollapsedFill.fillData.order.fillableTakerAssetAmount,
         };
+    // input and output map to different values
+    // based on the market operation
     } else if (marketOperation === MarketOperation.Buy) {
         return {
             makerAmount: collapsedFill.input,
