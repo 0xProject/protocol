@@ -147,6 +147,7 @@ export {
     GetMarketOrdersRfqtOpts,
     KyberFillData,
     LiquidityProviderFillData,
+    LiquidityProviderRegistry,
     MarketDepth,
     MarketDepthSide,
     MooniswapFillData,

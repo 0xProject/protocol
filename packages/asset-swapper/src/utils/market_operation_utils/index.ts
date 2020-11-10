@@ -175,14 +175,12 @@ export class MarketOperationUtils {
                 makerToken,
                 takerToken,
                 sampleAmounts,
-                this._wethAddress,
             ),
             this._sampler.getTwoHopSellQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
                 takerToken,
                 takerAmount,
-                this._wethAddress,
             ),
         );
 
@@ -307,14 +305,12 @@ export class MarketOperationUtils {
                 makerToken,
                 takerToken,
                 sampleAmounts,
-                this._wethAddress,
             ),
             this._sampler.getTwoHopBuyQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
                 takerToken,
                 makerAmount,
-                this._wethAddress,
             ),
         );
         const isPriceAwareRfqEnabled =
@@ -439,7 +435,6 @@ export class MarketOperationUtils {
                     getNativeOrderTokens(orders[0])[0],
                     getNativeOrderTokens(orders[0])[1],
                     [makerAmounts[i]],
-                    this._wethAddress,
                 ),
             ),
         ];

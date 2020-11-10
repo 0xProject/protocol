@@ -36,7 +36,7 @@ describe('DexSampler tests', () => {
     const wethAddress = getContractAddressesForChainOrThrow(CHAIN_ID).etherToken;
     const exchangeAddress = getContractAddressesForChainOrThrow(CHAIN_ID).exchange;
 
-    const tokenAdjacencyGraph: TokenAdjacencyGraph = {};
+    const tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [wethAddress] };
 
     describe('getSampleAmounts()', () => {
         const FILL_AMOUNT = getRandomInteger(1, 1e18);
@@ -184,7 +184,6 @@ describe('DexSampler tests', () => {
                     expectedMakerToken,
                     expectedTakerToken,
                     [toBaseUnitAmount(1000)],
-                    wethAddress,
                 ),
             );
             expect(result).to.deep.equal([
@@ -227,7 +226,6 @@ describe('DexSampler tests', () => {
                     expectedMakerToken,
                     expectedTakerToken,
                     [toBaseUnitAmount(1000)],
-                    wethAddress,
                 ),
             );
             expect(result).to.deep.equal([
@@ -399,7 +397,6 @@ describe('DexSampler tests', () => {
                     expectedMakerToken,
                     expectedTakerToken,
                     expectedTakerFillAmounts,
-                    wethAddress,
                 ),
             );
             const expectedQuotes = sources.map(s =>
@@ -546,13 +543,7 @@ describe('DexSampler tests', () => {
                 tokenAdjacencyGraph,
             );
             const [quotes] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getBuyQuotes(
-                    sources,
-                    expectedMakerToken,
-                    expectedTakerToken,
-                    expectedMakerFillAmounts,
-                    wethAddress,
-                ),
+                dexOrderSampler.getBuyQuotes(sources, expectedMakerToken, expectedTakerToken, expectedMakerFillAmounts),
             );
             const expectedQuotes = sources.map(s =>
                 expectedMakerFillAmounts.map(a => ({

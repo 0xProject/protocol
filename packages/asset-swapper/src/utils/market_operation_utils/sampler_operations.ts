@@ -7,13 +7,7 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BalancerPoolsCache, computeBalancerBuyQuote, computeBalancerSellQuote } from './balancer_utils';
 import { BancorService } from './bancor_service';
-import {
-    LIQUIDITY_PROVIDER_REGISTRY,
-    MAINNET_SUSHI_SWAP_ROUTER,
-    MAX_UINT256,
-    NULL_ADDRESS,
-    ZERO_AMOUNT,
-} from './constants';
+import { LIQUIDITY_PROVIDER_REGISTRY, MAINNET_SUSHI_SWAP_ROUTER, MAX_UINT256, ZERO_AMOUNT } from './constants';
 import { CreamPoolsCache } from './cream_utils';
 import { getCurveInfosForPair, getSnowSwapInfosForPair, getSwerveInfosForPair } from './curve_utils';
 import { getKyberReserveIdsForPair } from './kyber_utils';
@@ -85,7 +79,7 @@ export class SamplerOperations {
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
         protected readonly getBancorServiceFn?: () => BancorService, // for dependency injection in tests
-        protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = {},
+        protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
     ) {}
 
@@ -644,28 +638,15 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         sellAmount: BigNumber,
-        wethAddress: string,
     ): BatchedOperation<Array<DexSample<MultiHopFillData>>> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
         if (_sources.length === 0) {
             return SamplerOperations.constant([]);
         }
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph, wethAddress);
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
         const subOps = intermediateTokens.map(intermediateToken => {
-            const firstHopOps = this._getSellQuoteOperations(
-                _sources,
-                intermediateToken,
-                takerToken,
-                [ZERO_AMOUNT],
-                wethAddress,
-            );
-            const secondHopOps = this._getSellQuoteOperations(
-                _sources,
-                makerToken,
-                intermediateToken,
-                [ZERO_AMOUNT],
-                wethAddress,
-            );
+            const firstHopOps = this._getSellQuoteOperations(_sources, intermediateToken, takerToken, [ZERO_AMOUNT]);
+            const secondHopOps = this._getSellQuoteOperations(_sources, makerToken, intermediateToken, [ZERO_AMOUNT]);
             return new SamplerContractOperation({
                 contract: this._samplerContract,
                 source: ERC20BridgeSource.MultiHop,
@@ -716,28 +697,19 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         buyAmount: BigNumber,
-        wethAddress: string,
     ): BatchedOperation<Array<DexSample<MultiHopFillData>>> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
         if (_sources.length === 0) {
             return SamplerOperations.constant([]);
         }
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph, wethAddress);
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
         const subOps = intermediateTokens.map(intermediateToken => {
-            const firstHopOps = this._getBuyQuoteOperations(
-                _sources,
-                intermediateToken,
-                takerToken,
-                [new BigNumber(0)],
-                wethAddress,
-            );
-            const secondHopOps = this._getBuyQuoteOperations(
-                _sources,
-                makerToken,
-                intermediateToken,
-                [new BigNumber(0)],
-                wethAddress,
-            );
+            const firstHopOps = this._getBuyQuoteOperations(_sources, intermediateToken, takerToken, [
+                new BigNumber(0),
+            ]);
+            const secondHopOps = this._getBuyQuoteOperations(_sources, makerToken, intermediateToken, [
+                new BigNumber(0),
+            ]);
             return new SamplerContractOperation({
                 contract: this._samplerContract,
                 source: ERC20BridgeSource.MultiHop,
@@ -816,17 +788,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<ShellFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Shell,
+            fillData: { poolAddress },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromShell,
             params: [poolAddress, takerToken, makerToken, takerFillAmounts],
-            callback: (callResults: string, fillData: ShellFillData): BigNumber[] => {
-                const samples = this._samplerContract.getABIDecodedReturnData<BigNumber[]>(
-                    'sampleSellsFromShell',
-                    callResults,
-                );
-                fillData.poolAddress = poolAddress;
-                return samples;
-            },
         });
     }
 
@@ -838,17 +803,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Shell,
+            fillData: { poolAddress },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromShell,
             params: [poolAddress, takerToken, makerToken, makerFillAmounts],
-            callback: (callResults: string, fillData: ShellFillData): BigNumber[] => {
-                const samples = this._samplerContract.getABIDecodedReturnData<BigNumber[]>(
-                    'sampleBuysFromShell',
-                    callResults,
-                );
-                fillData.poolAddress = poolAddress;
-                return samples;
-            },
         });
     }
 
@@ -903,14 +861,9 @@ export class SamplerOperations {
         if (makerToken.toLowerCase() === takerToken.toLowerCase()) {
             return SamplerOperations.constant(new BigNumber(1));
         }
-        const subOps = this._getSellQuoteOperations(
-            sources,
-            makerToken,
-            takerToken,
-            [takerFillAmount],
-            NULL_ADDRESS,
-            {},
-        );
+        const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, [takerFillAmount], {
+            default: [],
+        });
         return {
             encodeCall: () => {
                 const subCalls = subOps.map(op => op.encodeCall());
@@ -943,9 +896,8 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-        wethAddress: string,
     ): BatchedOperation<DexSample[][]> {
-        const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, takerFillAmounts, wethAddress);
+        const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, takerFillAmounts);
         return {
             encodeCall: () => {
                 const subCalls = subOps.map(op => op.encodeCall());
@@ -974,9 +926,8 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
-        wethAddress: string,
     ): BatchedOperation<DexSample[][]> {
-        const subOps = this._getBuyQuoteOperations(sources, makerToken, takerToken, makerFillAmounts, wethAddress);
+        const subOps = this._getBuyQuoteOperations(sources, makerToken, takerToken, makerFillAmounts);
         return {
             encodeCall: () => {
                 const subCalls = subOps.map(op => op.encodeCall());
@@ -1005,12 +956,11 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-        wethAddress: string,
         tokenAdjacencyGraph: TokenAdjacencyGraph = this.tokenAdjacencyGraph,
     ): SourceQuoteOperation[] {
         // Find the adjacent tokens in the provided tooken adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph, wethAddress);
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph);
         const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
         return _.flatten(
             _sources.map(
@@ -1120,11 +1070,10 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
-        wethAddress: string,
     ): SourceQuoteOperation[] {
         // Find the adjacent tokens in the provided tooken adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph, wethAddress);
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
         const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
         return _.flatten(
             _sources.map(

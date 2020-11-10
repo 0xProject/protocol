@@ -67,7 +67,7 @@ const DEFAULT_EXCLUDED = [
 ];
 const BUY_SOURCES = BUY_SOURCE_FILTER.sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
-const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = {};
+const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = { default: [] };
 const PRICE_AWARE_RFQ_ENABLED: PriceAwareRFQFlags = {
     isFirmPriceAwareEnabled: true,
     isIndicativePriceAwareEnabled: true,

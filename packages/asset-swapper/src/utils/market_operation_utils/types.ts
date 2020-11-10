@@ -371,6 +371,7 @@ export interface MarketSideLiquidity {
 
 export interface TokenAdjacencyGraph {
     [token: string]: string[];
+    default: string[];
 }
 
 export interface LiquidityProviderRegistry {
