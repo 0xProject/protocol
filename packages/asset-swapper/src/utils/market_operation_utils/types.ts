@@ -387,3 +387,7 @@ export interface GenerateOptimizedOrdersOpts {
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;
 }
+
+export interface ComparisonPrice {
+    wholeOrder: BigNumber | undefined;
+}
