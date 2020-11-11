@@ -173,8 +173,10 @@ blockchainTests.resets('ProtocolFees', env => {
         it('can collect a protocol fee multiple times', async () => {
             const poolId = hexUtils.random();
 
-            // Transfer one fee via WETH.
-            await protocolFees.collectProtocolFee(poolId, taker).awaitTransactionSuccessAsync();
+            // Transfer one fee via ETH.
+            await protocolFees
+                .collectProtocolFee(poolId, taker)
+                .awaitTransactionSuccessAsync({ from: taker, value: singleFeeAmount });
 
             // Send to staking contract.
             await protocolFees.transferFeesForPool(poolId).awaitTransactionSuccessAsync();

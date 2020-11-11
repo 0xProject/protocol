@@ -49,43 +49,27 @@ abstract contract FixinProtocolFees {
         PROTOCOL_FEE_MULTIPLIER = protocolFeeMultiplier;
     }
 
-    /// @dev   Collect the specified protocol fee in either WETH or ETH. If
-    ///        msg.value is non-zero, the fee will be paid in ETH. Otherwise,
-    ///        this function attempts to transfer the fee in WETH. Either way,
+    /// @dev   Collect the specified protocol fee in ETH.
     ///        The fee is stored in a per-pool fee collector contract.
     /// @param poolId The pool ID for which a fee is being collected.
     /// @param payer The address paying for WETH protocol fees.
     /// @return ethProtocolFeePaid How much protocol fee was collected in ETH.
-    /// @return wethProtocolFeePaid How much protocol fee was collected in WETH.
     function _collectProtocolFee(
         bytes32 poolId,
         address payer
     )
         internal
-        returns (uint256 ethProtocolFeePaid, uint256 wethProtocolFeePaid)
+        returns (uint256 ethProtocolFeePaid)
     {
         uint256 protocolFeePaid = _getSingleProtocolFee();
         if (protocolFeePaid == 0) {
             // Nothing to do.
-            return (ethProtocolFeePaid, wethProtocolFeePaid);
+            return 0;
         }
-
         FeeCollector feeCollector = _getFeeCollector(poolId);
-        if (msg.value < protocolFeePaid) {
-            // WETH
-            LibTokenSpender.spendERC20Tokens(
-                WETH,
-                payer,
-                address(feeCollector),
-                protocolFeePaid
-            );
-            wethProtocolFeePaid = protocolFeePaid;
-        } else {
-            // ETH
-            (bool success,) = address(feeCollector).call{value: protocolFeePaid}("");
-            require(success, "FixinProtocolFees/ETHER_TRANSFER_FALIED");
-            ethProtocolFeePaid = protocolFeePaid;
-        }
+        (bool success,) = address(feeCollector).call{value: protocolFeePaid}("");
+        require(success, "FixinProtocolFees/ETHER_TRANSFER_FALIED");
+        return protocolFeePaid;
     }
 
     /// @dev Transfer fees for a given pool to the staking contract.

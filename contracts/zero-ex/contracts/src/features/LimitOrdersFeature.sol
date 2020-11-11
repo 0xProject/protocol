@@ -675,7 +675,7 @@ contract LimitOrdersFeature is
         }
 
         // Pay the protocol fee.
-        (ethProtocolFeePaid, ) = _collectProtocolFee(params.order.pool, params.taker);
+        ethProtocolFeePaid = _collectProtocolFee(params.order.pool, params.taker);
 
         // Settle between the maker and taker.
         (takerTokenFilledAmount, makerTokenFilledAmount) = _settleOrder(
@@ -773,7 +773,7 @@ contract LimitOrdersFeature is
         }
 
         // Pay the protocol fee.
-        (ethProtocolFeePaid, ) = _collectProtocolFee(order.pool, taker);
+        ethProtocolFeePaid = _collectProtocolFee(order.pool, taker);
 
         // Settle between the maker and taker.
         (takerTokenFilledAmount, makerTokenFilledAmount) = _settleOrder(
