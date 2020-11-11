@@ -6,7 +6,6 @@ import { MeshOrderProviderOpts, Orderbook, SRAPollingOrderProviderOpts } from '@
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
-
 import { artifacts } from './artifacts';
 import { BRIDGE_ADDRESSES_BY_CHAIN, constants } from './constants';
 import {
@@ -494,6 +493,8 @@ export class SwapQuoter {
         return {
             bids: getMarketDepthSide(bids),
             asks: getMarketDepthSide(asks),
+            makerTokenDecimals: asks.makerTokenDecimals,
+            takerTokenDecimals: asks.takerTokenDecimals,
         };
     }
 

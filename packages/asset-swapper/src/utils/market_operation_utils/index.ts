@@ -4,7 +4,7 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { AssetSwapperContractAddresses, MarketOperation, Omit } from '../../types';
+import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
 import { getPriceAwareRFQRolloutFlags } from '../utils';
 
@@ -38,7 +38,6 @@ import {
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
-    OptimizedMarketOrder,
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
@@ -461,7 +460,7 @@ export class MarketOperationUtils {
         batchNativeOrders: SignedOrder[][],
         makerAmounts: BigNumber[],
         opts?: Partial<GetMarketOrdersOpts>,
-    ): Promise<Array<OptimizedMarketOrder[] | undefined>> {
+    ): Promise<Array<OptimizerResult | undefined>> {
         if (batchNativeOrders.length === 0) {
             throw new Error(AggregationError.EmptyOrders);
         }
@@ -495,12 +494,16 @@ export class MarketOperationUtils {
                     _opts.tokenAdjacencyGraph,
                 ),
             ),
+            ...batchNativeOrders.map(orders =>
+                this._sampler.getTokenDecimals(getNativeOrderTokens(orders[0])[0], getNativeOrderTokens(orders[0])[1]),
+            ),
         ];
 
         const executeResults = await this._sampler.executeBatchAsync(ops);
         const batchOrderFillableAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
         const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
         const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
+        const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
         const ethToInputRate = ZERO_AMOUNT;
 
         return Promise.all(
@@ -514,7 +517,7 @@ export class MarketOperationUtils {
                 const dexQuotes = batchDexQuotes[i];
                 const makerAmount = makerAmounts[i];
                 try {
-                    const { optimizedOrders } = await this._generateOptimizedOrdersAsync(
+                    const optimizerResult = await this._generateOptimizedOrdersAsync(
                         {
                             side: MarketOperation.Buy,
                             nativeOrders,
@@ -528,6 +531,8 @@ export class MarketOperationUtils {
                             outputToken: takerToken,
                             twoHopQuotes: [],
                             quoteSourceFilters,
+                            makerTokenDecimals: batchTokenDecimals[i][0],
+                            takerTokenDecimals: batchTokenDecimals[i][1],
                         },
                         {
                             bridgeSlippage: _opts.bridgeSlippage,
@@ -537,7 +542,7 @@ export class MarketOperationUtils {
                             allowFallback: _opts.allowFallback,
                         },
                     );
-                    return optimizedOrders;
+                    return optimizerResult;
                 } catch (e) {
                     // It's possible for one of the pairs to have no path
                     // rather than throw NO_OPTIMAL_PATH we return undefined
@@ -548,7 +553,7 @@ export class MarketOperationUtils {
     }
 
     public async _generateOptimizedOrdersAsync(
-        marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
+        marketSideLiquidity: MarketSideLiquidity,
         opts: GenerateOptimizedOrdersOpts,
     ): Promise<OptimizerResult> {
         const {
@@ -611,6 +616,7 @@ export class MarketOperationUtils {
                 optimizedOrders: twoHopOrders,
                 liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
+                marketSideLiquidity,
             };
         }
 
@@ -640,6 +646,7 @@ export class MarketOperationUtils {
             optimizedOrders: collapsedPath.orders,
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
+            marketSideLiquidity,
         };
     }
 
@@ -664,7 +671,7 @@ export class MarketOperationUtils {
             side === MarketOperation.Sell
                 ? this.getMarketSellLiquidityAsync.bind(this)
                 : this.getMarketBuyLiquidityAsync.bind(this);
-        const marketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
+        const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
         let optimizerResult: OptimizerResult | undefined;
         try {
             optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);

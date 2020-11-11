@@ -182,6 +182,8 @@ export interface SwapQuoteBase {
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
     isTwoHop: boolean;
+    makerTokenDecimals: number;
+    takerTokenDecimals: number;
 }
 
 /**
