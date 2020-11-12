@@ -370,7 +370,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
-            expect(status).to.eq(OrderStatus.Cancelled); // Still reports filled.
+            expect(status).to.eq(OrderStatus.Cancelled);
         });
 
         it('can cancel an expired order', async () => {
@@ -696,15 +696,16 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         takerTokenFillAmount: BigNumber = order.takerAmount,
         takerTokenAlreadyFilledAmount: BigNumber = ZERO_AMOUNT,
     ): object {
-        const { makerTokenFilledAmount, takerTokenFilledAmount } = computeLimitOrderFilledAmounts(
-            order,
-            takerTokenFillAmount,
-            takerTokenAlreadyFilledAmount,
-        );
+        const {
+            makerTokenFilledAmount,
+            takerTokenFilledAmount,
+            takerTokenFeeFilledAmount,
+        } = computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
         return {
             taker,
             takerTokenFilledAmount,
             makerTokenFilledAmount,
+            takerTokenFeeFilledAmount,
             orderHash: order.getHash(),
             maker: order.maker,
             feeRecipient: order.feeRecipient,

@@ -4,7 +4,7 @@ import { AuthorizableRevertErrors, BigNumber, hexUtils } from '@0x/utils';
 import { artifacts } from './artifacts';
 import { FeeCollectorContract, TestFixinProtocolFeesContract, TestStakingContract, TestWethContract } from './wrappers';
 
-blockchainTests.resets.only('ProtocolFees', env => {
+blockchainTests.resets('ProtocolFees', env => {
     const FEE_MULTIPLIER = 70e3;
     let taker: string;
     let unauthorized: string;

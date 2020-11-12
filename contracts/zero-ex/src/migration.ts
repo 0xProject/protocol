@@ -1,6 +1,6 @@
 import { SupportedProvider } from '@0x/subproviders';
 import { SimpleContractArtifact } from '@0x/types';
-import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { NULL_ADDRESS } from '@0x/utils';
 import { TxData } from 'ethereum-types';
 import * as _ from 'lodash';
 
@@ -132,7 +132,7 @@ export interface FullFeaturesDeployConfig {
     zeroExAddress: string;
     wethAddress: string;
     stakingAddress: string;
-    protocolFeeMultiplier: number | BigNumber;
+    protocolFeeMultiplier: number;
 }
 
 /**

@@ -128,6 +128,7 @@ function parseRpcSignature(rpcSig: string): ECSignature {
         };
     }
     // Format should be V,R,S
+    v = parseInt(rpcSig.slice(2, 4), 16);
     if (!VALID_V_VALUES.includes(v)) {
         throw new Error(`Cannot determine RPC signature layout from V value: "${rpcSig}"`);
     }

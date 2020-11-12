@@ -44,6 +44,7 @@ interface ILimitOrdersFeature {
         address takerToken,
         uint128 takerTokenFilledAmount,
         uint128 makerTokenFilledAmount,
+        uint128 takerTokenFeeFilledAmount,
         bytes32 pool
     );
 
@@ -116,7 +117,7 @@ interface ILimitOrdersFeature {
     )
         external
         payable
-        returns (uint256 takerTokenFilledAmount, uint256 makerTokenFilledAmount);
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller. ETH protocol fees can be
@@ -133,7 +134,7 @@ interface ILimitOrdersFeature {
     )
         external
         payable
-        returns (uint256 makerTokenFilledAmount);
+        returns (uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller. ETH protocol fees can be
@@ -150,7 +151,7 @@ interface ILimitOrdersFeature {
     )
         external
         payable
-        returns (uint256 makerTokenFilledAmount);
+        returns (uint128 makerTokenFilledAmount);
 
     /// @dev Fill a limit order. Internal variant. ETH protocol fees can be
     ///      attached to this call. Any unspent ETH will be refunded to

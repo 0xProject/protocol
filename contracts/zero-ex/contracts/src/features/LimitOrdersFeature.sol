@@ -179,7 +179,7 @@ contract LimitOrdersFeature is
         public
         override
         payable
-        returns (uint256 takerTokenFilledAmount, uint256 makerTokenFilledAmount)
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         uint256 ethProtocolFeePaid;
         (ethProtocolFeePaid, takerTokenFilledAmount, makerTokenFilledAmount) =
@@ -208,7 +208,7 @@ contract LimitOrdersFeature is
         public
         override
         payable
-        returns (uint256 makerTokenFilledAmount)
+        returns (uint128 makerTokenFilledAmount)
     {
         uint256 ethProtocolFeePaid;
         uint256 takerTokenFilledAmount;
@@ -221,7 +221,7 @@ contract LimitOrdersFeature is
                 sender: msg.sender
             }));
         // Must have filled exactly the amount requested.
-        if (takerTokenFilledAmount != takerTokenFillAmount) {
+        if (takerTokenFilledAmount < takerTokenFillAmount) {
             LibLimitOrdersRichErrors.FillOrKillFailedError(
                 getLimitOrderHash(order),
                 takerTokenFilledAmount,
@@ -247,7 +247,7 @@ contract LimitOrdersFeature is
         public
         override
         payable
-        returns (uint256 makerTokenFilledAmount)
+        returns (uint128 makerTokenFilledAmount)
     {
         uint256 ethProtocolFeePaid;
         uint256 takerTokenFilledAmount;
@@ -259,7 +259,7 @@ contract LimitOrdersFeature is
                 msg.sender
             );
         // Must have filled exactly the amount requested.
-        if (takerTokenFilledAmount != takerTokenFillAmount) {
+        if (takerTokenFilledAmount < takerTokenFillAmount) {
             LibLimitOrdersRichErrors.FillOrKillFailedError(
                 getRfqOrderHash(order),
                 takerTokenFilledAmount,
@@ -612,8 +612,7 @@ contract LimitOrdersFeature is
             LibLimitOrdersStorage.getStorage();
         // Set the high bit on the raw taker token fill amount to indicate
         // a cancel. It's OK to cancel twice.
-        stor.orderHashToTakerTokenFilledAmount[orderHash] =
-            stor.orderHashToTakerTokenFilledAmount[orderHash] | HIGH_BIT;
+        stor.orderHashToTakerTokenFilledAmount[orderHash] |= HIGH_BIT;
 
         emit OrderCancelled(orderHash);
     }
@@ -645,7 +644,7 @@ contract LimitOrdersFeature is
         if (params.order.taker != address(0) && params.order.taker != params.taker) {
             LibLimitOrdersRichErrors.OrderNotFillableByTakerError(
                 orderInfo.orderHash,
-                msg.sender,
+                params.taker,
                 params.order.taker
             ).rrevert();
         }
@@ -654,7 +653,7 @@ contract LimitOrdersFeature is
         if (params.order.sender != address(0) && params.order.sender != params.sender) {
             LibLimitOrdersRichErrors.OrderNotFillableBySenderError(
                 orderInfo.orderHash,
-                msg.sender,
+                params.sender,
                 params.order.sender
             ).rrevert();
         }
@@ -693,17 +692,18 @@ contract LimitOrdersFeature is
         );
 
         // Pay the fee recipient.
+        uint128 takerTokenFeeFilledAmount;
         if (params.order.takerTokenFeeAmount > 0) {
-            uint256 feeAmount = LibMathV06.getPartialAmountFloor(
+            takerTokenFeeFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
                 takerTokenFilledAmount,
                 params.order.takerAmount,
                 params.order.takerTokenFeeAmount
-            );
+            ));
             LibTokenSpender.spendERC20Tokens(
                 params.order.takerToken,
                 params.taker,
                 params.order.feeRecipient,
-                feeAmount
+                uint256(takerTokenFeeFilledAmount)
             );
         }
 
@@ -716,6 +716,7 @@ contract LimitOrdersFeature is
             address(params.order.takerToken),
             takerTokenFilledAmount,
             makerTokenFilledAmount,
+            takerTokenFeeFilledAmount,
             params.order.pool
         );
     }
@@ -802,7 +803,7 @@ contract LimitOrdersFeature is
         );
     }
 
-    /// @dev Settle a the trade between an order's maker and taker.
+    /// @dev Settle the trade between an order's maker and taker.
     /// @param settleInfo Information needed to execute the settlement.
     /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
@@ -826,7 +827,7 @@ contract LimitOrdersFeature is
 
         if (takerTokenFilledAmount == 0 || makerTokenFilledAmount == 0) {
             // Nothing to do.
-            return (takerTokenFilledAmount, makerTokenFilledAmount);
+            return (0, 0);
         }
 
         // Update filled state for the order.
@@ -835,7 +836,7 @@ contract LimitOrdersFeature is
             .orderHashToTakerTokenFilledAmount[settleInfo.orderHash] =
             // OK to overwrite the whole word because we shouldn't get to this
             // function if the order is cancelled.
-                settleInfo.takerTokenFilledAmount.safeAdd(takerTokenFilledAmount);
+                settleInfo.takerTokenFilledAmount + takerTokenFilledAmount;
 
         // Transfer taker -> maker.
         LibTokenSpender.spendERC20Tokens(
