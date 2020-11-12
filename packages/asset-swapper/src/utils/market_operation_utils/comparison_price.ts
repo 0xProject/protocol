@@ -4,21 +4,12 @@ import * as _ from 'lodash';
 
 import { MarketOperation } from '../../types';
 
-import { COMPARISON_PRICE_DECIMALS } from './constants';
+import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
 import {
-    CollapsedFill,
     ComparisonPrice,
-    DexSample,
     MarketSideLiquidity,
-    MultiHopFillData,
-    NativeCollapsedFill,
     OptimizerResult,
 } from './types';
-
-export interface FillInfo {
-    makerAmount: BigNumber;
-    takerAmount: BigNumber;
-}
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat
@@ -34,52 +25,43 @@ export function getComparisonPrices(
     amount: BigNumber,
     marketSideLiquidity: MarketSideLiquidity,
 ): ComparisonPrice {
+    // the adjusted rate is defined as maker/taker
+    // input is the taker token for sells, input is the maker token for buys
+    const makerTakerOptimalRate = optimizerResult.adjustedRate;
+    const takerMakerOptimalRate = optimizerResult.adjustedRate.pow(-1);
+
+    // fees for a native order
+    const fees = optimizerResult.exchangeProxyOverhead(SOURCE_FLAGS.Native);
+    // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)
+    const feePenalty = marketSideLiquidity.ethToOutputRate.isZero()
+        ? marketSideLiquidity.ethToOutputRate.times(fees)
+        // if it's a sell, the input token is the taker token
+        : marketSideLiquidity.ethToInputRate.times(fees).times(marketSideLiquidity.side === MarketOperation.Sell ? makerTakerOptimalRate : takerMakerOptimalRate);
+
     let wholeOrder: BigNumber | undefined;
 
-    let fillArray: FillInfo[];
-    // tslint:disable-next-line:prefer-conditional-expression
-    if (Array.isArray(optimizerResult.liquidityDelivered)) {
-        fillArray = optimizerResult.liquidityDelivered.map(collapsedFill =>
-            _collapsedFillToFillInfo(collapsedFill, marketSideLiquidity.side),
-        );
+    let orderMakerAmount: BigNumber;
+    let orderTakerAmount: BigNumber;
+    if (marketSideLiquidity.side === MarketOperation.Sell) {
+        orderTakerAmount = amount;
+
+        orderMakerAmount = makerTakerOptimalRate.times(orderTakerAmount).plus(feePenalty);
+
+    } else if (marketSideLiquidity.side === MarketOperation.Buy) {
+        orderMakerAmount = amount;
+
+        orderTakerAmount = takerMakerOptimalRate.times(orderMakerAmount).minus(feePenalty);
     } else {
-        fillArray = [_MultiHopToFillInfo(optimizerResult.liquidityDelivered, marketSideLiquidity.side)];
+        throw new Error(`Unexpected marketOperation ${marketSideLiquidity.side}`);
     }
 
-    // sort optimized orders from best to worst price from the taker's perspective
-    // you want the most units of the maker asset per unit of taker asset
-    // or the least units of taker asset per unit of maker asset
-    const takerSortedFills = _.orderBy(fillArray, fill => fill.takerAmount.div(fill.makerAmount), ['asc']);
-
-    let remainingAmount = amount;
-    let optimalMakerAmount = new BigNumber(0);
-    let optimalTakerAmount = new BigNumber(0);
-
-    // account for backup orders by walking up to the amount requested by the taker
-    for (const fill of takerSortedFills) {
-        if (marketSideLiquidity.side === MarketOperation.Buy) {
-            const amountConsumed = BigNumber.min(fill.makerAmount, remainingAmount);
-            optimalMakerAmount = optimalMakerAmount.plus(amountConsumed);
-            optimalTakerAmount = optimalTakerAmount.plus(amountConsumed.times(fill.makerAmount.div(fill.takerAmount)));
-            remainingAmount = remainingAmount.minus(amountConsumed);
-        } else if (marketSideLiquidity.side === MarketOperation.Sell) {
-            const amountConsumed = BigNumber.min(fill.takerAmount, remainingAmount);
-            optimalTakerAmount = optimalTakerAmount.plus(amountConsumed);
-            optimalMakerAmount = optimalMakerAmount.plus(amountConsumed.times(fill.takerAmount.div(fill.makerAmount)));
-            remainingAmount = remainingAmount.minus(amountConsumed);
-        }
-        if (remainingAmount.lte(0)) {
-            break;
-        }
-    }
-
-    if (optimalMakerAmount.gt(0)) {
+    if (orderMakerAmount.gt(0)) {
         const optimalMakerUnitAmount = Web3Wrapper.toUnitAmount(
-            optimalMakerAmount,
+            orderMakerAmount,
             marketSideLiquidity.makerTokenDecimals,
         );
         const optimalTakerUnitAmount = Web3Wrapper.toUnitAmount(
-            optimalTakerAmount,
+            orderTakerAmount,
             marketSideLiquidity.takerTokenDecimals,
         );
         wholeOrder = optimalMakerUnitAmount
@@ -90,47 +72,4 @@ export function getComparisonPrices(
     return {
         wholeOrder,
     };
-}
-
-function _collapsedFillToFillInfo(collapsedFill: CollapsedFill, marketOperation: MarketOperation): FillInfo {
-    const possibleNativeCollapsedFill = collapsedFill as NativeCollapsedFill;
-    // check if it's a native order
-    if (possibleNativeCollapsedFill.fillData && possibleNativeCollapsedFill.fillData.order) {
-        return {
-            makerAmount: possibleNativeCollapsedFill.fillData.order.fillableMakerAssetAmount,
-            takerAmount: possibleNativeCollapsedFill.fillData.order.fillableTakerAssetAmount,
-        };
-    // input and output map to different values
-    // based on the market operation
-    } else if (marketOperation === MarketOperation.Buy) {
-        return {
-            makerAmount: collapsedFill.input,
-            takerAmount: collapsedFill.output,
-        };
-    } else if (marketOperation === MarketOperation.Sell) {
-        return {
-            makerAmount: collapsedFill.output,
-            takerAmount: collapsedFill.input,
-        };
-    } else {
-        throw new Error(`Unexpected marketOperation ${marketOperation}`);
-    }
-}
-
-function _MultiHopToFillInfo(ds: DexSample<MultiHopFillData>, marketOperation: MarketOperation): FillInfo {
-    // input and output map to different values
-    // based on the market operation
-    if (marketOperation === MarketOperation.Buy) {
-        return {
-            makerAmount: ds.input,
-            takerAmount: ds.output,
-        };
-    } else if (marketOperation === MarketOperation.Sell) {
-        return {
-            makerAmount: ds.output,
-            takerAmount: ds.input,
-        };
-    } else {
-        throw new Error(`Unexpected marketOperation ${marketOperation}`);
-    }
 }

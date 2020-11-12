@@ -611,6 +611,8 @@ export class MarketOperationUtils {
                 optimizedOrders: twoHopOrders,
                 liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
+                adjustedRate: bestTwoHopRate,
+                exchangeProxyOverhead: optimizerOpts.exchangeProxyOverhead,
             };
         }
 
@@ -636,10 +638,13 @@ export class MarketOperationUtils {
             }
         }
         const collapsedPath = optimalPath.collapse(orderOpts);
+
         return {
             optimizedOrders: collapsedPath.orders,
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
+            adjustedRate: collapsedPath.adjustedRate(),
+            exchangeProxyOverhead: optimizerOpts.exchangeProxyOverhead,
         };
     }
 

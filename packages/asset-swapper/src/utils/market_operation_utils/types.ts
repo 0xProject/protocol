@@ -343,6 +343,8 @@ export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: number;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
+    adjustedRate: BigNumber;
+    exchangeProxyOverhead: ExchangeProxyOverhead;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
