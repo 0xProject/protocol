@@ -36,8 +36,7 @@ library LibStorage {
         TokenSpender,
         TransformERC20,
         MetaTransactions,
-        ReentrancyGuard,
-        LiquidityProvider
+        ReentrancyGuard
     }
 
     /// @dev Get the storage slot given a storage ID. We assign unique, well-spaced

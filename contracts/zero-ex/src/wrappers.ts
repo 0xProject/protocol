@@ -10,6 +10,7 @@ export * from '../generated-wrappers/full_migration';
 export * from '../generated-wrappers/i_allowance_target';
 export * from '../generated-wrappers/i_erc20_transformer';
 export * from '../generated-wrappers/i_flash_wallet';
+export * from '../generated-wrappers/i_liquidity_provider';
 export * from '../generated-wrappers/i_ownable_feature';
 export * from '../generated-wrappers/i_simple_function_registry_feature';
 export * from '../generated-wrappers/i_token_spender_feature';
