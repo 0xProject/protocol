@@ -429,13 +429,20 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
     [ChainId.Ganache]: EMPTY_BRIDGE_ADDRESSES,
 };
 
+/**
+ * Calculated gross gas cost of the underlying exchange.
+ * The cost of switching from one source to another, assuming
+ * we are in the middle of a transaction.
+ * I.e remove the overhead cost of ExchangeProxy (130k) and
+ * the ethereum transaction cost (21k)
+ */
 // tslint:disable:custom-no-magic-numbers
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: () => 150e3,
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: () => 140e3,
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
-    [ERC20BridgeSource.Kyber]: () => 500e3,
+    [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => {
         const poolAddress = (fillData as CurveFillData).pool.poolAddress.toLowerCase();
         switch (poolAddress) {
@@ -452,12 +459,14 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
             case POOLS.curve_BUSD:
                 return 850e3;
             // Metapools
-            case POOLS.curve_GUSD:
-            case POOLS.curve_HUSD:
             case POOLS.curve_USDN:
             case POOLS.curve_mUSD:
+                return 300e3;
+            case POOLS.curve_GUSD:
+            case POOLS.curve_HUSD:
+                return 310e3;
             case POOLS.curve_tBTC:
-                return 650e3;
+                return 370e3;
             default:
                 throw new Error(`Unrecognized Curve address: ${poolAddress}`);
         }
@@ -482,11 +491,11 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Balancer]: () => 120e3,
-    [ERC20BridgeSource.Cream]: () => 300e3,
+    [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
-    [ERC20BridgeSource.Mooniswap]: () => 220e3,
+    [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
-    [ERC20BridgeSource.Shell]: () => 300e3,
+    [ERC20BridgeSource.Shell]: () => 170e3,
     [ERC20BridgeSource.MultiHop]: (fillData?: FillData) => {
         const firstHop = (fillData as MultiHopFillData).firstHopSource;
         const secondHop = (fillData as MultiHopFillData).secondHopSource;
@@ -501,7 +510,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         const isSellBase = (fillData as DODOFillData).isSellBase;
         // Sell base is cheaper as it is natively supported
         // sell quote requires additional calculation and overhead
-        return isSellBase ? 440e3 : 540e3;
+        return isSellBase ? 180e3 : 300e3;
     },
     [ERC20BridgeSource.SnowSwap]: fillData => {
         switch ((fillData as SnowSwapFillData).pool.poolAddress.toLowerCase()) {
