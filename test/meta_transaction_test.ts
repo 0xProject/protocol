@@ -15,7 +15,14 @@ import { META_TRANSACTION_PATH, ONE_SECOND_MS, TEN_MINUTES_MS } from '../src/con
 import { GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
 import { GetMetaTransactionQuoteResponse } from '../src/types';
 
-import { ETH_TOKEN_ADDRESS, WETH_ASSET_DATA, ZRX_ASSET_DATA, ZRX_TOKEN_ADDRESS } from './constants';
+import {
+    ETH_TOKEN_ADDRESS,
+    MATCHA_AFFILIATE_ADDRESS,
+    MATCHA_AFFILIATE_ENCODED_PARTIAL_ORDER_DATA,
+    WETH_ASSET_DATA,
+    ZRX_ASSET_DATA,
+    ZRX_TOKEN_ADDRESS,
+} from './constants';
 import { LogType, setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync, httpPostAsync } from './utils/http_utils';
 import { DEFAULT_MAKER_ASSET_AMOUNT, MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
@@ -517,6 +524,23 @@ describe(SUITE_NAME, () => {
                     expectedOrders: validationResults.accepted.map(accepted => accepted.signedOrder),
                     expectedPrice: '1.5',
                 });
+            });
+
+            it('encodes affiliate address into mtx call data', async () => {
+                const validationResults = await meshUtils.addOrdersWithPricesAsync([1]);
+                expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
+                const route = constructRoute({
+                    baseRoute: `${META_TRANSACTION_PATH}/quote`,
+                    queryParams: {
+                        ...DEFAULT_QUERY_PARAMS,
+                        takerAddress,
+                        affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                    },
+                });
+                const response = await httpGetAsync({ route });
+                expect(response.type).to.be.eq('application/json');
+                expect(response.status).to.be.eq(HttpStatus.OK);
+                expect(response.body.mtx.callData).to.include(MATCHA_AFFILIATE_ENCODED_PARTIAL_ORDER_DATA);
             });
         });
     });

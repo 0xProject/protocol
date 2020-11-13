@@ -20,6 +20,8 @@ import { isETHSymbolOrAddress } from '../src/utils/token_metadata_utils';
 import {
     CONTRACT_ADDRESSES,
     ETH_TOKEN_ADDRESS,
+    MATCHA_AFFILIATE_ADDRESS,
+    MATCHA_AFFILIATE_ENCODED_PARTIAL_ORDER_DATA,
     MAX_INT,
     MAX_MINT_AMOUNT,
     NULL_ADDRESS,
@@ -382,6 +384,30 @@ describe(SUITE_NAME, () => {
                         ],
                     },
                 );
+            });
+        });
+
+        describe('affiliate address', () => {
+            it('encodes affiliate address into quote call data', async () => {
+                const sellQuoteParams = {
+                    ...DEFAULT_QUERY_PARAMS,
+                    sellAmount: getRandomInteger(1, 100000).toString(),
+                    affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                };
+                const buyQuoteParams = {
+                    ...DEFAULT_QUERY_PARAMS,
+                    buyAmount: getRandomInteger(1, 100000).toString(),
+                    affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                };
+
+                for (const params of [sellQuoteParams, buyQuoteParams]) {
+                    const quoteRoute = constructRoute({
+                        baseRoute: `${SWAP_PATH}/quote`,
+                        queryParams: params,
+                    });
+                    const quoteResponse = await httpGetAsync({ route: quoteRoute });
+                    expect(quoteResponse.body.data).to.include(MATCHA_AFFILIATE_ENCODED_PARTIAL_ORDER_DATA);
+                }
             });
         });
     });
