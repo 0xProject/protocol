@@ -22,8 +22,8 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 
-/// @dev A library for common limit order operations.
-library LibLimitOrder {
+/// @dev A library for common native order operations.
+library LibNativeOrder {
 
     enum OrderStatus {
         INVALID,

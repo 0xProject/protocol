@@ -25,7 +25,7 @@ import "../features/TokenSpenderFeature.sol";
 import "../features/TransformERC20Feature.sol";
 import "../features/SignatureValidatorFeature.sol";
 import "../features/MetaTransactionsFeature.sol";
-import "../features/LimitOrdersFeature.sol";
+import "../features/NativeOrdersFeature.sol";
 import "../external/AllowanceTarget.sol";
 import "./InitialMigration.sol";
 
@@ -43,7 +43,7 @@ contract FullMigration {
         TransformERC20Feature transformERC20;
         SignatureValidatorFeature signatureValidator;
         MetaTransactionsFeature metaTransactions;
-        LimitOrdersFeature limitOrders;
+        NativeOrdersFeature nativeOrders;
     }
 
     /// @dev Parameters needed to initialize features.
@@ -197,13 +197,13 @@ contract FullMigration {
                 address(this)
             );
         }
-        // LimitOrdersFeature
+        // NativeOrdersFeature
         {
             // Register the feature.
             ownable.migrate(
-                address(features.limitOrders),
+                address(features.nativeOrders),
                 abi.encodeWithSelector(
-                    LimitOrdersFeature.migrate.selector
+                    NativeOrdersFeature.migrate.selector
                 ),
                 address(this)
             );

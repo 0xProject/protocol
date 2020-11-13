@@ -28,7 +28,7 @@ contract TestTransformerBase is
     IERC20Transformer,
     Transformer
 {
-    function transform(TransformContext calldata context)
+    function transform(TransformContext calldata /* context */)
         external
         override
         returns (bytes4 success)

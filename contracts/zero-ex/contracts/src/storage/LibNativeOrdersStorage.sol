@@ -20,11 +20,10 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "./LibStorage.sol";
-import "../external/IAllowanceTarget.sol";
 
 
-/// @dev Storage helpers for `LimitOrdersFeature`.
-library LibLimitOrdersStorage {
+/// @dev Storage helpers for `NativeOrdersFeature`.
+library LibNativeOrdersStorage {
 
     /// @dev Storage bucket for this feature.
     struct Storage {
@@ -32,15 +31,20 @@ library LibLimitOrdersStorage {
         // The lower `uint128` is the taker token fill amount.
         // The high bit will be `1` if the order was directly cancelled.
         mapping(bytes32 => uint256) orderHashToTakerTokenFilledAmount;
-        // The minimum valid order salt for a given maker and order pair (maker, taker).
+        // The minimum valid order salt for a given maker and order pair (maker, taker)
+        // for limit orders.
         mapping(address => mapping(address => mapping(address => uint256)))
-            makerToMakerTokenToTakerTokenToMinValidOrderSalt;
+            limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
+        // The minimum valid order salt for a given maker and order pair (maker, taker)
+        // for RFQ orders.
+        mapping(address => mapping(address => mapping(address => uint256)))
+            rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
     }
 
     /// @dev Get the storage bucket for this contract.
     function getStorage() internal pure returns (Storage storage stor) {
         uint256 storageSlot = LibStorage.getStorageSlot(
-            LibStorage.StorageId.LimitOrders
+            LibStorage.StorageId.NativeOrders
         );
         // Dip into assembly to change the slot pointed to by the local
         // variable `stor`.

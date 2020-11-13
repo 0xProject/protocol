@@ -21,11 +21,11 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "./libs/LibSignature.sol";
-import "./libs/LibLimitOrder.sol";
+import "./libs/LibNativeOrder.sol";
 
 
 /// @dev Feature for interacting with limit orders.
-interface ILimitOrdersFeature {
+interface INativeOrdersFeature {
 
     /// @dev Emitted whenever a `LimitOrder` is filled.
     /// @param orderHash The canonical hash of the order.
@@ -34,6 +34,7 @@ interface ILimitOrdersFeature {
     /// @param feeRecipient Fee recipient of the order.
     /// @param takerTokenFilledAmount How much taker token was filled.
     /// @param makerTokenFilledAmount How much maker token was filled.
+    /// @param protocolFeePaid How much protocol fee was paid.
     /// @param pool The fee pool associated with this order.
     event LimitOrderFilled(
         bytes32 orderHash,
@@ -45,6 +46,7 @@ interface ILimitOrdersFeature {
         uint128 takerTokenFilledAmount,
         uint128 makerTokenFilledAmount,
         uint128 takerTokenFeeFilledAmount,
+        uint256 protocolFeePaid,
         bytes32 pool
     );
 
@@ -54,6 +56,7 @@ interface ILimitOrdersFeature {
     /// @param taker The taker of the order.
     /// @param takerTokenFilledAmount How much taker token was filled.
     /// @param makerTokenFilledAmount How much maker token was filled.
+    /// @param protocolFeePaid How much protocol fee was paid.
     /// @param pool The fee pool associated with this order.
     event RfqOrderFilled(
         bytes32 orderHash,
@@ -63,6 +66,7 @@ interface ILimitOrdersFeature {
         address takerToken,
         uint128 takerTokenFilledAmount,
         uint128 makerTokenFilledAmount,
+        uint256 protocolFeePaid,
         bytes32 pool
     );
 
@@ -94,7 +98,7 @@ interface ILimitOrdersFeature {
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillLimitOrder(
-        LibLimitOrder.LimitOrder calldata order,
+        LibNativeOrder.LimitOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
     )
@@ -111,7 +115,7 @@ interface ILimitOrdersFeature {
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillRfqOrder(
-        LibLimitOrder.RfqOrder calldata order,
+        LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
     )
@@ -128,7 +132,7 @@ interface ILimitOrdersFeature {
     /// @param takerTokenFillAmount How much taker token to fill this order with.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillOrKillLimitOrder(
-        LibLimitOrder.LimitOrder calldata order,
+        LibNativeOrder.LimitOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
     )
@@ -145,7 +149,7 @@ interface ILimitOrdersFeature {
     /// @param takerTokenFillAmount How much taker token to fill this order with.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillOrKillRfqOrder(
-        LibLimitOrder.RfqOrder calldata order,
+        LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
     )
@@ -164,7 +168,7 @@ interface ILimitOrdersFeature {
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _fillLimitOrder(
-        LibLimitOrder.LimitOrder calldata order,
+        LibNativeOrder.LimitOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount,
         address taker,
@@ -184,7 +188,7 @@ interface ILimitOrdersFeature {
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _fillRfqOrder(
-        LibLimitOrder.RfqOrder calldata order,
+        LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount,
         address taker
@@ -196,49 +200,77 @@ interface ILimitOrdersFeature {
     /// @dev Cancel a single limit order. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
-    function cancelLimitOrder(LibLimitOrder.LimitOrder calldata order)
+    function cancelLimitOrder(LibNativeOrder.LimitOrder calldata order)
         external;
 
     /// @dev Cancel a single RFQ order. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
-    function cancelRfqOrder(LibLimitOrder.RfqOrder calldata order)
+    function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order)
         external;
 
     /// @dev Cancel multiple limit orders. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
-    function batchCancelLimitOrders(LibLimitOrder.LimitOrder[] calldata orders)
+    function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] calldata orders)
         external;
 
     /// @dev Cancel multiple RFQ orders. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
-    function batchCancelRfqOrders(LibLimitOrder.RfqOrder[] calldata orders)
+    function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] calldata orders)
         external;
 
-    /// @dev Cancel all orders for a given maker and pair with a salt less
+    /// @dev Cancel all limit orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairOrdersUpTo(
+    function cancelPairLimitOrdersUpTo(
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
     )
         external;
 
-    /// @dev Cancel all orders for a given maker and pair with a salt less
+    /// @dev Cancel all limit orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
-    function batchCancelPairOrdersUpTo(
+    function batchCancelPairLimitOrdersUpTo(
+        IERC20TokenV06[] calldata makerTokens,
+        IERC20TokenV06[] calldata takerTokens,
+        uint256[] calldata minValidSalts
+    )
+        external;
+
+    /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairRfqOrdersUpTo(
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        external;
+
+    /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairRfqOrdersUpTo(
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
@@ -248,23 +280,23 @@ interface ILimitOrdersFeature {
     /// @dev Get the order info for a limit order.
     /// @param order The limit order.
     /// @return orderInfo Info about the order.
-    function getLimitOrderInfo(LibLimitOrder.LimitOrder calldata order)
+    function getLimitOrderInfo(LibNativeOrder.LimitOrder calldata order)
         external
         view
-        returns (LibLimitOrder.OrderInfo memory orderInfo);
+        returns (LibNativeOrder.OrderInfo memory orderInfo);
 
     /// @dev Get the order info for an RFQ order.
     /// @param order The RFQ order.
     /// @return orderInfo Info about the order.
-    function getRfqOrderInfo(LibLimitOrder.RfqOrder calldata order)
+    function getRfqOrderInfo(LibNativeOrder.RfqOrder calldata order)
         external
         view
-        returns (LibLimitOrder.OrderInfo memory orderInfo);
+        returns (LibNativeOrder.OrderInfo memory orderInfo);
 
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
     /// @return orderHash The order hash.
-    function getLimitOrderHash(LibLimitOrder.LimitOrder calldata order)
+    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order)
         external
         view
         returns (bytes32 orderHash);
@@ -272,7 +304,7 @@ interface ILimitOrdersFeature {
     /// @dev Get the canonical hash of an RFQ order.
     /// @param order The RFQ order.
     /// @return orderHash The order hash.
-    function getRfqOrderHash(LibLimitOrder.RfqOrder calldata order)
+    function getRfqOrderHash(LibNativeOrder.RfqOrder calldata order)
         external
         view
         returns (bytes32 orderHash);

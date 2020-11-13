@@ -28,21 +28,21 @@ import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinProtocolFees.sol";
 import "../fixins/FixinEIP712.sol";
-import "../errors/LibLimitOrdersRichErrors.sol";
+import "../errors/LibNativeOrdersRichErrors.sol";
 import "../migrations/LibMigrate.sol";
-import "../storage/LibLimitOrdersStorage.sol";
+import "../storage/LibNativeOrdersStorage.sol";
 import "../vendor/v3/IStaking.sol";
 import "./libs/LibTokenSpender.sol";
 import "./libs/LibSignature.sol";
-import "./libs/LibLimitOrder.sol";
-import "./ILimitOrdersFeature.sol";
+import "./libs/LibNativeOrder.sol";
+import "./INativeOrdersFeature.sol";
 import "./IFeature.sol";
 
 
 /// @dev Feature for interacting with limit orders.
-contract LimitOrdersFeature is
+contract NativeOrdersFeature is
     IFeature,
-    ILimitOrdersFeature,
+    INativeOrdersFeature,
     FixinCommon,
     FixinProtocolFees,
     FixinEIP712
@@ -76,7 +76,7 @@ contract LimitOrdersFeature is
     /// @dev Params for `_fillLimitOrderPrivate()`
     struct FillLimitOrderPrivateParams {
         // The limit order.
-        LibLimitOrder.LimitOrder order;
+        LibNativeOrder.LimitOrder order;
         // The order signature.
         LibSignature.Signature signature;
         // Maximum taker token to fill this order with.
@@ -85,6 +85,15 @@ contract LimitOrdersFeature is
         address taker;
         // The order sender.
         address sender;
+    }
+
+    // @dev Fill results returned by `_fillLimitOrderPrivate()` and
+    ///     `_fillRfqOrderPrivate()`.
+    struct FillNativeOrderResults {
+        uint256 ethProtocolFeePaid;
+        uint128 takerTokenFilledAmount;
+        uint128 makerTokenFilledAmount;
+        uint128 takerTokenFeeFilledAmount;
     }
 
     /// @dev Name of this feature.
@@ -124,8 +133,10 @@ contract LimitOrdersFeature is
         _registerFeatureFunction(this.cancelRfqOrder.selector);
         _registerFeatureFunction(this.batchCancelLimitOrders.selector);
         _registerFeatureFunction(this.batchCancelRfqOrders.selector);
-        _registerFeatureFunction(this.cancelPairOrdersUpTo.selector);
-        _registerFeatureFunction(this.batchCancelPairOrdersUpTo.selector);
+        _registerFeatureFunction(this.cancelPairLimitOrdersUpTo.selector);
+        _registerFeatureFunction(this.batchCancelPairLimitOrdersUpTo.selector);
+        _registerFeatureFunction(this.cancelPairRfqOrdersUpTo.selector);
+        _registerFeatureFunction(this.batchCancelPairRfqOrdersUpTo.selector);
         _registerFeatureFunction(this.getLimitOrderInfo.selector);
         _registerFeatureFunction(this.getRfqOrderInfo.selector);
         _registerFeatureFunction(this.getLimitOrderHash.selector);
@@ -142,7 +153,7 @@ contract LimitOrdersFeature is
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillLimitOrder(
-        LibLimitOrder.LimitOrder memory order,
+        LibNativeOrder.LimitOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount
     )
@@ -151,8 +162,7 @@ contract LimitOrdersFeature is
         payable
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        uint256 ethProtocolFeePaid;
-        (ethProtocolFeePaid, takerTokenFilledAmount, makerTokenFilledAmount) =
+        FillNativeOrderResults memory results =
             _fillLimitOrderPrivate(FillLimitOrderPrivateParams({
                 order: order,
                 signature: signature,
@@ -160,7 +170,11 @@ contract LimitOrdersFeature is
                 taker: msg.sender,
                 sender: msg.sender
             }));
-        _refundProtocolFeeToSender(ethProtocolFeePaid);
+        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        (takerTokenFilledAmount, makerTokenFilledAmount) = (
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount
+        );
     }
 
     /// @dev Fill an RFQ order for up to `takerTokenFillAmount` taker tokens.
@@ -172,7 +186,7 @@ contract LimitOrdersFeature is
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillRfqOrder(
-        LibLimitOrder.RfqOrder memory order,
+        LibNativeOrder.RfqOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount
     )
@@ -181,15 +195,18 @@ contract LimitOrdersFeature is
         payable
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        uint256 ethProtocolFeePaid;
-        (ethProtocolFeePaid, takerTokenFilledAmount, makerTokenFilledAmount) =
+        FillNativeOrderResults memory results =
             _fillRfqOrderPrivate(
                 order,
                 signature,
                 takerTokenFillAmount,
                 msg.sender
             );
-        _refundProtocolFeeToSender(ethProtocolFeePaid);
+        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        (takerTokenFilledAmount, makerTokenFilledAmount) = (
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount
+        );
     }
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
@@ -201,7 +218,7 @@ contract LimitOrdersFeature is
     /// @param takerTokenFillAmount How much taker token to fill this order with.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillOrKillLimitOrder(
-        LibLimitOrder.LimitOrder memory order,
+        LibNativeOrder.LimitOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount
     )
@@ -210,9 +227,7 @@ contract LimitOrdersFeature is
         payable
         returns (uint128 makerTokenFilledAmount)
     {
-        uint256 ethProtocolFeePaid;
-        uint256 takerTokenFilledAmount;
-        (ethProtocolFeePaid, takerTokenFilledAmount, makerTokenFilledAmount) =
+        FillNativeOrderResults memory results =
             _fillLimitOrderPrivate(FillLimitOrderPrivateParams({
                 order: order,
                 signature: signature,
@@ -221,14 +236,15 @@ contract LimitOrdersFeature is
                 sender: msg.sender
             }));
         // Must have filled exactly the amount requested.
-        if (takerTokenFilledAmount < takerTokenFillAmount) {
-            LibLimitOrdersRichErrors.FillOrKillFailedError(
+        if (results.takerTokenFilledAmount < takerTokenFillAmount) {
+            LibNativeOrdersRichErrors.FillOrKillFailedError(
                 getLimitOrderHash(order),
-                takerTokenFilledAmount,
+                results.takerTokenFilledAmount,
                 takerTokenFillAmount
             ).rrevert();
         }
-        _refundProtocolFeeToSender(ethProtocolFeePaid);
+        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        makerTokenFilledAmount = results.makerTokenFilledAmount;
     }
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
@@ -240,7 +256,7 @@ contract LimitOrdersFeature is
     /// @param takerTokenFillAmount How much taker token to fill this order with.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillOrKillRfqOrder(
-        LibLimitOrder.RfqOrder memory order,
+        LibNativeOrder.RfqOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount
     )
@@ -249,9 +265,7 @@ contract LimitOrdersFeature is
         payable
         returns (uint128 makerTokenFilledAmount)
     {
-        uint256 ethProtocolFeePaid;
-        uint256 takerTokenFilledAmount;
-        (ethProtocolFeePaid, takerTokenFilledAmount, makerTokenFilledAmount) =
+        FillNativeOrderResults memory results =
             _fillRfqOrderPrivate(
                 order,
                 signature,
@@ -259,14 +273,15 @@ contract LimitOrdersFeature is
                 msg.sender
             );
         // Must have filled exactly the amount requested.
-        if (takerTokenFilledAmount < takerTokenFillAmount) {
-            LibLimitOrdersRichErrors.FillOrKillFailedError(
+        if (results.takerTokenFilledAmount < takerTokenFillAmount) {
+            LibNativeOrdersRichErrors.FillOrKillFailedError(
                 getRfqOrderHash(order),
-                takerTokenFilledAmount,
+                results.takerTokenFilledAmount,
                 takerTokenFillAmount
             ).rrevert();
         }
-        _refundProtocolFeeToSender(ethProtocolFeePaid);
+        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        makerTokenFilledAmount = results.makerTokenFilledAmount;
     }
 
     /// @dev Fill a limit order. Internal variant. ETH protocol fees can be
@@ -280,7 +295,7 @@ contract LimitOrdersFeature is
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _fillLimitOrder(
-        LibLimitOrder.LimitOrder memory order,
+        LibNativeOrder.LimitOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
         address taker,
@@ -292,8 +307,7 @@ contract LimitOrdersFeature is
         onlySelf
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        uint256 ethProtocolFeePaid;
-        (ethProtocolFeePaid, takerTokenFilledAmount, makerTokenFilledAmount) =
+        FillNativeOrderResults memory results =
             _fillLimitOrderPrivate(FillLimitOrderPrivateParams({
                 order: order,
                 signature: signature,
@@ -301,7 +315,11 @@ contract LimitOrdersFeature is
                 taker: taker,
                 sender: sender
             }));
-        _refundProtocolFeeToSender(ethProtocolFeePaid);
+        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        (takerTokenFilledAmount, makerTokenFilledAmount) = (
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount
+        );
     }
 
     /// @dev Fill an RFQ order. Internal variant. ETH protocol fees can be
@@ -314,7 +332,7 @@ contract LimitOrdersFeature is
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _fillRfqOrder(
-        LibLimitOrder.RfqOrder memory order,
+        LibNativeOrder.RfqOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
         address taker
@@ -325,28 +343,30 @@ contract LimitOrdersFeature is
         onlySelf
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        uint256 ethProtocolFeePaid;
-        (ethProtocolFeePaid, takerTokenFilledAmount, makerTokenFilledAmount) =
+        FillNativeOrderResults memory results =
             _fillRfqOrderPrivate(
                 order,
                 signature,
                 takerTokenFillAmount,
                 taker
             );
-        _refundProtocolFeeToSender(ethProtocolFeePaid);
+        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        (takerTokenFilledAmount, makerTokenFilledAmount) = (
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount
+        );
     }
-
 
     /// @dev Cancel a single limit order. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
-    function cancelLimitOrder(LibLimitOrder.LimitOrder memory order)
+    function cancelLimitOrder(LibNativeOrder.LimitOrder memory order)
         public
         override
     {
         bytes32 orderHash = getLimitOrderHash(order);
         if (msg.sender != order.maker) {
-            LibLimitOrdersRichErrors.OnlyOrderMakerAllowed(
+            LibNativeOrdersRichErrors.OnlyOrderMakerAllowed(
                 orderHash,
                 msg.sender,
                 order.maker
@@ -358,13 +378,13 @@ contract LimitOrdersFeature is
     /// @dev Cancel a single RFQ order. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
-    function cancelRfqOrder(LibLimitOrder.RfqOrder memory order)
+    function cancelRfqOrder(LibNativeOrder.RfqOrder memory order)
         public
         override
     {
         bytes32 orderHash = getRfqOrderHash(order);
         if (msg.sender != order.maker) {
-            LibLimitOrdersRichErrors.OnlyOrderMakerAllowed(
+            LibNativeOrdersRichErrors.OnlyOrderMakerAllowed(
                 orderHash,
                 msg.sender,
                 order.maker
@@ -376,7 +396,7 @@ contract LimitOrdersFeature is
     /// @dev Cancel multiple limit orders. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
-    function batchCancelLimitOrders(LibLimitOrder.LimitOrder[] memory orders)
+    function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] memory orders)
         public
         override
     {
@@ -388,7 +408,7 @@ contract LimitOrdersFeature is
     /// @dev Cancel multiple RFQ orders. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
-    function batchCancelRfqOrders(LibLimitOrder.RfqOrder[] memory orders)
+    function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] memory orders)
         public
         override
     {
@@ -397,14 +417,14 @@ contract LimitOrdersFeature is
         }
     }
 
-    /// @dev Cancel all orders for a given maker and pair with a salt less
+    /// @dev Cancel all limit orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairOrdersUpTo(
+    function cancelPairLimitOrdersUpTo(
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
@@ -412,23 +432,23 @@ contract LimitOrdersFeature is
         public
         override
     {
-        LibLimitOrdersStorage.Storage storage stor =
-            LibLimitOrdersStorage.getStorage();
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
 
         uint256 oldMinValidSalt =
-            stor.makerToMakerTokenToTakerTokenToMinValidOrderSalt
+            stor.limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
                 [msg.sender]
                 [address(makerToken)]
                 [address(takerToken)];
 
         // New min salt must >= the old one.
         if (oldMinValidSalt > minValidSalt) {
-            LibLimitOrdersRichErrors.
+            LibNativeOrdersRichErrors.
                 CancelSaltTooLowError(minValidSalt, oldMinValidSalt)
                     .rrevert();
         }
 
-        stor.makerToMakerTokenToTakerTokenToMinValidOrderSalt
+        stor.limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
             [msg.sender]
             [address(makerToken)]
             [address(takerToken)] = minValidSalt;
@@ -448,7 +468,7 @@ contract LimitOrdersFeature is
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
-    function batchCancelPairOrdersUpTo(
+    function batchCancelPairLimitOrdersUpTo(
         IERC20TokenV06[] memory makerTokens,
         IERC20TokenV06[] memory takerTokens,
         uint256[] memory minValidSalts
@@ -463,7 +483,81 @@ contract LimitOrdersFeature is
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairOrdersUpTo(
+            cancelPairLimitOrdersUpTo(
+                makerTokens[i],
+                takerTokens[i],
+                minValidSalts[i]
+            );
+        }
+    }
+
+    /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairRfqOrdersUpTo(
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        public
+        override
+    {
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
+
+        uint256 oldMinValidSalt =
+            stor.rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+                [msg.sender]
+                [address(makerToken)]
+                [address(takerToken)];
+
+        // New min salt must >= the old one.
+        if (oldMinValidSalt > minValidSalt) {
+            LibNativeOrdersRichErrors.
+                CancelSaltTooLowError(minValidSalt, oldMinValidSalt)
+                    .rrevert();
+        }
+
+        stor.rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+            [msg.sender]
+            [address(makerToken)]
+            [address(takerToken)] = minValidSalt;
+
+        emit PairOrdersUpToCancelled(
+            msg.sender,
+            address(makerToken),
+            address(takerToken),
+            minValidSalt
+        );
+    }
+
+    /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairRfqOrdersUpTo(
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
+    )
+        public
+        override
+    {
+        require(
+            makerTokens.length == takerTokens.length &&
+            makerTokens.length == minValidSalts.length,
+            "LimitOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
+        );
+
+        for (uint256 i = 0; i < makerTokens.length; ++i) {
+            cancelPairRfqOrdersUpTo(
                 makerTokens[i],
                 takerTokens[i],
                 minValidSalts[i]
@@ -474,72 +568,78 @@ contract LimitOrdersFeature is
     /// @dev Get the order info for a limit order.
     /// @param order The limit order.
     /// @return orderInfo Info about the order.
-    function getLimitOrderInfo(LibLimitOrder.LimitOrder memory order)
+    function getLimitOrderInfo(LibNativeOrder.LimitOrder memory order)
         public
         override
         view
-        returns (LibLimitOrder.OrderInfo memory orderInfo)
+        returns (LibNativeOrder.OrderInfo memory orderInfo)
     {
         // Recover maker and compute order hash.
         orderInfo.orderHash = getLimitOrderHash(order);
+        uint256 minValidSalt = LibNativeOrdersStorage.getStorage()
+            .limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+                [order.maker]
+                [address(order.makerToken)]
+                [address(order.takerToken)];
         _populateCommonOrderInfoFields(
             orderInfo,
-            order.maker,
-            order.makerToken,
-            order.takerToken,
             order.takerAmount,
             order.expiry,
-            order.salt
+            order.salt,
+            minValidSalt
         );
     }
 
     /// @dev Get the order info for an RFQ order.
     /// @param order The RFQ order.
     /// @return orderInfo Info about the order.
-    function getRfqOrderInfo(LibLimitOrder.RfqOrder memory order)
+    function getRfqOrderInfo(LibNativeOrder.RfqOrder memory order)
         public
         override
         view
-        returns (LibLimitOrder.OrderInfo memory orderInfo)
+        returns (LibNativeOrder.OrderInfo memory orderInfo)
     {
         // Recover maker and compute order hash.
         orderInfo.orderHash = getRfqOrderHash(order);
+        uint256 minValidSalt = LibNativeOrdersStorage.getStorage()
+            .rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+                [order.maker]
+                [address(order.makerToken)]
+                [address(order.takerToken)];
         _populateCommonOrderInfoFields(
             orderInfo,
-            order.maker,
-            order.makerToken,
-            order.takerToken,
             order.takerAmount,
             order.expiry,
-            order.salt
+            order.salt,
+            minValidSalt
         );
     }
 
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
     /// @return orderHash The order hash.
-    function getLimitOrderHash(LibLimitOrder.LimitOrder memory order)
+    function getLimitOrderHash(LibNativeOrder.LimitOrder memory order)
         public
         override
         view
         returns (bytes32 orderHash)
     {
         return _getEIP712Hash(
-            LibLimitOrder.getLimitOrderStructHash(order)
+            LibNativeOrder.getLimitOrderStructHash(order)
         );
     }
 
     /// @dev Get the canonical hash of an RFQ order.
     /// @param order The RFQ order.
     /// @return orderHash The order hash.
-    function getRfqOrderHash(LibLimitOrder.RfqOrder memory order)
+    function getRfqOrderHash(LibNativeOrder.RfqOrder memory order)
         public
         override
         view
         returns (bytes32 orderHash)
     {
         return _getEIP712Hash(
-            LibLimitOrder.getRfqOrderStructHash(order)
+            LibNativeOrder.getRfqOrderStructHash(order)
         );
     }
 
@@ -547,26 +647,22 @@ contract LimitOrdersFeature is
     ///      `orderInfo`, which use the same code path for both limit and
     ///      RFQ orders.
     /// @param orderInfo `OrderInfo` with `orderHash` and `maker` filled.
-    /// @param maker The order's maker.
-    /// @param makerToken The order's maker token.
-    /// @param takerToken The order's taker token.
     /// @param takerAmount The order's taker token amount..
     /// @param expiry The order's expiry.
     /// @param salt The order's salt.
+    /// @param salt The minimum valid salt for the maker and pair combination.
     function _populateCommonOrderInfoFields(
-        LibLimitOrder.OrderInfo memory orderInfo,
-        address maker,
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
+        LibNativeOrder.OrderInfo memory orderInfo,
         uint128 takerAmount,
         uint64 expiry,
-        uint256 salt
+        uint256 salt,
+        uint256 minValidSalt
     )
         private
         view
     {
-        LibLimitOrdersStorage.Storage storage stor =
-            LibLimitOrdersStorage.getStorage();
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
 
         // Get the filled and direct cancel state.
         {
@@ -576,31 +672,27 @@ contract LimitOrdersFeature is
                 stor.orderHashToTakerTokenFilledAmount[orderInfo.orderHash];
             orderInfo.takerTokenFilledAmount = uint128(rawTakerTokenFilledAmount);
             if (orderInfo.takerTokenFilledAmount >= takerAmount) {
-                orderInfo.status = LibLimitOrder.OrderStatus.FILLED;
+                orderInfo.status = LibNativeOrder.OrderStatus.FILLED;
                 return;
             }
             if (rawTakerTokenFilledAmount & HIGH_BIT != 0) {
-                orderInfo.status = LibLimitOrder.OrderStatus.CANCELLED;
+                orderInfo.status = LibNativeOrder.OrderStatus.CANCELLED;
                 return;
             }
         }
 
         // Check for expiration.
         if (expiry <= uint64(block.timestamp)) {
-            orderInfo.status = LibLimitOrder.OrderStatus.EXPIRED;
+            orderInfo.status = LibNativeOrder.OrderStatus.EXPIRED;
             return;
         }
 
         // Check if the order was cancelled by salt.
-        if (stor.makerToMakerTokenToTakerTokenToMinValidOrderSalt
-                [maker]
-                [address(makerToken)]
-                [address(takerToken)] > salt)
-        {
-            orderInfo.status = LibLimitOrder.OrderStatus.CANCELLED;
+        if (minValidSalt > salt) {
+            orderInfo.status = LibNativeOrder.OrderStatus.CANCELLED;
             return;
         }
-        orderInfo.status = LibLimitOrder.OrderStatus.FILLABLE;
+        orderInfo.status = LibNativeOrder.OrderStatus.FILLABLE;
     }
 
     /// @dev Cancel a limit or RFQ order directly by its order hash.
@@ -608,8 +700,8 @@ contract LimitOrdersFeature is
     function _cancelOrderHash(bytes32 orderHash)
         private
     {
-        LibLimitOrdersStorage.Storage storage stor =
-            LibLimitOrdersStorage.getStorage();
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
         // Set the high bit on the raw taker token fill amount to indicate
         // a cancel. It's OK to cancel twice.
         stor.orderHashToTakerTokenFilledAmount[orderHash] |= HIGH_BIT;
@@ -619,22 +711,16 @@ contract LimitOrdersFeature is
 
     /// @dev Fill a limit order. Private variant. Does not refund protocol fees.
     /// @param params Function params.
-    /// @return ethProtocolFeePaid How much protocol fee was paid.
-    /// @return takerTokenFilledAmount How much maker token was filled.
-    /// @return makerTokenFilledAmount How much maker token was filled.
+    /// @return results Results of the fill.
     function _fillLimitOrderPrivate(FillLimitOrderPrivateParams memory params)
         private
-        returns (
-            uint256 ethProtocolFeePaid,
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        )
+        returns (FillNativeOrderResults memory results)
     {
-        LibLimitOrder.OrderInfo memory orderInfo = getLimitOrderInfo(params.order);
+        LibNativeOrder.OrderInfo memory orderInfo = getLimitOrderInfo(params.order);
 
         // Must be fillable.
-        if (orderInfo.status != LibLimitOrder.OrderStatus.FILLABLE) {
-            LibLimitOrdersRichErrors.OrderNotFillableError(
+        if (orderInfo.status != LibNativeOrder.OrderStatus.FILLABLE) {
+            LibNativeOrdersRichErrors.OrderNotFillableError(
                 orderInfo.orderHash,
                 uint8(orderInfo.status)
             ).rrevert();
@@ -642,7 +728,7 @@ contract LimitOrdersFeature is
 
         // Must be fillable by the taker.
         if (params.order.taker != address(0) && params.order.taker != params.taker) {
-            LibLimitOrdersRichErrors.OrderNotFillableByTakerError(
+            LibNativeOrdersRichErrors.OrderNotFillableByTakerError(
                 orderInfo.orderHash,
                 params.taker,
                 params.order.taker
@@ -651,7 +737,7 @@ contract LimitOrdersFeature is
 
         // Must be fillable by the sender.
         if (params.order.sender != address(0) && params.order.sender != params.sender) {
-            LibLimitOrdersRichErrors.OrderNotFillableBySenderError(
+            LibNativeOrdersRichErrors.OrderNotFillableBySenderError(
                 orderInfo.orderHash,
                 params.sender,
                 params.order.sender
@@ -665,7 +751,7 @@ contract LimitOrdersFeature is
                 params.signature
             );
             if (signer != params.order.maker) {
-                LibLimitOrdersRichErrors.OrderNotSignedByMakerError(
+                LibNativeOrdersRichErrors.OrderNotSignedByMakerError(
                     orderInfo.orderHash,
                     signer,
                     params.order.maker
@@ -674,10 +760,10 @@ contract LimitOrdersFeature is
         }
 
         // Pay the protocol fee.
-        ethProtocolFeePaid = _collectProtocolFee(params.order.pool, params.taker);
+        results.ethProtocolFeePaid = _collectProtocolFee(params.order.pool);
 
         // Settle between the maker and taker.
-        (takerTokenFilledAmount, makerTokenFilledAmount) = _settleOrder(
+        (results.takerTokenFilledAmount, results.makerTokenFilledAmount) = _settleOrder(
             SettleOrderInfo({
                 orderHash: orderInfo.orderHash,
                 maker: params.order.maker,
@@ -692,10 +778,10 @@ contract LimitOrdersFeature is
         );
 
         // Pay the fee recipient.
-        uint128 takerTokenFeeFilledAmount;
+        results.takerTokenFeeFilledAmount;
         if (params.order.takerTokenFeeAmount > 0) {
-            takerTokenFeeFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
-                takerTokenFilledAmount,
+            results.takerTokenFeeFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
+                results.takerTokenFilledAmount,
                 params.order.takerAmount,
                 params.order.takerTokenFeeAmount
             ));
@@ -703,7 +789,7 @@ contract LimitOrdersFeature is
                 params.order.takerToken,
                 params.taker,
                 params.order.feeRecipient,
-                uint256(takerTokenFeeFilledAmount)
+                uint256(results.takerTokenFeeFilledAmount)
             );
         }
 
@@ -714,9 +800,10 @@ contract LimitOrdersFeature is
             params.order.feeRecipient,
             address(params.order.makerToken),
             address(params.order.takerToken),
-            takerTokenFilledAmount,
-            makerTokenFilledAmount,
-            takerTokenFeeFilledAmount,
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount,
+            results.takerTokenFeeFilledAmount,
+            results.ethProtocolFeePaid,
             params.order.pool
         );
     }
@@ -726,27 +813,21 @@ contract LimitOrdersFeature is
     /// @param signature The order signature.
     /// @param takerTokenFillAmount Maximum taker token to fill this order with.
     /// @param taker The order taker.
-    /// @return ethProtocolFeePaid How much protocol fee was paid.
-    /// @return takerTokenFilledAmount How much maker token was filled.
-    /// @return makerTokenFilledAmount How much maker token was filled.
+    /// @return results Results of the fill.
     function _fillRfqOrderPrivate(
-        LibLimitOrder.RfqOrder memory order,
+        LibNativeOrder.RfqOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
         address taker
     )
         private
-        returns (
-            uint256 ethProtocolFeePaid,
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        )
+        returns (FillNativeOrderResults memory results)
     {
-        LibLimitOrder.OrderInfo memory orderInfo = getRfqOrderInfo(order);
+        LibNativeOrder.OrderInfo memory orderInfo = getRfqOrderInfo(order);
 
         // Must be fillable.
-        if (orderInfo.status != LibLimitOrder.OrderStatus.FILLABLE) {
-            LibLimitOrdersRichErrors.OrderNotFillableError(
+        if (orderInfo.status != LibNativeOrder.OrderStatus.FILLABLE) {
+            LibNativeOrdersRichErrors.OrderNotFillableError(
                 orderInfo.orderHash,
                 uint8(orderInfo.status)
             ).rrevert();
@@ -754,7 +835,7 @@ contract LimitOrdersFeature is
 
         // Must be fillable by the tx.origin.
         if (order.txOrigin != address(0) && order.txOrigin != tx.origin) {
-            LibLimitOrdersRichErrors.OrderNotFillableByOriginError(
+            LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
                 orderInfo.orderHash,
                 tx.origin,
                 order.txOrigin
@@ -765,7 +846,7 @@ contract LimitOrdersFeature is
         {
             address signer = LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
             if (signer != order.maker) {
-                LibLimitOrdersRichErrors.OrderNotSignedByMakerError(
+                LibNativeOrdersRichErrors.OrderNotSignedByMakerError(
                     orderInfo.orderHash,
                     signer,
                     order.maker
@@ -774,10 +855,10 @@ contract LimitOrdersFeature is
         }
 
         // Pay the protocol fee.
-        ethProtocolFeePaid = _collectProtocolFee(order.pool, taker);
+        results.ethProtocolFeePaid = _collectProtocolFee(order.pool);
 
         // Settle between the maker and taker.
-        (takerTokenFilledAmount, makerTokenFilledAmount) = _settleOrder(
+        (results.takerTokenFilledAmount, results.makerTokenFilledAmount) = _settleOrder(
             SettleOrderInfo({
                 orderHash: orderInfo.orderHash,
                 maker: order.maker,
@@ -797,8 +878,9 @@ contract LimitOrdersFeature is
             taker,
             address(order.makerToken),
             address(order.takerToken),
-            takerTokenFilledAmount,
-            makerTokenFilledAmount,
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount,
+            results.ethProtocolFeePaid,
             order.pool
         );
     }
@@ -831,7 +913,7 @@ contract LimitOrdersFeature is
         }
 
         // Update filled state for the order.
-        LibLimitOrdersStorage
+        LibNativeOrdersStorage
             .getStorage()
             .orderHashToTakerTokenFilledAmount[settleInfo.orderHash] =
             // OK to overwrite the whole word because we shouldn't get to this
@@ -857,7 +939,7 @@ contract LimitOrdersFeature is
 
     /// @dev Refund any leftover protocol fees in `msg.value` to `msg.sender`.
     /// @param ethProtocolFeePaid How much ETH was paid in protocol fees.
-    function _refundProtocolFeeToSender(uint256 ethProtocolFeePaid)
+    function _refundExcessProtocolFeeToSender(uint256 ethProtocolFeePaid)
         private
     {
         if (msg.value > ethProtocolFeePaid && msg.sender != address(this)) {
@@ -866,7 +948,7 @@ contract LimitOrdersFeature is
                 .sender
                 .call{value: refundAmount}("");
             if (!success) {
-                LibLimitOrdersRichErrors.ProtocolFeeRefundFailed(
+                LibNativeOrdersRichErrors.ProtocolFeeRefundFailed(
                     msg.sender,
                     refundAmount
                 ).rrevert();

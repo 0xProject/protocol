@@ -52,12 +52,8 @@ abstract contract FixinProtocolFees {
     /// @dev   Collect the specified protocol fee in ETH.
     ///        The fee is stored in a per-pool fee collector contract.
     /// @param poolId The pool ID for which a fee is being collected.
-    /// @param payer The address paying for WETH protocol fees.
     /// @return ethProtocolFeePaid How much protocol fee was collected in ETH.
-    function _collectProtocolFee(
-        bytes32 poolId,
-        address payer
-    )
+    function _collectProtocolFee(bytes32 poolId)
         internal
         returns (uint256 ethProtocolFeePaid)
     {

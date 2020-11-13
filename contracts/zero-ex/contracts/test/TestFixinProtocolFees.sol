@@ -35,14 +35,11 @@ contract TestFixinProtocolFees is
         // solhint-disalbe no-empty-blocks
     }
 
-    function collectProtocolFee(
-        bytes32 poolId,
-        address payer
-    )
+    function collectProtocolFee(bytes32 poolId)
         external
         payable
     {
-        _collectProtocolFee(poolId, payer);
+        _collectProtocolFee(poolId);
     }
 
     function transferFeesForPool(bytes32 poolId)

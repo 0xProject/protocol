@@ -19,7 +19,7 @@
 pragma solidity ^0.6.5;
 
 
-library LibLimitOrdersRichErrors {
+library LibNativeOrdersRichErrors {
 
     // solhint-disable func-name-mixedcase
 
