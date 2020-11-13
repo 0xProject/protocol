@@ -89,6 +89,12 @@ interface INativeOrdersFeature {
         uint256 minValidSalt
     );
 
+    /// @dev Transfers protocol fees from the `FeeCollector` pools into
+    ///      the staking contract.
+    /// @param poolIds Staking pool IDs
+    function transferProtocolFeesForPools(bytes32[] calldata poolIds)
+        external;
+
     /// @dev Fill a limit order. The taker and sender will be the caller.
     /// @param order The limit order. ETH protocol fees can be
     ///      attached to this call. Any unspent ETH will be refunded to
@@ -308,4 +314,13 @@ interface INativeOrdersFeature {
         external
         view
         returns (bytes32 orderHash);
+
+    /// @dev Get the protocol fee multiplier. This should be multiplied by the
+    ///      gas price to arrive at the required protocol fee to fill a native order.
+    /// @return multiplier The protocol fee multiplier.
+    function getProtocolFeeMultiplier()
+        external
+        view
+        returns (uint32 multiplier);
+
 }

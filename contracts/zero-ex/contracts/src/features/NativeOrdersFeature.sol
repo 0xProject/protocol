@@ -123,6 +123,7 @@ contract NativeOrdersFeature is
         external
         returns (bytes4 success)
     {
+        _registerFeatureFunction(this.transferProtocolFeesForPools.selector);
         _registerFeatureFunction(this.fillLimitOrder.selector);
         _registerFeatureFunction(this.fillRfqOrder.selector);
         _registerFeatureFunction(this.fillOrKillLimitOrder.selector);
@@ -141,7 +142,20 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.getRfqOrderInfo.selector);
         _registerFeatureFunction(this.getLimitOrderHash.selector);
         _registerFeatureFunction(this.getRfqOrderHash.selector);
+        _registerFeatureFunction(this.getProtocolFeeMultiplier.selector);
         return LibMigrate.MIGRATE_SUCCESS;
+    }
+
+    /// @dev Transfers protocol fees from the `FeeCollector` pools into
+    ///      the staking contract.
+    /// @param poolIds Staking pool IDs
+    function transferProtocolFeesForPools(bytes32[] calldata poolIds)
+        external
+        override
+    {
+        for (uint256 i = 0; i < poolIds.length; ++i) {
+            _transferFeesForPool(poolIds[i]);
+        }
     }
 
     /// @dev Fill a limit order. The taker and sender will be the caller.
@@ -641,6 +655,18 @@ contract NativeOrdersFeature is
         return _getEIP712Hash(
             LibNativeOrder.getRfqOrderStructHash(order)
         );
+    }
+
+    /// @dev Get the protocol fee multiplier. This should be multiplied by the
+    ///      gas price to arrive at the required protocol fee to fill a native order.
+    /// @return multiplier The protocol fee multiplier.
+    function getProtocolFeeMultiplier()
+        external
+        override
+        view
+        returns (uint32 multiplier)
+    {
+        return PROTOCOL_FEE_MULTIPLIER;
     }
 
     /// @dev Populate `status` and `takerTokenFilledAmount` fields in
