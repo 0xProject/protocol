@@ -103,6 +103,13 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         return new BigNumber(Math.floor(Date.now() / 1000) + deltaSeconds);
     }
 
+    describe('getProtocolFeeMultiplier()', () => {
+        it('returns the protocol fee multiplier', async () => {
+            const r = await zeroEx.getProtocolFeeMultiplier().callAsync();
+            expect(r).to.bignumber.eq(PROTOCOL_FEE_MULTIPLIER);
+        });
+    });
+
     describe('getLimitOrderHash()', () => {
         it('returns the correct hash', async () => {
             const order = getTestLimitOrder();
