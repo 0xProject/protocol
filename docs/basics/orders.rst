@@ -139,8 +139,8 @@ In both cases, the ``@0x/protocol-utils`` package simplifies generating these si
 
 .. code-block:: javascript
 
-   const orderUtils = require('@0x/protocol-utils');
-   const order = new orderUtils.LimitOrder({
+   const utils = require('@0x/protocol-utils');
+   const order = new utils.LimitOrder({
        makerToken: '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI
        takerToken: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
        ... // Other fields
@@ -221,22 +221,22 @@ Because there is no way to un-sign an order that has been distributed, limit ord
     )
         external;
 
-``cancelPairOrdersUpTo()`` will cancel all limit and RFQ orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
+``cancelLimitPairOrdersUpTo()`` will cancel all limit orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
 
 .. code-block:: solidity
 
-    function cancelPairOrdersUpTo(
+    function cancelLimitPairLimitOrdersUpTo(
         address makerToken,
         address takerToken,
         uint256 salt;
     )
         external;
 
-``batchCancelPairOrdersUpTo()`` performs multiple ``cancelPairOrdersUpTo()`` at once. Each respective index across arrays is equivalent to a single call.
+``batchCancelLimitPairOrdersUpTo()`` performs multiple ``cancelLimitPairOrdersUpTo()`` at once. Each respective index across arrays is equivalent to a single call.
 
 .. code-block:: solidity
 
-    function batchCancelPairOrdersUpTo(
+    function batchCancelLimitPairOrdersUpTo(
         address[] makerTokens,
         address[] takerTokens,
         uint256[] salts;
@@ -392,8 +392,8 @@ The ``@0x/protocol-utils`` node package simplifies the process of creating a val
 
 .. code-block:: javascript
 
-   const orderUtils = require('@0x/protocol-utils');
-   const order = new orderUtils.RfqOrder({
+   const utils = require('@0x/protocol-utils');
+   const order = new utils.RfqOrder({
        makerToken: '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI
        takerToken: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
        ... // Other fields
@@ -468,22 +468,22 @@ Similar to limit orders, RFQ orders can be cancelled on-chain through a variety 
     )
         external;
 
-``cancelPairOrdersUpTo()`` will cancel all limit and RFQ orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
+``cancelPairRfqOrdersUpTo()`` will cancel all RFQ orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
 
 .. code-block:: solidity
 
-    function cancelPairOrdersUpTo(
+    function cancelPairRfqOrdersUpTo(
         address makerToken,
         address takerToken,
         uint256 salt;
     )
         external;
 
-``batchCancelPairOrdersUpTo()`` performs multiple ``cancelPairOrdersUpTo()`` at once. Each respective index across arrays is equivalent to a single call.
+``batchCancelPairRfqOrdersUpTo()`` performs multiple ``cancelPairRfqOrdersUpTo()`` at once. Each respective index across arrays is equivalent to a single call.
 
 .. code-block:: solidity
 
-    function batchCancelPairOrdersUpTo(
+    function batchCancelPairRfqOrdersUpTo(
         address[] makerTokens,
         address[] takerTokens,
         uint256[] salts;
