@@ -9,8 +9,8 @@ import { abis } from './utils/abis';
 import { deployFullFeaturesAsync, FullFeatures } from './utils/migration';
 import {
     AllowanceTargetContract,
-    ILimitOrdersFeatureContract,
     IMetaTransactionsFeatureContract,
+    INativeOrdersFeatureContract,
     IOwnableFeatureContract,
     ISignatureValidatorFeatureContract,
     ISimpleFunctionRegistryFeatureContract,
@@ -105,8 +105,9 @@ blockchainTests.resets('Full migration', env => {
             ],
         },
         LimitOrdersFeature: {
-            contractType: ILimitOrdersFeatureContract,
+            contractType: INativeOrdersFeatureContract,
             fns: [
+                'transferProtocolFeesForPools',
                 'fillLimitOrder',
                 'fillRfqOrder',
                 'fillOrKillLimitOrder',
@@ -117,12 +118,15 @@ blockchainTests.resets('Full migration', env => {
                 'cancelRfqOrder',
                 'batchCancelLimitOrders',
                 'batchCancelRfqOrders',
-                'cancelPairOrdersUpTo',
-                'batchCancelPairOrdersUpTo',
+                'cancelPairLimitOrdersUpTo',
+                'batchCancelPairLimitOrdersUpTo',
+                'cancelPairRfqOrdersUpTo',
+                'batchCancelPairRfqOrdersUpTo',
                 'getLimitOrderInfo',
                 'getRfqOrderInfo',
                 'getLimitOrderHash',
                 'getRfqOrderHash',
+                'getProtocolFeeMultiplier',
             ],
         },
     };

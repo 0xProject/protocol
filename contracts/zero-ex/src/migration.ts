@@ -9,8 +9,8 @@ import {
     FullMigrationContract,
     InitialMigrationContract,
     IZeroExContract,
-    LimitOrdersFeatureContract,
     MetaTransactionsFeatureContract,
+    NativeOrdersFeatureContract,
     OwnableFeatureContract,
     SignatureValidatorFeatureContract,
     SimpleFunctionRegistryFeatureContract,
@@ -111,7 +111,7 @@ export interface FullFeatures extends BootstrapFeatures {
     transformERC20: string;
     signatureValidator: string;
     metaTransactions: string;
-    limitOrders: string;
+    nativeOrders: string;
 }
 
 /**
@@ -122,7 +122,7 @@ export interface FullFeatureArtifacts extends BootstrapFeatureArtifacts {
     transformERC20: SimpleContractArtifact;
     signatureValidator: SimpleContractArtifact;
     metaTransactions: SimpleContractArtifact;
-    limitOrders: SimpleContractArtifact;
+    nativeOrders: SimpleContractArtifact;
 }
 
 /**
@@ -154,7 +154,7 @@ const DEFAULT_FULL_FEATURES_ARTIFACTS = {
     transformERC20: artifacts.TransformERC20Feature,
     signatureValidator: artifacts.SignatureValidatorFeature,
     metaTransactions: artifacts.MetaTransactionsFeature,
-    limitOrders: artifacts.LimitOrdersFeature,
+    nativeOrders: artifacts.NativeOrdersFeature,
 };
 
 /**
@@ -207,10 +207,10 @@ export async function deployFullFeaturesAsync(
                 artifacts,
                 _config.zeroExAddress,
             )).address,
-        limitOrders:
-            features.limitOrders ||
-            (await LimitOrdersFeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.limitOrders,
+        nativeOrders:
+            features.nativeOrders ||
+            (await NativeOrdersFeatureContract.deployFrom0xArtifactAsync(
+                _featureArtifacts.nativeOrders,
                 provider,
                 txDefaults,
                 artifacts,

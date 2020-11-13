@@ -31,7 +31,7 @@ blockchainTests.resets('ProtocolFees', env => {
         protocolFees = await TestFixinProtocolFeesContract.deployFrom0xArtifactAsync(
             artifacts.TestFixinProtocolFees,
             env.provider,
-            env.txDefaults,
+            { ...env.txDefaults, from: taker },
             artifacts,
             weth.address,
             staking.address,
@@ -46,7 +46,7 @@ blockchainTests.resets('ProtocolFees', env => {
         it('should disallow unauthorized initialization', async () => {
             const pool = hexUtils.random();
 
-            await protocolFees.collectProtocolFee(pool, taker).awaitTransactionSuccessAsync({ value: singleFeeAmount });
+            await protocolFees.collectProtocolFee(pool).awaitTransactionSuccessAsync({ value: singleFeeAmount });
             await protocolFees.transferFeesForPool(pool).awaitTransactionSuccessAsync();
 
             const feeCollector = new FeeCollectorContract(
@@ -75,15 +75,13 @@ blockchainTests.resets('ProtocolFees', env => {
 
         it('should revert if insufficient ETH transferred', async () => {
             const tooLittle = singleFeeAmount.minus(1);
-            const tx = protocolFees.collectProtocolFee(pool1, taker).awaitTransactionSuccessAsync({ value: tooLittle });
+            const tx = protocolFees.collectProtocolFee(pool1).awaitTransactionSuccessAsync({ value: tooLittle });
             return expect(tx).to.revertWith('FixinProtocolFees/ETHER_TRANSFER_FALIED');
         });
 
         it('should accept ETH fee', async () => {
             const beforeETH = await env.web3Wrapper.getBalanceInWeiAsync(taker);
-            await protocolFees
-                .collectProtocolFee(pool1, taker)
-                .awaitTransactionSuccessAsync({ value: singleFeeAmount });
+            await protocolFees.collectProtocolFee(pool1).awaitTransactionSuccessAsync({ value: singleFeeAmount });
             const afterETH = await env.web3Wrapper.getBalanceInWeiAsync(taker);
 
             // We check for greater than fee spent to allow for spending on gas.
@@ -95,13 +93,9 @@ blockchainTests.resets('ProtocolFees', env => {
         });
 
         it('should accept ETH after first transfer', async () => {
-            await protocolFees
-                .collectProtocolFee(pool1, taker)
-                .awaitTransactionSuccessAsync({ value: singleFeeAmount });
+            await protocolFees.collectProtocolFee(pool1).awaitTransactionSuccessAsync({ value: singleFeeAmount });
             await protocolFees.transferFeesForPool(pool1).awaitTransactionSuccessAsync();
-            await protocolFees
-                .collectProtocolFee(pool1, taker)
-                .awaitTransactionSuccessAsync({ value: singleFeeAmount });
+            await protocolFees.collectProtocolFee(pool1).awaitTransactionSuccessAsync({ value: singleFeeAmount });
             await protocolFees.transferFeesForPool(pool1).awaitTransactionSuccessAsync();
 
             const balanceWETH = await weth.balanceOf(staking.address).callAsync();
@@ -114,13 +108,9 @@ blockchainTests.resets('ProtocolFees', env => {
         });
 
         it('should attribute fees correctly', async () => {
-            await protocolFees
-                .collectProtocolFee(pool1, taker)
-                .awaitTransactionSuccessAsync({ value: singleFeeAmount });
+            await protocolFees.collectProtocolFee(pool1).awaitTransactionSuccessAsync({ value: singleFeeAmount });
             await protocolFees.transferFeesForPool(pool1).awaitTransactionSuccessAsync();
-            await protocolFees
-                .collectProtocolFee(pool2, taker)
-                .awaitTransactionSuccessAsync({ value: singleFeeAmount });
+            await protocolFees.collectProtocolFee(pool2).awaitTransactionSuccessAsync({ value: singleFeeAmount });
             await protocolFees.transferFeesForPool(pool2).awaitTransactionSuccessAsync();
 
             const pool1Balance = await staking.balanceForPool(pool1).callAsync();

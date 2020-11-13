@@ -44,7 +44,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             { ...env.txDefaults, gasPrice: GAS_PRICE },
             {},
             { wethAddress: wethToken.address, protocolFeeMultiplier: PROTOCOL_FEE_MULTIPLIER },
-            { limitOrders: artifacts.TestLimitOrdersFeature },
+            { nativeOrders: artifacts.TestNativeOrdersFeature },
         );
         verifyingContract = zeroEx.address;
         await Promise.all(
@@ -504,7 +504,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             // Cancel the first two orders.
             const minValidSalt = orders[2].salt;
             const receipt = await zeroEx
-                .cancelPairOrdersUpTo(makerToken.address, takerToken.address, minValidSalt)
+                .cancelPairLimitOrdersUpTo(makerToken.address, takerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -530,7 +530,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             // pair.
             const minValidSalt = order.salt.plus(1);
             await zeroEx
-                .cancelPairOrdersUpTo(takerToken.address, makerToken.address, minValidSalt)
+                .cancelPairLimitOrdersUpTo(takerToken.address, makerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Fillable);
@@ -541,7 +541,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             // Cancel the first two orders.
             const minValidSalt = orders[2].salt;
             const receipt = await zeroEx
-                .cancelPairOrdersUpTo(makerToken.address, takerToken.address, minValidSalt)
+                .cancelPairRfqOrdersUpTo(makerToken.address, takerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -567,7 +567,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             // pair.
             const minValidSalt = order.salt.plus(1);
             await zeroEx
-                .cancelPairOrdersUpTo(takerToken.address, makerToken.address, minValidSalt)
+                .cancelPairRfqOrdersUpTo(takerToken.address, makerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             const { status } = await zeroEx.getRfqOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Fillable);
@@ -587,7 +587,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             ];
             const minValidSalt = new BigNumber(2);
             const receipt = await zeroEx
-                .batchCancelPairOrdersUpTo(
+                .batchCancelPairLimitOrdersUpTo(
                     [makerToken.address, takerToken.address],
                     [takerToken.address, makerToken.address],
                     [minValidSalt, minValidSalt],
@@ -629,7 +629,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             ];
             const minValidSalt = new BigNumber(2);
             const receipt = await zeroEx
-                .batchCancelPairOrdersUpTo(
+                .batchCancelPairRfqOrdersUpTo(
                     [makerToken.address, takerToken.address],
                     [takerToken.address, makerToken.address],
                     [minValidSalt, minValidSalt],
@@ -711,6 +711,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             feeRecipient: order.feeRecipient,
             makerToken: order.makerToken,
             takerToken: order.takerToken,
+            protocolFeePaid: SINGLE_PROTOCOL_FEE,
             pool: order.pool,
         };
     }
@@ -852,7 +853,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         it('cannot fill a salt/pair cancelled order', async () => {
             const order = getTestLimitOrder();
             await zeroEx
-                .cancelPairOrdersUpTo(makerToken.address, takerToken.address, order.salt.plus(1))
+                .cancelPairLimitOrdersUpTo(makerToken.address, takerToken.address, order.salt.plus(1))
                 .awaitTransactionSuccessAsync({ from: maker });
             const tx = fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
@@ -945,6 +946,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             maker: order.maker,
             makerToken: order.makerToken,
             takerToken: order.takerToken,
+            protocolFeePaid: SINGLE_PROTOCOL_FEE,
             pool: order.pool,
         };
     }
@@ -1088,7 +1090,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         it('cannot fill a salt/pair cancelled order', async () => {
             const order = getTestRfqOrder();
             await zeroEx
-                .cancelPairOrdersUpTo(makerToken.address, takerToken.address, order.salt.plus(1))
+                .cancelPairRfqOrdersUpTo(makerToken.address, takerToken.address, order.salt.plus(1))
                 .awaitTransactionSuccessAsync({ from: maker });
             const tx = fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(

@@ -2,14 +2,14 @@ import { blockchainTests, describe, expect } from '@0x/contracts-test-utils';
 
 import { artifacts } from './artifacts';
 import { getRandomLimitOrder, getRandomRfqOrder } from './utils/orders';
-import { TestLibLimitOrderContract } from './wrappers';
+import { TestLibNativeOrderContract } from './wrappers';
 
 blockchainTests('LibLimitOrder tests', env => {
-    let testContract: TestLibLimitOrderContract;
+    let testContract: TestLibNativeOrderContract;
 
     before(async () => {
-        testContract = await TestLibLimitOrderContract.deployFrom0xArtifactAsync(
-            artifacts.TestLibLimitOrder,
+        testContract = await TestLibNativeOrderContract.deployFrom0xArtifactAsync(
+            artifacts.TestLibNativeOrder,
             env.provider,
             env.txDefaults,
             artifacts,
