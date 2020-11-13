@@ -6,7 +6,8 @@
                 "note": "Update IZeroEx wrapper and remove ILiquidityProviderRegistry wrapper",
                 "pr": 16
             }
-        ]
+        ],
+        "timestamp": 1605302002
     },
     {
         "timestamp": 1604385937,

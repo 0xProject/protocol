@@ -6,7 +6,8 @@
                 "note": "Add `exchangeProxyLiquidityProviderSandbox` addresses",
                 "pr": 16
             }
-        ]
+        ],
+        "timestamp": 1605302002
     },
     {
         "version": "5.2.0",

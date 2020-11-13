@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.1.0 - _November 13, 2020_
+
+    * Add support for LiquidityProvider feature in the swap quote consumer (#16)
+    * Remove support for MultiBridge 😞 (#16)
+
 ## v5.0.3 - _November 5, 2020_
 
     * Dependencies updated

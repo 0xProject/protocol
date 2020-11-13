@@ -18,7 +18,8 @@
                 "note": "Update ProtocolFeeUnfunded event to emit order hash",
                 "pr": 16
             }
-        ]
+        ],
+        "timestamp": 1605302002
     },
     {
         "version": "0.8.0",
