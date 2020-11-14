@@ -13,7 +13,6 @@ import {
     FeeSchedule,
     FillData,
     GetMarketOrdersOpts,
-    LiquidityProviderRegistry,
     MultiHopFillData,
     SnowSwapFillData,
     SushiSwapFillData,
@@ -25,51 +24,55 @@ import {
 /**
  * Valid sources for market sell.
  */
-export const SELL_SOURCE_FILTER = new SourceFilters([
-    ERC20BridgeSource.Native,
-    ERC20BridgeSource.Uniswap,
-    ERC20BridgeSource.UniswapV2,
-    ERC20BridgeSource.Eth2Dai,
-    ERC20BridgeSource.Kyber,
-    ERC20BridgeSource.Curve,
-    ERC20BridgeSource.Balancer,
-    // Bancor is sampled off-chain, but this list should only include on-chain sources (used in ERC20BridgeSampler)
-    // ERC20BridgeSource.Bancor,
-    ERC20BridgeSource.MStable,
-    ERC20BridgeSource.Mooniswap,
-    ERC20BridgeSource.Swerve,
-    ERC20BridgeSource.SnowSwap,
-    ERC20BridgeSource.SushiSwap,
-    ERC20BridgeSource.Shell,
-    ERC20BridgeSource.MultiHop,
-    ERC20BridgeSource.Dodo,
-    ERC20BridgeSource.Cream,
-    ERC20BridgeSource.LiquidityProvider,
-]);
+export const SELL_SOURCE_FILTER = new SourceFilters(
+    [
+        ERC20BridgeSource.Native,
+        ERC20BridgeSource.Uniswap,
+        ERC20BridgeSource.UniswapV2,
+        ERC20BridgeSource.Eth2Dai,
+        ERC20BridgeSource.Kyber,
+        ERC20BridgeSource.Curve,
+        ERC20BridgeSource.Balancer,
+        // Bancor is sampled off-chain, but this list should only include on-chain sources (used in ERC20BridgeSampler)
+        // ERC20BridgeSource.Bancor,
+        ERC20BridgeSource.MStable,
+        ERC20BridgeSource.Mooniswap,
+        ERC20BridgeSource.Swerve,
+        ERC20BridgeSource.SnowSwap,
+        ERC20BridgeSource.SushiSwap,
+        ERC20BridgeSource.Shell,
+        ERC20BridgeSource.MultiHop,
+        ERC20BridgeSource.Dodo,
+        ERC20BridgeSource.Cream,
+    ],
+    [ERC20BridgeSource.MultiBridge],
+);
 
 /**
  * Valid sources for market buy.
  */
-export const BUY_SOURCE_FILTER = new SourceFilters([
-    ERC20BridgeSource.Native,
-    ERC20BridgeSource.Uniswap,
-    ERC20BridgeSource.UniswapV2,
-    ERC20BridgeSource.Eth2Dai,
-    ERC20BridgeSource.Kyber,
-    ERC20BridgeSource.Curve,
-    ERC20BridgeSource.Balancer,
-    // ERC20BridgeSource.Bancor, // FIXME: Disabled until Bancor SDK supports buy quotes
-    ERC20BridgeSource.MStable,
-    ERC20BridgeSource.Mooniswap,
-    ERC20BridgeSource.Shell,
-    ERC20BridgeSource.Swerve,
-    ERC20BridgeSource.SnowSwap,
-    ERC20BridgeSource.SushiSwap,
-    ERC20BridgeSource.MultiHop,
-    ERC20BridgeSource.Dodo,
-    ERC20BridgeSource.Cream,
-    ERC20BridgeSource.LiquidityProvider,
-]);
+export const BUY_SOURCE_FILTER = new SourceFilters(
+    [
+        ERC20BridgeSource.Native,
+        ERC20BridgeSource.Uniswap,
+        ERC20BridgeSource.UniswapV2,
+        ERC20BridgeSource.Eth2Dai,
+        ERC20BridgeSource.Kyber,
+        ERC20BridgeSource.Curve,
+        ERC20BridgeSource.Balancer,
+        // ERC20BridgeSource.Bancor, // FIXME: Disabled until Bancor SDK supports buy quotes
+        ERC20BridgeSource.MStable,
+        ERC20BridgeSource.Mooniswap,
+        ERC20BridgeSource.Shell,
+        ERC20BridgeSource.Swerve,
+        ERC20BridgeSource.SnowSwap,
+        ERC20BridgeSource.SushiSwap,
+        ERC20BridgeSource.MultiHop,
+        ERC20BridgeSource.Dodo,
+        ERC20BridgeSource.Cream,
+    ],
+    [ERC20BridgeSource.MultiBridge],
+);
 
 /**
  *  0x Protocol Fee Multiplier
@@ -349,8 +352,6 @@ export const MAINNET_KYBER_TOKEN_RESERVE_IDS: { [token: string]: string } = {
         '0xaa42414e44000000000000000000000000000000000000000000000000000000',
 };
 
-export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
-
 export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F';
 
 export const MAINNET_SHELL_POOLS = {
@@ -543,5 +544,5 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
     exchangeProxyOverhead: () => ZERO_AMOUNT,
     allowFallback: true,
     shouldGenerateQuoteReport: false,
-    tokenAdjacencyGraph: { default: [] },
+    tokenAdjacencyGraph: {},
 };

@@ -22,30 +22,45 @@ pragma experimental ABIEncoderV2;
 
 /// @dev Feature to swap directly with an on-chain liquidity provider.
 interface ILiquidityProviderFeature {
+    event LiquidityProviderForMarketUpdated(
+        address indexed xAsset,
+        address indexed yAsset,
+        address providerAddress
+    );
 
-    /// @dev Sells `sellAmount` of `inputToken` to the liquidity provider
-    ///      at the given `provider` address.
-    /// @param inputToken The token being sold.
-    /// @param outputToken The token being bought.
-    /// @param provider The address of the on-chain liquidity provider
-    ///        to trade with.
-    /// @param recipient The recipient of the bought tokens. If equal to
-    ///        address(0), `msg.sender` is assumed to be the recipient.
-    /// @param sellAmount The amount of `inputToken` to sell.
-    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to
-    ///        buy. Reverts if this amount is not satisfied.
-    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
-    /// @return boughtAmount The amount of `outputToken` bought.
     function sellToLiquidityProvider(
-        address inputToken,
-        address outputToken,
-        address payable provider,
-        address recipient,
+        address makerToken,
+        address takerToken,
+        address payable recipient,
         uint256 sellAmount,
-        uint256 minBuyAmount,
-        bytes calldata auxiliaryData
+        uint256 minBuyAmount
     )
         external
         payable
         returns (uint256 boughtAmount);
+
+    /// @dev Sets address of the liquidity provider for a market given
+    ///      (xAsset, yAsset).
+    /// @param xAsset First asset managed by the liquidity provider.
+    /// @param yAsset Second asset managed by the liquidity provider.
+    /// @param providerAddress Address of the liquidity provider.
+    function setLiquidityProviderForMarket(
+        address xAsset,
+        address yAsset,
+        address providerAddress
+    )
+        external;
+
+    /// @dev Returns the address of the liquidity provider for a market given
+    ///     (xAsset, yAsset), or reverts if pool does not exist.
+    /// @param xAsset First asset managed by the liquidity provider.
+    /// @param yAsset Second asset managed by the liquidity provider.
+    /// @return providerAddress Address of the liquidity provider.
+    function getLiquidityProviderForMarket(
+        address xAsset,
+        address yAsset
+    )
+        external
+        view
+        returns (address providerAddress);
 }

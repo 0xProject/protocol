@@ -45,4 +45,19 @@ library LibLiquidityProviderRichErrors {
             minBuyAmount
         );
     }
+
+    function NoLiquidityProviderForMarketError(
+        address xAsset,
+        address yAsset
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("NoLiquidityProviderForMarketError(address,address)")),
+            xAsset,
+            yAsset
+        );
+    }
 }

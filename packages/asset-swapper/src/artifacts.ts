@@ -5,5 +5,15 @@
  */
 import { ContractArtifact } from 'ethereum-types';
 
+import * as DummyLiquidityProvider from '../generated-artifacts/DummyLiquidityProvider.json';
+import * as DummyLiquidityProviderRegistry from '../generated-artifacts/DummyLiquidityProviderRegistry.json';
 import * as ERC20BridgeSampler from '../generated-artifacts/ERC20BridgeSampler.json';
-export const artifacts = { ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact };
+import * as ILiquidityProvider from '../generated-artifacts/ILiquidityProvider.json';
+import * as ILiquidityProviderRegistry from '../generated-artifacts/ILiquidityProviderRegistry.json';
+export const artifacts = {
+    ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
+    ILiquidityProvider: ILiquidityProvider as ContractArtifact,
+    ILiquidityProviderRegistry: ILiquidityProviderRegistry as ContractArtifact,
+    DummyLiquidityProviderRegistry: DummyLiquidityProviderRegistry as ContractArtifact,
+    DummyLiquidityProvider: DummyLiquidityProvider as ContractArtifact,
+};

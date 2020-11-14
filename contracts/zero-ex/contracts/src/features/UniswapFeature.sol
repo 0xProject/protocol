@@ -37,7 +37,7 @@ contract UniswapFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "UniswapFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
     /// @dev WETH contract.
     IEtherTokenV06 private immutable WETH;
     /// @dev AllowanceTarget instance.

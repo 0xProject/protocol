@@ -1,25 +1,16 @@
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
-import { blockchainTests, constants, expect, verifyEventsFromLogs } from '@0x/contracts-test-utils';
+import { blockchainTests, constants, expect, randomAddress, verifyEventsFromLogs } from '@0x/contracts-test-utils';
 import { BigNumber, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
 
 import { IOwnableFeatureContract, IZeroExContract, LiquidityProviderFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
-import {
-    LiquidityProviderSandboxContract,
-    TestBridgeContract,
-    TestBridgeEvents,
-    TestLiquidityProviderContract,
-    TestLiquidityProviderEvents,
-    TestWethContract,
-} from '../wrappers';
+import { IERC20BridgeEvents, TestBridgeContract, TestWethContract } from '../wrappers';
 
 blockchainTests('LiquidityProvider feature', env => {
     let zeroEx: IZeroExContract;
     let feature: LiquidityProviderFeatureContract;
-    let sandbox: LiquidityProviderSandboxContract;
-    let liquidityProvider: TestLiquidityProviderContract;
     let token: DummyERC20TokenContract;
     let weth: TestWethContract;
     let owner: string;
@@ -56,112 +47,102 @@ blockchainTests('LiquidityProvider feature', env => {
             env.provider,
             env.txDefaults,
             artifacts,
-            zeroEx.address,
-        );
-        sandbox = new LiquidityProviderSandboxContract(
-            await featureImpl.sandbox().callAsync(),
-            env.provider,
-            env.txDefaults,
+            weth.address,
         );
         await new IOwnableFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis)
             .migrate(featureImpl.address, featureImpl.migrate().getABIEncodedTransactionData(), owner)
             .awaitTransactionSuccessAsync();
-
-        liquidityProvider = await TestLiquidityProviderContract.deployFrom0xArtifactAsync(
-            artifacts.TestLiquidityProvider,
-            env.provider,
-            env.txDefaults,
-            artifacts,
-            token.address,
-            weth.address,
-        );
     });
-    blockchainTests.resets('Sandbox', () => {
-        it('Cannot call sandbox `executeSellTokenForToken` function directly', async () => {
-            const tx = sandbox
-                .executeSellTokenForToken(
-                    liquidityProvider.address,
-                    token.address,
-                    weth.address,
-                    taker,
-                    constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
-                )
-                .awaitTransactionSuccessAsync({ from: taker });
-            return expect(tx).to.revertWith(new OwnableRevertErrors.OnlyOwnerError(taker));
+    describe('Registry', () => {
+        it('`getLiquidityProviderForMarket` reverts if address is not set', async () => {
+            const [xAsset, yAsset] = [randomAddress(), randomAddress()];
+            let tx = feature.getLiquidityProviderForMarket(xAsset, yAsset).awaitTransactionSuccessAsync();
+            expect(tx).to.revertWith(
+                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(xAsset, yAsset),
+            );
+            tx = feature.getLiquidityProviderForMarket(yAsset, xAsset).awaitTransactionSuccessAsync();
+            return expect(tx).to.revertWith(
+                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(yAsset, xAsset),
+            );
         });
-        it('Cannot call sandbox `executeSellEthForToken` function directly', async () => {
-            const tx = sandbox
-                .executeSellEthForToken(
-                    liquidityProvider.address,
-                    token.address,
-                    taker,
-                    constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
-                )
-                .awaitTransactionSuccessAsync({ from: taker });
-            return expect(tx).to.revertWith(new OwnableRevertErrors.OnlyOwnerError(taker));
+        it('can set/get a liquidity provider address for a given market', async () => {
+            const expectedAddress = randomAddress();
+            await feature
+                .setLiquidityProviderForMarket(token.address, weth.address, expectedAddress)
+                .awaitTransactionSuccessAsync();
+            let actualAddress = await feature.getLiquidityProviderForMarket(token.address, weth.address).callAsync();
+            expect(actualAddress).to.equal(expectedAddress);
+            actualAddress = await feature.getLiquidityProviderForMarket(weth.address, token.address).callAsync();
+            expect(actualAddress).to.equal(expectedAddress);
         });
-        it('Cannot call sandbox `executeSellTokenForEth` function directly', async () => {
-            const tx = sandbox
-                .executeSellTokenForEth(
-                    liquidityProvider.address,
-                    token.address,
-                    taker,
-                    constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
-                )
+        it('can update a liquidity provider address for a given market', async () => {
+            const expectedAddress = randomAddress();
+            await feature
+                .setLiquidityProviderForMarket(token.address, weth.address, expectedAddress)
+                .awaitTransactionSuccessAsync();
+            let actualAddress = await feature.getLiquidityProviderForMarket(token.address, weth.address).callAsync();
+            expect(actualAddress).to.equal(expectedAddress);
+            actualAddress = await feature.getLiquidityProviderForMarket(weth.address, token.address).callAsync();
+            expect(actualAddress).to.equal(expectedAddress);
+        });
+        it('can effectively remove a liquidity provider for a market by setting the address to 0', async () => {
+            await feature
+                .setLiquidityProviderForMarket(token.address, weth.address, constants.NULL_ADDRESS)
+                .awaitTransactionSuccessAsync();
+            const tx = feature
+                .getLiquidityProviderForMarket(token.address, weth.address)
+                .awaitTransactionSuccessAsync();
+            return expect(tx).to.revertWith(
+                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(token.address, weth.address),
+            );
+        });
+        it('reverts if non-owner attempts to set an address', async () => {
+            const tx = feature
+                .setLiquidityProviderForMarket(randomAddress(), randomAddress(), randomAddress())
                 .awaitTransactionSuccessAsync({ from: taker });
-            return expect(tx).to.revertWith(new OwnableRevertErrors.OnlyOwnerError(taker));
+            return expect(tx).to.revertWith(new OwnableRevertErrors.OnlyOwnerError(taker, owner));
         });
     });
     blockchainTests.resets('Swap', () => {
+        let liquidityProvider: TestBridgeContract;
         const ETH_TOKEN_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
-        it('Successfully executes an ERC20-ERC20 swap', async () => {
-            const tx = await feature
-                .sellToLiquidityProvider(
-                    token.address,
-                    weth.address,
-                    liquidityProvider.address,
-                    constants.NULL_ADDRESS,
-                    constants.ONE_ETHER,
-                    constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
-                )
-                .awaitTransactionSuccessAsync({ from: taker });
-            verifyEventsFromLogs(
-                tx.logs,
-                [
-                    {
-                        inputToken: token.address,
-                        outputToken: weth.address,
-                        recipient: taker,
-                        minBuyAmount: constants.ZERO_AMOUNT,
-                        inputTokenBalance: constants.ONE_ETHER,
-                    },
-                ],
-                TestLiquidityProviderEvents.SellTokenForToken,
-            );
-        });
-        it('Successfully executes an ERC20-ERC20 swap (backwards-compatibility)', async () => {
-            const bridge = await TestBridgeContract.deployFrom0xArtifactAsync(
+        before(async () => {
+            liquidityProvider = await TestBridgeContract.deployFrom0xArtifactAsync(
                 artifacts.TestBridge,
                 env.provider,
                 env.txDefaults,
                 artifacts,
-                weth.address,
                 token.address,
+                weth.address,
             );
-            const tx = await feature
+            await feature
+                .setLiquidityProviderForMarket(token.address, weth.address, liquidityProvider.address)
+                .awaitTransactionSuccessAsync();
+        });
+        it('Cannot execute a swap for a market without a liquidity provider set', async () => {
+            const [xAsset, yAsset] = [randomAddress(), randomAddress()];
+            const tx = feature
                 .sellToLiquidityProvider(
-                    token.address,
-                    weth.address,
-                    bridge.address,
+                    xAsset,
+                    yAsset,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
+                )
+                .awaitTransactionSuccessAsync({ from: taker });
+            return expect(tx).to.revertWith(
+                new ZeroExRevertErrors.LiquidityProvider.NoLiquidityProviderForMarketError(xAsset, yAsset),
+            );
+        });
+        it('Successfully executes an ERC20-ERC20 swap', async () => {
+            const tx = await feature
+                .sellToLiquidityProvider(
+                    weth.address,
+                    token.address,
+                    constants.NULL_ADDRESS,
+                    constants.ONE_ETHER,
+                    constants.ZERO_AMOUNT,
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
@@ -172,24 +153,22 @@ blockchainTests('LiquidityProvider feature', env => {
                         outputToken: weth.address,
                         inputTokenAmount: constants.ONE_ETHER,
                         outputTokenAmount: constants.ZERO_AMOUNT,
-                        from: bridge.address,
+                        from: constants.NULL_ADDRESS,
                         to: taker,
                     },
                 ],
-                TestBridgeEvents.ERC20BridgeTransfer,
+                IERC20BridgeEvents.ERC20BridgeTransfer,
             );
         });
         it('Reverts if cannot fulfill the minimum buy amount', async () => {
             const minBuyAmount = new BigNumber(1);
             const tx = feature
                 .sellToLiquidityProvider(
-                    token.address,
                     weth.address,
-                    liquidityProvider.address,
+                    token.address,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     minBuyAmount,
-                    constants.NULL_BYTES,
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
@@ -206,38 +185,36 @@ blockchainTests('LiquidityProvider feature', env => {
         it('Successfully executes an ETH-ERC20 swap', async () => {
             const tx = await feature
                 .sellToLiquidityProvider(
-                    ETH_TOKEN_ADDRESS,
                     token.address,
-                    liquidityProvider.address,
+                    ETH_TOKEN_ADDRESS,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
                 )
                 .awaitTransactionSuccessAsync({ from: taker, value: constants.ONE_ETHER });
             verifyEventsFromLogs(
                 tx.logs,
                 [
                     {
+                        inputToken: weth.address,
                         outputToken: token.address,
-                        recipient: taker,
-                        minBuyAmount: constants.ZERO_AMOUNT,
-                        ethBalance: constants.ONE_ETHER,
+                        inputTokenAmount: constants.ONE_ETHER,
+                        outputTokenAmount: constants.ZERO_AMOUNT,
+                        from: constants.NULL_ADDRESS,
+                        to: taker,
                     },
                 ],
-                TestLiquidityProviderEvents.SellEthForToken,
+                IERC20BridgeEvents.ERC20BridgeTransfer,
             );
         });
         it('Successfully executes an ERC20-ETH swap', async () => {
             const tx = await feature
                 .sellToLiquidityProvider(
-                    token.address,
                     ETH_TOKEN_ADDRESS,
-                    liquidityProvider.address,
+                    token.address,
                     constants.NULL_ADDRESS,
                     constants.ONE_ETHER,
                     constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
                 )
                 .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
@@ -245,12 +222,14 @@ blockchainTests('LiquidityProvider feature', env => {
                 [
                     {
                         inputToken: token.address,
-                        recipient: taker,
-                        minBuyAmount: constants.ZERO_AMOUNT,
-                        inputTokenBalance: constants.ONE_ETHER,
+                        outputToken: weth.address,
+                        inputTokenAmount: constants.ONE_ETHER,
+                        outputTokenAmount: constants.ZERO_AMOUNT,
+                        from: constants.NULL_ADDRESS,
+                        to: zeroEx.address,
                     },
                 ],
-                TestLiquidityProviderEvents.SellTokenForEth,
+                IERC20BridgeEvents.ERC20BridgeTransfer,
             );
         });
     });

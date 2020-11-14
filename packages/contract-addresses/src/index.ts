@@ -33,7 +33,6 @@ export interface ContractAddresses {
     exchangeProxyAllowanceTarget: string;
     exchangeProxyTransformerDeployer: string;
     exchangeProxyFlashWallet: string;
-    exchangeProxyLiquidityProviderSandbox: string;
     transformers: {
         wethTransformer: string;
         payTakerTransformer: string;

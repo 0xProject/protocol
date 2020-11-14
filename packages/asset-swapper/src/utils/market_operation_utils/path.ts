@@ -2,7 +2,7 @@ import { BigNumber } from '@0x/utils';
 
 import { MarketOperation } from '../../types';
 
-import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
+import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
 import { createBridgeOrder, createNativeOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
 import {
@@ -202,7 +202,7 @@ export class Path {
                 }
             }
         }
-        return true;
+        return doSourcesConflict(this.sourceFlags);
     }
 
     public isValidNextFill(fill: Fill): boolean {
@@ -215,7 +215,7 @@ export class Path {
         if (fill.parent) {
             return false;
         }
-        return true;
+        return doSourcesConflict(this.sourceFlags | fill.flags);
     }
 
     private _collapseFills(): ReadonlyArray<CollapsedFill> {
@@ -267,4 +267,10 @@ export class Path {
 export interface CollapsedPath extends Path {
     readonly collapsedFills: ReadonlyArray<CollapsedFill>;
     readonly orders: OptimizedMarketOrder[];
+}
+
+const MULTIBRIDGE_SOURCES = SOURCE_FLAGS.LiquidityProvider | SOURCE_FLAGS.Uniswap;
+export function doSourcesConflict(flags: number): boolean {
+    const multiBridgeConflict = flags & SOURCE_FLAGS.MultiBridge && flags & MULTIBRIDGE_SOURCES;
+    return !multiBridgeConflict;
 }

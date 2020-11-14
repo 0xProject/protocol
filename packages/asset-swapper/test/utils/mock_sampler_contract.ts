@@ -37,12 +37,19 @@ export type SampleBuysKyberHandler = (
 ) => [string, SampleResults];
 export type SampleBuysMultihopHandler = (path: string[], takerTokenAmounts: BigNumber[]) => SampleResults;
 export type SampleSellsLPHandler = (
-    providerAddress: string,
+    registryAddress: string,
     takerToken: string,
     makerToken: string,
     takerTokenAmounts: BigNumber[],
-) => SampleResults;
+) => [SampleResults, string];
 export type SampleSellsMultihopHandler = (path: string[], takerTokenAmounts: BigNumber[]) => SampleResults;
+export type SampleSellsMBHandler = (
+    multiBridgeAddress: string,
+    takerToken: string,
+    intermediateToken: string,
+    makerToken: string,
+    takerTokenAmounts: BigNumber[],
+) => SampleResults;
 
 const DUMMY_PROVIDER = {
     sendAsync: (..._args: any[]): any => {
@@ -54,14 +61,15 @@ interface Handlers {
     getOrderFillableMakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     getOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     sampleSellsFromKyberNetwork: SampleSellsKyberHandler;
-    sampleSellsFromLiquidityProvider: SampleSellsLPHandler;
+    sampleSellsFromLiquidityProviderRegistry: SampleSellsLPHandler;
+    sampleSellsFromMultiBridge: SampleSellsMBHandler;
     sampleSellsFromEth2Dai: SampleSellsHandler;
     sampleSellsFromUniswap: SampleSellsHandler;
     sampleSellsFromUniswapV2: SampleSellsMultihopHandler;
     sampleBuysFromEth2Dai: SampleBuysHandler;
     sampleBuysFromUniswap: SampleBuysHandler;
     sampleBuysFromUniswapV2: SampleBuysMultihopHandler;
-    sampleBuysFromLiquidityProvider: SampleSellsLPHandler;
+    sampleBuysFromLiquidityProviderRegistry: SampleSellsLPHandler;
 }
 
 // tslint:disable: no-unbound-method
@@ -163,17 +171,35 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         );
     }
 
-    public sampleSellsFromLiquidityProvider(
-        providerAddress: string,
+    public sampleSellsFromLiquidityProviderRegistry(
+        registryAddress: string,
         takerToken: string,
+        makerToken: string,
+        takerAssetAmounts: BigNumber[],
+    ): ContractTxFunctionObj<[BigNumber[], string]> {
+        return this._wrapCall(
+            super.sampleSellsFromLiquidityProviderRegistry,
+            this._handlers.sampleSellsFromLiquidityProviderRegistry,
+            registryAddress,
+            takerToken,
+            makerToken,
+            takerAssetAmounts,
+        );
+    }
+
+    public sampleSellsFromMultiBridge(
+        multiBridgeAddress: string,
+        takerToken: string,
+        intermediateToken: string,
         makerToken: string,
         takerAssetAmounts: BigNumber[],
     ): ContractTxFunctionObj<BigNumber[]> {
         return this._wrapCall(
-            super.sampleSellsFromLiquidityProvider,
-            this._handlers.sampleSellsFromLiquidityProvider,
-            providerAddress,
+            super.sampleSellsFromMultiBridge,
+            this._handlers.sampleSellsFromMultiBridge,
+            multiBridgeAddress,
             takerToken,
+            intermediateToken,
             makerToken,
             takerAssetAmounts,
         );

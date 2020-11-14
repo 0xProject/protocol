@@ -78,6 +78,7 @@ export async function getRfqtIndicativeQuotesAsync(
 
 export class MarketOperationUtils {
     private readonly _wethAddress: string;
+    private readonly _multiBridge: string;
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
     private readonly _feeSources = new SourceFilters(FEE_QUOTE_SOURCES);
@@ -107,10 +108,19 @@ export class MarketOperationUtils {
         private readonly _sampler: DexOrderSampler,
         private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
+        private readonly _liquidityProviderRegistry: string = NULL_ADDRESS,
     ) {
         this._wethAddress = contractAddresses.etherToken.toLowerCase();
-        this._buySources = BUY_SOURCE_FILTER;
-        this._sellSources = SELL_SOURCE_FILTER;
+        this._multiBridge = contractAddresses.multiBridge.toLowerCase();
+        const optionalQuoteSources = [];
+        if (this._liquidityProviderRegistry !== NULL_ADDRESS) {
+            optionalQuoteSources.push(ERC20BridgeSource.LiquidityProvider);
+        }
+        if (this._multiBridge !== NULL_ADDRESS) {
+            optionalQuoteSources.push(ERC20BridgeSource.MultiBridge);
+        }
+        this._buySources = BUY_SOURCE_FILTER.validate(optionalQuoteSources);
+        this._sellSources = SELL_SOURCE_FILTER.validate(optionalQuoteSources);
     }
 
     /**
@@ -166,21 +176,42 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchange),
             // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                makerToken,
+                this._wethAddress,
+                ONE_ETHER,
+                this._liquidityProviderRegistry,
+                this._multiBridge,
+            ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                takerToken,
+                this._wethAddress,
+                ONE_ETHER,
+                this._liquidityProviderRegistry,
+                this._multiBridge,
+            ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,
+                this._wethAddress,
+                _opts.tokenAdjacencyGraph,
+                this._liquidityProviderRegistry,
+                this._multiBridge,
             ),
             this._sampler.getTwoHopSellQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
                 takerToken,
                 takerAmount,
+                this._wethAddress,
+                _opts.tokenAdjacencyGraph,
+                this._liquidityProviderRegistry,
             ),
         );
 
@@ -296,21 +327,41 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchange),
             // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                makerToken,
+                this._wethAddress,
+                ONE_ETHER,
+                this._liquidityProviderRegistry,
+                this._multiBridge,
+            ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                takerToken,
+                this._wethAddress,
+                ONE_ETHER,
+                this._liquidityProviderRegistry,
+                this._multiBridge,
+            ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,
+                this._wethAddress,
+                _opts.tokenAdjacencyGraph,
+                this._liquidityProviderRegistry,
             ),
             this._sampler.getTwoHopBuyQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
                 takerToken,
                 makerAmount,
+                this._wethAddress,
+                _opts.tokenAdjacencyGraph,
+                this._liquidityProviderRegistry,
             ),
         );
         const isPriceAwareRfqEnabled =
@@ -340,6 +391,10 @@ export class MarketOperationUtils {
             offChainBalancerQuotes,
             offChainCreamQuotes,
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
+        // Attach the MultiBridge address to the sample fillData
+        (dexQuotes.find(quotes => quotes[0] && quotes[0].source === ERC20BridgeSource.MultiBridge) || []).forEach(
+            q => (q.fillData = { poolAddress: this._multiBridge }),
+        );
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         return {
             side: MarketOperation.Buy,
@@ -427,6 +482,7 @@ export class MarketOperationUtils {
                     getNativeOrderTokens(orders[0])[1],
                     this._wethAddress,
                     ONE_ETHER,
+                    this._wethAddress,
                 ),
             ),
             ...batchNativeOrders.map((orders, i) =>
@@ -435,6 +491,8 @@ export class MarketOperationUtils {
                     getNativeOrderTokens(orders[0])[0],
                     getNativeOrderTokens(orders[0])[1],
                     [makerAmounts[i]],
+                    this._wethAddress,
+                    _opts.tokenAdjacencyGraph,
                 ),
             ),
         ];

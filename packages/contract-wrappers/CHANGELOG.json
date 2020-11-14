@@ -1,5 +1,14 @@
 [
     {
+        "version": "13.10.1",
+        "changes": [
+            {
+                "note": "Roll back PR 16",
+                "pr": 35
+            }
+        ]
+    },
+    {
         "version": "13.10.0",
         "changes": [
             {

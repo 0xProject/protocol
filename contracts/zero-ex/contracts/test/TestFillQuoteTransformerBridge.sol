@@ -32,26 +32,28 @@ contract TestFillQuoteTransformerBridge {
         uint256 amount;
     }
 
-    function sellTokenForToken(
-        address takerToken,
-        address makerToken,
-        address recipient,
-        uint256 minBuyAmount,
-        bytes calldata auxiliaryData
+    bytes4 private constant ERC20_BRIDGE_PROXY_ID = 0xdc1600f3;
+
+    function bridgeTransferFrom(
+        address tokenAddress,
+        address from,
+        address to,
+        uint256 amount,
+        bytes calldata bridgeData
     )
         external
-        returns (uint256 boughtAmount)
+        returns (bytes4 success)
     {
-        FillBehavior memory behavior = abi.decode(auxiliaryData, (FillBehavior));
-        boughtAmount = LibMathV06.getPartialAmountFloor(
-            behavior.makerAssetMintRatio,
-            1e18,
-            behavior.amount
+        FillBehavior memory behavior = abi.decode(bridgeData, (FillBehavior));
+        TestMintableERC20Token(tokenAddress).mint(
+          to,
+          LibMathV06.getPartialAmountFloor(
+              behavior.makerAssetMintRatio,
+              1e18,
+              behavior.amount
+          )
         );
-        TestMintableERC20Token(makerToken).mint(
-          recipient,
-          boughtAmount
-        );
+        return ERC20_BRIDGE_PROXY_ID;
     }
 
     function encodeBehaviorData(FillBehavior calldata behavior)

@@ -12,7 +12,6 @@ import * as FullMigration from '../generated-artifacts/FullMigration.json';
 import * as IAllowanceTarget from '../generated-artifacts/IAllowanceTarget.json';
 import * as IERC20Transformer from '../generated-artifacts/IERC20Transformer.json';
 import * as IFlashWallet from '../generated-artifacts/IFlashWallet.json';
-import * as ILiquidityProvider from '../generated-artifacts/ILiquidityProvider.json';
 import * as InitialMigration from '../generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../generated-artifacts/IOwnableFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../generated-artifacts/ISimpleFunctionRegistryFeature.json';
@@ -55,5 +54,4 @@ export const artifacts = {
     LogMetadataTransformer: LogMetadataTransformer as ContractArtifact,
     BridgeAdapter: BridgeAdapter as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
-    ILiquidityProvider: ILiquidityProvider as ContractArtifact,
 };

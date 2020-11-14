@@ -8,7 +8,7 @@ import { BalancerPoolsCache } from './balancer_utils';
 import { BancorService } from './bancor_service';
 import { CreamPoolsCache } from './cream_utils';
 import { SamplerOperations } from './sampler_operations';
-import { BatchedOperation, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
+import { BatchedOperation } from './types';
 
 /**
  * Generate sample amounts up to `maxFillAmount`.
@@ -40,18 +40,8 @@ export class DexOrderSampler extends SamplerOperations {
         balancerPoolsCache?: BalancerPoolsCache,
         creamPoolsCache?: CreamPoolsCache,
         getBancorServiceFn?: () => BancorService,
-        tokenAdjacencyGraph?: TokenAdjacencyGraph,
-        liquidityProviderRegistry?: LiquidityProviderRegistry,
     ) {
-        super(
-            _samplerContract,
-            provider,
-            balancerPoolsCache,
-            creamPoolsCache,
-            getBancorServiceFn,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistry,
-        );
+        super(_samplerContract, provider, balancerPoolsCache, creamPoolsCache, getBancorServiceFn);
     }
 
     /* Type overloads for `executeAsync()`. Could skip this if we would upgrade TS. */

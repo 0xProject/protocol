@@ -165,9 +165,8 @@ export class SwapQuoter {
             expiryBufferMs,
             permittedOrderFeeTypes,
             samplerGasLimit,
+            liquidityProviderRegistryAddress,
             rfqt,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistry,
         } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
@@ -209,21 +208,13 @@ export class SwapQuoter {
             },
         );
         this._marketOperationUtils = new MarketOperationUtils(
-            new DexOrderSampler(
-                samplerContract,
-                samplerOverrides,
-                provider,
-                undefined,
-                undefined,
-                undefined,
-                tokenAdjacencyGraph,
-                liquidityProviderRegistry,
-            ),
+            new DexOrderSampler(samplerContract, samplerOverrides, provider),
             this._contractAddresses,
             {
                 chainId,
                 exchangeAddress: this._contractAddresses.exchange,
             },
+            liquidityProviderRegistryAddress,
         );
         this._swapQuoteCalculator = new SwapQuoteCalculator(this._marketOperationUtils);
     }

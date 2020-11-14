@@ -11,7 +11,11 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
-import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '../wrappers';
+import {
+    DummyLiquidityProviderContract,
+    DummyLiquidityProviderRegistryContract,
+    TestERC20BridgeSamplerContract,
+} from '../wrappers';
 
 // tslint:disable: custom-no-magic-numbers
 
@@ -813,6 +817,7 @@ blockchainTests('erc20-bridge-sampler', env => {
         const yAsset = randomAddress();
         const sampleAmounts = getSampleAmounts(yAsset);
         let liquidityProvider: DummyLiquidityProviderContract;
+        let registryContract: DummyLiquidityProviderRegistryContract;
 
         before(async () => {
             liquidityProvider = await DummyLiquidityProviderContract.deployFrom0xArtifactAsync(
@@ -821,33 +826,61 @@ blockchainTests('erc20-bridge-sampler', env => {
                 env.txDefaults,
                 {},
             );
+
+            registryContract = await DummyLiquidityProviderRegistryContract.deployFrom0xArtifactAsync(
+                artifacts.DummyLiquidityProviderRegistry,
+                env.provider,
+                env.txDefaults,
+                {},
+            );
+            await registryContract
+                .setLiquidityProviderForMarket(xAsset, yAsset, liquidityProvider.address)
+                .awaitTransactionSuccessAsync();
         });
 
         it('should be able to query sells from the liquidity provider', async () => {
-            const quotes = await testContract
-                .sampleSellsFromLiquidityProvider(liquidityProvider.address, yAsset, xAsset, sampleAmounts)
+            const [quotes, providerAddress] = await testContract
+                .sampleSellsFromLiquidityProviderRegistry(registryContract.address, yAsset, xAsset, sampleAmounts)
                 .callAsync();
             quotes.forEach((value, idx) => {
                 expect(value).is.bignumber.eql(sampleAmounts[idx].minus(1));
             });
+            expect(providerAddress).to.equal(liquidityProvider.address);
         });
 
         it('should be able to query buys from the liquidity provider', async () => {
-            const quotes = await testContract
-                .sampleBuysFromLiquidityProvider(liquidityProvider.address, yAsset, xAsset, sampleAmounts)
+            const [quotes, providerAddress] = await testContract
+                .sampleBuysFromLiquidityProviderRegistry(registryContract.address, yAsset, xAsset, sampleAmounts)
                 .callAsync();
             quotes.forEach((value, idx) => {
                 expect(value).is.bignumber.eql(sampleAmounts[idx].plus(1));
             });
+            expect(providerAddress).to.equal(liquidityProvider.address);
         });
 
-        it('should just return zeros if the liquidity provider does not exist', async () => {
-            const quotes = await testContract
-                .sampleBuysFromLiquidityProvider(randomAddress(), yAsset, xAsset, sampleAmounts)
+        it('should just return zeros if the liquidity provider cannot be found', async () => {
+            const [quotes, providerAddress] = await testContract
+                .sampleBuysFromLiquidityProviderRegistry(
+                    registryContract.address,
+                    yAsset,
+                    randomAddress(),
+                    sampleAmounts,
+                )
                 .callAsync();
             quotes.forEach(value => {
                 expect(value).is.bignumber.eql(constants.ZERO_AMOUNT);
             });
+            expect(providerAddress).to.equal(constants.NULL_ADDRESS);
+        });
+
+        it('should just return zeros if the registry does not exist', async () => {
+            const [quotes, providerAddress] = await testContract
+                .sampleBuysFromLiquidityProviderRegistry(randomAddress(), yAsset, xAsset, sampleAmounts)
+                .callAsync();
+            quotes.forEach(value => {
+                expect(value).is.bignumber.eql(constants.ZERO_AMOUNT);
+            });
+            expect(providerAddress).to.equal(constants.NULL_ADDRESS);
         });
     });
 
