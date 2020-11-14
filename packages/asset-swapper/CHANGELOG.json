@@ -6,7 +6,8 @@
                 "note": "Disable PLP VIP feature in EP swap quote consumer",
                 "pr": 36
             }
-        ]
+        ],
+        "timestamp": 1605320370
     },
     {
         "version": "5.1.0",
