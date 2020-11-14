@@ -377,7 +377,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 INTERMEDIATE_TOKEN,
             ]);
         });
-        it('Uses the `LiquidityProviderFeature` if given a single LiquidityProvider order', async () => {
+        it.skip('Uses the `LiquidityProviderFeature` if given a single LiquidityProvider order', async () => {
             const quote = {
                 ...getRandomSellQuote(),
                 orders: [
