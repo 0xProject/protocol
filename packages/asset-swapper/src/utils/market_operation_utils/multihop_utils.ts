@@ -21,19 +21,11 @@ export function getIntermediateTokens(
     makerToken: string,
     takerToken: string,
     tokenAdjacencyGraph: TokenAdjacencyGraph,
-    wethAddress: string,
 ): string[] {
-    let intermediateTokens = [];
-    if (makerToken === wethAddress) {
-        intermediateTokens = _.get(tokenAdjacencyGraph, takerToken, [] as string[]);
-    } else if (takerToken === wethAddress) {
-        intermediateTokens = _.get(tokenAdjacencyGraph, makerToken, [] as string[]);
-    } else {
-        intermediateTokens = _.union(
-            _.intersection(_.get(tokenAdjacencyGraph, takerToken, []), _.get(tokenAdjacencyGraph, makerToken, [])),
-            [wethAddress],
-        );
-    }
+    const intermediateTokens = _.intersection(
+        _.get(tokenAdjacencyGraph, takerToken, tokenAdjacencyGraph.default),
+        _.get(tokenAdjacencyGraph, makerToken, tokenAdjacencyGraph.default),
+    );
     return _.uniqBy(intermediateTokens, a => a.toLowerCase()).filter(
         token => token.toLowerCase() !== makerToken.toLowerCase() && token.toLowerCase() !== takerToken.toLowerCase(),
     );

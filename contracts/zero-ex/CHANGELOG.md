@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.9.0 - _November 13, 2020_
+
+    * Rewrite the ZeroEx contract in Yul (#23)
+    * Update LiquidityProviderFeature to use off-chain registry and sandbox (#16)
+    * Update ILiquidityProvider interface (#16)
+    * Update ProtocolFeeUnfunded event to emit order hash (#16)
+
 ## v0.8.0 - _November 3, 2020_
 
     * Trust LP boughtAmount return value (#29)

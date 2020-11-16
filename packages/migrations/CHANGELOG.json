@@ -1,5 +1,15 @@
 [
     {
+        "version": "6.5.0",
+        "changes": [
+            {
+                "note": "Add `exchangeProxyLiquidityProviderSandbox` address",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
         "timestamp": 1604385937,
         "version": "6.4.7",
         "changes": [

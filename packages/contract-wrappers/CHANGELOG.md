@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.10.0 - _November 13, 2020_
+
+    * Update IZeroEx wrapper and remove ILiquidityProviderRegistry wrapper (#16)
+
 ## v13.9.5 - _November 3, 2020_
 
     * Dependencies updated

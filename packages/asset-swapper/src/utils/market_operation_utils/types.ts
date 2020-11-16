@@ -132,10 +132,6 @@ export interface LiquidityProviderFillData extends FillData {
     poolAddress: string;
 }
 
-export interface MultiBridgeFillData extends FillData {
-    poolAddress: string;
-}
-
 export interface BancorFillData extends FillData {
     path: string[];
     networkAddress: string;
@@ -377,6 +373,11 @@ export interface MarketSideLiquidity {
 
 export interface TokenAdjacencyGraph {
     [token: string]: string[];
+    default: string[];
+}
+
+export interface LiquidityProviderRegistry {
+    [address: string]: [string, string];
 }
 
 export interface GenerateOptimizedOrdersOpts {

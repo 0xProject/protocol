@@ -1,5 +1,29 @@
 [
     {
+        "version": "5.1.1",
+        "changes": [
+            {
+                "note": "Disable PLP VIP feature in EP swap quote consumer",
+                "pr": 36
+            }
+        ],
+        "timestamp": 1605320370
+    },
+    {
+        "version": "5.1.0",
+        "changes": [
+            {
+                "note": "Add support for LiquidityProvider feature in the swap quote consumer",
+                "pr": 16
+            },
+            {
+                "note": "Remove support for MultiBridge 😞",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
         "timestamp": 1604620645,
         "version": "5.0.3",
         "changes": [

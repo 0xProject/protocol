@@ -402,6 +402,7 @@ export async function runMigrationsAsync(
         exchangeProxyAllowanceTarget: exchangeProxyAllowanceTargetAddress,
         exchangeProxyTransformerDeployer: txDefaults.from,
         exchangeProxyFlashWallet: exchangeProxyFlashWalletAddress,
+        exchangeProxyLiquidityProviderSandbox: NULL_ADDRESS,
         transformers: {
             wethTransformer: wethTransformer.address,
             payTakerTransformer: payTakerTransformer.address,

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.5.0 - _November 13, 2020_
+
+    * Add `exchangeProxyLiquidityProviderSandbox` address (#16)
+
 ## v6.4.7 - _November 3, 2020_
 
     * Dependencies updated

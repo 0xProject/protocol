@@ -5,8 +5,21 @@
             {
                 "note": "Rewrite the ZeroEx contract in Yul",
                 "pr": 23
+            },
+            {
+                "note": "Update LiquidityProviderFeature to use off-chain registry and sandbox",
+                "pr": 16
+            },
+            {
+                "note": "Update ILiquidityProvider interface",
+                "pr": 16
+            },
+            {
+                "note": "Update ProtocolFeeUnfunded event to emit order hash",
+                "pr": 16
             }
-        ]
+        ],
+        "timestamp": 1605302002
     },
     {
         "version": "0.8.0",
