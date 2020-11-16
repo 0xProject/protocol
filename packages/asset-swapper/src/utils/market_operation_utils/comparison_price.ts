@@ -5,11 +5,7 @@ import * as _ from 'lodash';
 import { MarketOperation } from '../../types';
 
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
-import {
-    ComparisonPrice,
-    MarketSideLiquidity,
-    OptimizerResult,
-} from './types';
+import { ComparisonPrice, MarketSideLiquidity, OptimizerResult } from './types';
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat
@@ -32,11 +28,14 @@ export function getComparisonPrices(
 
     // fees for a native order
     const fees = optimizerResult.exchangeProxyOverhead(SOURCE_FLAGS.Native);
+
     // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)
-    const feePenalty = marketSideLiquidity.ethToOutputRate.isZero()
+    const feePenalty = !marketSideLiquidity.ethToOutputRate.isZero()
         ? marketSideLiquidity.ethToOutputRate.times(fees)
-        // if it's a sell, the input token is the taker token
-        : marketSideLiquidity.ethToInputRate.times(fees).times(marketSideLiquidity.side === MarketOperation.Sell ? makerTakerOptimalRate : takerMakerOptimalRate);
+        : // if it's a sell, the input token is the taker token
+          marketSideLiquidity.ethToInputRate
+              .times(fees)
+              .times(marketSideLiquidity.side === MarketOperation.Sell ? makerTakerOptimalRate : takerMakerOptimalRate);
 
     let wholeOrder: BigNumber | undefined;
 
@@ -46,7 +45,6 @@ export function getComparisonPrices(
         orderTakerAmount = amount;
 
         orderMakerAmount = makerTakerOptimalRate.times(orderTakerAmount).plus(feePenalty);
-
     } else if (marketSideLiquidity.side === MarketOperation.Buy) {
         orderMakerAmount = amount;
 
@@ -55,18 +53,18 @@ export function getComparisonPrices(
         throw new Error(`Unexpected marketOperation ${marketSideLiquidity.side}`);
     }
 
-    if (orderMakerAmount.gt(0)) {
+    if (orderTakerAmount.gt(0)) {
         const optimalMakerUnitAmount = Web3Wrapper.toUnitAmount(
-            orderMakerAmount,
+            // round up maker amount -- err to giving more competitive price
+            orderMakerAmount.integerValue(BigNumber.ROUND_UP),
             marketSideLiquidity.makerTokenDecimals,
         );
         const optimalTakerUnitAmount = Web3Wrapper.toUnitAmount(
-            orderTakerAmount,
+            // round down taker amount -- err to giving more competitive price
+            orderTakerAmount.integerValue(BigNumber.ROUND_DOWN),
             marketSideLiquidity.takerTokenDecimals,
         );
-        wholeOrder = optimalMakerUnitAmount
-            .div(optimalTakerUnitAmount)
-            .decimalPlaces(COMPARISON_PRICE_DECIMALS);
+        wholeOrder = optimalMakerUnitAmount.div(optimalTakerUnitAmount).decimalPlaces(COMPARISON_PRICE_DECIMALS);
     }
 
     return {
