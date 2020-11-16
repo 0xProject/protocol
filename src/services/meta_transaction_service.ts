@@ -13,7 +13,6 @@ import {
 import { PartialTxParams } from '@0x/subproviders';
 import { ExchangeProxyMetaTransaction, Order, SignedOrder } from '@0x/types';
 import { BigNumber, RevertError } from '@0x/utils';
-import { utils as web3WrapperUtils } from '@0x/web3-wrapper/lib/src/utils';
 import { Connection, Repository } from 'typeorm';
 
 import {
@@ -242,9 +241,9 @@ export class MetaTransactionService {
 
         const ethereumTxnParams: PartialTxParams = {
             data: executeTxnCalldata,
-            gas: web3WrapperUtils.encodeAmountAsHexString(gas),
-            gasPrice: web3WrapperUtils.encodeAmountAsHexString(gasPrice),
-            value: web3WrapperUtils.encodeAmountAsHexString(protocolFee),
+            gas: gas.toString(),
+            gasPrice: gasPrice.toString(),
+            value: protocolFee.toString(),
             to: callTarget,
             chainId: CHAIN_ID,
             // NOTE we arent returning nonce and from fields back to the user
