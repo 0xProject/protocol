@@ -25,8 +25,6 @@ import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
-    DEFAULT_INTERMEDIATE_TOKENS,
-    DEFAULT_TOKEN_ADJACENCY,
     FIRM_PRICE_AWARE_RFQ_ENABLED,
     INDICATIVE_PRICE_AWARE_RFQ_ENABLED,
     PROTOCOL_FEE_MULTIPLIER,
@@ -508,13 +506,6 @@ export class SwapService {
                 ? ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP
                 : ASSET_SWAPPER_MARKET_ORDERS_OPTS;
 
-        // Compute the adjacent tokens for the buy and sell tookens
-        const tokenAdjacencyGraph = {
-            [buyTokenAddress]: DEFAULT_INTERMEDIATE_TOKENS,
-            [sellTokenAddress]: DEFAULT_INTERMEDIATE_TOKENS,
-            ...DEFAULT_TOKEN_ADJACENCY,
-        };
-
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...swapQuoteRequestOpts,
             bridgeSlippage: slippagePercentage,
@@ -523,7 +514,6 @@ export class SwapService {
             includedSources,
             rfqt: _rfqt,
             shouldGenerateQuoteReport,
-            tokenAdjacencyGraph,
         };
 
         if (sellAmount !== undefined) {

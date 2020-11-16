@@ -3,13 +3,13 @@ import { assert } from '@0x/assert';
 import {
     BlockParamLiteral,
     ERC20BridgeSource,
+    LiquidityProviderRegistry,
     OrderPrunerPermittedFeeTypes,
     RfqtMakerAssetOfferings,
     SamplerOverrides,
     SOURCE_FLAGS,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
-    TokenAdjacencyGraph,
 } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
@@ -27,7 +27,7 @@ import {
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     TX_BASE_GAS,
 } from './constants';
-import { TokenMetadataAndChainAddresses, TokenMetadatasForChains } from './token_metadatas_for_networks';
+import { TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
 import { parseUtils } from './utils/parse_utils';
 import { getTokenMetadataIfExists } from './utils/token_metadata_utils';
@@ -51,6 +51,7 @@ enum EnvVarType {
     PrivateKeys,
     RfqtMakerAssetOfferings,
     RateLimitConfig,
+    LiquidityProviderRegistry,
 }
 
 // Log level for pino.js
@@ -175,14 +176,12 @@ export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIM
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
     : assertEnvVarType('LOGGER_INCLUDE_TIMESTAMP', process.env.LOGGER_INCLUDE_TIMESTAMP, EnvVarType.Boolean);
 
-export const LIQUIDITY_POOL_REGISTRY_ADDRESS: string | undefined = _.isEmpty(
-    process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS,
-)
-    ? undefined
+export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = _.isEmpty(process.env.LIQUIDITY_PROVIDER_REGISTRY)
+    ? {}
     : assertEnvVarType(
-          'LIQUIDITY_POOL_REGISTRY_ADDRESS',
-          process.env.LIQUIDITY_POOL_REGISTRY_ADDRESS,
-          EnvVarType.ETHAddressHex,
+          'LIQUIDITY_PROVIDER_REGISTRY',
+          process.env.LIQUIDITY_PROVIDER_REGISTRY,
+          EnvVarType.LiquidityProviderRegistry,
       );
 
 export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST)
@@ -326,8 +325,13 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
     sampleDistributionBase: 1.05,
-    exchangeProxyOverhead: (sourceFlags: number) =>
-        [SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags) ? TX_BASE_GAS : new BigNumber(150e3),
+    exchangeProxyOverhead: (sourceFlags: number) => {
+        if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
+            return TX_BASE_GAS;
+        } else {
+            return new BigNumber(150e3);
+        }
+    },
     runLimit: 2 ** 8,
     shouldGenerateQuoteReport: false,
 };
@@ -355,19 +359,9 @@ export const DEFAULT_INTERMEDIATE_TOKENS = [
     getTokenMetadataIfExists('WBTC', CHAIN_ID)?.tokenAddress,
 ].filter(t => t) as string[];
 
-export const DEFAULT_TOKEN_ADJACENCY: TokenAdjacencyGraph = Object.values(TokenMetadatasForChains).reduce(
-    (acc: TokenAdjacencyGraph, t: TokenMetadataAndChainAddresses) => {
-        const tokenKey = t.tokenAddresses[CHAIN_ID];
-        acc[tokenKey] = DEFAULT_INTERMEDIATE_TOKENS;
-        return acc;
-    },
-    {},
-);
-
 export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     chainId: CHAIN_ID,
     expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
-    liquidityProviderRegistryAddress: LIQUIDITY_POOL_REGISTRY_ADDRESS,
     rfqt: {
         takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
         makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
@@ -375,6 +369,8 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
+    tokenAdjacencyGraph: { default: DEFAULT_INTERMEDIATE_TOKENS },
+    liquidityProviderRegistry: LIQUIDITY_PROVIDER_REGISTRY,
 };
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {
@@ -514,6 +510,22 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 });
             }
             return offerings;
+        case EnvVarType.LiquidityProviderRegistry:
+            const registry: LiquidityProviderRegistry = JSON.parse(value);
+            // tslint:disable-next-line:forin
+            for (const liquidityProvider in registry) {
+                assert.isETHAddressHex('liquidity provider address', liquidityProvider);
+
+                const tokens = registry[liquidityProvider];
+                assert.isArray(`value in liquidity provider registry, for index ${liquidityProvider},`, tokens);
+                tokens.forEach((token, i) => {
+                    assert.isETHAddressHex(
+                        `token address for asset ${i} for liquidity provider ${liquidityProvider}`,
+                        token,
+                    );
+                });
+            }
+            return registry;
 
         default:
             throw new Error(`Unrecognised EnvVarType: ${expectedType} encountered for variable ${name}.`);
