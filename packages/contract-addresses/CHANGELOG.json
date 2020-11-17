@@ -1,5 +1,35 @@
 [
     {
+        "version": "5.3.0",
+        "changes": [
+            {
+                "note": "Add `exchangeProxyLiquidityProviderSandbox` addresses",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
+        "version": "5.2.0",
+        "changes": [
+            {
+                "note": "Redeploy FQT with CORRECT deployer",
+                "pr": 29
+            }
+        ],
+        "timestamp": 1604385937
+    },
+    {
+        "version": "5.1.0",
+        "changes": [
+            {
+                "note": "Deploy new FQT",
+                "pr": 28
+            }
+        ],
+        "timestamp": 1604376968
+    },
+    {
         "timestamp": 1603851023,
         "version": "5.0.1",
         "changes": [

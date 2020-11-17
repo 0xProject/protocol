@@ -5,6 +5,18 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.3.0 - _November 13, 2020_
+
+    * Add `exchangeProxyLiquidityProviderSandbox` addresses (#16)
+
+## v5.2.0 - _November 3, 2020_
+
+    * Redeploy FQT with CORRECT deployer (#29)
+
+## v5.1.0 - _November 3, 2020_
+
+    * Deploy new FQT (#28)
+
 ## v5.0.1 - _October 28, 2020_
 
     * Dependencies updated

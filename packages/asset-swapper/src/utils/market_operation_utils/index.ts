@@ -4,8 +4,9 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { AssetSwapperContractAddresses, MarketOperation, Omit } from '../../types';
+import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
+import { getPriceAwareRFQRolloutFlags } from '../utils';
 
 import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
 import {
@@ -37,11 +38,9 @@ import {
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
-    OptimizedMarketOrder,
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
-    TokenAdjacencyGraph,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -78,7 +77,6 @@ export async function getRfqtIndicativeQuotesAsync(
 
 export class MarketOperationUtils {
     private readonly _wethAddress: string;
-    private readonly _multiBridge: string;
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
     private readonly _feeSources = new SourceFilters(FEE_QUOTE_SOURCES);
@@ -88,6 +86,7 @@ export class MarketOperationUtils {
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
         optimizerResult: OptimizerResult,
+        comparisonPrice?: BigNumber | undefined,
     ): QuoteReport {
         const { side, dexQuotes, twoHopQuotes, orderFillableAmounts } = marketSideLiquidity;
         const { liquidityDelivered } = optimizerResult;
@@ -98,6 +97,7 @@ export class MarketOperationUtils {
             nativeOrders,
             orderFillableAmounts,
             liquidityDelivered,
+            comparisonPrice,
             quoteRequestor,
         );
     }
@@ -106,20 +106,10 @@ export class MarketOperationUtils {
         private readonly _sampler: DexOrderSampler,
         private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
-        private readonly _liquidityProviderRegistry: string = NULL_ADDRESS,
-        private readonly _tokenAdjacencyGraph: TokenAdjacencyGraph = {},
     ) {
         this._wethAddress = contractAddresses.etherToken.toLowerCase();
-        this._multiBridge = contractAddresses.multiBridge.toLowerCase();
-        const optionalQuoteSources = [];
-        if (this._liquidityProviderRegistry !== NULL_ADDRESS) {
-            optionalQuoteSources.push(ERC20BridgeSource.LiquidityProvider);
-        }
-        if (this._multiBridge !== NULL_ADDRESS) {
-            optionalQuoteSources.push(ERC20BridgeSource.MultiBridge);
-        }
-        this._buySources = BUY_SOURCE_FILTER.validate(optionalQuoteSources);
-        this._sellSources = SELL_SOURCE_FILTER.validate(optionalQuoteSources);
+        this._buySources = BUY_SOURCE_FILTER;
+        this._sellSources = SELL_SOURCE_FILTER;
     }
 
     /**
@@ -175,47 +165,26 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchange),
             // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                makerToken,
-                this._wethAddress,
-                ONE_ETHER,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
-            ),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                takerToken,
-                this._wethAddress,
-                ONE_ETHER,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
-            ),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
             ),
             this._sampler.getTwoHopSellQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
                 takerToken,
                 takerAmount,
-                this._tokenAdjacencyGraph,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
             ),
         );
 
-        const isPriceAwareRfqEnabled = _opts.rfqt && _opts.rfqt.isPriceAwareRFQEnabled;
+        const isPriceAwareRfqEnabled =
+            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.priceAwareRFQFlag).isIndicativePriceAwareEnabled;
         const rfqtPromise =
             !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
@@ -326,45 +295,25 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchange),
             // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                makerToken,
-                this._wethAddress,
-                ONE_ETHER,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
-            ),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                takerToken,
-                this._wethAddress,
-                ONE_ETHER,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
-                this._multiBridge,
-            ),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
             ),
             this._sampler.getTwoHopBuyQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
                 takerToken,
                 makerAmount,
-                this._tokenAdjacencyGraph,
-                this._wethAddress,
-                this._liquidityProviderRegistry,
             ),
         );
-        const isPriceAwareRfqEnabled = _opts.rfqt && _opts.rfqt.isPriceAwareRFQEnabled;
+        const isPriceAwareRfqEnabled =
+            _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.priceAwareRFQFlag).isIndicativePriceAwareEnabled;
         const rfqtPromise =
             !isPriceAwareRfqEnabled && quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
                 ? getRfqtIndicativeQuotesAsync(
@@ -390,10 +339,6 @@ export class MarketOperationUtils {
             offChainBalancerQuotes,
             offChainCreamQuotes,
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
-        // Attach the MultiBridge address to the sample fillData
-        (dexQuotes.find(quotes => quotes[0] && quotes[0].source === ERC20BridgeSource.MultiBridge) || []).forEach(
-            q => (q.fillData = { poolAddress: this._multiBridge }),
-        );
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         return {
             side: MarketOperation.Buy,
@@ -460,7 +405,7 @@ export class MarketOperationUtils {
         batchNativeOrders: SignedOrder[][],
         makerAmounts: BigNumber[],
         opts?: Partial<GetMarketOrdersOpts>,
-    ): Promise<Array<OptimizedMarketOrder[] | undefined>> {
+    ): Promise<Array<OptimizerResult | undefined>> {
         if (batchNativeOrders.length === 0) {
             throw new Error(AggregationError.EmptyOrders);
         }
@@ -481,7 +426,6 @@ export class MarketOperationUtils {
                     getNativeOrderTokens(orders[0])[1],
                     this._wethAddress,
                     ONE_ETHER,
-                    this._wethAddress,
                 ),
             ),
             ...batchNativeOrders.map((orders, i) =>
@@ -490,8 +434,10 @@ export class MarketOperationUtils {
                     getNativeOrderTokens(orders[0])[0],
                     getNativeOrderTokens(orders[0])[1],
                     [makerAmounts[i]],
-                    this._wethAddress,
                 ),
+            ),
+            ...batchNativeOrders.map(orders =>
+                this._sampler.getTokenDecimals(getNativeOrderTokens(orders[0])[0], getNativeOrderTokens(orders[0])[1]),
             ),
         ];
 
@@ -499,6 +445,7 @@ export class MarketOperationUtils {
         const batchOrderFillableAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
         const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
         const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
+        const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
         const ethToInputRate = ZERO_AMOUNT;
 
         return Promise.all(
@@ -512,7 +459,7 @@ export class MarketOperationUtils {
                 const dexQuotes = batchDexQuotes[i];
                 const makerAmount = makerAmounts[i];
                 try {
-                    const { optimizedOrders } = await this._generateOptimizedOrdersAsync(
+                    const optimizerResult = await this._generateOptimizedOrdersAsync(
                         {
                             side: MarketOperation.Buy,
                             nativeOrders,
@@ -526,6 +473,8 @@ export class MarketOperationUtils {
                             outputToken: takerToken,
                             twoHopQuotes: [],
                             quoteSourceFilters,
+                            makerTokenDecimals: batchTokenDecimals[i][0],
+                            takerTokenDecimals: batchTokenDecimals[i][1],
                         },
                         {
                             bridgeSlippage: _opts.bridgeSlippage,
@@ -535,7 +484,7 @@ export class MarketOperationUtils {
                             allowFallback: _opts.allowFallback,
                         },
                     );
-                    return optimizedOrders;
+                    return optimizerResult;
                 } catch (e) {
                     // It's possible for one of the pairs to have no path
                     // rather than throw NO_OPTIMAL_PATH we return undefined
@@ -546,7 +495,7 @@ export class MarketOperationUtils {
     }
 
     public async _generateOptimizedOrdersAsync(
-        marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
+        marketSideLiquidity: MarketSideLiquidity,
         opts: GenerateOptimizedOrdersOpts,
     ): Promise<OptimizerResult> {
         const {
@@ -609,6 +558,7 @@ export class MarketOperationUtils {
                 optimizedOrders: twoHopOrders,
                 liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
+                marketSideLiquidity,
             };
         }
 
@@ -638,6 +588,7 @@ export class MarketOperationUtils {
             optimizedOrders: collapsedPath.orders,
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
+            marketSideLiquidity,
         };
     }
 
@@ -662,7 +613,7 @@ export class MarketOperationUtils {
             side === MarketOperation.Sell
                 ? this.getMarketSellLiquidityAsync.bind(this)
                 : this.getMarketBuyLiquidityAsync.bind(this);
-        const marketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
+        const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
         let optimizerResult: OptimizerResult | undefined;
         try {
             optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
@@ -676,15 +627,10 @@ export class MarketOperationUtils {
         }
 
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity
+        let comparisonPrice: BigNumber | undefined;
         const { rfqt } = _opts;
-        if (
-            rfqt &&
-            rfqt.isPriceAwareRFQEnabled &&
-            rfqt.quoteRequestor &&
-            marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
-        ) {
+        if (rfqt && rfqt.quoteRequestor && marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)) {
             // Calculate a suggested price. For now, this is simply the overall price of the aggregation.
-            let comparisonPrice: BigNumber | undefined;
             if (optimizerResult) {
                 const totalMakerAmount = BigNumber.sum(
                     ...optimizerResult.optimizedOrders.map(order => order.makerAssetAmount),
@@ -707,8 +653,12 @@ export class MarketOperationUtils {
                 }
             }
 
-            // If we are making an indicative quote, make the RFQT request and then re-run the sampler if new orders come back.
-            if (rfqt.isIndicative) {
+            const { isFirmPriceAwareEnabled, isIndicativePriceAwareEnabled } = getPriceAwareRFQRolloutFlags(
+                rfqt.priceAwareRFQFlag,
+            );
+
+            if (rfqt.isIndicative && isIndicativePriceAwareEnabled) {
+                // An indicative quote is beingh requested, and indicative quotes price-aware enabled. Make the RFQT request and then re-run the sampler if new orders come back.
                 const indicativeQuotes = await getRfqtIndicativeQuotesAsync(
                     nativeOrders[0].makerAssetData,
                     nativeOrders[0].takerAssetData,
@@ -727,8 +677,8 @@ export class MarketOperationUtils {
                         optimizerOpts,
                     );
                 }
-            } else {
-                // A firm quote is being requested. Ensure that `intentOnFilling` is enabled.
+            } else if (!rfqt.isIndicative && isFirmPriceAwareEnabled) {
+                // A firm quote is being requested, and firm quotes price-aware enabled. Ensure that `intentOnFilling` is enabled.
                 if (rfqt.intentOnFilling) {
                     // Extra validation happens when requesting a firm quote, such as ensuring that the takerAddress
                     // is indeed valid.
@@ -781,6 +731,7 @@ export class MarketOperationUtils {
                 _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
                 marketSideLiquidity,
                 optimizerResult,
+                comparisonPrice,
             );
         }
         return { ...optimizerResult, quoteReport };

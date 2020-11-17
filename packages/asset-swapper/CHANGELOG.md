@@ -5,6 +5,33 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.1.1 - _November 14, 2020_
+
+    * Disable PLP VIP feature in EP swap quote consumer (#36)
+
+## v5.1.0 - _November 13, 2020_
+
+    * Add support for LiquidityProvider feature in the swap quote consumer (#16)
+    * Remove support for MultiBridge 😞 (#16)
+
+## v5.0.3 - _November 5, 2020_
+
+    * Dependencies updated
+
+## v5.0.2 - _November 3, 2020_
+
+    * Dependencies updated
+    * adding Curve pools: PAX, hBTC, metapools: gUSD, hUSD, USDn, mUSD, tBTC (#26)
+
+## v5.0.1 - _November 3, 2020_
+
+    * Dependencies updated
+
+## v5.0.0 - _November 2, 2020_
+
+    * Support multiple `Shells` by supplying the `pool` address (#17)
+    * Make use of Token Adjacency in more places. Moved as a parameter for the quote (#24)
+
 ## v4.8.1 - _October 28, 2020_
 
     * Fix Gas schedule with `SnowSwap` and `Bancor` (#15)

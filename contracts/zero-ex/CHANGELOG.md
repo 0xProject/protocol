@@ -5,6 +5,27 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.9.0 - _November 13, 2020_
+
+    * Rewrite the ZeroEx contract in Yul (#23)
+    * Update LiquidityProviderFeature to use off-chain registry and sandbox (#16)
+    * Update ILiquidityProvider interface (#16)
+    * Update ProtocolFeeUnfunded event to emit order hash (#16)
+
+## v0.8.0 - _November 3, 2020_
+
+    * Trust LP boughtAmount return value (#29)
+
+## v0.7.0 - _November 3, 2020_
+
+    * Change `ProtocolFeeUnfunded` event in FQT (#28)
+    * Use new PLP interface in FQT. (#28)
+
+## v0.6.0 - _November 2, 2020_
+
+    * Add support for collecting protocol fees in ETH or WETH (#2)
+    * Add `LibSignature` library (#21)
+
 ## v0.5.1 - _October 28, 2020_
 
     * Dependencies updated

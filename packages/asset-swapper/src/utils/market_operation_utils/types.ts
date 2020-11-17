@@ -75,6 +75,7 @@ export interface CurveInfo {
     buyQuoteFunctionSelector: CurveFunctionSelectors;
     poolAddress: string;
     tokens: string[];
+    metaToken: string | undefined;
 }
 
 export interface SwerveInfo extends CurveInfo {}
@@ -123,11 +124,11 @@ export interface SushiSwapFillData extends UniswapV2FillData {
     router: string;
 }
 
-export interface LiquidityProviderFillData extends FillData {
+export interface ShellFillData extends FillData {
     poolAddress: string;
 }
 
-export interface MultiBridgeFillData extends FillData {
+export interface LiquidityProviderFillData extends FillData {
     poolAddress: string;
 }
 
@@ -313,6 +314,11 @@ export interface GetMarketOrdersOpts {
      * Whether to generate a quote report
      */
     shouldGenerateQuoteReport: boolean;
+    /**
+     * Token addresses with a list of adjacent intermediary tokens to consider
+     * hopping to. E.g DAI->USDC via an adjacent token WETH
+     */
+    tokenAdjacencyGraph: TokenAdjacencyGraph;
 }
 
 /**
@@ -333,6 +339,7 @@ export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: number;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
+    marketSideLiquidity: MarketSideLiquidity;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
@@ -344,6 +351,8 @@ export type MarketDepthSide = Array<Array<DexSample<FillData>>>;
 export interface MarketDepth {
     bids: MarketDepthSide;
     asks: MarketDepthSide;
+    makerTokenDecimals: number;
+    takerTokenDecimals: number;
 }
 
 export interface MarketSideLiquidity {
@@ -365,6 +374,11 @@ export interface MarketSideLiquidity {
 
 export interface TokenAdjacencyGraph {
     [token: string]: string[];
+    default: string[];
+}
+
+export interface LiquidityProviderRegistry {
+    [address: string]: [string, string];
 }
 
 export interface GenerateOptimizedOrdersOpts {

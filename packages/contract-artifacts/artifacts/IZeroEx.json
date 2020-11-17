@@ -6,16 +6,6 @@
             {
                 "anonymous": false,
                 "inputs": [
-                    { "indexed": true, "internalType": "address", "name": "xAsset", "type": "address" },
-                    { "indexed": true, "internalType": "address", "name": "yAsset", "type": "address" },
-                    { "indexed": false, "internalType": "address", "name": "providerAddress", "type": "address" }
-                ],
-                "name": "LiquidityProviderForMarketUpdated",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
                     { "indexed": false, "internalType": "bytes32", "name": "hash", "type": "bytes32" },
                     { "indexed": true, "internalType": "bytes4", "name": "selector", "type": "bytes4" },
                     { "indexed": false, "internalType": "address", "name": "signer", "type": "address" },
@@ -234,16 +224,6 @@
             },
             {
                 "inputs": [
-                    { "internalType": "address", "name": "xAsset", "type": "address" },
-                    { "internalType": "address", "name": "yAsset", "type": "address" }
-                ],
-                "name": "getLiquidityProviderForMarket",
-                "outputs": [{ "internalType": "address", "name": "providerAddress", "type": "address" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
                     {
                         "components": [
                             { "internalType": "address payable", "name": "signer", "type": "address" },
@@ -390,9 +370,11 @@
                 "inputs": [
                     { "internalType": "address", "name": "makerToken", "type": "address" },
                     { "internalType": "address", "name": "takerToken", "type": "address" },
-                    { "internalType": "address payable", "name": "recipient", "type": "address" },
+                    { "internalType": "address payable", "name": "target", "type": "address" },
+                    { "internalType": "address", "name": "recipient", "type": "address" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
-                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
+                    { "internalType": "bytes", "name": "auxiliaryData", "type": "bytes" }
                 ],
                 "name": "sellToLiquidityProvider",
                 "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
@@ -409,17 +391,6 @@
                 "name": "sellToUniswap",
                 "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
                 "stateMutability": "payable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    { "internalType": "address", "name": "xAsset", "type": "address" },
-                    { "internalType": "address", "name": "yAsset", "type": "address" },
-                    { "internalType": "address", "name": "providerAddress", "type": "address" }
-                ],
-                "name": "setLiquidityProviderForMarket",
-                "outputs": [],
-                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -536,14 +507,6 @@
                     "params": { "selector": "The function selector." },
                     "returns": { "impl": "The implementation contract address." }
                 },
-                "getLiquidityProviderForMarket(address,address)": {
-                    "details": "Returns the address of the liquidity provider for a market given     (xAsset, yAsset), or reverts if pool does not exist.",
-                    "params": {
-                        "xAsset": "First asset managed by the liquidity provider.",
-                        "yAsset": "Second asset managed by the liquidity provider."
-                    },
-                    "returns": { "providerAddress": "Address of the liquidity provider." }
-                },
                 "getMetaTransactionExecutedBlock((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))": {
                     "details": "Get the block at which a meta-transaction has been executed.",
                     "params": { "mtx": "The meta-transaction." },
@@ -616,6 +579,19 @@
                         "targetImpl": "The address of an older implementation of the function."
                     }
                 },
+                "sellToLiquidityProvider(address,address,address,address,uint256,uint256,bytes)": {
+                    "details": "Sells `sellAmount` of `takerToken` to the liquidity provider      at the given `target`.",
+                    "params": {
+                        "auxiliaryData": "Auxiliary data supplied to the `target` contract.",
+                        "makerToken": "The token being bought.",
+                        "minBuyAmount": "The minimum acceptable amount of `makerToken` to        buy. Reverts if this amount is not satisfied.",
+                        "recipient": "The recipient of the bought tokens. If equal to        address(0), `msg.sender` is assumed to be the recipient.",
+                        "sellAmount": "The amount of `takerToken` to sell.",
+                        "takerToken": "The token being sold.",
+                        "target": "The address of the on-chain liquidity provider        to trade with."
+                    },
+                    "returns": { "boughtAmount": "The amount of `makerToken` bought." }
+                },
                 "sellToUniswap(address[],uint256,uint256,bool)": {
                     "details": "Efficiently sell directly to uniswap/sushiswap.",
                     "params": {
@@ -625,14 +601,6 @@
                         "tokens": "Sell path."
                     },
                     "returns": { "buyAmount": "Amount of `tokens[-1]` bought." }
-                },
-                "setLiquidityProviderForMarket(address,address,address)": {
-                    "details": "Sets address of the liquidity provider for a market given      (xAsset, yAsset).",
-                    "params": {
-                        "providerAddress": "Address of the liquidity provider.",
-                        "xAsset": "First asset managed by the liquidity provider.",
-                        "yAsset": "Second asset managed by the liquidity provider."
-                    }
                 },
                 "setQuoteSigner(address)": {
                     "details": "Replace the optional signer for `transformERC20()` calldata.      Only callable by the owner.",

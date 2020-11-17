@@ -5,6 +5,18 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.9.0 - _November 13, 2020_
+
+    * Update IZeroEx artifact and remove some unused artifacts (#16)
+
+## v3.8.2 - _November 3, 2020_
+
+    * Dependencies updated
+
+## v3.8.1 - _November 2, 2020_
+
+    * Dependencies updated
+
 ## v3.8.0 - _October 21, 2020_
 
     * Add `IZeroEx` artifact (#2626)

@@ -1,5 +1,65 @@
 [
     {
+        "version": "0.9.0",
+        "changes": [
+            {
+                "note": "Rewrite the ZeroEx contract in Yul",
+                "pr": 23
+            },
+            {
+                "note": "Update LiquidityProviderFeature to use off-chain registry and sandbox",
+                "pr": 16
+            },
+            {
+                "note": "Update ILiquidityProvider interface",
+                "pr": 16
+            },
+            {
+                "note": "Update ProtocolFeeUnfunded event to emit order hash",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
+        "version": "0.8.0",
+        "changes": [
+            {
+                "note": "Trust LP boughtAmount return value",
+                "pr": 29
+            }
+        ],
+        "timestamp": 1604385937
+    },
+    {
+        "version": "0.7.0",
+        "changes": [
+            {
+                "note": "Change `ProtocolFeeUnfunded` event in FQT",
+                "pr": 28
+            },
+            {
+                "note": "Use new PLP interface in FQT.",
+                "pr": 28
+            }
+        ],
+        "timestamp": 1604376968
+    },
+    {
+        "version": "0.6.0",
+        "changes": [
+            {
+                "note": "Add support for collecting protocol fees in ETH or WETH",
+                "pr": 2
+            },
+            {
+                "note": "Add `LibSignature` library",
+                "pr": 21
+            }
+        ],
+        "timestamp": 1604355662
+    },
+    {
         "timestamp": 1603851023,
         "version": "0.5.1",
         "changes": [

@@ -4,8 +4,26 @@ import { BigNumber, NULL_BYTES } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { constants } from '../constants';
+import { PriceAwareRFQFlags } from '../types';
 
 // tslint:disable: no-unnecessary-type-assertion completed-docs
+
+/**
+ * Returns 2 flags (one for firm quotes and another for indicative quotes) that serve as rollout flags for the price-aware RFQ feature.
+ * By default, indicative quotes should *always* go through the new price-aware flow. This means that all indicative RFQ requests made to
+ * market makers will contain the new price-aware `suggestedPrice` field.
+ * The `isPriceAwareRFQEnabled` feature object that is passed in by the 0x API will then control whether firm quotes go through price-aware RFQ.
+ *
+ * @param isPriceAwareRFQEnabled the feature flag that is passed in by the 0x API.
+ */
+export function getPriceAwareRFQRolloutFlags(priceAwareRFQFlags?: PriceAwareRFQFlags): PriceAwareRFQFlags {
+    return priceAwareRFQFlags !== undefined
+        ? priceAwareRFQFlags
+        : {
+              isFirmPriceAwareEnabled: false,
+              isIndicativePriceAwareEnabled: false,
+          };
+}
 
 export function isSupportedAssetDataInOrders(orders: SignedOrder[]): boolean {
     const firstOrderMakerAssetData = !!orders[0]
@@ -15,8 +33,7 @@ export function isSupportedAssetDataInOrders(orders: SignedOrder[]): boolean {
         const takerAssetData = assetDataUtils.decodeAssetDataOrThrow(o.takerAssetData);
         const makerAssetData = assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData);
         return (
-            (makerAssetData.assetProxyId === AssetProxyId.ERC20 ||
-                makerAssetData.assetProxyId === AssetProxyId.ERC721) &&
+            makerAssetData.assetProxyId === AssetProxyId.ERC20 &&
             takerAssetData.assetProxyId === AssetProxyId.ERC20 &&
             firstOrderMakerAssetData.assetProxyId === makerAssetData.assetProxyId
         ); // checks that all native order maker assets are of the same type

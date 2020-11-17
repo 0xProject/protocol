@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 import "../src/ZeroEx.sol";
 import "../src/features/IBootstrapFeature.sol";
 import "../src/migrations/InitialMigration.sol";
+import "../src/features/SimpleFunctionRegistryFeature.sol";
 
 
 contract TestInitialMigration is
@@ -44,7 +45,8 @@ contract TestInitialMigration is
     {
         success = InitialMigration.bootstrap(owner, features);
         // Snoop the bootstrap feature contract.
-        bootstrapFeature = ZeroEx(address(uint160(address(this))))
+        bootstrapFeature =
+            SimpleFunctionRegistryFeature(address(uint160(address(this))))
             .getFunctionImplementation(IBootstrapFeature.bootstrap.selector);
     }
 

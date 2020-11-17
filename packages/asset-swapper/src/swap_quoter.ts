@@ -41,6 +41,7 @@ import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { sortingUtils } from './utils/sorting_utils';
 import { SwapQuoteCalculator } from './utils/swap_quote_calculator';
+import { getPriceAwareRFQRolloutFlags } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
 
 export class SwapQuoter {
@@ -164,9 +165,9 @@ export class SwapQuoter {
             expiryBufferMs,
             permittedOrderFeeTypes,
             samplerGasLimit,
-            liquidityProviderRegistryAddress,
             rfqt,
             tokenAdjacencyGraph,
+            liquidityProviderRegistry,
         } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
@@ -208,14 +209,21 @@ export class SwapQuoter {
             },
         );
         this._marketOperationUtils = new MarketOperationUtils(
-            new DexOrderSampler(samplerContract, samplerOverrides, provider),
+            new DexOrderSampler(
+                samplerContract,
+                samplerOverrides,
+                provider,
+                undefined,
+                undefined,
+                undefined,
+                tokenAdjacencyGraph,
+                liquidityProviderRegistry,
+            ),
             this._contractAddresses,
             {
                 chainId,
                 exchangeAddress: this._contractAddresses.exchange,
             },
-            liquidityProviderRegistryAddress,
-            tokenAdjacencyGraph,
         );
         this._swapQuoteCalculator = new SwapQuoteCalculator(this._marketOperationUtils);
     }
@@ -495,6 +503,8 @@ export class SwapQuoter {
         return {
             bids: getMarketDepthSide(bids),
             asks: getMarketDepthSide(asks),
+            makerTokenDecimals: asks.makerTokenDecimals,
+            takerTokenDecimals: asks.takerTokenDecimals,
         };
     }
 
@@ -702,7 +712,7 @@ export class SwapQuoter {
 
         if (
             opts.rfqt && // This is an RFQT-enabled API request
-            !opts.rfqt.isPriceAwareRFQEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
+            !getPriceAwareRFQRolloutFlags(opts.rfqt.priceAwareRFQFlag).isFirmPriceAwareEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
             opts.rfqt.intentOnFilling && // The requestor is asking for a firm quote
             opts.rfqt.apiKey &&
             this._isApiKeyWhitelisted(opts.rfqt.apiKey) && // A valid API key was provided

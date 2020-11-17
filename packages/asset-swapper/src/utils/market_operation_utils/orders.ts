@@ -15,7 +15,6 @@ import {
     WALLET_SIGNATURE,
     ZERO_AMOUNT,
 } from './constants';
-import { getMultiBridgeIntermediateToken } from './multibridge_utils';
 import {
     AggregationError,
     BalancerFillData,
@@ -28,11 +27,11 @@ import {
     KyberFillData,
     LiquidityProviderFillData,
     MooniswapFillData,
-    MultiBridgeFillData,
     MultiHopFillData,
     NativeCollapsedFill,
     OptimizedMarketOrder,
     OrderDomain,
+    ShellFillData,
     SnowSwapFillData,
     SushiSwapFillData,
     SwerveFillData,
@@ -192,8 +191,6 @@ function getBridgeAddressFromFill(fill: CollapsedFill, opts: CreateOrderFromPath
             return opts.contractAddresses.creamBridge;
         case ERC20BridgeSource.LiquidityProvider:
             return (fill.fillData as LiquidityProviderFillData).poolAddress;
-        case ERC20BridgeSource.MultiBridge:
-            return (fill.fillData as MultiBridgeFillData).poolAddress;
         case ERC20BridgeSource.MStable:
             return opts.contractAddresses.mStableBridge;
         case ERC20BridgeSource.Mooniswap:
@@ -300,13 +297,6 @@ export function createBridgeOrder(
                 createSushiSwapBridgeData(sushiSwapFillData.tokenAddressPath, sushiSwapFillData.router),
             );
             break;
-        case ERC20BridgeSource.MultiBridge:
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createMultiBridgeData(takerToken, makerToken),
-            );
-            break;
         case ERC20BridgeSource.Kyber:
             const kyberFillData = (fill as CollapsedFill<KyberFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
             makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
@@ -329,6 +319,14 @@ export function createBridgeOrder(
                 makerToken,
                 bridgeAddress,
                 createDODOBridgeData(takerToken, dodoFillData.poolAddress, dodoFillData.isSellBase),
+            );
+            break;
+        case ERC20BridgeSource.Shell:
+            const shellFillData = (fill as CollapsedFill<ShellFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
+            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
+                makerToken,
+                bridgeAddress,
+                createShellBridgeData(takerToken, shellFillData.poolAddress),
             );
             break;
         default:
@@ -363,16 +361,15 @@ function createBridgeData(tokenAddress: string): string {
     return encoder.encode({ tokenAddress });
 }
 
-function createMultiBridgeData(takerToken: string, makerToken: string): string {
-    const intermediateToken = getMultiBridgeIntermediateToken(takerToken, makerToken);
+function createBalancerBridgeData(takerToken: string, poolAddress: string): string {
     const encoder = AbiEncoder.create([
         { name: 'takerToken', type: 'address' },
-        { name: 'intermediateToken', type: 'address' },
+        { name: 'poolAddress', type: 'address' },
     ]);
-    return encoder.encode({ takerToken, intermediateToken });
+    return encoder.encode({ takerToken, poolAddress });
 }
 
-function createBalancerBridgeData(takerToken: string, poolAddress: string): string {
+function createShellBridgeData(takerToken: string, poolAddress: string): string {
     const encoder = AbiEncoder.create([
         { name: 'takerToken', type: 'address' },
         { name: 'poolAddress', type: 'address' },

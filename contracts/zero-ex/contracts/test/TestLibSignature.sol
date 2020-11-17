@@ -16,21 +16,19 @@
 
 */
 
-pragma solidity ^0.6;
+pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
+
+import "../src/features/libs/LibSignature.sol";
 
 
-interface ILiquidityProviderRegistry {
+contract TestLibSignature {
 
-    /// @dev Returns the address of a liquidity provider for the given market
-    ///      (takerToken, makerToken), reverting if the pool does not exist.
-    /// @param takerToken Taker asset managed by liquidity provider.
-    /// @param makerToken Maker asset managed by liquidity provider.
-    /// @return providerAddress Address of the liquidity provider.
-    function getLiquidityProviderForMarket(
-        address takerToken,
-        address makerToken
-    )
+    function getSignerOfHash(bytes32 hash, LibSignature.Signature calldata signature)
         external
-        view
-        returns (address providerAddress);
+        pure
+        returns (address signer)
+    {
+        return LibSignature.getSignerOfHash(hash, signature);
+    }
 }

@@ -1,5 +1,87 @@
 [
     {
+        "version": "5.2.0",
+        "changes": [
+            {
+                "note": "Update Gas schedules",
+                "pr": 34
+            },
+            {
+                "note": "Return the maker/taker token decimals from the sampler as part of the `SwapQuote`",
+                "pr": 34
+            }
+        ]
+    },
+    {
+        "version": "5.1.1",
+        "changes": [
+            {
+                "note": "Disable PLP VIP feature in EP swap quote consumer",
+                "pr": 36
+            }
+        ],
+        "timestamp": 1605320370
+    },
+    {
+        "version": "5.1.0",
+        "changes": [
+            {
+                "note": "Add support for LiquidityProvider feature in the swap quote consumer",
+                "pr": 16
+            },
+            {
+                "note": "Remove support for MultiBridge 😞",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
+        "timestamp": 1604620645,
+        "version": "5.0.3",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1604385937,
+        "version": "5.0.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            },
+            {
+                "note": "adding Curve pools: PAX, hBTC, metapools: gUSD, hUSD, USDn, mUSD, tBTC",
+                "pr": 26
+            }
+        ]
+    },
+    {
+        "timestamp": 1604376968,
+        "version": "5.0.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "5.0.0",
+        "changes": [
+            {
+                "note": "Support multiple `Shells` by supplying the `pool` address",
+                "pr": 17
+            },
+            {
+                "note": "Make use of Token Adjacency in more places. Moved as a parameter for the quote",
+                "pr": 24
+            }
+        ],
+        "timestamp": 1604355662
+    },
+    {
         "version": "4.8.1",
         "changes": [
             {

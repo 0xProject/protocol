@@ -329,7 +329,6 @@ export async function runMigrationsAsync(
             mStable: NULL_ADDRESS,
             shellBridge: NULL_ADDRESS,
             creamBridge: NULL_ADDRESS,
-            shell: NULL_ADDRESS,
             dodoBridge: NULL_ADDRESS,
             dodoHelper: NULL_ADDRESS,
             snowSwapBridge: NULL_ADDRESS,
@@ -403,6 +402,7 @@ export async function runMigrationsAsync(
         exchangeProxyAllowanceTarget: exchangeProxyAllowanceTargetAddress,
         exchangeProxyTransformerDeployer: txDefaults.from,
         exchangeProxyFlashWallet: exchangeProxyFlashWalletAddress,
+        exchangeProxyLiquidityProviderSandbox: NULL_ADDRESS,
         transformers: {
             wethTransformer: wethTransformer.address,
             payTakerTransformer: payTakerTransformer.address,

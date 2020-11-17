@@ -36,7 +36,6 @@ import * as ethers from 'ethers';
 // tslint:enable:no-unused-variable
 
 export type IZeroExEventArgs =
-    | IZeroExLiquidityProviderForMarketUpdatedEventArgs
     | IZeroExMetaTransactionExecutedEventArgs
     | IZeroExMigratedEventArgs
     | IZeroExOwnershipTransferredEventArgs
@@ -46,7 +45,6 @@ export type IZeroExEventArgs =
     | IZeroExTransformerDeployerUpdatedEventArgs;
 
 export enum IZeroExEvents {
-    LiquidityProviderForMarketUpdated = 'LiquidityProviderForMarketUpdated',
     MetaTransactionExecuted = 'MetaTransactionExecuted',
     Migrated = 'Migrated',
     OwnershipTransferred = 'OwnershipTransferred',
@@ -54,12 +52,6 @@ export enum IZeroExEvents {
     QuoteSignerUpdated = 'QuoteSignerUpdated',
     TransformedERC20 = 'TransformedERC20',
     TransformerDeployerUpdated = 'TransformerDeployerUpdated',
-}
-
-export interface IZeroExLiquidityProviderForMarketUpdatedEventArgs extends DecodedLogArgs {
-    xAsset: string;
-    yAsset: string;
-    providerAddress: string;
 }
 
 export interface IZeroExMetaTransactionExecutedEventArgs extends DecodedLogArgs {
@@ -219,29 +211,6 @@ export class IZeroExContract extends BaseContract {
      */
     public static ABI(): ContractAbi {
         const abi = [
-            {
-                anonymous: false,
-                inputs: [
-                    {
-                        name: 'xAsset',
-                        type: 'address',
-                        indexed: true,
-                    },
-                    {
-                        name: 'yAsset',
-                        type: 'address',
-                        indexed: true,
-                    },
-                    {
-                        name: 'providerAddress',
-                        type: 'address',
-                        indexed: false,
-                    },
-                ],
-                name: 'LiquidityProviderForMarketUpdated',
-                outputs: [],
-                type: 'event',
-            },
             {
                 anonymous: false,
                 inputs: [
@@ -731,27 +700,6 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
-                        name: 'xAsset',
-                        type: 'address',
-                    },
-                    {
-                        name: 'yAsset',
-                        type: 'address',
-                    },
-                ],
-                name: 'getLiquidityProviderForMarket',
-                outputs: [
-                    {
-                        name: 'providerAddress',
-                        type: 'address',
-                    },
-                ],
-                stateMutability: 'view',
-                type: 'function',
-            },
-            {
-                inputs: [
-                    {
                         name: 'mtx',
                         type: 'tuple',
                         components: [
@@ -1063,6 +1011,10 @@ export class IZeroExContract extends BaseContract {
                         type: 'address',
                     },
                     {
+                        name: 'target',
+                        type: 'address',
+                    },
+                    {
                         name: 'recipient',
                         type: 'address',
                     },
@@ -1073,6 +1025,10 @@ export class IZeroExContract extends BaseContract {
                     {
                         name: 'minBuyAmount',
                         type: 'uint256',
+                    },
+                    {
+                        name: 'auxiliaryData',
+                        type: 'bytes',
                     },
                 ],
                 name: 'sellToLiquidityProvider',
@@ -1112,26 +1068,6 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 stateMutability: 'payable',
-                type: 'function',
-            },
-            {
-                inputs: [
-                    {
-                        name: 'xAsset',
-                        type: 'address',
-                    },
-                    {
-                        name: 'yAsset',
-                        type: 'address',
-                    },
-                    {
-                        name: 'providerAddress',
-                        type: 'address',
-                    },
-                ],
-                name: 'setLiquidityProviderForMarket',
-                outputs: [],
-                stateMutability: 'nonpayable',
                 type: 'function',
             },
             {
@@ -1849,60 +1785,6 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Returns the address of the liquidity provider for a market given
-     * (xAsset, yAsset), or reverts if pool does not exist.
-     * @param xAsset First asset managed by the liquidity provider.
-     * @param yAsset Second asset managed by the liquidity provider.
-     */
-    public getLiquidityProviderForMarket(xAsset: string, yAsset: string): ContractTxFunctionObj<string> {
-        const self = (this as any) as IZeroExContract;
-        assert.isString('xAsset', xAsset);
-        assert.isString('yAsset', yAsset);
-        const functionSignature = 'getLiquidityProviderForMarket(address,address)';
-
-        return {
-            async sendTransactionAsync(
-                txData?: Partial<TxData> | undefined,
-                opts: SendTransactionOpts = { shouldValidate: true },
-            ): Promise<string> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
-                    { data: this.getABIEncodedTransactionData(), ...txData },
-                    this.estimateGasAsync.bind(this),
-                );
-                if (opts.shouldValidate !== false) {
-                    await this.callAsync(txDataWithDefaults);
-                }
-                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
-            },
-            awaitTransactionSuccessAsync(
-                txData?: Partial<TxData>,
-                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
-            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
-                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
-            },
-            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
-                    data: this.getABIEncodedTransactionData(),
-                    ...txData,
-                });
-                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
-            },
-            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
-                BaseContract._assertCallParams(callData, defaultBlock);
-                const rawCallResult = await self._performCallAsync(
-                    { data: this.getABIEncodedTransactionData(), ...callData },
-                    defaultBlock,
-                );
-                const abiEncoder = self._lookupAbiEncoder(functionSignature);
-                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
-                return abiEncoder.strictDecodeReturnValue<string>(rawCallResult);
-            },
-            getABIEncodedTransactionData(): string {
-                return self._strictEncodeArguments(functionSignature, [xAsset.toLowerCase(), yAsset.toLowerCase()]);
-            },
-        };
-    }
-    /**
      * Get the block at which a meta-transaction has been executed.
      * @param mtx The meta-transaction.
      */
@@ -2606,20 +2488,38 @@ export class IZeroExContract extends BaseContract {
             },
         };
     }
+    /**
+     * Sells `sellAmount` of `takerToken` to the liquidity provider
+     * at the given `target`.
+     * @param makerToken The token being bought.
+     * @param takerToken The token being sold.
+     * @param target The address of the on-chain liquidity provider        to trade
+     *     with.
+     * @param recipient The recipient of the bought tokens. If equal to
+     *     address(0), `msg.sender` is assumed to be the recipient.
+     * @param sellAmount The amount of `takerToken` to sell.
+     * @param minBuyAmount The minimum acceptable amount of `makerToken` to
+     *     buy. Reverts if this amount is not satisfied.
+     * @param auxiliaryData Auxiliary data supplied to the `target` contract.
+     */
     public sellToLiquidityProvider(
         makerToken: string,
         takerToken: string,
+        target: string,
         recipient: string,
         sellAmount: BigNumber,
         minBuyAmount: BigNumber,
+        auxiliaryData: string,
     ): ContractTxFunctionObj<BigNumber> {
         const self = (this as any) as IZeroExContract;
         assert.isString('makerToken', makerToken);
         assert.isString('takerToken', takerToken);
+        assert.isString('target', target);
         assert.isString('recipient', recipient);
         assert.isBigNumber('sellAmount', sellAmount);
         assert.isBigNumber('minBuyAmount', minBuyAmount);
-        const functionSignature = 'sellToLiquidityProvider(address,address,address,uint256,uint256)';
+        assert.isString('auxiliaryData', auxiliaryData);
+        const functionSignature = 'sellToLiquidityProvider(address,address,address,address,uint256,uint256,bytes)';
 
         return {
             async sendTransactionAsync(
@@ -2662,9 +2562,11 @@ export class IZeroExContract extends BaseContract {
                 return self._strictEncodeArguments(functionSignature, [
                     makerToken.toLowerCase(),
                     takerToken.toLowerCase(),
+                    target.toLowerCase(),
                     recipient.toLowerCase(),
                     sellAmount,
                     minBuyAmount,
+                    auxiliaryData,
                 ]);
             },
         };
@@ -2728,70 +2630,6 @@ export class IZeroExContract extends BaseContract {
             },
             getABIEncodedTransactionData(): string {
                 return self._strictEncodeArguments(functionSignature, [tokens, sellAmount, minBuyAmount, isSushi]);
-            },
-        };
-    }
-    /**
-     * Sets address of the liquidity provider for a market given
-     * (xAsset, yAsset).
-     * @param xAsset First asset managed by the liquidity provider.
-     * @param yAsset Second asset managed by the liquidity provider.
-     * @param providerAddress Address of the liquidity provider.
-     */
-    public setLiquidityProviderForMarket(
-        xAsset: string,
-        yAsset: string,
-        providerAddress: string,
-    ): ContractTxFunctionObj<void> {
-        const self = (this as any) as IZeroExContract;
-        assert.isString('xAsset', xAsset);
-        assert.isString('yAsset', yAsset);
-        assert.isString('providerAddress', providerAddress);
-        const functionSignature = 'setLiquidityProviderForMarket(address,address,address)';
-
-        return {
-            async sendTransactionAsync(
-                txData?: Partial<TxData> | undefined,
-                opts: SendTransactionOpts = { shouldValidate: true },
-            ): Promise<string> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
-                    { data: this.getABIEncodedTransactionData(), ...txData },
-                    this.estimateGasAsync.bind(this),
-                );
-                if (opts.shouldValidate !== false) {
-                    await this.callAsync(txDataWithDefaults);
-                }
-                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
-            },
-            awaitTransactionSuccessAsync(
-                txData?: Partial<TxData>,
-                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
-            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
-                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
-            },
-            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
-                    data: this.getABIEncodedTransactionData(),
-                    ...txData,
-                });
-                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
-            },
-            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
-                BaseContract._assertCallParams(callData, defaultBlock);
-                const rawCallResult = await self._performCallAsync(
-                    { data: this.getABIEncodedTransactionData(), ...callData },
-                    defaultBlock,
-                );
-                const abiEncoder = self._lookupAbiEncoder(functionSignature);
-                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
-                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
-            },
-            getABIEncodedTransactionData(): string {
-                return self._strictEncodeArguments(functionSignature, [
-                    xAsset.toLowerCase(),
-                    yAsset.toLowerCase(),
-                    providerAddress.toLowerCase(),
-                ]);
             },
         };
     }

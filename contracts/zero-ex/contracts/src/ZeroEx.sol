@@ -19,19 +19,12 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "./migrations/LibBootstrap.sol";
 import "./features/BootstrapFeature.sol";
 import "./storage/LibProxyStorage.sol";
-import "./errors/LibProxyRichErrors.sol";
-
 
 /// @dev An extensible proxy contract that serves as a universal entry point for
 ///      interacting with the 0x protocol.
 contract ZeroEx {
-    // solhint-disable separate-by-one-line-in-contract,indent,var-name-mixedcase
-    using LibBytesV06 for bytes;
-
     /// @dev Construct this contract and register the `BootstrapFeature` feature.
     ///      After constructing this contract, `bootstrap()` should be called
     ///      by `bootstrap()` to seed the initial feature set.
@@ -44,48 +37,55 @@ contract ZeroEx {
             address(bootstrap);
     }
 
+
     // solhint-disable state-visibility
 
     /// @dev Forwards calls to the appropriate implementation contract.
     fallback() external payable {
-        bytes4 selector = msg.data.readBytes4(0);
-        address impl = getFunctionImplementation(selector);
-        if (impl == address(0)) {
-            _revertWithData(LibProxyRichErrors.NotImplementedError(selector));
+        // This is used in assembly below as impls_slot.
+        mapping(bytes4 => address) storage impls =
+            LibProxyStorage.getStorage().impls;
+
+        assembly {
+            let cdlen := calldatasize()
+
+            // equivalent of receive() external payable {}
+            if iszero(cdlen) {
+                return(0, 0)
+            }
+
+            // Store at 0x40, to leave 0x00-0x3F for slot calculation below.
+            calldatacopy(0x40, 0, cdlen)
+            let selector := and(mload(0x40), 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+
+            // Slot for impls[selector] is keccak256(selector . impls_slot).
+            mstore(0, selector)
+            mstore(0x20, impls_slot)
+            let slot := keccak256(0, 0x40)
+
+            let delegate := sload(slot)
+            if iszero(delegate) {
+                // Revert with:
+                // abi.encodeWithSelector(
+                //   bytes4(keccak256("NotImplementedError(bytes4)")),
+                //   selector)
+                mstore(0, 0x734e6e1c00000000000000000000000000000000000000000000000000000000)
+                mstore(4, selector)
+                revert(0, 0x24)
+            }
+
+            let success := delegatecall(
+                gas(),
+                delegate,
+                0x40, cdlen,
+                0, 0
+            )
+            let rdlen := returndatasize()
+            returndatacopy(0, 0, rdlen)
+            if success {
+                return(0, rdlen)
+            }
+            revert(0, rdlen)
         }
-
-        (bool success, bytes memory resultData) = impl.delegatecall(msg.data);
-        if (!success) {
-            _revertWithData(resultData);
-        }
-        _returnWithData(resultData);
-    }
-
-    /// @dev Fallback for just receiving ether.
-    receive() external payable {}
-
-    // solhint-enable state-visibility
-
-    /// @dev Get the implementation contract of a registered function.
-    /// @param selector The function selector.
-    /// @return impl The implementation contract address.
-    function getFunctionImplementation(bytes4 selector)
-        public
-        view
-        returns (address impl)
-    {
-        return LibProxyStorage.getStorage().impls[selector];
-    }
-
-    /// @dev Revert with arbitrary bytes.
-    /// @param data Revert data.
-    function _revertWithData(bytes memory data) private pure {
-        assembly { revert(add(data, 32), mload(data)) }
-    }
-
-    /// @dev Return with arbitrary bytes.
-    /// @param data Return data.
-    function _returnWithData(bytes memory data) private pure {
-        assembly { return(add(data, 32), mload(data)) }
     }
 }

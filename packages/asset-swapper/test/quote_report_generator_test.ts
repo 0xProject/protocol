@@ -141,6 +141,7 @@ describe('generateQuoteReport', async () => {
             nativeOrders,
             orderFillableAmounts,
             pathGenerated,
+            undefined,
             quoteRequestor.object,
         );
 

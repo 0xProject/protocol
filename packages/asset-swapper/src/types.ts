@@ -7,6 +7,7 @@ import { BigNumber } from '@0x/utils';
 import {
     ERC20BridgeSource,
     GetMarketOrdersOpts,
+    LiquidityProviderRegistry,
     OptimizedMarketOrder,
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
@@ -187,6 +188,8 @@ export interface SwapQuoteBase {
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
     isTwoHop: boolean;
+    makerTokenDecimals: number;
+    takerTokenDecimals: number;
 }
 
 /**
@@ -239,6 +242,11 @@ export type SwapQuoteOrdersBreakdown = Partial<
     }
 >;
 
+export interface PriceAwareRFQFlags {
+    isIndicativePriceAwareEnabled: boolean;
+    isFirmPriceAwareEnabled: boolean;
+}
+
 /**
  * nativeExclusivelyRFQT: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
  *                        If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
@@ -261,7 +269,7 @@ export interface RfqtRequestOpts {
      * the feature flag.  When that time comes, follow this PR to "undo" the feature flag:
      * https://github.com/0xProject/0x-monorepo/pull/2735
      */
-    isPriceAwareRFQEnabled?: boolean;
+    priceAwareRFQFlag?: PriceAwareRFQFlags;
 }
 
 /**
@@ -315,12 +323,12 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     ethereumRpcUrl?: string;
     contractAddresses?: AssetSwapperContractAddresses;
     samplerGasLimit?: number;
-    liquidityProviderRegistryAddress?: string;
     multiBridgeAddress?: string;
     ethGasStationUrl?: string;
     rfqt?: SwapQuoterRfqtOpts;
     samplerOverrides?: SamplerOverrides;
     tokenAdjacencyGraph?: TokenAdjacencyGraph;
+    liquidityProviderRegistry?: LiquidityProviderRegistry;
 }
 
 /**

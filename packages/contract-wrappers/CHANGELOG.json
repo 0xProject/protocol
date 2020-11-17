@@ -1,5 +1,42 @@
 [
     {
+        "version": "13.10.0",
+        "changes": [
+            {
+                "note": "Update IZeroEx wrapper and remove ILiquidityProviderRegistry wrapper",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
+        "timestamp": 1604385937,
+        "version": "13.9.5",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1604376968,
+        "version": "13.9.4",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1604355662,
+        "version": "13.9.3",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1603851023,
         "version": "13.9.2",
         "changes": [

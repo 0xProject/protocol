@@ -28,13 +28,15 @@ contract ShellSampler is
     /// @dev Default gas limit for Shell calls.
     uint256 constant private DEFAULT_CALL_GAS = 300e3; // 300k
 
-    /// @dev Sample sell quotes from the Shell contract
+    /// @dev Sample sell quotes from the Shell pool contract
+    /// @param pool Address of the Shell pool contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromShell(
+        address pool,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -49,7 +51,7 @@ contract ShellSampler is
 
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IShell(_getShellAddress()).viewOriginSwap
+                IShell(pool).viewOriginSwap
                     {gas: DEFAULT_CALL_GAS}
                     (takerToken, makerToken, takerTokenAmounts[i])
                 returns (uint256 amount)
@@ -62,13 +64,15 @@ contract ShellSampler is
         }
     }
 
-    /// @dev Sample buy quotes from Shell contract
+    /// @dev Sample buy quotes from Shell pool contract
+    /// @param pool Address of the Shell pool contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromShell(
+        address pool,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -83,7 +87,7 @@ contract ShellSampler is
 
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IShell(_getShellAddress()).viewTargetSwap
+                IShell(pool).viewTargetSwap
                     {gas: DEFAULT_CALL_GAS}
                     (takerToken, makerToken, makerTokenAmounts[i])
                 returns (uint256 amount)

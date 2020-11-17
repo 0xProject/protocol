@@ -1,5 +1,42 @@
 [
     {
+        "version": "6.5.0",
+        "changes": [
+            {
+                "note": "Add `exchangeProxyLiquidityProviderSandbox` address",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
+        "timestamp": 1604385937,
+        "version": "6.4.7",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1604376968,
+        "version": "6.4.6",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1604355662,
+        "version": "6.4.5",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1603851023,
         "version": "6.4.4",
         "changes": [

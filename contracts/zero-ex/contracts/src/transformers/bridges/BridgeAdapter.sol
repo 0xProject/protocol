@@ -64,22 +64,6 @@ contract BridgeAdapter is
     address private immutable UNISWAP_BRIDGE_ADDRESS;
     address private immutable UNISWAP_V2_BRIDGE_ADDRESS;
 
-    /// @dev Emitted when a trade occurs.
-    /// @param inputToken The token the bridge is converting from.
-    /// @param outputToken The token the bridge is converting to.
-    /// @param inputTokenAmount Amount of input token.
-    /// @param outputTokenAmount Amount of output token.
-    /// @param from The bridge address, indicating the underlying source of the fill.
-    /// @param to The `to` address, currrently `address(this)`
-    event ERC20BridgeTransfer(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount,
-        address from,
-        address to
-    );
-
     constructor(AdapterAddresses memory addresses)
         public
         MixinBalancer()
@@ -89,7 +73,7 @@ contract BridgeAdapter is
         MixinMooniswap(addresses)
         MixinMStable(addresses)
         MixinOasis(addresses)
-        MixinShell(addresses)
+        MixinShell()
         MixinSushiswap(addresses)
         MixinUniswap(addresses)
         MixinUniswapV2(addresses)
@@ -209,7 +193,8 @@ contract BridgeAdapter is
                 sellAmount,
                 bridgeData
             );
-            // Do not emit an event. The bridge contract should emit one itself.
+            // Old bridge contracts should emit an `ERC20BridgeTransfer` themselves,
+            // otherwise an event will be emitted from `_tradeZeroExBridge`.
             return boughtAmount;
         }
 

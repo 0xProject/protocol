@@ -1,6 +1,6 @@
 {
     "name": "@0x/contract-artifacts",
-    "version": "3.8.0",
+    "version": "3.9.0",
     "engines": {
         "node": ">=6.12"
     },
@@ -11,7 +11,7 @@
     },
     "scripts": {
         "artifacts_copy": "node lib/src/copy.js",
-        "artifacts_transform": "node lib/src/transform.js ./artifacts && prettier --write ./artifacts/*.json &&  cp -r ./artifacts/ ../../python-packages/contract_artifacts/src/zero_ex/contract_artifacts/artifacts/",
+        "artifacts_transform": "node lib/src/transform.js ./artifacts && prettier --write ./artifacts/*.json",
         "artifacts_update": "yarn artifacts_copy && yarn artifacts_transform && yarn build",
         "build": "yarn tsc -b",
         "build:ci": "yarn build",
@@ -30,7 +30,7 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-artifacts",
     "devDependencies": {
-        "@0x/utils": "^5.6.3",
+        "@0x/utils": "^6.1.0",
         "@types/mocha": "^5.2.7",
         "chai": "^4.0.1",
         "lodash": "^4.17.11",

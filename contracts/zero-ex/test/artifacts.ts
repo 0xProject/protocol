@@ -9,9 +9,11 @@ import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateF
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
+import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FillQuoteTransformer from '../test/generated-artifacts/FillQuoteTransformer.json';
 import * as FixinCommon from '../test/generated-artifacts/FixinCommon.json';
 import * as FixinEIP712 from '../test/generated-artifacts/FixinEIP712.json';
+import * as FixinProtocolFees from '../test/generated-artifacts/FixinProtocolFees.json';
 import * as FixinReentrancyGuard from '../test/generated-artifacts/FixinReentrancyGuard.json';
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
@@ -24,12 +26,15 @@ import * as IExchange from '../test/generated-artifacts/IExchange.json';
 import * as IFeature from '../test/generated-artifacts/IFeature.json';
 import * as IFlashWallet from '../test/generated-artifacts/IFlashWallet.json';
 import * as IGasToken from '../test/generated-artifacts/IGasToken.json';
+import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvider.json';
 import * as ILiquidityProviderFeature from '../test/generated-artifacts/ILiquidityProviderFeature.json';
+import * as ILiquidityProviderSandbox from '../test/generated-artifacts/ILiquidityProviderSandbox.json';
 import * as IMetaTransactionsFeature from '../test/generated-artifacts/IMetaTransactionsFeature.json';
 import * as InitialMigration from '../test/generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../test/generated-artifacts/IOwnableFeature.json';
 import * as ISignatureValidatorFeature from '../test/generated-artifacts/ISignatureValidatorFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../test/generated-artifacts/ISimpleFunctionRegistryFeature.json';
+import * as IStaking from '../test/generated-artifacts/IStaking.json';
 import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts/ITestSimpleFunctionRegistryFeature.json';
 import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpenderFeature.json';
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
@@ -39,15 +44,16 @@ import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
 import * as LibERC20Transformer from '../test/generated-artifacts/LibERC20Transformer.json';
 import * as LibLiquidityProviderRichErrors from '../test/generated-artifacts/LibLiquidityProviderRichErrors.json';
-import * as LibLiquidityProviderStorage from '../test/generated-artifacts/LibLiquidityProviderStorage.json';
 import * as LibMetaTransactionsRichErrors from '../test/generated-artifacts/LibMetaTransactionsRichErrors.json';
 import * as LibMetaTransactionsStorage from '../test/generated-artifacts/LibMetaTransactionsStorage.json';
 import * as LibMigrate from '../test/generated-artifacts/LibMigrate.json';
+import * as LibOrderHash from '../test/generated-artifacts/LibOrderHash.json';
 import * as LibOwnableRichErrors from '../test/generated-artifacts/LibOwnableRichErrors.json';
 import * as LibOwnableStorage from '../test/generated-artifacts/LibOwnableStorage.json';
 import * as LibProxyRichErrors from '../test/generated-artifacts/LibProxyRichErrors.json';
 import * as LibProxyStorage from '../test/generated-artifacts/LibProxyStorage.json';
 import * as LibReentrancyGuardStorage from '../test/generated-artifacts/LibReentrancyGuardStorage.json';
+import * as LibSignature from '../test/generated-artifacts/LibSignature.json';
 import * as LibSignatureRichErrors from '../test/generated-artifacts/LibSignatureRichErrors.json';
 import * as LibSignedCallData from '../test/generated-artifacts/LibSignedCallData.json';
 import * as LibSimpleFunctionRegistryRichErrors from '../test/generated-artifacts/LibSimpleFunctionRegistryRichErrors.json';
@@ -60,6 +66,7 @@ import * as LibTransformERC20RichErrors from '../test/generated-artifacts/LibTra
 import * as LibTransformERC20Storage from '../test/generated-artifacts/LibTransformERC20Storage.json';
 import * as LibWalletRichErrors from '../test/generated-artifacts/LibWalletRichErrors.json';
 import * as LiquidityProviderFeature from '../test/generated-artifacts/LiquidityProviderFeature.json';
+import * as LiquidityProviderSandbox from '../test/generated-artifacts/LiquidityProviderSandbox.json';
 import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
 import * as MixinAdapterAddresses from '../test/generated-artifacts/MixinAdapterAddresses.json';
@@ -87,13 +94,17 @@ import * as TestFillQuoteTransformerExchange from '../test/generated-artifacts/T
 import * as TestFillQuoteTransformerHost from '../test/generated-artifacts/TestFillQuoteTransformerHost.json';
 import * as TestFullMigration from '../test/generated-artifacts/TestFullMigration.json';
 import * as TestInitialMigration from '../test/generated-artifacts/TestInitialMigration.json';
+import * as TestLibSignature from '../test/generated-artifacts/TestLibSignature.json';
 import * as TestLibTokenSpender from '../test/generated-artifacts/TestLibTokenSpender.json';
+import * as TestLiquidityProvider from '../test/generated-artifacts/TestLiquidityProvider.json';
 import * as TestMetaTransactionsTransformERC20Feature from '../test/generated-artifacts/TestMetaTransactionsTransformERC20Feature.json';
 import * as TestMigrator from '../test/generated-artifacts/TestMigrator.json';
 import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintableERC20Token.json';
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
+import * as TestProtocolFees from '../test/generated-artifacts/TestProtocolFees.json';
 import * as TestSimpleFunctionRegistryFeatureImpl1 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl1.json';
 import * as TestSimpleFunctionRegistryFeatureImpl2 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl2.json';
+import * as TestStaking from '../test/generated-artifacts/TestStaking.json';
 import * as TestTokenSpender from '../test/generated-artifacts/TestTokenSpender.json';
 import * as TestTokenSpenderERC20Token from '../test/generated-artifacts/TestTokenSpenderERC20Token.json';
 import * as TestTransformerBase from '../test/generated-artifacts/TestTransformerBase.json';
@@ -124,9 +135,12 @@ export const artifacts = {
     LibTransformERC20RichErrors: LibTransformERC20RichErrors as ContractArtifact,
     LibWalletRichErrors: LibWalletRichErrors as ContractArtifact,
     AllowanceTarget: AllowanceTarget as ContractArtifact,
+    FeeCollector: FeeCollector as ContractArtifact,
     FlashWallet: FlashWallet as ContractArtifact,
     IAllowanceTarget: IAllowanceTarget as ContractArtifact,
     IFlashWallet: IFlashWallet as ContractArtifact,
+    ILiquidityProviderSandbox: ILiquidityProviderSandbox as ContractArtifact,
+    LiquidityProviderSandbox: LiquidityProviderSandbox as ContractArtifact,
     TransformerDeployer: TransformerDeployer as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
@@ -147,16 +161,17 @@ export const artifacts = {
     TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
+    LibSignature: LibSignature as ContractArtifact,
     LibSignedCallData: LibSignedCallData as ContractArtifact,
     LibTokenSpender: LibTokenSpender as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
     FixinEIP712: FixinEIP712 as ContractArtifact,
+    FixinProtocolFees: FixinProtocolFees as ContractArtifact,
     FixinReentrancyGuard: FixinReentrancyGuard as ContractArtifact,
     FullMigration: FullMigration as ContractArtifact,
     InitialMigration: InitialMigration as ContractArtifact,
     LibBootstrap: LibBootstrap as ContractArtifact,
     LibMigrate: LibMigrate as ContractArtifact,
-    LibLiquidityProviderStorage: LibLiquidityProviderStorage as ContractArtifact,
     LibMetaTransactionsStorage: LibMetaTransactionsStorage as ContractArtifact,
     LibOwnableStorage: LibOwnableStorage as ContractArtifact,
     LibProxyStorage: LibProxyStorage as ContractArtifact,
@@ -188,9 +203,12 @@ export const artifacts = {
     MixinUniswap: MixinUniswap as ContractArtifact,
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
+    ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IExchange: IExchange as ContractArtifact,
     IGasToken: IGasToken as ContractArtifact,
+    IStaking: IStaking as ContractArtifact,
+    LibOrderHash: LibOrderHash as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
     TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,
@@ -200,13 +218,17 @@ export const artifacts = {
     TestFillQuoteTransformerHost: TestFillQuoteTransformerHost as ContractArtifact,
     TestFullMigration: TestFullMigration as ContractArtifact,
     TestInitialMigration: TestInitialMigration as ContractArtifact,
+    TestLibSignature: TestLibSignature as ContractArtifact,
     TestLibTokenSpender: TestLibTokenSpender as ContractArtifact,
+    TestLiquidityProvider: TestLiquidityProvider as ContractArtifact,
     TestMetaTransactionsTransformERC20Feature: TestMetaTransactionsTransformERC20Feature as ContractArtifact,
     TestMigrator: TestMigrator as ContractArtifact,
     TestMintTokenERC20Transformer: TestMintTokenERC20Transformer as ContractArtifact,
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
+    TestProtocolFees: TestProtocolFees as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl1: TestSimpleFunctionRegistryFeatureImpl1 as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl2: TestSimpleFunctionRegistryFeatureImpl2 as ContractArtifact,
+    TestStaking: TestStaking as ContractArtifact,
     TestTokenSpender: TestTokenSpender as ContractArtifact,
     TestTokenSpenderERC20Token: TestTokenSpenderERC20Token as ContractArtifact,
     TestTransformERC20: TestTransformERC20 as ContractArtifact,

@@ -21,31 +21,30 @@ pragma solidity ^0.6.5;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "../../../vendor/ILiquidityProvider.sol";
+import "../../../vendor/v3/IERC20Bridge.sol";
 
-interface IERC20Bridge {
-
-    /// @dev Transfers `amount` of the ERC20 `buyToken` from `from` to `to`.
-    /// @param buyToken The address of the ERC20 token to transfer.
-    /// @param from Address to transfer asset from.
-    /// @param to Address to transfer asset to.
-    /// @param amount Amount of asset to transfer.
-    /// @param bridgeData Arbitrary asset data needed by the bridge contract.
-    /// @return success The magic bytes `0xdc1600f3` if successful.
-    function bridgeTransferFrom(
-        IERC20TokenV06 buyToken,
-        address from,
-        address to,
-        uint256 amount,
-        bytes calldata bridgeData
-    )
-        external
-        returns (bytes4 success);
-}
 
 contract MixinZeroExBridge {
 
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
+
+    /// @dev Emitted when a trade occurs.
+    /// @param inputToken The token the bridge is converting from.
+    /// @param outputToken The token the bridge is converting to.
+    /// @param inputTokenAmount Amount of input token.
+    /// @param outputTokenAmount Amount of output token.
+    /// @param from The bridge address, indicating the underlying source of the fill.
+    /// @param to The `to` address, currrently `address(this)`
+    event ERC20BridgeTransfer(
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount,
+        address from,
+        address to
+    );
 
     function _tradeZeroExBridge(
         address bridgeAddress,
@@ -57,19 +56,37 @@ contract MixinZeroExBridge {
         internal
         returns (uint256 boughtAmount)
     {
-        uint256 balanceBefore = buyToken.balanceOf(address(this));
         // Trade the good old fashioned way
         sellToken.compatTransfer(
             bridgeAddress,
             sellAmount
         );
-        IERC20Bridge(bridgeAddress).bridgeTransferFrom(
-            buyToken,
-            address(bridgeAddress),
-            address(this),
-            1, // amount to transfer back from the bridge
-            bridgeData
-        );
-        boughtAmount = buyToken.balanceOf(address(this)).safeSub(balanceBefore);
+        try ILiquidityProvider(bridgeAddress).sellTokenForToken(
+                address(sellToken),
+                address(buyToken),
+                address(this), // recipient
+                1, // minBuyAmount
+                bridgeData
+        ) returns (uint256 _boughtAmount) {
+            boughtAmount = _boughtAmount;
+            emit ERC20BridgeTransfer(
+                sellToken,
+                buyToken,
+                sellAmount,
+                boughtAmount,
+                bridgeAddress,
+                address(this)
+            );
+        } catch {
+            uint256 balanceBefore = buyToken.balanceOf(address(this));
+            IERC20Bridge(bridgeAddress).bridgeTransferFrom(
+                address(buyToken),
+                bridgeAddress,
+                address(this), // recipient
+                1, // minBuyAmount
+                bridgeData
+            );
+            boughtAmount = buyToken.balanceOf(address(this)).safeSub(balanceBefore);
+        }
     }
 }

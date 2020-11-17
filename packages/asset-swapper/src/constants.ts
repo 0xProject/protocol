@@ -14,7 +14,7 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from './types';
-import { DEFAULT_GET_MARKET_ORDERS_OPTS } from './utils/market_operation_utils/constants';
+import { DEFAULT_GET_MARKET_ORDERS_OPTS, TOKENS } from './utils/market_operation_utils/constants';
 
 const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
 const NULL_BYTES = '0x';
@@ -42,6 +42,7 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 // default 50% buffer for selecting native orders to be aggregated with other sources
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
 
+const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC];
 const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
@@ -89,7 +90,10 @@ const DEFAULT_SWAP_QUOTE_REQUEST_OPTS: SwapQuoteRequestOpts = {
 
 const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqtRequestOpts> = {
     makerEndpointMaxResponseTimeMs: 1000,
-    isPriceAwareRFQEnabled: false,
+    priceAwareRFQFlag: {
+        isFirmPriceAwareEnabled: false,
+        isIndicativePriceAwareEnabled: false,
+    },
 };
 
 export const DEFAULT_INFO_LOGGER: LogFunction = (obj, msg) =>
@@ -125,6 +129,7 @@ export const constants = {
     ONE_SECOND_MS,
     ONE_MINUTE_MS,
     DEFAULT_SWAP_QUOTER_OPTS,
+    DEFAULT_INTERMEDIATE_TOKENS,
     DEFAULT_FORWARDER_SWAP_QUOTE_GET_OPTS,
     DEFAULT_FORWARDER_SWAP_QUOTE_EXECUTE_OPTS,
     DEFAULT_SWAP_QUOTE_REQUEST_OPTS,
