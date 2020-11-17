@@ -8,13 +8,7 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
 import { constants } from '../constants';
-import {
-    LogFunction,
-    MarketOperation,
-    RfqtFirmQuoteValidator,
-    RfqtMakerAssetOfferings,
-    RfqtRequestOpts,
-} from '../types';
+import { LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts } from '../types';
 
 import { ONE_SECOND_MS } from './market_operation_utils/constants';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
@@ -147,7 +141,6 @@ export class QuoteRequestor {
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
-        private readonly _firmQuoteValidator?: RfqtFirmQuoteValidator,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
     }
@@ -181,7 +174,7 @@ export class QuoteRequestor {
             'firm',
         );
 
-        const validatedResponses: Array<{ response: RFQTFirmQuote; makerUri: string }> = [];
+        const result: RFQTFirmQuote[] = [];
         firmQuoteResponses.forEach(firmQuoteResponse => {
             const orderWithStringInts = firmQuoteResponse.response.signedOrder;
 
@@ -235,17 +228,11 @@ export class QuoteRequestor {
             // Store makerUri for looking up later
             this._orderSignatureToMakerUri[orderWithBigNumberInts.signature] = firmQuoteResponse.makerUri;
 
-            // Passed all validation
-            validatedResponses.push({
-                response: { signedOrder: orderWithBigNumberInts },
-                makerUri: firmQuoteResponse.makerUri,
-            });
+            // Passed all validation, add it to result
+            result.push({ signedOrder: orderWithBigNumberInts });
             return;
         });
-
-        return this._firmQuoteValidator === undefined
-            ? validatedResponses.map(validatedResponse => validatedResponse.response)
-            : this._firmQuoteValidator.filterInvalidQuotesAsync(validatedResponses);
+        return result;
     }
 
     public async requestRfqtIndicativeQuotesAsync(
