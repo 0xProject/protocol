@@ -927,11 +927,11 @@ contract NativeOrdersFeature is
         // Compute the maker token amount.
         // This should never overflow because the values are all clamped to
         // (2^128-1).
-        makerTokenFilledAmount = uint128(
-            uint256(takerTokenFilledAmount)
-            * uint256(settleInfo.makerAmount)
-            / uint256(settleInfo.takerAmount)
-        );
+        makerTokenFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
+            uint256(takerTokenFilledAmount),
+            uint256(settleInfo.takerAmount),
+            uint256(settleInfo.makerAmount)
+        ));
 
         if (takerTokenFilledAmount == 0 || makerTokenFilledAmount == 0) {
             // Nothing to do.
@@ -944,7 +944,7 @@ contract NativeOrdersFeature is
             .orderHashToTakerTokenFilledAmount[settleInfo.orderHash] =
             // OK to overwrite the whole word because we shouldn't get to this
             // function if the order is cancelled.
-                settleInfo.takerTokenFilledAmount + takerTokenFilledAmount;
+                settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
 
         // Transfer taker -> maker.
         LibTokenSpender.spendERC20Tokens(
