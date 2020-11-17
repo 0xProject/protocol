@@ -37,14 +37,13 @@ contract TestBridge is
     /// @param from Address to transfer asset from.
     /// @param to Address to transfer asset to.
     /// @param amount Amount of asset to transfer.
-    /// @param bridgeData Arbitrary asset data needed by the bridge contract.
     /// @return success The magic bytes `0xdc1600f3` if successful.
     function bridgeTransferFrom(
         address tokenAddress,
         address from,
         address to,
         uint256 amount,
-        bytes calldata bridgeData
+        bytes calldata /* bridgeData */
     )
         external
         override

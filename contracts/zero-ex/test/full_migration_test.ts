@@ -10,6 +10,7 @@ import { deployFullFeaturesAsync, FullFeatures } from './utils/migration';
 import {
     AllowanceTargetContract,
     IMetaTransactionsFeatureContract,
+    INativeOrdersFeatureContract,
     IOwnableFeatureContract,
     ISignatureValidatorFeatureContract,
     ISimpleFunctionRegistryFeatureContract,
@@ -45,9 +46,9 @@ blockchainTests.resets('Full migration', env => {
             artifacts,
             await migrator.getBootstrapper().callAsync(),
         );
-        features = await deployFullFeaturesAsync(env.provider, env.txDefaults, zeroEx.address);
+        features = await deployFullFeaturesAsync(env.provider, env.txDefaults, { zeroExAddress: zeroEx.address });
         await migrator
-            .initializeZeroEx(owner, zeroEx.address, features, { transformerDeployer })
+            .migrateZeroEx(owner, zeroEx.address, features, { transformerDeployer })
             .awaitTransactionSuccessAsync();
         registry = new ISimpleFunctionRegistryFeatureContract(zeroEx.address, env.provider, env.txDefaults);
     });
@@ -63,10 +64,10 @@ blockchainTests.resets('Full migration', env => {
         expect(dieRecipient).to.eq(owner);
     });
 
-    it('Non-deployer cannot call initializeZeroEx()', async () => {
+    it('Non-deployer cannot call migrateZeroEx()', async () => {
         const notDeployer = randomAddress();
         const tx = migrator
-            .initializeZeroEx(owner, zeroEx.address, features, { transformerDeployer })
+            .migrateZeroEx(owner, zeroEx.address, features, { transformerDeployer })
             .callAsync({ from: notDeployer });
         return expect(tx).to.revertWith('FullMigration/INVALID_SENDER');
     });
@@ -101,6 +102,31 @@ blockchainTests.resets('Full migration', env => {
                 'getMetaTransactionExecutedBlock',
                 'getMetaTransactionHashExecutedBlock',
                 'getMetaTransactionHash',
+            ],
+        },
+        LimitOrdersFeature: {
+            contractType: INativeOrdersFeatureContract,
+            fns: [
+                'transferProtocolFeesForPools',
+                'fillLimitOrder',
+                'fillRfqOrder',
+                'fillOrKillLimitOrder',
+                'fillOrKillRfqOrder',
+                '_fillLimitOrder',
+                '_fillRfqOrder',
+                'cancelLimitOrder',
+                'cancelRfqOrder',
+                'batchCancelLimitOrders',
+                'batchCancelRfqOrders',
+                'cancelPairLimitOrders',
+                'batchCancelPairLimitOrders',
+                'cancelPairRfqOrders',
+                'batchCancelPairRfqOrders',
+                'getLimitOrderInfo',
+                'getRfqOrderInfo',
+                'getLimitOrderHash',
+                'getRfqOrderHash',
+                'getProtocolFeeMultiplier',
             ],
         },
     };
@@ -139,6 +165,11 @@ blockchainTests.resets('Full migration', env => {
             return hexUtils.random(parseInt(/\d+$/.exec(item.type)![0], 10));
         }
         if (/^uint\d+$/.test(item.type)) {
+            if (item.type === 'uint8') {
+                // Solidity will revert if enum values are out of range, so
+                // play it safe and pick zero.
+                return 0;
+            }
             return new BigNumber(hexUtils.random(parseInt(/\d+$/.exec(item.type)![0], 10) / 8));
         }
         if (/^int\d+$/.test(item.type)) {

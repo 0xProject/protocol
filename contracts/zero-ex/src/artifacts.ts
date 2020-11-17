@@ -12,7 +12,8 @@ import * as FullMigration from '../generated-artifacts/FullMigration.json';
 import * as IAllowanceTarget from '../generated-artifacts/IAllowanceTarget.json';
 import * as IERC20Transformer from '../generated-artifacts/IERC20Transformer.json';
 import * as IFlashWallet from '../generated-artifacts/IFlashWallet.json';
-import * as ILiquidityProvider from '../generated-artifacts/ILiquidityProvider.json';
+import * as ILiquidityProviderFeature from '../generated-artifacts/ILiquidityProviderFeature.json';
+import * as INativeOrdersFeature from '../generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../generated-artifacts/IOwnableFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../generated-artifacts/ISimpleFunctionRegistryFeature.json';
@@ -22,6 +23,7 @@ import * as IZeroEx from '../generated-artifacts/IZeroEx.json';
 import * as LiquidityProviderFeature from '../generated-artifacts/LiquidityProviderFeature.json';
 import * as LogMetadataTransformer from '../generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../generated-artifacts/MetaTransactionsFeature.json';
+import * as NativeOrdersFeature from '../generated-artifacts/NativeOrdersFeature.json';
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
 import * as SignatureValidatorFeature from '../generated-artifacts/SignatureValidatorFeature.json';
@@ -55,5 +57,7 @@ export const artifacts = {
     LogMetadataTransformer: LogMetadataTransformer as ContractArtifact,
     BridgeAdapter: BridgeAdapter as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
-    ILiquidityProvider: ILiquidityProvider as ContractArtifact,
+    ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,
+    NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
+    INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
 };

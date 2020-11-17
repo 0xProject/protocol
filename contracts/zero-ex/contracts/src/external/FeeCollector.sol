@@ -58,8 +58,8 @@ contract FeeCollector is AuthorizableV06 {
         onlyAuthorized
     {
         // Leave 1 wei behind to avoid expensive zero-->non-zero state change.
-        if (address(this).balance > 1) {
-            weth.deposit{value: address(this).balance - 1}();
+        if (address(this).balance > 0) {
+            weth.deposit{value: address(this).balance}();
         }
     }
 }

@@ -33,6 +33,9 @@ export * from './migration';
 export * from './nonce_utils';
 export * from './signed_call_data';
 export * from './signature_utils';
+export * from './orders';
+export * from './eip712_utils';
+export * from './revert_errors';
 export {
     AffiliateFeeTransformerContract,
     BridgeAdapterContract,
@@ -49,6 +52,5 @@ export {
     WethTransformerContract,
     ZeroExContract,
 } from './wrappers';
-export * from './revert_errors';
 export { EIP712TypedData } from '@0x/types';
 export { SupportedProvider } from '@0x/subproviders';
