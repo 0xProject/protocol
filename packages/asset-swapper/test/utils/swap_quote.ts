@@ -1,5 +1,4 @@
 import { BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
 
 import { ERC20BridgeSource } from '../../src';
 import { constants } from '../../src/constants';
@@ -47,12 +46,16 @@ export async function getFullyFillableSwapQuoteWithNoFeesAsync(
             ...quoteBase,
             type: MarketOperation.Buy,
             makerAssetFillAmount,
+            makerTokenDecimals: 18,
+            takerTokenDecimals: 18,
         };
     } else {
         return {
             ...quoteBase,
             type: MarketOperation.Sell,
             takerAssetFillAmount: totalTakerAssetAmount,
+            makerTokenDecimals: 18,
+            takerTokenDecimals: 18,
         };
     }
 }
