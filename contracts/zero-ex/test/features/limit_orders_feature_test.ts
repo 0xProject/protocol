@@ -357,7 +357,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         it('can cancel an unfilled order', async () => {
             const order = getTestLimitOrder();
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled);
         });
@@ -366,7 +370,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const order = getTestLimitOrder();
             await fillLimitOrderAsync(order);
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Filled); // Still reports filled.
         });
@@ -375,7 +383,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const order = getTestLimitOrder();
             await fillLimitOrderAsync(order, order.takerAmount.minus(1));
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled);
         });
@@ -384,7 +396,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const expiry = createExpiry(-60);
             const order = getTestLimitOrder({ expiry });
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled);
         });
@@ -393,7 +409,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const order = getTestLimitOrder();
             await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled);
         });
@@ -411,7 +431,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         it('can cancel an unfilled order', async () => {
             const order = getTestRfqOrder();
             const receipt = await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getRfqOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled);
         });
@@ -420,7 +444,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const order = getTestRfqOrder();
             await fillRfqOrderAsync(order);
             const receipt = await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getRfqOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Filled); // Still reports filled.
         });
@@ -429,7 +457,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const order = getTestRfqOrder();
             await fillRfqOrderAsync(order, order.takerAmount.minus(1));
             const receipt = await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getRfqOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled); // Still reports filled.
         });
@@ -438,7 +470,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const expiry = createExpiry(-60);
             const order = getTestRfqOrder({ expiry });
             const receipt = await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getRfqOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled);
         });
@@ -447,7 +483,11 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const order = getTestRfqOrder();
             await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const receipt = await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            verifyEventsFromLogs(receipt.logs, [{ orderHash: order.getHash() }], IZeroExEvents.OrderCancelled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [{ maker: order.maker, orderHash: order.getHash() }],
+                IZeroExEvents.OrderCancelled,
+            );
             const { status } = await zeroEx.getRfqOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Cancelled);
         });
@@ -467,7 +507,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const receipt = await zeroEx.batchCancelLimitOrders(orders).awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
-                orders.map(o => ({ orderHash: o.getHash() })),
+                orders.map(o => ({ maker: o.maker, orderHash: o.getHash() })),
                 IZeroExEvents.OrderCancelled,
             );
             const infos = await Promise.all(orders.map(o => zeroEx.getLimitOrderInfo(o).callAsync()));
@@ -489,7 +529,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             const receipt = await zeroEx.batchCancelRfqOrders(orders).awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
-                orders.map(o => ({ orderHash: o.getHash() })),
+                orders.map(o => ({ maker: o.maker, orderHash: o.getHash() })),
                 IZeroExEvents.OrderCancelled,
             );
             const infos = await Promise.all(orders.map(o => zeroEx.getRfqOrderInfo(o).callAsync()));
@@ -505,13 +545,13 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         });
     });
 
-    describe('cancelPairOrdersUpTo()', async () => {
+    describe('cancelPairOrders()', async () => {
         it('can cancel multiple limit orders of the same pair with salt < minValidSalt', async () => {
             const orders = [...new Array(3)].map((_v, i) => getTestLimitOrder().clone({ salt: new BigNumber(i) }));
             // Cancel the first two orders.
             const minValidSalt = orders[2].salt;
             const receipt = await zeroEx
-                .cancelPairLimitOrdersUpTo(makerToken.address, takerToken.address, minValidSalt)
+                .cancelPairLimitOrders(makerToken.address, takerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -523,7 +563,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersUpToCancelled,
+                IZeroExEvents.PairOrdersCancelled,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getLimitOrderInfo(o).callAsync()))).map(
                 oi => oi.status,
@@ -537,7 +577,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             // pair.
             const minValidSalt = order.salt.plus(1);
             await zeroEx
-                .cancelPairLimitOrdersUpTo(takerToken.address, makerToken.address, minValidSalt)
+                .cancelPairLimitOrders(takerToken.address, makerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             const { status } = await zeroEx.getLimitOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Fillable);
@@ -548,7 +588,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             // Cancel the first two orders.
             const minValidSalt = orders[2].salt;
             const receipt = await zeroEx
-                .cancelPairRfqOrdersUpTo(makerToken.address, takerToken.address, minValidSalt)
+                .cancelPairRfqOrders(makerToken.address, takerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -560,7 +600,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersUpToCancelled,
+                IZeroExEvents.PairOrdersCancelled,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getRfqOrderInfo(o).callAsync()))).map(
                 oi => oi.status,
@@ -574,14 +614,14 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             // pair.
             const minValidSalt = order.salt.plus(1);
             await zeroEx
-                .cancelPairRfqOrdersUpTo(takerToken.address, makerToken.address, minValidSalt)
+                .cancelPairRfqOrders(takerToken.address, makerToken.address, minValidSalt)
                 .awaitTransactionSuccessAsync({ from: maker });
             const { status } = await zeroEx.getRfqOrderInfo(order).callAsync();
             expect(status).to.eq(OrderStatus.Fillable);
         });
     });
 
-    describe('batchCancelPairOrdersUpTo()', async () => {
+    describe('batchCancelPairOrders()', async () => {
         it('can cancel multiple limit order pairs', async () => {
             const orders = [
                 getTestLimitOrder({ salt: new BigNumber(1) }),
@@ -594,7 +634,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             ];
             const minValidSalt = new BigNumber(2);
             const receipt = await zeroEx
-                .batchCancelPairLimitOrdersUpTo(
+                .batchCancelPairLimitOrders(
                     [makerToken.address, takerToken.address],
                     [takerToken.address, makerToken.address],
                     [minValidSalt, minValidSalt],
@@ -616,7 +656,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersUpToCancelled,
+                IZeroExEvents.PairOrdersCancelled,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getLimitOrderInfo(o).callAsync()))).map(
                 oi => oi.status,
@@ -636,7 +676,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
             ];
             const minValidSalt = new BigNumber(2);
             const receipt = await zeroEx
-                .batchCancelPairRfqOrdersUpTo(
+                .batchCancelPairRfqOrders(
                     [makerToken.address, takerToken.address],
                     [takerToken.address, makerToken.address],
                     [minValidSalt, minValidSalt],
@@ -658,7 +698,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersUpToCancelled,
+                IZeroExEvents.PairOrdersCancelled,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getRfqOrderInfo(o).callAsync()))).map(
                 oi => oi.status,
@@ -860,7 +900,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         it('cannot fill a salt/pair cancelled order', async () => {
             const order = getTestLimitOrder();
             await zeroEx
-                .cancelPairLimitOrdersUpTo(makerToken.address, takerToken.address, order.salt.plus(1))
+                .cancelPairLimitOrders(makerToken.address, takerToken.address, order.salt.plus(1))
                 .awaitTransactionSuccessAsync({ from: maker });
             const tx = fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
@@ -1097,7 +1137,7 @@ blockchainTests.resets('LimitOrdersFeature', env => {
         it('cannot fill a salt/pair cancelled order', async () => {
             const order = getTestRfqOrder();
             await zeroEx
-                .cancelPairRfqOrdersUpTo(makerToken.address, takerToken.address, order.salt.plus(1))
+                .cancelPairRfqOrders(makerToken.address, takerToken.address, order.salt.plus(1))
                 .awaitTransactionSuccessAsync({ from: maker });
             const tx = fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(

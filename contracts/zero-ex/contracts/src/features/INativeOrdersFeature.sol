@@ -70,10 +70,12 @@ interface INativeOrdersFeature {
         bytes32 pool
     );
 
-    /// @dev Emitted whenever a limt or RFQ order is cancelled.
+    /// @dev Emitted whenever a limit or RFQ order is cancelled.
     /// @param orderHash The canonical hash of the order.
+    /// @param maker The order maker.
     event OrderCancelled(
-        bytes32 orderHash
+        bytes32 orderHash,
+        address maker
     );
 
     /// @dev Emitted whenever limit or RFQ orders are cancelled by pair by a maker.
@@ -82,7 +84,7 @@ interface INativeOrdersFeature {
     /// @param takerToken The taker token in a pair for the orders cancelled.
     /// @param minValidSalt The new minimum valid salt an order with this pair must
     ///        have.
-    event PairOrdersUpToCancelled(
+    event PairOrdersCancelled(
         address maker,
         address makerToken,
         address takerToken,
@@ -234,7 +236,7 @@ interface INativeOrdersFeature {
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairLimitOrdersUpTo(
+    function cancelPairLimitOrders(
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
@@ -248,7 +250,7 @@ interface INativeOrdersFeature {
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
-    function batchCancelPairLimitOrdersUpTo(
+    function batchCancelPairLimitOrders(
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
@@ -262,7 +264,7 @@ interface INativeOrdersFeature {
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairRfqOrdersUpTo(
+    function cancelPairRfqOrders(
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
@@ -276,7 +278,7 @@ interface INativeOrdersFeature {
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
-    function batchCancelPairRfqOrdersUpTo(
+    function batchCancelPairRfqOrders(
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts

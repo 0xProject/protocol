@@ -134,10 +134,10 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.cancelRfqOrder.selector);
         _registerFeatureFunction(this.batchCancelLimitOrders.selector);
         _registerFeatureFunction(this.batchCancelRfqOrders.selector);
-        _registerFeatureFunction(this.cancelPairLimitOrdersUpTo.selector);
-        _registerFeatureFunction(this.batchCancelPairLimitOrdersUpTo.selector);
-        _registerFeatureFunction(this.cancelPairRfqOrdersUpTo.selector);
-        _registerFeatureFunction(this.batchCancelPairRfqOrdersUpTo.selector);
+        _registerFeatureFunction(this.cancelPairLimitOrders.selector);
+        _registerFeatureFunction(this.batchCancelPairLimitOrders.selector);
+        _registerFeatureFunction(this.cancelPairRfqOrders.selector);
+        _registerFeatureFunction(this.batchCancelPairRfqOrders.selector);
         _registerFeatureFunction(this.getLimitOrderInfo.selector);
         _registerFeatureFunction(this.getRfqOrderInfo.selector);
         _registerFeatureFunction(this.getLimitOrderHash.selector);
@@ -386,7 +386,7 @@ contract NativeOrdersFeature is
                 order.maker
             ).rrevert();
         }
-        _cancelOrderHash(orderHash);
+        _cancelOrderHash(orderHash, order.maker);
     }
 
     /// @dev Cancel a single RFQ order. The caller must be the maker.
@@ -404,7 +404,7 @@ contract NativeOrdersFeature is
                 order.maker
             ).rrevert();
         }
-        _cancelOrderHash(orderHash);
+        _cancelOrderHash(orderHash, order.maker);
     }
 
     /// @dev Cancel multiple limit orders. The caller must be the maker.
@@ -438,7 +438,7 @@ contract NativeOrdersFeature is
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairLimitOrdersUpTo(
+    function cancelPairLimitOrders(
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
@@ -467,7 +467,7 @@ contract NativeOrdersFeature is
             [address(makerToken)]
             [address(takerToken)] = minValidSalt;
 
-        emit PairOrdersUpToCancelled(
+        emit PairOrdersCancelled(
             msg.sender,
             address(makerToken),
             address(takerToken),
@@ -482,7 +482,7 @@ contract NativeOrdersFeature is
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
-    function batchCancelPairLimitOrdersUpTo(
+    function batchCancelPairLimitOrders(
         IERC20TokenV06[] memory makerTokens,
         IERC20TokenV06[] memory takerTokens,
         uint256[] memory minValidSalts
@@ -497,7 +497,7 @@ contract NativeOrdersFeature is
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairLimitOrdersUpTo(
+            cancelPairLimitOrders(
                 makerTokens[i],
                 takerTokens[i],
                 minValidSalts[i]
@@ -512,7 +512,7 @@ contract NativeOrdersFeature is
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairRfqOrdersUpTo(
+    function cancelPairRfqOrders(
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
@@ -541,7 +541,7 @@ contract NativeOrdersFeature is
             [address(makerToken)]
             [address(takerToken)] = minValidSalt;
 
-        emit PairOrdersUpToCancelled(
+        emit PairOrdersCancelled(
             msg.sender,
             address(makerToken),
             address(takerToken),
@@ -556,7 +556,7 @@ contract NativeOrdersFeature is
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
-    function batchCancelPairRfqOrdersUpTo(
+    function batchCancelPairRfqOrders(
         IERC20TokenV06[] memory makerTokens,
         IERC20TokenV06[] memory takerTokens,
         uint256[] memory minValidSalts
@@ -571,7 +571,7 @@ contract NativeOrdersFeature is
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairRfqOrdersUpTo(
+            cancelPairRfqOrders(
                 makerTokens[i],
                 takerTokens[i],
                 minValidSalts[i]
@@ -723,7 +723,8 @@ contract NativeOrdersFeature is
 
     /// @dev Cancel a limit or RFQ order directly by its order hash.
     /// @param orderHash The order's order hash.
-    function _cancelOrderHash(bytes32 orderHash)
+    /// @param maker The order's maker.
+    function _cancelOrderHash(bytes32 orderHash, address maker)
         private
     {
         LibNativeOrdersStorage.Storage storage stor =
@@ -732,7 +733,7 @@ contract NativeOrdersFeature is
         // a cancel. It's OK to cancel twice.
         stor.orderHashToTakerTokenFilledAmount[orderHash] |= HIGH_BIT;
 
-        emit OrderCancelled(orderHash);
+        emit OrderCancelled(orderHash, msg.sender);
     }
 
     /// @dev Fill a limit order. Private variant. Does not refund protocol fees.
@@ -804,7 +805,6 @@ contract NativeOrdersFeature is
         );
 
         // Pay the fee recipient.
-        results.takerTokenFeeFilledAmount;
         if (params.order.takerTokenFeeAmount > 0) {
             results.takerTokenFeeFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
                 results.takerTokenFilledAmount,
