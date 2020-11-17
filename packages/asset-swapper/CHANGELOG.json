@@ -1,5 +1,18 @@
 [
     {
+        "version": "5.2.0",
+        "changes": [
+            {
+                "note": "Update Gas schedules",
+                "pr": 34
+            },
+            {
+                "note": "Return the maker/taker token decimals from the sampler as part of the `SwapQuote`",
+                "pr": 34
+            }
+        ]
+    },
+    {
         "version": "5.1.1",
         "changes": [
             {
