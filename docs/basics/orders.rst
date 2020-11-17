@@ -221,22 +221,22 @@ Because there is no way to un-sign an order that has been distributed, limit ord
     )
         external;
 
-``cancelLimitPairOrdersUpTo()`` will cancel all limit orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
+``cancelLimitPairOrders()`` will cancel all limit orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
 
 .. code-block:: solidity
 
-    function cancelLimitPairLimitOrdersUpTo(
+    function cancelLimitPairLimitOrders(
         address makerToken,
         address takerToken,
         uint256 salt;
     )
         external;
 
-``batchCancelLimitPairOrdersUpTo()`` performs multiple ``cancelLimitPairOrdersUpTo()`` at once. Each respective index across arrays is equivalent to a single call.
+``batchCancelLimitPairOrders()`` performs multiple ``cancelLimitPairOrders()`` at once. Each respective index across arrays is equivalent to a single call.
 
 .. code-block:: solidity
 
-    function batchCancelLimitPairOrdersUpTo(
+    function batchCancelLimitPairOrders(
         address[] makerTokens,
         address[] takerTokens,
         uint256[] salts;
@@ -468,22 +468,22 @@ Similar to limit orders, RFQ orders can be cancelled on-chain through a variety 
     )
         external;
 
-``cancelPairRfqOrdersUpTo()`` will cancel all RFQ orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
+``cancelPairRfqOrders()`` will cancel all RFQ orders created by the caller with with a maker and taker token pair and a ``salt`` field < the ``salt`` provided. Subsequent calls to this function with the same tokens must provide a ``salt`` >= the last call to succeed.
 
 .. code-block:: solidity
 
-    function cancelPairRfqOrdersUpTo(
+    function cancelPairRfqOrders(
         address makerToken,
         address takerToken,
         uint256 salt;
     )
         external;
 
-``batchCancelPairRfqOrdersUpTo()`` performs multiple ``cancelPairRfqOrdersUpTo()`` at once. Each respective index across arrays is equivalent to a single call.
+``batchCancelPairRfqOrders()`` performs multiple ``cancelPairRfqOrders()`` at once. Each respective index across arrays is equivalent to a single call.
 
 .. code-block:: solidity
 
-    function batchCancelPairRfqOrdersUpTo(
+    function batchCancelPairRfqOrders(
         address[] makerTokens,
         address[] takerTokens,
         uint256[] salts;
