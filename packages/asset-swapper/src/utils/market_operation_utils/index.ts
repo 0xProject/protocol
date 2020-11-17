@@ -694,14 +694,14 @@ export class MarketOperationUtils {
                         rfqt,
                     );
                     if (firmQuotes.length > 0) {
-
                         // Compute the RFQ order fillable amounts. This is done by performing a "soft" order
                         // validation and by checking order balances that are monitored by our worker.
                         // If a firm quote validator does not exist, then we assume that all orders are valid.
                         const firmQuoteSignedOrders = firmQuotes.map(quote => quote.signedOrder);
-                        const rfqOrderFillableAmounts = rfqt.firmQuoteValidator === undefined ?
-                            firmQuoteSignedOrders.map(signedOrder => signedOrder.takerAssetAmount) :
-                            await rfqt.firmQuoteValidator.getRFQTTakerFillableAmounts(firmQuoteSignedOrders);
+                        const rfqOrderFillableAmounts =
+                            rfqt.firmQuoteValidator === undefined
+                                ? firmQuoteSignedOrders.map(signedOrder => signedOrder.takerAssetAmount)
+                                : await rfqt.firmQuoteValidator.getRFQTTakerFillableAmounts(firmQuoteSignedOrders);
 
                         // Re-run optimizer with the new firm quote. This is the second and last time
                         // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
@@ -710,7 +710,9 @@ export class MarketOperationUtils {
                             {
                                 ...marketSideLiquidity,
                                 nativeOrders: marketSideLiquidity.nativeOrders.concat(firmQuoteSignedOrders),
-                                orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(rfqOrderFillableAmounts),
+                                orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(
+                                    rfqOrderFillableAmounts,
+                                ),
                             },
                             optimizerOpts,
                         );
