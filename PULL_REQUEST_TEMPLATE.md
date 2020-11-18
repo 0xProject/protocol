@@ -20,3 +20,11 @@ When a new version is released, the API will automatically be deployed to all en
 -   [ ] Update [documentation](https://github.com/0xProject/website/blob/development/mdx/api/index.mdx) as needed. **Website Documentation PR:**
 -   [ ] Prefix PR title with `[WIP]` if necessary.
 -   [ ] Add tests to cover changes as needed.
+-   [ ] Test changes on the staging environment with [Matcha API Staging](https://api-staging.matcha.xyz).
+
+    -   [ ] SRA/Limit orders
+    -   [ ] Swap endpoints
+    -   [ ] Meta transaction endpoints
+    -   [ ] Depth charts
+
+    For more information see `0x API Matcha smoke test runbook` in Quip.
