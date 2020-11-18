@@ -58,7 +58,7 @@ contract TransformERC20Feature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "TransformERC20";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 3, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 3, 1);
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
@@ -317,7 +317,13 @@ contract TransformERC20Feature is
         // Transfer input tokens.
         if (!LibERC20Transformer.isTokenETH(inputToken)) {
             // Token is not ETH, so pull ERC20 tokens.
-            LibTokenSpender.spendERC20Tokens(inputToken, from, to, amount);
+            LibTokenSpender.spendERC20Tokens(
+                inputToken,
+                from,
+                to,
+                amount,
+                true
+            );
         } else if (msg.value < amount) {
              // Token is ETH, so the caller must attach enough ETH to the call.
             LibTransformERC20RichErrors.InsufficientEthAttachedError(
