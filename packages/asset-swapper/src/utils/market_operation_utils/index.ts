@@ -590,7 +590,7 @@ export class MarketOperationUtils {
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
-            adjustedRate: collapsedPath.adjustedRate(),
+            adjustedRate: optimalPathRate,
         };
     }
 
