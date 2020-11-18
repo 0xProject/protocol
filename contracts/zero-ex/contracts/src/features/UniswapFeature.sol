@@ -43,6 +43,11 @@ contract UniswapFeature is
     /// @dev AllowanceTarget instance.
     IAllowanceTarget private immutable ALLOWANCE_TARGET;
 
+    // Maximum amount of gas to forward to the initial transferFrom() call.
+    // We cap the gas for tokens that throw rather than revert, which would
+    // otherwise consume virtually all remaining gas, preventing us from falling
+    // through to the old allowance target.
+    uint256 constant private TRANSFER_FROM_GAS_LIMIT = 200e3;
     // 0xFF + address of the UniswapV2Factory contract.
     uint256 constant private FF_UNISWAP_FACTORY = 0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
     // 0xFF + address of the (Sushiswap) UniswapV2Factory contract.
@@ -167,7 +172,17 @@ contract UniswapFeature is
                             // only care about reading a boolean in the success
                             // case, and we discard the return data in the
                             // failure case.
-                            let success := call(gas(), sellToken, 0, 0xB00, 0x64, 0xC00, 0x20)
+                            let success := call(
+                                // Cap the gas limit to prvent all gas being consumed
+                                // if the token reverts.
+                                TRANSFER_FROM_GAS_LIMIT,
+                                sellToken,
+                                0,
+                                0xB00,
+                                0x64,
+                                0xC00,
+                                0x20
+                            )
 
                             let rdsize := returndatasize()
 

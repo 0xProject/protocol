@@ -733,7 +733,7 @@ contract NativeOrdersFeature is
         // a cancel. It's OK to cancel twice.
         stor.orderHashToTakerTokenFilledAmount[orderHash] |= HIGH_BIT;
 
-        emit OrderCancelled(orderHash, msg.sender);
+        emit OrderCancelled(orderHash, maker);
     }
 
     /// @dev Fill a limit order. Private variant. Does not refund protocol fees.

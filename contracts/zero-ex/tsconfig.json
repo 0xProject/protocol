@@ -152,7 +152,8 @@
         "test/generated-artifacts/TransformerDeployer.json",
         "test/generated-artifacts/UniswapFeature.json",
         "test/generated-artifacts/WethTransformer.json",
-        "test/generated-artifacts/ZeroEx.json"
+        "test/generated-artifacts/ZeroEx.json",
+        "test/generated-artifacts/ZeroExOptimized.json"
     ],
     "exclude": ["./deploy/solc/solc_bin"]
 }

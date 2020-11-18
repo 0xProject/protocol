@@ -57,12 +57,4 @@ interface ISimpleFunctionRegistryFeature {
         external
         view
         returns (address impl);
-
-    /// @dev Get the implementation contract of a registered function.
-    /// @param selector The function selector.
-    /// @return impl The implementation contract address.
-    function getFunctionImplementation(bytes4 selector)
-        external
-        view
-        returns (address impl);
 }

@@ -128,9 +128,11 @@ import * as TransformerDeployer from '../test/generated-artifacts/TransformerDep
 import * as UniswapFeature from '../test/generated-artifacts/UniswapFeature.json';
 import * as WethTransformer from '../test/generated-artifacts/WethTransformer.json';
 import * as ZeroEx from '../test/generated-artifacts/ZeroEx.json';
+import * as ZeroExOptimized from '../test/generated-artifacts/ZeroExOptimized.json';
 export const artifacts = {
     IZeroEx: IZeroEx as ContractArtifact,
     ZeroEx: ZeroEx as ContractArtifact,
+    ZeroExOptimized: ZeroExOptimized as ContractArtifact,
     LibCommonRichErrors: LibCommonRichErrors as ContractArtifact,
     LibLiquidityProviderRichErrors: LibLiquidityProviderRichErrors as ContractArtifact,
     LibMetaTransactionsRichErrors: LibMetaTransactionsRichErrors as ContractArtifact,

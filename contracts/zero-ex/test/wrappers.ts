@@ -126,3 +126,4 @@ export * from '../test/generated-wrappers/transformer_deployer';
 export * from '../test/generated-wrappers/uniswap_feature';
 export * from '../test/generated-wrappers/weth_transformer';
 export * from '../test/generated-wrappers/zero_ex';
+export * from '../test/generated-wrappers/zero_ex_optimized';

@@ -29,6 +29,11 @@ library LibTokenSpender {
 
     // Mask of the lower 20 bytes of a bytes32.
     uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    // Maximum amount of gas to forward to the initial transferFrom() call.
+    // We cap the gas for tokens that throw rather than revert, which would
+    // otherwise consume virtually all remaining gas, preventing us from falling
+    // through to the old allowance target.
+    uint256 constant private TRANSFER_FROM_GAS_LIMIT = 200e3;
 
     /// @dev Transfers ERC20 tokens from `owner` to `to`.
     /// @param token The token to spend.
@@ -73,7 +78,17 @@ library LibTokenSpender {
             mstore(add(ptr, 0x24), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x44), amount)
 
-            success := call(gas(), and(token, ADDRESS_MASK), 0, ptr, 0x64, 0, 0)
+            success := call(
+                // Cap the gas limit to prvent all gas being consumed
+                // if the token reverts.
+                TRANSFER_FROM_GAS_LIMIT,
+                and(token, ADDRESS_MASK),
+                0,
+                ptr,
+                0x64,
+                0,
+                0
+            )
 
             let rdsize := returndatasize()
 
