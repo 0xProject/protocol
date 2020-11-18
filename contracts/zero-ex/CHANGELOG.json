@@ -1,5 +1,18 @@
 [
     {
+        "version": "0.10.0",
+        "changes": [
+            {
+                "note": "Add `checkAllowance` flag to LibTokenSpender.spendERC20Tokens",
+                "pr": 39
+            },
+            {
+                "note": "Use new `checkAllowance` flag in LiquidityProviderFeature, TransformERC20Feature, and MetaTransactionsFeature",
+                "pr": 39
+            }
+        ]
+    },
+    {
         "version": "0.9.0",
         "changes": [
             {

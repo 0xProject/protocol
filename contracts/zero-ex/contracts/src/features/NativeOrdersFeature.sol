@@ -815,7 +815,8 @@ contract NativeOrdersFeature is
                 params.order.takerToken,
                 params.taker,
                 params.order.feeRecipient,
-                uint256(results.takerTokenFeeFilledAmount)
+                uint256(results.takerTokenFeeFilledAmount),
+                false
             );
         }
 
@@ -951,7 +952,8 @@ contract NativeOrdersFeature is
             settleInfo.takerToken,
             settleInfo.taker,
             settleInfo.maker,
-            takerTokenFilledAmount
+            takerTokenFilledAmount,
+            false
         );
 
         // Transfer maker -> taker.
@@ -959,7 +961,8 @@ contract NativeOrdersFeature is
             settleInfo.makerToken,
             settleInfo.maker,
             settleInfo.taker,
-            makerTokenFilledAmount
+            makerTokenFilledAmount,
+            false
         );
     }
 

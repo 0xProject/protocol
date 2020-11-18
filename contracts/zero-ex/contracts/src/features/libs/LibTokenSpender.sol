@@ -35,11 +35,14 @@ library LibTokenSpender {
     /// @param owner The owner of the tokens.
     /// @param to The recipient of the tokens.
     /// @param amount The amount of `token` to transfer.
+    /// @param checkAllowance Whether or not to check the owner's allowance
+    ///        prior to attempting the transfer.
     function spendERC20Tokens(
         IERC20TokenV06 token,
         address owner,
         address to,
-        uint256 amount
+        uint256 amount,
+        bool checkAllowance
     )
         internal
     {
@@ -47,6 +50,19 @@ library LibTokenSpender {
         bytes memory revertData;
 
         require(address(token) != address(this), "LibTokenSpender/CANNOT_INVOKE_SELF");
+
+        if (checkAllowance) {
+            // If the owner doesn't have a sufficient allowance set on `address(this)`,
+            // try the old AllowanceTarget.
+            if (token.allowance(owner, address(this)) < amount) {
+                return ITokenSpenderFeature(address(this))._spendERC20Tokens(
+                    token,
+                    owner,
+                    to,
+                    amount
+                );
+            }
+        }
 
         assembly {
             let ptr := mload(0x40) // free memory pointer

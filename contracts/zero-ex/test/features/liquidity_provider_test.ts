@@ -51,17 +51,19 @@ blockchainTests('LiquidityProvider feature', env => {
             .awaitTransactionSuccessAsync({ from: taker });
 
         feature = new LiquidityProviderFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis);
-        const featureImpl = await LiquidityProviderFeatureContract.deployFrom0xArtifactAsync(
-            artifacts.LiquidityProviderFeature,
+        sandbox = await LiquidityProviderSandboxContract.deployFrom0xArtifactAsync(
+            artifacts.LiquidityProviderSandbox,
             env.provider,
             env.txDefaults,
             artifacts,
             zeroEx.address,
         );
-        sandbox = new LiquidityProviderSandboxContract(
-            await featureImpl.sandbox().callAsync(),
+        const featureImpl = await LiquidityProviderFeatureContract.deployFrom0xArtifactAsync(
+            artifacts.LiquidityProviderFeature,
             env.provider,
             env.txDefaults,
+            artifacts,
+            sandbox.address,
         );
         await new IOwnableFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis)
             .migrate(featureImpl.address, featureImpl.migrate().getABIEncodedTransactionData(), owner)

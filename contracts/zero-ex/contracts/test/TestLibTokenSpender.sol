@@ -34,7 +34,13 @@ contract TestLibTokenSpender {
     )
         external
     {
-        LibTokenSpender.spendERC20Tokens(token, owner, to, amount);
+        LibTokenSpender.spendERC20Tokens(
+            token,
+            owner,
+            to,
+            amount,
+            false
+        );
     }
 
     event FallbackCalled(
