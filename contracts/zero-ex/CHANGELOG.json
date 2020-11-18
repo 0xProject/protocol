@@ -9,6 +9,22 @@
             {
                 "note": "Use new `checkAllowance` flag in LiquidityProviderFeature, TransformERC20Feature, and MetaTransactionsFeature",
                 "pr": 39
+            },
+            {
+                "note": "Add native orders features",
+                "pr": 27
+            },
+            {
+                "note": "Revert to original proxy implementation",
+                "pr": 38
+            },
+            {
+                "note": "Fix incorrect cancel order event param",
+                "pr": 38
+            },
+            {
+                "note": "Add a gas limit to first `LibTokenSpender` and `UniswapFeature` transfer",
+                "pr": 38
             }
         ],
         "timestamp": 1605763885
