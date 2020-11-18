@@ -21,26 +21,31 @@ pragma experimental ABIEncoderV2;
 
 import "../src/fixins/FixinProtocolFees.sol";
 
-contract TestProtocolFees is FixinProtocolFees {
-    function collectProtocolFee(
-        bytes32 poolId,
-        uint256 amount,
-        IERC20TokenV06 weth
+contract TestFixinProtocolFees is
+    FixinProtocolFees
+{
+    constructor(
+        IEtherTokenV06 weth,
+        IStaking staking,
+        uint32 protocolFeeMultiplier
     )
+        public
+        FixinProtocolFees(weth, staking, protocolFeeMultiplier)
+    {
+        // solhint-disalbe no-empty-blocks
+    }
+
+    function collectProtocolFee(bytes32 poolId)
         external
         payable
     {
-        _collectProtocolFee(poolId, amount, weth);
+        _collectProtocolFee(poolId);
     }
 
-    function transferFeesForPool(
-        bytes32 poolId,
-        IStaking staking,
-        IEtherTokenV06 weth
-    )
+    function transferFeesForPool(bytes32 poolId)
         external
     {
-        _transferFeesForPool(poolId, staking, weth);
+        _transferFeesForPool(poolId);
     }
 
     function getFeeCollector(
@@ -51,5 +56,13 @@ contract TestProtocolFees is FixinProtocolFees {
         returns (FeeCollector)
     {
         return _getFeeCollector(poolId);
+    }
+
+    function getSingleProtocolFee()
+        external
+        view
+        returns (uint256 protocolFeeAmount)
+    {
+        return _getSingleProtocolFee();
     }
 }

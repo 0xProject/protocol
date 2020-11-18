@@ -33,8 +33,7 @@ export function isSupportedAssetDataInOrders(orders: SignedOrder[]): boolean {
         const takerAssetData = assetDataUtils.decodeAssetDataOrThrow(o.takerAssetData);
         const makerAssetData = assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData);
         return (
-            (makerAssetData.assetProxyId === AssetProxyId.ERC20 ||
-                makerAssetData.assetProxyId === AssetProxyId.ERC721) &&
+            makerAssetData.assetProxyId === AssetProxyId.ERC20 &&
             takerAssetData.assetProxyId === AssetProxyId.ERC20 &&
             firstOrderMakerAssetData.assetProxyId === makerAssetData.assetProxyId
         ); // checks that all native order maker assets are of the same type

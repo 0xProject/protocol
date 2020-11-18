@@ -503,6 +503,8 @@ export class SwapQuoter {
         return {
             bids: getMarketDepthSide(bids),
             asks: getMarketDepthSide(asks),
+            makerTokenDecimals: asks.makerTokenDecimals,
+            takerTokenDecimals: asks.takerTokenDecimals,
         };
     }
 

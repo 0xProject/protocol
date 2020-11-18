@@ -339,6 +339,7 @@ export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: number;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
+    marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
 }
 
@@ -351,6 +352,8 @@ export type MarketDepthSide = Array<Array<DexSample<FillData>>>;
 export interface MarketDepth {
     bids: MarketDepthSide;
     asks: MarketDepthSide;
+    makerTokenDecimals: number;
+    takerTokenDecimals: number;
 }
 
 export interface MarketSideLiquidity {

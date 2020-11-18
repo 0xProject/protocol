@@ -55,6 +55,10 @@
             {
                 "note": "Add `LibSignature` library",
                 "pr": 21
+            },
+            {
+                "note": "Add `LimitOrdersFeature`",
+                "pr": 27
             }
         ],
         "timestamp": 1604355662
