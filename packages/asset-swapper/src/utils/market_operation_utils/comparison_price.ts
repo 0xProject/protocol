@@ -1,5 +1,5 @@
 import { Web3Wrapper } from '@0x/dev-utils';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { MarketOperation } from '../../types';
@@ -23,12 +23,28 @@ export function getComparisonPrices(
     marketSideLiquidity: MarketSideLiquidity,
     feeSchedule: FeeSchedule,
 ): ComparisonPrice {
+    let wholeOrder: BigNumber | undefined;
+    let feeInEth: BigNumber | number;
+
     // HACK: get the fee penalty of a single 0x native order
     // The FeeSchedule function takes in a `FillData` object and returns a fee estimate in ETH
     // We don't have fill data here, we just want the cost of a single native order, so we pass in undefined
     // This works because the feeSchedule returns a constant for Native orders, this will need
     // to be tweaked if the feeSchedule for native orders uses the fillData passed in
-    const feeInEth = (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)(undefined);
+    // 2 potential issues: there is no native fee schedule or the fee schedule depends on fill data
+    if (feeSchedule[ERC20BridgeSource.Native] === undefined) {
+        logUtils.warn('ComparisonPrice function did not find native order fee schedule');
+
+        return { wholeOrder };
+    } else {
+        try {
+            feeInEth = new BigNumber((feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)(undefined));
+        } catch {
+            logUtils.warn('Native order fee schedule requires fill data');
+
+            return { wholeOrder };
+        }
+    }
 
     // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)
     const feePenalty = !marketSideLiquidity.ethToOutputRate.isZero()
@@ -45,7 +61,6 @@ export function getComparisonPrices(
     const orderTakerAmount =
         marketSideLiquidity.side === MarketOperation.Sell ? amount : amount.dividedBy(adjustedRate).minus(feePenalty);
 
-    let wholeOrder: BigNumber | undefined;
     if (orderTakerAmount.gt(0) && orderMakerAmount.gt(0)) {
         const optimalMakerUnitAmount = Web3Wrapper.toUnitAmount(
             // round up maker amount -- err to giving more competitive price
@@ -60,7 +75,5 @@ export function getComparisonPrices(
         wholeOrder = optimalMakerUnitAmount.div(optimalTakerUnitAmount).decimalPlaces(COMPARISON_PRICE_DECIMALS);
     }
 
-    return {
-        wholeOrder,
-    };
+    return { wholeOrder };
 }
