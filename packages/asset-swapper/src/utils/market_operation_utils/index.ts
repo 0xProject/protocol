@@ -32,7 +32,6 @@ import { SourceFilters } from './source_filters';
 import {
     AggregationError,
     CollapsedFill,
-    ComparisonPrice,
     DexSample,
     ERC20BridgeSource,
     GenerateOptimizedOrdersOpts,
@@ -554,7 +553,6 @@ export class MarketOperationUtils {
                 liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 adjustedRate: bestTwoHopRate,
-                exchangeProxyOverhead: optimizerOpts.exchangeProxyOverhead,
             };
         }
 
@@ -586,7 +584,6 @@ export class MarketOperationUtils {
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
             adjustedRate: collapsedPath.adjustedRate(),
-            exchangeProxyOverhead: optimizerOpts.exchangeProxyOverhead,
         };
     }
 
@@ -625,16 +622,18 @@ export class MarketOperationUtils {
         }
 
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity
-        let comparisonPrice: ComparisonPrice | undefined;
         let wholeOrderPrice: BigNumber | undefined;
         const { rfqt } = _opts;
         if (rfqt && rfqt.quoteRequestor && marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)) {
             // Calculate a suggested price. For now, this is simply the overall price of the aggregation.
             if (optimizerResult) {
-                comparisonPrice = getComparisonPrices(optimizerResult, amount, marketSideLiquidity);
+                wholeOrderPrice = getComparisonPrices(
+                    optimizerResult.adjustedRate,
+                    amount,
+                    marketSideLiquidity,
+                    _opts.feeSchedule,
+                ).wholeOrder;
             }
-
-            wholeOrderPrice = comparisonPrice === undefined ? undefined : comparisonPrice.wholeOrder;
 
             const { isFirmPriceAwareEnabled, isIndicativePriceAwareEnabled } = getPriceAwareRFQRolloutFlags(
                 rfqt.priceAwareRFQFlag,

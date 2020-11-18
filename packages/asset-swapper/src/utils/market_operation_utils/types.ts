@@ -340,7 +340,6 @@ export interface OptimizerResult {
     sourceFlags: number;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     adjustedRate: BigNumber;
-    exchangeProxyOverhead: ExchangeProxyOverhead;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
