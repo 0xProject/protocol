@@ -43,7 +43,7 @@ contract LiquidityProviderFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LiquidityProviderFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
 
     /// @dev ETH pseudo-token address.
     address constant internal ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -60,11 +60,11 @@ contract LiquidityProviderFeature is
         address recipient
     );
 
-    constructor(address zeroEx)
+    constructor(LiquidityProviderSandbox sandbox_)
         public
         FixinCommon()
     {
-        sandbox = new LiquidityProviderSandbox(zeroEx);
+        sandbox = sandbox_;
     }
 
     /// @dev Initialize and register this feature.
@@ -116,7 +116,8 @@ contract LiquidityProviderFeature is
                 IERC20TokenV06(inputToken),
                 msg.sender,
                 provider,
-                sellAmount
+                sellAmount,
+                true
             );
         }
 
