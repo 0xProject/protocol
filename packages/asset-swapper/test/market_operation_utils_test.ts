@@ -11,7 +11,7 @@ import {
 } from '@0x/contracts-test-utils';
 import { assetDataUtils, generatePseudoRandomSalt } from '@0x/order-utils';
 import { AssetProxyId, ERC20BridgeAssetData, SignedOrder } from '@0x/types';
-import { BigNumber, hexUtils, logUtils, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
@@ -734,9 +734,7 @@ describe('MarketOperationUtils tests', () => {
 
                 // to get a comparisonPrice, you need a feeschedule for a native order
                 const feeSchedule = {
-                    [ERC20BridgeSource.Native]: _.constant(
-                        new BigNumber(1),
-                    ),
+                    [ERC20BridgeSource.Native]: _.constant(new BigNumber(1)),
                 };
                 mockedQuoteRequestor
                     .setup(mqr =>
