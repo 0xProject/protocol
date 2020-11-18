@@ -1,5 +1,5 @@
 // tslint:disable:custom-no-magic-numbers
-import { BigNumber, logUtils } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import * as chai from 'chai';
 import * as _ from 'lodash';
 import 'mocha';

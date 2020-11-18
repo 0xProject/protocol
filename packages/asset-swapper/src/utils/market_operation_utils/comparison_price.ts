@@ -23,12 +23,19 @@ export function getComparisonPrices(
     marketSideLiquidity: MarketSideLiquidity,
     feeSchedule: FeeSchedule,
 ): ComparisonPrice {
+    // HACK: get the fee penalty of a single 0x native order
+    // The FeeSchedule function takes in a `FillData` object and returns a fee estimate in ETH
+    // We don't have fill data here, we just want the cost of a single native order, so we pass in undefined
+    // This works because the feeSchedule returns a constant for Native orders, this will need
+    // to be tweaked if the feeSchedule for native orders uses the fillData passed in
+    const feeInEth = (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)(undefined);
+
     // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)
     const feePenalty = !marketSideLiquidity.ethToOutputRate.isZero()
-        ? marketSideLiquidity.ethToOutputRate.times((feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)(undefined))
+        ? marketSideLiquidity.ethToOutputRate.times(feeInEth)
         : // if it's a sell, the input token is the taker token
           marketSideLiquidity.ethToInputRate
-              .times((feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)(undefined))
+              .times(feeInEth)
               .times(marketSideLiquidity.side === MarketOperation.Sell ? adjustedRate : adjustedRate.pow(-1));
 
     // the adjusted rate is defined as maker/taker
