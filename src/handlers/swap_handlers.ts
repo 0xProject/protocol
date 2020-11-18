@@ -36,6 +36,7 @@ import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { serviceUtils } from '../utils/service_utils';
 import {
+    findTokenAddressOrThrow,
     findTokenAddressOrThrowApiError,
     getTokenMetadataIfExists,
     isETHSymbolOrAddress,
@@ -199,8 +200,8 @@ export class SwapHandlers {
             ]);
         }
         const response = await this._swapService.calculateMarketDepthAsync({
-            buyToken: buyTokenSymbolOrAddress,
-            sellToken: sellTokenSymbolOrAddress,
+            buyToken: findTokenAddressOrThrow(buyTokenSymbolOrAddress, CHAIN_ID),
+            sellToken: findTokenAddressOrThrow(sellTokenSymbolOrAddress, CHAIN_ID),
             sellAmount: new BigNumber(req.query.sellAmount as string),
             // tslint:disable-next-line:radix custom-no-magic-numbers
             numSamples: req.query.numSamples ? parseInt(req.query.numSamples as string) : MARKET_DEPTH_MAX_SAMPLES,

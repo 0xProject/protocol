@@ -121,4 +121,6 @@ export const randomSellQuote = {
     sourceBreakdown: {},
     takerAssetFillAmount: new BigNumber('401019713908867904'),
     isTwoHop: false,
+    makerTokenDecimals: 18,
+    takerTokenDecimals: 18,
 };

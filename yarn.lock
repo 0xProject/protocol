@@ -34,10 +34,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^5.1.1":
+"@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v5.1.1-4f82543bd":
   version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.1.1.tgz#6bc6f75edf41b904fa26c635381237665725209f"
-  integrity sha512-AvwQ36Ffg8dDlgZp2wOIK1GY5inqwNK/nGWigiJQTW/SbXOZYIVFyl0KFAs93OFFe11K/T9C9McC0sPY3BcYFA==
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/df11c64290ea2f4e07e0c3f1d13bdd2e67b399c9"
   dependencies:
     "@0x/assert" "^3.0.17"
     "@0x/base-contract" "^6.2.11"
@@ -46,7 +45,7 @@
     "@0x/dev-utils" "^4.0.1"
     "@0x/json-schemas" "^5.3.3"
     "@0x/order-utils" "^10.4.6"
-    "@0x/orderbook" "^2.2.7"
+    "@0x/orderbook" "0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023"
     "@0x/quote-server" "^3.1.0"
     "@0x/types" "^3.3.0"
     "@0x/typescript-typings" "^5.1.5"
@@ -127,12 +126,10 @@
 "@0x/contract-addresses@^5.3.0":
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-5.3.0.tgz#6f3ff27005359b56e0e99f4ef2c49ac71a3a73e7"
-  integrity sha512-UTsoZllLNcWWMNWD2aVh6UKb7cQAd+IMEvbqYdXd8HMA3GottI5jBlVST7VW0AzxTsOtbeyFChYQcviBIy/+wA==
 
 "@0x/contract-wrappers@^13.10.0":
   version "13.10.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.10.0.tgz#1274dfcb36adc33aeca85b87577713dfd2302e85"
-  integrity sha512-BS6S+cfZj8/yALFsEzgxXbvXJUNc1/yyh2kQGkTC4V5d2hg0K4qRwT5ARLtrHkxqDqIUCruhyVqksEVmqlkfkg==
   dependencies:
     "@0x/assert" "^3.0.17"
     "@0x/base-contract" "^6.2.11"
@@ -175,7 +172,6 @@
 "@0x/contracts-asset-proxy@^3.6.5":
   version "3.6.5"
   resolved "https://registry.yarnpkg.com/@0x/contracts-asset-proxy/-/contracts-asset-proxy-3.6.5.tgz#a9f8282aca87de600154916d40900df0793fe8f7"
-  integrity sha512-hY2jAgdB2zVd8GE+FWt+J2BPwEqttYGHqxWHKoXH9NFMwT7U2nuIM9I2L9obY43lM5xU6iOMs4HQrXQH1zQhiQ==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/contracts-erc1155" "^2.1.14"
@@ -193,7 +189,6 @@
 "@0x/contracts-coordinator@^3.1.14":
   version "3.1.14"
   resolved "https://registry.yarnpkg.com/@0x/contracts-coordinator/-/contracts-coordinator-3.1.14.tgz#6b7b819e8ac172869dc8238d09760c7fca109173"
-  integrity sha512-X9vD6mnVbGt7//unVnyqVhqU/8PGOOfuhsCZf9m762OljU8H9Ir+CEtly1gxjQh5JYeRK9jtbljkP3++/rIW+g==
   dependencies:
     "@0x/assert" "^3.0.17"
     "@0x/base-contract" "^6.2.11"
@@ -211,7 +206,6 @@
 "@0x/contracts-dev-utils@^1.3.12":
   version "1.3.12"
   resolved "https://registry.yarnpkg.com/@0x/contracts-dev-utils/-/contracts-dev-utils-1.3.12.tgz#7c537cf40d02c5df3e6dbcaf098d3d8be3b2dc74"
-  integrity sha512-33Lm1zEA8mDRSDsasEncDi97KkcjIljgPDtxBVn907w008rTH3DfziJStzSZgBb+mrF6US1AqH7OELsUX0UY/w==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@types/node" "12.12.54"
@@ -226,7 +220,6 @@
 "@0x/contracts-erc1155@^2.1.14":
   version "2.1.14"
   resolved "https://registry.yarnpkg.com/@0x/contracts-erc1155/-/contracts-erc1155-2.1.14.tgz#157632f337ef934a826aebddb110548e816c6155"
-  integrity sha512-x17Nv1M72K0bi4Z5QGZiIqYkjDDr9YrJS+hXgjwDEjD1SIUKjM9E9qco4t3GoeCSkcktYj30EpFlsQDVBxj40g==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/contracts-test-utils" "^5.3.11"
@@ -237,21 +230,18 @@
 "@0x/contracts-erc20@^3.2.8":
   version "3.2.8"
   resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.2.8.tgz#f90260cb79a794dcf7baf436b99ce8ebe766d16f"
-  integrity sha512-mTfdAknzkZLwbwX2xCC31A2UkifkuaahoI4jkoypye/PNYVA1Vf41YGI0NSwQhRVtyeiCIHG10Ew5CPlaJNNHg==
   dependencies:
     "@0x/base-contract" "^6.2.11"
 
 "@0x/contracts-erc721@^3.1.14":
   version "3.1.14"
   resolved "https://registry.yarnpkg.com/@0x/contracts-erc721/-/contracts-erc721-3.1.14.tgz#236c3971b625fe8feb6776eea6b3455ca1211b2d"
-  integrity sha512-nCVWaObpNk0Hie37POSEDXbgNSRzFuJTjAn7puOeXPsNdMHGTmGxNCsZqMSZAslY2RluQTz8uLQ9OFXPJUyY4Q==
   dependencies:
     "@0x/base-contract" "^6.2.11"
 
 "@0x/contracts-exchange-forwarder@^4.2.14":
   version "4.2.14"
   resolved "https://registry.yarnpkg.com/@0x/contracts-exchange-forwarder/-/contracts-exchange-forwarder-4.2.14.tgz#06421a5fab2124f24910009896abc095c6e411cc"
-  integrity sha512-vap4zba943sC33UtAV48K8089x50nDQhrVn7uY03ePuNfTfCHRphD302n4RNOgqdet2sILq3i45Q1hNX/PpSew==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/typescript-typings" "^5.1.5"
@@ -260,7 +250,6 @@
 "@0x/contracts-exchange-libs@^4.3.14":
   version "4.3.14"
   resolved "https://registry.yarnpkg.com/@0x/contracts-exchange-libs/-/contracts-exchange-libs-4.3.14.tgz#4369fdb4ce47bf1da4bedc2a6ba41606b0d057b5"
-  integrity sha512-W/SQneMcGzcaKNNBxETmv1I+TSlgNd0oek2C+248/4SrZFTrkU87yvjupuURE4a/CjfSlOXImIu0ICZUPz75bA==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/contracts-test-utils" "^5.3.11"
@@ -274,7 +263,6 @@
 "@0x/contracts-exchange@^3.2.14":
   version "3.2.14"
   resolved "https://registry.yarnpkg.com/@0x/contracts-exchange/-/contracts-exchange-3.2.14.tgz#70876e7de1e5a8077d0b3fc212ca92f3af49534a"
-  integrity sha512-mZ2h5tTW0ju7w++LLEL7rioDFgUmWWoNh7pWRhKrsR1fVRaQNm26Fp+6F9UrP0xz+WLnRe2qYVgG7+BXOs/qJw==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/contracts-dev-utils" "^1.3.12"
@@ -288,7 +276,6 @@
 "@0x/contracts-extensions@^6.2.8":
   version "6.2.8"
   resolved "https://registry.yarnpkg.com/@0x/contracts-extensions/-/contracts-extensions-6.2.8.tgz#8f50e9508a45531ddb37c205f0adf9fb7752dbfd"
-  integrity sha512-2maRrQbgtSdY399GSn5nN6x7086SJOm+YMdcMj3B0OY+RccnH7P6/smVFET3BXgq/6NlmJgNG1uhU7gnErCV8g==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/contracts-test-utils" "^5.3.11"
@@ -298,7 +285,6 @@
 "@0x/contracts-multisig@^4.1.14":
   version "4.1.14"
   resolved "https://registry.yarnpkg.com/@0x/contracts-multisig/-/contracts-multisig-4.1.14.tgz#89695f964ea55bdaf2996c7fca288d8ec1c8a1e9"
-  integrity sha512-ZQlrwU8pi6PkY9impTDKHBjLqDrBJ1ggBZ8txWCmZmjam/2MxLvCKrs+8YGBhy4V/Z3wgZj6md+JCvep4O8qsw==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/typescript-typings" "^5.1.5"
@@ -307,7 +293,6 @@
 "@0x/contracts-staking@^2.0.21":
   version "2.0.21"
   resolved "https://registry.yarnpkg.com/@0x/contracts-staking/-/contracts-staking-2.0.21.tgz#b6436182928721186a0944d86c770a6d5a7bc13b"
-  integrity sha512-ekezq9j0kpTSTV3F+tW9QOfsgOqiB0NNConujfSPZeEYMhfAyBHgN41UM0qY4Ab9SXdS/1SHTwH2tnwsrOcf7w==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/contracts-test-utils" "^5.3.11"
@@ -319,7 +304,6 @@
 "@0x/contracts-test-utils@^5.3.11":
   version "5.3.11"
   resolved "https://registry.yarnpkg.com/@0x/contracts-test-utils/-/contracts-test-utils-5.3.11.tgz#61dbd913311a950f9336b2bc29a20286f9a6fb02"
-  integrity sha512-gJoL1x9y2p3QCta/X9kkKVWWXyZxiDLqJqke2r+9S8YtM/+YksB08VF5ULbgPQjxRzGleYKUjoNqcQe96wSaew==
   dependencies:
     "@0x/assert" "^3.0.17"
     "@0x/base-contract" "^6.2.11"
@@ -357,7 +341,6 @@
 "@0x/contracts-utils@^4.5.8":
   version "4.5.8"
   resolved "https://registry.yarnpkg.com/@0x/contracts-utils/-/contracts-utils-4.5.8.tgz#39764d48585f96ff789ccd2d6d710ab082a59f6d"
-  integrity sha512-OgqODg6WeL67v0Ri9pWamxOZkqOA6/juT68JAXemWXHiQ0OdmvB+SpDQ7cMc0Lw7mGcXuj/trf3YCxMmfctweg==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/typescript-typings" "^5.1.5"
@@ -368,7 +351,6 @@
 "@0x/contracts-zero-ex@^0.9.0":
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.9.0.tgz#24e5c89c911ea43064fc6f8bd2718fddff6a0c31"
-  integrity sha512-7UmlHvgXsUX0v6oU3HZaFFuLA6PPjHUECZmW2iy9nAVuiPtPh6lMNwmYX0XDccTcZ0V8oOHciHaylofldjnrJQ==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/order-utils" "^10.4.6"
@@ -463,7 +445,6 @@
 "@0x/migrations@^6.5.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@0x/migrations/-/migrations-6.5.0.tgz#deb4395801dd0996546351b985246bd3dcf93153"
-  integrity sha512-cwgDBIaLfhLrM5kj+Z5x8M3r1egJqKQTj4WexF07SbOCfWBdXykbw5ES8cyGHsounkzVHMUPNoK1WlDxFP95Fw==
   dependencies:
     "@0x/base-contract" "^6.2.11"
     "@0x/contract-addresses" "^5.3.0"
@@ -524,7 +505,6 @@
 "@0x/order-utils@^10.4.6":
   version "10.4.6"
   resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.6.tgz#178461d45766f3eaa368793428a0e16998773aa4"
-  integrity sha512-C7fEPHGKXR+x1x8kNkk7gJCeB/6NhPC4qhpOrJ+qQbMUgAtB1TxuSMtee/f/HYvd6ZZHTSTpx3POS/SV6pVaKg==
   dependencies:
     "@0x/assert" "^3.0.17"
     "@0x/contract-addresses" "^5.3.0"
@@ -536,7 +516,7 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/orderbook@0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023", "@0x/orderbook@^2.2.7":
+"@0x/orderbook@0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023":
   version "2.2.7"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c4b7cdf7770608fa1005a3f91c740ed417541fd9"
   dependencies:

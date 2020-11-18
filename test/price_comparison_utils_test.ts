@@ -230,7 +230,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Kyber,
                     price: higherPrice,
-                    gas: new BigNumber(5e5),
+                    gas: new BigNumber(4.5e5),
                 },
             ]);
         });
@@ -270,7 +270,7 @@ describe(SUITE_NAME, () => {
                 {
                     name: ERC20BridgeSource.Kyber,
                     price: lowerSellPrice,
-                    gas: new BigNumber(5e5),
+                    gas: new BigNumber(4.5e5),
                 },
             ]);
         });
