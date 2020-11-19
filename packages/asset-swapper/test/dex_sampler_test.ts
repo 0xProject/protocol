@@ -12,11 +12,7 @@ import { SignedOrder } from '@0x/types';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
-import {
-    BalancerPool,
-    computeBalancerBuyQuote,
-    computeBalancerSellQuote,
-} from '../src/utils/market_operation_utils/balancer_utils';
+import { BalancerPool } from '../src/utils/market_operation_utils/balancer_utils';
 import { DexOrderSampler, getSampleAmounts } from '../src/utils/market_operation_utils/sampler';
 import { ERC20BridgeSource, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
 
@@ -425,7 +421,10 @@ describe('DexSampler tests', () => {
             expect(quotes).to.have.lengthOf(sources.length + additionalSourceCount);
             expect(quotes).to.deep.eq(expectedQuotes.concat(uniswapV2ETHQuotes));
         });
-        it('getSellQuotes() uses samples from Balancer', async () => {
+        it('getSellQuotes() fetches pools but not samples from Balancer', async () => {
+            // HACK
+            // We disabled the off-chain sampling due to incorrect data observed between
+            // on-chain and off-chain sampling
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 3);
@@ -448,16 +447,7 @@ describe('DexSampler tests', () => {
                 expectedTakerToken,
                 expectedTakerFillAmounts,
             );
-            const expectedQuotes = pools.map(p =>
-                expectedTakerFillAmounts.map(a => ({
-                    source: ERC20BridgeSource.Balancer,
-                    input: a,
-                    output: computeBalancerSellQuote(p, a),
-                    fillData: { poolAddress: p.id },
-                })),
-            );
-            expect(quotes).to.have.lengthOf(2); // one array per pool
-            expect(quotes).to.deep.eq(expectedQuotes);
+            expect(quotes).to.have.lengthOf(0);
         });
         it('getSellQuotes() uses samples from Bancor', async () => {
             const expectedTakerToken = randomAddress();
@@ -593,16 +583,7 @@ describe('DexSampler tests', () => {
                 expectedTakerToken,
                 expectedMakerFillAmounts,
             );
-            const expectedQuotes = pools.map(p =>
-                expectedMakerFillAmounts.map(a => ({
-                    source: ERC20BridgeSource.Balancer,
-                    input: a,
-                    output: computeBalancerBuyQuote(p, a),
-                    fillData: { poolAddress: p.id },
-                })),
-            );
-            expect(quotes).to.have.lengthOf(2); //  one set per pool
-            expect(quotes).to.deep.eq(expectedQuotes);
+            expect(quotes).to.have.lengthOf(0);
         });
     });
 
