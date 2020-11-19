@@ -16,6 +16,7 @@
         "quotes": ["error", "double"],
         "separate-by-one-line-in-contract": "error",
         "space-after-comma": "error",
-        "statement-indent": "error"
+        "statement-indent": "error",
+        "no-empty-blocks": false
     }
 }

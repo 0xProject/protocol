@@ -21,10 +21,11 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-staking/contracts/src/Staking.sol";
 
+
 contract TestStaking is
     Staking
 {
-    IEtherToken testWeth;
+    IEtherToken public testWeth;
 
     struct TestPool {
         uint96 operatorStake;

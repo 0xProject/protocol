@@ -20,14 +20,15 @@ pragma solidity ^0.6.5;
 
 import "@0x/contracts-zero-ex/contracts/test/TestFixinProtocolFees.sol";
 
+
 contract TestFixinProtocolFeesIntegration is TestFixinProtocolFees {
     constructor(
         IEtherTokenV06 weth,
         IStaking staking,
         uint32 protocolFeeMultiplier
     )
-      public
-      TestFixinProtocolFees(weth, staking, protocolFeeMultiplier)
+        public
+        TestFixinProtocolFees(weth, staking, protocolFeeMultiplier)
     {
     }
 }
