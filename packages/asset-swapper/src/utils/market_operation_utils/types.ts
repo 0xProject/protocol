@@ -340,6 +340,7 @@ export interface OptimizerResult {
     sourceFlags: number;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
+    adjustedRate: BigNumber;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
@@ -390,4 +391,8 @@ export interface GenerateOptimizedOrdersOpts {
     exchangeProxyOverhead?: ExchangeProxyOverhead;
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;
+}
+
+export interface ComparisonPrice {
+    wholeOrder: BigNumber | undefined;
 }

@@ -731,6 +731,11 @@ describe('MarketOperationUtils tests', () => {
                 const mockedQuoteRequestor = TypeMoq.Mock.ofType(QuoteRequestor, TypeMoq.MockBehavior.Loose, false, {});
 
                 let requestedComparisonPrice: BigNumber | undefined;
+
+                // to get a comparisonPrice, you need a feeschedule for a native order
+                const feeSchedule = {
+                    [ERC20BridgeSource.Native]: _.constant(new BigNumber(1)),
+                };
                 mockedQuoteRequestor
                     .setup(mqr =>
                         mqr.requestRfqtFirmQuotesAsync(
@@ -811,6 +816,7 @@ describe('MarketOperationUtils tests', () => {
                     Web3Wrapper.toBaseUnitAmount(1, 18),
                     {
                         ...DEFAULT_OPTS,
+                        feeSchedule,
                         rfqt: {
                             isIndicative: false,
                             apiKey: 'foo',

@@ -1,7 +1,6 @@
 import { RFQTIndicativeQuote } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
@@ -9,9 +8,9 @@ import { QuoteRequestor } from '../quote_requestor';
 import { getPriceAwareRFQRolloutFlags } from '../utils';
 
 import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
+import { getComparisonPrices } from './comparison_price';
 import {
     BUY_SOURCE_FILTER,
-    COMPARISON_PRICE_DECIMALS,
     DEFAULT_GET_MARKET_ORDERS_OPTS,
     FEE_QUOTE_SOURCES,
     ONE_ETHER,
@@ -559,6 +558,7 @@ export class MarketOperationUtils {
                 liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
+                adjustedRate: bestTwoHopRate,
             };
         }
 
@@ -584,11 +584,13 @@ export class MarketOperationUtils {
             }
         }
         const collapsedPath = optimalPath.collapse(orderOpts);
+
         return {
             optimizedOrders: collapsedPath.orders,
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
+            adjustedRate: optimalPathRate,
         };
     }
 
@@ -627,30 +629,17 @@ export class MarketOperationUtils {
         }
 
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity
-        let comparisonPrice: BigNumber | undefined;
+        let wholeOrderPrice: BigNumber | undefined;
         const { rfqt } = _opts;
         if (rfqt && rfqt.quoteRequestor && marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)) {
             // Calculate a suggested price. For now, this is simply the overall price of the aggregation.
             if (optimizerResult) {
-                const totalMakerAmount = BigNumber.sum(
-                    ...optimizerResult.optimizedOrders.map(order => order.makerAssetAmount),
-                );
-                const totalTakerAmount = BigNumber.sum(
-                    ...optimizerResult.optimizedOrders.map(order => order.takerAssetAmount),
-                );
-                if (totalMakerAmount.gt(0)) {
-                    const totalMakerAmountUnitAmount = Web3Wrapper.toUnitAmount(
-                        totalMakerAmount,
-                        marketSideLiquidity.makerTokenDecimals,
-                    );
-                    const totalTakerAmountUnitAmount = Web3Wrapper.toUnitAmount(
-                        totalTakerAmount,
-                        marketSideLiquidity.takerTokenDecimals,
-                    );
-                    comparisonPrice = totalMakerAmountUnitAmount
-                        .div(totalTakerAmountUnitAmount)
-                        .decimalPlaces(COMPARISON_PRICE_DECIMALS);
-                }
+                wholeOrderPrice = getComparisonPrices(
+                    optimizerResult.adjustedRate,
+                    amount,
+                    marketSideLiquidity,
+                    _opts.feeSchedule,
+                ).wholeOrder;
             }
 
             const { isFirmPriceAwareEnabled, isIndicativePriceAwareEnabled } = getPriceAwareRFQRolloutFlags(
@@ -664,7 +653,7 @@ export class MarketOperationUtils {
                     nativeOrders[0].takerAssetData,
                     side,
                     amount,
-                    comparisonPrice,
+                    wholeOrderPrice,
                     _opts,
                 );
                 // Re-run optimizer with the new indicative quote
@@ -690,7 +679,7 @@ export class MarketOperationUtils {
                         nativeOrders[0].takerAssetData,
                         amount,
                         side,
-                        comparisonPrice,
+                        wholeOrderPrice,
                         rfqt,
                     );
                     if (firmQuotes.length > 0) {
@@ -731,7 +720,7 @@ export class MarketOperationUtils {
                 _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
                 marketSideLiquidity,
                 optimizerResult,
-                comparisonPrice,
+                wholeOrderPrice,
             );
         }
         return { ...optimizerResult, quoteReport };
