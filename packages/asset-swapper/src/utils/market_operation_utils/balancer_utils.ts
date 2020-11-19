@@ -1,6 +1,7 @@
 import { BigNumber } from '@0x/utils';
 import { bmath, getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
 import { Decimal } from 'decimal.js';
+import { getAddress } from 'ethers/utils/address';
 
 import { ZERO_AMOUNT } from './constants';
 
@@ -23,6 +24,18 @@ interface CacheValue {
     pools: BalancerPool[];
 }
 
+interface BalancerPoolResponse {
+    id: string;
+    swapFee: string;
+    tokens: Array<{ address: string; decimals: number; balance: string }>;
+    tokensList: string[];
+    totalWeight: string;
+}
+
+interface BalancerPoolsResponse {
+    pools: BalancerPoolResponse[];
+}
+
 // tslint:disable:custom-no-magic-numbers
 const FIVE_SECONDS_MS = 5 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -30,6 +43,11 @@ const DEFAULT_TIMEOUT_MS = 1000;
 const MAX_POOLS_FETCHED = 3;
 const Decimal20 = Decimal.clone({ precision: 20 });
 // tslint:enable:custom-no-magic-numbers
+
+// Following the same override as balancer-sor so it behaves
+// similarily
+const SUBGRAPH_URL =
+    process.env.REACT_APP_SUBGRAPH_URL || 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 
 export class BalancerPoolsCache {
     constructor(
@@ -93,16 +111,92 @@ export class BalancerPoolsCache {
         const value = this._cache[key];
         const minTimestamp = Date.now() - cacheExpiryMs;
         if (value === undefined || value.timestamp < minTimestamp) {
-            const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
             const timestamp = Date.now();
-            this._cache[key] = {
-                pools,
-                timestamp,
-            };
+            // Default
+            this._cache[key] = { pools: [], timestamp };
+            // Side load all of the pools related to taker token or maker token
+            await Promise.all(
+                [takerToken, makerToken].map(async token => {
+                    const poolsForToken = await this._fetchPoolsForTokenAsync(token);
+                    Object.keys(poolsForToken).map(otherToken => {
+                        const keyWithOtherToken = JSON.stringify([token, otherToken]);
+                        this._cache[keyWithOtherToken] = {
+                            pools: poolsForToken[otherToken],
+                            timestamp,
+                        };
+                    });
+                }),
+            );
         }
         return this._cache[key].pools;
     }
 
+    // tslint:disable-next-line:prefer-function-over-method
+    protected async _fetchPoolsForTokenRawAsync(token: string): Promise<BalancerPoolsResponse> {
+        // GraphQL is case-sensitive
+        // Always use checksum addresses
+        const checksumToken = getAddress(token);
+
+        const query = `
+      query ($tokens: [Bytes!]) {
+          pools (first: 1000, where: {tokensList_contains: $tokens, publicSwap: true, liquidity_gt: 0}, orderBy: swapsCount, orderDirection: desc) {
+            id
+            publicSwap
+            swapFee
+            totalWeight
+            tokensList
+            tokens {
+              id
+              address
+              balance
+              decimals
+              symbol
+              denormWeight
+            }
+          }
+        }
+    `;
+
+        const variables = {
+            tokens: [checksumToken],
+        };
+
+        const response = await fetch(SUBGRAPH_URL, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query,
+                variables,
+            }),
+        });
+
+        const { data } = await response.json();
+        return data;
+    }
+    /**
+     *  Loads all pools including the provided token
+     */
+    // tslint:disable-next-line:typedef
+    protected async _fetchPoolsForTokenAsync(token: string) {
+        const result = await this._fetchPoolsForTokenRawAsync(token);
+        const poolsByOtherToken: { [otherToken: string]: BalancerPool[] } = {};
+        result.pools.map(p => {
+            const otherTokens = p.tokens.map(t => t.address.toLowerCase()).filter(t => t !== token);
+            otherTokens.forEach(otherToken => {
+                const poolDatas = parsePoolData([p], token, otherToken);
+                if (!poolsByOtherToken[otherToken]) {
+                    poolsByOtherToken[otherToken] = [];
+                }
+                poolsByOtherToken[otherToken] = [...poolsByOtherToken[otherToken], ...poolDatas]
+                    .sort((a, b) => b.balanceOut.minus(a.balanceOut).toNumber())
+                    .slice(0, this.maxPoolsFetched);
+            });
+        });
+        return poolsByOtherToken;
+    }
     // tslint:disable-next-line:prefer-function-over-method
     protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<BalancerPool[]> {
         try {
