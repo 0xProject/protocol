@@ -9,6 +9,10 @@
             {
                 "note": "Return the maker/taker token decimals from the sampler as part of the `SwapQuote`",
                 "pr": 34
+            },
+            {
+                "note": "Disable off-chain sampling for Balancer and CREAM",
+                "pr": 41
             }
         ]
     },
