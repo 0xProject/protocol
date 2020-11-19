@@ -36,6 +36,7 @@ export * from './signature_utils';
 export * from './orders';
 export * from './eip712_utils';
 export * from './revert_errors';
+export { GREEDY_TOKENS } from './constants';
 export {
     AffiliateFeeTransformerContract,
     BridgeAdapterContract,
