@@ -1,5 +1,18 @@
 [
     {
+        "version": "0.11.0",
+        "changes": [
+            {
+                "note": "Turn `LibTokenSpender` into `FixinTokenSpender`",
+                "pr": 38
+            },
+            {
+                "note": "Use bloom filters to check if a token is greedy and do not optimistically fall through transferFrom() if so",
+                "pr": 38
+            }
+        ]
+    },
+    {
         "version": "0.10.0",
         "changes": [
             {
