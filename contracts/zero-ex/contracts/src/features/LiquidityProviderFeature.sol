@@ -26,16 +26,17 @@ import "../errors/LibLiquidityProviderRichErrors.sol";
 import "../external/ILiquidityProviderSandbox.sol";
 import "../external/LiquidityProviderSandbox.sol";
 import "../fixins/FixinCommon.sol";
+import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
 import "./IFeature.sol";
 import "./ILiquidityProviderFeature.sol";
-import "./libs/LibTokenSpender.sol";
 
 
 contract LiquidityProviderFeature is
     IFeature,
     ILiquidityProviderFeature,
-    FixinCommon
+    FixinCommon,
+    FixinTokenSpender
 {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -60,9 +61,10 @@ contract LiquidityProviderFeature is
         address recipient
     );
 
-    constructor(LiquidityProviderSandbox sandbox_)
+    constructor(LiquidityProviderSandbox sandbox_, bytes32 greedyTokensBloomFilter)
         public
         FixinCommon()
+        FixinTokenSpender(greedyTokensBloomFilter)
     {
         sandbox = sandbox_;
     }
@@ -112,12 +114,11 @@ contract LiquidityProviderFeature is
         if (inputToken == ETH_TOKEN_ADDRESS) {
             provider.transfer(sellAmount);
         } else {
-            LibTokenSpender.spendERC20Tokens(
+            _transferERC20Tokens(
                 IERC20TokenV06(inputToken),
                 msg.sender,
                 provider,
-                sellAmount,
-                true
+                sellAmount
             );
         }
 

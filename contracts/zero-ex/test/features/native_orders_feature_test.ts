@@ -10,7 +10,7 @@ import { fullMigrateAsync } from '../utils/migration';
 import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
 import { TestMintableERC20TokenContract } from '../wrappers';
 
-blockchainTests.resets('LimitOrdersFeature', env => {
+blockchainTests.resets('NativeOrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT } = constants;
     const GAS_PRICE = new BigNumber('123e9');
     const PROTOCOL_FEE_MULTIPLIER = 1337e3;

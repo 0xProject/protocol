@@ -28,4 +28,6 @@ contract TestTransformERC20 is
     modifier onlySelf() override {
         _;
     }
+
+    constructor() public TransformERC20Feature(0) {}
 }

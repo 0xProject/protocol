@@ -10,10 +10,17 @@ contract TestNativeOrdersFeature is
         address zeroExAddress,
         IEtherTokenV06 weth,
         IStaking staking,
-        uint32 protocolFeeMultiplier
+        uint32 protocolFeeMultiplier,
+        bytes32 greedyTokensBloomFilter
     )
         public
-        NativeOrdersFeature(zeroExAddress, weth, staking, protocolFeeMultiplier)
+        NativeOrdersFeature(
+            zeroExAddress,
+            weth,
+            staking,
+            protocolFeeMultiplier,
+            greedyTokensBloomFilter
+        )
     {
         // solhint-disable no-empty-blocks
     }

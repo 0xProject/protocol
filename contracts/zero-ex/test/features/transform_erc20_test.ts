@@ -24,6 +24,7 @@ import {
     TestMintTokenERC20TransformerContract,
     TestMintTokenERC20TransformerEvents,
     TestMintTokenERC20TransformerMintTransformEventArgs,
+    TestTransformERC20Contract,
     TransformERC20FeatureEvents,
 } from '../wrappers';
 
@@ -49,7 +50,7 @@ blockchainTests.resets('TransformERC20 feature', env => {
             env.provider,
             env.txDefaults,
             {
-                transformERC20: (await TransformERC20FeatureContract.deployFrom0xArtifactAsync(
+                transformERC20: (await TestTransformERC20Contract.deployFrom0xArtifactAsync(
                     artifacts.TestTransformERC20,
                     env.provider,
                     env.txDefaults,

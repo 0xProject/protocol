@@ -39,6 +39,8 @@ contract TestMetaTransactionsTransformERC20Feature is
         bytes callDataSignature
     );
 
+    constructor() public TransformERC20Feature(0) {}
+
     function _transformERC20(TransformERC20Args memory args)
         public
         override

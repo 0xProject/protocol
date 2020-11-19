@@ -42,6 +42,14 @@ contract TestMintableERC20Token {
         return true;
     }
 
+    function approveAs(address owner, address spender, uint256 amount)
+        external
+        returns (bool)
+    {
+        allowance[owner][spender] = amount;
+        return true;
+    }
+
     function mint(address owner, uint256 amount)
         external
         virtual
