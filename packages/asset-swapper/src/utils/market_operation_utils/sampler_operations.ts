@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
-import { BalancerPoolsCache, computeBalancerBuyQuote, computeBalancerSellQuote } from './balancer_utils';
+import { BalancerPoolsCache } from './balancer_utils';
 import { BancorService } from './bancor_service';
 import { LIQUIDITY_PROVIDER_REGISTRY, MAINNET_SUSHI_SWAP_ROUTER, MAX_UINT256, ZERO_AMOUNT } from './constants';
 import { CreamPoolsCache } from './cream_utils';
@@ -480,65 +480,74 @@ export class SamplerOperations {
     public async getBalancerSellQuotesOffChainAsync(
         makerToken: string,
         takerToken: string,
-        takerFillAmounts: BigNumber[],
+        _takerFillAmounts: BigNumber[],
     ): Promise<Array<Array<DexSample<BalancerFillData>>>> {
-        const pools = await this.balancerPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
-        return pools.map(pool =>
-            takerFillAmounts.map(amount => ({
-                source: ERC20BridgeSource.Balancer,
-                output: computeBalancerSellQuote(pool, amount),
-                input: amount,
-                fillData: { poolAddress: pool.id },
-            })),
-        );
+        // Prime the cache but do not sample off chain
+        await this.balancerPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
+        return [];
+        // return pools.map(pool =>
+        //    takerFillAmounts.map(amount => ({
+        //        source: ERC20BridgeSource.Balancer,
+        //        output: computeBalancerSellQuote(pool, amount),
+        //        input: amount,
+        //        fillData: { poolAddress: pool.id },
+        //    })),
+        // );
     }
 
     public async getBalancerBuyQuotesOffChainAsync(
         makerToken: string,
         takerToken: string,
-        makerFillAmounts: BigNumber[],
+        _makerFillAmounts: BigNumber[],
     ): Promise<Array<Array<DexSample<BalancerFillData>>>> {
-        const pools = await this.balancerPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
-        return pools.map(pool =>
-            makerFillAmounts.map(amount => ({
-                source: ERC20BridgeSource.Balancer,
-                output: computeBalancerBuyQuote(pool, amount),
-                input: amount,
-                fillData: { poolAddress: pool.id },
-            })),
-        );
+        // Prime the pools but do not sample off chain
+        // Prime the cache but do not sample off chain
+        await this.balancerPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
+        return [];
+        // return pools.map(pool =>
+        //    makerFillAmounts.map(amount => ({
+        //        source: ERC20BridgeSource.Balancer,
+        //        output: computeBalancerBuyQuote(pool, amount),
+        //        input: amount,
+        //        fillData: { poolAddress: pool.id },
+        //    })),
+        // );
     }
 
     public async getCreamSellQuotesOffChainAsync(
         makerToken: string,
         takerToken: string,
-        takerFillAmounts: BigNumber[],
+        _takerFillAmounts: BigNumber[],
     ): Promise<Array<Array<DexSample<BalancerFillData>>>> {
-        const pools = await this.creamPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
-        return pools.map(pool =>
-            takerFillAmounts.map(amount => ({
-                source: ERC20BridgeSource.Cream,
-                output: computeBalancerSellQuote(pool, amount),
-                input: amount,
-                fillData: { poolAddress: pool.id },
-            })),
-        );
+        // Prime the cache but do not sample off chain
+        await this.creamPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
+        return [];
+        // return pools.map(pool =>
+        //     takerFillAmounts.map(amount => ({
+        //         source: ERC20BridgeSource.Cream,
+        //         output: computeBalancerSellQuote(pool, amount),
+        //         input: amount,
+        //         fillData: { poolAddress: pool.id },
+        //     })),
+        // );
     }
 
     public async getCreamBuyQuotesOffChainAsync(
         makerToken: string,
         takerToken: string,
-        makerFillAmounts: BigNumber[],
+        _makerFillAmounts: BigNumber[],
     ): Promise<Array<Array<DexSample<BalancerFillData>>>> {
-        const pools = await this.creamPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
-        return pools.map(pool =>
-            makerFillAmounts.map(amount => ({
-                source: ERC20BridgeSource.Cream,
-                output: computeBalancerBuyQuote(pool, amount),
-                input: amount,
-                fillData: { poolAddress: pool.id },
-            })),
-        );
+        // Prime the cache but do not sample off chain
+        await this.creamPoolsCache.getPoolsForPairAsync(takerToken, makerToken);
+        return [];
+        // return pools.map(pool =>
+        //    makerFillAmounts.map(amount => ({
+        //        source: ERC20BridgeSource.Cream,
+        //        output: computeBalancerBuyQuote(pool, amount),
+        //        input: amount,
+        //        fillData: { poolAddress: pool.id },
+        //    })),
+        // );
     }
 
     public getMStableSellQuotes(
