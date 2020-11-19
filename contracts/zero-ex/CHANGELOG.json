@@ -10,7 +10,8 @@
                 "note": "Use new `checkAllowance` flag in LiquidityProviderFeature, TransformERC20Feature, and MetaTransactionsFeature",
                 "pr": 39
             }
-        ]
+        ],
+        "timestamp": 1605763885
     },
     {
         "version": "0.9.0",

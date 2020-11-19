@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.10.0 - _November 19, 2020_
+
+    * Add `checkAllowance` flag to LibTokenSpender.spendERC20Tokens (#39)
+    * Use new `checkAllowance` flag in LiquidityProviderFeature, TransformERC20Feature, and MetaTransactionsFeature (#39)
+
 ## v0.9.0 - _November 13, 2020_
 
     * Rewrite the ZeroEx contract in Yul (#23)
@@ -25,6 +30,7 @@ CHANGELOG
 
     * Add support for collecting protocol fees in ETH or WETH (#2)
     * Add `LibSignature` library (#21)
+    * Add `LimitOrdersFeature` (#27)
 
 ## v0.5.1 - _October 28, 2020_
 

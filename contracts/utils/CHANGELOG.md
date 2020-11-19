@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.6.0 - _November 19, 2020_
+
+    * Add `uint128` functions to `LibSafeMathV06` (#27)
+
 ## v4.5.8 - _November 13, 2020_
 
     * Dependencies updated

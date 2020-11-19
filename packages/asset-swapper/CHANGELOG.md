@@ -5,6 +5,12 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.2.0 - _November 19, 2020_
+
+    * Update Gas schedules (#34)
+    * Return the maker/taker token decimals from the sampler as part of the `SwapQuote` (#34)
+    * Disable off-chain sampling for Balancer and CREAM (#41)
+
 ## v5.1.1 - _November 14, 2020_
 
     * Disable PLP VIP feature in EP swap quote consumer (#36)

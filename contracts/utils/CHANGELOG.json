@@ -6,7 +6,8 @@
                 "note": "Add `uint128` functions to `LibSafeMathV06`",
                 "pr": 27
             }
-        ]
+        ],
+        "timestamp": 1605763885
     },
     {
         "timestamp": 1605302002,

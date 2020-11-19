@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.4.0 - _November 19, 2020_
+
+    * Update ganache snapshot addresses (#27)
+
 ## v5.3.0 - _November 13, 2020_
 
     * Add `exchangeProxyLiquidityProviderSandbox` addresses (#16)
