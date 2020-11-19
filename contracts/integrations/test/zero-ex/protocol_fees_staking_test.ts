@@ -2,7 +2,11 @@ import { blockchainTests, constants, expect } from '@0x/contracts-test-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
 import { artifacts } from '../artifacts';
-import { TestFixinProtocolFeesIntegrationContract, TestStakingContract, TestWethIntegrationContract } from '../wrappers';
+import {
+    TestFixinProtocolFeesIntegrationContract,
+    TestStakingContract,
+    TestWethIntegrationContract,
+} from '../wrappers';
 
 blockchainTests.resets('ProtocolFeeIntegration', env => {
     const FEE_MULTIPLIER = 70e3;
@@ -55,10 +59,14 @@ blockchainTests.resets('ProtocolFeeIntegration', env => {
             await protocolFees.transferFeesForPool(pool0).awaitTransactionSuccessAsync();
 
             // Fees in the pool bytes32(0) don't get attributed to a pool.
-            await expect((await staking.getStakingPoolStatsThisEpoch(pool0).callAsync()).feesCollected).to.bignumber.equal(constants.ZERO_AMOUNT);
+            await expect(
+                (await staking.getStakingPoolStatsThisEpoch(pool0).callAsync()).feesCollected,
+            ).to.bignumber.equal(constants.ZERO_AMOUNT);
 
             // Expected amount is singleFeeAmount - 1 because we leave 1 wei of WETH behind for future gas savings.
-            return expect(await weth.balanceOf(staking.address).callAsync()).to.bignumber.equal(singleFeeAmount.minus(1));
+            return expect(await weth.balanceOf(staking.address).callAsync()).to.bignumber.equal(
+                singleFeeAmount.minus(1),
+            );
         });
 
         it('should collect fees for non-zero pool', async () => {
@@ -69,7 +77,9 @@ blockchainTests.resets('ProtocolFeeIntegration', env => {
             await protocolFees.transferFeesForPool(poolId).awaitTransactionSuccessAsync();
 
             // Expected amount is singleFeeAmount - 1 because we leave 1 wei of WETH behind for future gas savings.
-            return expect((await staking.getStakingPoolStatsThisEpoch(poolId).callAsync()).feesCollected).to.bignumber.equal(singleFeeAmount.minus(1));
+            return expect(
+                (await staking.getStakingPoolStatsThisEpoch(poolId).callAsync()).feesCollected,
+            ).to.bignumber.equal(singleFeeAmount.minus(1));
         });
     });
 });
