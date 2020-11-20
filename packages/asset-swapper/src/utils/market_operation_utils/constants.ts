@@ -45,6 +45,7 @@ export const SELL_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CryptoCom,
 ]);
 
 /**
@@ -69,6 +70,7 @@ export const BUY_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CryptoCom,
 ]);
 
 /**
@@ -352,6 +354,7 @@ export const MAINNET_KYBER_TOKEN_RESERVE_IDS: { [token: string]: string } = {
 export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
 
 export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F';
+export const MAINNET_CRYPTO_COM_ROUTER = '0xCeB90E4C17d626BE0fACd78b79c9c87d7ca181b3';
 
 export const MAINNET_SHELL_POOLS = {
     StableCoins: {
@@ -482,6 +485,15 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.SushiSwap]: (fillData?: FillData) => {
+        // TODO: Different base cost if to/from ETH.
+        let gas = 95e3;
+        const path = (fillData as SushiSwapFillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.CryptoCom]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
         let gas = 95e3;
         const path = (fillData as SushiSwapFillData).tokenAddressPath;
