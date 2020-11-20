@@ -12,12 +12,15 @@ import * as TestContractWrapper from '../test/generated-artifacts/TestContractWr
 import * as TestDydxUser from '../test/generated-artifacts/TestDydxUser.json';
 import * as TestEth2Dai from '../test/generated-artifacts/TestEth2Dai.json';
 import * as TestEth2DaiBridge from '../test/generated-artifacts/TestEth2DaiBridge.json';
+import * as TestFixinProtocolFeesIntegration from '../test/generated-artifacts/TestFixinProtocolFeesIntegration.json';
 import * as TestFramework from '../test/generated-artifacts/TestFramework.json';
 import * as TestMainnetAggregatorFills from '../test/generated-artifacts/TestMainnetAggregatorFills.json';
 import * as TestSignatureValidationWallet from '../test/generated-artifacts/TestSignatureValidationWallet.json';
+import * as TestStaking from '../test/generated-artifacts/TestStaking.json';
 import * as TestUniswapBridge from '../test/generated-artifacts/TestUniswapBridge.json';
 import * as TestUniswapExchange from '../test/generated-artifacts/TestUniswapExchange.json';
 import * as TestUniswapExchangeFactory from '../test/generated-artifacts/TestUniswapExchangeFactory.json';
+import * as TestWethIntegration from '../test/generated-artifacts/TestWethIntegration.json';
 export const artifacts = {
     ChainlinkStopLimit: ChainlinkStopLimit as ContractArtifact,
     IChainlinkAggregator: IChainlinkAggregator as ContractArtifact,
@@ -26,10 +29,13 @@ export const artifacts = {
     TestDydxUser: TestDydxUser as ContractArtifact,
     TestEth2Dai: TestEth2Dai as ContractArtifact,
     TestEth2DaiBridge: TestEth2DaiBridge as ContractArtifact,
+    TestFixinProtocolFeesIntegration: TestFixinProtocolFeesIntegration as ContractArtifact,
     TestFramework: TestFramework as ContractArtifact,
     TestMainnetAggregatorFills: TestMainnetAggregatorFills as ContractArtifact,
     TestSignatureValidationWallet: TestSignatureValidationWallet as ContractArtifact,
+    TestStaking: TestStaking as ContractArtifact,
     TestUniswapBridge: TestUniswapBridge as ContractArtifact,
     TestUniswapExchange: TestUniswapExchange as ContractArtifact,
     TestUniswapExchangeFactory: TestUniswapExchangeFactory as ContractArtifact,
+    TestWethIntegration: TestWethIntegration as ContractArtifact,
 };
