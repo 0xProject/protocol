@@ -7,8 +7,7 @@ import {
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
 import { getExchangeProxyMetaTransactionHash, signatureUtils } from '@0x/order-utils';
-import { ExchangeProxyMetaTransaction, SignatureType } from '@0x/types';
-import { Signature } from '../../src/signature_utils';
+import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
 import * as _ from 'lodash';
 
