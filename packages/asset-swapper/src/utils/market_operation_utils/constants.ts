@@ -495,7 +495,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.CryptoCom]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
-        let gas = 95e3;
+        let gas = 95e3 + 20e3; // temporary allowance diff
         const path = (fillData as SushiSwapFillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.
