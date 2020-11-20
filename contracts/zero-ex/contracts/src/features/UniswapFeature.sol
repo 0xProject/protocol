@@ -451,8 +451,10 @@ contract UniswapFeature is
             // Checks if a token possibly belongs to the GREEDY_TOKENS_BLOOM_FILTER
             // bloom filter.
             function isTokenPossiblyGreedy(token) -> isPossiblyGreedy {
+                // The hash is given by:
+                // (1 << (keccak256(token) % 256)) | (1 << (token % 256))
                 mstore(0, token)
-                let h := keccak256(0, 32)
+                let h := or(shl(mod(keccak256(0, 32), 256), 1), shl(mod(token, 256), 1))
                 isPossiblyGreedy := eq(and(h, mload(0xA80)), h)
             }
         }

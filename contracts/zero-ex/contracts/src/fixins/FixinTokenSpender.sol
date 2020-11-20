@@ -37,8 +37,7 @@ abstract contract FixinTokenSpender {
     /// @dev A bloom filter for tokens that consume all gas when `transferFrom()` fails.
     bytes32 public immutable GREEDY_TOKENS_BLOOM_FILTER;
 
-    /// @param greedyTokensBloomFilter The bloom filter for all greedy tokens, which is
-    ///        computed by bitwise-ORing the hash of each token address together.
+    /// @param greedyTokensBloomFilter The bloom filter for all greedy tokens.
     constructor(bytes32 greedyTokensBloomFilter)
         internal
     {
@@ -165,10 +164,12 @@ abstract contract FixinTokenSpender {
         view
         returns (bool isPossiblyGreedy)
     {
+        // The hash is given by:
+        // (1 << (keccak256(token) % 256)) | (1 << (token % 256))
         bytes32 h;
         assembly {
             mstore(0, token)
-            h := keccak256(0, 32)
+            h := or(shl(mod(keccak256(0, 32), 256), 1), shl(mod(token, 256), 1))
         }
         return (h & GREEDY_TOKENS_BLOOM_FILTER) == h;
     }

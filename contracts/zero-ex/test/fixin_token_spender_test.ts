@@ -7,6 +7,8 @@ import {
 } from '@0x/contracts-test-utils';
 import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
 
+import { getTokenListBloomFilter } from '../src/bloom_filter_utils';
+
 import { artifacts } from './artifacts';
 import {
     TestFixinTokenSpenderContract,
@@ -36,7 +38,7 @@ blockchainTests.resets('FixinTokenSpender', env => {
         );
         await greedyToken.setGreedyRevert(true).awaitTransactionSuccessAsync();
 
-        greedyTokensBloomFilter = hexUtils.hash(hexUtils.leftPad(greedyToken.address));
+        greedyTokensBloomFilter = getTokenListBloomFilter([greedyToken.address]);
 
         tokenSpender = await TestFixinTokenSpenderContract.deployFrom0xArtifactAsync(
             artifacts.TestFixinTokenSpender,
