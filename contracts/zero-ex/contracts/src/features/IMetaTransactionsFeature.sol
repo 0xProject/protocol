@@ -24,24 +24,6 @@ import "./libs/LibSignature.sol";
 
 /// @dev Meta-transactions feature.
 interface IMetaTransactionsFeature {
-    /// @dev Describes the state of a meta transaction.
-    struct ExecuteState {
-        // Sender of the meta-transaction.
-        address sender;
-        // Hash of the meta-transaction data.
-        bytes32 hash;
-        // The meta-transaction data.
-        MetaTransactionData mtx;
-        // The meta-transaction signature (by `mtx.signer`).
-        LibSignature.Signature signature;
-        // The selector of the function being called.
-        bytes4 selector;
-        // The ETH balance of this contract before performing the call.
-        uint256 selfBalance;
-        // The block number at which the meta-transaction was executed.
-        uint256 executedBlockNumber;
-    }
-
     /// @dev Describes an exchange proxy meta transaction.
     struct MetaTransactionData {
         // Signer of meta-transaction. On whose behalf to execute the MTX.
@@ -85,7 +67,7 @@ interface IMetaTransactionsFeature {
     /// @return returnResult The ABI-encoded result of the underlying call.
     function executeMetaTransaction(
         MetaTransactionData calldata mtx,
-        bytes calldata signature
+        LibSignature.Signature calldata signature
     )
         external
         payable
@@ -97,7 +79,7 @@ interface IMetaTransactionsFeature {
     /// @return returnResults The ABI-encoded results of the underlying calls.
     function batchExecuteMetaTransactions(
         MetaTransactionData[] calldata mtxs,
-        bytes[] calldata signatures
+        LibSignature.Signature[] calldata signatures
     )
         external
         payable
@@ -105,10 +87,15 @@ interface IMetaTransactionsFeature {
 
     /// @dev Execute a meta-transaction via `sender`. Privileged variant.
     ///      Only callable from within.
-    /// @param state The `ExecuteState` for this metatransaction, with `sender`,
-    ///              `hash`, `mtx`, and `signature` fields filled.
+    /// @param sender Who is executing the meta-transaction.
+    /// @param mtx The meta-transaction.
+    /// @param signature The signature by `mtx.signer`.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function _executeMetaTransaction(ExecuteState memory state)
+    function _executeMetaTransaction(
+        address sender,
+        MetaTransactionData memory mtx,
+        LibSignature.Signature memory signature
+    )
         external
         payable
         returns (bytes memory returnResult);

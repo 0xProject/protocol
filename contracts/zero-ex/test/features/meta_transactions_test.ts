@@ -24,6 +24,13 @@ import {
 
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 
+interface Signature {
+    signatureType: number;
+    v: number;
+    r: string;
+    s: string;
+}
+
 blockchainTests.resets('MetaTransactions feature', env => {
     let owner: string;
     let sender: string;
@@ -71,6 +78,15 @@ blockchainTests.resets('MetaTransactions feature', env => {
         );
     });
 
+    function sigstruct(signature: string): Signature {
+        return {
+            v: parseInt(hexUtils.slice(signature, 0, 1), 16),
+            signatureType: parseInt(hexUtils.slice(signature, 65, 66), 16),
+            r: hexUtils.slice(signature, 1, 33),
+            s: hexUtils.slice(signature, 33, 65),
+        };
+    }
+
     function getRandomMetaTransaction(
         fields: Partial<ExchangeProxyMetaTransaction> = {},
     ): ExchangeProxyMetaTransaction {
@@ -93,11 +109,13 @@ blockchainTests.resets('MetaTransactions feature', env => {
         };
     }
 
-    async function signMetaTransactionAsync(mtx: ExchangeProxyMetaTransaction, signer?: string): Promise<string> {
-        return signatureUtils.ecSignHashAsync(
-            env.provider,
-            getExchangeProxyMetaTransactionHash(mtx),
-            signer || mtx.signer,
+    async function signMetaTransactionAsync(mtx: ExchangeProxyMetaTransaction, signer?: string): Promise<Signature> {
+        return sigstruct(
+            await signatureUtils.ecSignHashAsync(
+                env.provider,
+                getExchangeProxyMetaTransactionHash(mtx),
+                signer || mtx.signer,
+            ),
         );
     }
 
