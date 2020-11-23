@@ -421,7 +421,6 @@ RFQ orders can be filled with the ``fillRfqOrder()`` or ``fillOrKillRfqOrder()``
         uint128 takerTokenFillAmount
     )
         external
-        payable
         // How much maker token from the order the taker received.
         returns (uint128 takerTokenFillAmount, uint128 makerTokenFillAmount);
 
@@ -438,7 +437,6 @@ RFQ orders can be filled with the ``fillRfqOrder()`` or ``fillOrKillRfqOrder()``
         uint128 takerTokenFillAmount
     )
         external
-        payable
         // How much maker token from the order the taker received.
         returns (uint128 makerTokenFillAmount);
 
