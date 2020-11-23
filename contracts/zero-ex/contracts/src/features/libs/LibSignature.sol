@@ -38,7 +38,7 @@ library LibSignature {
     ///      The valid range is given by fig (283) of the yellow paper.
     uint256 private constant ECDSA_SIGNATURE_S_LIMIT = ECDSA_SIGNATURE_R_LIMIT / 2 + 1;
 
-   /// @dev Allowed signature types.
+    /// @dev Allowed signature types.
     enum SignatureType {
         ILLEGAL,
         INVALID,

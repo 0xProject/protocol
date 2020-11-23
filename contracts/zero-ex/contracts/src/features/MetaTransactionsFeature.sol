@@ -35,6 +35,7 @@ import "./ITransformERC20Feature.sol";
 import "./libs/LibSignature.sol";
 import "./ISignatureValidatorFeature.sol";
 import "./IFeature.sol";
+import "./INativeOrdersFeature.sol";
 
 /// @dev MetaTransactions feature.
 contract MetaTransactionsFeature is
@@ -47,6 +48,24 @@ contract MetaTransactionsFeature is
 {
     using LibBytesV06 for bytes;
     using LibRichErrorsV06 for bytes;
+
+    /// @dev Describes the state of a meta transaction.
+    struct ExecuteState {
+        // Sender of the meta-transaction.
+        address sender;
+        // Hash of the meta-transaction data.
+        bytes32 hash;
+        // The meta-transaction data.
+        MetaTransactionData mtx;
+        // The meta-transaction signature (by `mtx.signer`).
+        LibSignature.Signature signature;
+        // The selector of the function being called.
+        bytes4 selector;
+        // The ETH balance of this contract before performing the call.
+        uint256 selfBalance;
+        // The block number at which the meta-transaction was executed.
+        uint256 executedBlockNumber;
+    }
 
     /// @dev Arguments for a `TransformERC20.transformERC20()` call.
     struct ExternalTransformERC20Args {
@@ -131,11 +150,7 @@ contract MetaTransactionsFeature is
         state.sender = msg.sender;
         state.mtx = mtx;
         state.hash = getMetaTransactionHash(mtx);
-<<<<<<< HEAD
         state.signature = signature;
-=======
-        state.signature = _unpackSignature(signature);
->>>>>>> refactor MetaTransactionsFeature to unpack signatures early and pass around ExecuteStates
 
         returnResult = _executeMetaTransactionPrivate(state);
     }
@@ -167,11 +182,7 @@ contract MetaTransactionsFeature is
             state.sender = msg.sender;
             state.mtx = mtxs[i];
             state.hash = getMetaTransactionHash(mtxs[i]);
-<<<<<<< HEAD
             state.signature = signatures[i];
-=======
-            state.signature = _unpackSignature(signatures[i]);
->>>>>>> refactor MetaTransactionsFeature to unpack signatures early and pass around ExecuteStates
 
             returnResults[i] = _executeMetaTransactionPrivate(state);
         }
@@ -179,33 +190,27 @@ contract MetaTransactionsFeature is
 
     /// @dev Execute a meta-transaction via `sender`. Privileged variant.
     ///      Only callable from within.
-    /// @param state The `ExecuteState` for this metatransaction, with `sender`,
-    ///              `hash`, `mtx`, and `signature` fields filled.
+    /// @param sender Who is executing the meta-transaction.
+    /// @param mtx The meta-transaction.
+    /// @param signature The signature by `mtx.signer`.
     /// @return returnResult The ABI-encoded result of the underlying call.
-<<<<<<< HEAD
     function _executeMetaTransaction(
         address sender,
         MetaTransactionData memory mtx,
         LibSignature.Signature memory signature
     )
-=======
-    function _executeMetaTransaction(ExecuteState memory state)
->>>>>>> refactor MetaTransactionsFeature to unpack signatures early and pass around ExecuteStates
         public
         payable
         override
         onlySelf
         returns (bytes memory returnResult)
     {
-<<<<<<< HEAD
         ExecuteState memory state;
         state.sender = sender;
         state.mtx = mtx;
         state.hash = getMetaTransactionHash(mtx);
         state.signature = signature;
 
-=======
->>>>>>> refactor MetaTransactionsFeature to unpack signatures early and pass around ExecuteStates
         return _executeMetaTransactionPrivate(state);
     }
 
@@ -275,20 +280,11 @@ contract MetaTransactionsFeature is
 
         // Pay the fee to the sender.
         if (state.mtx.feeAmount > 0) {
-<<<<<<< HEAD
             _transferERC20Tokens(
                 state.mtx.feeToken,
                 state.mtx.signer,
                 state.sender,
                 state.mtx.feeAmount
-=======
-            LibTokenSpender.spendERC20Tokens(
-                state.mtx.feeToken,
-                state.mtx.signer,
-                state.sender,
-                state.mtx.feeAmount,
-                true
->>>>>>> refactor MetaTransactionsFeature to unpack signatures early and pass around ExecuteStates
             );
         }
 
@@ -296,6 +292,10 @@ contract MetaTransactionsFeature is
         state.selector = state.mtx.callData.readBytes4(0);
         if (state.selector == ITransformERC20Feature.transformERC20.selector) {
             returnResult = _executeTransformERC20Call(state);
+        } else if (state.selector == INativeOrdersFeature.fillLimitOrder.selector) {
+            returnResult = _executeFillLimitOrderCall(state);
+        } else if (state.selector == INativeOrdersFeature.fillRfqOrder.selector) {
+            returnResult = _executeFillRfqOrderCall(state);
         } else {
             LibMetaTransactionsRichErrors
                 .MetaTransactionUnsupportedFunctionError(state.hash, state.selector)
@@ -457,6 +457,81 @@ contract MetaTransactionsFeature is
         );
     }
 
+    /// @dev Execute a `INativeOrdersFeature.fillLimitOrder()` meta-transaction call
+    ///      by decoding the call args and translating the call to the internal
+    ///      `INativeOrdersFeature._fillLimitOrder()` variant, where we can override
+    ///      the taker address.
+    function _executeFillLimitOrderCall(ExecuteState memory state)
+        private
+        returns (bytes memory returnResult)
+    {
+        LibNativeOrder.LimitOrder memory order;
+        LibSignature.Signature memory signature;
+        uint128 takerTokenFillAmount;
+
+        bytes memory data = state.mtx.callData;
+        bytes memory args = new bytes(data.length - 4);
+        uint256 from;
+        uint256 to;
+        assembly {
+            from := add(data, 36) // skip length and selector
+            to := add(args, 32)   // after length
+        }
+        LibBytesV06.memCopy(to, from, data.length - 4);
+
+        (order, signature, takerTokenFillAmount) = abi.decode(args, (LibNativeOrder.LimitOrder, LibSignature.Signature, uint128));
+
+        return _callSelf(
+            state.hash,
+            abi.encodeWithSelector(
+                INativeOrdersFeature._fillLimitOrder.selector,
+                order,
+                signature,
+                takerTokenFillAmount,
+                state.mtx.signer, // taker is mtx signer
+                msg.sender
+            ),
+            state.mtx.value
+        );
+    }
+
+    /// @dev Execute a `INativeOrdersFeature.fillRfqOrder()` meta-transaction call
+    ///      by decoding the call args and translating the call to the internal
+    ///      `INativeOrdersFeature._fillRfqOrder()` variant, where we can overrideunimpleme
+    ///      the taker address.
+    function _executeFillRfqOrderCall(ExecuteState memory state)
+        private
+        returns (bytes memory returnResult)
+    {
+        LibNativeOrder.RfqOrder memory order;
+        LibSignature.Signature memory signature;
+        uint128 takerTokenFillAmount;
+
+        bytes memory data = state.mtx.callData;
+        bytes memory args = new bytes(data.length - 4);
+        uint256 from;
+        uint256 to;
+        assembly {
+            from := add(data, 36) // skip length and selector
+            to := add(args, 32)   // after length
+        }
+        LibBytesV06.memCopy(to, from, data.length - 4);
+
+        (order, signature, takerTokenFillAmount) = abi.decode(args, (LibNativeOrder.RfqOrder, LibSignature.Signature, uint128));
+
+        return _callSelf(
+            state.hash,
+            abi.encodeWithSelector(
+                INativeOrdersFeature._fillRfqOrder.selector,
+                order,
+                signature,
+                takerTokenFillAmount,
+                state.mtx.signer // taker is mtx signer
+            ),
+            state.mtx.value
+        );
+    }
+
     /// @dev Make an arbitrary internal, meta-transaction call.
     ///      Warning: Do not let unadulterated `callData` into this function.
     function _callSelf(bytes32 hash, bytes memory callData, uint256 value)
@@ -472,30 +547,5 @@ contract MetaTransactionsFeature is
                 returnResult
             ).rrevert();
         }
-    }
-
-    /// @dev Convert a `bytes` signature (format: v + r + s + type) to a
-    ///      LibSignature.Signature struct.
-    function _unpackSignature(bytes memory signature)
-        private
-        returns (LibSignature.Signature memory)
-    {
-        if (signature.length != 66) {
-            // TODO: Come up with a better error when rich reverts are part of
-            //       the protocol repo.
-            LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.INVALID_LENGTH,
-                bytes32(0), // Intentionally left blank, but see TODO above.
-                address(0), // Ditto.
-                signature
-            ).rrevert();
-        }
-
-        return LibSignature.Signature({
-            signatureType: LibSignature.SignatureType(uint8(signature[65])),
-            v: uint8(signature[0]),
-            r: signature.readBytes32(1),
-            s: signature.readBytes32(33)
-        });
     }
 }

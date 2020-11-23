@@ -17,22 +17,27 @@ import { IZeroExContract, MetaTransactionsFeatureContract } from '../../src/wrap
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
+import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
 import {
+    TestMetaTransactionsNativeOrdersFeatureContract,
+    TestMetaTransactionsNativeOrdersFeatureEvents,
     TestMetaTransactionsTransformERC20FeatureContract,
     TestMetaTransactionsTransformERC20FeatureEvents,
     TestMintableERC20TokenContract,
 } from '../wrappers';
 
-const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
+const { NULL_ADDRESS, NULL_BYTES, NULL_BYTES32, ZERO_AMOUNT } = constants;
 
 blockchainTests.resets('MetaTransactions feature', env => {
     let owner: string;
+    let maker: string;
     let sender: string;
     let signers: string[];
     let zeroEx: IZeroExContract;
     let feature: MetaTransactionsFeatureContract;
     let feeToken: TestMintableERC20TokenContract;
     let transformERC20Feature: TestMetaTransactionsTransformERC20FeatureContract;
+    let nativeOrdersFeature: TestMetaTransactionsNativeOrdersFeatureContract;
 
     const MAX_FEE_AMOUNT = new BigNumber('1e18');
     const TRANSFORM_ERC20_FAILING_VALUE = new BigNumber(666);
@@ -41,15 +46,27 @@ blockchainTests.resets('MetaTransactions feature', env => {
     const REENTRANCY_FLAG_MTX = 0x1;
 
     before(async () => {
-        [owner, sender, ...signers] = await env.getAccountAddressesAsync();
+        [owner, maker, sender, ...signers] = await env.getAccountAddressesAsync();
         transformERC20Feature = await TestMetaTransactionsTransformERC20FeatureContract.deployFrom0xArtifactAsync(
             artifacts.TestMetaTransactionsTransformERC20Feature,
             env.provider,
             env.txDefaults,
             {},
         );
+        nativeOrdersFeature = await TestMetaTransactionsNativeOrdersFeatureContract.deployFrom0xArtifactAsync(
+            artifacts.TestMetaTransactionsNativeOrdersFeature,
+            env.provider,
+            env.txDefaults,
+            {},
+            NULL_ADDRESS,
+            NULL_ADDRESS,
+            NULL_ADDRESS,
+            1,            // protocolFeeMultiplier
+            NULL_BYTES32, // greedyTokensBloomFilter
+        );
         zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {
             transformERC20: transformERC20Feature.address,
+            nativeOrders: nativeOrdersFeature.address,
         });
         feature = new MetaTransactionsFeatureContract(
             zeroEx.address,
@@ -141,9 +158,89 @@ blockchainTests.resets('MetaTransactions feature', env => {
         };
     }
 
-    const RAW_SUCCESS_RESULT = hexUtils.leftPad(1337);
+    const RAW_TRANSFORM_SUCCESS_RESULT = hexUtils.leftPad(1337);
+    const RAW_ORDER_SUCCESS_RESULT = hexUtils.leftPad(1337, 64);
 
     describe('executeMetaTransaction()', () => {
+        it('can call NativeOrders.fillLimitOrder()', async () => {
+            const order = getRandomLimitOrder({ maker });
+            const fillAmount = new BigNumber(23456);
+            const sig = await order.getSignatureWithProviderAsync(env.provider);
+            const mtx = getRandomMetaTransaction({
+                callData: nativeOrdersFeature
+                    .fillLimitOrder(
+                        order,
+                        sig,
+                        fillAmount,
+                    )
+                    .getABIEncodedTransactionData(),
+            });
+            const signature = await signMetaTransactionAsync(mtx);
+            const callOpts = {
+                gasPrice: mtx.minGasPrice,
+                value: mtx.value,
+            };
+            const rawResult = await feature.executeMetaTransaction(mtx, signature).callAsync(callOpts);
+            expect(rawResult).to.eq(RAW_ORDER_SUCCESS_RESULT);
+            const receipt = await feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
+
+            verifyEventsFromLogs(
+                receipt.logs,
+                [
+                    {
+                        order: _.omit(order, ['verifyingContract', 'chainId']),
+                        sender: mtx.sender,
+                        taker: mtx.signer,
+                        takerTokenFillAmount: fillAmount,
+                        signatureType: sig.signatureType,
+                        v: sig.v,
+                        r: sig.r,
+                        s: sig.s,
+                    },
+                ],
+                TestMetaTransactionsNativeOrdersFeatureEvents.FillLimitOrderCalled,
+            );
+        });
+
+        it('can call NativeOrders.fillRfqOrder()', async () => {
+            const order = getRandomRfqOrder({ maker });
+            const sig = await order.getSignatureWithProviderAsync(env.provider);
+            const fillAmount = new BigNumber(23456);
+            const mtx = getRandomMetaTransaction({
+                callData: nativeOrdersFeature
+                    .fillRfqOrder(
+                        order,
+                        sig,
+                        fillAmount,
+                    )
+                    .getABIEncodedTransactionData(),
+            });
+            const signature = await signMetaTransactionAsync(mtx);
+            const callOpts = {
+                gasPrice: mtx.minGasPrice,
+                value: mtx.value,
+            };
+            const rawResult = await feature.executeMetaTransaction(mtx, signature).callAsync(callOpts);
+            expect(rawResult).to.eq(RAW_ORDER_SUCCESS_RESULT);
+            const receipt = await feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
+
+            verifyEventsFromLogs(
+                receipt.logs,
+                [
+                    {
+                        order: _.omit(order, ['verifyingContract', 'chainId']),
+                        taker: mtx.signer,
+                        takerTokenFillAmount: fillAmount,
+                        signatureType: sig.signatureType,
+                        v: sig.v,
+                        r: sig.r,
+                        s: sig.s,
+                    },
+                ],
+                TestMetaTransactionsNativeOrdersFeatureEvents.FillRfqOrderCalled,
+            );
+        });
+
         it('can call `TransformERC20.transformERC20()`', async () => {
             const args = getRandomTransformERC20Args();
             const mtx = getRandomMetaTransaction({
@@ -163,7 +260,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                 value: mtx.value,
             };
             const rawResult = await feature.executeMetaTransaction(mtx, signature).callAsync(callOpts);
-            expect(rawResult).to.eq(RAW_SUCCESS_RESULT);
+            expect(rawResult).to.eq(RAW_TRANSFORM_SUCCESS_RESULT);
             const receipt = await feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             verifyEventsFromLogs(
                 receipt.logs,
@@ -206,7 +303,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                 value: mtx.value,
             };
             const rawResult = await feature.executeMetaTransaction(mtx, signature).callAsync(callOpts);
-            expect(rawResult).to.eq(RAW_SUCCESS_RESULT);
+            expect(rawResult).to.eq(RAW_TRANSFORM_SUCCESS_RESULT);
             const receipt = await feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             verifyEventsFromLogs(
                 receipt.logs,
@@ -249,7 +346,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                 from: randomAddress(),
             };
             const rawResult = await feature.executeMetaTransaction(mtx, signature).callAsync(callOpts);
-            expect(rawResult).to.eq(RAW_SUCCESS_RESULT);
+            expect(rawResult).to.eq(RAW_TRANSFORM_SUCCESS_RESULT);
         });
 
         it('works without fee', async () => {
@@ -273,7 +370,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                 value: mtx.value,
             };
             const rawResult = await feature.executeMetaTransaction(mtx, signature).callAsync(callOpts);
-            expect(rawResult).to.eq(RAW_SUCCESS_RESULT);
+            expect(rawResult).to.eq(RAW_TRANSFORM_SUCCESS_RESULT);
         });
 
         it('fails if the translated call fails', async () => {
@@ -638,7 +735,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                 value: BigNumber.sum(...mtxs.map(mtx => mtx.value)),
             };
             const rawResults = await feature.batchExecuteMetaTransactions(mtxs, signatures).callAsync(callOpts);
-            expect(rawResults).to.eql(mtxs.map(() => RAW_SUCCESS_RESULT));
+            expect(rawResults).to.eql(mtxs.map(() => RAW_TRANSFORM_SUCCESS_RESULT));
         });
 
         it('cannot execute the same transaction twice', async () => {

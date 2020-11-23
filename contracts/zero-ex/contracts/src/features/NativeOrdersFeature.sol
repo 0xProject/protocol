@@ -319,6 +319,7 @@ contract NativeOrdersFeature is
         address sender
     )
         public
+        virtual
         override
         payable
         onlySelf
@@ -355,6 +356,7 @@ contract NativeOrdersFeature is
         address taker
     )
         public
+        virtual
         override
         payable
         onlySelf
