@@ -43,7 +43,7 @@ jobs:
       - name: Update API Deployment
         run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ github.sha }}"/g' env/0x-api/**/*.yml
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v2.3.0
+        uses: peter-evans/create-pull-request@v3.5.0
         with:
             token: ${{ secrets.PAT }}
             commit-message: "[0xApi][prod|kovan|staging] Deploy 0x API v${{ steps.semantic_release.outputs.new_release_version }}"
@@ -59,4 +59,5 @@ jobs:
       - name: Check outputs
         run: |
             echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
-            echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
+            echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+
