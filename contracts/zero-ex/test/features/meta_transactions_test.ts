@@ -61,7 +61,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             NULL_ADDRESS,
             NULL_ADDRESS,
             NULL_ADDRESS,
-            1,            // protocolFeeMultiplier
+            1, // protocolFeeMultiplier
             NULL_BYTES32, // greedyTokensBloomFilter
         );
         zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {
@@ -167,13 +167,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             const fillAmount = new BigNumber(23456);
             const sig = await order.getSignatureWithProviderAsync(env.provider);
             const mtx = getRandomMetaTransaction({
-                callData: nativeOrdersFeature
-                    .fillLimitOrder(
-                        order,
-                        sig,
-                        fillAmount,
-                    )
-                    .getABIEncodedTransactionData(),
+                callData: nativeOrdersFeature.fillLimitOrder(order, sig, fillAmount).getABIEncodedTransactionData(),
             });
             const signature = await signMetaTransactionAsync(mtx);
             const callOpts = {
@@ -207,13 +201,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             const sig = await order.getSignatureWithProviderAsync(env.provider);
             const fillAmount = new BigNumber(23456);
             const mtx = getRandomMetaTransaction({
-                callData: nativeOrdersFeature
-                    .fillRfqOrder(
-                        order,
-                        sig,
-                        fillAmount,
-                    )
-                    .getABIEncodedTransactionData(),
+                callData: nativeOrdersFeature.fillRfqOrder(order, sig, fillAmount).getABIEncodedTransactionData(),
             });
             const signature = await signMetaTransactionAsync(mtx);
             const callOpts = {
