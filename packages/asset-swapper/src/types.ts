@@ -295,6 +295,10 @@ export interface RfqtMakerAssetOfferings {
 
 export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
 
+export interface RfqtFirmQuoteValidator {
+    getRFQTTakerFillableAmounts(quotes: SignedOrder[]): Promise<BigNumber[]>;
+}
+
 export interface SwapQuoterRfqtOpts {
     takerApiKeyWhitelist: string[];
     makerAssetOfferings: RfqtMakerAssetOfferings;

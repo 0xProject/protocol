@@ -103,6 +103,7 @@ export {
     MockedRfqtFirmQuoteResponse,
     OrderPrunerPermittedFeeTypes,
     RfqtMakerAssetOfferings,
+    RfqtFirmQuoteValidator,
     RfqtRequestOpts,
     SamplerOverrides,
     SignedOrderWithFillableAmounts,

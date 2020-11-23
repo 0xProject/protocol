@@ -683,20 +683,24 @@ export class MarketOperationUtils {
                         rfqt,
                     );
                     if (firmQuotes.length > 0) {
+                        // Compute the RFQ order fillable amounts. This is done by performing a "soft" order
+                        // validation and by checking order balances that are monitored by our worker.
+                        // If a firm quote validator does not exist, then we assume that all orders are valid.
+                        const firmQuoteSignedOrders = firmQuotes.map(quote => quote.signedOrder);
+                        const rfqOrderFillableAmounts =
+                            rfqt.firmQuoteValidator === undefined
+                                ? firmQuoteSignedOrders.map(signedOrder => signedOrder.takerAssetAmount)
+                                : await rfqt.firmQuoteValidator.getRFQTTakerFillableAmounts(firmQuoteSignedOrders);
+
                         // Re-run optimizer with the new firm quote. This is the second and last time
                         // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
                         // and we let it bubble up if it happens.
-                        //
-                        // NOTE: as of now, we assume that RFQ orders are 100% fillable because these are trusted market makers, therefore
-                        // we do not perform an extra check to get fillable taker amounts.
                         optimizerResult = await this._generateOptimizedOrdersAsync(
                             {
                                 ...marketSideLiquidity,
-                                nativeOrders: marketSideLiquidity.nativeOrders.concat(
-                                    firmQuotes.map(quote => quote.signedOrder),
-                                ),
+                                nativeOrders: marketSideLiquidity.nativeOrders.concat(firmQuoteSignedOrders),
                                 orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(
-                                    firmQuotes.map(quote => quote.signedOrder.takerAssetAmount),
+                                    rfqOrderFillableAmounts,
                                 ),
                             },
                             optimizerOpts,
