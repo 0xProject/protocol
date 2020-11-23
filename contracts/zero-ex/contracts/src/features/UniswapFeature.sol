@@ -369,18 +369,23 @@ contract UniswapFeature is
                 // falling through to legacy allowance target because the token
                 // will eat all our gas.
                 if isTokenPossiblyGreedy(token) {
-                    // Check if we have enough direct allowance.
+                    // Check if we have enough direct allowance by calling
+                    // `token.allowance()``
                     mstore(0xB00, ALLOWANCE_CALL_SELECTOR_32)
                     mstore(0xB04, caller())
                     mstore(0xB24, address())
-                    if not(iszero(call(gas(), token, 0, 0xB00, 0x44, 0xC00, 0x20))) {
-                        // Call succeeded.
-                        if lt(mload(0xC00), amount) {
-                            // We don't have enough direct allowance, so try
-                            // going through the legacy allowance taregt.
-                            moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount)
-                            leave
-                        }
+                    let success := call(gas(), token, 0, 0xB00, 0x44, 0xC00, 0x20)
+                    if iszero(success) {
+                        // Call to allowance() failed.
+                        bubbleRevert()
+                    }
+                    // Call succeeded.
+                    // Result is stored in 0xC00-0xC20.
+                    if lt(mload(0xC00), amount) {
+                        // We don't have enough direct allowance, so try
+                        // going through the legacy allowance taregt.
+                        moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount)
+                        leave
                     }
                 }
 
