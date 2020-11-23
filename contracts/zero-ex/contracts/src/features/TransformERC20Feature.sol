@@ -25,6 +25,7 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
 import "../fixins/FixinCommon.sol";
+import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
 import "../external/IFlashWallet.sol";
 import "../external/FlashWallet.sol";
@@ -35,14 +36,14 @@ import "./libs/LibSignedCallData.sol";
 import "./ITransformERC20Feature.sol";
 import "./IFeature.sol";
 import "./ISignatureValidatorFeature.sol";
-import "./libs/LibTokenSpender.sol";
 
 
 /// @dev Feature to composably transform between ERC20 tokens.
 contract TransformERC20Feature is
     IFeature,
     ITransformERC20Feature,
-    FixinCommon
+    FixinCommon,
+    FixinTokenSpender
 {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -59,6 +60,11 @@ contract TransformERC20Feature is
     string public constant override FEATURE_NAME = "TransformERC20";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 3, 1);
+
+    constructor(bytes32 greedyTokensBloomFilter)
+        public
+        FixinTokenSpender(greedyTokensBloomFilter)
+    {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
@@ -211,7 +217,7 @@ contract TransformERC20Feature is
         // If the input token amount is -1, transform the taker's entire
         // spendable balance.
         if (args.inputTokenAmount == uint256(-1)) {
-            args.inputTokenAmount = LibTokenSpender.getSpendableERC20BalanceOf(
+            args.inputTokenAmount = _getSpendableERC20BalanceOf(
                 args.inputToken,
                 args.taker
             );
@@ -317,12 +323,11 @@ contract TransformERC20Feature is
         // Transfer input tokens.
         if (!LibERC20Transformer.isTokenETH(inputToken)) {
             // Token is not ETH, so pull ERC20 tokens.
-            LibTokenSpender.spendERC20Tokens(
+            _transferERC20Tokens(
                 inputToken,
                 from,
                 to,
-                amount,
-                true
+                amount
             );
         } else if (msg.value < amount) {
              // Token is ETH, so the caller must attach enough ETH to the call.

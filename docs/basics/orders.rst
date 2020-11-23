@@ -282,7 +282,6 @@ RFQ orders are a stripped down version of standard limit orders, supporting fewe
 
 Some notable differences from regular limit orders are:
 
-* RFQ orders can only be filled once. Even a partial fill will mark the order as ``FILLED``.
 * The only fill restrictions that can be placed on an RFQ order is on the ``tx.origin`` of the transaction.
 * There are no taker token fees.
 

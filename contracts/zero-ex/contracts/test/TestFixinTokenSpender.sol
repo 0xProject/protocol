@@ -20,13 +20,19 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "../src/fixins/FixinTokenSpender.sol";
 
-import "../src/features/libs/LibTokenSpender.sol";
-
-contract TestLibTokenSpender {
+contract TestFixinTokenSpender is
+    FixinTokenSpender
+{
     uint256 constant private TRIGGER_FALLBACK_SUCCESS_AMOUNT = 1340;
 
-    function spendERC20Tokens(
+    constructor(bytes32 greedyTokensBloomFilter)
+        public
+        FixinTokenSpender(greedyTokensBloomFilter)
+    {}
+
+    function transferERC20Tokens(
         IERC20TokenV06 token,
         address owner,
         address to,
@@ -34,12 +40,11 @@ contract TestLibTokenSpender {
     )
         external
     {
-        LibTokenSpender.spendERC20Tokens(
+        _transferERC20Tokens(
             token,
             owner,
             to,
-            amount,
-            false
+            amount
         );
     }
 
@@ -73,6 +78,14 @@ contract TestLibTokenSpender {
         view
         returns (uint256)
     {
-        return LibTokenSpender.getSpendableERC20BalanceOf(token, owner);
+        return _getSpendableERC20BalanceOf(token, owner);
+    }
+
+    function isTokenPossiblyGreedy(IERC20TokenV06 token)
+        external
+        view
+        returns (bool)
+    {
+        return _isTokenPossiblyGreedy(token);
     }
 }

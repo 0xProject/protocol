@@ -66,7 +66,7 @@ blockchainTests.resets('SimpleFunctionRegistry feature', env => {
 
     it('`rollback()` to zero impl succeeds for unregistered function', async () => {
         await registry.rollback(testFnSelector, NULL_ADDRESS).awaitTransactionSuccessAsync();
-        const impl = await registry.getFunctionImplementation(testFnSelector).callAsync();
+        const impl = await zeroEx.getFunctionImplementation(testFnSelector).callAsync();
         expect(impl).to.eq(NULL_ADDRESS);
     });
 

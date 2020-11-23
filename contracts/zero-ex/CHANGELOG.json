@@ -1,5 +1,30 @@
 [
     {
+        "version": "0.11.0",
+        "changes": [
+            {
+                "note": "Turn `LibTokenSpender` into `FixinTokenSpender`",
+                "pr": 38
+            },
+            {
+                "note": "Use bloom filters to check if a token is greedy and do not optimistically fall through transferFrom() if so",
+                "pr": 38
+            },
+            {
+                "note": "Revert to original proxy implementation",
+                "pr": 38
+            },
+            {
+                "note": "Fix incorrect cancel order event param",
+                "pr": 38
+            },
+            {
+                "note": "Add a gas limit to first `LibTokenSpender` and `UniswapFeature` transfer",
+                "pr": 38
+            }
+        ]
+    },
+    {
         "version": "0.10.0",
         "changes": [
             {
@@ -9,6 +34,10 @@
             {
                 "note": "Use new `checkAllowance` flag in LiquidityProviderFeature, TransformERC20Feature, and MetaTransactionsFeature",
                 "pr": 39
+            },
+            {
+                "note": "Add native orders features",
+                "pr": 27
             }
         ],
         "timestamp": 1605763885

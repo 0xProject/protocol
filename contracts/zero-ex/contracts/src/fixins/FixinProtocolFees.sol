@@ -21,7 +21,6 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../external/FeeCollector.sol";
-import "../features/libs/LibTokenSpender.sol";
 import "../vendor/v3/IStaking.sol";
 
 

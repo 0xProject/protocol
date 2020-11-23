@@ -25,6 +25,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../errors/LibMetaTransactionsRichErrors.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinReentrancyGuard.sol";
+import "../fixins/FixinTokenSpender.sol";
 import "../fixins/FixinEIP712.sol";
 import "../migrations/LibMigrate.sol";
 import "../storage/LibMetaTransactionsStorage.sol";
@@ -33,8 +34,6 @@ import "./IMetaTransactionsFeature.sol";
 import "./ITransformERC20Feature.sol";
 import "./ISignatureValidatorFeature.sol";
 import "./IFeature.sol";
-import "./libs/LibTokenSpender.sol";
-
 
 /// @dev MetaTransactions feature.
 contract MetaTransactionsFeature is
@@ -42,7 +41,8 @@ contract MetaTransactionsFeature is
     IMetaTransactionsFeature,
     FixinCommon,
     FixinReentrancyGuard,
-    FixinEIP712
+    FixinEIP712,
+    FixinTokenSpender
 {
     using LibBytesV06 for bytes;
     using LibRichErrorsV06 for bytes;
@@ -105,10 +105,11 @@ contract MetaTransactionsFeature is
         }
     }
 
-    constructor(address zeroExAddress)
+    constructor(address zeroExAddress, bytes32 greedyTokensBloomFilter)
         public
         FixinCommon()
         FixinEIP712(zeroExAddress)
+        FixinTokenSpender(greedyTokensBloomFilter)
     {
         // solhint-disable-next-line no-empty-blocks
     }
@@ -279,12 +280,11 @@ contract MetaTransactionsFeature is
 
         // Pay the fee to the sender.
         if (mtx.feeAmount > 0) {
-            LibTokenSpender.spendERC20Tokens(
+            _transferERC20Tokens(
                 mtx.feeToken,
                 mtx.signer,
                 sender,
-                mtx.feeAmount,
-                true
+                mtx.feeAmount
             );
         }
 

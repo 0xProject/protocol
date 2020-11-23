@@ -13,6 +13,7 @@
         "indent": ["error", 4],
         "max-line-length": ["warn", 160],
         "no-inline-assembly": false,
+        "no-empty-blocks": false,
         "quotes": ["error", "double"],
         "separate-by-one-line-in-contract": "error",
         "space-after-comma": "error",

@@ -41,6 +41,12 @@ contract TestTokenSpenderERC20Token is
     uint256 constant private EXTRA_RETURN_TRUE_AMOUNT = 1341;
     uint256 constant private EXTRA_RETURN_FALSE_AMOUNT = 1342;
 
+    bool private _isGreedyRevert;
+
+    function setGreedyRevert(bool isGreedy) external {
+        _isGreedyRevert = isGreedy;
+    }
+
     function transferFrom(address from, address to, uint256 amount)
         public
         override
@@ -54,9 +60,11 @@ contract TestTokenSpenderERC20Token is
             return false;
         }
         if (amount == REVERT_RETURN_AMOUNT) {
+            assert(!_isGreedyRevert);
             revert("TestTokenSpenderERC20Token/Revert");
         }
         if (amount == TRIGGER_FALLBACK_SUCCESS_AMOUNT) {
+            assert(!_isGreedyRevert);
             return false;
         }
         if (amount == EXTRA_RETURN_TRUE_AMOUNT

@@ -28,11 +28,11 @@ import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinProtocolFees.sol";
 import "../fixins/FixinEIP712.sol";
+import "../fixins/FixinTokenSpender.sol";
 import "../errors/LibNativeOrdersRichErrors.sol";
 import "../migrations/LibMigrate.sol";
 import "../storage/LibNativeOrdersStorage.sol";
 import "../vendor/v3/IStaking.sol";
-import "./libs/LibTokenSpender.sol";
 import "./libs/LibSignature.sol";
 import "./libs/LibNativeOrder.sol";
 import "./INativeOrdersFeature.sol";
@@ -45,7 +45,8 @@ contract NativeOrdersFeature is
     INativeOrdersFeature,
     FixinCommon,
     FixinProtocolFees,
-    FixinEIP712
+    FixinEIP712,
+    FixinTokenSpender
 {
     using LibSafeMathV06 for uint256;
     using LibSafeMathV06 for uint128;
@@ -107,11 +108,13 @@ contract NativeOrdersFeature is
         address zeroExAddress,
         IEtherTokenV06 weth,
         IStaking staking,
-        uint32 protocolFeeMultiplier
+        uint32 protocolFeeMultiplier,
+        bytes32 greedyTokensBloomFilter
     )
         public
         FixinEIP712(zeroExAddress)
         FixinProtocolFees(weth, staking, protocolFeeMultiplier)
+        FixinTokenSpender(greedyTokensBloomFilter)
     {
         // solhint-disable no-empty-blocks
     }
@@ -733,7 +736,7 @@ contract NativeOrdersFeature is
         // a cancel. It's OK to cancel twice.
         stor.orderHashToTakerTokenFilledAmount[orderHash] |= HIGH_BIT;
 
-        emit OrderCancelled(orderHash, msg.sender);
+        emit OrderCancelled(orderHash, maker);
     }
 
     /// @dev Fill a limit order. Private variant. Does not refund protocol fees.
@@ -811,12 +814,11 @@ contract NativeOrdersFeature is
                 params.order.takerAmount,
                 params.order.takerTokenFeeAmount
             ));
-            LibTokenSpender.spendERC20Tokens(
+            _transferERC20Tokens(
                 params.order.takerToken,
                 params.taker,
                 params.order.feeRecipient,
-                uint256(results.takerTokenFeeFilledAmount),
-                false
+                uint256(results.takerTokenFeeFilledAmount)
             );
         }
 
@@ -948,21 +950,19 @@ contract NativeOrdersFeature is
                 settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
 
         // Transfer taker -> maker.
-        LibTokenSpender.spendERC20Tokens(
+        _transferERC20Tokens(
             settleInfo.takerToken,
             settleInfo.taker,
             settleInfo.maker,
-            takerTokenFilledAmount,
-            false
+            takerTokenFilledAmount
         );
 
         // Transfer maker -> taker.
-        LibTokenSpender.spendERC20Tokens(
+        _transferERC20Tokens(
             settleInfo.makerToken,
             settleInfo.maker,
             settleInfo.taker,
-            makerTokenFilledAmount,
-            false
+            makerTokenFilledAmount
         );
     }
 

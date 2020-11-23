@@ -5,6 +5,7 @@ import { TxData } from 'ethereum-types';
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
+import { ZERO_BYTES32 } from './constants';
 import {
     FullMigrationContract,
     InitialMigrationContract,
@@ -133,6 +134,7 @@ export interface FullFeaturesDeployConfig {
     wethAddress: string;
     stakingAddress: string;
     protocolFeeMultiplier: number;
+    greedyTokensBloomFilter: string;
 }
 
 /**
@@ -147,6 +149,7 @@ const DEFAULT_FULL_FEATURES_DEPLOY_CONFIG = {
     wethAddress: NULL_ADDRESS,
     stakingAddress: NULL_ADDRESS,
     protocolFeeMultiplier: 70e3,
+    greedyTokensBloomFilter: ZERO_BYTES32,
 };
 
 const DEFAULT_FULL_FEATURES_ARTIFACTS = {
@@ -189,6 +192,7 @@ export async function deployFullFeaturesAsync(
                 provider,
                 txDefaults,
                 artifacts,
+                _config.greedyTokensBloomFilter,
             )).address,
         signatureValidator:
             features.signatureValidator ||
@@ -206,6 +210,7 @@ export async function deployFullFeaturesAsync(
                 txDefaults,
                 artifacts,
                 _config.zeroExAddress,
+                _config.greedyTokensBloomFilter,
             )).address,
         nativeOrders:
             features.nativeOrders ||
@@ -218,6 +223,7 @@ export async function deployFullFeaturesAsync(
                 _config.wethAddress,
                 _config.stakingAddress,
                 _config.protocolFeeMultiplier,
+                _config.greedyTokensBloomFilter,
             )).address,
     };
 }

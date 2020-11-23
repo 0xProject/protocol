@@ -38,6 +38,8 @@ contract UniswapFeature is
     string public constant override FEATURE_NAME = "UniswapFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
+    /// @dev A bloom filter for tokens that consume all gas when `transferFrom()` fails.
+    bytes32 public immutable GREEDY_TOKENS_BLOOM_FILTER;
     /// @dev WETH contract.
     IEtherTokenV06 private immutable WETH;
     /// @dev AllowanceTarget instance.
@@ -66,6 +68,8 @@ contract UniswapFeature is
     uint256 constant private UNISWAP_PAIR_SWAP_CALL_SELECTOR_32 = 0x022c0d9f00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("transferFrom(address,address,uint256)"))
     uint256 constant private TRANSFER_FROM_CALL_SELECTOR_32 = 0x23b872dd00000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("allowance(address,address)"))
+    uint256 constant private ALLOWANCE_CALL_SELECTOR_32 = 0xdd62ed3e00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("withdraw(uint256)"))
     uint256 constant private WETH_WITHDRAW_CALL_SELECTOR_32 = 0x2e1a7d4d00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("deposit()"))
@@ -76,9 +80,15 @@ contract UniswapFeature is
     /// @dev Construct this contract.
     /// @param weth The WETH contract.
     /// @param allowanceTarget The AllowanceTarget contract.
-    constructor(IEtherTokenV06 weth, IAllowanceTarget allowanceTarget) public {
+    /// @param greedyTokensBloomFilter The bloom filter for greedy tokens.
+    constructor(
+        IEtherTokenV06 weth,
+        IAllowanceTarget allowanceTarget,
+        bytes32 greedyTokensBloomFilter
+    ) public {
         WETH = weth;
         ALLOWANCE_TARGET = allowanceTarget;
+        GREEDY_TOKENS_BLOOM_FILTER = greedyTokensBloomFilter;
     }
 
     /// @dev Initialize and register this feature.
@@ -114,6 +124,7 @@ contract UniswapFeature is
             // Load immutables onto the stack.
             IEtherTokenV06 weth = WETH;
             IAllowanceTarget allowanceTarget = ALLOWANCE_TARGET;
+            bytes32 greedyTokensBloomFilter = GREEDY_TOKENS_BLOOM_FILTER;
 
             // Store some vars in memory to get around stack limits.
             assembly {
@@ -125,6 +136,8 @@ contract UniswapFeature is
                 mstore(0xA40, weth)
                 // mload(0xA60) == ALLOWANCE_TARGET
                 mstore(0xA60, allowanceTarget)
+                // mload(0xA80) == GREEDY_TOKENS_BLOOM_FILTER
+                mstore(0xA80, greedyTokensBloomFilter)
             }
         }
 
@@ -155,52 +168,10 @@ contract UniswapFeature is
 
                 if iszero(i) {
                     switch eq(sellToken, ETH_TOKEN_ADDRESS_32)
-                        case 0 {
+                        case 0 { // Not selling ETH. Selling an ERC20 instead.
                             // For the first pair we need to transfer sellTokens into the
                             // pair contract.
-                            mstore(0xB00, TRANSFER_FROM_CALL_SELECTOR_32)
-                            mstore(0xB04, caller())
-                            mstore(0xB24, pair)
-                            mstore(0xB44, sellAmount)
-
-                            // Copy only the first 32 bytes of return data. We
-                            // only care about reading a boolean in the success
-                            // case, and we discard the return data in the
-                            // failure case.
-                            let success := call(gas(), sellToken, 0, 0xB00, 0x64, 0xC00, 0x20)
-
-                            let rdsize := returndatasize()
-
-                            // Check for ERC20 success. ERC20 tokens should
-                            // return a boolean, but some return nothing or
-                            // extra data. We accept 0-length return data as
-                            // success, or at least 32 bytes that starts with
-                            // a 32-byte boolean true.
-                            success := and(
-                                success,                         // call itself succeeded
-                                or(
-                                    iszero(rdsize),              // no return data, or
-                                    and(
-                                        iszero(lt(rdsize, 32)),  // at least 32 bytes
-                                        eq(mload(0xC00), 1)      // starts with uint256(1)
-                                    )
-                                )
-                            )
-
-                            if iszero(success) {
-                                // Try to fall back to the allowance target.
-                                mstore(0xB00, ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32)
-                                mstore(0xB04, sellToken)
-                                mstore(0xB24, 0x40)
-                                mstore(0xB44, 0x64)
-                                mstore(0xB64, TRANSFER_FROM_CALL_SELECTOR_32)
-                                mstore(0xB68, caller())
-                                mstore(0xB88, pair)
-                                mstore(0xBA8, sellAmount)
-                                if iszero(call(gas(), mload(0xA60), 0, 0xB00, 0xC8, 0x00, 0x0)) {
-                                    bubbleRevert()
-                                }
-                            }
+                            moveTakerTokensTo(sellToken, pair, sellAmount)
                         }
                         default {
                             // If selling ETH, we need to wrap it to WETH and transfer to the
@@ -388,6 +359,108 @@ contract UniswapFeature is
             function bubbleRevert() {
                 returndatacopy(0, 0, returndatasize())
                 revert(0, returndatasize())
+            }
+
+            // Move `amount` tokens from the taker/caller to `to`.
+            function moveTakerTokensTo(token, to, amount) {
+
+                // If the token is possibly greedy, we check the allowance rather
+                // than relying on letting the transferFrom() call fail and
+                // falling through to legacy allowance target because the token
+                // will eat all our gas.
+                if isTokenPossiblyGreedy(token) {
+                    // Check if we have enough direct allowance by calling
+                    // `token.allowance()``
+                    mstore(0xB00, ALLOWANCE_CALL_SELECTOR_32)
+                    mstore(0xB04, caller())
+                    mstore(0xB24, address())
+                    let success := call(gas(), token, 0, 0xB00, 0x44, 0xC00, 0x20)
+                    if iszero(success) {
+                        // Call to allowance() failed.
+                        bubbleRevert()
+                    }
+                    // Call succeeded.
+                    // Result is stored in 0xC00-0xC20.
+                    if lt(mload(0xC00), amount) {
+                        // We don't have enough direct allowance, so try
+                        // going through the legacy allowance taregt.
+                        moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount)
+                        leave
+                    }
+                }
+
+                // Otherwise we will optimistically try to perform a `transferFrom()`
+                // directly then if it fails we will go through the legacy allowance target.
+                mstore(0xB00, TRANSFER_FROM_CALL_SELECTOR_32)
+                mstore(0xB04, caller())
+                mstore(0xB24, to)
+                mstore(0xB44, amount)
+
+                let success := call(
+                    // Cap the gas limit to prvent all gas being consumed
+                    // if the token reverts.
+                    gas(),
+                    token,
+                    0,
+                    0xB00,
+                    0x64,
+                    0xC00,
+                    // Copy only the first 32 bytes of return data. We
+                    // only care about reading a boolean in the success
+                    // case, and we discard the return data in the
+                    // failure case.
+                    0x20
+                )
+
+                let rdsize := returndatasize()
+
+                // Check for ERC20 success. ERC20 tokens should
+                // return a boolean, but some return nothing or
+                // extra data. We accept 0-length return data as
+                // success, or at least 32 bytes that starts with
+                // a 32-byte boolean true.
+                success := and(
+                    success,                         // call itself succeeded
+                    or(
+                        iszero(rdsize),              // no return data, or
+                        and(
+                            iszero(lt(rdsize, 32)),  // at least 32 bytes
+                            eq(mload(0xC00), 1)      // starts with uint256(1)
+                        )
+                    )
+                )
+
+                if iszero(success) {
+                    // Try to fall back to the allowance target.
+                    moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount)
+                }
+            }
+
+            // Move tokens by going through the legacy allowance target contract.
+            function moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount) {
+                mstore(0xB00, ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32)
+                mstore(0xB04, token)
+                mstore(0xB24, 0x40)
+                mstore(0xB44, 0x64)
+                mstore(0xB64, TRANSFER_FROM_CALL_SELECTOR_32)
+                mstore(0xB68, caller())
+                mstore(0xB88, to)
+                mstore(0xBA8, amount)
+                if iszero(call(gas(), mload(0xA60), 0, 0xB00, 0xC8, 0x00, 0x0)) {
+                    bubbleRevert()
+                }
+                // If this fall back failed, the swap will most likely fail
+                // so there's no need to validate the result.
+            }
+
+            // Checks if a token possibly belongs to the GREEDY_TOKENS_BLOOM_FILTER
+            // bloom filter.
+            function isTokenPossiblyGreedy(token) -> isPossiblyGreedy {
+                // The hash is given by:
+                // (1 << (keccak256(token) % 256)) | (1 << (token % 256))
+                mstore(0, token)
+                let h := or(shl(mod(keccak256(0, 32), 256), 1), shl(mod(token, 256), 1))
+                isPossiblyGreedy := eq(and(h, mload(0xA80)), h)
             }
         }
 
