@@ -11,6 +11,7 @@ import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { Signature } from '../../src/signature_utils';
 import { generateCallDataSignature, signCallData } from '../../src/signed_call_data';
 import { IZeroExContract, MetaTransactionsFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
@@ -71,6 +72,15 @@ blockchainTests.resets('MetaTransactions feature', env => {
         );
     });
 
+    function sigstruct(signature: string): Signature {
+        return {
+            v: parseInt(hexUtils.slice(signature, 0, 1), 16),
+            signatureType: parseInt(hexUtils.slice(signature, 65, 66), 16),
+            r: hexUtils.slice(signature, 1, 33),
+            s: hexUtils.slice(signature, 33, 65),
+        };
+    }
+
     function getRandomMetaTransaction(
         fields: Partial<ExchangeProxyMetaTransaction> = {},
     ): ExchangeProxyMetaTransaction {
@@ -93,11 +103,13 @@ blockchainTests.resets('MetaTransactions feature', env => {
         };
     }
 
-    async function signMetaTransactionAsync(mtx: ExchangeProxyMetaTransaction, signer?: string): Promise<string> {
-        return signatureUtils.ecSignHashAsync(
-            env.provider,
-            getExchangeProxyMetaTransactionHash(mtx),
-            signer || mtx.signer,
+    async function signMetaTransactionAsync(mtx: ExchangeProxyMetaTransaction, signer?: string): Promise<Signature> {
+        return sigstruct(
+            await signatureUtils.ecSignHashAsync(
+                env.provider,
+                getExchangeProxyMetaTransactionHash(mtx),
+                signer || mtx.signer,
+            ),
         );
     }
 
@@ -461,15 +473,11 @@ blockchainTests.resets('MetaTransactions feature', env => {
             };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
             return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionInvalidSignatureError(
+                new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
+                    ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
                     mtxHash,
-                    signature,
-                    new ZeroExRevertErrors.SignatureValidator.SignatureValidationError(
-                        ZeroExRevertErrors.SignatureValidator.SignatureValidationErrorCodes.WrongSigner,
-                        mtxHash,
-                        signers[0],
-                        signature,
-                    ).encode(),
+                    signers[0],
+                    '0x',
                 ),
             );
         });

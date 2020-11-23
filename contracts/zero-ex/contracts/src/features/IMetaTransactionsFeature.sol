@@ -20,11 +20,10 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-
+import "./libs/LibSignature.sol";
 
 /// @dev Meta-transactions feature.
 interface IMetaTransactionsFeature {
-
     /// @dev Describes an exchange proxy meta transaction.
     struct MetaTransactionData {
         // Signer of meta-transaction. On whose behalf to execute the MTX.
@@ -68,7 +67,7 @@ interface IMetaTransactionsFeature {
     /// @return returnResult The ABI-encoded result of the underlying call.
     function executeMetaTransaction(
         MetaTransactionData calldata mtx,
-        bytes calldata signature
+        LibSignature.Signature calldata signature
     )
         external
         payable
@@ -80,7 +79,7 @@ interface IMetaTransactionsFeature {
     /// @return returnResults The ABI-encoded results of the underlying calls.
     function batchExecuteMetaTransactions(
         MetaTransactionData[] calldata mtxs,
-        bytes[] calldata signatures
+        LibSignature.Signature[] calldata signatures
     )
         external
         payable
@@ -88,14 +87,14 @@ interface IMetaTransactionsFeature {
 
     /// @dev Execute a meta-transaction via `sender`. Privileged variant.
     ///      Only callable from within.
-    /// @param sender Who is executing the meta-transaction..
+    /// @param sender Who is executing the meta-transaction.
     /// @param mtx The meta-transaction.
     /// @param signature The signature by `mtx.signer`.
     /// @return returnResult The ABI-encoded result of the underlying call.
     function _executeMetaTransaction(
         address sender,
-        MetaTransactionData calldata mtx,
-        bytes calldata signature
+        MetaTransactionData memory mtx,
+        LibSignature.Signature memory signature
     )
         external
         payable

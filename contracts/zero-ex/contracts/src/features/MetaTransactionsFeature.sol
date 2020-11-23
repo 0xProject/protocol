@@ -32,6 +32,7 @@ import "../storage/LibMetaTransactionsStorage.sol";
 import "./libs/LibSignedCallData.sol";
 import "./IMetaTransactionsFeature.sol";
 import "./ITransformERC20Feature.sol";
+import "./libs/LibSignature.sol";
 import "./ISignatureValidatorFeature.sol";
 import "./IFeature.sol";
 
@@ -47,8 +48,8 @@ contract MetaTransactionsFeature is
     using LibBytesV06 for bytes;
     using LibRichErrorsV06 for bytes;
 
-    /// @dev Intermediate state vars used by `_executeMetaTransactionPrivate()`
-    ///      to avoid stack overflows.
+
+    /// @dev Describes the state of a meta transaction.
     struct ExecuteState {
         // Sender of the meta-transaction.
         address sender;
@@ -57,7 +58,7 @@ contract MetaTransactionsFeature is
         // The meta-transaction data.
         MetaTransactionData mtx;
         // The meta-transaction signature (by `mtx.signer`).
-        bytes signature;
+        LibSignature.Signature signature;
         // The selector of the function being called.
         bytes4 selector;
         // The ETH balance of this contract before performing the call.
@@ -136,7 +137,7 @@ contract MetaTransactionsFeature is
     /// @return returnResult The ABI-encoded result of the underlying call.
     function executeMetaTransaction(
         MetaTransactionData memory mtx,
-        bytes memory signature
+        LibSignature.Signature memory signature
     )
         public
         payable
@@ -145,11 +146,13 @@ contract MetaTransactionsFeature is
         refundsAttachedEth
         returns (bytes memory returnResult)
     {
-        returnResult = _executeMetaTransactionPrivate(
-            msg.sender,
-            mtx,
-            signature
-        );
+        ExecuteState memory state;
+        state.sender = msg.sender;
+        state.mtx = mtx;
+        state.hash = getMetaTransactionHash(mtx);
+        state.signature = signature;
+
+        returnResult = _executeMetaTransactionPrivate(state);
     }
 
     /// @dev Execute multiple meta-transactions.
@@ -158,7 +161,7 @@ contract MetaTransactionsFeature is
     /// @return returnResults The ABI-encoded results of the underlying calls.
     function batchExecuteMetaTransactions(
         MetaTransactionData[] memory mtxs,
-        bytes[] memory signatures
+        LibSignature.Signature[] memory signatures
     )
         public
         payable
@@ -175,11 +178,13 @@ contract MetaTransactionsFeature is
         }
         returnResults = new bytes[](mtxs.length);
         for (uint256 i = 0; i < mtxs.length; ++i) {
-            returnResults[i] = _executeMetaTransactionPrivate(
-                msg.sender,
-                mtxs[i],
-                signatures[i]
-            );
+            ExecuteState memory state;
+            state.sender = msg.sender;
+            state.mtx = mtxs[i];
+            state.hash = getMetaTransactionHash(mtxs[i]);
+            state.signature = signatures[i];
+
+            returnResults[i] = _executeMetaTransactionPrivate(state);
         }
     }
 
@@ -192,7 +197,7 @@ contract MetaTransactionsFeature is
     function _executeMetaTransaction(
         address sender,
         MetaTransactionData memory mtx,
-        bytes memory signature
+        LibSignature.Signature memory signature
     )
         public
         payable
@@ -200,7 +205,13 @@ contract MetaTransactionsFeature is
         onlySelf
         returns (bytes memory returnResult)
     {
-        return _executeMetaTransactionPrivate(sender, mtx, signature);
+        ExecuteState memory state;
+        state.sender = sender;
+        state.mtx = mtx;
+        state.hash = getMetaTransactionHash(mtx);
+        state.signature = signature;
+
+        return _executeMetaTransactionPrivate(state);
     }
 
     /// @dev Get the block at which a meta-transaction has been executed.
@@ -252,24 +263,13 @@ contract MetaTransactionsFeature is
     }
 
     /// @dev Execute a meta-transaction by `sender`. Low-level, hidden variant.
-    /// @param sender Who is executing the meta-transaction..
-    /// @param mtx The meta-transaction.
-    /// @param signature The signature by `mtx.signer`.
+    /// @param state The `ExecuteState` for this metatransaction, with `sender`,
+    ///              `hash`, `mtx`, and `signature` fields filled.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function _executeMetaTransactionPrivate(
-        address sender,
-        MetaTransactionData memory mtx,
-        bytes memory signature
-    )
+    function _executeMetaTransactionPrivate(ExecuteState memory state)
         private
         returns (bytes memory returnResult)
     {
-        ExecuteState memory state;
-        state.sender = sender;
-        state.hash = getMetaTransactionHash(mtx);
-        state.mtx = mtx;
-        state.signature = signature;
-
         _validateMetaTransaction(state);
 
         // Mark the transaction executed by storing the block at which it was executed.
@@ -279,17 +279,17 @@ contract MetaTransactionsFeature is
             .mtxHashToExecutedBlockNumber[state.hash] = block.number;
 
         // Pay the fee to the sender.
-        if (mtx.feeAmount > 0) {
+        if (state.mtx.feeAmount > 0) {
             _transferERC20Tokens(
-                mtx.feeToken,
-                mtx.signer,
-                sender,
-                mtx.feeAmount
+                state.mtx.feeToken,
+                state.mtx.signer,
+                state.sender,
+                state.mtx.feeAmount
             );
         }
 
         // Execute the call based on the selector.
-        state.selector = mtx.callData.readBytes4(0);
+        state.selector = state.mtx.callData.readBytes4(0);
         if (state.selector == ITransformERC20Feature.transformERC20.selector) {
             returnResult = _executeTransformERC20Call(state);
         } else {
@@ -300,8 +300,8 @@ contract MetaTransactionsFeature is
         emit MetaTransactionExecuted(
             state.hash,
             state.selector,
-            mtx.signer,
-            mtx.sender
+            state.mtx.signer,
+            state.mtx.sender
         );
     }
 
@@ -348,18 +348,17 @@ contract MetaTransactionsFeature is
                     state.mtx.value
                 ).rrevert();
         }
-        // Must be signed by signer.
-        try
-            ISignatureValidatorFeature(address(this))
-                .validateHashSignature(state.hash, state.mtx.signer, state.signature)
-        {}
-        catch (bytes memory err) {
-            LibMetaTransactionsRichErrors
-                .MetaTransactionInvalidSignatureError(
-                    state.hash,
-                    state.signature,
-                    err
-                ).rrevert();
+
+        if (LibSignature.getSignerOfHash(state.hash, state.signature) !=
+                state.mtx.signer) {
+            LibSignatureRichErrors.SignatureValidationError(
+                LibSignatureRichErrors.SignatureValidationErrorCodes.WRONG_SIGNER,
+                state.hash,
+                state.mtx.signer,
+                // TODO: Remove this field from SignatureValidationError
+                //       when rich reverts are part of the protocol repo.
+                ""
+            ).rrevert();
         }
         // Transaction must not have been already executed.
         state.executedBlockNumber = LibMetaTransactionsStorage

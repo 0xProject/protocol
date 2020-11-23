@@ -6,6 +6,7 @@ import {
     artifacts as exchangeProxyArtifacts,
     IZeroExContract,
     LogMetadataTransformerContract,
+    Signature,
     signCallData,
 } from '@0x/contracts-zero-ex';
 import { migrateOnceAsync } from '@0x/migrations';
@@ -24,6 +25,15 @@ import { BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 
 const { MAX_UINT256, NULL_ADDRESS, NULL_BYTES, NULL_BYTES32, ZERO_AMOUNT } = constants;
+
+function sigstruct(signature: string): Signature {
+    return {
+        v: parseInt(hexUtils.slice(signature, 0, 1), 16),
+        signatureType: parseInt(hexUtils.slice(signature, 65, 66), 16),
+        r: hexUtils.slice(signature, 1, 33),
+        s: hexUtils.slice(signature, 33, 65),
+    };
+}
 
 blockchainTests.resets('exchange proxy - meta-transactions', env => {
     const quoteSignerKey = hexUtils.random();
@@ -240,7 +250,7 @@ blockchainTests.resets('exchange proxy - meta-transactions', env => {
         const mtx = await createMetaTransactionAsync(signedSwapData, _protocolFee, 0);
         const relayerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(relayer);
         const receipt = await zeroEx
-            .executeMetaTransaction(mtx, mtx.signature)
+            .executeMetaTransaction(mtx, sigstruct(mtx.signature))
             .awaitTransactionSuccessAsync({ from: relayer, value: mtx.value, gasPrice: GAS_PRICE });
         const relayerEthRefund = relayerEthBalanceBefore
             .minus(await env.web3Wrapper.getBalanceInWeiAsync(relayer))
@@ -276,7 +286,7 @@ blockchainTests.resets('exchange proxy - meta-transactions', env => {
         const mtx = await createMetaTransactionAsync(signedSwapData, _protocolFee);
         const relayerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(relayer);
         const receipt = await zeroEx
-            .executeMetaTransaction(mtx, mtx.signature)
+            .executeMetaTransaction(mtx, sigstruct(mtx.signature))
             .awaitTransactionSuccessAsync({ from: relayer, value: mtx.value, gasPrice: GAS_PRICE });
         const relayerEthRefund = relayerEthBalanceBefore
             .minus(await env.web3Wrapper.getBalanceInWeiAsync(relayer))
@@ -311,7 +321,7 @@ blockchainTests.resets('exchange proxy - meta-transactions', env => {
         const mtx = await createMetaTransactionAsync(signedSwapData, _protocolFee);
         const relayerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(relayer);
         const receipt = await zeroEx
-            .executeMetaTransaction(mtx, mtx.signature)
+            .executeMetaTransaction(mtx, sigstruct(mtx.signature))
             .awaitTransactionSuccessAsync({ from: relayer, value: mtx.value, gasPrice: GAS_PRICE });
         const relayerEthRefund = relayerEthBalanceBefore
             .minus(await env.web3Wrapper.getBalanceInWeiAsync(relayer))
@@ -348,7 +358,7 @@ blockchainTests.resets('exchange proxy - meta-transactions', env => {
         const mtx = await createMetaTransactionAsync(signedSwapData, _protocolFee, 0);
         const relayerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(relayer);
         const receipt = await zeroEx
-            .executeMetaTransaction(mtx, mtx.signature)
+            .executeMetaTransaction(mtx, sigstruct(mtx.signature))
             .awaitTransactionSuccessAsync({ from: relayer, value: mtx.value, gasPrice: GAS_PRICE });
         const relayerEthRefund = relayerEthBalanceBefore
             .minus(await env.web3Wrapper.getBalanceInWeiAsync(relayer))
@@ -385,7 +395,7 @@ blockchainTests.resets('exchange proxy - meta-transactions', env => {
         const relayerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(relayer);
         await zeroEx.setQuoteSigner(NULL_ADDRESS).awaitTransactionSuccessAsync({ from: owner });
         const receipt = await zeroEx
-            .executeMetaTransaction(mtx, mtx.signature)
+            .executeMetaTransaction(mtx, sigstruct(mtx.signature))
             .awaitTransactionSuccessAsync({ from: relayer, value: mtx.value, gasPrice: GAS_PRICE });
         const relayerEthRefund = relayerEthBalanceBefore
             .minus(await env.web3Wrapper.getBalanceInWeiAsync(relayer))
@@ -419,7 +429,7 @@ blockchainTests.resets('exchange proxy - meta-transactions', env => {
         const _protocolFee = protocolFee.times(GAS_PRICE).times(swap.orders.length + 1); // Pay a little more fee than needed.
         const mtx = await createMetaTransactionAsync(callData, _protocolFee, 0);
         const tx = zeroEx
-            .executeMetaTransaction(mtx, mtx.signature)
+            .executeMetaTransaction(mtx, sigstruct(mtx.signature))
             .awaitTransactionSuccessAsync({ from: relayer, value: mtx.value, gasPrice: GAS_PRICE });
         return expect(tx).to.revertWith(new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError());
     });

@@ -52,6 +52,8 @@ contract TestMetaTransactionsTransformERC20Feature is
         }
 
         if (msg.value == 777) {
+            LibSignature.Signature memory signature;
+
             // Try to reenter `executeMetaTransaction()`
             IMetaTransactionsFeature(address(this)).executeMetaTransaction(
                 IMetaTransactionsFeature.MetaTransactionData({
@@ -66,7 +68,7 @@ contract TestMetaTransactionsTransformERC20Feature is
                     feeToken: IERC20TokenV06(0),
                     feeAmount: 0
                 }),
-                ""
+                signature
             );
         }
 
@@ -74,7 +76,7 @@ contract TestMetaTransactionsTransformERC20Feature is
             // Try to reenter `batchExecuteMetaTransactions()`
             IMetaTransactionsFeature.MetaTransactionData[] memory mtxs =
                 new IMetaTransactionsFeature.MetaTransactionData[](1);
-            bytes[] memory signatures = new bytes[](1);
+            LibSignature.Signature[] memory signatures = new LibSignature.Signature[](1);
             mtxs[0] = IMetaTransactionsFeature.MetaTransactionData({
                 signer: address(0),
                 sender: address(0),
@@ -87,7 +89,6 @@ contract TestMetaTransactionsTransformERC20Feature is
                 feeToken: IERC20TokenV06(0),
                 feeAmount: 0
             });
-            signatures[0] = "";
             IMetaTransactionsFeature(address(this)).batchExecuteMetaTransactions(
                 mtxs,
                 signatures
