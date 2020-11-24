@@ -214,13 +214,19 @@ contract TransformERC20Feature is
         private
         returns (uint256 outputTokenAmount)
     {
-        // If the input token amount is -1, transform the taker's entire
-        // spendable balance.
+        // If the input token amount is -1 and we are not selling ETH,
+        // transform the taker's entire spendable balance.
         if (args.inputTokenAmount == uint256(-1)) {
-            args.inputTokenAmount = _getSpendableERC20BalanceOf(
-                args.inputToken,
-                args.taker
-            );
+            if (LibERC20Transformer.isTokenETH(args.inputToken)) {
+                // We can't pull more ETH from the taker, so we just set the
+                // input token amount to the value attached to the call.
+                args.inputTokenAmount = msg.value;
+            } else {
+                args.inputTokenAmount = _getSpendableERC20BalanceOf(
+                    args.inputToken,
+                    args.taker
+                );
+            }
         }
 
         TransformERC20PrivateState memory state;

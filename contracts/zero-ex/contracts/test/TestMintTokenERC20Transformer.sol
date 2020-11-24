@@ -60,11 +60,17 @@ contract TestMintTokenERC20Transformer is
             context.sender,
             context.taker,
             context.data,
-            data.inputToken.balanceOf(address(this)),
+            LibERC20Transformer.isTokenETH(data.inputToken)
+                ? address(this).balance
+                : data.inputToken.balanceOf(address(this)),
             address(this).balance
         );
         // "Burn" input tokens.
-        data.inputToken.transfer(address(0), data.burnAmount);
+        if (LibERC20Transformer.isTokenETH(data.inputToken)) {
+            address(0).transfer(data.burnAmount);
+        } else {
+            data.inputToken.transfer(address(0), data.burnAmount);
+        }
         // Mint output tokens.
         if (LibERC20Transformer.isTokenETH(IERC20TokenV06(address(data.outputToken)))) {
             context.taker.transfer(data.mintAmount);
