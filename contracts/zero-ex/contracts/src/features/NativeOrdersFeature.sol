@@ -146,6 +146,7 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.getLimitOrderHash.selector);
         _registerFeatureFunction(this.getRfqOrderHash.selector);
         _registerFeatureFunction(this.getProtocolFeeMultiplier.selector);
+        _registerFeatureFunction(this.registerAllowedRfqOrigin.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -554,6 +555,25 @@ contract NativeOrdersFeature is
         );
     }
 
+    /// @dev Mark what tx.origin addresses are allowed to fill an order that
+    ///      specifies the message sender as its txOrigin.
+    /// @param origin The origin to update.
+    /// @param allowed True to register, false to unregister.
+    function registerAllowedRfqOrigin(
+        address origin,
+        bool allowed
+    )
+        external
+        override
+    {
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
+
+        stor.originRegistry[msg.sender][origin] = allowed;
+
+        emit RfqOrderOriginAllowed(msg.sender, origin, allowed);
+    }
+
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
@@ -864,13 +884,18 @@ contract NativeOrdersFeature is
             ).rrevert();
         }
 
-        // Must be fillable by the tx.origin.
-        if (order.txOrigin != address(0) && order.txOrigin != tx.origin) {
-            LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
-                orderInfo.orderHash,
-                tx.origin,
-                order.txOrigin
-            ).rrevert();
+        {
+            LibNativeOrdersStorage.Storage storage stor =
+                LibNativeOrdersStorage.getStorage();
+
+            // Must be fillable by the tx.origin.
+            if (order.txOrigin != tx.origin && !stor.originRegistry[order.txOrigin][tx.origin]) {
+                LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
+                    orderInfo.orderHash,
+                    tx.origin,
+                    order.txOrigin
+                ).rrevert();
+            }
         }
 
         // Signature must be valid for the order.

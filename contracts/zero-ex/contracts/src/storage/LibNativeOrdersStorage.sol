@@ -39,6 +39,9 @@ library LibNativeOrdersStorage {
         // for RFQ orders.
         mapping(address => mapping(address => mapping(address => uint256)))
             rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
+        // For a given order origin, which tx.origin addresses are allowed to
+        // fill the order.
+        mapping(address => mapping(address => bool)) originRegistry;
     }
 
     /// @dev Get the storage bucket for this contract.

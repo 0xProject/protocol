@@ -91,6 +91,17 @@ interface INativeOrdersFeature {
         uint256 minValidSalt
     );
 
+    /// @dev Emitted when a new address is registered or unregistered to fill
+    ///      orders with a given txOrigin.
+    /// @param origin The address doing the registration.
+    /// @param addr The address being registered.
+    /// @param allowed Indicates whether the address should be allowed.
+    event RfqOrderOriginAllowed(
+        address origin,
+        address addr,
+        bool allowed
+    );
+
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
     ///      the staking contract.
     /// @param poolIds Staking pool IDs
@@ -215,6 +226,13 @@ interface INativeOrdersFeature {
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
     function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order)
+        external;
+
+    /// @dev Mark what tx.origin addresses are allowed to fill an order that
+    ///      specifies the message sender as its txOrigin.
+    /// @param origin The origin to update.
+    /// @param allowed True to register, false to unregister.
+    function registerAllowedRfqOrigin(address origin, bool allowed)
         external;
 
     /// @dev Cancel multiple limit orders. The caller must be the maker.

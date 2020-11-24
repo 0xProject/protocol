@@ -29,6 +29,10 @@
             {
                 "note": "Add metatransaction support for limit orders",
                 "pr": 44
+            },
+            {
+                "note": "Require RFQ orders to specify a transaction origin, and allow approved alternative addresses",
+                "pr": 47
             }
         ]
     },
