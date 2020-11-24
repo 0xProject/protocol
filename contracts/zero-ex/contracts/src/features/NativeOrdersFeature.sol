@@ -570,6 +570,8 @@ contract NativeOrdersFeature is
             LibNativeOrdersStorage.getStorage();
 
         stor.originRegistry[msg.sender][origin] = allowed;
+
+        emit OriginAllowed(msg.sender, origin, allowed);
     }
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less

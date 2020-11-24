@@ -91,6 +91,17 @@ interface INativeOrdersFeature {
         uint256 minValidSalt
     );
 
+    /// @dev Emitted when a new address is registered or unregistered to fill
+    ///      orders with a given txOrigin.
+    /// @param origin The address doing the registration.
+    /// @param addr The address being registered.
+    /// @param allowed Indicates whether the address should be allowed.
+    event OriginAllowed(
+        address origin,
+        address addr,
+        bool allowed
+    );
+
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
     ///      the staking contract.
     /// @param poolIds Staking pool IDs
