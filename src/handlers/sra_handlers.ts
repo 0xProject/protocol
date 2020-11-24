@@ -64,8 +64,9 @@ export class SRAHandlers {
     }
     public async ordersAsync(req: express.Request, res: express.Response): Promise<void> {
         schemaUtils.validateSchema(req.query, apiSchemas.sraGetOrdersRequestSchema);
+        const isUnfillable = req.query.unfillable ? req.query.unfillable === 'true' : false;
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
-        const paginatedOrders = await this._orderBook.getOrdersAsync(page, perPage, req.query);
+        const paginatedOrders = await this._orderBook.getOrdersAsync(page, perPage, { ...req.query, isUnfillable });
         res.status(HttpStatus.OK).send(paginatedOrders);
     }
     public async orderbookAsync(req: express.Request, res: express.Response): Promise<void> {

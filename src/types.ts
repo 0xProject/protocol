@@ -681,6 +681,6 @@ export interface SRAGetOrdersRequestOpts {
     takerAddress?: string;
     traderAddress?: string;
     feeRecipientAddress?: string;
-    unfillable?: boolean; // default false
+    isUnfillable?: boolean; // default false
 }
 // tslint:disable-line:max-file-line-count

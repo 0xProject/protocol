@@ -135,7 +135,7 @@ export class OrderBookService {
 
         // Join with persistent orders
         let persistentOrders: APIOrderWithMetaData[] = [];
-        if (ordersFilterParams.unfillable === true) {
+        if (ordersFilterParams.isUnfillable === true) {
             if (filterObject.makerAddress === undefined) {
                 throw new ValidationError([
                     {

@@ -171,7 +171,7 @@ describe(SUITE_NAME, () => {
             apiOrder.metaData.state = OrderEventEndState.Cancelled; // only unfillable orders are removed from SignedOrders but remain in PersistentOrders
             await savePersistentOrderAsync(apiOrder);
             const response = await orderBookService.getOrdersAsync(DEFAULT_PAGE, DEFAULT_PER_PAGE, {
-                unfillable: true,
+                isUnfillable: true,
                 makerAddress: apiOrder.order.makerAddress,
             });
             expect(response).to.deep.eq({
