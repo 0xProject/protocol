@@ -33,6 +33,10 @@
             {
                 "note": "Require RFQ orders to specify a transaction origin, and allow approved alternative addresses",
                 "pr": 47
+            },
+            {
+                "note": "Do not try to pull all tokens if selling all ETH in `TransformERC20Feature`",
+                "pr": 46
             }
         ]
     },

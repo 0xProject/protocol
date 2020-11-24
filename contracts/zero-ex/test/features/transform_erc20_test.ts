@@ -649,6 +649,82 @@ blockchainTests.resets('TransformERC20 feature', env => {
                 const { callDataHash: actualCallDataHash } = (receipt.logs[0] as MintTokenTransformerEvent).args;
                 expect(actualCallDataHash).to.eq(NULL_BYTES32);
             });
+
+            it('can sell entire taker balance', async () => {
+                const startingInputTokenBalance = getRandomInteger(0, '100e18');
+                await inputToken.mint(taker, startingInputTokenBalance).awaitTransactionSuccessAsync();
+                const minOutputTokenAmount = getRandomInteger(1, '1e18');
+                const outputTokenMintAmount = minOutputTokenAmount;
+                const callValue = getRandomInteger(1, '1e18');
+                const callDataHash = hexUtils.random();
+                const transformation = createMintTokenTransformation({
+                    outputTokenMintAmount,
+                    inputTokenBurnAmunt: startingInputTokenBalance,
+                });
+                const receipt = await feature
+                    ._transformERC20({
+                        taker,
+                        inputToken: inputToken.address,
+                        outputToken: outputToken.address,
+                        inputTokenAmount: MAX_UINT256,
+                        minOutputTokenAmount,
+                        transformations: [transformation],
+                        callDataHash,
+                        callDataSignature: NULL_BYTES,
+                    })
+                    .awaitTransactionSuccessAsync({ value: callValue });
+                verifyEventsFromLogs(
+                    receipt.logs,
+                    [
+                        {
+                            taker,
+                            inputTokenAmount: startingInputTokenBalance,
+                            outputTokenAmount: outputTokenMintAmount,
+                            inputToken: inputToken.address,
+                            outputToken: outputToken.address,
+                        },
+                    ],
+                    TransformERC20FeatureEvents.TransformedERC20,
+                );
+            });
+
+            it('can sell entire taker balance with ETH (but not really)', async () => {
+                const ethAttchedAmount = getRandomInteger(0, '100e18');
+                await inputToken.mint(taker, ethAttchedAmount).awaitTransactionSuccessAsync();
+                const minOutputTokenAmount = getRandomInteger(1, '1e18');
+                const outputTokenMintAmount = minOutputTokenAmount;
+                const callDataHash = hexUtils.random();
+                const transformation = createMintTokenTransformation({
+                    outputTokenMintAmount,
+                    inputTokenAddress: ETH_TOKEN_ADDRESS,
+                    inputTokenBurnAmunt: ethAttchedAmount,
+                });
+                const receipt = await feature
+                    ._transformERC20({
+                        taker,
+                        inputToken: ETH_TOKEN_ADDRESS,
+                        outputToken: outputToken.address,
+                        inputTokenAmount: MAX_UINT256,
+                        minOutputTokenAmount,
+                        transformations: [transformation],
+                        callDataHash,
+                        callDataSignature: NULL_BYTES,
+                    })
+                    .awaitTransactionSuccessAsync({ value: ethAttchedAmount });
+                verifyEventsFromLogs(
+                    receipt.logs,
+                    [
+                        {
+                            taker,
+                            inputTokenAmount: ethAttchedAmount,
+                            outputTokenAmount: outputTokenMintAmount,
+                            inputToken: ETH_TOKEN_ADDRESS,
+                            outputToken: outputToken.address,
+                        },
+                    ],
+                    TransformERC20FeatureEvents.TransformedERC20,
+                );
+            });
         });
 
         describe('transformERC20()', () => {
