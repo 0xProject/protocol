@@ -282,7 +282,7 @@ RFQ orders are a stripped down version of standard limit orders, supporting fewe
 
 Some notable differences from regular limit orders are:
 
-* The only fill restrictions that can be placed on an RFQ order is on the ``tx.origin`` of the transaction.
+* The only fill restrictions that can be placed on an RFQ order is on the ``tx.origin`` and ``taker`` of the transaction.
 * There are no taker token fees.
 
 Structure
@@ -302,6 +302,8 @@ The ``RFQOrder`` struct has the following fields:
 | ``takerAmount`` | ``uint128`` | The amount of takerToken being sold by the taker.                           |
 +-----------------+-------------+-----------------------------------------------------------------------------+
 | ``maker``       | ``address`` | The address of the maker, and signer, of this order.                        |
++-----------------+-------------+-----------------------------------------------------------------------------+
+| ``taker``       | ``address`` | Allowed taker address. Set to zero to allow any taker.                      |
 +-----------------+-------------+-----------------------------------------------------------------------------+
 | ``txOrigin``    | ``address`` | The allowed address of the EOA that submitted the Ethereum transaction.     |
 +-----------------+-------------+-----------------------------------------------------------------------------+
@@ -348,6 +350,7 @@ The hash of the order is used to uniquely identify an order inside the protocol.
                 'uint128 makerAmount,',
                 'uint128 takerAmount,',
                 'address maker,'
+                'address taker,'
                 'address txOrigin,'
                 'bytes32 pool,',
                 'uint64 expiry,',
@@ -359,6 +362,7 @@ The hash of the order is used to uniquely identify an order inside the protocol.
             order.makerAmount,
             order.takerAmount,
             order.maker,
+            order.taker,
             order.txOrigin,
             order.pool,
             order.expiry,

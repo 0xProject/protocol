@@ -87,7 +87,6 @@ contract TestMetaTransactionsNativeOrdersFeature is
     )
         public
         override
-        payable
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         emit FillRfqOrderCalled(

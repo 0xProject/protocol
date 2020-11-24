@@ -805,10 +805,8 @@ contract NativeOrdersFeature is
             }
         }
 
-        // Pay the protocol fee if this is an open-orderbook order (taker is not known).
-        if (params.order.taker == address(0)) {
-            results.ethProtocolFeePaid = _collectProtocolFee(params.order.pool);
-        }
+        // Pay the protocol fee.
+        results.ethProtocolFeePaid = _collectProtocolFee(params.order.pool);
 
         // Settle between the maker and taker.
         (results.takerTokenFilledAmount, results.makerTokenFilledAmount) = _settleOrder(
@@ -892,6 +890,15 @@ contract NativeOrdersFeature is
                     order.txOrigin
                 ).rrevert();
             }
+        }
+
+        // Must be fillable by the taker.
+        if (order.taker != address(0) && order.taker != taker) {
+            LibNativeOrdersRichErrors.OrderNotFillableByTakerError(
+                orderInfo.orderHash,
+                taker,
+                order.taker
+            ).rrevert();
         }
 
         // Signature must be valid for the order.

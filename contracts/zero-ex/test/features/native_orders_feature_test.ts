@@ -140,7 +140,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             ...opts,
         };
         await prepareBalancesForOrderAsync(order, _taker);
-        const _protocolFee = protocolFee || (order.taker !== NULL_ADDRESS ? 0 : SINGLE_PROTOCOL_FEE);
+        const _protocolFee = protocolFee === undefined ? SINGLE_PROTOCOL_FEE : protocolFee;
         return zeroEx
             .fillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), new BigNumber(fillAmount))
             .awaitTransactionSuccessAsync({ from: _taker, value: _protocolFee });
@@ -973,17 +973,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             return expect(tx).to.revertWith(new AnyRevertError());
         });
 
-        it('does not require a protocol fee if taker is supplied', async () => {
-            const order = getTestLimitOrder({ taker });
-            const receipt = await fillLimitOrderAsync(order);
-            verifyEventsFromLogs(
-                receipt.logs,
-                [createLimitOrderFilledEventArgs(order)],
-                IZeroExEvents.LimitOrderFilled,
-            );
-            await assertExpectedFinalBalancesFromLimitOrderFillAsync(order, { receipt });
-        });
-
         it('refunds excess protocol fee', async () => {
             const order = getTestLimitOrder();
             const receipt = await fillLimitOrderAsync(order, { protocolFee: SINGLE_PROTOCOL_FEE.plus(1) });
@@ -1212,6 +1201,14 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
                 new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, order.txOrigin),
+            );
+        });
+
+        it('non-taker cannot fill order', async () => {
+            const order = getTestRfqOrder({ taker });
+            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            return expect(tx).to.revertWith(
+                new RevertErrors.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
             );
         });
 

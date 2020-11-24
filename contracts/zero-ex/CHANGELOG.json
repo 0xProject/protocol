@@ -39,7 +39,7 @@
                 "pr": 46
             },
             {
-                "note": "Remove protocol fees from all RFQ orders and limit orders if taker is set",
+                "note": "Remove protocol fees from all RFQ orders and add `taker` field to RFQ orders",
                 "pr": 45
             }
         ]
