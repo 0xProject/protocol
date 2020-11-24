@@ -210,7 +210,6 @@ contract NativeOrdersFeature is
     )
         public
         override
-        payable
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         FillNativeOrderResults memory results =
@@ -220,7 +219,6 @@ contract NativeOrdersFeature is
                 takerTokenFillAmount,
                 msg.sender
             );
-        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount
@@ -280,7 +278,6 @@ contract NativeOrdersFeature is
     )
         public
         override
-        payable
         returns (uint128 makerTokenFilledAmount)
     {
         FillNativeOrderResults memory results =
@@ -298,7 +295,6 @@ contract NativeOrdersFeature is
                 takerTokenFillAmount
             ).rrevert();
         }
-        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
         makerTokenFilledAmount = results.makerTokenFilledAmount;
     }
 
@@ -359,7 +355,6 @@ contract NativeOrdersFeature is
         public
         virtual
         override
-        payable
         onlySelf
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
@@ -370,7 +365,6 @@ contract NativeOrdersFeature is
                 takerTokenFillAmount,
                 taker
             );
-        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount
@@ -898,6 +892,15 @@ contract NativeOrdersFeature is
             }
         }
 
+        // Must be fillable by the taker.
+        if (order.taker != address(0) && order.taker != taker) {
+            LibNativeOrdersRichErrors.OrderNotFillableByTakerError(
+                orderInfo.orderHash,
+                taker,
+                order.taker
+            ).rrevert();
+        }
+
         // Signature must be valid for the order.
         {
             address signer = LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
@@ -909,9 +912,6 @@ contract NativeOrdersFeature is
                 ).rrevert();
             }
         }
-
-        // Pay the protocol fee.
-        results.ethProtocolFeePaid = _collectProtocolFee(order.pool);
 
         // Settle between the maker and taker.
         (results.takerTokenFilledAmount, results.makerTokenFilledAmount) = _settleOrder(
@@ -936,7 +936,6 @@ contract NativeOrdersFeature is
             address(order.takerToken),
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount,
-            results.ethProtocolFeePaid,
             order.pool
         );
     }

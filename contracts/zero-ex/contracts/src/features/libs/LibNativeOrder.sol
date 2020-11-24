@@ -56,6 +56,7 @@ library LibNativeOrder {
         uint128 makerAmount;
         uint128 takerAmount;
         address maker;
+        address taker;
         address txOrigin;
         bytes32 pool;
         uint64 expiry;
@@ -102,13 +103,14 @@ library LibNativeOrder {
     //       "uint128 takerAmount,",
     //       "address maker,",
     //       "address txOrigin,",
+    //       "address taker,",
     //       "bytes32 pool,",
     //       "uint64 expiry,",
     //       "uint256 salt"
     //     ")"
     // ))
     uint256 private constant _RFQ_ORDER_TYPEHASH =
-        0xc6b3034376598bc7f28b05e81db7ed88486dcdb6b4a6c7300353fffc5f31f382;
+        0xe593d3fdfa8b60e5e17a1b2204662ecbe15c23f2084b9ad5bae40359540a7da9;
 
     /// @dev Get the struct hash of a limit order.
     /// @param order The limit order.
@@ -181,6 +183,7 @@ library LibNativeOrder {
         //   order.makerAmount,
         //   order.takerAmount,
         //   order.maker,
+        //   order.taker,
         //   order.txOrigin,
         //   order.pool,
         //   order.expiry,
@@ -199,15 +202,17 @@ library LibNativeOrder {
             mstore(add(mem, 0x80), and(UINT_128_MASK, mload(add(order, 0x60))))
             // order.maker;
             mstore(add(mem, 0xA0), and(ADDRESS_MASK, mload(add(order, 0x80))))
-            // order.txOrigin;
+            // order.taker;
             mstore(add(mem, 0xC0), and(ADDRESS_MASK, mload(add(order, 0xA0))))
+            // order.txOrigin;
+            mstore(add(mem, 0xE0), and(ADDRESS_MASK, mload(add(order, 0xC0))))
             // order.pool;
-            mstore(add(mem, 0xE0), mload(add(order, 0xC0)))
+            mstore(add(mem, 0x100), mload(add(order, 0xE0)))
             // order.expiry;
-            mstore(add(mem, 0x100), and(UINT_64_MASK, mload(add(order, 0xE0))))
+            mstore(add(mem, 0x120), and(UINT_64_MASK, mload(add(order, 0x100))))
             // order.salt;
-            mstore(add(mem, 0x120), mload(add(order, 0x100)))
-            structHash := keccak256(mem, 0x140)
+            mstore(add(mem, 0x140), mload(add(order, 0x120)))
+            structHash := keccak256(mem, 0x160)
         }
     }
 }

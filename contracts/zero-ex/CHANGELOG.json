@@ -37,6 +37,10 @@
             {
                 "note": "Do not try to pull all tokens if selling all ETH in `TransformERC20Feature`",
                 "pr": 46
+            },
+            {
+                "note": "Remove protocol fees from all RFQ orders and add `taker` field to RFQ orders",
+                "pr": 45
             }
         ]
     },

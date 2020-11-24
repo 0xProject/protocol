@@ -197,11 +197,12 @@ blockchainTests.resets('MetaTransactions feature', env => {
             const fillAmount = new BigNumber(23456);
             const mtx = getRandomMetaTransaction({
                 callData: nativeOrdersFeature.fillRfqOrder(order, sig, fillAmount).getABIEncodedTransactionData(),
+                value: ZERO_AMOUNT,
             });
             const signature = await signMetaTransactionAsync(mtx);
             const callOpts = {
                 gasPrice: mtx.minGasPrice,
-                value: mtx.value,
+                value: 0,
             };
             const rawResult = await feature.executeMetaTransaction(mtx, signature).callAsync(callOpts);
             expect(rawResult).to.eq(RAW_ORDER_SUCCESS_RESULT);

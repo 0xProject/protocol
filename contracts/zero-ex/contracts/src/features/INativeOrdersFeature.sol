@@ -56,7 +56,6 @@ interface INativeOrdersFeature {
     /// @param taker The taker of the order.
     /// @param takerTokenFilledAmount How much taker token was filled.
     /// @param makerTokenFilledAmount How much maker token was filled.
-    /// @param protocolFeePaid How much protocol fee was paid.
     /// @param pool The fee pool associated with this order.
     event RfqOrderFilled(
         bytes32 orderHash,
@@ -66,7 +65,6 @@ interface INativeOrdersFeature {
         address takerToken,
         uint128 takerTokenFilledAmount,
         uint128 makerTokenFilledAmount,
-        uint256 protocolFeePaid,
         bytes32 pool
     );
 
@@ -126,8 +124,7 @@ interface INativeOrdersFeature {
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for up to `takerTokenFillAmount` taker tokens.
-    ///      The taker will be the caller. ETH should be attached to pay the
-    ///      protocol fee.
+    ///      The taker will be the caller.
     /// @param order The RFQ order.
     /// @param signature The order signature.
     /// @param takerTokenFillAmount Maximum taker token amount to fill this order with.
@@ -139,7 +136,6 @@ interface INativeOrdersFeature {
         uint128 takerTokenFillAmount
     )
         external
-        payable
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
@@ -160,9 +156,7 @@ interface INativeOrdersFeature {
         returns (uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
-    ///      The taker will be the caller. ETH protocol fees can be
-    ///      attached to this call. Any unspent ETH will be refunded to
-    ///      the caller.
+    ///      The taker will be the caller.
     /// @param order The RFQ order.
     /// @param signature The order signature.
     /// @param takerTokenFillAmount How much taker token to fill this order with.
@@ -173,7 +167,6 @@ interface INativeOrdersFeature {
         uint128 takerTokenFillAmount
     )
         external
-        payable
         returns (uint128 makerTokenFilledAmount);
 
     /// @dev Fill a limit order. Internal variant. ETH protocol fees can be
@@ -197,9 +190,7 @@ interface INativeOrdersFeature {
         payable
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
-    /// @dev Fill an RFQ order. Internal variant. ETH protocol fees can be
-    ///      attached to this call. Any unspent ETH will be refunded to
-    ///      `msg.sender` (not `sender`).
+    /// @dev Fill an RFQ order. Internal variant.
     /// @param order The RFQ order.
     /// @param signature The order signature.
     /// @param takerTokenFillAmount Maximum taker token to fill this order with.
@@ -213,7 +204,6 @@ interface INativeOrdersFeature {
         address taker
     )
         external
-        payable
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Cancel a single limit order. The caller must be the maker.
