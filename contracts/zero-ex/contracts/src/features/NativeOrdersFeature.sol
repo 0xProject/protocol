@@ -146,7 +146,7 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.getLimitOrderHash.selector);
         _registerFeatureFunction(this.getRfqOrderHash.selector);
         _registerFeatureFunction(this.getProtocolFeeMultiplier.selector);
-        _registerFeatureFunction(this.registerAllowedOrigin.selector);
+        _registerFeatureFunction(this.registerAllowedRfqOrigin.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -559,7 +559,7 @@ contract NativeOrdersFeature is
     ///      specifies the message sender as its txOrigin.
     /// @param origin The origin to update.
     /// @param allowed True to register, false to unregister.
-    function registerAllowedOrigin(
+    function registerAllowedRfqOrigin(
         address origin,
         bool allowed
     )
@@ -571,7 +571,7 @@ contract NativeOrdersFeature is
 
         stor.originRegistry[msg.sender][origin] = allowed;
 
-        emit OriginAllowed(msg.sender, origin, allowed);
+        emit RfqOrderOriginAllowed(msg.sender, origin, allowed);
     }
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less

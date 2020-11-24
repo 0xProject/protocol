@@ -1120,7 +1120,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('can fill an order from a different tx.origin if registered', async () => {
             const order = getTestRfqOrder();
 
-            const receipt = await zeroEx.registerAllowedOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
+            const receipt = await zeroEx.registerAllowedRfqOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 receipt.logs,
                 [
@@ -1130,7 +1130,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                         allowed: true,
                     },
                 ],
-                IZeroExEvents.OriginAllowed,
+                IZeroExEvents.RfqOrderOriginAllowed,
             );
             return fillRfqOrderAsync(order, order.takerAmount, notTaker);
         });
@@ -1138,8 +1138,8 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('cannot fill an order with registered then unregistered tx.origin', async () => {
             const order = getTestRfqOrder();
 
-            await zeroEx.registerAllowedOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
-            const receipt = await zeroEx.registerAllowedOrigin(notTaker, false).awaitTransactionSuccessAsync({ from: taker });
+            await zeroEx.registerAllowedRfqOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
+            const receipt = await zeroEx.registerAllowedRfqOrigin(notTaker, false).awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 receipt.logs,
                 [
@@ -1149,7 +1149,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                         allowed: false,
                     },
                 ],
-                IZeroExEvents.OriginAllowed,
+                IZeroExEvents.RfqOrderOriginAllowed,
             );
 
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
