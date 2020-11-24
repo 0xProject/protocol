@@ -3,3 +3,4 @@ export { TransactionEntity } from './TransactionEntity';
 export { KeyValueEntity } from './KeyValueEntity';
 export { TransactionEntityOpts } from './types';
 export { PersistentSignedOrderEntity } from './PersistentSignedOrderEntity';
+export { MakerBalanceChainCacheEntity } from './MakerBalanceChainCacheEntity';

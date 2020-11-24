@@ -5,7 +5,7 @@ import { BigNumberTransformer } from './transformers';
 
 // A table of cached erc20 balances for RFQT market makers
 @Entity({ name: 'maker_balance_chain_cache' })
-export class MakerBalanceChainCache {
+export class MakerBalanceChainCacheEntity {
     @PrimaryColumn({ name: 'token_address', type: 'varchar' })
     public tokenAddress?: string;
 

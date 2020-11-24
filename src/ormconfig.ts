@@ -1,9 +1,21 @@
 import { ConnectionOptions } from 'typeorm';
 
 import { POSTGRES_READ_REPLICA_URIS, POSTGRES_URI } from './config';
-import { KeyValueEntity, PersistentSignedOrderEntity, SignedOrderEntity, TransactionEntity } from './entities';
+import {
+    KeyValueEntity,
+    MakerBalanceChainCacheEntity,
+    PersistentSignedOrderEntity,
+    SignedOrderEntity,
+    TransactionEntity,
+} from './entities';
 
-const entities = [SignedOrderEntity, PersistentSignedOrderEntity, TransactionEntity, KeyValueEntity];
+const entities = [
+    SignedOrderEntity,
+    PersistentSignedOrderEntity,
+    TransactionEntity,
+    KeyValueEntity,
+    MakerBalanceChainCacheEntity,
+];
 
 const config: ConnectionOptions = {
     type: 'postgres',
