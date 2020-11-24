@@ -104,6 +104,7 @@ import * as TestInitialMigration from '../test/generated-artifacts/TestInitialMi
 import * as TestLibNativeOrder from '../test/generated-artifacts/TestLibNativeOrder.json';
 import * as TestLibSignature from '../test/generated-artifacts/TestLibSignature.json';
 import * as TestLiquidityProvider from '../test/generated-artifacts/TestLiquidityProvider.json';
+import * as TestMetaTransactionsNativeOrdersFeature from '../test/generated-artifacts/TestMetaTransactionsNativeOrdersFeature.json';
 import * as TestMetaTransactionsTransformERC20Feature from '../test/generated-artifacts/TestMetaTransactionsTransformERC20Feature.json';
 import * as TestMigrator from '../test/generated-artifacts/TestMigrator.json';
 import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintableERC20Token.json';
@@ -237,6 +238,7 @@ export const artifacts = {
     TestLibNativeOrder: TestLibNativeOrder as ContractArtifact,
     TestLibSignature: TestLibSignature as ContractArtifact,
     TestLiquidityProvider: TestLiquidityProvider as ContractArtifact,
+    TestMetaTransactionsNativeOrdersFeature: TestMetaTransactionsNativeOrdersFeature as ContractArtifact,
     TestMetaTransactionsTransformERC20Feature: TestMetaTransactionsTransformERC20Feature as ContractArtifact,
     TestMigrator: TestMigrator as ContractArtifact,
     TestMintTokenERC20Transformer: TestMintTokenERC20Transformer as ContractArtifact,

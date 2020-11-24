@@ -25,6 +25,10 @@
             {
                 "note": "Convert metatransactions to use `LibSignature`",
                 "pr": 31
+            },
+            {
+                "note": "Add metatransaction support for limit orders",
+                "pr": 44
             }
         ]
     },

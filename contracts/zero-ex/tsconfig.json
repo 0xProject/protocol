@@ -129,6 +129,7 @@
         "test/generated-artifacts/TestLibNativeOrder.json",
         "test/generated-artifacts/TestLibSignature.json",
         "test/generated-artifacts/TestLiquidityProvider.json",
+        "test/generated-artifacts/TestMetaTransactionsNativeOrdersFeature.json",
         "test/generated-artifacts/TestMetaTransactionsTransformERC20Feature.json",
         "test/generated-artifacts/TestMigrator.json",
         "test/generated-artifacts/TestMintTokenERC20Transformer.json",

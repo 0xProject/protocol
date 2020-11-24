@@ -102,6 +102,7 @@ export * from '../test/generated-wrappers/test_initial_migration';
 export * from '../test/generated-wrappers/test_lib_native_order';
 export * from '../test/generated-wrappers/test_lib_signature';
 export * from '../test/generated-wrappers/test_liquidity_provider';
+export * from '../test/generated-wrappers/test_meta_transactions_native_orders_feature';
 export * from '../test/generated-wrappers/test_meta_transactions_transform_erc20_feature';
 export * from '../test/generated-wrappers/test_migrator';
 export * from '../test/generated-wrappers/test_mint_token_erc20_transformer';

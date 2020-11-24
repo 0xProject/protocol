@@ -35,6 +35,7 @@ import "./ITransformERC20Feature.sol";
 import "./libs/LibSignature.sol";
 import "./ISignatureValidatorFeature.sol";
 import "./IFeature.sol";
+import "./INativeOrdersFeature.sol";
 
 /// @dev MetaTransactions feature.
 contract MetaTransactionsFeature is
@@ -47,7 +48,6 @@ contract MetaTransactionsFeature is
 {
     using LibBytesV06 for bytes;
     using LibRichErrorsV06 for bytes;
-
 
     /// @dev Describes the state of a meta transaction.
     struct ExecuteState {
@@ -292,6 +292,10 @@ contract MetaTransactionsFeature is
         state.selector = state.mtx.callData.readBytes4(0);
         if (state.selector == ITransformERC20Feature.transformERC20.selector) {
             returnResult = _executeTransformERC20Call(state);
+        } else if (state.selector == INativeOrdersFeature.fillLimitOrder.selector) {
+            returnResult = _executeFillLimitOrderCall(state);
+        } else if (state.selector == INativeOrdersFeature.fillRfqOrder.selector) {
+            returnResult = _executeFillRfqOrderCall(state);
         } else {
             LibMetaTransactionsRichErrors
                 .MetaTransactionUnsupportedFunctionError(state.hash, state.selector)
@@ -448,6 +452,88 @@ contract MetaTransactionsFeature is
                     callDataHash: callDataHash,
                     callDataSignature: callDataSignature
               })
+            ),
+            state.mtx.value
+        );
+    }
+
+    /// @dev Extract arguments from call data by copying everything after the
+    ///      4-byte selector into a new byte array.
+    /// @param callData The call data from which arguments are to be extracted.
+    /// @return args The extracted arguments as a byte array.
+    function _extractArgumentsFromCallData(
+        bytes memory callData
+    )
+        private
+        pure
+        returns (bytes memory args)
+    {
+        args = new bytes(callData.length - 4);
+        uint256 fromMem;
+        uint256 toMem;
+
+        assembly {
+            fromMem := add(callData, 36) // skip length and 4-byte selector
+            toMem := add(args, 32)       // write after length prefix
+        }
+
+        LibBytesV06.memCopy(toMem, fromMem, args.length);
+
+        return args;
+    }
+
+    /// @dev Execute a `INativeOrdersFeature.fillLimitOrder()` meta-transaction call
+    ///      by decoding the call args and translating the call to the internal
+    ///      `INativeOrdersFeature._fillLimitOrder()` variant, where we can override
+    ///      the taker address.
+    function _executeFillLimitOrderCall(ExecuteState memory state)
+        private
+        returns (bytes memory returnResult)
+    {
+        LibNativeOrder.LimitOrder memory order;
+        LibSignature.Signature memory signature;
+        uint128 takerTokenFillAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (order, signature, takerTokenFillAmount) = abi.decode(args, (LibNativeOrder.LimitOrder, LibSignature.Signature, uint128));
+
+        return _callSelf(
+            state.hash,
+            abi.encodeWithSelector(
+                INativeOrdersFeature._fillLimitOrder.selector,
+                order,
+                signature,
+                takerTokenFillAmount,
+                state.mtx.signer, // taker is mtx signer
+                msg.sender
+            ),
+            state.mtx.value
+        );
+    }
+
+    /// @dev Execute a `INativeOrdersFeature.fillRfqOrder()` meta-transaction call
+    ///      by decoding the call args and translating the call to the internal
+    ///      `INativeOrdersFeature._fillRfqOrder()` variant, where we can overrideunimpleme
+    ///      the taker address.
+    function _executeFillRfqOrderCall(ExecuteState memory state)
+        private
+        returns (bytes memory returnResult)
+    {
+        LibNativeOrder.RfqOrder memory order;
+        LibSignature.Signature memory signature;
+        uint128 takerTokenFillAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (order, signature, takerTokenFillAmount) = abi.decode(args, (LibNativeOrder.RfqOrder, LibSignature.Signature, uint128));
+
+        return _callSelf(
+            state.hash,
+            abi.encodeWithSelector(
+                INativeOrdersFeature._fillRfqOrder.selector,
+                order,
+                signature,
+                takerTokenFillAmount,
+                state.mtx.signer // taker is mtx signer
             ),
             state.mtx.value
         );
