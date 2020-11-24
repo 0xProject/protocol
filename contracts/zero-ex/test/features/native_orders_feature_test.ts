@@ -1205,7 +1205,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         });
 
         it('non-taker cannot fill order', async () => {
-            const order = getTestRfqOrder({ taker });
+            const order = getTestRfqOrder({ taker, txOrigin: notTaker });
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
                 new RevertErrors.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
