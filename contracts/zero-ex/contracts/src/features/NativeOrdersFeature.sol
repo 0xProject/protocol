@@ -882,16 +882,18 @@ contract NativeOrdersFeature is
             ).rrevert();
         }
 
-        LibNativeOrdersStorage.Storage storage stor =
-            LibNativeOrdersStorage.getStorage();
+        {
+            LibNativeOrdersStorage.Storage storage stor =
+                LibNativeOrdersStorage.getStorage();
 
-        // Must be fillable by the tx.origin.
-        if (order.txOrigin != tx.origin && !stor.originRegistry[order.txOrigin][tx.origin]) {
-            LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
-                orderInfo.orderHash,
-                tx.origin,
-                order.txOrigin
-            ).rrevert();
+            // Must be fillable by the tx.origin.
+            if (order.txOrigin != tx.origin && !stor.originRegistry[order.txOrigin][tx.origin]) {
+                LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
+                    orderInfo.orderHash,
+                    tx.origin,
+                    order.txOrigin
+                ).rrevert();
+            }
         }
 
         // Signature must be valid for the order.
