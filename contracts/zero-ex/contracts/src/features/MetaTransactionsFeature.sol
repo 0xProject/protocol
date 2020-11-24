@@ -457,6 +457,31 @@ contract MetaTransactionsFeature is
         );
     }
 
+    /// @dev Extract arguments from call data by copying everything after the
+    ///      4-byte selector into a new byte array.
+    /// @param callData The call data from which arguments are to be extracted.
+    /// @return args The extracted arguments as a byte array.
+    function _extractArgumentsFromCallData(
+        bytes memory callData
+    )
+        private
+        pure
+        returns (bytes memory args)
+    {
+        args = new bytes(callData.length - 4);
+        uint256 fromMem;
+        uint256 toMem;
+
+        assembly {
+            fromMem := add(callData, 36) // skip length and 4-byte selector
+            toMem := add(args, 32)       // write after length prefix
+        }
+
+        LibBytesV06.memCopy(toMem, fromMem, args.length);
+
+        return args;
+    }
+
     /// @dev Execute a `INativeOrdersFeature.fillLimitOrder()` meta-transaction call
     ///      by decoding the call args and translating the call to the internal
     ///      `INativeOrdersFeature._fillLimitOrder()` variant, where we can override
@@ -469,16 +494,7 @@ contract MetaTransactionsFeature is
         LibSignature.Signature memory signature;
         uint128 takerTokenFillAmount;
 
-        bytes memory data = state.mtx.callData;
-        bytes memory args = new bytes(data.length - 4);
-        uint256 from;
-        uint256 to;
-        assembly {
-            from := add(data, 36) // skip length and selector
-            to := add(args, 32)   // after length
-        }
-        LibBytesV06.memCopy(to, from, data.length - 4);
-
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
         (order, signature, takerTokenFillAmount) = abi.decode(args, (LibNativeOrder.LimitOrder, LibSignature.Signature, uint128));
 
         return _callSelf(
@@ -507,16 +523,7 @@ contract MetaTransactionsFeature is
         LibSignature.Signature memory signature;
         uint128 takerTokenFillAmount;
 
-        bytes memory data = state.mtx.callData;
-        bytes memory args = new bytes(data.length - 4);
-        uint256 from;
-        uint256 to;
-        assembly {
-            from := add(data, 36) // skip length and selector
-            to := add(args, 32)   // after length
-        }
-        LibBytesV06.memCopy(to, from, data.length - 4);
-
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
         (order, signature, takerTokenFillAmount) = abi.decode(args, (LibNativeOrder.RfqOrder, LibSignature.Signature, uint128));
 
         return _callSelf(

@@ -27,14 +27,9 @@ contract TestMetaTransactionsNativeOrdersFeature is
     NativeOrdersFeature
 {
     constructor(
-        address zeroExAddress,
-        IEtherTokenV06 weth,
-        IStaking staking,
-        uint32 protocolFeeMultiplier,
-        bytes32 greedyTokensBloomFilter
     )
         public
-        NativeOrdersFeature(zeroExAddress, weth, staking, protocolFeeMultiplier, greedyTokensBloomFilter)
+        NativeOrdersFeature(address(0), IEtherTokenV06(0), IStaking(0), 0, bytes32(0))
     {
     }
 

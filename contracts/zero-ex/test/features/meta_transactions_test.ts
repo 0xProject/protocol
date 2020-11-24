@@ -26,7 +26,7 @@ import {
     TestMintableERC20TokenContract,
 } from '../wrappers';
 
-const { NULL_ADDRESS, NULL_BYTES, NULL_BYTES32, ZERO_AMOUNT } = constants;
+const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 
 blockchainTests.resets('MetaTransactions feature', env => {
     let owner: string;
@@ -58,11 +58,6 @@ blockchainTests.resets('MetaTransactions feature', env => {
             env.provider,
             env.txDefaults,
             {},
-            NULL_ADDRESS,
-            NULL_ADDRESS,
-            NULL_ADDRESS,
-            1, // protocolFeeMultiplier
-            NULL_BYTES32, // greedyTokensBloomFilter
         );
         zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {
             transformERC20: transformERC20Feature.address,
