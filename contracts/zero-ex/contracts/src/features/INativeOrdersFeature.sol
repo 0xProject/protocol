@@ -217,6 +217,13 @@ interface INativeOrdersFeature {
     function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order)
         external;
 
+    /// @dev Mark what tx.origin addresses are allowed to fill an order that
+    ///      specifies the message sender as its txOrigin.
+    /// @param origin The origin to update.
+    /// @param allowed True to register, false to unregister.
+    function registerAllowedOrigin(address origin, bool allowed)
+        external;
+
     /// @dev Cancel multiple limit orders. The caller must be the maker.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.

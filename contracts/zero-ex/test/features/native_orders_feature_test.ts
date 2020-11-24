@@ -77,7 +77,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             verifyingContract,
             takerToken: takerToken.address,
             makerToken: makerToken.address,
-            txOrigin: NULL_ADDRESS,
+            txOrigin: taker,
             ...fields,
         });
     }
@@ -86,10 +86,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         await makerToken.mint(maker, order.makerAmount).awaitTransactionSuccessAsync();
         if ('takerTokenFeeAmount' in order) {
             await takerToken
-                .mint(taker, order.takerAmount.plus(order.takerTokenFeeAmount))
+                .mint(_taker, order.takerAmount.plus(order.takerTokenFeeAmount))
                 .awaitTransactionSuccessAsync();
         } else {
-            await takerToken.mint(taker, order.takerAmount).awaitTransactionSuccessAsync();
+            await takerToken.mint(_taker, order.takerAmount).awaitTransactionSuccessAsync();
         }
     }
 
@@ -303,7 +303,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('filled order', async () => {
             const order = getTestRfqOrder();
             // Fill the order first.
-            await fillRfqOrderAsync(order);
+            await fillRfqOrderAsync(order, order.takerAmount, taker);
             const info = await zeroEx.getRfqOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
                 status: OrderStatus.Filled,
@@ -1110,10 +1110,37 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         });
 
         it('cannot fill an order with wrong tx.origin', async () => {
-            const order = getTestRfqOrder({ txOrigin: taker });
+            const order = getTestRfqOrder();
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
                 new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
+            );
+        });
+
+        it('can fill an order from a different tx.origin if registered', async () => {
+            const order = getTestRfqOrder();
+
+            await zeroEx.registerAllowedOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
+            return fillRfqOrderAsync(order, order.takerAmount, notTaker);
+        });
+
+        it('cannot fill an order with registered then unregistered tx.origin', async () => {
+            const order = getTestRfqOrder();
+
+            await zeroEx.registerAllowedOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
+            await zeroEx.registerAllowedOrigin(notTaker, false).awaitTransactionSuccessAsync({ from: taker });
+
+            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            return expect(tx).to.revertWith(
+                new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
+            );
+        });
+
+        it('cannot fill an order with a zero tx.origin', async () => {
+            const order = getTestRfqOrder({ txOrigin: NULL_ADDRESS });
+            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            return expect(tx).to.revertWith(
+                new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, order.txOrigin),
             );
         });
 
@@ -1166,7 +1193,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 )
                 .awaitTransactionSuccessAsync({ from: taker, value: ZERO_AMOUNT });
             // The exact revert error depends on whether we are still doing a
-            // token spender fallthroigh, so we won't get too specific.
+            // token spender fallthrough, so we won't get too specific.
             return expect(tx).to.revertWith(new AnyRevertError());
         });
     });
