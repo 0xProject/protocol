@@ -1120,7 +1120,9 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('can fill an order from a different tx.origin if registered', async () => {
             const order = getTestRfqOrder();
 
-            const receipt = await zeroEx.registerAllowedRfqOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
+            const receipt = await zeroEx
+                .registerAllowedRfqOrigin(notTaker, true)
+                .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 receipt.logs,
                 [
@@ -1139,7 +1141,9 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
 
             await zeroEx.registerAllowedRfqOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
-            const receipt = await zeroEx.registerAllowedRfqOrigin(notTaker, false).awaitTransactionSuccessAsync({ from: taker });
+            const receipt = await zeroEx
+                .registerAllowedRfqOrigin(notTaker, false)
+                .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 receipt.logs,
                 [
