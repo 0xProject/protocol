@@ -397,6 +397,7 @@ const EMPTY_BRIDGE_ADDRESSES: BridgeContractAddresses = {
     creamBridge: NULL_ADDRESS,
     snowswapBridge: NULL_ADDRESS,
     swerveBridge: NULL_ADDRESS,
+    cryptoComBridge: NULL_ADDRESS,
 };
 
 export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAddresses } = {
@@ -417,6 +418,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
         creamBridge: '0xb9d4bf2c8dab828f4ffb656acdb6c2b497d44f25',
         swerveBridge: '0xf9786d5eb1de47fa56a8f7bb387653c6d410bfee',
         snowswapBridge: '0xb1dbe83d15236ec10fdb214c6b89774b454754fd',
+        cryptoComBridge: '0xcccccccccccccccccccccccccccccccccccccccc',
     },
     [ChainId.Kovan]: {
         ...EMPTY_BRIDGE_ADDRESSES,
@@ -486,7 +488,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.SushiSwap]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
-        let gas = 95e3;
+        let gas = 90e3;
         const path = (fillData as SushiSwapFillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.
@@ -495,7 +497,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.CryptoCom]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
-        let gas = 95e3 + 20e3; // temporary allowance diff
+        let gas = 90e3 + 20e3 + 60e3; // temporary allowance diff, unrolled FQT
         const path = (fillData as SushiSwapFillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.

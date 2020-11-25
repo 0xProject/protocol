@@ -200,8 +200,7 @@ function getBridgeAddressFromFill(fill: CollapsedFill, opts: CreateOrderFromPath
         case ERC20BridgeSource.Dodo:
             return opts.contractAddresses.dodoBridge;
         case ERC20BridgeSource.CryptoCom:
-            // HACK: deploy using unique address
-            return opts.contractAddresses.sushiswapBridge;
+            return opts.contractAddresses.cryptoComBridge;
         default:
             break;
     }

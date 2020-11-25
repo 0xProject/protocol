@@ -426,4 +426,5 @@ export interface BridgeContractAddresses {
     creamBridge: string;
     swerveBridge: string;
     snowswapBridge: string;
+    cryptoComBridge: string;
 }

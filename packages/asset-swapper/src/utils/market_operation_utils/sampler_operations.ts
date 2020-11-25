@@ -1026,9 +1026,15 @@ export class SamplerOperations {
                             });
                             return sushiOps;
                         case ERC20BridgeSource.CryptoCom:
-                            // Currently we avoid intermediate swaps as in effect the price at sample time
-                            // is often arbed back to price parity with Uniswap/Sushi
-                            return this.getCryptoComSellQuotes([takerToken, makerToken], takerFillAmounts);
+                            const cryptoComOps = [
+                                this.getCryptoComSellQuotes([takerToken, makerToken], takerFillAmounts),
+                            ];
+                            intermediateTokens.forEach(t => {
+                                cryptoComOps.push(
+                                    this.getCryptoComSellQuotes([takerToken, t, makerToken], takerFillAmounts),
+                                );
+                            });
+                            return cryptoComOps;
                         case ERC20BridgeSource.Kyber:
                             return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
                                 this.getKyberSellQuotes(reserveId, makerToken, takerToken, takerFillAmounts),
@@ -1143,9 +1149,15 @@ export class SamplerOperations {
                             });
                             return sushiOps;
                         case ERC20BridgeSource.CryptoCom:
-                            // Currently we avoid intermediate swaps as in effect the price at sample time
-                            // is often arbed back to price parity with Uniswap/Sushi
-                            return this.getCryptoComBuyQuotes([takerToken, makerToken], makerFillAmounts);
+                            const cryptoComOps = [
+                                this.getCryptoComBuyQuotes([takerToken, makerToken], makerFillAmounts),
+                            ];
+                            intermediateTokens.forEach(t => {
+                                cryptoComOps.push(
+                                    this.getCryptoComBuyQuotes([takerToken, t, makerToken], makerFillAmounts),
+                                );
+                            });
+                            return cryptoComOps;
                         case ERC20BridgeSource.Kyber:
                             return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
                                 this.getKyberBuyQuotes(reserveId, makerToken, takerToken, makerFillAmounts),
