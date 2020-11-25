@@ -34,9 +34,7 @@ contract TestMetaTransactionsTransformERC20Feature is
         IERC20TokenV06 outputToken,
         uint256 inputTokenAmount,
         uint256 minOutputTokenAmount,
-        Transformation[] transformations,
-        bytes32 callDataHash,
-        bytes callDataSignature
+        Transformation[] transformations
     );
 
     constructor() public TransformERC20Feature(0) {}
@@ -103,9 +101,7 @@ contract TestMetaTransactionsTransformERC20Feature is
             args.outputToken,
             args.inputTokenAmount,
             args.minOutputTokenAmount,
-            args.transformations,
-            args.callDataHash,
-            args.callDataSignature
+            args.transformations
         );
         return 1337;
     }

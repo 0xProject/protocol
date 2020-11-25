@@ -39,7 +39,6 @@ contract TestMintTokenERC20Transformer is
     event MintTransform(
         address context,
         address caller,
-        bytes32 callDataHash,
         address sender,
         address taker,
         bytes data,
@@ -56,7 +55,6 @@ contract TestMintTokenERC20Transformer is
         emit MintTransform(
             address(this),
             msg.sender,
-            context.callDataHash,
             context.sender,
             context.taker,
             context.data,

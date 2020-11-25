@@ -58,10 +58,6 @@ interface ITransformERC20Feature {
         // The transformations to execute on the token balance(s)
         // in sequence.
         Transformation[] transformations;
-        // The hash of the calldata for the `transformERC20()` call.
-        bytes32 callDataHash;
-        // The signature for `callDataHash` signed by `getQuoteSigner()`.
-        bytes callDataSignature;
     }
 
     /// @dev Raised upon a successful `transformERC20`.

@@ -80,7 +80,6 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                callDataHash: hexUtils.random(),
                 taker,
                 sender: randomAddress(),
             })
@@ -103,7 +102,6 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                callDataHash: hexUtils.random(),
                 taker,
                 sender: randomAddress(),
             })
@@ -126,7 +124,6 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                callDataHash: hexUtils.random(),
                 taker,
                 sender: randomAddress(),
             })
@@ -149,7 +146,6 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                callDataHash: hexUtils.random(),
                 taker,
                 sender: randomAddress(),
             })

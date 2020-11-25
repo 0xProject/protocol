@@ -85,7 +85,6 @@
         "test/generated-artifacts/LibReentrancyGuardStorage.json",
         "test/generated-artifacts/LibSignature.json",
         "test/generated-artifacts/LibSignatureRichErrors.json",
-        "test/generated-artifacts/LibSignedCallData.json",
         "test/generated-artifacts/LibSimpleFunctionRegistryRichErrors.json",
         "test/generated-artifacts/LibSimpleFunctionRegistryStorage.json",
         "test/generated-artifacts/LibSpenderRichErrors.json",

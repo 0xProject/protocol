@@ -29,7 +29,6 @@ import "../fixins/FixinTokenSpender.sol";
 import "../fixins/FixinEIP712.sol";
 import "../migrations/LibMigrate.sol";
 import "../storage/LibMetaTransactionsStorage.sol";
-import "./libs/LibSignedCallData.sol";
 import "./IMetaTransactionsFeature.sol";
 import "./ITransformERC20Feature.sol";
 import "./libs/LibSignature.sol";
@@ -433,10 +432,6 @@ contract MetaTransactionsFeature is
             // Decode call args for `ITransformERC20Feature.transformERC20()` as a struct.
             args = abi.decode(encodedStructArgs, (ExternalTransformERC20Args));
         }
-        // Parse the signature and hash out of the calldata so `_transformERC20()`
-        // can authenticate it.
-        (bytes32 callDataHash, bytes memory callDataSignature) =
-            LibSignedCallData.parseCallData(state.mtx.callData);
         // Call `ITransformERC20Feature._transformERC20()` (internal variant).
         return _callSelf(
             state.hash,
@@ -448,9 +443,7 @@ contract MetaTransactionsFeature is
                     outputToken: args.outputToken,
                     inputTokenAmount: args.inputTokenAmount,
                     minOutputTokenAmount: args.minOutputTokenAmount,
-                    transformations: args.transformations,
-                    callDataHash: callDataHash,
-                    callDataSignature: callDataSignature
+                    transformations: args.transformations
               })
             ),
             state.mtx.value

@@ -180,10 +180,10 @@ contract FillQuoteTransformer is
 
         state.protocolFee = exchange.protocolFeeMultiplier().safeMul(tx.gasprice);
         state.ethRemaining = address(this).balance;
-        // RFQT orders can only be filled if we have a valid calldata hash
-        // (calldata was signed), and the actual taker matches the RFQT taker (if set).
-        state.isRfqtAllowed = context.callDataHash != bytes32(0)
-            && (data.rfqtTakerAddress == address(0) || context.taker == data.rfqtTakerAddress);
+        // RFQT orders can only be filled if the actual taker matches the RFQT
+        // taker (if set).
+        state.isRfqtAllowed = data.rfqtTakerAddress == address(0)
+            || context.taker == data.rfqtTakerAddress;
 
         // Fill the orders.
         for (uint256 i = 0; i < data.orders.length; ++i) {

@@ -88,7 +88,6 @@ blockchainTests.resets('AffiliateFeeTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                callDataHash: hexUtils.random(),
                 sender: randomAddress(),
                 taker: randomAddress(),
             })
@@ -119,7 +118,6 @@ blockchainTests.resets('AffiliateFeeTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                callDataHash: hexUtils.random(),
                 sender: randomAddress(),
                 taker: randomAddress(),
             })
@@ -150,7 +148,6 @@ blockchainTests.resets('AffiliateFeeTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                callDataHash: hexUtils.random(),
                 sender: randomAddress(),
                 taker: randomAddress(),
             })
