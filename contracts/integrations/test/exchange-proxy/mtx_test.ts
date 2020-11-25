@@ -20,10 +20,10 @@ import {
     SignedExchangeProxyMetaTransaction,
 } from '@0x/order-utils';
 import { AssetProxyId, Order, SignedOrder } from '@0x/types';
-import { BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 
-const { MAX_UINT256, NULL_ADDRESS, NULL_BYTES, NULL_BYTES32, ZERO_AMOUNT } = constants;
+const { MAX_UINT256, NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 
 function sigstruct(signature: string): Signature {
     return {
