@@ -41,6 +41,10 @@
             {
                 "note": "Remove protocol fees from all RFQ orders and add `taker` field to RFQ orders",
                 "pr": 45
+            },
+            {
+                "note": "Fix getRfqOrderInfo() to return status INVALID when missing txOrigin",
+                "pr": 50
             }
         ]
     },

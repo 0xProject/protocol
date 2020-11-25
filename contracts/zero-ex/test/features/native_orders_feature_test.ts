@@ -365,6 +365,16 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 takerTokenFilledAmount: fillAmount,
             });
         });
+
+        it('invalid origin', async () => {
+            const order = getTestRfqOrder({ txOrigin: NULL_ADDRESS });
+            const info = await zeroEx.getRfqOrderInfo(order).callAsync();
+            assertOrderInfoEquals(info, {
+                status: OrderStatus.Invalid,
+                orderHash: order.getHash(),
+                takerTokenFilledAmount: ZERO_AMOUNT,
+            });
+        });
     });
 
     describe('cancelLimitOrder()', async () => {
@@ -1216,7 +1226,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder({ txOrigin: NULL_ADDRESS });
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, order.txOrigin),
+                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Invalid),
             );
         });
 
