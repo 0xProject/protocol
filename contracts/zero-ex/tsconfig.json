@@ -135,6 +135,7 @@
         "test/generated-artifacts/TestMintTokenERC20Transformer.json",
         "test/generated-artifacts/TestMintableERC20Token.json",
         "test/generated-artifacts/TestNativeOrdersFeature.json",
+        "test/generated-artifacts/TestRfqOriginRegistration.json",
         "test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl1.json",
         "test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl2.json",
         "test/generated-artifacts/TestStaking.json",

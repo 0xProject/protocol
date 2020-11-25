@@ -108,6 +108,7 @@ export * from '../test/generated-wrappers/test_migrator';
 export * from '../test/generated-wrappers/test_mint_token_erc20_transformer';
 export * from '../test/generated-wrappers/test_mintable_erc20_token';
 export * from '../test/generated-wrappers/test_native_orders_feature';
+export * from '../test/generated-wrappers/test_rfq_origin_registration';
 export * from '../test/generated-wrappers/test_simple_function_registry_feature_impl1';
 export * from '../test/generated-wrappers/test_simple_function_registry_feature_impl2';
 export * from '../test/generated-wrappers/test_staking';

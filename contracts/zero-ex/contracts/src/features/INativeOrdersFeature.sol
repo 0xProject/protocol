@@ -89,14 +89,14 @@ interface INativeOrdersFeature {
         uint256 minValidSalt
     );
 
-    /// @dev Emitted when a new address is registered or unregistered to fill
+    /// @dev Emitted when new addresses are allowed or disallowed to fill
     ///      orders with a given txOrigin.
-    /// @param origin The address doing the registration.
-    /// @param addr The address being registered.
+    /// @param origin The address doing the allowing.
+    /// @param addrs The address being allowed/disallowed.
     /// @param allowed Indicates whether the address should be allowed.
-    event RfqOrderOriginAllowed(
+    event RfqOrderOriginsAllowed(
         address origin,
-        address addr,
+        address[] addrs,
         bool allowed
     );
 
@@ -220,9 +220,9 @@ interface INativeOrdersFeature {
 
     /// @dev Mark what tx.origin addresses are allowed to fill an order that
     ///      specifies the message sender as its txOrigin.
-    /// @param origin The origin to update.
+    /// @param origins An array of origin addresses to update.
     /// @param allowed True to register, false to unregister.
-    function registerAllowedRfqOrigin(address origin, bool allowed)
+    function registerAllowedRfqOrigins(address[] memory origins, bool allowed)
         external;
 
     /// @dev Cancel multiple limit orders. The caller must be the maker.
