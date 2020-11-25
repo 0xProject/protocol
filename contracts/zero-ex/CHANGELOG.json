@@ -45,6 +45,10 @@
             {
                 "note": "Fix getRfqOrderInfo() to return status INVALID when missing txOrigin",
                 "pr": 50
+            },
+            {
+                "note": "Remove calldata signing functionality",
+                "pr": 51
             }
         ]
     },

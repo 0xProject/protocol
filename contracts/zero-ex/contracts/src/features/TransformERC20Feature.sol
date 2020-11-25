@@ -32,7 +32,6 @@ import "../external/FlashWallet.sol";
 import "../storage/LibTransformERC20Storage.sol";
 import "../transformers/IERC20Transformer.sol";
 import "../transformers/LibERC20Transformer.sol";
-import "./libs/LibSignedCallData.sol";
 import "./ITransformERC20Feature.sol";
 import "./IFeature.sol";
 import "./ISignatureValidatorFeature.sol";
@@ -177,8 +176,6 @@ contract TransformERC20Feature is
         payable
         returns (uint256 outputTokenAmount)
     {
-        (bytes32 callDataHash, bytes memory callDataSignature) =
-            LibSignedCallData.parseCallData(msg.data);
         return _transformERC20Private(
             TransformERC20Args({
                 taker: msg.sender,
@@ -186,9 +183,7 @@ contract TransformERC20Feature is
                 outputToken: outputToken,
                 inputTokenAmount: inputTokenAmount,
                 minOutputTokenAmount: minOutputTokenAmount,
-                transformations: transformations,
-                callDataHash: callDataHash,
-                callDataSignature: callDataSignature
+                transformations: transformations
             })
         );
     }
@@ -246,22 +241,13 @@ contract TransformERC20Feature is
         );
 
         {
-            // Validate that the calldata was signed by the quote signer.
-            // `validCallDataHash` will be 0x0 if not.
-            bytes32 validCallDataHash = _getValidCallDataHash(
-                args.callDataHash,
-                args.callDataSignature
-            );
             // Perform transformations.
             for (uint256 i = 0; i < args.transformations.length; ++i) {
                 _executeTransformation(
                     state.wallet,
                     args.transformations[i],
                     state.transformerDeployer,
-                    args.taker,
-                    // Transformers will receive a null calldata hash if
-                    // the calldata was not properly signed.
-                    validCallDataHash
+                    args.taker
                 );
             }
         }
@@ -349,13 +335,11 @@ contract TransformERC20Feature is
     /// @param transformation The transformation.
     /// @param transformerDeployer The address of the transformer deployer.
     /// @param taker The taker address.
-    /// @param callDataHash Hash of the calldata.
     function _executeTransformation(
         IFlashWallet wallet,
         Transformation memory transformation,
         address transformerDeployer,
-        address payable taker,
-        bytes32 callDataHash
+        address payable taker
     )
         private
     {
@@ -372,7 +356,6 @@ contract TransformERC20Feature is
             abi.encodeWithSelector(
                 IERC20Transformer.transform.selector,
                 IERC20Transformer.TransformContext({
-                    callDataHash: callDataHash,
                     sender: msg.sender,
                     taker: taker,
                     data: transformation.data

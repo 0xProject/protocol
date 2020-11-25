@@ -12,7 +12,6 @@ import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/
 import * as _ from 'lodash';
 
 import { Signature } from '../../src/signature_utils';
-import { generateCallDataSignature, signCallData } from '../../src/signed_call_data';
 import { IZeroExContract, MetaTransactionsFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
@@ -26,7 +25,7 @@ import {
     TestMintableERC20TokenContract,
 } from '../wrappers';
 
-const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
+const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
 
 blockchainTests.resets('MetaTransactions feature', env => {
     let owner: string;
@@ -257,16 +256,14 @@ blockchainTests.resets('MetaTransactions feature', env => {
                         transformations: args.transformations,
                         sender: zeroEx.address,
                         value: mtx.value,
-                        callDataHash: hexUtils.hash(mtx.callData),
                         taker: mtx.signer,
-                        callDataSignature: NULL_BYTES,
                     },
                 ],
                 TestMetaTransactionsTransformERC20FeatureEvents.TransformERC20Called,
             );
         });
 
-        it('can call `TransformERC20.transformERC20()` with signed calldata', async () => {
+        it('can call `TransformERC20.transformERC20()` with calldata', async () => {
             const args = getRandomTransformERC20Args();
             const callData = transformERC20Feature
                 .transformERC20(
@@ -277,10 +274,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                     args.transformations,
                 )
                 .getABIEncodedTransactionData();
-            const callDataSignerKey = hexUtils.random();
-            const callDataSignature = generateCallDataSignature(callData, callDataSignerKey);
-            const signedCallData = signCallData(callData, callDataSignerKey);
-            const mtx = getRandomMetaTransaction({ callData: signedCallData });
+            const mtx = getRandomMetaTransaction({ callData });
             const signature = await signMetaTransactionAsync(mtx);
             const callOpts = {
                 gasPrice: mtx.minGasPrice,
@@ -300,9 +294,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                         transformations: args.transformations,
                         sender: zeroEx.address,
                         value: mtx.value,
-                        callDataHash: hexUtils.hash(callData),
                         taker: mtx.signer,
-                        callDataSignature,
                     },
                 ],
                 TestMetaTransactionsTransformERC20FeatureEvents.TransformERC20Called,
@@ -386,8 +378,6 @@ blockchainTests.resets('MetaTransactions feature', env => {
                     inputTokenAmount: args.inputTokenAmount,
                     minOutputTokenAmount: args.minOutputTokenAmount,
                     transformations: args.transformations,
-                    callDataHash: hexUtils.hash(mtx.callData),
-                    callDataSignature: NULL_BYTES,
                 })
                 .getABIEncodedTransactionData();
             return expect(tx).to.revertWith(

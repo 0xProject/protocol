@@ -45,7 +45,6 @@ contract TestFillQuoteTransformerHost is
         this.rawExecuteTransform(
             transformer,
             IERC20Transformer.TransformContext({
-                callDataHash: bytes32(0),
                 sender: sender,
                 taker: taker,
                 data: data

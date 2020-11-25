@@ -51,7 +51,6 @@ contract TestWethTransformerHost is
         this.rawExecuteTransform(
             transformer,
             IERC20Transformer.TransformContext({
-                callDataHash: bytes32(0),
                 sender: msg.sender,
                 taker: msg.sender,
                 data: data

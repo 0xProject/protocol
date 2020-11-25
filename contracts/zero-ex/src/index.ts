@@ -31,7 +31,6 @@ export {
 export { artifacts } from './artifacts';
 export * from './migration';
 export * from './nonce_utils';
-export * from './signed_call_data';
 export * from './signature_utils';
 export * from './orders';
 export * from './eip712_utils';

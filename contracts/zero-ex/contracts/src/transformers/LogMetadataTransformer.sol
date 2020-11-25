@@ -27,7 +27,7 @@ import "./LibERC20Transformer.sol";
 contract LogMetadataTransformer is
     Transformer
 {
-    event TransformerMetadata(bytes32 callDataHash, address sender, address taker, bytes data);
+    event TransformerMetadata(address sender, address taker, bytes data);
 
     /// @dev Maximum uint256 value.
     uint256 private constant MAX_UINT256 = uint256(-1);
@@ -40,7 +40,7 @@ contract LogMetadataTransformer is
         override
         returns (bytes4 success)
     {
-        emit TransformerMetadata(context.callDataHash, context.sender, context.taker, context.data);
+        emit TransformerMetadata(context.sender, context.taker, context.data);
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
 }

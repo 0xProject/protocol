@@ -60,7 +60,6 @@ import * as LibProxyStorage from '../test/generated-artifacts/LibProxyStorage.js
 import * as LibReentrancyGuardStorage from '../test/generated-artifacts/LibReentrancyGuardStorage.json';
 import * as LibSignature from '../test/generated-artifacts/LibSignature.json';
 import * as LibSignatureRichErrors from '../test/generated-artifacts/LibSignatureRichErrors.json';
-import * as LibSignedCallData from '../test/generated-artifacts/LibSignedCallData.json';
 import * as LibSimpleFunctionRegistryRichErrors from '../test/generated-artifacts/LibSimpleFunctionRegistryRichErrors.json';
 import * as LibSimpleFunctionRegistryStorage from '../test/generated-artifacts/LibSimpleFunctionRegistryStorage.json';
 import * as LibSpenderRichErrors from '../test/generated-artifacts/LibSpenderRichErrors.json';
@@ -177,7 +176,6 @@ export const artifacts = {
     UniswapFeature: UniswapFeature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
-    LibSignedCallData: LibSignedCallData as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
     FixinEIP712: FixinEIP712 as ContractArtifact,
     FixinProtocolFees: FixinProtocolFees as ContractArtifact,
