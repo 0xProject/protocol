@@ -1057,7 +1057,9 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
     describe('registerAllowedRfqOrigins()', () => {
         it('cannot register through a contract', async () => {
-            const tx = testRfqOriginRegistration.registerAllowedRfqOrigins(zeroEx.address, [], true).awaitTransactionSuccessAsync();
+            const tx = testRfqOriginRegistration
+                .registerAllowedRfqOrigins(zeroEx.address, [], true)
+                .awaitTransactionSuccessAsync();
             expect(tx).to.revertWith('NativeOrdersFeature/NO_CONTRACT_ORIGINS');
         });
     });
