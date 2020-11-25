@@ -646,6 +646,11 @@ contract NativeOrdersFeature is
             order.salt,
             minValidSalt
         );
+
+        // Check for missing txOrigin.
+        if (order.txOrigin == address(0)) {
+            orderInfo.status = LibNativeOrder.OrderStatus.INVALID;
+        }
     }
 
     /// @dev Get the canonical hash of a limit order.
