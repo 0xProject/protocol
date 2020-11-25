@@ -16,7 +16,11 @@ import 'mocha';
 import * as request from 'supertest';
 
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
-import { defaultHttpServiceWithRateLimiterConfig } from '../src/config';
+import {
+    defaultHttpServiceWithRateLimiterConfig,
+    PROTOCOL_FEE_MULTIPLIER,
+    RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER,
+} from '../src/config';
 import { SWAP_PATH as BASE_SWAP_PATH } from '../src/constants';
 
 import { CONTRACT_ADDRESSES } from './constants';
@@ -151,6 +155,48 @@ describe(SUITE_NAME, () => {
                             const responseJson = JSON.parse(appResponse.text);
                             expect(responseJson.orders.length).to.equal(1);
                             expect(responseJson.orders[0]).to.eql(signedOrder);
+                        },
+                        quoteRequestorHttpClient,
+                    );
+                });
+
+                it('should pad protocol fee for firm quotes with RFQT orders', async () => {
+                    await wethContract
+                        .deposit()
+                        .sendTransactionAsync({ value: DEFAULT_SELL_AMOUNT, from: takerAddress });
+                    await wethContract
+                        .approve(contractAddresses.exchangeProxyAllowanceTarget, DEFAULT_SELL_AMOUNT)
+                        .sendTransactionAsync({ from: takerAddress });
+
+                    return rfqtMocker.withMockedRfqtFirmQuotes(
+                        [
+                            {
+                                ...DEFAULT_RFQT_RESPONSE_DATA,
+                                responseData: { signedOrder },
+                            } as any,
+                        ],
+                        async () => {
+                            const appResponse = await request(app)
+                                .get(
+                                    `${SWAP_PATH}/quote?${DEFAULT_QUERY}&sellAmount=${DEFAULT_SELL_AMOUNT.toString()}&takerAddress=${takerAddress}&intentOnFilling=true`,
+                                )
+                                .set('0x-api-key', 'koolApiKey1')
+                                .expect(HttpStatus.OK)
+                                .expect('Content-Type', /json/);
+
+                            const responseJson = appResponse.body;
+                            expect(responseJson.orders.length).to.equal(1);
+                            expect(responseJson.gasPrice).to.equal('1');
+                            expect(responseJson.protocolFee).to.equal(
+                                PROTOCOL_FEE_MULTIPLIER.times(
+                                    RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER,
+                                ).toString(),
+                            );
+                            expect(responseJson.value).to.equal(
+                                PROTOCOL_FEE_MULTIPLIER.times(
+                                    RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER,
+                                ).toString(),
+                            );
                         },
                         quoteRequestorHttpClient,
                     );

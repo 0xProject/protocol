@@ -187,6 +187,14 @@ describe(SUITE_NAME, () => {
                 { gasPrice: new BigNumber('150000000000') },
             );
         });
+        it('should respect protocolFee for non RFQT orders', async () => {
+            const gasPrice = new BigNumber('150000000000');
+            const protocolFee = gasPrice.times(config.PROTOCOL_FEE_MULTIPLIER);
+            await quoteAndExpectAsync(
+                { sellAmount: '1234', gasPrice: '150000000000' },
+                { gasPrice, protocolFee, value: protocolFee },
+            );
+        });
         it('should respect excludedSources', async () => {
             await quoteAndExpectAsync(
                 {

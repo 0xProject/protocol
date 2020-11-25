@@ -28,6 +28,7 @@ import {
     FIRM_PRICE_AWARE_RFQ_ENABLED,
     INDICATIVE_PRICE_AWARE_RFQ_ENABLED,
     PROTOCOL_FEE_MULTIPLIER,
+    RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER,
     RFQT_REQUEST_MAX_RESPONSE_MS,
     SWAP_QUOTER_OPTS,
 } from '../config';
@@ -57,6 +58,7 @@ import {
     TokenMetadata,
     TokenMetadataOptionalSymbol,
 } from '../types';
+import { ethGasStationUtils } from '../utils/gas_station_utils';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { serviceUtils } from '../utils/service_utils';
 
@@ -219,7 +221,39 @@ export class SwapService {
         const nativeFills = _.flatten(swapQuote.orders.map(order => order.fills)).filter(
             fill => fill.source === ERC20BridgeSource.Native,
         );
-        adjustedWorstCaseProtocolFee = new BigNumber(PROTOCOL_FEE_MULTIPLIER).times(gasPrice).times(nativeFills.length);
+
+        const hasRFQTOrders = swapQuote.orders.some(order => {
+            const isNativeOrder = order.fills.some(fill => fill.source === ERC20BridgeSource.Native);
+            const hasTakerAddress = order.takerAddress !== NULL_ADDRESS;
+
+            return isNativeOrder && hasTakerAddress;
+        });
+
+        // NOTE: Takers have a tendency to bump the gas price in order to speed up their trades
+        // for Native orders this often leads to an insufficient protocol fee being included and
+        // potential RFQT orders cannot be filled, so to avoid this we pad the protocol fee amount
+        // specifically when RFQT orders are included in the quote
+        if (hasRFQTOrders) {
+            const maxGasPricePadding = gasPrice.times(RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER);
+            const fastestGasPrice = await ethGasStationUtils.getGasPriceOrThrowAsync('fastest').catch(err => {
+                logger.error(err, 'Failed to fetch ETH Gas Station fastest gas price');
+
+                // Failed to fetch fastest gas estimate, use max padded fast instead
+                return maxGasPricePadding;
+            });
+
+            // Use the fastest price but make sure it's never more than max padding and never less than supplied gas price
+            const paddedGasPrice = BigNumber.max(BigNumber.min(fastestGasPrice, maxGasPricePadding), gasPrice);
+
+            adjustedWorstCaseProtocolFee = new BigNumber(PROTOCOL_FEE_MULTIPLIER)
+                .times(paddedGasPrice)
+                .times(nativeFills.length);
+        } else {
+            adjustedWorstCaseProtocolFee = new BigNumber(PROTOCOL_FEE_MULTIPLIER)
+                .times(gasPrice)
+                .times(nativeFills.length);
+        }
+
         adjustedValue = isETHSell
             ? adjustedWorstCaseProtocolFee.plus(swapQuote.worstCaseQuoteInfo.takerAssetAmount)
             : adjustedWorstCaseProtocolFee;

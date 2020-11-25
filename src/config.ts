@@ -293,6 +293,8 @@ export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 
 export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 
+export const RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER = 1.2;
+
 const EXCLUDED_SOURCES = (() => {
     const allERC20BridgeSources = Object.values(ERC20BridgeSource);
     switch (CHAIN_ID) {
