@@ -146,7 +146,7 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.getLimitOrderHash.selector);
         _registerFeatureFunction(this.getRfqOrderHash.selector);
         _registerFeatureFunction(this.getProtocolFeeMultiplier.selector);
-        _registerFeatureFunction(this.registerAllowedRfqOrigin.selector);
+        _registerFeatureFunction(this.registerAllowedRfqOrigins.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -493,7 +493,7 @@ contract NativeOrdersFeature is
         require(
             makerTokens.length == takerTokens.length &&
             makerTokens.length == minValidSalts.length,
-            "LimitOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
+            "NativeOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
@@ -551,21 +551,26 @@ contract NativeOrdersFeature is
 
     /// @dev Mark what tx.origin addresses are allowed to fill an order that
     ///      specifies the message sender as its txOrigin.
-    /// @param origin The origin to update.
+    /// @param origins An array of origin addresses to update.
     /// @param allowed True to register, false to unregister.
-    function registerAllowedRfqOrigin(
-        address origin,
+    function registerAllowedRfqOrigins(
+        address[] memory origins,
         bool allowed
     )
         external
         override
     {
+        require(msg.sender == tx.origin,
+            "NativeOrdersFeature/NO_CONTRACT_ORIGINS");
+
         LibNativeOrdersStorage.Storage storage stor =
             LibNativeOrdersStorage.getStorage();
 
-        stor.originRegistry[msg.sender][origin] = allowed;
+        for (uint256 i = 0; i < origins.length; i++) {
+            stor.originRegistry[msg.sender][origins[i]] = allowed;
+        }
 
-        emit RfqOrderOriginAllowed(msg.sender, origin, allowed);
+        emit RfqOrderOriginsAllowed(msg.sender, origins, allowed);
     }
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
@@ -586,7 +591,7 @@ contract NativeOrdersFeature is
         require(
             makerTokens.length == takerTokens.length &&
             makerTokens.length == minValidSalts.length,
-            "LimitOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
+            "NativeOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {

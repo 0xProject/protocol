@@ -8,7 +8,7 @@ import { IZeroExContract, IZeroExEvents } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { fullMigrateAsync } from '../utils/migration';
 import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
-import { TestMintableERC20TokenContract } from '../wrappers';
+import { TestMintableERC20TokenContract, TestRfqOriginRegistrationContract } from '../wrappers';
 
 blockchainTests.resets('NativeOrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT } = constants;
@@ -24,6 +24,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     let makerToken: TestMintableERC20TokenContract;
     let takerToken: TestMintableERC20TokenContract;
     let wethToken: TestMintableERC20TokenContract;
+    let testRfqOriginRegistration: TestRfqOriginRegistrationContract;
 
     before(async () => {
         let owner;
@@ -56,6 +57,12 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             [taker, notTaker].map(a =>
                 takerToken.approve(zeroEx.address, MAX_UINT256).awaitTransactionSuccessAsync({ from: a }),
             ),
+        );
+        testRfqOriginRegistration = await TestRfqOriginRegistrationContract.deployFrom0xArtifactAsync(
+            artifacts.TestRfqOriginRegistration,
+            env.provider,
+            env.txDefaults,
+            artifacts,
         );
     });
 
@@ -1048,6 +1055,13 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         expect(takerBalance).to.bignumber.eq(makerTokenFilledAmount);
     }
 
+    describe('registerAllowedRfqOrigins()', () => {
+        it('cannot register through a contract', async () => {
+            const tx = testRfqOriginRegistration.registerAllowedRfqOrigins(zeroEx.address, [], true).awaitTransactionSuccessAsync();
+            expect(tx).to.revertWith("NativeOrdersFeature/NO_CONTRACT_ORIGINS");
+        });
+    });
+
     describe('fillRfqOrder()', () => {
         it('can fully fill an order', async () => {
             const order = getTestRfqOrder();
@@ -1155,18 +1169,18 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
 
             const receipt = await zeroEx
-                .registerAllowedRfqOrigin(notTaker, true)
+                .registerAllowedRfqOrigins([notTaker], true)
                 .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 receipt.logs,
                 [
                     {
                         origin: taker,
-                        addr: notTaker,
+                        addrs: [notTaker],
                         allowed: true,
                     },
                 ],
-                IZeroExEvents.RfqOrderOriginAllowed,
+                IZeroExEvents.RfqOrderOriginsAllowed,
             );
             return fillRfqOrderAsync(order, order.takerAmount, notTaker);
         });
@@ -1174,20 +1188,20 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('cannot fill an order with registered then unregistered tx.origin', async () => {
             const order = getTestRfqOrder();
 
-            await zeroEx.registerAllowedRfqOrigin(notTaker, true).awaitTransactionSuccessAsync({ from: taker });
+            await zeroEx.registerAllowedRfqOrigins([notTaker], true).awaitTransactionSuccessAsync({ from: taker });
             const receipt = await zeroEx
-                .registerAllowedRfqOrigin(notTaker, false)
+                .registerAllowedRfqOrigins([notTaker], false)
                 .awaitTransactionSuccessAsync({ from: taker });
             verifyEventsFromLogs(
                 receipt.logs,
                 [
                     {
                         origin: taker,
-                        addr: notTaker,
+                        addrs: [notTaker],
                         allowed: false,
                     },
                 ],
-                IZeroExEvents.RfqOrderOriginAllowed,
+                IZeroExEvents.RfqOrderOriginsAllowed,
             );
 
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
