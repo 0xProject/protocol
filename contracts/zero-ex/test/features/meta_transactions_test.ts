@@ -25,7 +25,7 @@ import {
     TestMintableERC20TokenContract,
 } from '../wrappers';
 
-const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
+const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
 
 blockchainTests.resets('MetaTransactions feature', env => {
     let owner: string;
@@ -274,7 +274,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
                     args.transformations,
                 )
                 .getABIEncodedTransactionData();
-            const mtx = getRandomMetaTransaction({ callData: callData });
+            const mtx = getRandomMetaTransaction({ callData });
             const signature = await signMetaTransactionAsync(mtx);
             const callOpts = {
                 gasPrice: mtx.minGasPrice,

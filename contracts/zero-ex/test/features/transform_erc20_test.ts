@@ -10,7 +10,6 @@ import {
 } from '@0x/contracts-test-utils';
 import { ETH_TOKEN_ADDRESS } from '@0x/order-utils';
 import { AbiEncoder, hexUtils, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
-import { DecodedLogEntry } from 'ethereum-types';
 import * as ethjs from 'ethereumjs-util';
 
 import { IZeroExContract, TransformERC20FeatureContract } from '../../src/wrappers';
@@ -22,14 +21,9 @@ import {
     TestMintableERC20TokenContract,
     TestMintTokenERC20TransformerContract,
     TestMintTokenERC20TransformerEvents,
-    TestMintTokenERC20TransformerMintTransformEventArgs,
     TestTransformERC20Contract,
     TransformERC20FeatureEvents,
 } from '../wrappers';
-
-const { NULL_ADDRESS, NULL_BYTES, NULL_BYTES32 } = constants;
-
-type MintTokenTransformerEvent = DecodedLogEntry<TestMintTokenERC20TransformerMintTransformEventArgs>;
 
 blockchainTests.resets('TransformERC20 feature', env => {
     const callDataSignerKey = hexUtils.random();
