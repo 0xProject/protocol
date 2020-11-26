@@ -346,7 +346,8 @@ contract TransformERC20Feature is
         // Derive the transformer address from the deployment nonce.
         address payable transformer = LibERC20Transformer.getDeployedAddress(
             transformerDeployer,
-            transformation.deploymentNonce
+            transformation.initCodeHash,
+            transformation.salt
         );
         // Call `transformer.transform()` as the wallet.
         bytes memory resultData = wallet.executeDelegateCall(

@@ -138,7 +138,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
         outputToken: string;
         inputTokenAmount: BigNumber;
         minOutputTokenAmount: BigNumber;
-        transformations: Array<{ deploymentNonce: BigNumber; data: string }>;
+        transformations: Array<{ initCodeHash: string; salt: string; data: string }>;
     }
 
     function getRandomTransformERC20Args(fields: Partial<TransformERC20Args> = {}): TransformERC20Args {
@@ -147,7 +147,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             outputToken: randomAddress(),
             inputTokenAmount: getRandomInteger(1, '1e18'),
             minOutputTokenAmount: getRandomInteger(1, '1e18'),
-            transformations: [{ deploymentNonce: new BigNumber(123), data: hexUtils.random() }],
+            transformations: [{ initCodeHash: hexUtils.random(), salt: hexUtils.random(), data: hexUtils.random() }],
             ...fields,
         };
     }

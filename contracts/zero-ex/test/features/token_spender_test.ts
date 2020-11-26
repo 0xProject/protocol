@@ -22,12 +22,14 @@ blockchainTests.resets('TokenSpender feature', env => {
     before(async () => {
         const [owner] = await env.getAccountAddressesAsync();
         zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {
-            tokenSpender: (await TokenSpenderFeatureContract.deployFrom0xArtifactAsync(
-                artifacts.TestTokenSpender,
-                env.provider,
-                env.txDefaults,
-                artifacts,
-            )).address,
+            tokenSpender: (
+                await TokenSpenderFeatureContract.deployFrom0xArtifactAsync(
+                    artifacts.TestTokenSpender,
+                    env.provider,
+                    env.txDefaults,
+                    artifacts,
+                )
+            ).address,
         });
         feature = new TokenSpenderFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis);
         token = await TestTokenSpenderERC20TokenContract.deployFrom0xArtifactAsync(

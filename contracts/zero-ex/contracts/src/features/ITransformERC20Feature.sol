@@ -29,10 +29,11 @@ interface ITransformERC20Feature {
 
     /// @dev Defines a transformation to run in `transformERC20()`.
     struct Transformation {
-        // The deployment nonce for the transformer.
-        // The address of the transformer contract will be derived from this
-        // value.
-        uint32 deploymentNonce;
+        // The address of the transformer contract will be derived from the
+        // initcode hash and the salt, the relevant inputs to create2.
+        bytes32 initCodeHash;
+        bytes32 salt;
+
         // Arbitrary data to pass to the transformer.
         bytes data;
     }

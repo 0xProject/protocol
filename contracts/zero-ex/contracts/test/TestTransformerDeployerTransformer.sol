@@ -35,23 +35,14 @@ contract TestTransformerDeployerTransformer {
         );
     }
 
-    modifier onlyDeployer() {
-        require(msg.sender == deployer, "TestTransformerDeployerTransformer/ONLY_DEPLOYER");
-        _;
-    }
-
-    function die(address payable ethRecipient)
-        external
-        onlyDeployer
-    {
-        selfdestruct(ethRecipient);
-    }
-
-    function isDeployedByDeployer(uint32 nonce)
+    function isDeployedByDeployer(bytes32 initCodeHash, bytes32 salt)
         external
         view
         returns (bool)
     {
-        return LibERC20Transformer.getDeployedAddress(deployer, nonce) == address(this);
+        return LibERC20Transformer.getDeployedAddress(
+            deployer,
+            initCodeHash,
+            salt) == address(this);
     }
 }
