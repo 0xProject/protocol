@@ -88,6 +88,7 @@ import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridg
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
+import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
 import * as SignatureValidatorFeature from '../test/generated-artifacts/SignatureValidatorFeature.json';
 import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
@@ -109,6 +110,8 @@ import * as TestMigrator from '../test/generated-artifacts/TestMigrator.json';
 import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintableERC20Token.json';
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
 import * as TestNativeOrdersFeature from '../test/generated-artifacts/TestNativeOrdersFeature.json';
+import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
+import * as TestPermissionlessTransformerDeployerTransformer from '../test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json';
 import * as TestRfqOriginRegistration from '../test/generated-artifacts/TestRfqOriginRegistration.json';
 import * as TestSimpleFunctionRegistryFeatureImpl1 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl1.json';
 import * as TestSimpleFunctionRegistryFeatureImpl2 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl2.json';
@@ -152,6 +155,7 @@ export const artifacts = {
     IFlashWallet: IFlashWallet as ContractArtifact,
     ILiquidityProviderSandbox: ILiquidityProviderSandbox as ContractArtifact,
     LiquidityProviderSandbox: LiquidityProviderSandbox as ContractArtifact,
+    PermissionlessTransformerDeployer: PermissionlessTransformerDeployer as ContractArtifact,
     TransformerDeployer: TransformerDeployer as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
@@ -243,6 +247,8 @@ export const artifacts = {
     TestMintTokenERC20Transformer: TestMintTokenERC20Transformer as ContractArtifact,
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
     TestNativeOrdersFeature: TestNativeOrdersFeature as ContractArtifact,
+    TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
+    TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
     TestRfqOriginRegistration: TestRfqOriginRegistration as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl1: TestSimpleFunctionRegistryFeatureImpl1 as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl2: TestSimpleFunctionRegistryFeatureImpl2 as ContractArtifact,
