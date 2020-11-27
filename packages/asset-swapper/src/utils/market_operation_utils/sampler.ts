@@ -164,7 +164,14 @@ export class DexOrderSampler extends SamplerOperations {
         // Execute all non-empty calldatas.
         const rawCallResults = await this._samplerContract
             .batchCall(callDatas.filter(cd => cd !== NULL_BYTES))
-            .callAsync({ overrides }, block);
+            .callAsync(
+                {
+                    overrides,
+                    // HACK: NEST Oracle checks tx.origin is msg.sender
+                    from: this._samplerContract.address,
+                },
+                block,
+            );
         // Return the parsed results.
         let rawCallResultsIdx = 0;
         return callDatas.map((callData, i) => {

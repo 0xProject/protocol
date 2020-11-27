@@ -61,6 +61,7 @@ contract CoFiXSampler is
         if (takerToken != _getWethAddress() && makerToken != _getWethAddress()) {
             return makerTokenAmounts;
         }
+
         ICoFiXPair takerTokenPair = takerToken == _getWethAddress() ?
             ICoFiXPair(0) : _getCoFiXPair(takerToken);
         ICoFiXPair makerTokenPair = makerToken == _getWethAddress() ?
@@ -82,7 +83,6 @@ contract CoFiXSampler is
                             takerTokenAmounts[i],
                             _getOraclePrice(takerToken)
                     ));
-                makerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
             } else if (takerToken == _getWethAddress()) {
                 // if starting with WETH, sell all of the WETH in the maker token pair
                 (didSucceed, resultData) =
@@ -92,7 +92,11 @@ contract CoFiXSampler is
                             takerTokenAmounts[i],
                             _getOraclePrice(makerToken)
                     ));
-                makerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
+            }
+            if (didSucceed) {
+                (makerTokenAmounts[i], ) = abi.decode(resultData, (uint256, uint256));
+            } else {
+                return makerTokenAmounts;
             }
         }
     }
@@ -131,7 +135,6 @@ contract CoFiXSampler is
         bool didSucceed;
         bytes memory resultData;
         for (uint256 i = 0; i < numSamples; i++) {
-            bool didSucceed = true;
             if (makerToken == _getWethAddress()) {
                 // if converting to WETH, find out how much of the taker token to send in
                 (didSucceed, resultData) =
@@ -141,7 +144,6 @@ contract CoFiXSampler is
                             makerTokenAmounts[i],
                             _getOraclePrice(takerToken)
                     ));
-                takerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
             } else if (takerToken == _getWethAddress()) {
                 // if starting to a non-WETH token, find out how much WETH to send in
                 (didSucceed, resultData) =
@@ -151,7 +153,11 @@ contract CoFiXSampler is
                             makerTokenAmounts[i],
                             _getOraclePrice(makerToken)
                     ));
-                takerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
+            }
+            if (didSucceed) {
+                (takerTokenAmounts[i], ) = abi.decode(resultData, (uint256, uint256));
+            } else {
+                return takerTokenAmounts;
             }
         }
     }
