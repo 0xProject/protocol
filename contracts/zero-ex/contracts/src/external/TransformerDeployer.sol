@@ -19,8 +19,6 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/v06/AuthorizableV06.sol";
-
 
 /// @dev Deployer contract for ERC20 transformers.
 ///      Only authorities may call `deploy()` and `kill()`.
@@ -58,7 +56,7 @@ contract TransformerDeployer {
     /// @dev Checks whether a given address is safe to be called via
     ///      delegatecall. A contract is considered unsafe if it includes any
     ///      of the following opcodes: CALLCODE, DELEGATECALL, SELFDESTRUCT,
-    ///      SLOAD, and STORE. This code is adapted from
+    ///      CREATE, CREATE2, SLOAD, and STORE. This code is adapted from
     ///      https://github.com/dharma-eng/dharma-smart-wallet/blob/master/contracts/helpers/IndestructibleRegistry.sol
     /// @param target The address to check.
     /// @return True if the contract is considered safe for delegatecall.
@@ -101,6 +99,8 @@ contract TransformerDeployer {
                     op == 242 || // callcode
                     op == 244 || // delegatecall
                     op == 255 || // selfdestruct
+                    op == 240 || // create
+                    op == 245 || // create2
                     op == 84  || // sload
                     op == 85     // sstore
                 ) {
