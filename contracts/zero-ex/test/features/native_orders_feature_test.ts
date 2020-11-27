@@ -587,7 +587,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersCancelled,
+                IZeroExEvents.PairCancelledLimitOrders,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getLimitOrderInfo(o).callAsync()))).map(
                 oi => oi.status,
@@ -624,7 +624,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersCancelled,
+                IZeroExEvents.PairCancelledRfqOrders,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getRfqOrderInfo(o).callAsync()))).map(
                 oi => oi.status,
@@ -680,7 +680,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersCancelled,
+                IZeroExEvents.PairCancelledLimitOrders,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getLimitOrderInfo(o).callAsync()))).map(
                 oi => oi.status,
@@ -722,7 +722,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                         minValidSalt,
                     },
                 ],
-                IZeroExEvents.PairOrdersCancelled,
+                IZeroExEvents.PairCancelledRfqOrders,
             );
             const statuses = (await Promise.all(orders.map(o => zeroEx.getRfqOrderInfo(o).callAsync()))).map(
                 oi => oi.status,

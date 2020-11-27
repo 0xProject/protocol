@@ -76,13 +76,26 @@ interface INativeOrdersFeature {
         address maker
     );
 
-    /// @dev Emitted whenever limit or RFQ orders are cancelled by pair by a maker.
+    /// @dev Emitted whenever Limit orders are cancelled by pair by a maker.
     /// @param maker The maker of the order.
     /// @param makerToken The maker token in a pair for the orders cancelled.
     /// @param takerToken The taker token in a pair for the orders cancelled.
     /// @param minValidSalt The new minimum valid salt an order with this pair must
     ///        have.
-    event PairOrdersCancelled(
+    event PairCancelledLimitOrders(
+        address maker,
+        address makerToken,
+        address takerToken,
+        uint256 minValidSalt
+    );
+
+    /// @dev Emitted whenever RFQ orders are cancelled by pair by a maker.
+    /// @param maker The maker of the order.
+    /// @param makerToken The maker token in a pair for the orders cancelled.
+    /// @param takerToken The taker token in a pair for the orders cancelled.
+    /// @param minValidSalt The new minimum valid salt an order with this pair must
+    ///        have.
+    event PairCancelledRfqOrders(
         address maker,
         address makerToken,
         address takerToken,

@@ -467,7 +467,7 @@ contract NativeOrdersFeature is
             [address(makerToken)]
             [address(takerToken)] = minValidSalt;
 
-        emit PairOrdersCancelled(
+        emit PairCancelledLimitOrders(
             msg.sender,
             address(makerToken),
             address(takerToken),
@@ -541,7 +541,7 @@ contract NativeOrdersFeature is
             [address(makerToken)]
             [address(takerToken)] = minValidSalt;
 
-        emit PairOrdersCancelled(
+        emit PairCancelledRfqOrders(
             msg.sender,
             address(makerToken),
             address(takerToken),
