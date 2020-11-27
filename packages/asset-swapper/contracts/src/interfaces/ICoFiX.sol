@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2019 ZeroEx Intl.
+  Copyright 2020 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 */
 
-pragma solidity ^0.5.9;
+pragma solidity ^0.6;
+pragma experimental ABIEncoderV2;
 
+interface ICoFiX {}
 
 interface ICoFiXPair {
 
@@ -29,23 +31,47 @@ interface ICoFiXPair {
         uint256 theta;
     }
 
-    function calcInNeededToken0(uint256 amountOut, OraclePrice memory _op)
+    function calcInNeededToken0(uint256 amountOut, OraclePrice calldata _op)
         external
         view
         returns (uint256 amountInNeeded, uint256 fee);
 
-    function calcInNeededToken1(uint256 amountOut, OraclePrice memory _op)
+    function calcInNeededToken1(uint256 amountOut, OraclePrice calldata _op)
         external
         view
         returns (uint256 amountInNeeded, uint256 fee);
 
-    function calcOutToken0(uint256 amountIn, OraclePrice memory _op)
+    function calcOutToken0(uint256 amountIn, OraclePrice calldata _op)
         external
         view
         returns (uint256 amountOut, uint256 fee);
 
-    function calcOutToken1(uint256 amountIn, OraclePrice memory _op)
+    function calcOutToken1(uint256 amountIn, OraclePrice calldata _op)
         external
         view
         returns (uint256 amountOut, uint256 fee);
+}
+
+interface ICoFiXController {
+
+    function getKInfo(address tokenAddress)
+        external
+        view
+        returns (uint32 k, uint32 updatedAt, uint32 theta);
+}
+
+interface ICoFiXFactory {
+
+    function getPair(address token)
+        external
+        view
+        returns (address pair);
+}
+
+interface INestOracle {
+
+    function checkPriceNow(address tokenAddress)
+        external
+        view
+        returns (uint256 ethAmount, uint256 erc20Amount, uint256 blockNum);
 }

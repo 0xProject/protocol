@@ -45,6 +45,7 @@ export const SELL_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CoFiX,
 ]);
 
 /**
@@ -69,6 +70,7 @@ export const BUY_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CoFiX,
 ]);
 
 /**
@@ -523,6 +525,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
     },
     [ERC20BridgeSource.Bancor]: () => 300e3,
+    [ERC20BridgeSource.CoFiX]: () => 400e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.assign(

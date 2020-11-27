@@ -1,6 +1,6 @@
 /*
 
-  Copyright 2019 ZeroEx Intl.
+  Copyright 2020 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 */
 
-pragma solidity ^0.5.9;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/DeploymentConstants.sol";
-import "./interfaces/ICoFiXController.sol";
-import "./interfaces/ICoFiXFactory.sol";
-import "./interfaces/ICoFiXPair.sol";
-import "./interfaces/INestOracle.sol";
+import "./DeploymentConstants.sol";
+import "./SamplerUtils.sol";
+import "./interfaces/ICoFiX.sol";
 
 
 contract CoFiXSampler is
@@ -60,15 +58,24 @@ contract CoFiXSampler is
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
+        if (takerToken != _getWethAddress() && makerToken != _getWethAddress()) {
+            return makerTokenAmounts;
+        }
         ICoFiXPair takerTokenPair = takerToken == _getWethAddress() ?
             ICoFiXPair(0) : _getCoFiXPair(takerToken);
         ICoFiXPair makerTokenPair = makerToken == _getWethAddress() ?
             ICoFiXPair(0) : _getCoFiXPair(makerToken);
+
+        if (address(takerTokenPair) == address(0) && address(makerTokenPair) == address(0)) {
+            return makerTokenAmounts;
+        }
+
+        bool didSucceed;
+        bytes memory resultData;
         for (uint256 i = 0; i < numSamples; i++) {
-            bool didSucceed = true;
             if (makerToken == _getWethAddress()) {
                 // if converting to WETH, sell all of the token in the taker token pair
-                (didSucceed, bytes memory resultData) =
+                (didSucceed, resultData) =
                     address(takerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
                         abi.encodeWithSelector(
                             ICoFiXPair(0).calcOutToken0.selector,
@@ -78,7 +85,7 @@ contract CoFiXSampler is
                 makerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
             } else if (takerToken == _getWethAddress()) {
                 // if starting with WETH, sell all of the WETH in the maker token pair
-                (didSucceed, bytes memory resultData) =
+                (didSucceed, resultData) =
                     address(makerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
                         abi.encodeWithSelector(
                             ICoFiXPair(0).calcOutToken1.selector,
@@ -86,32 +93,6 @@ contract CoFiXSampler is
                             _getOraclePrice(makerToken)
                     ));
                 makerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
-            } else {
-                // if it's converting a non-WETH token to another non-WETH token
-                // convert the taker token to WETH, then convert the WETH to the maker token
-                (didSucceed, bytes memory resultData) =
-                    address(takerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
-                        abi.encodeWithSelector(
-                            ICoFiXPair(0).calcOutToken0.selector,
-                            takerTokenAmounts[i],
-                            _getOraclePrice(takerToken)
-                    ));
-                uint256 ethBought = abi.decode(resultData, (uint256[]))[0];
-                if (ethBought != 0) {
-                    (bool didSucceed, bytes memory resultData) =
-                        address(makerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
-                            abi.encodeWithSelector(
-                                ICoFiXPair(0).calcOutToken1.selector,
-                                ethBought,
-                                _getOraclePrice(makerToken)
-                        ));
-                    makerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
-                } else {
-                    makerTokenAmounts[i] = 0;
-                }
-            }
-            if (!didSucceed) {
-                break;
             }
         }
     }
@@ -120,7 +101,7 @@ contract CoFiXSampler is
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
-    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    /// @return takerTokenAmounts taker amounts bought at each maker token
     ///         amount.
     function sampleBuysFromCoFiX(
         address takerToken,
@@ -135,15 +116,25 @@ contract CoFiXSampler is
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
+        if (takerToken != _getWethAddress() && makerToken != _getWethAddress()) {
+            return takerTokenAmounts;
+        }
         ICoFiXPair takerTokenPair = takerToken == _getWethAddress() ?
             ICoFiXPair(0) : _getCoFiXPair(takerToken);
         ICoFiXPair makerTokenPair = makerToken == _getWethAddress() ?
             ICoFiXPair(0) : _getCoFiXPair(makerToken);
+
+        if (address(takerTokenPair) == address(0) && address(makerTokenPair) == address(0)) {
+            return takerTokenAmounts;
+        }
+
+        bool didSucceed;
+        bytes memory resultData;
         for (uint256 i = 0; i < numSamples; i++) {
             bool didSucceed = true;
             if (makerToken == _getWethAddress()) {
                 // if converting to WETH, find out how much of the taker token to send in
-                (didSucceed, bytes memory resultData) =
+                (didSucceed, resultData) =
                     address(takerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
                         abi.encodeWithSelector(
                             ICoFiXPair(0).calcInNeededToken1.selector,
@@ -153,7 +144,7 @@ contract CoFiXSampler is
                 takerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
             } else if (takerToken == _getWethAddress()) {
                 // if starting to a non-WETH token, find out how much WETH to send in
-                (didSucceed, bytes memory resultData) =
+                (didSucceed, resultData) =
                     address(makerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
                         abi.encodeWithSelector(
                             ICoFiXPair(0).calcInNeededToken0.selector,
@@ -161,52 +152,21 @@ contract CoFiXSampler is
                             _getOraclePrice(makerToken)
                     ));
                 takerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
-            } else {
-                // if it's converting a non-WETH token to another non-WETH token
-                // find out how much WETH you need to convert to get to the maker token
-                // then find out how much of the taker token you need to get that WETH
-                (didSucceed, bytes memory resultData) =
-                    address(makerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
-                        abi.encodeWithSelector(
-                            ICoFiXPair(0).calcInNeededToken0.selector,
-                            makerTokenAmounts[i],
-                            _getOraclePrice(makerToken)
-                    ));
-                uint256 ethNeeded = abi.decode(resultData, (uint256[]))[0];
-                if (ethNeeded != 0) {
-                    (didSucceed, bytes memory resultData) =
-                        address(takerTokenPair).staticcall.gas(COFIX_CALL_GAS)(
-                            abi.encodeWithSelector(
-                                ICoFiXPair(0).calcInNeededToken1.selector,
-                                ethNeeded,
-                                _getOraclePrice(takerToken)
-                        ));
-                    takerTokenAmounts[i] = abi.decode(resultData, (uint256[]))[0];
-                } else {
-                    takerTokenAmounts[i] = 0;
-                }
-            }
-            if (!didSucceed) {
-                break;
             }
         }
     }
 
     /// @dev Returns the oracle information from NEST given a token
     /// @param tokenAddress Address of the token contract.
-    /// @return OraclePrice NEST oracle data
+    /// @return oraclePrice NEST oracle data
     function _getOraclePrice(address tokenAddress)
         private
         view
-        returns (OraclePrice oraclePrice)
+        returns (OraclePrice memory oraclePrice)
     {
-        (uint32 k, uint32 updatedAt, uint32 theta) = ICoFiXController(_getCoFiXControllerAddress()).getKInfo(tokenAddress);
-        (uint256 ethAmount, uint256 erc20Amount, uint256 blockNum); = INestOracle(_getNestOracleAddress()).checkPriceNow(tokenAddress);
-
-        uint k2 = uint(k);
-        uint theta2 = uint(theta);
-
-        return [ethAmount, erc20Amount, blockNum, k2, theta];
+        (oraclePrice.K, /* updated at */, oraclePrice.theta) = ICoFiXController(_getCoFiXControllerAddress()).getKInfo(tokenAddress);
+        (oraclePrice.ethAmount, oraclePrice.erc20Amount, oraclePrice.blockNum) = INestOracle(_getNestOracleAddress()).checkPriceNow(tokenAddress);
+        return oraclePrice;
     }
 
     /// @dev Returns the CoFiX pool for a given token address.
