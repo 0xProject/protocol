@@ -49,6 +49,10 @@
             {
                 "note": "Remove calldata signing functionality",
                 "pr": 51
+            },
+            {
+                "note": "Add a permissionless transformer deployer",
+                "pr": 55
             }
         ]
     },
