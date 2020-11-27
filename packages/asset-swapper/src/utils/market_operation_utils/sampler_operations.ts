@@ -20,6 +20,7 @@ import {
     BalancerFillData,
     BancorFillData,
     BatchedOperation,
+    CoFiXFillData,
     CurveFillData,
     CurveInfo,
     DexSample,
@@ -865,12 +866,20 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation {
+    ): SourceQuoteOperation<CoFiXFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.CoFiX,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromCoFiX,
             params: [takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: CoFiXFillData): BigNumber[] => {
+                const [samples, fee] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], BigNumber]>(
+                    'sampleSellsFromCoFiX',
+                    callResults,
+                );
+                fillData.feeInWei = fee;
+                return samples;
+            },
         });
     }
 
@@ -878,12 +887,20 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation {
+    ): SourceQuoteOperation<CoFiXFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.CoFiX,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromCoFiX,
             params: [takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: CoFiXFillData): BigNumber[] => {
+                const [samples, fee] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], BigNumber]>(
+                    'sampleBuysFromCoFiX',
+                    callResults,
+                );
+                fillData.feeInWei = fee;
+                return samples;
+            },
         });
     }
 

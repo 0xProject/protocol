@@ -153,6 +153,10 @@ export interface DODOFillData extends FillData {
     isSellBase: boolean;
 }
 
+export interface CoFiXFillData extends FillData {
+    feeInWei: BigNumber;
+}
+
 export interface Quote<TFillData = FillData> {
     amount: BigNumber;
     fillData?: TFillData;

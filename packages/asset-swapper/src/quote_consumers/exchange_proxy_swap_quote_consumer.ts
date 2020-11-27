@@ -27,7 +27,7 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
-import { ERC20BridgeSource, UniswapV2FillData } from '../utils/market_operation_utils/types';
+import { CoFiXFillData, ERC20BridgeSource, UniswapV2FillData } from '../utils/market_operation_utils/types';
 import { getTokenFromAssetData } from '../utils/utils';
 
 import { getSwapMinBuyAmount } from './utils';
@@ -100,6 +100,16 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         if (isFromETH) {
             ethAmount = ethAmount.plus(sellAmount);
         }
+
+        // TODO really hate this, either tally it into `protocolFee`? or
+        // have the protocol fee in the Native fillData? and tally all `feeInWei`
+        // Add additional ETH fees
+        quote.orders.forEach(o => {
+            if (o.fills[0].source === ERC20BridgeSource.CoFiX) {
+                ethAmount = ethAmount.plus((o.fills[0].fillData as CoFiXFillData).feeInWei);
+            }
+        });
+
         const { buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
 
         // VIP routes.

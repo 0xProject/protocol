@@ -74,4 +74,9 @@ interface INestOracle {
         external
         view
         returns (uint256 ethAmount, uint256 erc20Amount, uint256 blockNum);
+
+    function checkPriceCost()
+        external
+        view
+        returns (uint256);
 }
