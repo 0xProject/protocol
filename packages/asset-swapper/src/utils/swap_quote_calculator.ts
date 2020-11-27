@@ -138,15 +138,15 @@ export class SwapQuoteCalculator {
         // Scale fees by gas price and additional fees
         const _opts: GetMarketOrdersOpts = {
             ...opts,
-            feeSchedule: _.mapKeys(opts.feeSchedule, (gasCost, source) => {
+            feeSchedule: _.mapValues(opts.feeSchedule, (gasCost, source) => (fillData?: FillData) => {
                 if (gasCost === undefined) {
-                    return () => 0;
+                    return 0;
                 }
-                // CoFiX has an additional constant fee in ETH
+                let gasFee = gasPrice.times(gasCost(fillData));
                 if (source === ERC20BridgeSource.CoFiX) {
-                    return (fillData: CoFiXFillData) => gasPrice.times(gasCost(fillData)).plus(fillData.feeInWei);
+                    gasFee = gasFee.plus((fillData as CoFiXFillData).feeInWei);
                 }
-                return (fillData?: FillData) => gasPrice.times(gasCost(fillData));
+                return gasFee;
             }),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
