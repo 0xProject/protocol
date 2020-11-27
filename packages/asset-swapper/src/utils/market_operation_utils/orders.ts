@@ -200,7 +200,7 @@ function getBridgeAddressFromFill(fill: CollapsedFill, opts: CreateOrderFromPath
         case ERC20BridgeSource.Dodo:
             return opts.contractAddresses.dodoBridge;
         case ERC20BridgeSource.CoFiX:
-            return '0xc0f1cccccccccccccccccccccccccccccccccccc';
+            return opts.contractAddresses.cofixBridge;
         default:
             break;
     }

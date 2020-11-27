@@ -15,7 +15,6 @@ import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
-
 import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../src';
 import { PriceAwareRFQFlags } from '../src/types';
 import { getRfqtIndicativeQuotesAsync, MarketOperationUtils } from '../src/utils/market_operation_utils/';
@@ -64,6 +63,7 @@ const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CoFiX,
 ];
 const BUY_SOURCES = BUY_SOURCE_FILTER.sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
@@ -162,6 +162,8 @@ describe('MarketOperationUtils tests', () => {
                 return ERC20BridgeSource.Shell;
             case contractAddresses.dodoBridge.toLowerCase():
                 return ERC20BridgeSource.Dodo;
+            case contractAddresses.cofixBridge.toLowerCase():
+                return ERC20BridgeSource.CoFiX;
             default:
                 break;
         }
@@ -312,6 +314,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Shell]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.Cream]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.Dodo]: _.times(NUM_SAMPLES, () => 0),
+        [ERC20BridgeSource.CoFiX]: _.times(NUM_SAMPLES, () => 0),
     };
 
     const DEFAULT_RATES: RatesBySource = {
@@ -371,6 +374,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Dodo]: {},
+        [ERC20BridgeSource.CoFiX]: {},
     };
 
     const DEFAULT_OPS = {

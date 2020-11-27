@@ -74,6 +74,7 @@ import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadata
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
 import * as MixinAdapterAddresses from '../test/generated-artifacts/MixinAdapterAddresses.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
+import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
 import * as MixinDodo from '../test/generated-artifacts/MixinDodo.json';
 import * as MixinKyber from '../test/generated-artifacts/MixinKyber.json';
@@ -206,6 +207,7 @@ export const artifacts = {
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
     MixinAdapterAddresses: MixinAdapterAddresses as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
+    MixinCoFiX: MixinCoFiX as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,
     MixinDodo: MixinDodo as ContractArtifact,
     MixinKyber: MixinKyber as ContractArtifact,

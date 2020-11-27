@@ -72,6 +72,7 @@ export * from '../test/generated-wrappers/log_metadata_transformer';
 export * from '../test/generated-wrappers/meta_transactions_feature';
 export * from '../test/generated-wrappers/mixin_adapter_addresses';
 export * from '../test/generated-wrappers/mixin_balancer';
+export * from '../test/generated-wrappers/mixin_co_fi_x';
 export * from '../test/generated-wrappers/mixin_curve';
 export * from '../test/generated-wrappers/mixin_dodo';
 export * from '../test/generated-wrappers/mixin_kyber';
