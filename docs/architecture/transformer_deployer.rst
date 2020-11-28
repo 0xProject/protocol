@@ -25,13 +25,13 @@ The deployer implements two functions: ``deploy()`` and ``kill()``. The former i
         public
         onlyAuthorized;
 
-View the code for the Transformer Deployer `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/external/TransformerDeployer.sol>`_.
+View the code for the Transformer Deployer `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/external/TransformerDeployer.sol>`__.
 
 
 Permissionless Transfomer Deployer
 ===================================
 
-A permissionless deployer has been developed and can be seen `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/external/PermissionlessTransformerDeployer.sol>`_. This serves a similar function to the current delployer, only it is capable of validating the Transformer's bytecode before deploying. It does this by tracing the bytecode in search of reachable opcodes that could post a threat to the Flash Wallet. 
+A permissionless deployer has been developed and can be seen `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/external/PermissionlessTransformerDeployer.sol>`__. This serves a similar function to the current delployer, only it is capable of validating the Transformer's bytecode before deploying. It does this by tracing the bytecode in search of reachable opcodes that could post a threat to the Flash Wallet. 
 
 The ``isDelegateCallSafe`` function performs this check. It will return ``false`` if any of the following opcodes are reachable: ``callcode``, ``delegatecall``, ``selfdestruct``, ``create``, ``create2``, ``sload``, ``sstore``. 
 
@@ -61,4 +61,4 @@ Note that there is no ``kill`` function in this deployer.
 
 View the code for the Permissionless Transformer Deployer `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/external/PermissionlessTransformerDeployer.sol>`_.
 
-There is some overhead to switching over to this deployer, as the ``Flash Wallet <./flash_wallet.html>``_ would need to be redeployed and some integrators would need to update their code. Therefore, this will be put into production once there is community-demand for permissionless transformers. Reach out to us on `Discord <https://discord.com/invite/d3FTX3M>`_ if you'd like to deploy a Transformer!
+There is some overhead to switching over to this deployer, as the `Flash Wallet <./flash_wallet.html>`_ would need to be redeployed and some integrators would need to update their code. Therefore, this will be put into production once there is community-demand for permissionless transformers. Reach out to us on `Discord <https://discord.com/invite/d3FTX3M>`_ if you'd like to deploy a Transformer!

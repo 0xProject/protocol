@@ -56,7 +56,7 @@ Below is a catalog of basic Exchange functionality. For more advanced usage, lik
 
 Limit Orders
 ============
-These are the basic functions for using a `Limit Order <../basics/orders.html#limit-orders>`_.
+These are the basic functions for using a `Limit Order <../basics/orders.html#limit-orders>`__.
 
 fillLimitOrder
 --------------
@@ -552,7 +552,7 @@ This function emits a `RfqOrderOriginsAllowed <../basics/events.html#rfqorderori
 Protocol Fees
 =============
 
-There is a fixed protocol fee paid by the Taker each time they fill a `Limit Order <orders.html#limit-orders>`_. Learn more in the `Protocol Fees Section <./protocol_fees.html>`_. Also check out our research in the `Tokenomics Section <../tokenomics/research.html>`_.
+There is a fixed protocol fee paid by the Taker each time they fill a `Limit Order <orders.html#limit-orders>`__. Learn more in the `Protocol Fees Section <./protocol_fees.html>`_. Also check out our research in the `Tokenomics Section <../tokenomics/research.html>`_.
 
 getProtocolFeeMultiplier
 ------------------------
