@@ -17,7 +17,7 @@ This page outlines upcoming releases and expected changes.
 Tinker (Official V4 Release)
 ----------------------------
 
-- Upgrade that transfer user funds to use allowances on the Proxy contract. Transfers will still fallback to the Allowance Target, but integrators will get reduced transaction costs from setting their allowance on the Proxy.. See more on the `Allowances Page <../basics/allowances.html>`_.
+- Upgrade any features that transfer user funds to use allowances on the Proxy contract. Transfers will still fallback to the Allowance Target, but integrators will get reduced transaction costs from setting their allowance on the Proxy.. See more on the `Allowances Page <../basics/allowances.html>`_.
 - Deploy `LiquidityProviderFeature <../architecture/features.html>`_.
 - Deploy `NativeLiquidityFeature <../architecture/features.html>`_.
 - Deploy updated `FillQuoteTransformer <../architecture/transformers.html>`_, which can fill `V4 Orders <../basics/orders.html>`_. This transformer will no longer call Exchange V3.
