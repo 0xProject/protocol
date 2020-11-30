@@ -62,8 +62,8 @@ contract DeploymentConstants {
     address constant private DODO_REGISTRY = 0x3A97247DF274a17C59A3bd12735ea3FcDFb49950;
     /// @dev Mainnet address of the DODO Helper contract
     address constant private DODO_HELPER = 0x533dA777aeDCE766CEAe696bf90f8541A4bA80Eb;
-    /// @dev Mainnet address of the CoFiX Controller contract
-    address constant private COFIX_CONTROLLER_ADDRESS = 0x7e497Be7532CC4954D73c6dF93F016c53CC0C29a;
+    /// @dev Mainnet address of the CoFiX Factory contract
+    address constant private COFIX_FACTORY_ADDRESS = 0x66C64ecC3A6014733325a8f2EBEE46B4CA3ED550;
 
     // // Ropsten addresses ///////////////////////////////////////////////////////
     // /// @dev Mainnet address of the WETH contract.
@@ -340,13 +340,13 @@ contract DeploymentConstants {
         return DODO_HELPER;
     }
 
-    /// @dev An overridable way to retrieve the CoFiX Controller address
-    /// @return registry The CoFiX controller contract address.
-    function _getCoFiXControllerAddress()
+    /// @dev An overridable way to retrieve the CoFiX Factory address
+    /// @return registry The CoFiX factory contract address.
+    function _getCoFiXFactoryAddress()
         internal
         view
         returns (address)
     {
-        return COFIX_CONTROLLER_ADDRESS;
+        return COFIX_FACTORY_ADDRESS;
     }
 }

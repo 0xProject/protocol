@@ -407,6 +407,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 auxiliaryData: constants.NULL_BYTES,
             });
         });
+
         it('allows selling the entire balance for CFL', async () => {
             const quote = getRandomSellQuote();
             const callInfo = await consumer.getCalldataOrThrowAsync(quote, {
@@ -436,6 +437,25 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
             expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, MAKER_TOKEN, ETH_TOKEN_ADDRESS]);
+        });
+
+        it('adds CoFix ETH fees', async () => {
+            const quote = getRandomSellQuote();
+            const originalCallInfo = await consumer.getCalldataOrThrowAsync(quote);
+            const fee = new BigNumber(0.01e18);
+            // Load the first order up as a CoFiX fill
+            quote.orders[0].fills = [
+                {
+                    source: ERC20BridgeSource.CoFiX,
+                    fillData: { feeInWei: fee },
+                    sourcePathId: '1234',
+                    input: quote.orders[0].takerAssetAmount,
+                    output: quote.orders[0].makerAssetAmount,
+                    subFills: [],
+                },
+            ];
+            const cofixCallInfo = await consumer.getCalldataOrThrowAsync(quote);
+            expect(cofixCallInfo.ethAmount).to.be.bignumber.eq(originalCallInfo.ethAmount.plus(fee));
         });
     });
 });

@@ -204,6 +204,15 @@ contract CoFiXSampler is
         return oraclePrice;
     }
 
+    /// @dev Returns the CoFiX Factory
+    /// @return the CoFiX Factory
+    function _getCoFiXFactory()
+        private
+        view
+        returns (ICoFiXFactory)
+    {
+        return ICoFiXFactory(_getCoFiXFactoryAddress());
+    }
 
     /// @dev Returns the CoFiX controller.
     /// @return the CoFiX controller
@@ -212,7 +221,7 @@ contract CoFiXSampler is
         view
         returns (ICoFiXController)
     {
-        return ICoFiXController(_getCoFiXControllerAddress());
+        return ICoFiXController(_getCoFiXFactory().getController());
     }
 
     /// @dev Returns the CoFiX pool for a given token address.
@@ -225,7 +234,7 @@ contract CoFiXSampler is
         returns (address)
     {
         try
-            ICoFiXFactory(_getCoFiXController().factory()).getPair(tokenAddress)
+            _getCoFiXFactory().getPair(tokenAddress)
             returns (address tokenPair)
         {
             return tokenPair;

@@ -127,9 +127,7 @@ export function simulateWorstCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult
         // Worst case gas and protocol fee is hitting all orders.
         gas: getTotalGasUsedByFills(getFlattenedFillsFromOrders(quoteInfo.orders), opts.gasSchedule),
         // Protocol fees are only paid on Native orders
-        protocolFee: protocolFeePerFillOrder.times(
-            quoteInfo.orders.filter(o => o.fills[0].source === ERC20BridgeSource.Native).length,
-        ),
+        protocolFee: protocolFeePerFillOrder.times(quoteInfo.orders.filter(o => isNativeOptimizedOrder(o)).length),
     };
     return fromIntermediateQuoteFillResult(result, quoteInfo);
 }
@@ -183,11 +181,13 @@ export function fillQuoteOrders(
             }
         }
         // Protocol fees are only paid on Native 0x orders
-        result.protocolFee = result.protocolFee.plus(
-            fo.order.fills[0].source === ERC20BridgeSource.Native ? protocolFeePerFillOrder : 0,
-        );
+        result.protocolFee = result.protocolFee.plus(isNativeOptimizedOrder(fo.order) ? protocolFeePerFillOrder : 0);
     }
     return result;
+}
+
+function isNativeOptimizedOrder(o: OptimizedMarketOrder): boolean {
+    return o.fills.length === 0 || o.fills[0].source === ERC20BridgeSource.Native;
 }
 
 function solveForInputFillAmount(

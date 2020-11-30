@@ -54,11 +54,6 @@ interface ICoFiXPair {
 
 interface ICoFiXController {
 
-    /// @dev Returns the Pair Factory
-    function factory()
-        external
-        view
-        returns (address);
 
     /// @dev Returns the NEST Vote Factory
     function voteFactory()
@@ -95,6 +90,13 @@ interface ICoFiXController {
 
 interface ICoFiXFactory {
 
+    /// @dev Returns the Controller
+    function getController()
+        external
+        view
+        returns (address);
+
+    /// @dev Returns the Pool for the token pair
     function getPair(address token)
         external
         view

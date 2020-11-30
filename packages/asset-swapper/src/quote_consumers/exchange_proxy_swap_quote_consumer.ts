@@ -101,11 +101,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             ethAmount = ethAmount.plus(sellAmount);
         }
 
-        // TODO really hate this, either tally it into `protocolFee`? or
+        // TODO fixme either tally it into `protocolFee`? or
         // have the protocol fee in the Native fillData? and tally all `feeInWei`
         // Add additional ETH fees
         quote.orders.forEach(o => {
-            if (o.fills[0].source === ERC20BridgeSource.CoFiX) {
+            if (o.fills && o.fills[0] && o.fills[0].source === ERC20BridgeSource.CoFiX) {
                 ethAmount = ethAmount.plus((o.fills[0].fillData as CoFiXFillData).feeInWei);
             }
         });

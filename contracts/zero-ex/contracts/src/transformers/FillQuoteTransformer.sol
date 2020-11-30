@@ -432,7 +432,6 @@ contract FillQuoteTransformer is
                     availableTakerAssetFillAmount
                 )
             );
-
             if (success) {
                 results.makerTokenBoughtAmount = abi.decode(resultData, (uint256));
                 results.takerTokenSoldAmount = availableTakerAssetFillAmount;
