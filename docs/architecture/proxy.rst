@@ -247,3 +247,11 @@ Although the proxy will not have access to the V3 asset proxies initially, early
 **Balances**
 
 Inevitably, there will be features that will cause the Exchange Proxy to hold temporary balances (e.g., payable functions). Thus, it’s a good idea that no feature should cause the Exchange Proxy to hold a permanent balance of tokens or ether, since these balances can easily get mixed up with temporary balances.
+
+**Reentrancy**
+
+Functions can be re-entered by default; those secured by the ``nonReentrant`` modifier cannot be re-entered.
+
+**Colliding Function Selectors**
+
+We manually ensure that function selectors do not collide during PR's. See the `Feature Checklist <./features.html#best-practices>`_ for a complete list of our best practices on Feature Development.

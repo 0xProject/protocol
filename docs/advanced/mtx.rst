@@ -100,6 +100,7 @@ This call will revert in the following scenarios:
 - The mtx has expired.
 - The Ethereum transaction's gas price (``tx.gasprice``) is outside of the range ``[mtx.minGasPrice..mtx.maxGasPrice]``
 - The ETH sent with the mtx is less than ``mtx.value``
+- The allowance/balance of ``signer`` is insufficient to pay ``feeAmount`` of ``feeToken`` to the ``sender`` (if specified)
 - The signature is invalid.
 - The mtx was already executed
 - The underlying function is not supported by meta-transactions (see list above).
@@ -122,7 +123,7 @@ batchExecuteMetaTransactions
         payable
         returns (bytes[] memory returnResults);
 
-A `MetaTransactionExecuted <../basics/events.html#metatransactionexecuted>`_ event is emitted for each mtx on succes. The ``returnResult`` contains the raw return data for the executed function This call will revert if the one of the ``mtxs`` reverts.
+A `MetaTransactionExecuted <../basics/events.html#metatransactionexecuted>`_ event is emitted for each mtx on succes. The ``returnResult`` contains the raw return data for the executed function This call will revert if the one of the ``mtxs`` reverts. Any exceess Ether will be refunded to the ``msg.sender``.
 
 
 getMetaTransactionExecutedBlock
