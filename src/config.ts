@@ -396,34 +396,17 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
     let returnValue;
     switch (expectedType) {
         case EnvVarType.Port:
-            try {
-                returnValue = parseInt(value, 10);
-                const isWithinRange = returnValue >= 0 && returnValue <= 65535;
-                if (!isWithinRange) {
-                    throw new Error();
-                }
-            } catch (err) {
+            returnValue = parseInt(value, 10);
+            const isWithinRange = returnValue >= 0 && returnValue <= 65535;
+            if (isNaN(returnValue) || !isWithinRange) {
                 throw new Error(`${name} must be between 0 to 65535, found ${value}.`);
             }
             return returnValue;
-        case EnvVarType.Integer:
-            try {
-                returnValue = parseInt(value, 10);
-            } catch (err) {
-                throw new Error(`${name} must be a valid integer, found ${value}.`);
-            }
-            return returnValue;
-        case EnvVarType.KeepAliveTimeout:
-            try {
-                returnValue = parseInt(value, 10);
-            } catch (err) {
-                throw new Error(`${name} must be a valid integer, found ${value}.`);
-            }
-            return returnValue;
         case EnvVarType.ChainId:
-            try {
-                returnValue = parseInt(value, 10);
-            } catch (err) {
+        case EnvVarType.KeepAliveTimeout:
+        case EnvVarType.Integer:
+            returnValue = parseInt(value, 10);
+            if (isNaN(returnValue)) {
                 throw new Error(`${name} must be a valid integer, found ${value}.`);
             }
             return returnValue;
@@ -441,12 +424,8 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
         case EnvVarType.Boolean:
             return value === 'true';
         case EnvVarType.UnitAmount:
-            try {
-                returnValue = new BigNumber(parseFloat(value));
-                if (returnValue.isNegative()) {
-                    throw new Error();
-                }
-            } catch (err) {
+            returnValue = new BigNumber(parseFloat(value));
+            if (returnValue.isNaN() || returnValue.isNegative()) {
                 throw new Error(`${name} must be valid number greater than 0.`);
             }
             return returnValue;
