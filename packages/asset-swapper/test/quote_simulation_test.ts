@@ -22,7 +22,7 @@ describe('quote_simulation tests', async () => {
     const TAKER_TOKEN = randomAddress();
     const DEFAULT_MAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(MAKER_TOKEN);
     const DEFAULT_TAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(TAKER_TOKEN);
-    const GAS_SCHEDULE = { [ERC20BridgeSource.Uniswap]: _.constant(1) };
+    const GAS_SCHEDULE = { [ERC20BridgeSource.Uniswap]: _.constant(1), [ERC20BridgeSource.Native]: _.constant(1) };
 
     // Check if two numbers are within `maxError` error rate within each other.
     function assertRoughlyEquals(n1: BigNumber, n2: BigNumber, maxError: BigNumber | number = 1e-10): void {
@@ -43,9 +43,10 @@ describe('quote_simulation tests', async () => {
             count: number;
             fillsCount: number;
             side: MarketOperation;
+            source: ERC20BridgeSource;
         }> = {},
     ): QuoteFillOrderCall[] {
-        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, fillsCount, side } = {
+        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, fillsCount, side, source } = {
             fillableInput: getRandomOrderSize(),
             fillableOutput: getRandomOrderSize(),
             inputFeeRate: 0,
@@ -53,6 +54,7 @@ describe('quote_simulation tests', async () => {
             count: 3,
             fillsCount: 3,
             side: MarketOperation.Sell,
+            source: ERC20BridgeSource.Native,
             ...opts,
         };
         const _inputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
@@ -78,6 +80,7 @@ describe('quote_simulation tests', async () => {
             return {
                 order: createQuoteFillOrderOrder(totalInputs[i], totalOutputs[i], {
                     side,
+                    source,
                     fillsCount,
                     filledInput: filledInputs[i],
                     takerInputFee: inputFees[i].abs(),
@@ -100,14 +103,16 @@ describe('quote_simulation tests', async () => {
             side: MarketOperation;
             takerInputFee: BigNumber;
             takerOutputFee: BigNumber;
+            source: ERC20BridgeSource;
         }> = {},
     ): OptimizedMarketOrder {
-        const { filledInput, fillsCount, side, takerInputFee, takerOutputFee } = {
+        const { filledInput, fillsCount, side, takerInputFee, takerOutputFee, source } = {
             side: MarketOperation.Sell,
             filledInput: ZERO,
             fillsCount: 3,
             takerInputFee: ZERO,
             takerOutputFee: ZERO,
+            source: ERC20BridgeSource.Native,
             ...opts,
         };
         const filledOutput = filledInput
@@ -139,7 +144,7 @@ describe('quote_simulation tests', async () => {
             fillableTakerFeeAmount,
             takerFee,
             takerFeeAssetData,
-            fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
+            fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount, source),
             chainId: 1,
             exchangeAddress: NULL_ADDRESS,
             expirationTimeSeconds: ZERO,
@@ -156,7 +161,12 @@ describe('quote_simulation tests', async () => {
         };
     }
     const nativeSourcePathId = hexUtils.random();
-    function createOrderCollapsedFills(input: BigNumber, output: BigNumber, count: number): CollapsedFill[] {
+    function createOrderCollapsedFills(
+        input: BigNumber,
+        output: BigNumber,
+        count: number,
+        source: ERC20BridgeSource,
+    ): CollapsedFill[] {
         const inputs = subdivideAmount(input, count);
         const outputs = subdivideAmount(output, count);
         return _.times(count, i => {
@@ -164,7 +174,7 @@ describe('quote_simulation tests', async () => {
             const subFillOutputs = subdivideAmount(outputs[i], count);
             return {
                 sourcePathId: nativeSourcePathId,
-                source: ERC20BridgeSource.Uniswap,
+                source,
                 input: inputs[i],
                 output: outputs[i],
                 subFills: _.times(count, j => ({
@@ -224,7 +234,7 @@ describe('quote_simulation tests', async () => {
 
     describe('fillQuoteOrders()', () => {
         describe('single order', () => {
-            it('can exactly fill one order', () => {
+            it('can exactly fill one order. With a protocol fee for Native', () => {
                 const side = randomSide();
                 const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
@@ -235,6 +245,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
                 const totalFilledInput = result.input.plus(result.inputFee);
@@ -242,6 +253,28 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 expect(result.protocolFee).to.bignumber.eq(1);
+                expect(result.gas).to.eq(fillsCount);
+            });
+
+            it('can exactly fill one order. With no protocol fee for on-chain source', () => {
+                const side = randomSide();
+                const fillsCount = _.random(1, 3);
+                const fillableInput = getRandomOrderSize();
+                const fillableOutput = getRandomOrderSize();
+                const fillOrders = createQuoteFillOrders({
+                    fillableInput,
+                    fillableOutput,
+                    side,
+                    fillsCount,
+                    count: 1,
+                    source: ERC20BridgeSource.Uniswap,
+                });
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const totalFilledInput = result.input.plus(result.inputFee);
+                const totalFilledOutput = result.output.plus(result.outputFee);
+                expect(totalFilledInput).to.bignumber.eq(fillableInput);
+                assertRoughlyEquals(totalFilledOutput, fillableOutput);
+                expect(result.protocolFee).to.bignumber.eq(0);
                 expect(result.gas).to.eq(fillsCount);
             });
 
@@ -256,6 +289,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
                 const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
@@ -282,6 +316,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
                 const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
@@ -305,6 +340,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const inputFillAmount = fillableInput.times(3 / 2).integerValue();
                 const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
@@ -329,6 +365,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
@@ -355,6 +392,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
@@ -382,6 +420,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
@@ -409,6 +448,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
@@ -435,6 +475,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
@@ -462,6 +503,7 @@ describe('quote_simulation tests', async () => {
                     side,
                     fillsCount,
                     count: 1,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
@@ -482,7 +524,12 @@ describe('quote_simulation tests', async () => {
                 const side = randomSide();
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
-                const fillOrders = createQuoteFillOrders({ fillableInput, fillableOutput, side });
+                const fillOrders = createQuoteFillOrders({
+                    fillableInput,
+                    fillableOutput,
+                    side,
+                    source: ERC20BridgeSource.Native,
+                });
                 const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
@@ -492,18 +539,42 @@ describe('quote_simulation tests', async () => {
                 expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
+            it('can exactly fill on-chain orders with no protocol fee', () => {
+                const side = randomSide();
+                const fillableInput = getRandomOrderSize();
+                const fillableOutput = getRandomOrderSize();
+                const fillOrders = createQuoteFillOrders({
+                    fillableInput,
+                    fillableOutput,
+                    side,
+                    source: ERC20BridgeSource.Uniswap,
+                });
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const totalFilledInput = result.input.plus(result.inputFee);
+                const totalFilledOutput = result.output.plus(result.outputFee);
+                expect(totalFilledInput).to.bignumber.eq(fillableInput);
+                expect(totalFilledOutput).to.bignumber.eq(fillableOutput);
+                expect(result.protocolFee).to.bignumber.eq(0);
+                expect(result.gas).to.eq(countCollapsedFills(fillOrders));
+            });
+
             it('can partial fill orders', () => {
                 const side = randomSide();
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
-                const fillOrders = createQuoteFillOrders({ fillableInput, fillableOutput, side });
+                const fillOrders = createQuoteFillOrders({
+                    fillableInput,
+                    fillableOutput,
+                    side,
+                    source: ERC20BridgeSource.Uniswap,
+                });
                 const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(inputFillAmount);
                 expect(totalFilledOutput).to.bignumber.lt(fillableOutput);
-                expect(result.protocolFee).to.bignumber.gte(1);
+                expect(result.protocolFee).to.bignumber.eq(0);
             });
 
             it('does not over fill orders', () => {
@@ -511,13 +582,18 @@ describe('quote_simulation tests', async () => {
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const inputFillAmount = fillableInput.times(3 / 2).integerValue();
-                const fillOrders = createQuoteFillOrders({ fillableInput, fillableOutput, side });
+                const fillOrders = createQuoteFillOrders({
+                    fillableInput,
+                    fillableOutput,
+                    side,
+                    source: ERC20BridgeSource.Uniswap,
+                });
                 const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
                 expect(totalFilledOutput).to.bignumber.eq(fillableOutput);
-                expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
+                expect(result.protocolFee).to.bignumber.eq(0);
                 expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
@@ -531,6 +607,7 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     inputFeeRate,
                     side,
+                    source: ERC20BridgeSource.Uniswap,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
@@ -540,7 +617,7 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledInput, totalFillableInput);
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 assertEqualRates(result.inputFee.div(result.input), signedInputFeeRate);
-                expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
+                expect(result.protocolFee).to.bignumber.eq(0);
                 expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
@@ -554,6 +631,7 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     inputFeeRate,
                     side,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
@@ -578,6 +656,7 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     inputFeeRate,
                     side,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
@@ -602,6 +681,7 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     outputFeeRate,
                     side,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
@@ -625,6 +705,7 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     outputFeeRate,
                     side,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
@@ -649,6 +730,7 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     outputFeeRate,
                     side,
+                    source: ERC20BridgeSource.Native,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
@@ -930,6 +1012,7 @@ describe('quote_simulation tests', async () => {
                 fillableInput,
                 fillableOutput,
                 side,
+                source: ERC20BridgeSource.Uniswap,
             }).map(fo => slipOrder(fo.order, orderSlippage, side));
             const result = simulateWorstCaseFill({
                 orders,
@@ -958,6 +1041,7 @@ describe('quote_simulation tests', async () => {
                 fillableInput,
                 fillableOutput,
                 side,
+                source: ERC20BridgeSource.Uniswap,
             }).map(fo => slipOrder(fo.order, orderSlippage, side));
             orders = [...orders.slice(1), orders[0]];
             const bestCase = simulateBestCaseFill({
