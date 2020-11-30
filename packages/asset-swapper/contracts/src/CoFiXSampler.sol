@@ -59,8 +59,11 @@ contract CoFiXSampler is
         }
 
         fee = _getNestOracle().checkPriceCost();
+        uint256 makerTokenPoolBalance = IERC20TokenV06(makerToken).balanceOf(address(pool));
 
         for (uint256 i = 0; i < numSamples; i++) {
+            // Calculate the impact from the volume, adjusting the k value by the impact c
+            // We override the Oracle Price K value so we fetch it every sample
             ICoFiXPair.OraclePrice memory oraclePrice = _getOraclePrice(nonWethToken);
             uint256 impactCost = _getCoFiXController().calcImpactCostFor_SWAP_WITH_EXACT(
                 takerToken,
@@ -73,7 +76,7 @@ contract CoFiXSampler is
                 oraclePrice.ethAmount,
                 oraclePrice.erc20Amount
             );
-            // Update k + impactCost for final K
+            // Update k + impactCost (c) for final K
             oraclePrice.K = oraclePrice.K + impactCost;
 
             if (makerToken == _getWethAddress()) {
@@ -82,6 +85,10 @@ contract CoFiXSampler is
                     ICoFiXPair(pool).calcOutToken0{gas: COFIX_CALL_GAS}(takerTokenAmounts[i], oraclePrice)
                     returns (uint256 boughtAmount, uint256)
                 {
+                    // Ensure the Pool has sufficient amount to buy
+                    if (makerTokenPoolBalance < boughtAmount) {
+                        return (makerTokenAmounts, fee, pool);
+                    }
                     makerTokenAmounts[i] = boughtAmount;
                 } catch (bytes memory) {
                     // Swallow failures, leaving all results as zero.  return 0;
@@ -89,11 +96,14 @@ contract CoFiXSampler is
                 }
             } else {
                 // Selling WETH (token0 is Weth)
-                ICoFiXPair(pool).calcOutToken1{gas: COFIX_CALL_GAS}(takerTokenAmounts[i], oraclePrice);
                 try
                     ICoFiXPair(pool).calcOutToken1{gas: COFIX_CALL_GAS}(takerTokenAmounts[i], oraclePrice)
                     returns (uint256 boughtAmount, uint256)
                 {
+                    // Ensure the Pool has sufficient amount to buy
+                    if (makerTokenPoolBalance < boughtAmount) {
+                        return (makerTokenAmounts, fee, pool);
+                    }
                     makerTokenAmounts[i] = boughtAmount;
                 } catch (bytes memory) {
                     // Swallow failures, leaving all results as zero.  return 0;
@@ -131,7 +141,16 @@ contract CoFiXSampler is
         }
 
         fee = _getNestOracle().checkPriceCost();
+        uint256 makerTokenPoolBalance = IERC20TokenV06(makerToken).balanceOf(address(pool));
+
         for (uint256 i = 0; i < numSamples; i++) {
+            // Ensure the Pool has sufficient amount to buy
+            if (makerTokenPoolBalance < makerTokenAmounts[i]) {
+                return (takerTokenAmounts, fee, pool);
+            }
+
+            // Calculate the impact from the volume, adjusting the k value by the impact c
+            // We override the Oracle Price K value so we fetch it every sample
             ICoFiXPair.OraclePrice memory oraclePrice = _getOraclePrice(nonWethToken);
             uint256 impactCost = _getCoFiXController().calcImpactCostFor_SWAP_FOR_EXACT(
                 takerToken,
@@ -144,13 +163,13 @@ contract CoFiXSampler is
                 oraclePrice.ethAmount,
                 oraclePrice.erc20Amount
             );
-            // Update k + impactCost for final K
+            // Update k + impactCost (c) for final K
             oraclePrice.K = oraclePrice.K + impactCost;
 
             if (makerToken == _getWethAddress()) {
                 // Buying WETH (token0 is WETH)
                 try
-                    ICoFiXPair(pool).calcInNeededToken0{gas: COFIX_CALL_GAS}(makerTokenAmounts[i], oraclePrice)
+                    ICoFiXPair(pool).calcInNeededToken1{gas: COFIX_CALL_GAS}(makerTokenAmounts[i], oraclePrice)
                     returns (uint256 soldAmount, uint256)
                 {
                     takerTokenAmounts[i] = soldAmount;
@@ -160,7 +179,7 @@ contract CoFiXSampler is
                 }
             } else {
                 try
-                    ICoFiXPair(pool).calcInNeededToken1{gas: COFIX_CALL_GAS}(makerTokenAmounts[i], oraclePrice)
+                    ICoFiXPair(pool).calcInNeededToken0{gas: COFIX_CALL_GAS}(makerTokenAmounts[i], oraclePrice)
                     returns (uint256 soldAmount, uint256)
                 {
                     takerTokenAmounts[i] = soldAmount;
