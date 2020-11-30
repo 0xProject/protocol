@@ -50,3 +50,28 @@ The only requirement is that the Feature implements the interface in `IFeature <
         /// @dev The version of this feature set.
         function FEATURE_VERSION() external view returns (uint256 version);
     }
+
+
+Best Practices
+================
+
+We use this checklist to review the safety of new Features.
+
+.. code-block::
+
+    - [ ] Feature has updated version information.
+    - [ ] implements IFeature interface.
+    - [ ] Feature contracts are stateless (including inherited contracts).
+    - [ ] onlySelf feature functions are prefixed with _.
+    - [ ] Feature functions are added to full_migration_tests.
+    - [ ] No delegatecalls from inside a feature. Call other features through the router.
+    - [ ] No self-destruct in features (except BootstrapFeature).
+    - [ ] No intentionally persistent (non-atomic) balances on the Exchange Proxy.
+    - [ ] No direct access to another feature’s storage bucket without strong justification.
+    - [ ] No executing arbitrary calldata from the context of the Exchange Proxy.
+    - [ ] No external calls to arbitrary contracts from within the Exchange Proxy.
+    - [ ] Features use unique StorageIds. 
+    - [ ] Document functions with execution contexts outside of the Exchange Proxy.
+    - [ ] Document feature dependencies in checklist doc.
+    - [ ] Document reentrant functions in checklist doc.
+    - [ ] Document temporary balances.
