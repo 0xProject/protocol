@@ -54,6 +54,19 @@ interface ICoFiXPair {
 
 interface ICoFiXController {
 
+    /// @dev Returns the Pair Factory
+    function factory()
+        external
+        view
+        returns (address);
+
+    /// @dev Returns the NEST Vote Factory
+    function voteFactory()
+        external
+        view
+        returns (address);
+
+    /// @dev Returns the k info for oracle and price impact
     function getKInfo(address tokenAddress)
         external
         view
@@ -67,7 +80,7 @@ interface ICoFiXController {
     )
         external
         pure
-        returns (uint256 impactCost);
+        returns (uint256);
 
     function calcImpactCostFor_SWAP_FOR_EXACT(
         address token,
@@ -77,7 +90,7 @@ interface ICoFiXController {
     )
         external
         pure
-        returns (uint256 impactCost);
+        returns (uint256);
 }
 
 interface ICoFiXFactory {
@@ -85,7 +98,15 @@ interface ICoFiXFactory {
     function getPair(address token)
         external
         view
-        returns (address pair);
+        returns (address);
+}
+
+interface INestVoteFactory {
+
+    function checkAddress(string calldata name)
+        external
+        view
+        returns (address);
 }
 
 interface INestOracle {

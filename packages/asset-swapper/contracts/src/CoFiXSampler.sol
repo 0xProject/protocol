@@ -205,39 +205,47 @@ contract CoFiXSampler is
     }
 
 
+    /// @dev Returns the CoFiX controller.
+    /// @return the CoFiX controller
     function _getCoFiXController()
         private
         view
-        returns (ICoFiXController controller)
+        returns (ICoFiXController)
     {
         return ICoFiXController(_getCoFiXControllerAddress());
-    }
-
-    function _getNestOracle()
-        private
-        view
-        returns (INestOracle oracle)
-    {
-        // TODO lookup the latest oracle
-        return INestOracle(_getNestOracleAddress());
     }
 
     /// @dev Returns the CoFiX pool for a given token address.
     ///      The token is paired with WETH
     /// @param tokenAddress Address of the token contract.
-    /// @return pair the pair for associated with that token
+    /// @return the pair for associated with that token
     function _getCoFiXPair(address tokenAddress)
         private
         view
-        returns (address pair)
+        returns (address)
     {
         try
-            ICoFiXFactory(_getCoFiXFactoryAddress()).getPair(tokenAddress)
+            ICoFiXFactory(_getCoFiXController().factory()).getPair(tokenAddress)
             returns (address tokenPair)
         {
             return tokenPair;
         } catch (bytes memory) {
             // Swallow failures, leaving all results as zero.  return 0;
         }
+    }
+
+    /// @dev Returns the NEST Oracle.
+    ///      Using the Nest Vote Factory as a lookup
+    /// @return the NEST price oracle
+    function _getNestOracle()
+        private
+        view
+        returns (INestOracle)
+    {
+        return INestOracle(
+            INestVoteFactory(
+                _getCoFiXController().voteFactory()
+            ).checkAddress("nest.v3.offerPrice")
+        );
     }
 }
