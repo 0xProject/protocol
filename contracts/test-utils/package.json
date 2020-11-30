@@ -45,7 +45,7 @@
         "@0x/assert": "^3.0.17",
         "@0x/base-contract": "^6.2.11",
         "@0x/contract-addresses": "^5.4.0",
-        "@0x/dev-utils": "^4.0.1",
+        "@0x/dev-utils": "^4.1.0",
         "@0x/json-schemas": "^5.3.3",
         "@0x/order-utils": "^10.4.7",
         "@0x/sol-coverage": "^4.0.18",
