@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import { artifacts } from './artifacts';
 import { ZERO_BYTES32 } from './constants';
 import {
+    FeeCollectorControllerContract,
     FullMigrationContract,
     InitialMigrationContract,
     IZeroExContract,
@@ -124,6 +125,7 @@ export interface FullFeatureArtifacts extends BootstrapFeatureArtifacts {
     signatureValidator: SimpleContractArtifact;
     metaTransactions: SimpleContractArtifact;
     nativeOrders: SimpleContractArtifact;
+    feeCollectorController: SimpleContractArtifact;
 }
 
 /**
@@ -148,6 +150,7 @@ const DEFAULT_FULL_FEATURES_DEPLOY_CONFIG = {
     zeroExAddress: NULL_ADDRESS,
     wethAddress: NULL_ADDRESS,
     stakingAddress: NULL_ADDRESS,
+    feeCollectorController: NULL_ADDRESS,
     protocolFeeMultiplier: 70e3,
     greedyTokensBloomFilter: ZERO_BYTES32,
 };
@@ -158,6 +161,7 @@ const DEFAULT_FULL_FEATURES_ARTIFACTS = {
     signatureValidator: artifacts.SignatureValidatorFeature,
     metaTransactions: artifacts.MetaTransactionsFeature,
     nativeOrders: artifacts.NativeOrdersFeature,
+    feeCollectorController: artifacts.FeeCollectorController,
 };
 
 /**
@@ -175,6 +179,16 @@ export async function deployFullFeaturesAsync(
         ...DEFAULT_FULL_FEATURES_ARTIFACTS,
         ...featureArtifacts,
     };
+    if (_config.feeCollectorController === NULL_ADDRESS) {
+        _config.feeCollectorController = (await FeeCollectorControllerContract.deployFrom0xArtifactAsync(
+            _featureArtifacts.feeCollectorController,
+            provider,
+            txDefaults,
+            artifacts,
+            _config.wethAddress,
+            _config.stakingAddress,
+        )).address;
+    }
     return {
         ...(await deployBootstrapFeaturesAsync(provider, txDefaults)),
         tokenSpender:
@@ -222,6 +236,7 @@ export async function deployFullFeaturesAsync(
                 _config.zeroExAddress,
                 _config.wethAddress,
                 _config.stakingAddress,
+                _config.feeCollectorController,
                 _config.protocolFeeMultiplier,
                 _config.greedyTokensBloomFilter,
             )).address,

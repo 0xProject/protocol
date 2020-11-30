@@ -2,7 +2,13 @@ import { blockchainTests, expect } from '@0x/contracts-test-utils';
 import { AuthorizableRevertErrors, BigNumber, hexUtils } from '@0x/utils';
 
 import { artifacts } from './artifacts';
-import { FeeCollectorContract, TestFixinProtocolFeesContract, TestStakingContract, TestWethContract } from './wrappers';
+import {
+    FeeCollectorContract,
+    FeeCollectorControllerContract,
+    TestFixinProtocolFeesContract,
+    TestStakingContract,
+    TestWethContract,
+} from './wrappers';
 
 blockchainTests.resets('ProtocolFees', env => {
     const FEE_MULTIPLIER = 70e3;
@@ -11,6 +17,7 @@ blockchainTests.resets('ProtocolFees', env => {
     let protocolFees: TestFixinProtocolFeesContract;
     let staking: TestStakingContract;
     let weth: TestWethContract;
+    let feeCollectorController: FeeCollectorControllerContract;
     let singleFeeAmount: BigNumber;
 
     before(async () => {
@@ -28,6 +35,14 @@ blockchainTests.resets('ProtocolFees', env => {
             artifacts,
             weth.address,
         );
+        feeCollectorController = await FeeCollectorControllerContract.deployFrom0xArtifactAsync(
+            artifacts.FeeCollectorController,
+            env.provider,
+            env.txDefaults,
+            artifacts,
+            weth.address,
+            staking.address,
+        );
         protocolFees = await TestFixinProtocolFeesContract.deployFrom0xArtifactAsync(
             artifacts.TestFixinProtocolFees,
             env.provider,
@@ -35,6 +50,7 @@ blockchainTests.resets('ProtocolFees', env => {
             artifacts,
             weth.address,
             staking.address,
+            feeCollectorController.address,
             FEE_MULTIPLIER,
         );
         singleFeeAmount = await protocolFees.getSingleProtocolFee().callAsync();
