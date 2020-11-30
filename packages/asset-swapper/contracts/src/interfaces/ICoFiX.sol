@@ -68,6 +68,16 @@ interface ICoFiXController {
         external
         pure
         returns (uint256 impactCost);
+
+    function calcImpactCostFor_SWAP_FOR_EXACT(
+        address token,
+        bytes memory data,
+        uint256 ethAmount,
+        uint256 erc20Amount
+    )
+        external
+        pure
+        returns (uint256 impactCost);
 }
 
 interface ICoFiXFactory {

@@ -541,7 +541,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
     },
     [ERC20BridgeSource.Bancor]: () => 300e3,
-    [ERC20BridgeSource.CoFiX]: () => 400e3,
+    [ERC20BridgeSource.CoFiX]: () => 220e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.assign(

@@ -910,7 +910,6 @@ export class SamplerOperations {
                 >('sampleSellsFromCoFiX', callResults);
                 fillData.poolAddress = poolAddress;
                 fillData.feeInWei = fee;
-                console.log(fillData);
                 return samples;
             },
         });
@@ -927,10 +926,10 @@ export class SamplerOperations {
             function: this._samplerContract.sampleBuysFromCoFiX,
             params: [takerToken, makerToken, makerFillAmounts],
             callback: (callResults: string, fillData: CoFiXFillData): BigNumber[] => {
-                const [samples, fee] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], BigNumber]>(
-                    'sampleBuysFromCoFiX',
-                    callResults,
-                );
+                const [samples, fee, poolAddress] = this._samplerContract.getABIDecodedReturnData<
+                    [BigNumber[], BigNumber, string]
+                >('sampleBuysFromCoFiX', callResults);
+                fillData.poolAddress = poolAddress;
                 fillData.feeInWei = fee;
                 return samples;
             },

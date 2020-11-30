@@ -432,10 +432,6 @@ contract FillQuoteTransformer is
                     availableTakerAssetFillAmount
                 )
             );
-            if (!success) {
-                assembly { revert(add(resultData, 0x20), mload(resultData)) }
-            }
-
             if (success) {
                 results.makerTokenBoughtAmount = abi.decode(resultData, (uint256));
                 results.takerTokenSoldAmount = availableTakerAssetFillAmount;
