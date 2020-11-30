@@ -23,20 +23,25 @@ export const meshUtils = {
     orderInfoToAPIOrder: (
         orderEvent: OrderEvent | AcceptedOrderInfo | RejectedOrderInfo | OrderInfo,
     ): APIOrderWithMetaData => {
-        const remainingFillableTakerAssetAmount = (orderEvent as OrderEvent).fillableTakerAssetAmount
-            ? (orderEvent as OrderEvent).fillableTakerAssetAmount
-            : ZERO;
-        return {
+        const { orderHash, fillableTakerAssetAmount, signedOrder } = orderEvent as OrderEvent;
+        const apiOrder: APIOrderWithMetaData = {
             // orderEvent.signedOrder comes from mesh with string fields, needs to be serialized into SignedOrder
-            order: orderUtils.deserializeOrder(orderEvent.signedOrder as any), // tslint:disable-line:no-unnecessary-type-assertion
+            order: orderUtils.deserializeOrder(signedOrder as any), // tslint:disable-line:no-unnecessary-type-assertion
             metaData: {
-                orderHash: orderEvent.orderHash,
-                remainingFillableTakerAssetAmount,
-                state:
-                    (orderEvent as OrderEvent).endState ||
-                    meshUtils.rejectedCodeToOrderState((orderEvent as RejectedOrderInfo).status.code),
+                orderHash,
+                remainingFillableTakerAssetAmount: fillableTakerAssetAmount || ZERO,
             },
         };
+        // populate order state
+        apiOrder.metaData.state = (orderEvent as OrderEvent).endState;
+        if (apiOrder.metaData.state === undefined) {
+            const r = orderEvent as RejectedOrderInfo;
+            apiOrder.metaData.state =
+                r.status && r.status.code
+                    ? meshUtils.rejectedCodeToOrderState(r.status.code)
+                    : OrderEventEndState.Invalid;
+        }
+        return apiOrder;
     },
     rejectedCodeToOrderState: (code: RejectedCode): OrderEventEndState | undefined => {
         switch (code) {
@@ -74,16 +79,14 @@ export const meshUtils = {
                 return ValidationErrorCodes.InternalError;
         }
     },
-    calculateOrderLifecycle: (orderEvents: OrderEvent[]): OrdersByLifecycleEvents => {
+    calculateOrderLifecycle: (orders: APIOrderWithMetaData[]): OrdersByLifecycleEvents => {
         const added: APIOrderWithMetaData[] = [];
         const removed: APIOrderWithMetaData[] = [];
         const updated: APIOrderWithMetaData[] = [];
-        const persistentUpdated: APIOrderWithMetaData[] = [];
-        for (const event of orderEvents) {
-            const apiOrder = meshUtils.orderInfoToAPIOrder(event);
-            switch (event.endState) {
+        for (const order of orders) {
+            switch (order.metaData.state as OrderEventEndState) {
                 case OrderEventEndState.Added: {
-                    added.push(apiOrder);
+                    added.push(order);
                     break;
                 }
                 case OrderEventEndState.Invalid:
@@ -92,22 +95,20 @@ export const meshUtils = {
                 case OrderEventEndState.FullyFilled:
                 case OrderEventEndState.StoppedWatching:
                 case OrderEventEndState.Unfunded: {
-                    removed.push(apiOrder);
-                    persistentUpdated.push(apiOrder);
+                    removed.push(order);
                     break;
                 }
                 case OrderEventEndState.Unexpired:
                 case OrderEventEndState.FillabilityIncreased:
                 case OrderEventEndState.Filled: {
-                    updated.push(apiOrder);
-                    persistentUpdated.push(apiOrder);
+                    updated.push(order);
                     break;
                 }
                 default:
-                    logger.error('Unknown Mesh Event', event.endState, event);
+                    logger.error('Unknown Mesh Event State', order.metaData.state, order);
                     break;
             }
         }
-        return { added, removed, updated, persistentUpdated };
+        return { added, removed, updated };
     },
 };

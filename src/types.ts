@@ -44,7 +44,6 @@ export interface OrdersByLifecycleEvents {
     added: APIOrderWithMetaData[];
     removed: APIOrderWithMetaData[];
     updated: APIOrderWithMetaData[];
-    persistentUpdated: APIOrderWithMetaData[];
 }
 
 export type onOrdersUpdateCallback = (orders: APIOrderWithMetaData[]) => void;

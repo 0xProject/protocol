@@ -207,15 +207,7 @@ export class OrderBookService {
     public async addPersistentOrdersAsync(signedOrders: SignedOrder[], pinned: boolean): Promise<void> {
         const accepted = await this._addOrdersAsync(signedOrders, pinned);
         const persistentOrders = accepted.map(orderInfo => {
-            const order = orderInfo.signedOrder;
-            const apiOrder: APIOrderWithMetaData = {
-                order,
-                metaData: {
-                    state: OrderEventEndState.Added,
-                    remainingFillableTakerAssetAmount: orderInfo.fillableTakerAssetAmount,
-                    orderHash: orderInfo.orderHash,
-                },
-            };
+            const apiOrder = meshUtils.orderInfoToAPIOrder({ ...orderInfo, endState: OrderEventEndState.Added });
             return orderUtils.serializePersistentOrder(apiOrder);
         });
         // MAX SQL variable size is 999. This limit is imposed via Sqlite.
@@ -223,7 +215,7 @@ export class OrderBookService {
         // so we need to leave space for the attributes on the model represented
         // as SQL variables in the "AS" syntax. We leave 99 free for the
         // signedOrders model
-        await this._connection.manager.save(persistentOrders, { chunk: 900 });
+        await this._connection.getRepository(PersistentSignedOrderEntity).save(persistentOrders);
     }
     public async splitOrdersByPinningAsync(signedOrders: SignedOrder[]): Promise<PinResult> {
         return orderUtils.splitOrdersByPinningAsync(this._connection, signedOrders);

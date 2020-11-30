@@ -67,7 +67,6 @@ async function newAPIOrderAsync(
         metaData: {
             orderHash: orderHashUtils.getOrderHash(order),
             remainingFillableTakerAssetAmount: remainingFillableAssetAmount || order.takerAssetAmount,
-            state: OrderEventEndState.Added,
         },
     };
     return apiOrder;
