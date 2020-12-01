@@ -73,7 +73,7 @@ contract FeeCollectorController {
         return feeCollector;
     }
 
-    /// @dev Get the `FeeCollector` conrtract for a given pool ID. The contract
+    /// @dev Get the `FeeCollector` contract for a given pool ID. The contract
     ///      will not actually exist until `prepareFeeCollectorToPayFees()`
     ///      has been called once.
     /// @param poolId The pool ID associated with the staking pool.
