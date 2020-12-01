@@ -690,7 +690,7 @@ export class MarketOperationUtils {
                         const rfqOrderFillableAmounts =
                             rfqt.firmQuoteValidator === undefined
                                 ? firmQuoteSignedOrders.map(signedOrder => signedOrder.takerAssetAmount)
-                                : await rfqt.firmQuoteValidator.getRFQTTakerFillableAmounts(firmQuoteSignedOrders);
+                                : await rfqt.firmQuoteValidator.getRfqtTakerFillableAmountsAsync(firmQuoteSignedOrders);
 
                         // Re-run optimizer with the new firm quote. This is the second and last time
                         // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
