@@ -57,7 +57,7 @@ Best Practices
 
 We use this checklist to review the safety of new Features.
 
-.. code-block::
+::
 
     - [ ] Feature has updated version information.
     - [ ] implements IFeature interface.
