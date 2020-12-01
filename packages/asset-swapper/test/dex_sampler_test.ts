@@ -156,6 +156,7 @@ describe('DexSampler tests', () => {
             const expectedMakerToken = randomAddress();
             const expectedTakerToken = randomAddress();
             const poolAddress = randomAddress();
+            const gasCost = 123;
             const sampler = new MockSamplerContract({
                 sampleSellsFromLiquidityProvider: (providerAddress, takerToken, makerToken, _fillAmounts) => {
                     expect(providerAddress).to.eq(poolAddress);
@@ -172,7 +173,7 @@ describe('DexSampler tests', () => {
                 undefined,
                 undefined,
                 undefined,
-                { [poolAddress]: [expectedMakerToken, expectedTakerToken] },
+                { [poolAddress]: { tokens: [expectedMakerToken, expectedTakerToken], gasCost } },
             );
             const [result] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getSellQuotes(
@@ -188,7 +189,7 @@ describe('DexSampler tests', () => {
                         source: 'LiquidityProvider',
                         output: toBaseUnitAmount(1001),
                         input: toBaseUnitAmount(1000),
-                        fillData: { poolAddress },
+                        fillData: { poolAddress, gasCost },
                     },
                 ],
             ]);
@@ -198,6 +199,7 @@ describe('DexSampler tests', () => {
             const expectedMakerToken = randomAddress();
             const expectedTakerToken = randomAddress();
             const poolAddress = randomAddress();
+            const gasCost = 321;
             const sampler = new MockSamplerContract({
                 sampleBuysFromLiquidityProvider: (providerAddress, takerToken, makerToken, _fillAmounts) => {
                     expect(providerAddress).to.eq(poolAddress);
@@ -214,7 +216,7 @@ describe('DexSampler tests', () => {
                 undefined,
                 undefined,
                 undefined,
-                { [poolAddress]: [expectedMakerToken, expectedTakerToken] },
+                { [poolAddress]: { tokens: [expectedMakerToken, expectedTakerToken], gasCost } },
             );
             const [result] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getBuyQuotes(
@@ -230,7 +232,7 @@ describe('DexSampler tests', () => {
                         source: 'LiquidityProvider',
                         output: toBaseUnitAmount(999),
                         input: toBaseUnitAmount(1000),
-                        fillData: { poolAddress },
+                        fillData: { poolAddress, gasCost },
                     },
                 ],
             ]);
