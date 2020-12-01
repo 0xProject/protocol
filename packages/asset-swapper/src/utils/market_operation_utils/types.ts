@@ -6,6 +6,7 @@ import { RfqtFirmQuoteValidator, RfqtRequestOpts, SignedOrderWithFillableAmounts
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
+import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
 
 /**
@@ -342,6 +343,7 @@ export interface OptimizerResult {
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
+    unoptimizedPath: CollapsedPath;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {

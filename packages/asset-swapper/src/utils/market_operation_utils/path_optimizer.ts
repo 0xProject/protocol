@@ -11,6 +11,21 @@ import { Fill } from './types';
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
 
 /**
+ * Find the best fill path without optimizing or mixing sources
+ */
+export async function findBestUnoptimizedPathAsync(
+    side: MarketOperation,
+    fills: Fill[][],
+    targetInput: BigNumber,
+    opts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
+): Promise<Path> {
+    const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
+    // Sort fill arrays by descending adjusted completed rate.
+    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
+    return sortedPaths[0];
+}
+
+/**
  * Find the optimal mixture of fills that maximizes (for sells) or minimizes
  * (for buys) output, while meeting the input requirement.
  */

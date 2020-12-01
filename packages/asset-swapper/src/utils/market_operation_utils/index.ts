@@ -26,7 +26,7 @@ import {
     createSignedOrdersWithFillableAmounts,
     getNativeOrderTokens,
 } from './orders';
-import { findOptimalPathAsync } from './path_optimizer';
+import { findBestUnoptimizedPathAsync, findOptimalPathAsync } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -543,6 +543,12 @@ export class MarketOperationUtils {
             exchangeProxyOverhead: opts.exchangeProxyOverhead || (() => ZERO_AMOUNT),
         };
 
+        // Find the unoptimized best rate to calculate savings from optimizer
+        const unoptimizedPath = (await findBestUnoptimizedPathAsync(side, fills, inputAmount, optimizerOpts)).collapse(
+            orderOpts,
+        );
+
+        // Find the optimal path
         const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, optimizerOpts);
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
@@ -559,6 +565,7 @@ export class MarketOperationUtils {
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
+                unoptimizedPath,
             };
         }
 
@@ -591,6 +598,7 @@ export class MarketOperationUtils {
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
+            unoptimizedPath,
         };
     }
 

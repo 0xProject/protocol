@@ -37,6 +37,8 @@ export async function getFullyFillableSwapQuoteWithNoFeesAsync(
         gasPrice,
         bestCaseQuoteInfo: quoteInfo,
         worstCaseQuoteInfo: quoteInfo,
+        unoptimizedQuoteInfo: quoteInfo,
+        unoptimizedOrders: orders.map(order => ({ ...order, fills: [] })),
         sourceBreakdown: breakdown,
         isTwoHop: false,
     };

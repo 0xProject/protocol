@@ -187,6 +187,8 @@ export interface SwapQuoteBase {
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
+    unoptimizedQuoteInfo: SwapQuoteInfo;
+    unoptimizedOrders: OptimizedMarketOrder[];
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
