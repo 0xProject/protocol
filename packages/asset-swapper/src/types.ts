@@ -181,6 +181,8 @@ export interface GetExtensionContractTypeOpts {
  * orders: An array of objects conforming to OptimizedMarketOrder. These orders can be used to cover the requested assetBuyAmount plus slippage.
  * bestCaseQuoteInfo: Info about the best case price for the asset.
  * worstCaseQuoteInfo: Info about the worst case price for the asset.
+ * unoptimizedQuoteInfo: Info about the unoptimized (best single source) price for the swap
+ * unoptimizedOrders: Orders used in the unoptimized quote info
  */
 export interface SwapQuoteBase {
     takerAssetData: string;
