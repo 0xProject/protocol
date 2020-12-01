@@ -19,6 +19,7 @@
 pragma solidity ^0.6.5;
 
 import "@0x/contracts-zero-ex/contracts/test/TestFixinProtocolFees.sol";
+import "@0x/contracts-zero-ex/contracts/src/external/FeeCollectorController.sol";
 
 
 contract TestFixinProtocolFeesIntegration is TestFixinProtocolFees {
@@ -28,7 +29,11 @@ contract TestFixinProtocolFeesIntegration is TestFixinProtocolFees {
         uint32 protocolFeeMultiplier
     )
         public
-        TestFixinProtocolFees(weth, staking, protocolFeeMultiplier)
-    {
-    }
+        TestFixinProtocolFees(
+            weth,
+            staking,
+            new FeeCollectorController(weth, staking),
+            protocolFeeMultiplier
+        )
+    {}
 }
