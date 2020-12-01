@@ -49,7 +49,7 @@ contract FeeCollectorController {
     /// @dev Deploy (if needed) a `FeeCollector` contract for `poolId`
     ///      and wrap its ETH into WETH. Anyone may call this.
     /// @param poolId The pool ID associated with the staking pool.
-    /// @return feeCollector The `FeeCollector` conract instance.
+    /// @return feeCollector The `FeeCollector` contract instance.
     function prepareFeeCollectorToPayFees(bytes32 poolId)
         external
         returns (FeeCollector feeCollector)
@@ -77,7 +77,7 @@ contract FeeCollectorController {
     ///      will not actually exist until `prepareFeeCollectorToPayFees()`
     ///      has been called once.
     /// @param poolId The pool ID associated with the staking pool.
-    /// @return feeCollector The `FeeCollector` conract instance.
+    /// @return feeCollector The `FeeCollector` contract instance.
     function getFeeCollector(bytes32 poolId)
         public
         view
