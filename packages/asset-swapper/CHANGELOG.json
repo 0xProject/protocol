@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.3.0",
+        "changes": [
+            {
+                "note": "Added Crypto.com",
+                "pr": 43
+            }
+        ]
+    },
+    {
         "version": "5.2.0",
         "changes": [
             {

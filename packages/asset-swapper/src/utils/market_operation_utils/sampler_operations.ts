@@ -7,7 +7,13 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BalancerPoolsCache } from './balancer_utils';
 import { BancorService } from './bancor_service';
-import { LIQUIDITY_PROVIDER_REGISTRY, MAINNET_SUSHI_SWAP_ROUTER, MAX_UINT256, ZERO_AMOUNT } from './constants';
+import {
+    LIQUIDITY_PROVIDER_REGISTRY,
+    MAINNET_CRYPTO_COM_ROUTER,
+    MAINNET_SUSHI_SWAP_ROUTER,
+    MAX_UINT256,
+    ZERO_AMOUNT,
+} from './constants';
 import { CreamPoolsCache } from './cream_utils';
 import { getCurveInfosForPair, getSnowSwapInfosForPair, getSwerveInfosForPair } from './curve_utils';
 import { getKyberReserveIdsForPair } from './kyber_utils';
@@ -789,6 +795,32 @@ export class SamplerOperations {
         });
     }
 
+    public getCryptoComSellQuotes(
+        tokenAddressPath: string[],
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<SushiSwapFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.CryptoCom,
+            fillData: { tokenAddressPath, router: MAINNET_CRYPTO_COM_ROUTER },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromSushiSwap,
+            params: [MAINNET_CRYPTO_COM_ROUTER, tokenAddressPath, takerFillAmounts],
+        });
+    }
+
+    public getCryptoComBuyQuotes(
+        tokenAddressPath: string[],
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<SushiSwapFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.CryptoCom,
+            fillData: { tokenAddressPath, router: MAINNET_CRYPTO_COM_ROUTER },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromSushiSwap,
+            params: [MAINNET_CRYPTO_COM_ROUTER, tokenAddressPath, makerFillAmounts],
+        });
+    }
+
     public getShellSellQuotes(
         poolAddress: string,
         makerToken: string,
@@ -993,6 +1025,16 @@ export class SamplerOperations {
                                 );
                             });
                             return sushiOps;
+                        case ERC20BridgeSource.CryptoCom:
+                            const cryptoComOps = [
+                                this.getCryptoComSellQuotes([takerToken, makerToken], takerFillAmounts),
+                            ];
+                            intermediateTokens.forEach(t => {
+                                cryptoComOps.push(
+                                    this.getCryptoComSellQuotes([takerToken, t, makerToken], takerFillAmounts),
+                                );
+                            });
+                            return cryptoComOps;
                         case ERC20BridgeSource.Kyber:
                             return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
                                 this.getKyberSellQuotes(reserveId, makerToken, takerToken, takerFillAmounts),
@@ -1106,6 +1148,16 @@ export class SamplerOperations {
                                 );
                             });
                             return sushiOps;
+                        case ERC20BridgeSource.CryptoCom:
+                            const cryptoComOps = [
+                                this.getCryptoComBuyQuotes([takerToken, makerToken], makerFillAmounts),
+                            ];
+                            intermediateTokens.forEach(t => {
+                                cryptoComOps.push(
+                                    this.getCryptoComBuyQuotes([takerToken, t, makerToken], makerFillAmounts),
+                                );
+                            });
+                            return cryptoComOps;
                         case ERC20BridgeSource.Kyber:
                             return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
                                 this.getKyberBuyQuotes(reserveId, makerToken, takerToken, makerFillAmounts),

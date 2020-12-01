@@ -199,6 +199,8 @@ function getBridgeAddressFromFill(fill: CollapsedFill, opts: CreateOrderFromPath
             return opts.contractAddresses.shellBridge;
         case ERC20BridgeSource.Dodo:
             return opts.contractAddresses.dodoBridge;
+        case ERC20BridgeSource.CryptoCom:
+            return opts.contractAddresses.cryptoComBridge;
         default:
             break;
     }
@@ -295,6 +297,14 @@ export function createBridgeOrder(
                 makerToken,
                 bridgeAddress,
                 createSushiSwapBridgeData(sushiSwapFillData.tokenAddressPath, sushiSwapFillData.router),
+            );
+            break;
+        case ERC20BridgeSource.CryptoCom:
+            const cryptoComFillData = (fill as CollapsedFill<SushiSwapFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
+            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
+                makerToken,
+                bridgeAddress,
+                createSushiSwapBridgeData(cryptoComFillData.tokenAddressPath, cryptoComFillData.router),
             );
             break;
         case ERC20BridgeSource.Kyber:

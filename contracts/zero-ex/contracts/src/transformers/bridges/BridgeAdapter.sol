@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 import "./mixins/MixinAdapterAddresses.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinCurve.sol";
+import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinKyber.sol";
 import "./mixins/MixinMooniswap.sol";
@@ -37,6 +38,7 @@ contract BridgeAdapter is
     MixinAdapterAddresses,
     MixinBalancer,
     MixinCurve,
+    MixinCryptoCom,
     MixinDodo,
     MixinKyber,
     MixinMooniswap,
@@ -52,6 +54,7 @@ contract BridgeAdapter is
     address private immutable BALANCER_BRIDGE_ADDRESS;
     address private immutable CREAM_BRIDGE_ADDRESS;
     address private immutable CURVE_BRIDGE_ADDRESS;
+    address private immutable CRYPTO_COM_BRIDGE_ADDRESS;
     address private immutable DODO_BRIDGE_ADDRESS;
     address private immutable KYBER_BRIDGE_ADDRESS;
     address private immutable MOONISWAP_BRIDGE_ADDRESS;
@@ -68,6 +71,7 @@ contract BridgeAdapter is
         public
         MixinBalancer()
         MixinCurve()
+        MixinCryptoCom(addresses)
         MixinDodo(addresses)
         MixinKyber(addresses)
         MixinMooniswap(addresses)
@@ -81,6 +85,7 @@ contract BridgeAdapter is
     {
         BALANCER_BRIDGE_ADDRESS = addresses.balancerBridge;
         CURVE_BRIDGE_ADDRESS = addresses.curveBridge;
+        CRYPTO_COM_BRIDGE_ADDRESS = addresses.cryptoComBridge;
         KYBER_BRIDGE_ADDRESS = addresses.kyberBridge;
         MOONISWAP_BRIDGE_ADDRESS = addresses.mooniswapBridge;
         MSTABLE_BRIDGE_ADDRESS = addresses.mStableBridge;
@@ -181,6 +186,12 @@ contract BridgeAdapter is
             );
         } else if (bridgeAddress == DODO_BRIDGE_ADDRESS) {
             boughtAmount = _tradeDodo(
+                buyToken,
+                sellAmount,
+                bridgeData
+            );
+        } else if (bridgeAddress == CRYPTO_COM_BRIDGE_ADDRESS) {
+            boughtAmount = _tradeCryptoCom(
                 buyToken,
                 sellAmount,
                 bridgeData

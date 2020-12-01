@@ -53,6 +53,10 @@
             {
                 "note": "Add a permissionless transformer deployer",
                 "pr": 55
+            },
+            {
+                "note": "Add Crypto.com to `BridgeAdapter`",
+                "pr": 43
             }
         ]
     },

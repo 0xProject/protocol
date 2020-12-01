@@ -7,6 +7,7 @@ export * from '../generated-wrappers/balancer_bridge';
 export * from '../generated-wrappers/bancor_bridge';
 export * from '../generated-wrappers/chai_bridge';
 export * from '../generated-wrappers/cream_bridge';
+export * from '../generated-wrappers/crypto_com_bridge';
 export * from '../generated-wrappers/curve_bridge';
 export * from '../generated-wrappers/d_o_d_o_bridge';
 export * from '../generated-wrappers/dex_forwarder_bridge';
