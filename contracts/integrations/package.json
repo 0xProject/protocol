@@ -1,6 +1,7 @@
 {
     "name": "@0x/contracts-integrations",
     "version": "2.7.10",
+    "private": true,
     "engines": {
         "node": ">=6.12"
     },

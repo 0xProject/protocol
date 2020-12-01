@@ -17,23 +17,12 @@
 */
 
 pragma solidity ^0.6.5;
-
-import "@0x/contracts-zero-ex/contracts/test/TestFixinProtocolFees.sol";
-import "@0x/contracts-zero-ex/contracts/src/external/FeeCollectorController.sol";
+pragma experimental ABIEncoderV2;
 
 
-contract TestFixinProtocolFeesIntegration is TestFixinProtocolFees {
-    constructor(
-        IEtherTokenV06 weth,
-        IStaking staking,
-        uint32 protocolFeeMultiplier
-    )
-        public
-        TestFixinProtocolFees(
-            weth,
-            staking,
-            new FeeCollectorController(weth, staking),
-            protocolFeeMultiplier
-        )
-    {}
+/// @dev FeeCollectorControllerContract-like contract with a null init code hash.
+//       Does not implement anything else, so finalization will fail.
+contract TestFeeCollectorController {
+
+    bytes32 public FEE_COLLECTOR_INIT_CODE_HASH = 0;
 }

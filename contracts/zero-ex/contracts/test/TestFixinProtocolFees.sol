@@ -27,10 +27,11 @@ contract TestFixinProtocolFees is
     constructor(
         IEtherTokenV06 weth,
         IStaking staking,
+        FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
     )
         public
-        FixinProtocolFees(weth, staking, protocolFeeMultiplier)
+        FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
     {
         // solhint-disalbe no-empty-blocks
     }

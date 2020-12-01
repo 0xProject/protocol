@@ -57,6 +57,10 @@
             {
                 "note": "Add Crypto.com to `BridgeAdapter`",
                 "pr": 43
+            },
+            {
+                "note": "Use `FeeCollectorController` contract for deploying `FeeCollector`s",
+                "pr": 59
             }
         ]
     },
