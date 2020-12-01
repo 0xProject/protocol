@@ -156,6 +156,9 @@ export enum ExchangeProxyRefundReceiver {
  *        `address(0)`: Stay in flash wallet.
  *        `address(1)`: Send to the taker.
  *        `address(2)`: Send to the sender (caller of `transformERC20()`).
+ * @param shouldSellEntireBalance Whether the entire balance of the caller should be sold. Used
+ *        for contracts where the balance at transaction time is different to the quote amount.
+ *        This foregos certain VIP routes which do not support this feature.
  */
 export interface ExchangeProxyContractOpts {
     isFromETH: boolean;
@@ -163,6 +166,7 @@ export interface ExchangeProxyContractOpts {
     affiliateFee: AffiliateFee;
     refundReceiver: string | ExchangeProxyRefundReceiver;
     isMetaTransaction: boolean;
+    shouldSellEntireBalance: boolean;
 }
 
 export interface GetExtensionContractTypeOpts {

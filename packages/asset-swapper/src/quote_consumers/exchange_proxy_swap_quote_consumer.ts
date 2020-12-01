@@ -90,7 +90,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             ...opts.extensionContractOpts,
         };
         // tslint:disable-next-line:no-object-literal-type-assertion
-        const { refundReceiver, affiliateFee, isFromETH, isToETH } = optsWithDefaults;
+        const { refundReceiver, affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = optsWithDefaults;
 
         const sellToken = getTokenFromAssetData(quote.takerAssetData);
         const buyToken = getTokenFromAssetData(quote.makerAssetData);
@@ -139,7 +139,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
                     token: ETH_TOKEN_ADDRESS,
-                    amount: sellAmount,
+                    amount: shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
                 }),
             });
         }
@@ -155,7 +155,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     buyToken: intermediateToken,
                     side: FillQuoteTransformerSide.Sell,
                     refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: firstHopOrder.takerAssetAmount,
+                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAssetAmount,
                     maxOrderFillAmounts: [],
                     rfqtTakerAddress: NULL_ADDRESS,
                     orders: [firstHopOrder],
@@ -177,6 +177,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 }),
             });
         } else {
+            const fillAmount = isBuyQuote(quote) ? quote.makerAssetFillAmount : quote.takerAssetFillAmount;
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
@@ -184,7 +185,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     buyToken,
                     refundReceiver: refundReceiver || NULL_ADDRESS,
                     side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
-                    fillAmount: isBuyQuote(quote) ? quote.makerAssetFillAmount : quote.takerAssetFillAmount,
+                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
                     maxOrderFillAmounts: [],
                     rfqtTakerAddress: NULL_ADDRESS,
                     orders: quote.orders,
@@ -238,7 +239,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             .transformERC20(
                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                sellAmount,
+                shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
                 minBuyAmount,
                 transforms,
             )
@@ -289,6 +290,10 @@ function isDirectSwapCompatible(
     }
     const fill = order.fills[0];
     if (!directSources.includes(fill.source)) {
+        return false;
+    }
+    // VIP does not support selling the entire balance
+    if (opts.shouldSellEntireBalance) {
         return false;
     }
     return true;

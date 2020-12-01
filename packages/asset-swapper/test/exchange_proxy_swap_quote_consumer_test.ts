@@ -407,5 +407,35 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 auxiliaryData: constants.NULL_BYTES,
             });
         });
+        it('allows selling the entire balance for CFL', async () => {
+            const quote = getRandomSellQuote();
+            const callInfo = await consumer.getCalldataOrThrowAsync(quote, {
+                extensionContractOpts: { shouldSellEntireBalance: true },
+            });
+            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
+            expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
+            expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(MAX_UINT256);
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(getSwapMinBuyAmount(quote));
+            expect(callArgs.transformations).to.be.length(2);
+            expect(
+                callArgs.transformations[0].deploymentNonce.toNumber() ===
+                    consumer.transformerNonces.fillQuoteTransformer,
+            );
+            expect(
+                callArgs.transformations[1].deploymentNonce.toNumber() ===
+                    consumer.transformerNonces.payTakerTransformer,
+            );
+            const fillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
+            expect(fillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(MAX_UINT256);
+            expect(fillQuoteTransformerData.orders).to.deep.eq(cleanOrders(quote.orders));
+            expect(fillQuoteTransformerData.signatures).to.deep.eq(quote.orders.map(o => o.signature));
+            expect(fillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
+            expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
+            const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
+            expect(payTakerTransformerData.amounts).to.deep.eq([]);
+            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, MAKER_TOKEN, ETH_TOKEN_ADDRESS]);
+        });
     });
 });
