@@ -4,6 +4,7 @@
  * -----------------------------------------------------------------------------
  */
 import { ContractArtifact } from 'ethereum-types';
+
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
@@ -134,7 +135,6 @@ import * as UniswapFeature from '../test/generated-artifacts/UniswapFeature.json
 import * as WethTransformer from '../test/generated-artifacts/WethTransformer.json';
 import * as ZeroEx from '../test/generated-artifacts/ZeroEx.json';
 import * as ZeroExOptimized from '../test/generated-artifacts/ZeroExOptimized.json';
-
 export const artifacts = {
     IZeroEx: IZeroEx as ContractArtifact,
     ZeroEx: ZeroEx as ContractArtifact,
@@ -212,8 +212,8 @@ export const artifacts = {
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
     MixinAdapterAddresses: MixinAdapterAddresses as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
-    MixinCryptoCom: MixinCryptoCom as ContractArtifact,
     MixinCoFiX: MixinCoFiX as ContractArtifact,
+    MixinCryptoCom: MixinCryptoCom as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,
     MixinDodo: MixinDodo as ContractArtifact,
     MixinKyber: MixinKyber as ContractArtifact,

@@ -370,15 +370,15 @@ describe('MarketOperationUtils tests', () => {
             toTokenIdx: 1,
         },
         [ERC20BridgeSource.LiquidityProvider]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.SushiSwap]: { tokenAddressPath: [] },
+        [ERC20BridgeSource.SushiSwap]: { tokenAddressPath: [], router: randomAddress() },
         [ERC20BridgeSource.Mooniswap]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Native]: { order: createOrder() },
         [ERC20BridgeSource.MultiHop]: {},
         [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Dodo]: {},
-        [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
-        [ERC20BridgeSource.CoFiX]: {},
+        [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [], router: randomAddress() },
+        [ERC20BridgeSource.CoFiX]: { poolAddress: randomAddress() },
     };
 
     const DEFAULT_OPS = {
