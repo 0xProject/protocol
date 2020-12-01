@@ -81,7 +81,7 @@ export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 /**
  * Sources to poll for ETH fee price estimates.
  */
-export const FEE_QUOTE_SOURCES = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
+export const FEE_QUOTE_SOURCES = [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap];
 
 export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } = Object.assign(
     {},
