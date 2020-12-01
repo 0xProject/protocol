@@ -11,21 +11,6 @@ import { Fill } from './types';
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
 
 /**
- * Find the best fill path without optimizing or mixing sources
- */
-export async function findBestUnoptimizedPathAsync(
-    side: MarketOperation,
-    fills: Fill[][],
-    targetInput: BigNumber,
-    opts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
-): Promise<Path> {
-    const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
-    // Sort fill arrays by descending adjusted completed rate.
-    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
-    return sortedPaths[0];
-}
-
-/**
  * Find the optimal mixture of fills that maximizes (for sells) or minimizes
  * (for buys) output, while meeting the input requirement.
  */
@@ -36,20 +21,31 @@ export async function findOptimalPathAsync(
     runLimit: number = 2 ** 8,
     opts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
 ): Promise<Path | undefined> {
-    const rates = rateBySourcePathId(side, fills, targetInput);
-    const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
     // Sort fill arrays by descending adjusted completed rate.
-    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
+    const sortedPaths = fillsToSortedPaths(fills, side, targetInput, opts);
     if (sortedPaths.length === 0) {
         return undefined;
     }
     let optimalPath = sortedPaths[0];
+    const rates = rateBySourcePathId(side, fills, targetInput);
     for (const [i, path] of sortedPaths.slice(1).entries()) {
         optimalPath = mixPaths(side, optimalPath, path, targetInput, runLimit * RUN_LIMIT_DECAY_FACTOR ** i, rates);
         // Yield to event loop.
         await Promise.resolve();
     }
     return optimalPath.isComplete() ? optimalPath : undefined;
+}
+
+// Sort fill arrays by descending adjusted completed rate.
+export function fillsToSortedPaths(
+    fills: Fill[][],
+    side: MarketOperation,
+    targetInput: BigNumber,
+    opts: PathPenaltyOpts,
+): Path[] {
+    const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
+    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
+    return sortedPaths;
 }
 
 function mixPaths(
