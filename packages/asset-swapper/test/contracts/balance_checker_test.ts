@@ -1,10 +1,5 @@
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
-import {
-    blockchainTests,
-    constants,
-    expect,
-    web3Wrapper,
-} from '@0x/contracts-test-utils';
+import { blockchainTests, constants, expect, web3Wrapper } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -57,10 +52,11 @@ blockchainTests.resets('BalanceChecker contract', env => {
 
             await newMakerToken.mint(new BigNumber(100)).awaitTransactionSuccessAsync({ from: owner });
 
-            const testResults = await contract.balances([owner, owner2], [newMakerToken.address, ETH_ADDRESS]).callAsync();
+            const testResults = await contract
+                .balances([owner, owner2], [newMakerToken.address, ETH_ADDRESS])
+                .callAsync();
 
             expect(testResults).to.eql([new BigNumber(100), new BigNumber(100000000000000000000)]);
-
         });
         it('it throws an error if the input arrays of different lengths', async () => {
             const accounts = await web3Wrapper.getAvailableAddressesAsync();
@@ -74,5 +70,4 @@ blockchainTests.resets('BalanceChecker contract', env => {
             }
         });
     });
-
- });
+});
