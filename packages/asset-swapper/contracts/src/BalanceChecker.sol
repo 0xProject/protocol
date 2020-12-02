@@ -40,7 +40,7 @@ contract BalanceChecker {
 
       Returns a one-dimensional that's user.length long.
     */
-    function balances(address[] calldata users, address[] calldata tokens) external view returns (uint[] memory) {
+    function balances(address[] calldata users, address[] calldata tokens) external view returns (uint256[] memory) {
         // make sure the users array and tokens array are of equal length
         require(users.length == tokens.length, "users array is a different length than the tokens array");
 
