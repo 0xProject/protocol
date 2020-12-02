@@ -60,7 +60,7 @@
         "@0x/contracts-erc721": "^3.1.15",
         "@0x/contracts-exchange": "^3.2.15",
         "@0x/contracts-exchange-libs": "^4.3.15",
-        "@0x/contracts-gen": "2.0.18",
+        "@0x/contracts-gen": "^2.0.23",
         "@0x/contracts-test-utils": "^5.3.12",
         "@0x/contracts-utils": "^4.6.0",
         "@0x/dev-utils": "^4.1.2",

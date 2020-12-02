@@ -55,7 +55,7 @@
         "@0x/abi-gen": "^5.4.12",
         "@0x/contracts-asset-proxy": "^3.6.6",
         "@0x/contracts-exchange-libs": "^4.3.15",
-        "@0x/contracts-gen": "2.0.18",
+        "@0x/contracts-gen": "^2.0.23",
         "@0x/contracts-multisig": "^4.1.15",
         "@0x/contracts-staking": "^2.0.22",
         "@0x/contracts-test-utils": "^5.3.12",

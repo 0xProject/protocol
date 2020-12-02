@@ -736,22 +736,6 @@
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-4.12.0.tgz#2adb0bcde763ad13437f782adf25c403107ff428"
 
-"@0x/contracts-gen@2.0.18":
-  version "2.0.18"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-gen/-/contracts-gen-2.0.18.tgz#a75e5c007275db569bd4204ed1a79eedfb63b7e1"
-  dependencies:
-    "@0x/sol-compiler" "^4.2.7"
-    "@0x/sol-resolver" "^3.1.5"
-    "@0x/types" "^3.3.0"
-    "@0x/typescript-typings" "^5.1.5"
-    "@0x/utils" "^6.1.0"
-    "@types/node" "12.12.54"
-    ethereum-types "^3.3.3"
-    lodash "^4.17.11"
-    mkdirp "^0.5.1"
-    prettier "^1.16.3"
-    to-snake-case "^1.0.0"
-
 "@0x/contracts-gen@^2.0.23":
   version "2.0.23"
   resolved "https://registry.yarnpkg.com/@0x/contracts-gen/-/contracts-gen-2.0.23.tgz#0be65fc1d6656166bdab5b2f7d60a62fe97da23a"
@@ -920,33 +904,6 @@
     express-async-handler "^1.1.4"
     http-status-codes "^1.4.0"
 
-"@0x/sol-compiler@^4.2.7":
-  version "4.2.7"
-  resolved "https://registry.yarnpkg.com/@0x/sol-compiler/-/sol-compiler-4.2.7.tgz#1a47f14eb29a77d2bebfb514b7d532ab956805ee"
-  dependencies:
-    "@0x/assert" "^3.0.17"
-    "@0x/json-schemas" "^5.3.3"
-    "@0x/sol-resolver" "^3.1.5"
-    "@0x/types" "^3.3.0"
-    "@0x/typescript-typings" "^5.1.5"
-    "@0x/utils" "^6.1.0"
-    "@0x/web3-wrapper" "^7.2.8"
-    "@types/node" "12.12.54"
-    "@types/yargs" "^11.0.0"
-    chalk "^2.3.0"
-    chokidar "^3.0.2"
-    ethereum-types "^3.3.3"
-    ethereumjs-util "^5.1.1"
-    lodash "^4.17.11"
-    mkdirp "^0.5.1"
-    pluralize "^7.0.0"
-    require-from-string "^2.0.1"
-    semver "5.5.0"
-    solc "^0.5.5"
-    source-map-support "^0.5.0"
-    web3-eth-abi "^1.0.0-beta.24"
-    yargs "^10.0.3"
-
 "@0x/sol-compiler@^4.4.0":
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/@0x/sol-compiler/-/sol-compiler-4.4.0.tgz#e6f87038eabac177bafd8ee69151bc1e5b0c320d"
@@ -1004,15 +961,6 @@
     ethereumjs-util "^5.1.1"
     lodash "^4.17.11"
     web3-provider-engine "14.0.6"
-
-"@0x/sol-resolver@^3.1.5":
-  version "3.1.5"
-  resolved "https://registry.yarnpkg.com/@0x/sol-resolver/-/sol-resolver-3.1.5.tgz#f3c94bd6d522f72091f059f60af255d7135e5e6c"
-  dependencies:
-    "@0x/types" "^3.3.0"
-    "@0x/typescript-typings" "^5.1.5"
-    "@types/node" "12.12.54"
-    lodash "^4.17.11"
 
 "@0x/sol-resolver@^3.1.6":
   version "3.1.6"

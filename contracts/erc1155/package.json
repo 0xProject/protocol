@@ -53,7 +53,7 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/tokens",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.12",
-        "@0x/contracts-gen": "2.0.18",
+        "@0x/contracts-gen": "^2.0.23",
         "@0x/contracts-utils": "^4.6.0",
         "@0x/dev-utils": "^4.1.2",
         "@0x/sol-compiler": "^4.4.0",
