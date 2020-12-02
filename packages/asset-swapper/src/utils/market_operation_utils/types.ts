@@ -344,7 +344,7 @@ export interface OptimizerResult {
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
-    unoptimizedPath: CollapsedPath;
+    unoptimizedPath?: CollapsedPath;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {

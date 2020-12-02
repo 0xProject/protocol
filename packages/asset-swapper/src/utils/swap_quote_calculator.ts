@@ -179,9 +179,10 @@ function createSwapQuote(
         : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule);
 
     // Calculate the unoptimised alternative
+    const unoptimizedOrders = unoptimizedPath !== undefined ? unoptimizedPath.orders : [];
     const unoptimizedFillResult = simulateBestCaseFill({
         gasPrice,
-        orders: unoptimizedPath.orders,
+        orders: unoptimizedOrders,
         side: operation,
         fillAmount: assetFillAmount,
         opts: { gasSchedule },
@@ -198,7 +199,7 @@ function createSwapQuote(
         bestCaseQuoteInfo,
         worstCaseQuoteInfo,
         unoptimizedQuoteInfo,
-        unoptimizedOrders: unoptimizedPath.orders,
+        unoptimizedOrders,
         sourceBreakdown,
         makerTokenDecimals,
         takerTokenDecimals,

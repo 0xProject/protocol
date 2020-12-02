@@ -26,6 +26,7 @@ import {
     createSignedOrdersWithFillableAmounts,
     getNativeOrderTokens,
 } from './orders';
+import { Path } from './path';
 import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
@@ -544,7 +545,8 @@ export class MarketOperationUtils {
         };
 
         // Find the unoptimized best rate to calculate savings from optimizer
-        const unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, optimizerOpts)[0].collapse(orderOpts);
+        const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, optimizerOpts)[0];
+        const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
 
         // Find the optimal path
         const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, optimizerOpts);
