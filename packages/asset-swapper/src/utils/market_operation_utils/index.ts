@@ -26,7 +26,6 @@ import {
     createSignedOrdersWithFillableAmounts,
     getNativeOrderTokens,
 } from './orders';
-import { Path } from './path';
 import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
