@@ -121,9 +121,13 @@ export const priceComparisonUtils = {
                 const unitMakerAmount = Web3Wrapper.toUnitAmount(makerAmount, buyToken.decimals);
                 const unitTakerAmount = Web3Wrapper.toUnitAmount(takerAmount, sellToken.decimals);
 
+                // NOTE: In order to not communicate a price better than the actual quote we
+                // should make sure to always round towards a worse price
+                const roundingStrategy = isSelling ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL;
+
                 const price = isSelling
-                    ? unitMakerAmount.dividedBy(unitTakerAmount).decimalPlaces(sellToken.decimals)
-                    : unitTakerAmount.dividedBy(unitMakerAmount).decimalPlaces(buyToken.decimals);
+                    ? unitMakerAmount.dividedBy(unitTakerAmount).decimalPlaces(buyToken.decimals, roundingStrategy)
+                    : unitTakerAmount.dividedBy(unitMakerAmount).decimalPlaces(sellToken.decimals, roundingStrategy);
 
                 return {
                     name: liquiditySource,

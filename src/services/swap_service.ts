@@ -90,26 +90,29 @@ export class SwapService {
         const affiliateFeeUnitMakerAssetAmount = guaranteedUnitMakerAssetAmount.times(
             affiliateFee.buyTokenPercentageFee,
         );
+
+        const isSelling = buyAmount === undefined;
+        // NOTE: In order to not communicate a price better than the actual quote we
+        // should make sure to always round towards a worse price
+        const roundingStrategy = isSelling ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL;
         // Best price
-        const price =
-            buyAmount === undefined
-                ? unitMakerAssetAmount
-                      .minus(affiliateFeeUnitMakerAssetAmount)
-                      .dividedBy(unitTakerAssetAmount)
-                      .decimalPlaces(sellTokenDecimals)
-                : unitTakerAssetAmount
-                      .dividedBy(unitMakerAssetAmount.minus(affiliateFeeUnitMakerAssetAmount))
-                      .decimalPlaces(buyTokenDecimals);
+        const price = isSelling
+            ? unitMakerAssetAmount
+                  .minus(affiliateFeeUnitMakerAssetAmount)
+                  .dividedBy(unitTakerAssetAmount)
+                  .decimalPlaces(buyTokenDecimals, roundingStrategy)
+            : unitTakerAssetAmount
+                  .dividedBy(unitMakerAssetAmount.minus(affiliateFeeUnitMakerAssetAmount))
+                  .decimalPlaces(sellTokenDecimals, roundingStrategy);
         // Guaranteed price before revert occurs
-        const guaranteedPrice =
-            buyAmount === undefined
-                ? guaranteedUnitMakerAssetAmount
-                      .minus(affiliateFeeUnitMakerAssetAmount)
-                      .dividedBy(guaranteedUnitTakerAssetAmount)
-                      .decimalPlaces(sellTokenDecimals)
-                : guaranteedUnitTakerAssetAmount
-                      .dividedBy(guaranteedUnitMakerAssetAmount.minus(affiliateFeeUnitMakerAssetAmount))
-                      .decimalPlaces(buyTokenDecimals);
+        const guaranteedPrice = isSelling
+            ? guaranteedUnitMakerAssetAmount
+                  .minus(affiliateFeeUnitMakerAssetAmount)
+                  .dividedBy(guaranteedUnitTakerAssetAmount)
+                  .decimalPlaces(buyTokenDecimals, roundingStrategy)
+            : guaranteedUnitTakerAssetAmount
+                  .dividedBy(guaranteedUnitMakerAssetAmount.minus(affiliateFeeUnitMakerAssetAmount))
+                  .decimalPlaces(sellTokenDecimals, roundingStrategy);
         return {
             price,
             guaranteedPrice,
@@ -337,7 +340,9 @@ export class SwapService {
                 const { makerAssetAmount, totalTakerAssetAmount } = quote.bestCaseQuoteInfo;
                 const unitMakerAssetAmount = Web3Wrapper.toUnitAmount(makerAssetAmount, buyTokenDecimals);
                 const unitTakerAssetAmount = Web3Wrapper.toUnitAmount(totalTakerAssetAmount, sellTokenDecimals);
-                const price = unitTakerAssetAmount.dividedBy(unitMakerAssetAmount).decimalPlaces(sellTokenDecimals);
+                const price = unitTakerAssetAmount
+                    .dividedBy(unitMakerAssetAmount)
+                    .decimalPlaces(sellTokenDecimals, BigNumber.ROUND_CEIL);
                 return {
                     symbol: queryAssetData[i].symbol,
                     price,

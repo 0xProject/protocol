@@ -197,7 +197,7 @@ describe(SUITE_NAME, () => {
 
         it('returns the Kyber results with highest makerAmount when quoting sellAmount', () => {
             const higherBuyAmount = buyAmount.plus(1e18);
-            const higherPrice = higherBuyAmount.div(sellAmount).decimalPlaces(18);
+            const higherPrice = higherBuyAmount.div(sellAmount).decimalPlaces(18, BigNumber.ROUND_FLOOR);
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
                 ChainId.Mainnet,
@@ -275,23 +275,67 @@ describe(SUITE_NAME, () => {
             ]);
         });
 
-        it('handles buying tokens with a different number of decimals', () => {
-            const price = new BigNumber(1).decimalPlaces(6);
-            const daiAmount = new BigNumber(1e18);
-            const usdcAmount = new BigNumber(1e6);
+        it('should match price decimal places to maker asset for sell quotes', () => {
+            const wethAmount = new BigNumber(1 / 3).times(1e18).decimalPlaces(0, BigNumber.ROUND_FLOOR);
+            const usdcAmount = new BigNumber(100e6);
+
+            const price = wethAmount
+                .div(usdcAmount)
+                .div(1e12)
+                .decimalPlaces(18);
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
                 ChainId.Mainnet,
-                { buyAmount: daiAmount },
+                { sellAmount: usdcAmount },
                 {
-                    buyTokenAddress: DAI.tokenAddress,
+                    buyTokenAddress: WETH.tokenAddress,
                     sellTokenAddress: USDC.tokenAddress,
-                    buyAmount: daiAmount,
+                    buyAmount: wethAmount,
                     sellAmount: usdcAmount,
                     quoteReport: {
                         sourcesConsidered: [
                             {
-                                makerAmount: daiAmount,
+                                makerAmount: wethAmount,
+                                takerAmount: usdcAmount,
+                                liquiditySource: ERC20BridgeSource.Uniswap,
+                                fillData: {},
+                            },
+                        ],
+                    },
+                },
+            );
+
+            expect(comparisons).to.deep.include.members([
+                // Uniswap sample found
+                {
+                    name: ERC20BridgeSource.Uniswap,
+                    price,
+                    gas: new BigNumber(90e3),
+                },
+            ]);
+        });
+
+        it('should match price decimal places to taker asset for buy quotes', () => {
+            const usdcAmount = new BigNumber(100e6);
+            const wethAmount = new BigNumber(7 / 3).times(1e18).decimalPlaces(0, BigNumber.ROUND_FLOOR);
+
+            const price = usdcAmount
+                .div(wethAmount)
+                .times(1e12)
+                .decimalPlaces(6);
+
+            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                ChainId.Mainnet,
+                { buyAmount: wethAmount },
+                {
+                    buyTokenAddress: WETH.tokenAddress,
+                    sellTokenAddress: USDC.tokenAddress,
+                    buyAmount: wethAmount,
+                    sellAmount: usdcAmount,
+                    quoteReport: {
+                        sourcesConsidered: [
+                            {
+                                makerAmount: wethAmount,
                                 takerAmount: usdcAmount,
                                 liquiditySource: ERC20BridgeSource.Uniswap,
                                 fillData: {},
