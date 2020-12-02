@@ -55,14 +55,14 @@
         "typescript": "3.0.1"
     },
     "dependencies": {
-        "@0x/assert": "^3.0.17",
-        "@0x/base-contract": "^6.2.11",
+        "@0x/assert": "^3.0.19",
+        "@0x/base-contract": "^6.2.13",
         "@0x/contract-addresses": "^5.4.0",
-        "@0x/json-schemas": "^5.3.3",
-        "@0x/types": "^3.3.0",
-        "@0x/utils": "^6.1.0",
-        "@0x/web3-wrapper": "^7.2.8",
-        "ethereum-types": "^3.3.3",
+        "@0x/json-schemas": "^5.3.4",
+        "@0x/types": "^3.3.1",
+        "@0x/utils": "^6.1.1",
+        "@0x/web3-wrapper": "^7.2.10",
+        "ethereum-types": "^3.4.0",
         "ethers": "~4.0.4"
     },
     "publishConfig": {

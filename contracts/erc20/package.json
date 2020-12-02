@@ -51,18 +51,18 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/tokens",
     "devDependencies": {
-        "@0x/abi-gen": "^5.4.7",
-        "@0x/contracts-gen": "2.0.18",
+        "@0x/abi-gen": "^5.4.12",
+        "@0x/contracts-gen": "^2.0.23",
         "@0x/contracts-test-utils": "^5.3.12",
         "@0x/contracts-utils": "^4.6.0",
-        "@0x/dev-utils": "^4.0.1",
-        "@0x/sol-compiler": "^4.2.7",
+        "@0x/dev-utils": "^4.1.2",
+        "@0x/sol-compiler": "^4.4.0",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.3",
-        "@0x/types": "^3.3.0",
-        "@0x/typescript-typings": "^5.1.5",
-        "@0x/utils": "^6.1.0",
-        "@0x/web3-wrapper": "^7.2.8",
+        "@0x/types": "^3.3.1",
+        "@0x/typescript-typings": "^5.1.6",
+        "@0x/utils": "^6.1.1",
+        "@0x/web3-wrapper": "^7.2.10",
         "@types/lodash": "4.14.104",
         "@types/mocha": "^5.2.7",
         "@types/node": "12.12.54",
@@ -70,7 +70,7 @@
         "chai-as-promised": "^7.1.0",
         "chai-bignumber": "^3.0.0",
         "dirty-chai": "^2.0.1",
-        "ethereum-types": "^3.3.3",
+        "ethereum-types": "^3.4.0",
         "lodash": "^4.17.11",
         "make-promises-safe": "^1.1.0",
         "mocha": "^6.2.0",
@@ -82,7 +82,7 @@
         "typescript": "3.0.1"
     },
     "dependencies": {
-        "@0x/base-contract": "^6.2.11"
+        "@0x/base-contract": "^6.2.13"
     },
     "publishConfig": {
         "access": "public"
