@@ -13,6 +13,7 @@ import {
     FeeSchedule,
     FillData,
     GetMarketOrdersOpts,
+    LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MultiHopFillData,
     SnowSwapFillData,
@@ -445,7 +446,9 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: () => 150e3,
     [ERC20BridgeSource.Uniswap]: () => 90e3,
-    [ERC20BridgeSource.LiquidityProvider]: () => 140e3,
+    [ERC20BridgeSource.LiquidityProvider]: fillData => {
+        return (fillData as LiquidityProviderFillData).gasCost;
+    },
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => {

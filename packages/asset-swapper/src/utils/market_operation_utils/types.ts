@@ -132,6 +132,7 @@ export interface ShellFillData extends FillData {
 
 export interface LiquidityProviderFillData extends FillData {
     poolAddress: string;
+    gasCost: number;
 }
 
 export interface BancorFillData extends FillData {
@@ -383,7 +384,10 @@ export interface TokenAdjacencyGraph {
 }
 
 export interface LiquidityProviderRegistry {
-    [address: string]: [string, string];
+    [address: string]: {
+        tokens: string[];
+        gasCost: number;
+    };
 }
 
 export interface GenerateOptimizedOrdersOpts {

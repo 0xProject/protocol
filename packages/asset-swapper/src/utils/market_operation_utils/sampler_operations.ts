@@ -235,7 +235,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<LiquidityProviderFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.LiquidityProvider,
-            fillData: { poolAddress: providerAddress },
+            fillData: {
+                poolAddress: providerAddress,
+                gasCost: this.liquidityProviderRegistry[providerAddress].gasCost,
+            },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromLiquidityProvider,
             params: [providerAddress, takerToken, makerToken, takerFillAmounts],
@@ -250,7 +253,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<LiquidityProviderFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.LiquidityProvider,
-            fillData: { poolAddress: providerAddress },
+            fillData: {
+                poolAddress: providerAddress,
+                gasCost: this.liquidityProviderRegistry[providerAddress].gasCost,
+            },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromLiquidityProvider,
             params: [providerAddress, takerToken, makerToken, makerFillAmounts],

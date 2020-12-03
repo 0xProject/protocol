@@ -17,6 +17,10 @@
             {
                 "note": "Add `unoptimizedPath` to OptimizerResult",
                 "pr": 62
+            },
+            {
+                "note": "Enable PLP VIP feature and add gasCost field to LiquidityProviderRegistry",
+                "pr": 65
             }
         ]
     },

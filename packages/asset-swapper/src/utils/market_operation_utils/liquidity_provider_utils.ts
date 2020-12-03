@@ -7,6 +7,6 @@ export function getLiquidityProvidersForPair(
     makerToken: string,
 ): string[] {
     return Object.entries(registry)
-        .filter(([, tokens]) => [makerToken, takerToken].every(t => tokens.includes(t)))
+        .filter(([, plp]) => [makerToken, takerToken].every(t => plp.tokens.includes(t)))
         .map(([providerAddress]) => providerAddress);
 }

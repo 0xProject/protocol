@@ -34,7 +34,7 @@ import { getSwapMinBuyAmount } from './utils';
 
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
-const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
+const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly provider: ZeroExProvider;
@@ -123,6 +123,26 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         sellAmount,
                         minBuyAmount,
                         source === ERC20BridgeSource.SushiSwap,
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+            };
+        }
+
+        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
+            const target = quote.orders[0].makerAddress;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        target,
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                        NULL_BYTES,
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
