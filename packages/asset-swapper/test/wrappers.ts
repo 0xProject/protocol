@@ -4,6 +4,7 @@
  * -----------------------------------------------------------------------------
  */
 export * from '../test/generated-wrappers/approximate_buys';
+export * from '../test/generated-wrappers/balance_checker';
 export * from '../test/generated-wrappers/balancer_sampler';
 export * from '../test/generated-wrappers/curve_sampler';
 export * from '../test/generated-wrappers/d_o_d_o_sampler';

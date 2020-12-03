@@ -3,8 +3,10 @@
     "compilerOptions": { "outDir": "lib", "rootDir": ".", "resolveJsonModule": true },
     "include": ["./src/**/*", "./test/**/*", "./generated-wrappers/**/*"],
     "files": [
+        "generated-artifacts/BalanceChecker.json",
         "generated-artifacts/ERC20BridgeSampler.json",
         "test/generated-artifacts/ApproximateBuys.json",
+        "test/generated-artifacts/BalanceChecker.json",
         "test/generated-artifacts/BalancerSampler.json",
         "test/generated-artifacts/CurveSampler.json",
         "test/generated-artifacts/DODOSampler.json",
