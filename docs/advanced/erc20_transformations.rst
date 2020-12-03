@@ -175,4 +175,4 @@ No events are emitted by 0x during this transformation, although token contracts
 
 Adding Custom Transformations
 -----------------------------
-Transformations are trustless, but at this time they are permissioned so only 0x Labs can deploy new Transformers. If you are interested in deploying your own transformation logic, please reach out to us on `Discord <https://discord.com/invite/d3FTX3M>`_.
+Transformations are trustless, but at this time they are permissioned so only 0x Labs can deploy new Transformers. If you are interested in deploying your own transformation logic, please reach out to us on `Discord <https://discord.com/invite/d3FTX3M>`_. Learn more about why this is permissioned in the `Transformer Deployer <../architecture/transformer_deployer.html>`_ section.

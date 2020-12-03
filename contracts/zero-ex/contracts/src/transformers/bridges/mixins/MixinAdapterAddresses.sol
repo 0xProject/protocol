@@ -26,6 +26,7 @@ contract MixinAdapterAddresses
         address balancerBridge;
         address creamBridge;
         address curveBridge;
+        address cryptoComBridge;
         address dodoBridge;
         address kyberBridge;
         address mooniswapBridge;

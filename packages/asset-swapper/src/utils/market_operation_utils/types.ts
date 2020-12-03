@@ -6,6 +6,7 @@ import { RfqtFirmQuoteValidator, RfqtRequestOpts, SignedOrderWithFillableAmounts
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
+import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
 
 /**
@@ -49,6 +50,7 @@ export enum ERC20BridgeSource {
     SnowSwap = 'SnowSwap',
     SushiSwap = 'SushiSwap',
     Dodo = 'DODO',
+    CryptoCom = 'CryptoCom',
 }
 
 // tslint:disable: enum-naming
@@ -130,6 +132,7 @@ export interface ShellFillData extends FillData {
 
 export interface LiquidityProviderFillData extends FillData {
     poolAddress: string;
+    gasCost: number;
 }
 
 export interface BancorFillData extends FillData {
@@ -342,6 +345,7 @@ export interface OptimizerResult {
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
+    unoptimizedPath?: CollapsedPath;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
@@ -380,7 +384,10 @@ export interface TokenAdjacencyGraph {
 }
 
 export interface LiquidityProviderRegistry {
-    [address: string]: [string, string];
+    [address: string]: {
+        tokens: string[];
+        gasCost: number;
+    };
 }
 
 export interface GenerateOptimizedOrdersOpts {

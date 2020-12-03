@@ -2,6 +2,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "../src/features/NativeOrdersFeature.sol";
+import "./TestFeeCollectorController.sol";
 
 contract TestNativeOrdersFeature is
     NativeOrdersFeature
@@ -10,6 +11,7 @@ contract TestNativeOrdersFeature is
         address zeroExAddress,
         IEtherTokenV06 weth,
         IStaking staking,
+        FeeCollectorController _feeCollectorController, // Unused but necessary for artifact compatibility.
         uint32 protocolFeeMultiplier,
         bytes32 greedyTokensBloomFilter
     )
@@ -18,6 +20,7 @@ contract TestNativeOrdersFeature is
             zeroExAddress,
             weth,
             staking,
+            FeeCollectorController(address(new TestFeeCollectorController())),
             protocolFeeMultiplier,
             greedyTokensBloomFilter
         )

@@ -7,6 +7,8 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as AffiliateFeeTransformer from '../generated-artifacts/AffiliateFeeTransformer.json';
 import * as BridgeAdapter from '../generated-artifacts/BridgeAdapter.json';
+import * as FeeCollector from '../generated-artifacts/FeeCollector.json';
+import * as FeeCollectorController from '../generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../generated-artifacts/FillQuoteTransformer.json';
 import * as FullMigration from '../generated-artifacts/FullMigration.json';
 import * as IAllowanceTarget from '../generated-artifacts/IAllowanceTarget.json';
@@ -60,4 +62,6 @@ export const artifacts = {
     ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
+    FeeCollectorController: FeeCollectorController as ContractArtifact,
+    FeeCollector: FeeCollector as ContractArtifact,
 };

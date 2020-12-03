@@ -21,13 +21,18 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../external/FeeCollector.sol";
+import "../external/FeeCollectorController.sol";
+import "../external/LibFeeCollector.sol";
 import "../vendor/v3/IStaking.sol";
 
 
 /// @dev Helpers for collecting protocol fees.
 abstract contract FixinProtocolFees {
+
     /// @dev The protocol fee multiplier.
     uint32 public immutable PROTOCOL_FEE_MULTIPLIER;
+    /// @dev The `FeeCollectorController` contract.
+    FeeCollectorController private immutable FEE_COLLECTOR_CONTROLLER;
     /// @dev Hash of the fee collector init code.
     bytes32 private immutable FEE_COLLECTOR_INIT_CODE_HASH;
     /// @dev The WETH token contract.
@@ -38,11 +43,14 @@ abstract contract FixinProtocolFees {
     constructor(
         IEtherTokenV06 weth,
         IStaking staking,
+        FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
     )
         internal
     {
-        FEE_COLLECTOR_INIT_CODE_HASH = keccak256(type(FeeCollector).creationCode);
+        FEE_COLLECTOR_CONTROLLER = feeCollectorController;
+        FEE_COLLECTOR_INIT_CODE_HASH =
+            feeCollectorController.FEE_COLLECTOR_INIT_CODE_HASH();
         WETH = weth;
         STAKING = staking;
         PROTOCOL_FEE_MULTIPLIER = protocolFeeMultiplier;
@@ -72,23 +80,11 @@ abstract contract FixinProtocolFees {
     function _transferFeesForPool(bytes32 poolId)
         internal
     {
-        FeeCollector feeCollector = _getFeeCollector(poolId);
-
-        uint256 codeSize;
-        assembly {
-            codeSize := extcodesize(feeCollector)
-        }
-
-        if (codeSize == 0) {
-            // Create and initialize the contract if necessary.
-            new FeeCollector{salt: bytes32(poolId)}();
-            feeCollector.initialize(WETH, STAKING, poolId);
-        }
-
-        if (address(feeCollector).balance > 1) {
-            feeCollector.convertToWeth(WETH);
-        }
-
+        // This will create a FeeCollector contract (if necessary) and wrap
+        // fees for the pool ID.
+        FeeCollector feeCollector =
+            FEE_COLLECTOR_CONTROLLER.prepareFeeCollectorToPayFees(poolId);
+        // All fees in the fee collector should be in WETH now.
         uint256 bal = WETH.balanceOf(address(feeCollector));
         if (bal > 1) {
             // Leave 1 wei behind to avoid high SSTORE cost of zero-->non-zero.
@@ -106,14 +102,11 @@ abstract contract FixinProtocolFees {
         view
         returns (FeeCollector)
     {
-        // Compute the CREATE2 address for the fee collector.
-        address payable addr = address(uint256(keccak256(abi.encodePacked(
-            byte(0xff),
-            address(this),
-            poolId, // pool ID is salt
-            FEE_COLLECTOR_INIT_CODE_HASH
-        ))));
-        return FeeCollector(addr);
+        return FeeCollector(LibFeeCollector.getFeeCollectorAddress(
+            address(FEE_COLLECTOR_CONTROLLER),
+            FEE_COLLECTOR_INIT_CODE_HASH,
+            poolId
+        ));
     }
 
     /// @dev Get the cost of a single protocol fee.

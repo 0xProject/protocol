@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.3.0 - _December 3, 2020_
+
+    * Added Crypto.com (#43)
+    * Add `getQuoteInfoMinBuyAmount` to quote consumer utils (#62)
+    * Add `unoptimizedQuoteInfo` and `unoptimizedOrders` to SwapQuoteBase (#62)
+    * Add `unoptimizedPath` to OptimizerResult (#62)
+    * Enable PLP VIP feature and add gasCost field to LiquidityProviderRegistry (#65)
+
 ## v5.2.0 - _November 19, 2020_
 
     * Update Gas schedules (#34)

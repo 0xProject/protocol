@@ -156,6 +156,9 @@ export enum ExchangeProxyRefundReceiver {
  *        `address(0)`: Stay in flash wallet.
  *        `address(1)`: Send to the taker.
  *        `address(2)`: Send to the sender (caller of `transformERC20()`).
+ * @param shouldSellEntireBalance Whether the entire balance of the caller should be sold. Used
+ *        for contracts where the balance at transaction time is different to the quote amount.
+ *        This foregos certain VIP routes which do not support this feature.
  */
 export interface ExchangeProxyContractOpts {
     isFromETH: boolean;
@@ -163,6 +166,7 @@ export interface ExchangeProxyContractOpts {
     affiliateFee: AffiliateFee;
     refundReceiver: string | ExchangeProxyRefundReceiver;
     isMetaTransaction: boolean;
+    shouldSellEntireBalance: boolean;
 }
 
 export interface GetExtensionContractTypeOpts {
@@ -177,6 +181,8 @@ export interface GetExtensionContractTypeOpts {
  * orders: An array of objects conforming to OptimizedMarketOrder. These orders can be used to cover the requested assetBuyAmount plus slippage.
  * bestCaseQuoteInfo: Info about the best case price for the asset.
  * worstCaseQuoteInfo: Info about the worst case price for the asset.
+ * unoptimizedQuoteInfo: Info about the unoptimized (best single source) price for the swap
+ * unoptimizedOrders: Orders used in the unoptimized quote info
  */
 export interface SwapQuoteBase {
     takerAssetData: string;
@@ -187,6 +193,8 @@ export interface SwapQuoteBase {
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
+    unoptimizedQuoteInfo: SwapQuoteInfo;
+    unoptimizedOrders: OptimizedMarketOrder[];
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
@@ -296,7 +304,7 @@ export interface RfqtMakerAssetOfferings {
 export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
 
 export interface RfqtFirmQuoteValidator {
-    getRFQTTakerFillableAmounts(quotes: SignedOrder[]): Promise<BigNumber[]>;
+    getRfqtTakerFillableAmountsAsync(quotes: SignedOrder[]): Promise<BigNumber[]>;
 }
 
 export interface SwapQuoterRfqtOpts {
@@ -426,4 +434,5 @@ export interface BridgeContractAddresses {
     creamBridge: string;
     swerveBridge: string;
     snowswapBridge: string;
+    cryptoComBridge: string;
 }

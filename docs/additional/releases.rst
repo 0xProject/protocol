@@ -7,18 +7,33 @@ Releases
 
 This page outlines upcoming releases and expected changes.
 
-+-------------+----------------------+-----------------------------------------+
-| **Release** | **Est Release Date** | **Status**                              |
-+-------------+----------------------+-----------------------------------------+
-|  Tinker     | TBA                  | In Audits                               |
-+-------------+----------------------+-----------------------------------------+
++-------------+---------------------------------------------------------------+----------------------+------------+
+| **Release** | **Overview**                                                  | **Est Release Date** | **Status** |
++-------------+---------------------------------------------------------------+----------------------+------------+
+| `VIP`_      | PLP VIP                                                       | 12/01/20             | Timelocked |
++-------------+---------------------------------------------------------------+----------------------+------------+
+| `Hancock`_  | Remove calldata signing / DeFi Saver Fix / Allowance on Proxy | 12/07/20             | Testing    |
++-------------+---------------------------------------------------------------+----------------------+------------+
+| `Tinker`_   | V4 Orders                                                     | Early January 2021   | In Audits  |
++-------------+---------------------------------------------------------------+----------------------+------------+
+
+VIP
+----
+
+- Deploy the `LiquidityProviderFeature <../architecture/features.html>`_, which enables optimized trades directly with `PLP <../advanced/plp.html>`_
 
 
-Tinker (Official V4 Release)
-----------------------------
+Hancock
+-------
 
-- Upgrade any features that transfer user funds to use allowances on the Proxy contract. Transfers will still fallback to the Allowance Target, but integrators will get reduced transaction costs from setting their allowance on the Proxy.. See more on the `Allowances Page <../basics/allowances.html>`_.
-- Deploy `LiquidityProviderFeature <../architecture/features.html>`_.
+- Removes calldata signing from ``TransformERC20`` Feature.
+- Redeploying all `Transformers <../architecture/transformers.html>`_ (new interface w/o ``calldataHash``)
+- Allowances can now be set on the `Proxy <../architecture/features/proxy.html>`_. See more on the `Allowances Page <../basics/allowances.html>`_. This involves redeploying the following `Features <../architecture/features.html>`_: ``MetaTransactionsFeature``, ``TransformERC20Feature``, ``UniswapFeature``.
+
+
+Tinker
+------
+
 - Deploy `NativeLiquidityFeature <../architecture/features.html>`_.
 - Deploy updated `FillQuoteTransformer <../architecture/transformers.html>`_, which can fill `V4 Orders <../basics/orders.html>`_. This transformer will no longer call Exchange V3.
 - Introduce `new events <../basics/events.html>`_.

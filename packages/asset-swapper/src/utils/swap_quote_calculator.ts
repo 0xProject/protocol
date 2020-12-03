@@ -22,8 +22,8 @@ import {
     FillData,
     GetMarketOrdersOpts,
     OptimizedMarketOrder,
+    OptimizerResultWithReport,
 } from './market_operation_utils/types';
-import { QuoteReport } from './quote_report_generator';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './quote_simulation';
 import { getTokenFromAssetData, isSupportedAssetDataInOrders } from './utils';
 
@@ -98,15 +98,13 @@ export class SwapQuoteCalculator {
                 if (result) {
                     const { makerAssetData, takerAssetData } = batchPrunedOrders[i][0];
                     return createSwapQuote(
+                        result,
                         makerAssetData,
                         takerAssetData,
-                        result.optimizedOrders,
                         operation,
                         assetFillAmounts[i],
                         gasPrice,
                         opts.gasSchedule,
-                        result.marketSideLiquidity.makerTokenDecimals,
-                        result.marketSideLiquidity.takerTokenDecimals,
                     );
                 } else {
                     return undefined;
@@ -128,12 +126,6 @@ export class SwapQuoteCalculator {
         }
         // since prunedOrders do not have fillState, we will add a buffer of fillable orders to consider that some native are orders are partially filled
 
-        let optimizedOrders: OptimizedMarketOrder[];
-        let quoteReport: QuoteReport | undefined;
-        let sourceFlags: number = 0;
-        let makerTokenDecimals: number;
-        let takerTokenDecimals: number;
-
         // Scale fees by gas price.
         const _opts: GetMarketOrdersOpts = {
             ...opts,
@@ -148,60 +140,95 @@ export class SwapQuoteCalculator {
                 ? await this._marketOperationUtils.getMarketBuyOrdersAsync(prunedOrders, assetFillAmount, _opts)
                 : await this._marketOperationUtils.getMarketSellOrdersAsync(prunedOrders, assetFillAmount, _opts);
 
-        optimizedOrders = result.optimizedOrders;
-        quoteReport = result.quoteReport;
-        sourceFlags = result.sourceFlags;
-        makerTokenDecimals = result.marketSideLiquidity.makerTokenDecimals;
-        takerTokenDecimals = result.marketSideLiquidity.takerTokenDecimals;
-
-        // assetData information for the result
         const { makerAssetData, takerAssetData } = prunedOrders[0];
-        const swapQuote =
-            sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop]
-                ? createTwoHopSwapQuote(
-                      makerAssetData,
-                      takerAssetData,
-                      optimizedOrders,
-                      operation,
-                      assetFillAmount,
-                      gasPrice,
-                      opts.gasSchedule,
-                      makerTokenDecimals,
-                      takerTokenDecimals,
-                      quoteReport,
-                  )
-                : createSwapQuote(
-                      makerAssetData,
-                      takerAssetData,
-                      optimizedOrders,
-                      operation,
-                      assetFillAmount,
-                      gasPrice,
-                      opts.gasSchedule,
-                      makerTokenDecimals,
-                      takerTokenDecimals,
-                      quoteReport,
-                  );
+        const swapQuote = createSwapQuote(
+            result,
+            makerAssetData,
+            takerAssetData,
+            operation,
+            assetFillAmount,
+            gasPrice,
+            opts.gasSchedule,
+        );
+
         // Use the raw gas, not scaled by gas price
-        const exchangeProxyOverhead = opts.exchangeProxyOverhead(sourceFlags).toNumber();
+        const exchangeProxyOverhead = opts.exchangeProxyOverhead(result.sourceFlags).toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
+        swapQuote.unoptimizedQuoteInfo.gas += exchangeProxyOverhead;
+
         return swapQuote;
     }
 }
 
 function createSwapQuote(
+    optimizerResult: OptimizerResultWithReport,
     makerAssetData: string,
     takerAssetData: string,
+    operation: MarketOperation,
+    assetFillAmount: BigNumber,
+    gasPrice: BigNumber,
+    gasSchedule: FeeSchedule,
+): SwapQuote {
+    const { optimizedOrders, quoteReport, sourceFlags, unoptimizedPath } = optimizerResult;
+    const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
+
+    // Calculate quote info
+    const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
+        ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule)
+        : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule);
+
+    // Calculate the unoptimised alternative
+    const unoptimizedOrders = unoptimizedPath !== undefined ? unoptimizedPath.orders : [];
+    const unoptimizedFillResult = simulateBestCaseFill({
+        gasPrice,
+        orders: unoptimizedOrders,
+        side: operation,
+        fillAmount: assetFillAmount,
+        opts: { gasSchedule },
+    });
+    const unoptimizedQuoteInfo = fillResultsToQuoteInfo(unoptimizedFillResult);
+
+    // Put together the swap quote
+    const { makerTokenDecimals, takerTokenDecimals } = optimizerResult.marketSideLiquidity;
+    const swapQuote = {
+        makerAssetData,
+        takerAssetData,
+        gasPrice,
+        orders: optimizedOrders,
+        bestCaseQuoteInfo,
+        worstCaseQuoteInfo,
+        unoptimizedQuoteInfo,
+        unoptimizedOrders,
+        sourceBreakdown,
+        makerTokenDecimals,
+        takerTokenDecimals,
+        quoteReport,
+        isTwoHop,
+    };
+
+    if (operation === MarketOperation.Buy) {
+        return {
+            ...swapQuote,
+            type: MarketOperation.Buy,
+            makerAssetFillAmount: assetFillAmount,
+        };
+    } else {
+        return {
+            ...swapQuote,
+            type: MarketOperation.Sell,
+            takerAssetFillAmount: assetFillAmount,
+        };
+    }
+}
+
+function calculateQuoteInfo(
     optimizedOrders: OptimizedMarketOrder[],
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
     gasSchedule: FeeSchedule,
-    makerTokenDecimals: number,
-    takerTokenDecimals: number,
-    quoteReport?: QuoteReport,
-): SwapQuote {
+): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const bestCaseFillResult = simulateBestCaseFill({
         gasPrice,
         orders: optimizedOrders,
@@ -218,49 +245,18 @@ function createSwapQuote(
         opts: { gasSchedule },
     });
 
-    const quoteBase = {
-        takerAssetData,
-        makerAssetData,
-        gasPrice,
+    return {
         bestCaseQuoteInfo: fillResultsToQuoteInfo(bestCaseFillResult),
         worstCaseQuoteInfo: fillResultsToQuoteInfo(worstCaseFillResult),
         sourceBreakdown: getSwapQuoteOrdersBreakdown(bestCaseFillResult.fillAmountBySource),
-        orders: optimizedOrders,
-        quoteReport,
-        isTwoHop: false,
     };
-
-    if (operation === MarketOperation.Buy) {
-        return {
-            ...quoteBase,
-            type: MarketOperation.Buy,
-            makerAssetFillAmount: assetFillAmount,
-            makerTokenDecimals,
-            takerTokenDecimals,
-        };
-    } else {
-        return {
-            ...quoteBase,
-            type: MarketOperation.Sell,
-            takerAssetFillAmount: assetFillAmount,
-            makerTokenDecimals,
-            takerTokenDecimals,
-        };
-    }
 }
 
-function createTwoHopSwapQuote(
-    makerAssetData: string,
-    takerAssetData: string,
+function calculateTwoHopQuoteInfo(
     optimizedOrders: OptimizedMarketOrder[],
     operation: MarketOperation,
-    assetFillAmount: BigNumber,
-    gasPrice: BigNumber,
     gasSchedule: FeeSchedule,
-    makerTokenDecimals: number,
-    takerTokenDecimals: number,
-    quoteReport?: QuoteReport,
-): SwapQuote {
+): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const [firstHopOrder, secondHopOrder] = optimizedOrders;
     const [firstHopFill] = firstHopOrder.fills;
     const [secondHopFill] = secondHopOrder.fills;
@@ -271,10 +267,7 @@ function createTwoHopSwapQuote(
         }),
     ).toNumber();
 
-    const quoteBase = {
-        takerAssetData,
-        makerAssetData,
-        gasPrice,
+    return {
         bestCaseQuoteInfo: {
             makerAssetAmount: operation === MarketOperation.Sell ? secondHopFill.output : secondHopFill.input,
             takerAssetAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
@@ -298,28 +291,7 @@ function createTwoHopSwapQuote(
                 hops: [firstHopFill.source, secondHopFill.source],
             },
         },
-        orders: optimizedOrders,
-        quoteReport,
-        isTwoHop: true,
     };
-
-    if (operation === MarketOperation.Buy) {
-        return {
-            ...quoteBase,
-            type: MarketOperation.Buy,
-            makerAssetFillAmount: assetFillAmount,
-            makerTokenDecimals,
-            takerTokenDecimals,
-        };
-    } else {
-        return {
-            ...quoteBase,
-            type: MarketOperation.Sell,
-            takerAssetFillAmount: assetFillAmount,
-            makerTokenDecimals,
-            takerTokenDecimals,
-        };
-    }
 }
 
 function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: BigNumber }): SwapQuoteOrdersBreakdown {

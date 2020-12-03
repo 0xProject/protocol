@@ -13,6 +13,7 @@ import {
     FeeSchedule,
     FillData,
     GetMarketOrdersOpts,
+    LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MultiHopFillData,
     SnowSwapFillData,
@@ -45,6 +46,7 @@ export const SELL_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CryptoCom,
 ]);
 
 /**
@@ -69,6 +71,7 @@ export const BUY_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CryptoCom,
 ]);
 
 /**
@@ -352,6 +355,7 @@ export const MAINNET_KYBER_TOKEN_RESERVE_IDS: { [token: string]: string } = {
 export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
 
 export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F';
+export const MAINNET_CRYPTO_COM_ROUTER = '0xCeB90E4C17d626BE0fACd78b79c9c87d7ca181b3';
 
 export const MAINNET_SHELL_POOLS = {
     StableCoins: {
@@ -394,6 +398,7 @@ const EMPTY_BRIDGE_ADDRESSES: BridgeContractAddresses = {
     creamBridge: NULL_ADDRESS,
     snowswapBridge: NULL_ADDRESS,
     swerveBridge: NULL_ADDRESS,
+    cryptoComBridge: NULL_ADDRESS,
 };
 
 export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAddresses } = {
@@ -414,6 +419,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
         creamBridge: '0xb9d4bf2c8dab828f4ffb656acdb6c2b497d44f25',
         swerveBridge: '0xf9786d5eb1de47fa56a8f7bb387653c6d410bfee',
         snowswapBridge: '0xb1dbe83d15236ec10fdb214c6b89774b454754fd',
+        cryptoComBridge: '0x015850307f6aab4ac6631923ceefe71b57492c9b',
     },
     [ChainId.Kovan]: {
         ...EMPTY_BRIDGE_ADDRESSES,
@@ -440,7 +446,9 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: () => 150e3,
     [ERC20BridgeSource.Uniswap]: () => 90e3,
-    [ERC20BridgeSource.LiquidityProvider]: () => 140e3,
+    [ERC20BridgeSource.LiquidityProvider]: fillData => {
+        return (fillData as LiquidityProviderFillData).gasCost;
+    },
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => {
@@ -483,7 +491,16 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.SushiSwap]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
-        let gas = 95e3;
+        let gas = 90e3;
+        const path = (fillData as SushiSwapFillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.CryptoCom]: (fillData?: FillData) => {
+        // TODO: Different base cost if to/from ETH.
+        let gas = 90e3 + 20e3 + 60e3; // temporary allowance diff, unrolled FQT
         const path = (fillData as SushiSwapFillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.

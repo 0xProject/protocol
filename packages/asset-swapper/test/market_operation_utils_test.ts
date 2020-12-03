@@ -64,6 +64,7 @@ const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.Dodo,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CryptoCom,
 ];
 const BUY_SOURCES = BUY_SOURCE_FILTER.sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
@@ -312,6 +313,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Shell]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.Cream]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.Dodo]: _.times(NUM_SAMPLES, () => 0),
+        [ERC20BridgeSource.CryptoCom]: _.times(NUM_SAMPLES, () => 0),
     };
 
     const DEFAULT_RATES: RatesBySource = {
@@ -371,6 +373,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Dodo]: {},
+        [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
     };
 
     const DEFAULT_OPS = {
@@ -1271,7 +1274,10 @@ describe('MarketOperationUtils tests', () => {
                     .poolAddress;
                 const rates: RatesBySource = {};
                 rates[ERC20BridgeSource.LiquidityProvider] = [1, 1, 1, 1];
-                MOCK_SAMPLER.liquidityProviderRegistry[liquidityProviderAddress] = [MAKER_TOKEN, TAKER_TOKEN];
+                MOCK_SAMPLER.liquidityProviderRegistry[liquidityProviderAddress] = {
+                    tokens: [MAKER_TOKEN, TAKER_TOKEN],
+                    gasCost: 0,
+                };
                 replaceSamplerOps({
                     getOrderFillableTakerAmounts: () => [constants.ZERO_AMOUNT],
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
@@ -1314,7 +1320,10 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Uniswap]: [1, 1, 1, 1],
                     [ERC20BridgeSource.LiquidityProvider]: [0.9999, 0.9999, 0.9999, 0.9999],
                 };
-                MOCK_SAMPLER.liquidityProviderRegistry[randomAddress()] = [MAKER_TOKEN, TAKER_TOKEN];
+                MOCK_SAMPLER.liquidityProviderRegistry[randomAddress()] = {
+                    tokens: [MAKER_TOKEN, TAKER_TOKEN],
+                    gasCost: 0,
+                };
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
@@ -1733,7 +1742,10 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Uniswap]: [1, 1, 1, 1],
                     [ERC20BridgeSource.LiquidityProvider]: [0.9999, 0.9999, 0.9999, 0.9999],
                 };
-                MOCK_SAMPLER.liquidityProviderRegistry[randomAddress()] = [MAKER_TOKEN, TAKER_TOKEN];
+                MOCK_SAMPLER.liquidityProviderRegistry[randomAddress()] = {
+                    tokens: [MAKER_TOKEN, TAKER_TOKEN],
+                    gasCost: 0,
+                };
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_TAKER_RATE),

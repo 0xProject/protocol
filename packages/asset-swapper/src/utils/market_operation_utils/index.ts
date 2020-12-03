@@ -26,7 +26,7 @@ import {
     createSignedOrdersWithFillableAmounts,
     getNativeOrderTokens,
 } from './orders';
-import { findOptimalPathAsync } from './path_optimizer';
+import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -543,6 +543,11 @@ export class MarketOperationUtils {
             exchangeProxyOverhead: opts.exchangeProxyOverhead || (() => ZERO_AMOUNT),
         };
 
+        // Find the unoptimized best rate to calculate savings from optimizer
+        const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, optimizerOpts)[0];
+        const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
+
+        // Find the optimal path
         const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, optimizerOpts);
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
@@ -559,6 +564,7 @@ export class MarketOperationUtils {
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
+                unoptimizedPath,
             };
         }
 
@@ -591,6 +597,7 @@ export class MarketOperationUtils {
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
+            unoptimizedPath,
         };
     }
 
@@ -690,7 +697,7 @@ export class MarketOperationUtils {
                         const rfqOrderFillableAmounts =
                             rfqt.firmQuoteValidator === undefined
                                 ? firmQuoteSignedOrders.map(signedOrder => signedOrder.takerAssetAmount)
-                                : await rfqt.firmQuoteValidator.getRFQTTakerFillableAmounts(firmQuoteSignedOrders);
+                                : await rfqt.firmQuoteValidator.getRfqtTakerFillableAmountsAsync(firmQuoteSignedOrders);
 
                         // Re-run optimizer with the new firm quote. This is the second and last time
                         // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception

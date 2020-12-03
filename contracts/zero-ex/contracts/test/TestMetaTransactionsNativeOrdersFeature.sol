@@ -21,17 +21,23 @@ pragma experimental ABIEncoderV2;
 
 import "../src/features/NativeOrdersFeature.sol";
 import "../src/features/IMetaTransactionsFeature.sol";
+import "./TestFeeCollectorController.sol";
 
 
 contract TestMetaTransactionsNativeOrdersFeature is
     NativeOrdersFeature
 {
-    constructor(
-    )
+    constructor()
         public
-        NativeOrdersFeature(address(0), IEtherTokenV06(0), IStaking(0), 0, bytes32(0))
-    {
-    }
+        NativeOrdersFeature(
+            address(0),
+            IEtherTokenV06(0),
+            IStaking(0),
+            FeeCollectorController(address(new TestFeeCollectorController())),
+            0,
+            bytes32(0)
+        )
+    {}
 
     event FillLimitOrderCalled(
         LibNativeOrder.LimitOrder order,

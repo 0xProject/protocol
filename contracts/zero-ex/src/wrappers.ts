@@ -5,6 +5,8 @@
  */
 export * from '../generated-wrappers/affiliate_fee_transformer';
 export * from '../generated-wrappers/bridge_adapter';
+export * from '../generated-wrappers/fee_collector';
+export * from '../generated-wrappers/fee_collector_controller';
 export * from '../generated-wrappers/fill_quote_transformer';
 export * from '../generated-wrappers/full_migration';
 export * from '../generated-wrappers/i_allowance_target';

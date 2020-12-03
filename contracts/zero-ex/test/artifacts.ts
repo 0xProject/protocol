@@ -10,6 +10,7 @@ import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.js
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
+import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../test/generated-artifacts/FillQuoteTransformer.json';
 import * as FixinCommon from '../test/generated-artifacts/FixinCommon.json';
 import * as FixinEIP712 from '../test/generated-artifacts/FixinEIP712.json';
@@ -45,6 +46,7 @@ import * as IZeroEx from '../test/generated-artifacts/IZeroEx.json';
 import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
 import * as LibERC20Transformer from '../test/generated-artifacts/LibERC20Transformer.json';
+import * as LibFeeCollector from '../test/generated-artifacts/LibFeeCollector.json';
 import * as LibLiquidityProviderRichErrors from '../test/generated-artifacts/LibLiquidityProviderRichErrors.json';
 import * as LibMetaTransactionsRichErrors from '../test/generated-artifacts/LibMetaTransactionsRichErrors.json';
 import * as LibMetaTransactionsStorage from '../test/generated-artifacts/LibMetaTransactionsStorage.json';
@@ -74,6 +76,7 @@ import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadata
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
 import * as MixinAdapterAddresses from '../test/generated-artifacts/MixinAdapterAddresses.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
+import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
 import * as MixinDodo from '../test/generated-artifacts/MixinDodo.json';
 import * as MixinKyber from '../test/generated-artifacts/MixinKyber.json';
@@ -94,6 +97,7 @@ import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/Simp
 import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
 import * as TestCallTarget from '../test/generated-artifacts/TestCallTarget.json';
 import * as TestDelegateCaller from '../test/generated-artifacts/TestDelegateCaller.json';
+import * as TestFeeCollectorController from '../test/generated-artifacts/TestFeeCollectorController.json';
 import * as TestFillQuoteTransformerBridge from '../test/generated-artifacts/TestFillQuoteTransformerBridge.json';
 import * as TestFillQuoteTransformerExchange from '../test/generated-artifacts/TestFillQuoteTransformerExchange.json';
 import * as TestFillQuoteTransformerHost from '../test/generated-artifacts/TestFillQuoteTransformerHost.json';
@@ -150,10 +154,12 @@ export const artifacts = {
     LibWalletRichErrors: LibWalletRichErrors as ContractArtifact,
     AllowanceTarget: AllowanceTarget as ContractArtifact,
     FeeCollector: FeeCollector as ContractArtifact,
+    FeeCollectorController: FeeCollectorController as ContractArtifact,
     FlashWallet: FlashWallet as ContractArtifact,
     IAllowanceTarget: IAllowanceTarget as ContractArtifact,
     IFlashWallet: IFlashWallet as ContractArtifact,
     ILiquidityProviderSandbox: ILiquidityProviderSandbox as ContractArtifact,
+    LibFeeCollector: LibFeeCollector as ContractArtifact,
     LiquidityProviderSandbox: LiquidityProviderSandbox as ContractArtifact,
     PermissionlessTransformerDeployer: PermissionlessTransformerDeployer as ContractArtifact,
     TransformerDeployer: TransformerDeployer as ContractArtifact,
@@ -210,6 +216,7 @@ export const artifacts = {
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
     MixinAdapterAddresses: MixinAdapterAddresses as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
+    MixinCryptoCom: MixinCryptoCom as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,
     MixinDodo: MixinDodo as ContractArtifact,
     MixinKyber: MixinKyber as ContractArtifact,
@@ -231,6 +238,7 @@ export const artifacts = {
     TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,
     TestDelegateCaller: TestDelegateCaller as ContractArtifact,
+    TestFeeCollectorController: TestFeeCollectorController as ContractArtifact,
     TestFillQuoteTransformerBridge: TestFillQuoteTransformerBridge as ContractArtifact,
     TestFillQuoteTransformerExchange: TestFillQuoteTransformerExchange as ContractArtifact,
     TestFillQuoteTransformerHost: TestFillQuoteTransformerHost as ContractArtifact,

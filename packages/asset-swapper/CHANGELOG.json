@@ -1,5 +1,31 @@
 [
     {
+        "version": "5.3.0",
+        "changes": [
+            {
+                "note": "Added Crypto.com",
+                "pr": 43
+            },
+            {
+                "note": "Add `getQuoteInfoMinBuyAmount` to quote consumer utils",
+                "pr": 62
+            },
+            {
+                "note": "Add `unoptimizedQuoteInfo` and `unoptimizedOrders` to SwapQuoteBase",
+                "pr": 62
+            },
+            {
+                "note": "Add `unoptimizedPath` to OptimizerResult",
+                "pr": 62
+            },
+            {
+                "note": "Enable PLP VIP feature and add gasCost field to LiquidityProviderRegistry",
+                "pr": 65
+            }
+        ],
+        "timestamp": 1606961263
+    },
+    {
         "version": "5.2.0",
         "changes": [
             {

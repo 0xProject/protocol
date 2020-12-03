@@ -24,6 +24,8 @@ The 0x Protocol is equipped with a highly optimized `UniswapV2 Router <https://u
 
 This function sells ``sellAmount`` of ``tokens[0]`` for at least ``minBuyAmount`` of ``tokens[-1]``. The ``tokens`` array defines how to route the trade between Uniswap pools. This function does not emit any events, although Uniswap pools will emit their own events. This function reverts if amount bought from Uniswap is less than ``minBuyAmount``, or if Uniswap reverts.
 
+See the source code for our router `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/features/UniswapFeature.sol>`_.
+
 See the official `Uniswap V2 Documentation <https://uniswap.org/docs/v2/>`_ for information on events/reverts/allowances.
 
 .. note::
