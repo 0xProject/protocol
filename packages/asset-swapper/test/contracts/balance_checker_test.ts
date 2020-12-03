@@ -4,7 +4,7 @@ import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
-import { BalanceCheckerContract, TestNativeOrderSamplerContract } from '../wrappers';
+import { BalanceCheckerContract } from '../wrappers';
 
 // tslint:disable: custom-no-magic-numbers
 
@@ -12,30 +12,19 @@ const ETH_ADDRESS = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
 blockchainTests.resets('BalanceChecker contract', env => {
     let contract: BalanceCheckerContract;
-    let testContract: TestNativeOrderSamplerContract;
-    let makerToken: string;
 
     before(async () => {
-        testContract = await TestNativeOrderSamplerContract.deployFrom0xArtifactAsync(
-            artifacts.TestNativeOrderSampler,
-            env.provider,
-            env.txDefaults,
-            {},
-        );
         contract = await BalanceCheckerContract.deployFrom0xArtifactAsync(
             artifacts.BalanceChecker,
             env.provider,
             env.txDefaults,
             {},
         );
-        const NUM_TOKENS = new BigNumber(1);
-        [makerToken] = await testContract.createTokens(NUM_TOKENS).callAsync();
-        await testContract.createTokens(NUM_TOKENS).awaitTransactionSuccessAsync();
     });
 
     describe('getBalances', () => {
         it('returns the correct array for a successful call', async () => {
-            const newMakerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
+            const makerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
                 erc20Artifacts.DummyERC20Token,
                 env.provider,
                 env.txDefaults,
@@ -50,10 +39,10 @@ blockchainTests.resets('BalanceChecker contract', env => {
             const owner = accounts[0];
             const owner2 = accounts[1];
 
-            await newMakerToken.mint(new BigNumber(100)).awaitTransactionSuccessAsync({ from: owner });
+            await makerToken.mint(new BigNumber(100)).awaitTransactionSuccessAsync({ from: owner });
 
             const testResults = await contract
-                .balances([owner, owner2], [newMakerToken.address, ETH_ADDRESS])
+                .balances([owner, owner2], [makerToken.address, ETH_ADDRESS])
                 .callAsync();
 
             expect(testResults).to.eql([new BigNumber(100), new BigNumber(100000000000000000000)]);
