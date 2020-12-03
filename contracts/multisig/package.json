@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-multisig",
-    "version": "4.1.15",
+    "version": "4.1.16",
     "engines": {
         "node": ">=6.12"
     },
@@ -50,11 +50,11 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/multisig",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.12",
-        "@0x/contracts-asset-proxy": "^3.6.6",
-        "@0x/contracts-erc20": "^3.2.9",
+        "@0x/contracts-asset-proxy": "^3.6.7",
+        "@0x/contracts-erc20": "^3.2.10",
         "@0x/contracts-gen": "^2.0.23",
-        "@0x/contracts-test-utils": "^5.3.12",
-        "@0x/contracts-utils": "^4.6.0",
+        "@0x/contracts-test-utils": "^5.3.13",
+        "@0x/contracts-utils": "^4.6.1",
         "@0x/dev-utils": "^4.1.2",
         "@0x/sol-compiler": "^4.4.0",
         "@0x/tslint-config": "^4.1.3",
