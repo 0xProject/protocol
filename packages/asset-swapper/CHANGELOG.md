@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.3.1 - _December 3, 2020_
+
+    * Dependencies updated
+
 ## v5.3.0 - _December 3, 2020_
 
     * Added Crypto.com (#43)
