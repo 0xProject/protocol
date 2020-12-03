@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.5.0 - _December 3, 2020_
+
+    * Update ganache snapshot addresses (#59)
+
 ## v5.4.0 - _November 19, 2020_
 
     * Update ganache snapshot addresses (#27)

@@ -5,10 +5,29 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.11.0 - _December 3, 2020_
+
+    * Turn `LibTokenSpender` into `FixinTokenSpender` (#38)
+    * Use bloom filters to check if a token is greedy and do not optimistically fall through transferFrom() if so (#38)
+    * Revert to original proxy implementation (#38)
+    * Fix incorrect cancel order event param (#38)
+    * Add a gas limit to first `LibTokenSpender` and `UniswapFeature` transfer (#38)
+    * Convert metatransactions to use `LibSignature` (#31)
+    * Add metatransaction support for limit orders (#44)
+    * Require RFQ orders to specify a transaction origin, and allow approved alternative addresses (#47)
+    * Do not try to pull all tokens if selling all ETH in `TransformERC20Feature` (#46)
+    * Remove protocol fees from all RFQ orders and add `taker` field to RFQ orders (#45)
+    * Fix getRfqOrderInfo() to return status INVALID when missing txOrigin (#50)
+    * Remove calldata signing functionality (#51)
+    * Add a permissionless transformer deployer (#55)
+    * Add Crypto.com to `BridgeAdapter` (#43)
+    * Use `FeeCollectorController` contract for deploying `FeeCollector`s (#59)
+
 ## v0.10.0 - _November 19, 2020_
 
     * Add `checkAllowance` flag to LibTokenSpender.spendERC20Tokens (#39)
     * Use new `checkAllowance` flag in LiquidityProviderFeature, TransformERC20Feature, and MetaTransactionsFeature (#39)
+    * Add native orders features (#27)
 
 ## v0.9.0 - _November 13, 2020_
 

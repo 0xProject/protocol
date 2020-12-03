@@ -6,7 +6,8 @@
                 "note": "Update ganache snapshot addresses",
                 "pr": 59
             }
-        ]
+        ],
+        "timestamp": 1606961263
     },
     {
         "version": "5.4.0",
