@@ -41,9 +41,7 @@ blockchainTests.resets('BalanceChecker contract', env => {
 
             await makerToken.mint(new BigNumber(100)).awaitTransactionSuccessAsync({ from: owner });
 
-            const testResults = await contract
-                .balances([owner, owner2], [makerToken.address, ETH_ADDRESS])
-                .callAsync();
+            const testResults = await contract.balances([owner, owner2], [makerToken.address, ETH_ADDRESS]).callAsync();
 
             expect(testResults).to.eql([new BigNumber(100), new BigNumber(100000000000000000000)]);
         });
