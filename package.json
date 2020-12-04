@@ -36,6 +36,7 @@
         "start:service:meta_transaction_http": "node -r dotenv/config lib/src/runners/http_meta_transaction_service_runner.js",
         "start:service:order_watcher": "node -r dotenv/config lib/src/runners/order_watcher_service_runner.js",
         "start:service:transaction_watcher": "node -r dotenv/config lib/src/runners/transaction_watcher_signer_service_runner.js",
+        "start:service:rfq_maker_balance_cache": "node -r dotenv/config lib/src/runners/rfq_maker_balance_cache_runner.js",
         "start:service:signer": "node -r dotenv/config lib/src/runners/signer_runner.js",
         "lint": "tslint --project . --format stylish && yarn prettier:ci",
         "release": "curl -v -H \"Accept: application/vnd.github.everest-preview+json\" -H \"Authorization: token ${GITHUB_TOKEN}\" https://api.github.com/repos/0xProject/0x-api/dispatches -d '{ \"event_type\": \"semantic-release\" }'"
@@ -125,7 +126,7 @@
     },
     "dependencies": {
         "@0x/assert": "^3.0.17",
-        "@0x/asset-swapper": "^5.3.0",
+        "@0x/asset-swapper": "5.3.1",
         "@0x/base-contract": "^6.2.11",
         "@0x/connect": "^6.0.4",
         "@0x/contract-addresses": "^5.3.0",
@@ -144,6 +145,7 @@
         "body-parser": "^1.19.0",
         "cors": "^2.8.5",
         "debug": "^4.1.1",
+        "delay": "^4.4.0",
         "dotenv": "^8.1.0",
         "elastic-apm-node": "^3.7.0",
         "ethereum-types": "^3.2.0",

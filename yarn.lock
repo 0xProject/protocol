@@ -46,10 +46,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^5.3.0":
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.3.0.tgz#4731e867abff3240a1defab7d69a6f5f362f6a29"
-  integrity sha512-KbkO9kKLaYmVtQEnmnmIf0N0xHdBnSkFCpBf9edj9E9zCG5PfmKdm8yKQ1iSSLriETtrpojRPZrDItwRvmWjKA==
+"@0x/asset-swapper@5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.3.1.tgz#51c7e96a0b53a2e9df56dd8eeda997f6ad31a598"
+  integrity sha512-POE44ToQ5Cpc+hqmXwuzBARJ1vMIUHtVw+KPwS29ScpFtvIis74c2pW6fhIRdkMPG+HbGNF4u4rJ5iKkE42nmA==
   dependencies:
     "@0x/assert" "^3.0.19"
     "@0x/base-contract" "^6.2.13"
@@ -665,7 +665,7 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/orderbook@0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023":
+"@0x/orderbook@0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023", "@0x/orderbook@github:0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023":
   version "2.2.7"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c4b7cdf7770608fa1005a3f91c740ed417541fd9"
   dependencies:
@@ -3772,6 +3772,11 @@ define-property@^2.0.2:
 defined@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/defined/-/defined-1.0.0.tgz#c98d9bcef75674188e110969151199e39b1fa693"
+
+delay@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/delay/-/delay-4.4.0.tgz#71abc745f3ce043fe7f450491236541edec4ad0c"
+  integrity sha512-txgOrJu3OdtOfTiEOT2e76dJVfG/1dz2NZ4F0Pyt4UGZJryssMRp5vdM5wQoLwSOBNdrJv3F9PAhp/heqd7vrA==
 
 delayed-stream@~1.0.0:
   version "1.0.0"
