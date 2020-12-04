@@ -32,6 +32,7 @@ import "./NativeOrderSampler.sol";
 import "./ShellSampler.sol";
 import "./SushiSwapSampler.sol";
 import "./TwoHopSampler.sol";
+import "./IntermediateSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
 
@@ -50,6 +51,7 @@ contract ERC20BridgeSampler is
     ShellSampler,
     SushiSwapSampler,
     TwoHopSampler,
+    IntermediateSampler,
     UniswapSampler,
     UniswapV2Sampler
 {

@@ -83,7 +83,11 @@ export interface SwerveInfo extends CurveInfo {}
 export interface SnowSwapInfo extends CurveInfo {}
 
 // Internal `fillData` field for `Fill` objects.
-export interface FillData {}
+export interface FillData {
+    takerToken: string;
+    makerToken: string;
+    shouldIgnore?: boolean;
+}
 
 export interface SourceInfo<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
@@ -160,6 +164,11 @@ export interface Quote<TFillData = FillData> {
 export interface HopInfo {
     sourceIndex: BigNumber;
     returnData: string;
+}
+
+export interface IntermediaryInfo {
+    returnData: string;
+    makerTokenAmounts: BigNumber[];
 }
 
 export interface MultiHopFillData extends FillData {
@@ -305,6 +314,7 @@ export interface GetMarketOrdersOpts {
      * Estimated gas consumed by each liquidity source.
      */
     gasSchedule: FeeSchedule;
+    gasPrice: BigNumber;
     exchangeProxyOverhead: ExchangeProxyOverhead;
     /**
      * Whether to pad the quote with a redundant fallback quote using different
@@ -343,6 +353,8 @@ export interface OptimizerResult {
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
+    input: BigNumber;
+    output: BigNumber;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {

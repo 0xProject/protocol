@@ -551,7 +551,9 @@ export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.assign(
 
 // tslint:enable:custom-no-magic-numbers
 
-export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
+type Bleh = Pick<GetMarketOrdersOpts, Exclude<keyof GetMarketOrdersOpts, 'gasPrice'>>;
+
+export const DEFAULT_GET_MARKET_ORDERS_OPTS: Bleh = {
     // tslint:disable-next-line: custom-no-magic-numbers
     runLimit: 2 ** 15,
     excludedSources: [],

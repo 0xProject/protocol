@@ -1,3 +1,4 @@
+import { assetDataUtils, ERC20AssetData } from '@0x/order-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
 import { MarketOperation, SignedOrderWithFillableAmounts } from '../../types';
@@ -38,9 +39,19 @@ export function createFills(opts: {
         feeSchedule,
     );
     // Create DEX fills.
-    const dexFills = dexQuotes.map(singleSourceSamples =>
-        dexSamplesToFills(side, singleSourceSamples, ethToOutputRate, ethToInputRate, feeSchedule),
-    );
+    const dexFills = dexQuotes
+        .map(singleSourceSamples => {
+            // ignore extra samples
+            if (
+                singleSourceSamples[0] &&
+                singleSourceSamples[0].fillData &&
+                singleSourceSamples[0].fillData!.shouldIgnore
+            ) {
+                return undefined;
+            }
+            return dexSamplesToFills(side, singleSourceSamples, ethToOutputRate, ethToInputRate, feeSchedule);
+        })
+        .filter(f => f) as Fill[][];
     return [...dexFills, nativeFills]
         .map(p => clipFillsToInput(p, opts.targetInput))
         .filter(fills => hasLiquidity(fills) && !excludedSources.includes(fills[0].source));
@@ -117,7 +128,13 @@ function nativeOrdersToFills(
             index: 0, // TBD
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
-            fillData: { order },
+            fillData: {
+                order,
+                makerToken: (assetDataUtils.decodeAssetDataOrThrow(order.makerAssetData) as ERC20AssetData)
+                    .tokenAddress,
+                takerToken: (assetDataUtils.decodeAssetDataOrThrow(order.takerAssetData) as ERC20AssetData)
+                    .tokenAddress,
+            },
         });
     }
     // Sort by descending adjusted rate.

@@ -38,13 +38,11 @@ export class SwapQuoteCalculator {
     public async calculateMarketSellSwapQuoteAsync(
         prunedOrders: SignedOrder[],
         takerAssetFillAmount: BigNumber,
-        gasPrice: BigNumber,
         opts: CalculateSwapQuoteOpts,
     ): Promise<MarketSellSwapQuote> {
         return (await this._calculateSwapQuoteAsync(
             prunedOrders,
             takerAssetFillAmount,
-            gasPrice,
             MarketOperation.Sell,
             opts,
         )) as MarketSellSwapQuote;
@@ -53,13 +51,11 @@ export class SwapQuoteCalculator {
     public async calculateMarketBuySwapQuoteAsync(
         prunedOrders: SignedOrder[],
         takerAssetFillAmount: BigNumber,
-        gasPrice: BigNumber,
         opts: CalculateSwapQuoteOpts,
     ): Promise<MarketBuySwapQuote> {
         return (await this._calculateSwapQuoteAsync(
             prunedOrders,
             takerAssetFillAmount,
-            gasPrice,
             MarketOperation.Buy,
             opts,
         )) as MarketBuySwapQuote;
@@ -68,13 +64,11 @@ export class SwapQuoteCalculator {
     public async calculateBatchMarketBuySwapQuoteAsync(
         batchPrunedOrders: SignedOrder[][],
         takerAssetFillAmounts: BigNumber[],
-        gasPrice: BigNumber,
         opts: CalculateSwapQuoteOpts,
     ): Promise<Array<MarketBuySwapQuote | undefined>> {
         return (await this._calculateBatchBuySwapQuoteAsync(
             batchPrunedOrders,
             takerAssetFillAmounts,
-            gasPrice,
             MarketOperation.Buy,
             opts,
         )) as Array<MarketBuySwapQuote | undefined>;
@@ -83,7 +77,6 @@ export class SwapQuoteCalculator {
     private async _calculateBatchBuySwapQuoteAsync(
         batchPrunedOrders: SignedOrder[][],
         assetFillAmounts: BigNumber[],
-        gasPrice: BigNumber,
         operation: MarketOperation,
         opts: CalculateSwapQuoteOpts,
     ): Promise<Array<SwapQuote | undefined>> {
@@ -103,7 +96,7 @@ export class SwapQuoteCalculator {
                         result.optimizedOrders,
                         operation,
                         assetFillAmounts[i],
-                        gasPrice,
+                        opts.gasPrice,
                         opts.gasSchedule,
                         result.marketSideLiquidity.makerTokenDecimals,
                         result.marketSideLiquidity.takerTokenDecimals,
@@ -118,7 +111,6 @@ export class SwapQuoteCalculator {
     private async _calculateSwapQuoteAsync(
         prunedOrders: SignedOrder[],
         assetFillAmount: BigNumber,
-        gasPrice: BigNumber,
         operation: MarketOperation,
         opts: CalculateSwapQuoteOpts,
     ): Promise<SwapQuote> {
@@ -138,9 +130,9 @@ export class SwapQuoteCalculator {
         const _opts: GetMarketOrdersOpts = {
             ...opts,
             feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData?: FillData) =>
-                gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
+                gasCost === undefined ? 0 : opts.gasPrice.times(gasCost(fillData)),
             ),
-            exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
+            exchangeProxyOverhead: flags => opts.gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
 
         const result =
@@ -164,7 +156,7 @@ export class SwapQuoteCalculator {
                       optimizedOrders,
                       operation,
                       assetFillAmount,
-                      gasPrice,
+                      opts.gasPrice,
                       opts.gasSchedule,
                       makerTokenDecimals,
                       takerTokenDecimals,
@@ -176,7 +168,7 @@ export class SwapQuoteCalculator {
                       optimizedOrders,
                       operation,
                       assetFillAmount,
-                      gasPrice,
+                      opts.gasPrice,
                       opts.gasSchedule,
                       makerTokenDecimals,
                       takerTokenDecimals,
@@ -268,7 +260,7 @@ function createTwoHopSwapQuote(
         gasSchedule[ERC20BridgeSource.MultiHop]!({
             firstHopSource: _.pick(firstHopFill, 'source', 'fillData'),
             secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
-        }),
+        } as any),
     ).toNumber();
 
     const quoteBase = {

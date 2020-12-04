@@ -461,7 +461,12 @@ describe('DexSampler tests', () => {
                     expect(toToken).equal(expectedMakerToken);
                     return Promise.resolve(
                         amounts.map(a => ({
-                            fillData: { path: [fromToken, toToken], networkAddress },
+                            fillData: {
+                                path: [fromToken, toToken],
+                                networkAddress,
+                                makerToken: expectedMakerToken,
+                                takerToken: expectedTakerToken,
+                            },
                             amount: a.multipliedBy(rate),
                         })),
                     );

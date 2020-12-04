@@ -11,7 +11,6 @@ import {
     RfqtRequestOpts,
     SwapQuoteExecutionOpts,
     SwapQuoteGetOutputOpts,
-    SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from './types';
 import { DEFAULT_GET_MARKET_ORDERS_OPTS, TOKENS } from './utils/market_operation_utils/constants';
@@ -85,7 +84,7 @@ const DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS: SwapQuoteGetOutputOpts = {
     extensionContractOpts: DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
 };
 
-const DEFAULT_SWAP_QUOTE_REQUEST_OPTS: SwapQuoteRequestOpts = {
+const DEFAULT_SWAP_QUOTE_REQUEST_OPTS = {
     ...DEFAULT_GET_MARKET_ORDERS_OPTS,
 };
 

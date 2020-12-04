@@ -1,6 +1,7 @@
-import { SignedOrder } from '@0x/types';
+import { assetDataUtils } from '@0x/order-utils';
+import { ERC20AssetData, SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
+import _ = require('lodash');
 
 import { MarketOperation } from '../types';
 
@@ -8,31 +9,37 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    FeeSchedule,
     FillData,
     MultiHopFillData,
     NativeCollapsedFill,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
 
-export interface BridgeReportSource {
-    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
+export interface SharedSourceFields {
     makerAmount: BigNumber;
     takerAmount: BigNumber;
+    gasCost: BigNumber;
+    costInMakerToken: BigNumber;
+    sourceId: string;
+    takerToken: string;
+    makerToken: string;
+    shouldIgnore: boolean;
+}
+
+export interface BridgeReportSource extends SharedSourceFields {
+    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
     fillData?: FillData;
 }
 
-export interface MultiHopReportSource {
+export interface MultiHopReportSource extends SharedSourceFields {
     liquiditySource: ERC20BridgeSource.MultiHop;
-    makerAmount: BigNumber;
-    takerAmount: BigNumber;
     hopSources: ERC20BridgeSource[];
     fillData: FillData;
 }
 
-interface NativeReportSourceBase {
+interface NativeReportSourceBase extends SharedSourceFields {
     liquiditySource: ERC20BridgeSource.Native;
-    makerAmount: BigNumber;
-    takerAmount: BigNumber;
     nativeOrder: SignedOrder;
     fillableTakerAmount: BigNumber;
 }
@@ -53,6 +60,19 @@ export type QuoteReportSource =
 export interface QuoteReport {
     sourcesConsidered: QuoteReportSource[];
     sourcesDelivered: QuoteReportSource[];
+    ethToMakerRate: BigNumber;
+    ethToTakerRate: BigNumber;
+    gasPrice: BigNumber;
+    sellAmount: BigNumber;
+    buyAmount: BigNumber;
+}
+
+interface CostCalculationOpts {
+    feeSchedule: FeeSchedule;
+    gasSchedule: FeeSchedule;
+    ethToMakerRate: BigNumber;
+    ethToTakerRate: BigNumber;
+    gasPrice: BigNumber;
 }
 
 /**
@@ -61,20 +81,42 @@ export interface QuoteReport {
  */
 export function generateQuoteReport(
     marketOperation: MarketOperation,
-    dexQuotes: DexSample[],
+    dexQuotes: Array<Array<DexSample<FillData>>>,
     multiHopQuotes: Array<DexSample<MultiHopFillData>>,
     nativeOrders: SignedOrder[],
     orderFillableAmounts: BigNumber[],
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    gasPrice: BigNumber,
+    feeSchedule: FeeSchedule,
+    gasSchedule: FeeSchedule,
+    sellAmount: BigNumber,
+    buyAmount: BigNumber,
+    ethToMakerRate: BigNumber,
+    ethToTakerRate: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
-    const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
+    const costOpts = {
+        gasPrice,
+        ethToMakerRate,
+        ethToTakerRate,
+        gasSchedule,
+        feeSchedule,
+    };
+    const quotesWithSourceIds = dexQuotes
+        .map(quotes => {
+            const sourceId = Math.floor(Math.random() * 1e14).toString();
+            return quotes.map(q => ({ ...q, sourceId })).filter(q => !q.output.isZero());
+        })
+        .filter(qs => qs.length > 0);
+    const dexReportSourcesConsidered = _.flatten(quotesWithSourceIds).map(quote =>
+        _dexSampleToReportSource(quote, marketOperation, costOpts),
+    );
     const nativeOrderSourcesConsidered = nativeOrders.map((order, idx) =>
-        _nativeOrderToReportSource(order, orderFillableAmounts[idx], comparisonPrice, quoteRequestor),
+        _nativeOrderToReportSource(order, orderFillableAmounts[idx], costOpts, comparisonPrice, quoteRequestor),
     );
     const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
-        _multiHopSampleToReportSource(quote, marketOperation),
+        _multiHopSampleToReportSource(quote, marketOperation, costOpts),
     );
     const sourcesConsidered = [
         ...dexReportSourcesConsidered,
@@ -96,25 +138,35 @@ export function generateQuoteReport(
                 return _nativeOrderToReportSource(
                     foundNativeOrder,
                     nativeOrderSignaturesToFillableAmounts[foundNativeOrder.signature],
+                    costOpts,
                     comparisonPrice,
                     quoteRequestor,
                 );
             } else {
-                return _dexSampleToReportSource(collapsedFill, marketOperation);
+                return _dexSampleToReportSource(collapsedFill, marketOperation, costOpts);
             }
         });
     } else {
         sourcesDelivered = [
-            _multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+            _multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation, costOpts),
         ];
     }
     return {
         sourcesConsidered,
         sourcesDelivered,
+        gasPrice,
+        sellAmount,
+        buyAmount,
+        ethToMakerRate,
+        ethToTakerRate,
     };
 }
 
-function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeReportSource {
+function _dexSampleToReportSource(
+    ds: DexSample & { sourceId: string },
+    marketOperation: MarketOperation,
+    costOpts: CostCalculationOpts,
+): BridgeReportSource {
     const liquiditySource = ds.source;
 
     if (liquiditySource === ERC20BridgeSource.Native) {
@@ -129,6 +181,14 @@ function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperatio
             takerAmount: ds.output,
             liquiditySource,
             fillData: ds.fillData,
+            gasCost: new BigNumber(costOpts.gasSchedule[liquiditySource]!(ds.fillData)),
+            costInMakerToken: new BigNumber(costOpts.feeSchedule[liquiditySource]!(ds.fillData))
+                .times(costOpts.ethToMakerRate)
+                .integerValue(),
+            sourceId: ds.sourceId,
+            takerToken: ds.fillData!.takerToken,
+            makerToken: ds.fillData!.makerToken,
+            shouldIgnore: !!ds.fillData!.shouldIgnore,
         };
     } else if (marketOperation === MarketOperation.Sell) {
         return {
@@ -136,6 +196,14 @@ function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperatio
             takerAmount: ds.input,
             liquiditySource,
             fillData: ds.fillData,
+            gasCost: new BigNumber(costOpts.gasSchedule[liquiditySource]!(ds.fillData)),
+            costInMakerToken: new BigNumber(costOpts.feeSchedule[liquiditySource]!(ds.fillData))
+                .times(costOpts.ethToMakerRate)
+                .integerValue(),
+            sourceId: ds.sourceId,
+            takerToken: ds.fillData!.takerToken,
+            makerToken: ds.fillData!.makerToken,
+            shouldIgnore: !!ds.fillData!.shouldIgnore,
         };
     } else {
         throw new Error(`Unexpected marketOperation ${marketOperation}`);
@@ -145,6 +213,7 @@ function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperatio
 function _multiHopSampleToReportSource(
     ds: DexSample<MultiHopFillData>,
     marketOperation: MarketOperation,
+    costOpts: CostCalculationOpts,
 ): MultiHopReportSource {
     const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData!;
     // input and output map to different values
@@ -156,6 +225,17 @@ function _multiHopSampleToReportSource(
             takerAmount: ds.output,
             fillData: ds.fillData!,
             hopSources: [firstHop.source, secondHop.source],
+            gasCost: new BigNumber(costOpts.gasSchedule[firstHop.source]!(firstHop.fillData)).plus(
+                costOpts.gasSchedule[secondHop.source]!(secondHop.fillData),
+            ),
+            costInMakerToken: new BigNumber(costOpts.feeSchedule[firstHop.source]!(firstHop.fillData))
+                .plus(costOpts.feeSchedule[secondHop.source]!(secondHop.fillData))
+                .times(costOpts.ethToMakerRate)
+                .integerValue(),
+            sourceId: ds.source,
+            takerToken: firstHop.fillData!.takerToken,
+            makerToken: secondHop.fillData!.makerToken,
+            shouldIgnore: !!ds.fillData!.shouldIgnore,
         };
     } else if (marketOperation === MarketOperation.Sell) {
         return {
@@ -164,6 +244,17 @@ function _multiHopSampleToReportSource(
             takerAmount: ds.input,
             fillData: ds.fillData!,
             hopSources: [firstHop.source, secondHop.source],
+            gasCost: new BigNumber(costOpts.gasSchedule[firstHop.source]!(firstHop.fillData)).plus(
+                costOpts.gasSchedule[secondHop.source]!(secondHop.fillData),
+            ),
+            costInMakerToken: new BigNumber(costOpts.feeSchedule[firstHop.source]!(firstHop.fillData))
+                .plus(costOpts.feeSchedule[secondHop.source]!(secondHop.fillData))
+                .times(costOpts.ethToMakerRate)
+                .integerValue(),
+            sourceId: ds.source,
+            takerToken: firstHop.fillData!.takerToken,
+            makerToken: secondHop.fillData!.makerToken,
+            shouldIgnore: !!ds.fillData!.shouldIgnore,
         };
     } else {
         throw new Error(`Unexpected marketOperation ${marketOperation}`);
@@ -200,6 +291,7 @@ function _nativeOrderFromCollapsedFill(cf: CollapsedFill): SignedOrder | undefin
 function _nativeOrderToReportSource(
     nativeOrder: SignedOrder,
     fillableAmount: BigNumber,
+    costOpts: CostCalculationOpts,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): NativeRFQTReportSource | NativeOrderbookReportSource {
@@ -209,6 +301,14 @@ function _nativeOrderToReportSource(
         takerAmount: nativeOrder.takerAssetAmount,
         fillableTakerAmount: fillableAmount,
         nativeOrder,
+        gasCost: new BigNumber(costOpts.gasSchedule[ERC20BridgeSource.Native]!()),
+        costInMakerToken: new BigNumber(costOpts.feeSchedule[ERC20BridgeSource.Native]!())
+            .times(costOpts.ethToMakerRate)
+            .integerValue(),
+        sourceId: nativeOrder.salt.toString(),
+        makerToken: (assetDataUtils.decodeAssetDataOrThrow(nativeOrder.makerAssetData) as ERC20AssetData).tokenAddress,
+        takerToken: (assetDataUtils.decodeAssetDataOrThrow(nativeOrder.takerAssetData) as ERC20AssetData).tokenAddress,
+        shouldIgnore: false,
     };
 
     // if we find this is an rfqt order, label it as such and associate makerUri

@@ -53,6 +53,8 @@ export class BancorService {
                 fillData: {
                     path: path.map(p => p.blockchainId),
                     networkAddress,
+                    takerToken: fromToken,
+                    makerToken: toToken,
                 },
             };
         });

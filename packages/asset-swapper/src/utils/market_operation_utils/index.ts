@@ -1,7 +1,6 @@
 import { RFQTIndicativeQuote } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
-import * as _ from 'lodash';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
@@ -13,7 +12,6 @@ import {
     BUY_SOURCE_FILTER,
     DEFAULT_GET_MARKET_ORDERS_OPTS,
     FEE_QUOTE_SOURCES,
-    ONE_ETHER,
     SELL_SOURCE_FILTER,
     SOURCE_FLAGS,
     ZERO_AMOUNT,
@@ -41,6 +39,8 @@ import {
     OptimizerResultWithReport,
     OrderDomain,
 } from './types';
+
+const ETH_FEE_AMOUNT = new BigNumber(0.01e18);
 
 // tslint:disable:boolean-naming
 
@@ -83,19 +83,26 @@ export class MarketOperationUtils {
     private static _computeQuoteReport(
         nativeOrders: SignedOrder[],
         quoteRequestor: QuoteRequestor | undefined,
-        marketSideLiquidity: MarketSideLiquidity,
         optimizerResult: OptimizerResult,
+        orderOpts: GetMarketOrdersOpts & { gasPrice: BigNumber },
         comparisonPrice?: BigNumber | undefined,
     ): QuoteReport {
-        const { side, dexQuotes, twoHopQuotes, orderFillableAmounts } = marketSideLiquidity;
+        const { side, dexQuotes, twoHopQuotes, orderFillableAmounts } = optimizerResult.marketSideLiquidity;
         const { liquidityDelivered } = optimizerResult;
         return generateQuoteReport(
             side,
-            _.flatten(dexQuotes),
+            dexQuotes,
             twoHopQuotes,
             nativeOrders,
             orderFillableAmounts,
             liquidityDelivered,
+            orderOpts.gasPrice,
+            orderOpts.feeSchedule,
+            orderOpts.gasSchedule,
+            optimizerResult.input, // sellAmount for sells
+            optimizerResult.output,
+            optimizerResult.marketSideLiquidity.ethToOutputRate,
+            optimizerResult.marketSideLiquidity.ethToInputRate,
             comparisonPrice,
             quoteRequestor,
         );
@@ -164,9 +171,9 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchange),
             // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ETH_FEE_AMOUNT),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ETH_FEE_AMOUNT),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
@@ -179,6 +186,16 @@ export class MarketOperationUtils {
                 makerToken,
                 takerToken,
                 takerAmount,
+            ),
+        );
+        const extraSamplesPromise = this._sampler.executeAsync(
+            // Get sell quotes for taker -> maker.
+            this._sampler.getSellQuotes2(
+                quoteSourceFilters.exclude(offChainSources).sources,
+                makerToken,
+                takerToken,
+                this._wethAddress,
+                sampleAmounts,
             ),
         );
 
@@ -214,12 +231,14 @@ export class MarketOperationUtils {
             offChainBalancerQuotes,
             offChainCreamQuotes,
             offChainBancorQuotes,
+            [extraSamples],
         ] = await Promise.all([
             samplerPromise,
             rfqtPromise,
             offChainBalancerPromise,
             offChainCreamPromise,
             offChainBancorPromise,
+            extraSamplesPromise,
         ]);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
@@ -228,7 +247,12 @@ export class MarketOperationUtils {
             inputAmount: takerAmount,
             inputToken: takerToken,
             outputToken: makerToken,
-            dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes, offChainBancorQuotes]),
+            dexQuotes: dexQuotes.concat([
+                ...offChainBalancerQuotes,
+                ...offChainCreamQuotes,
+                offChainBancorQuotes,
+                ...extraSamples,
+            ]),
             nativeOrders,
             orderFillableAmounts,
             ethToOutputRate: ethToMakerAssetRate,
@@ -294,9 +318,9 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchange),
             // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ETH_FEE_AMOUNT),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ETH_FEE_AMOUNT),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
@@ -424,7 +448,7 @@ export class MarketOperationUtils {
                     feeSourceFilters.sources,
                     getNativeOrderTokens(orders[0])[1],
                     this._wethAddress,
-                    ONE_ETHER,
+                    ETH_FEE_AMOUNT,
                 ),
             ),
             ...batchNativeOrders.map((orders, i) =>
@@ -559,6 +583,8 @@ export class MarketOperationUtils {
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
+                input: ZERO_AMOUNT,
+                output: ZERO_AMOUNT,
             };
         }
 
@@ -591,6 +617,7 @@ export class MarketOperationUtils {
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
+            ...optimalPath.size(),
         };
     }
 
@@ -600,7 +627,10 @@ export class MarketOperationUtils {
         side: MarketOperation,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<OptimizerResultWithReport> {
-        const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
+        if (!opts || !opts.gasPrice) {
+            throw new Error('Missing gas price');
+        }
+        const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts, gasPrice: opts.gasPrice! };
         const optimizerOpts: GenerateOptimizedOrdersOpts = {
             bridgeSlippage: _opts.bridgeSlippage,
             maxFallbackSlippage: _opts.maxFallbackSlippage,
@@ -722,8 +752,8 @@ export class MarketOperationUtils {
             quoteReport = MarketOperationUtils._computeQuoteReport(
                 nativeOrders,
                 _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
-                marketSideLiquidity,
                 optimizerResult,
+                _opts,
                 wholeOrderPrice,
             );
         }

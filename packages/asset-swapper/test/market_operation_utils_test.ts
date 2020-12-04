@@ -324,7 +324,7 @@ describe('MarketOperationUtils tests', () => {
     };
 
     interface FillDataBySource {
-        [source: string]: FillData;
+        [source: string]: any;
     }
 
     const DEFAULT_FILL_DATA: FillDataBySource = {

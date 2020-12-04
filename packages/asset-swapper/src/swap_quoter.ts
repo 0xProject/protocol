@@ -320,8 +320,7 @@ export class SwapQuoter {
         const swapQuotes = await this._swapQuoteCalculator.calculateBatchMarketBuySwapQuoteAsync(
             allPrunedOrders,
             makerAssetBuyAmount,
-            gasPrice,
-            calculateSwapQuoteOpts,
+            { ...calculateSwapQuoteOpts, gasPrice },
         );
         return swapQuotes;
     }
@@ -482,7 +481,7 @@ export class SwapQuoter {
                         output: (side === MarketOperation.Sell ? o.makerAssetAmount : o.takerAssetAmount)
                             .times(scaleFactor)
                             .integerValue(),
-                        fillData: o,
+                        fillData: { ...o, makerToken: makerTokenAddress, takerToken: takerTokenAddress },
                         source: ERC20BridgeSource.Native,
                     };
                 }),
@@ -656,16 +655,19 @@ export class SwapQuoter {
         marketOperation: MarketOperation,
         options: Partial<SwapQuoteRequestOpts>,
     ): Promise<SwapQuote> {
-        const opts = _.merge({}, constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, options);
-        assert.isString('makerAssetData', makerAssetData);
-        assert.isString('takerAssetData', takerAssetData);
         let gasPrice: BigNumber;
-        if (!!opts.gasPrice) {
-            gasPrice = opts.gasPrice;
+        if (!!options.gasPrice) {
+            gasPrice = options.gasPrice;
             assert.isBigNumber('gasPrice', gasPrice);
         } else {
             gasPrice = await this.getGasPriceEstimationOrThrowAsync();
         }
+        const opts: SwapQuoteRequestOpts = {
+            gasPrice,
+            ..._.merge({}, constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, options),
+        };
+        assert.isString('makerAssetData', makerAssetData);
+        assert.isString('takerAssetData', takerAssetData);
 
         const sourceFilters = new SourceFilters([], opts.excludedSources, opts.includedSources);
 
@@ -748,7 +750,7 @@ export class SwapQuoter {
 
         let swapQuote: SwapQuote;
 
-        const calcOpts: CalculateSwapQuoteOpts = opts;
+        const calcOpts: CalculateSwapQuoteOpts = { ...opts, gasPrice };
 
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = quoteRequestor;
@@ -758,14 +760,12 @@ export class SwapQuoter {
             swapQuote = await this._swapQuoteCalculator.calculateMarketBuySwapQuoteAsync(
                 orders,
                 assetFillAmount,
-                gasPrice,
                 calcOpts,
             );
         } else {
             swapQuote = await this._swapQuoteCalculator.calculateMarketSellSwapQuoteAsync(
                 orders,
                 assetFillAmount,
-                gasPrice,
                 calcOpts,
             );
         }

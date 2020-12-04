@@ -20,6 +20,7 @@ import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
+import * as IntermediateSampler from '../test/generated-artifacts/IntermediateSampler.json';
 import * as IShell from '../test/generated-artifacts/IShell.json';
 import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExchangeQuotes.json';
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
@@ -45,6 +46,7 @@ export const artifacts = {
     DeploymentConstants: DeploymentConstants as ContractArtifact,
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     Eth2DaiSampler: Eth2DaiSampler as ContractArtifact,
+    IntermediateSampler: IntermediateSampler as ContractArtifact,
     KyberSampler: KyberSampler as ContractArtifact,
     LiquidityProviderSampler: LiquidityProviderSampler as ContractArtifact,
     MStableSampler: MStableSampler as ContractArtifact,

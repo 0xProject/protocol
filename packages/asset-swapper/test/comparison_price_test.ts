@@ -1,4 +1,5 @@
 // tslint:disable:custom-no-magic-numbers
+import { randomAddress } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 import * as chai from 'chai';
 import * as _ from 'lodash';
@@ -24,13 +25,13 @@ const kyberSample1: DexSample = {
     source: ERC20BridgeSource.Kyber,
     input: new BigNumber(10000),
     output: new BigNumber(10001),
-    fillData: {},
+    fillData: { makerToken: randomAddress(), takerToken: randomAddress() },
 };
 const uniswapSample1: DexSample = {
     source: ERC20BridgeSource.UniswapV2,
     input: new BigNumber(10003),
     output: new BigNumber(10004),
-    fillData: {},
+    fillData: { makerToken: randomAddress(), takerToken: randomAddress() },
 };
 const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
 
