@@ -170,7 +170,14 @@ function createSwapQuote(
     gasPrice: BigNumber,
     gasSchedule: FeeSchedule,
 ): SwapQuote {
-    const { optimizedOrders, quoteReport, sourceFlags, unoptimizedPath } = optimizerResult;
+    const {
+        optimizedOrders,
+        quoteReport,
+        sourceFlags,
+        unoptimizedPath,
+        takerAssetToEthRate,
+        makerAssetToEthRate,
+    } = optimizerResult;
     const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
 
     // Calculate quote info
@@ -203,6 +210,8 @@ function createSwapQuote(
         sourceBreakdown,
         makerTokenDecimals,
         takerTokenDecimals,
+        takerAssetToEthRate,
+        makerAssetToEthRate,
         quoteReport,
         isTwoHop,
     };
