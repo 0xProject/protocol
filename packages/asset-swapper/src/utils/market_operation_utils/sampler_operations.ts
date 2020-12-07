@@ -1150,7 +1150,7 @@ export class SamplerOperations {
                 ),
             );
         };
-        // const firstHops = intermediateTokens.map(i => getOps(i, _takerToken, _takerFillAmounts));
+        const firstHops = intermediateTokens.map(i => getOps(i, _takerToken, _takerFillAmounts));
         const secondHops = intermediateTokens.map(intermediaryToken => {
             const firstHopOps = getOps(intermediaryToken, _takerToken, _takerFillAmounts);
             // The first encoding does the actual work, all others rely on the first result to decode
@@ -1204,10 +1204,10 @@ export class SamplerOperations {
         });
         const subOps = [
             // Direct swaps
-            // ...getOps(_makerToken, _takerToken, _takerFillAmounts),
+            ...getOps(_makerToken, _takerToken, _takerFillAmounts),
             // First leg hops
-            // ..._.flatten(firstHops),
-            // TODO second leg hops
+            ..._.flatten(firstHops),
+            // Second leg hops
             ..._.flatten(secondHops),
         ];
         // ignore all of these samples

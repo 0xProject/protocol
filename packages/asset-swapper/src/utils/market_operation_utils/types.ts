@@ -337,6 +337,7 @@ export interface GetMarketOrdersOpts {
  * A composable operation the be run in `DexOrderSampler.executeAsync()`.
  */
 export interface BatchedOperation<TResult> {
+    inputAmountOverride?: () => BigNumber[];
     encodeCall(): string;
     handleCallResults(callResults: string): TResult;
 }
