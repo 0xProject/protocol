@@ -3,15 +3,18 @@ import { artifacts } from '@0x/asset-swapper/lib/src/artifacts';
 import { BlockParamLiteral, SupportedProvider, Web3Wrapper } from '@0x/dev-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as delay from 'delay';
+import * as express from 'express';
 import * as _ from 'lodash';
 import { Gauge, Summary } from 'prom-client';
 import { Connection } from 'typeorm';
 
-import { getDefaultAppDependenciesAsync } from '../app';
-import { defaultHttpServiceConfig, defaultHttpServiceWithRateLimiterConfig } from '../config';
-import { ONE_SECOND_MS, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from '../constants';
+import * as defaultConfig from '../config';
+import { METRICS_PATH, ONE_SECOND_MS, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from '../constants';
+import { getDBConnectionAsync } from '../db_connection';
 import { MakerBalanceChainCacheEntity } from '../entities';
 import { logger } from '../logger';
+import { createMetricsRouter } from '../routers/metrics_router';
+import { MetricsService } from '../services/metrics_service';
 import { providerUtils } from '../utils/provider_utils';
 import { createResultCache, ResultCache } from '../utils/result_cache';
 
@@ -67,10 +70,12 @@ if (require.main === module) {
     (async () => {
         logger.info('running RFQ balance cache runner');
 
-        const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+        const provider = providerUtils.createWeb3Provider(
+            defaultConfig.defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
+        );
         const web3Wrapper = new Web3Wrapper(provider);
 
-        const { connection } = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceConfig);
+        const connection = await getDBConnectionAsync();
 
         const balanceCheckerContractInterface = getBalanceCheckerContractInterface(RANDOM_ADDRESS, provider);
 
@@ -83,6 +88,19 @@ async function runRfqBalanceCacheAsync(
     connection: Connection,
     balanceCheckerContractInterface: BalanceCheckerContract,
 ): Promise<void> {
+    if (defaultConfig.ENABLE_PROMETHEUS_METRICS) {
+        const app = express();
+        const metricsService = new MetricsService();
+        const metricsRouter = createMetricsRouter(metricsService);
+        app.use(METRICS_PATH, metricsRouter);
+        const server = app.listen(defaultConfig.PROMETHEUS_PORT, () => {
+            logger.info(`Metrics (HTTP) listening on port ${defaultConfig.PROMETHEUS_PORT}`);
+        });
+        server.on('error', err => {
+            logger.error(err);
+        });
+    }
+
     const workerId = _.uniqueId('rfqw_');
     let lastBlockSeen = -1;
     while (true) {
