@@ -14,10 +14,6 @@
             {
                 "note": "Update ganache snapshot addresses",
                 "pr": 59
-            },
-            {
-                "note": "Update mainnet and ropsten transformer addresses for hot-pants release",
-                "pr": 70
             }
         ],
         "timestamp": 1606961263
