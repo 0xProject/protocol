@@ -1,14 +1,19 @@
 [
     {
+        "version": "5.6.0",
+        "changes": [
+            {
+                "note": "Update mainnet and ropsten transformer addresses for hot-pants release",
+                "pr": 70
+            }
+        ]
+    },
+    {
         "version": "5.5.0",
         "changes": [
             {
                 "note": "Update ganache snapshot addresses",
                 "pr": 59
-            },
-            {
-                "note": "Update mainnet and ropsten transformer addresses for hot-pants release",
-                "pr": 70
             }
         ],
         "timestamp": 1606961263
