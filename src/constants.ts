@@ -86,3 +86,6 @@ export const MARKET_DEPTH_END_PRICE_SLIPPAGE_PERC = 20;
 
 // Logging
 export const NUMBER_SOURCES_PER_LOG_LINE = 12;
+
+// RFQ Quote Validator expiration threshold
+export const RFQ_FIRM_QUOTE_CACHE_EXPIRY = ONE_MINUTE_MS * 2;
