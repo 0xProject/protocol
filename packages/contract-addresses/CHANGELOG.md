@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.6.0 - _December 7, 2020_
+
+    * Update mainnet and ropsten transformer addresses for hot-pants release (#70)
+
 ## v5.5.0 - _December 3, 2020_
 
     * Update ganache snapshot addresses (#59)

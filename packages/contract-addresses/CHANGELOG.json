@@ -6,7 +6,8 @@
                 "note": "Update mainnet and ropsten transformer addresses for hot-pants release",
                 "pr": 70
             }
-        ]
+        ],
+        "timestamp": 1607381756
     },
     {
         "version": "5.5.0",
