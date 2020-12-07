@@ -43,4 +43,5 @@ contract Staking is
         _initMixinScheduler();
         _initMixinParams();
     }
+
 }

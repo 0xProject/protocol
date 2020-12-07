@@ -20,6 +20,7 @@ pragma solidity ^0.5.9;
 
 import "@0x/contracts-erc20/contracts/src/interfaces/IEtherToken.sol";
 import "../interfaces/IZrxVault.sol";
+import "../interfaces/IOnchainGov.sol";
 
 
 // solhint-disable separate-by-one-line-in-contract
@@ -50,6 +51,10 @@ contract MixinDeploymentConstants {
     // Rinkeby ZrxVault address
     // address constant private ZRX_VAULT_ADDRESS = address(0xA5Bf6aC73bC40790FC6Ffc9DBbbCE76c9176e224);
 
+    // The contract which tracks goverance power for the onchain
+    // goverance system
+    address constant private ONCHAIN_GOVERANCE = address(0x00);
+
     /// @dev An overridable way to access the deployed WETH contract.
     ///      Must be view to allow overrides to access state.
     /// @return wethContract The WETH contract instance.
@@ -72,5 +77,17 @@ contract MixinDeploymentConstants {
     {
         zrxVault = IZrxVault(ZRX_VAULT_ADDRESS);
         return zrxVault;
+    }
+
+        /// @dev An overridable way to access the deployed zrxVault.
+    ///      Must be view to allow overrides to access state.
+    /// @return zrxVault The zrxVault contract.
+    function getOnchainGov()
+        public
+        view
+        returns (IOnchainGov gov)
+    {
+        gov = IOnchainGov(ONCHAIN_GOVERANCE);
+        return gov;
     }
 }
