@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.4.0 - _December 7, 2020_
+
+    * Add `takerAssetToEthRate` and `makerAssetToEthRate` to swap quote response (#49)
+
 ## v5.3.1 - _December 3, 2020_
 
     * Dependencies updated

@@ -6,7 +6,8 @@
                 "note": "Add `takerAssetToEthRate` and `makerAssetToEthRate` to swap quote response",
                 "pr": 49
             }
-        ]
+        ],
+        "timestamp": 1607373752
     },
     {
         "timestamp": 1607036724,
