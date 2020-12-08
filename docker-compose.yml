@@ -5,7 +5,7 @@ services:
         ports:
             - '8545:8545'
         environment:
-            VERSION: 6.4.8008
+            VERSION: 6.6.0
     postgres:
         image: postgres:9.6
         environment:
