@@ -70,7 +70,7 @@ Supported DEX's:
 * Sushiswap
 * Uniswap v1/v2
 
-This transformation is implemented by the `FillQuoteTransformer <../architecture/transformers.html>`_ and has the ``deploymentNonce`` of ``5``. Abi-Encode the following struct to get the ``data``:
+This transformation is implemented by the `FillQuoteTransformer <../architecture/transformers.html>`_. Abi-Encode the following struct to get the ``data``:
 
 .. warning:: 
     An upgrade is pending to this transformation. This currently uses Exchange V3 Orders, but will soon be updated to use `V4 Orders <../basics/orders.html>`_. - 11/26/2020
@@ -117,7 +117,7 @@ This transformation currently executes a Market Sell or Market Buy on a series o
 WETH Wrapping
 -------------
 
-This transformation is implemented by the `WethTransformer <../architecture/transformers.html>`_ and has the ``deploymentNonce`` of ``1``. Abi-Encode the following struct to get the ``data``:
+This transformation is implemented by the `WethTransformer <../architecture/transformers.html>`_. Abi-Encode the following struct to get the ``data``:
 
 .. code-block:: solidity
 
@@ -135,7 +135,7 @@ If the supplied token address is `WETH (etherToken) <../basics/addresses.html>`_
 Affiliate Fees
 --------------
 
-This transformation is implemented by the `AffiliateFeeTransformer <../architecture/transformers.html>`_  and has the ``deploymentNonce`` of ``3``. Abi-Encode the following struct to get the ``data``:
+This transformation is implemented by the `AffiliateFeeTransformer <../architecture/transformers.html>`_. Abi-Encode the following struct to get the ``data``:
 
 .. code-block:: solidity
 
@@ -156,7 +156,7 @@ This pays the ``recipient`` in the ``amount`` of ``token`` specified. This can b
 Pay Taker
 ---------
 
-This transformation is implemented by the `PayTakerTransformer <../architecture/transformers.html>`_ and has the ``deploymentNonce`` of ``2``. Abi-Encode the following struct to get the ``data``:
+This transformation is implemented by the `PayTakerTransformer <../architecture/transformers.html>`_. Abi-Encode the following struct to get the ``data``:
 
 .. code-block:: solidity
 
