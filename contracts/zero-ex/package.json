@@ -77,6 +77,7 @@
     "dependencies": {
         "@0x/base-contract": "^6.2.13",
         "@0x/order-utils": "^10.4.9",
+        "@0x/protocol-utils": "1.0.0",
         "@0x/subproviders": "^6.2.2",
         "@0x/types": "^3.3.1",
         "@0x/typescript-typings": "^5.1.6",

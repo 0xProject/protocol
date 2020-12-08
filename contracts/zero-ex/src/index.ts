@@ -31,10 +31,6 @@ export {
 export { artifacts } from './artifacts';
 export * from './migration';
 export * from './nonce_utils';
-export * from './signature_utils';
-export * from './orders';
-export * from './eip712_utils';
-export * from './revert_errors';
 export * from './bloom_filter_utils';
 export { GREEDY_TOKENS } from './constants';
 export {

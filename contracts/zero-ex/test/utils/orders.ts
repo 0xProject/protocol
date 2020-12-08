@@ -1,7 +1,6 @@
 import { getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
+import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
-
-import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from '../../src/orders';
 
 /**
  * Generate a random limit order.

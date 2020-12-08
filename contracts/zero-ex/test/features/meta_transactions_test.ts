@@ -7,11 +7,11 @@ import {
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
 import { getExchangeProxyMetaTransactionHash, signatureUtils } from '@0x/order-utils';
+import { Signature } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber, hexUtils, StringRevertError, ZeroExRevertErrors } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { Signature } from '../../src/signature_utils';
 import { IZeroExContract, MetaTransactionsFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';

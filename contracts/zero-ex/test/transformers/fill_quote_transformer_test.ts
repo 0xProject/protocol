@@ -7,12 +7,8 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import {
-    assetDataUtils,
-    encodeFillQuoteTransformerData,
-    FillQuoteTransformerData,
-    FillQuoteTransformerSide,
-} from '@0x/order-utils';
+import { assetDataUtils } from '@0x/order-utils';
+import { encodeFillQuoteTransformerData, FillQuoteTransformerData, FillQuoteTransformerSide } from '@0x/protocol-utils';
 import { Order } from '@0x/types';
 import { BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
 import * as _ from 'lodash';
