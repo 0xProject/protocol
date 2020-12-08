@@ -19,6 +19,7 @@ const COMMON_ORDER_DEFAULT_VALUES = {
     makerAmount: ZERO,
     takerAmount: ZERO,
     maker: NULL_ADDRESS,
+    taker: NULL_ADDRESS,
     pool: hexUtils.leftPad(0),
     expiry: ZERO,
     salt: ZERO,
@@ -28,7 +29,6 @@ const COMMON_ORDER_DEFAULT_VALUES = {
 const LIMIT_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
     takerTokenFeeAmount: ZERO,
-    taker: NULL_ADDRESS,
     sender: NULL_ADDRESS,
     feeRecipient: NULL_ADDRESS,
 };
@@ -62,6 +62,7 @@ export abstract class OrderBase {
     public takerAmount: BigNumber;
     public maker: string;
     public pool: string;
+    public taker: string;
     public expiry: BigNumber;
     public salt: BigNumber;
     public chainId: number;
@@ -74,6 +75,7 @@ export abstract class OrderBase {
         this.makerAmount = _fields.makerAmount;
         this.takerAmount = _fields.takerAmount;
         this.maker = _fields.maker;
+        this.taker = _fields.taker;
         this.pool = _fields.pool;
         this.expiry = _fields.expiry;
         this.salt = _fields.salt;
@@ -141,7 +143,6 @@ export class LimitOrder extends OrderBase {
     );
 
     public takerTokenFeeAmount: BigNumber;
-    public taker: string;
     public sender: string;
     public feeRecipient: string;
 
@@ -149,7 +150,6 @@ export class LimitOrder extends OrderBase {
         const _fields = { ...LIMIT_ORDER_DEFAULT_VALUES, ...fields };
         super(_fields);
         this.takerTokenFeeAmount = _fields.takerTokenFeeAmount;
-        this.taker = _fields.taker;
         this.sender = _fields.sender;
         this.feeRecipient = _fields.feeRecipient;
     }
@@ -245,6 +245,7 @@ export class RfqOrder extends OrderBase {
                         'uint128 makerAmount',
                         'uint128 takerAmount',
                         'address maker',
+                        'address taker',
                         'address txOrigin',
                         'bytes32 pool',
                         'uint64 expiry',
@@ -271,6 +272,7 @@ export class RfqOrder extends OrderBase {
             makerAmount: this.makerAmount,
             takerAmount: this.takerAmount,
             maker: this.maker,
+            taker: this.taker,
             txOrigin: this.txOrigin,
             pool: this.pool,
             expiry: this.expiry,
@@ -290,6 +292,7 @@ export class RfqOrder extends OrderBase {
                 hexUtils.leftPad(this.makerAmount),
                 hexUtils.leftPad(this.takerAmount),
                 hexUtils.leftPad(this.maker),
+                hexUtils.leftPad(this.taker),
                 hexUtils.leftPad(this.txOrigin),
                 hexUtils.leftPad(this.pool),
                 hexUtils.leftPad(this.expiry),
@@ -308,6 +311,7 @@ export class RfqOrder extends OrderBase {
                     { type: 'uint128', name: 'makerAmount' },
                     { type: 'uint128', name: 'takerAmount' },
                     { type: 'address', name: 'maker' },
+                    { type: 'address', name: 'taker' },
                     { type: 'address', name: 'txOrigin' },
                     { type: 'bytes32', name: 'pool' },
                     { type: 'uint64', name: 'expiry' },
@@ -322,6 +326,7 @@ export class RfqOrder extends OrderBase {
                 makerAmount: this.makerAmount.toString(10),
                 takerAmount: this.takerAmount.toString(10),
                 maker: this.maker,
+                taker: this.taker,
                 txOrigin: this.txOrigin,
                 pool: this.pool,
                 expiry: this.expiry.toString(10),

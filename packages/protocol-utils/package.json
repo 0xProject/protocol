@@ -66,7 +66,6 @@
         "@0x/contract-addresses": "^5.0.1",
         "@0x/contract-wrappers": "^13.9.2",
         "@0x/json-schemas": "^5.3.2",
-        "@0x/protocol-types": "^1.0.0",
         "@0x/utils": "^6.0.0",
         "@0x/web3-wrapper": "^7.2.7",
         "ethereumjs-util": "^5.1.1",

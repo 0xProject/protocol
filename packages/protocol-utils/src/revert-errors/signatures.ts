@@ -18,9 +18,7 @@ export class SignatureValidationError extends RevertError {
     }
 }
 
-const types = [
-    SignatureValidationError,
-];
+const types = [SignatureValidationError];
 
 // Register the types we've defined.
 for (const type of types) {
