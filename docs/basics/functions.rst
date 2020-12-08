@@ -18,7 +18,7 @@ Below is a catalog of basic Exchange functionality. For more advanced usage, lik
 | `cancelPairLimitOrders`_        | Cancels Limit orders in a specific market pair.                          |
 |                                 | Ex: Cancel all Limit Orders selling WETH for USDC.                       |
 +---------------------------------+--------------------------------------------------------------------------+
-| `batchCancelLimitPairOrders`_   | A batch call to `cancelLimitPairOrders`.                                 |
+| `batchCancelPairLimitOrders`_   | A batch call to `cancelPairLimitOrders`.                                 |
 +---------------------------------+--------------------------------------------------------------------------+
 | `getLimitOrderInfo`_            | Returns the state of a given order.                                      |
 +---------------------------------+--------------------------------------------------------------------------+
@@ -155,7 +155,7 @@ This function cancels all limit orders created by the caller with with a maker a
 
 .. code-block:: solidity
 
-    function cancelPairRfqOrders(
+    function cancelPairLimitOrders(
         address makerToken,
         address takerToken,
         uint256 salt;
@@ -167,14 +167,14 @@ This function emits a `PairCancelledLimitOrders <../basics/events.html#paircance
 - ``msg.sender != order.maker``
 - The ``salt`` parameter is ≤ to a previous ``salt``.
 
-batchCancelLimitPairOrders
+batchCancelPairLimitOrders
 --------------------------
 
-This function performs multiple ``cancelLimitPairOrders()`` at once. Each respective index across arrays is equivalent to a single call.
+This function performs multiple ``cancelPairLimitOrders()`` at once. Each respective index across arrays is equivalent to a single call.
 
 .. code-block:: solidity
 
-    function batchCancelLimitPairOrders(
+    function batchCancelPairLimitOrders(
         address[] makerTokens,
         address[] takerTokens,
         uint256[] salts;
@@ -329,7 +329,7 @@ If the trade is successful a `RfqOrderFilled <../basics/events.html#rfqorderfill
 - The market pair (Ex, ``WETH/USDT``) was cancelled (``order.salt`` is less than the value passed to ``cancelPairLimitOrders``.
 - Either the maker or taker has an insufficient allowance/balance.
 - The order's ``taker`` field is non-zero and does not match the actual taker. This is ``msg.sender``, unless used with `meta-transactions <../advanced/mtx.rst>`_ in which case it is the signer.
-- The order's ``origin`` field is non-zero and does not match ``tx.origin`` or a valid origin (see `registerAllowedRfqOrigins <../basics/functions.html#id11>`_).
+- The order's ``origin`` field is non-zero and does not match ``tx.origin`` or a valid origin (see `registerAllowedRfqOrigins`_).
 - The maker's signature is invalid.
 
 fillOrKillRfqOrder
@@ -526,9 +526,10 @@ The hash can be manually generated using the following code:
             order.salt
         ))
     ));
+    
 
 registerAllowedRfqOrigins
--------------------------
+--------------------------
 
 The RFQ order includes a ``txOrigin`` field, which a maker can use to restrict which EOA's can submit the Ethereum transaction that fills their order. There are two ways a maker can use this field.
 
