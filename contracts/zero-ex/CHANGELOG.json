@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.12.0",
+        "changes": [
+            {
+                "note": "Add test for selector collisions on the proxy",
+                "pr": 74
+            }
+        ]
+    },
+    {
         "timestamp": 1607381756,
         "version": "0.11.1",
         "changes": [
