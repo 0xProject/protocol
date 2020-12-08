@@ -6,19 +6,17 @@ import {
     artifacts as exchangeProxyArtifacts,
     IZeroExContract,
     LogMetadataTransformerContract,
-    Signature,
 } from '@0x/contracts-zero-ex';
 import { migrateOnceAsync } from '@0x/migrations';
+import { assetDataUtils, signatureUtils, SignedExchangeProxyMetaTransaction } from '@0x/order-utils';
 import {
-    assetDataUtils,
     encodeFillQuoteTransformerData,
     encodePayTakerTransformerData,
     ETH_TOKEN_ADDRESS,
     FillQuoteTransformerSide,
     findTransformerNonce,
-    signatureUtils,
-    SignedExchangeProxyMetaTransaction,
-} from '@0x/order-utils';
+    Signature,
+} from '@0x/protocol-utils';
 import { AssetProxyId, Order, SignedOrder } from '@0x/types';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
