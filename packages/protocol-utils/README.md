@@ -1,6 +1,12 @@
 ## @0x/protocol-utils
 
-0x protocol-related utilities.
+0x protocol-related utilities for the V4/Exchange Proxy constellation of contracts, with tooling related to:
+
+- Limit orders
+- Rfq orders
+- Transformers
+- Signatures
+- EIP712 hashing
 
 ### Read the [Documentation](https://0x.org/docs/protocol/protocol-utils).
 
