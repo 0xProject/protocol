@@ -68,6 +68,7 @@
         "@0x/subproviders": "^6.2.2",
         "@0x/utils": "^6.1.1",
         "@0x/web3-wrapper": "^7.2.10",
+        "chai": "^4.0.1",
         "ethereumjs-util": "^5.1.1",
         "ethers": "~4.0.4",
         "lodash": "^4.17.11"
