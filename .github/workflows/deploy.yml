@@ -2,6 +2,7 @@ name: Deploy
 on:
   issue_comment:
     types: [created, edited]
+  workflow_dispatch:
 jobs:
   staging:
     runs-on: ubuntu-latest
@@ -111,6 +112,29 @@ jobs:
         run: |
             echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
             echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+  manual_prod:
+    runs_on: ubuntu-latest
+    if:  github.event_name == 'workflow_dispatch'
+    steps:
+      
+      - name: Checkout infra repo
+        uses: actions/checkout@v2
+        with:
+            token: ${{ secrets.PAT }}
+            repository: 0xProject/0x-main-infra
+      - name: Update API
+        run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ github.sha }}"/g' env/0x-api/prod/common/*.yml env/0x-api/prod/v1/*.yml
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3.5.0
+        with:
+            token: ${{ secrets.PAT }}
+            commit-message: "[0xApi][prod] Deploy from main"
+            title: "[0xApi][prod] Deploy from main"
+            reviewers: dekz
+            labels: 0xApi, prod
+            branch: "0xApi/prod/master"
+            body: |
+              https://github.com/${{ github.repository }}/tree/${{ github.sha }}
   kovan:
     runs-on: ubuntu-latest
     if: github.event.comment.body == 'deploy kovan'
