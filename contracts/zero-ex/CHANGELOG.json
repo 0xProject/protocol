@@ -10,7 +10,8 @@
                 "note": "Move tooling out into `@0x/protocol-utils`.",
                 "pr": 76
             }
-        ]
+        ],
+        "timestamp": 1607485227
     },
     {
         "timestamp": 1607381756,
