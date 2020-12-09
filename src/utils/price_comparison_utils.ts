@@ -5,10 +5,11 @@ import {
     FeeSchedule,
     MultiHopReportSource,
     NativeRFQTReportSource,
-    QuoteReportSource,
+    QuoteReport,
     SushiSwapFillData,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
+import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
@@ -43,7 +44,7 @@ const gasScheduleWithOverrides: FeeSchedule = {
     },
 };
 
-const emptyPlaceholderSources = Object.values(ERC20BridgeSource).reduce<SourceComparison[]>((memo, liquiditySource) => {
+const NULL_SOURCE_COMPARISONS = Object.values(ERC20BridgeSource).reduce<SourceComparison[]>((memo, liquiditySource) => {
     memo.push({
         name: liquiditySource,
         price: null,
@@ -53,95 +54,153 @@ const emptyPlaceholderSources = Object.values(ERC20BridgeSource).reduce<SourceCo
     return memo;
 }, []);
 
-interface PartialRequestParams {
-    buyAmount?: BigNumber;
-    sellAmount?: BigNumber;
-}
-
-interface PartialQuote {
-    buyAmount?: BigNumber;
-    sellAmount?: BigNumber;
-    buyTokenAddress: string;
-    sellTokenAddress: string;
-    quoteReport: { sourcesConsidered: QuoteReportSource[] };
-}
-
 export const priceComparisonUtils = {
     getPriceComparisonFromQuote(
         chainId: ChainId,
-        params: PartialRequestParams,
+        side: MarketOperation,
         quote: PartialQuote,
     ): SourceComparison[] | undefined {
-        // NOTE: don't fail quote request if comparison calculations error out
         try {
-            const buyToken = getTokenMetadataIfExists(quote.buyTokenAddress, chainId);
-            const sellToken = getTokenMetadataIfExists(quote.sellTokenAddress, chainId);
-
-            if (!buyToken || !sellToken || !quote.buyAmount || !quote.sellAmount) {
-                return undefined;
-            }
-
-            const isSelling = !!params.sellAmount;
-
-            const { sourcesConsidered } = quote.quoteReport;
-
-            // Filter matching amount samples with a valid result
-            const fullTradeSources = sourcesConsidered.filter(s =>
-                isSelling
-                    ? s.takerAmount.isEqualTo(quote.sellAmount!) && s.makerAmount.isGreaterThan(ZERO)
-                    : s.makerAmount.isEqualTo(quote.buyAmount!) && s.takerAmount.isGreaterThan(ZERO),
-            );
-
-            // NOTE: Sort sources by the best outcome for the user
-            // if the user is selling we want to maximize the maker amount they will receive
-            // if the user is buying we want to minimize the taker amount they have to pay
-            const sortedSources = isSelling
-                ? fullTradeSources.slice().sort((a, b) => b.makerAmount.comparedTo(a.makerAmount))
-                : fullTradeSources.slice().sort((a, b) => a.takerAmount.comparedTo(b.takerAmount));
-            // Select the best (first in the sorted list) option for each source
-            const uniqueSources = _.uniqBy(sortedSources, 'liquiditySource');
-
-            const sourcePrices: SourceComparison[] = uniqueSources.map(source => {
-                const { liquiditySource, makerAmount, takerAmount } = source;
-                let gas: BigNumber;
-                if (liquiditySource === ERC20BridgeSource.Native) {
-                    // tslint:disable-next-line:no-unnecessary-type-assertion
-                    const typedSource = source as NativeRFQTReportSource;
-                    gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource]!());
-                } else if (liquiditySource === ERC20BridgeSource.MultiHop) {
-                    // tslint:disable-next-line:no-unnecessary-type-assertion
-                    const typedSource = source as MultiHopReportSource;
-                    gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource]!(typedSource.fillData));
-                } else {
-                    // tslint:disable-next-line:no-unnecessary-type-assertion
-                    const typedSource = source as BridgeReportSource;
-                    gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource]!(typedSource.fillData));
-                }
-
-                const unitMakerAmount = Web3Wrapper.toUnitAmount(makerAmount, buyToken.decimals);
-                const unitTakerAmount = Web3Wrapper.toUnitAmount(takerAmount, sellToken.decimals);
-
-                // NOTE: In order to not communicate a price better than the actual quote we
-                // should make sure to always round towards a worse price
-                const roundingStrategy = isSelling ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL;
-
-                const price = isSelling
-                    ? unitMakerAmount.dividedBy(unitTakerAmount).decimalPlaces(buyToken.decimals, roundingStrategy)
-                    : unitTakerAmount.dividedBy(unitMakerAmount).decimalPlaces(sellToken.decimals, roundingStrategy);
-
-                return {
-                    name: liquiditySource,
-                    price,
-                    gas,
-                };
-            });
-
-            // Add null values for all sources we don't have a result for so that we always have a full result set in the response
-            const allSourcePrices = _.uniqBy<SourceComparison>([...sourcePrices, ...emptyPlaceholderSources], 'name');
-
-            return allSourcePrices;
-        } catch (err) {
-            logger.error(err, `Failed to calculate price comparisons`);
+            return getPriceComparisonFromQuoteOrThrow(chainId, side, quote);
+        } catch (e) {
+            logger.error(`Error calculating price comparisons, skipping [${e}]`);
+            return undefined;
         }
     },
+    renameNative(sc: SourceComparison): SourceComparison {
+        return {
+            ...sc,
+            name: sc.name === ERC20BridgeSource.Native ? '0x' : sc.name,
+        };
+    },
 };
+
+interface PartialQuote {
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    buyAmount: BigNumber;
+    sellAmount: BigNumber;
+    sellTokenToEthRate: BigNumber;
+    buyTokenToEthRate: BigNumber;
+    gasPrice: BigNumber;
+    estimatedGas: BigNumber;
+    quoteReport?: QuoteReport;
+}
+
+function getPriceComparisonFromQuoteOrThrow(
+    chainId: ChainId,
+    side: MarketOperation,
+    quote: PartialQuote,
+): SourceComparison[] | undefined {
+    // Set up variables for calculation
+    const buyToken = getTokenMetadataIfExists(quote.buyTokenAddress, chainId);
+    const sellToken = getTokenMetadataIfExists(quote.sellTokenAddress, chainId);
+    const ethToken = getTokenMetadataIfExists('WETH', chainId)!;
+    const ethUnitAmount = new BigNumber(10).pow(ethToken.decimals);
+    if (!buyToken || !sellToken || !quote.buyAmount || !quote.sellAmount || !quote.quoteReport) {
+        return undefined;
+    }
+    const isSelling = side === MarketOperation.Sell;
+    const quoteTokenToEthRate = isSelling ? quote.buyTokenToEthRate : quote.sellTokenToEthRate;
+
+    // Filter out samples with invalid amounts
+    const fullTradeSources = quote.quoteReport.sourcesConsidered.filter(s =>
+        isSelling
+            ? s.takerAmount.isEqualTo(quote.sellAmount!) && s.makerAmount.isGreaterThan(ZERO)
+            : s.makerAmount.isEqualTo(quote.buyAmount!) && s.takerAmount.isGreaterThan(ZERO),
+    );
+
+    // Calculate the maker/taker amounts after factoring in gas costs
+    const tradeSourcesWithGas = fullTradeSources.map(source => {
+        const { liquiditySource } = source;
+        let gas: BigNumber;
+        if (liquiditySource === ERC20BridgeSource.Native) {
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            const typedSource = source as NativeRFQTReportSource;
+            gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource]!());
+        } else if (liquiditySource === ERC20BridgeSource.MultiHop) {
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            const typedSource = source as MultiHopReportSource;
+            gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource]!(typedSource.fillData));
+        } else {
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            const typedSource = source as BridgeReportSource;
+            gas = new BigNumber(gasScheduleWithOverrides[typedSource.liquiditySource]!(typedSource.fillData));
+        }
+
+        const gasCost = gas
+            .times(quote.gasPrice)
+            .dividedBy(ethUnitAmount)
+            .times(quoteTokenToEthRate);
+        const unitMakerAmount = Web3Wrapper.toUnitAmount(source.makerAmount, buyToken.decimals);
+        const unitMakerAmountAfterGasCosts = isSelling ? unitMakerAmount.minus(gasCost) : unitMakerAmount;
+        const unitTakerAmount = Web3Wrapper.toUnitAmount(source.takerAmount, sellToken.decimals);
+        const unitTakerAmountAfterGasCosts = isSelling ? unitTakerAmount : unitTakerAmount.plus(gasCost);
+
+        return {
+            ...source,
+            gas,
+            unitTakerAmount,
+            unitMakerAmount,
+            unitTakerAmountAfterGasCosts,
+            unitMakerAmountAfterGasCosts,
+        };
+    });
+
+    // NOTE: Sort sources by the best outcome for the user
+    // if the user is selling we want to maximize the maker amount they will receive
+    // if the user is buying we want to minimize the taker amount they have to pay
+    const sortedSources = isSelling
+        ? tradeSourcesWithGas.slice().sort((a, b) => {
+              return b.unitMakerAmountAfterGasCosts.comparedTo(a.unitMakerAmountAfterGasCosts);
+          })
+        : tradeSourcesWithGas.slice().sort((a, b) => {
+              return a.unitTakerAmountAfterGasCosts.comparedTo(b.unitTakerAmountAfterGasCosts);
+          });
+    // Select the best (first in the sorted list) quote from each source
+    const bestQuotesFromEverySource = _.uniqBy(sortedSources, 'liquiditySource');
+
+    // *** Calculate additional fields that we want to return *** //
+
+    // Calculate savings (Part 1): Cost of the quote including gas
+    const quoteGasCostInTokens = quote.estimatedGas
+        .times(quote.gasPrice)
+        .dividedBy(ethUnitAmount)
+        .times(quoteTokenToEthRate);
+    const unitAmount = isSelling
+        ? Web3Wrapper.toUnitAmount(quote.buyAmount, buyToken.decimals)
+        : Web3Wrapper.toUnitAmount(quote.sellAmount, sellToken.decimals);
+    const unitAmountAfterGasCosts = isSelling
+        ? unitAmount.minus(quoteGasCostInTokens)
+        : unitAmount.plus(quoteGasCostInTokens);
+    const roundingStrategy = isSelling ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL;
+
+    // Transform the fields
+    const sourcePrices: SourceComparison[] = bestQuotesFromEverySource.map(source => {
+        const { liquiditySource, unitMakerAmount, unitTakerAmount, gas } = source;
+
+        // calculate price
+        const price = isSelling
+            ? unitMakerAmount.dividedBy(unitTakerAmount).decimalPlaces(buyToken.decimals, roundingStrategy)
+            : unitTakerAmount.dividedBy(unitMakerAmount).decimalPlaces(sellToken.decimals, roundingStrategy);
+
+        // calculate savings (Part 2):
+        const savingsInTokens = isSelling
+            ? unitAmountAfterGasCosts.minus(source.unitMakerAmountAfterGasCosts)
+            : source.unitTakerAmountAfterGasCosts.minus(unitAmountAfterGasCosts);
+        const savingsInEth = quoteTokenToEthRate.gt(ZERO)
+            ? savingsInTokens.dividedBy(quoteTokenToEthRate).decimalPlaces(ethToken.decimals)
+            : ZERO;
+
+        return {
+            name: liquiditySource,
+            price,
+            gas,
+            savingsInEth,
+        };
+    });
+
+    // Add null values for all sources we don't have a result for so that we always have a full result set in the response
+    const allSourcePrices = _.uniqBy<SourceComparison>([...sourcePrices, ...NULL_SOURCE_COMPARISONS], 'name');
+    return allSourcePrices;
+}

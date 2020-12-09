@@ -1,5 +1,6 @@
 // tslint:disable:max-file-line-count
 import { ERC20BridgeSource, RfqtRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
+import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -27,9 +28,9 @@ import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import {
     CalculateSwapQuoteParams,
     ChainId,
+    GetSwapPriceResponse,
     GetSwapQuoteRequestParams,
     GetSwapQuoteResponse,
-    SourceComparison,
 } from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
@@ -82,26 +83,14 @@ export class SwapHandlers {
                 });
             }
         }
-        const cleanedQuote = _.omit(quote, 'quoteReport', 'decodedUniqueId');
-        let quoteResponse = cleanedQuote;
+        const response = _.omit(quote, 'quoteReport', 'decodedUniqueId');
         const { quoteReport } = quote;
         if (params.includePriceComparisons && quoteReport) {
-            const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
-                ...quote,
-                quoteReport,
-            });
-
-            if (priceComparisons) {
-                quoteResponse = {
-                    ...cleanedQuote,
-                    priceComparisons: priceComparisons.map(pc => ({
-                        ...pc,
-                        name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
-                    })),
-                };
-            }
+            const side = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
+            const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, side, quote);
+            response.priceComparisons = priceComparisons?.map(sc => priceComparisonUtils.renameNative(sc));
         }
-        res.status(HttpStatus.OK).send(quoteResponse);
+        res.status(HttpStatus.OK).send(response);
     }
     // tslint:disable-next-line:prefer-function-over-method
     public async getSwapTokensAsync(_req: express.Request, res: express.Response): Promise<void> {
@@ -130,38 +119,32 @@ export class SwapHandlers {
             },
         });
 
-        let priceComparisons: SourceComparison[] | undefined;
+        const response: GetSwapPriceResponse = _.pick(
+            quote,
+            'price',
+            'value',
+            'gasPrice',
+            'gas',
+            'estimatedGas',
+            'protocolFee',
+            'minimumProtocolFee',
+            'buyTokenAddress',
+            'buyAmount',
+            'sellTokenAddress',
+            'sellAmount',
+            'sources',
+            'allowanceTarget',
+            'sellTokenToEthRate',
+            'buyTokenToEthRate',
+        );
         const { quoteReport } = quote;
         if (params.includePriceComparisons && quoteReport) {
-            priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
-                ...quote,
-                quoteReport,
-            });
+            const marketSide = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
+            response.priceComparisons = priceComparisonUtils
+                .getPriceComparisonFromQuote(CHAIN_ID, marketSide, quote)
+                ?.map(sc => priceComparisonUtils.renameNative(sc));
         }
-
-        const response = {
-            price: quote.price,
-            value: quote.value,
-            gasPrice: quote.gasPrice,
-            gas: quote.gas,
-            estimatedGas: quote.estimatedGas,
-            protocolFee: quote.protocolFee,
-            minimumProtocolFee: quote.minimumProtocolFee,
-            buyTokenAddress: quote.buyTokenAddress,
-            buyAmount: quote.buyAmount,
-            sellTokenAddress: quote.sellTokenAddress,
-            sellAmount: quote.sellAmount,
-            sources: quote.sources,
-            allowanceTarget: quote.allowanceTarget,
-            priceComparisons: priceComparisons
-                ? priceComparisons.map(pc => ({
-                      ...pc,
-                      name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
-                  }))
-                : undefined,
-        };
-
-        res.status(HttpStatus.OK).send(response);
+        res.status(HttpStatus.OK).send(quote);
     }
     // tslint:disable-next-line:prefer-function-over-method
     public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {

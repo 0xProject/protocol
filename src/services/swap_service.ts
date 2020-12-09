@@ -55,13 +55,13 @@ import {
     GetTokenPricesResponse,
     PercentageFee,
     SwapQuoteResponsePartialTransaction,
-    SwapQuoteResponsePrice,
     TokenMetadata,
     TokenMetadataOptionalSymbol,
 } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { serviceUtils } from '../utils/service_utils';
+import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
 
 export class SwapService {
     private readonly _provider: SupportedProvider;
@@ -78,7 +78,7 @@ export class SwapService {
         sellTokenDecimals: number,
         swapQuote: SwapQuote,
         affiliateFee: PercentageFee,
-    ): SwapQuoteResponsePrice {
+    ): { price: BigNumber; guaranteedPrice: BigNumber } {
         const { makerAssetAmount, totalTakerAssetAmount } = swapQuote.bestCaseQuoteInfo;
         const { totalTakerAssetAmount: guaranteedTotalTakerAssetAmount } = swapQuote.worstCaseQuoteInfo;
         const guaranteedMakerAssetAmount = getSwapMinBuyAmount(swapQuote);
@@ -271,6 +271,17 @@ export class SwapService {
 
         const allowanceTarget = isETHSell ? NULL_ADDRESS : erc20AllowanceTarget;
 
+        const { takerAssetToEthRate, makerAssetToEthRate } = swapQuote;
+
+        // Convert into unit amounts
+        const wethToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;
+        const sellTokenToEthRate = takerAssetToEthRate
+            .times(new BigNumber(10).pow(wethToken.decimals - takerTokenDecimals))
+            .decimalPlaces(takerTokenDecimals);
+        const buyTokenToEthRate = makerAssetToEthRate
+            .times(new BigNumber(10).pow(wethToken.decimals - makerTokenDecimals))
+            .decimalPlaces(makerTokenDecimals);
+
         const apiSwapQuote: GetSwapQuoteResponse = {
             price,
             guaranteedPrice,
@@ -292,6 +303,8 @@ export class SwapService {
             orders: serviceUtils.cleanSignedOrderFields(orders),
             allowanceTarget,
             decodedUniqueId,
+            sellTokenToEthRate,
+            buyTokenToEthRate,
             quoteReport,
         };
         return apiSwapQuote;
@@ -484,6 +497,8 @@ export class SwapService {
             sellAmount: amount,
             sources: [],
             orders: [],
+            sellTokenToEthRate: new BigNumber(1),
+            buyTokenToEthRate: new BigNumber(1),
             allowanceTarget: NULL_ADDRESS,
         };
         return apiSwapQuote;

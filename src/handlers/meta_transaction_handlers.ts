@@ -1,5 +1,6 @@
 import { assert } from '@0x/assert';
 import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
+import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -30,7 +31,6 @@ import {
     GetMetaTransactionPriceResponse,
     GetMetaTransactionStatusResponse,
     GetTransactionRequestParams,
-    SourceComparison,
 } from '../types';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
@@ -67,20 +67,7 @@ export class MetaTransactionHandlers {
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema as any);
         // parse query params
         const params = parseGetTransactionRequestParams(req);
-        const {
-            takerAddress,
-            sellTokenAddress,
-            buyTokenAddress,
-            sellAmount,
-            buyAmount,
-            slippagePercentage,
-            excludedSources,
-            includedSources,
-            affiliateAddress,
-            affiliateFee,
-            // tslint:disable-next-line:boolean-naming
-            includePriceComparisons,
-        } = params;
+        const { buyTokenAddress, sellTokenAddress } = params;
         const isETHBuy = isETHSymbolOrAddress(buyTokenAddress);
 
         // ETH selling isn't supported.
@@ -90,44 +77,22 @@ export class MetaTransactionHandlers {
 
         try {
             const metaTransactionQuote = await this._metaTransactionService.calculateMetaTransactionQuoteAsync({
-                takerAddress,
-                buyTokenAddress,
-                sellTokenAddress,
-                buyAmount,
-                sellAmount,
-                slippagePercentage,
-                excludedSources,
-                includedSources,
+                ...params,
                 apiKey,
-                includePriceComparisons,
                 isETHBuy,
                 isETHSell: false,
-                affiliateAddress,
-                affiliateFee,
-                from: takerAddress,
+                from: params.takerAddress,
             });
 
-            let priceComparisons: SourceComparison[] | undefined;
             const { quoteReport, ...quoteResponse } = metaTransactionQuote;
             if (params.includePriceComparisons && quoteReport) {
-                priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
-                    ...metaTransactionQuote,
-                    quoteReport,
-                    buyTokenAddress,
-                    sellTokenAddress,
-                });
+                const marketSide = params.sellAmount !== undefined ? MarketOperation.Sell : MarketOperation.Buy;
+                quoteResponse.priceComparisons = priceComparisonUtils
+                    .getPriceComparisonFromQuote(CHAIN_ID, marketSide, metaTransactionQuote)
+                    ?.map(sc => priceComparisonUtils.renameNative(sc));
             }
-            const metaTransactionQuoteResponse = {
-                ...quoteResponse,
-                priceComparisons: priceComparisons
-                    ? priceComparisons.map(pc => ({
-                          ...pc,
-                          name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
-                      }))
-                    : undefined,
-            };
 
-            res.status(HttpStatus.OK).send(metaTransactionQuoteResponse);
+            res.status(HttpStatus.OK).send(quoteResponse);
         } catch (e) {
             // If this is already a transformed error then just re-throw
             if (isAPIError(e)) {
@@ -145,7 +110,7 @@ export class MetaTransactionHandlers {
             ) {
                 throw new ValidationError([
                     {
-                        field: buyAmount ? 'buyAmount' : 'sellAmount',
+                        field: params.buyAmount ? 'buyAmount' : 'sellAmount',
                         code: ValidationErrorCodes.ValueOutOfRange,
                         reason: SwapQuoterError.InsufficientAssetLiquidity,
                     },
@@ -177,78 +142,44 @@ export class MetaTransactionHandlers {
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema as any);
         // parse query params
         const params = parseGetTransactionRequestParams(req);
-        const {
-            takerAddress,
-            sellTokenAddress,
-            buyTokenAddress,
-            sellAmount,
-            buyAmount,
-            slippagePercentage,
-            excludedSources,
-            includedSources,
-            affiliateFee,
-            affiliateAddress,
-            // tslint:disable-next-line:boolean-naming
-            includePriceComparisons,
-        } = parseGetTransactionRequestParams(req);
-        const isETHBuy = isETHSymbolOrAddress(buyTokenAddress);
+        const { buyTokenAddress, sellTokenAddress } = params;
 
         // ETH selling isn't supported.
         if (isETHSymbolOrAddress(sellTokenAddress)) {
             throw new EthSellNotSupportedError();
         }
+        const isETHBuy = isETHSymbolOrAddress(buyTokenAddress);
 
         try {
-            const metaTransactionPrice = await this._metaTransactionService.calculateMetaTransactionPriceAsync({
-                takerAddress,
-                buyTokenAddress,
-                sellTokenAddress,
-                buyAmount,
-                sellAmount,
-                from: takerAddress,
-                slippagePercentage,
-                excludedSources,
-                includedSources,
-                apiKey,
-                includePriceComparisons,
-                isETHBuy,
-                isETHSell: false,
-                affiliateFee,
-                affiliateAddress,
-            });
-
-            let priceComparisons: SourceComparison[] | undefined;
-            const { quoteReport } = metaTransactionPrice;
-            if (params.includePriceComparisons && quoteReport) {
-                priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, params, {
-                    ...metaTransactionPrice,
-                    quoteReport,
-                    buyTokenAddress,
-                    sellTokenAddress,
-                });
-            }
+            const metaTransactionPriceCalculation = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
+                {
+                    ...params,
+                    from: params.takerAddress,
+                    apiKey,
+                    isETHBuy,
+                    isETHSell: false,
+                },
+            );
 
             const metaTransactionPriceResponse: GetMetaTransactionPriceResponse = {
-                price: metaTransactionPrice.price,
-                buyAmount: metaTransactionPrice.buyAmount!,
-                sellAmount: metaTransactionPrice.sellAmount!,
-                sellTokenAddress,
-                buyTokenAddress,
-                sources: metaTransactionPrice.sources,
-                value: metaTransactionPrice.protocolFee,
-                gasPrice: metaTransactionPrice.gasPrice,
-                gas: metaTransactionPrice.estimatedGas,
-                estimatedGas: metaTransactionPrice.estimatedGas,
-                protocolFee: metaTransactionPrice.protocolFee,
-                minimumProtocolFee: metaTransactionPrice.minimumProtocolFee,
-                allowanceTarget: metaTransactionPrice.allowanceTarget,
-                priceComparisons: priceComparisons
-                    ? priceComparisons.map(pc => ({
-                          ...pc,
-                          name: pc.name === ERC20BridgeSource.Native ? '0x' : pc.name,
-                      }))
-                    : undefined,
+                ..._.omit(metaTransactionPriceCalculation, 'orders', 'quoteReport', 'estimatedGasTokenRefund'),
+                value: metaTransactionPriceCalculation.protocolFee,
+                gas: metaTransactionPriceCalculation.estimatedGas,
             };
+
+            // Calculate price comparisons
+            const { quoteReport } = metaTransactionPriceCalculation;
+            if (params.includePriceComparisons && quoteReport) {
+                const marketSide = params.sellAmount !== undefined ? MarketOperation.Sell : MarketOperation.Buy;
+                const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                    CHAIN_ID,
+                    marketSide,
+                    metaTransactionPriceCalculation,
+                );
+                metaTransactionPriceResponse.priceComparisons = priceComparisons?.map(pc =>
+                    priceComparisonUtils.renameNative(pc),
+                );
+            }
 
             res.status(HttpStatus.OK).send(metaTransactionPriceResponse);
         } catch (e) {
@@ -268,7 +199,7 @@ export class MetaTransactionHandlers {
             ) {
                 throw new ValidationError([
                     {
-                        field: buyAmount ? 'buyAmount' : 'sellAmount',
+                        field: params.buyAmount ? 'buyAmount' : 'sellAmount',
                         code: ValidationErrorCodes.ValueOutOfRange,
                         reason: SwapQuoterError.InsufficientAssetLiquidity,
                     },

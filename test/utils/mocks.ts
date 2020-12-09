@@ -1,4 +1,4 @@
-import { MarketOperation } from '@0x/asset-swapper';
+import { MarketOperation, SwapQuote } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 export const ganacheZrxWethOrder1 = {
@@ -72,45 +72,48 @@ export const liquiditySources0xOnly = [
     { name: 'CryptoCom', proportion: '0' },
 ];
 
-export const randomSellQuote = {
+const orders = [
+    {
+        fillableMakerAssetAmount: new BigNumber('496094186121342509'),
+        fillableTakerFeeAmount: new BigNumber('132544309273197631'),
+        fillableTakerAssetAmount: new BigNumber('416658039773949107'),
+        fills: [],
+        chainId: 1,
+        exchangeAddress: '0x61935cbdd02287b511119ddb11aeb42f1593b7ef',
+        expirationTimeSeconds: new BigNumber('952911858'),
+        feeRecipientAddress: '0xe5cea514b4a6ce775e0e06ae7bbf7cc01b308406',
+        makerAddress: '0x00695b063b2f306d0210d98b4d931afec20ce027',
+        makerAssetAmount: new BigNumber('519075362360104984'),
+        takerAssetAmount: new BigNumber('570131374720806489'),
+        makerFee: new BigNumber('782424419613311665'),
+        takerFee: new BigNumber('731964463215211967'),
+        salt: new BigNumber('739706916'),
+        signature:
+            '0xf86a11e74f6f14d38a09f5ed9e6f8cbf34e762bbbe8bb79377cdb3fc1cd6ae3a518806c2b27c38f0e930e83326e40e53c17d0589f52f5260ca173b96fe96ab62532b',
+        senderAddress: '0x0000000000000000000000000000000000000000',
+        takerAddress: '0x0000000000000000000000000000000000000000',
+        makerAssetData: '0xf47261b0000000000000000000000000b9302bbc853c3e3480a1eefc2bb6bf4cdca809e6',
+        takerAssetData: '0xf47261b00000000000000000000000005471a5833768d1151d34701eba1c9123d1ba2f8a',
+        makerFeeAssetData: '0xf47261b00000000000000000000000006aa46984d0589a3d0714d7678e193f2b3a1237a6',
+        takerFeeAssetData: '0xf47261b0000000000000000000000000325bc5de51da662c8c04f8393fb5cc7f181e58d1',
+    },
+];
+
+const bestCaseQuoteInfo = {
+    feeTakerAssetAmount: new BigNumber('383288145500497440'),
+    makerAssetAmount: new BigNumber('213528060573258946'),
+    gas: 3857345,
+    protocolFeeInWeiAmount: new BigNumber('569793054675519573'),
+    takerAssetAmount: new BigNumber('933887973800245567'),
+    totalTakerAssetAmount: new BigNumber('709708376093637456'),
+};
+export const randomSellQuote: SwapQuote = {
     gasPrice: new BigNumber('201111549'),
     type: MarketOperation.Sell as MarketOperation.Sell, // tslint:disable-line:no-unnecessary-type-assertion
     makerAssetData: '0xf47261b0000000000000000000000000b9302bbc853c3e3480a1eefc2bb6bf4cdca809e6',
     takerAssetData: '0xf47261b00000000000000000000000005471a5833768d1151d34701eba1c9123d1ba2f8a',
-    orders: [
-        {
-            fillableMakerAssetAmount: new BigNumber('496094186121342509'),
-            fillableTakerFeeAmount: new BigNumber('132544309273197631'),
-            fillableTakerAssetAmount: new BigNumber('416658039773949107'),
-            fills: [],
-            chainId: 1,
-            exchangeAddress: '0x61935cbdd02287b511119ddb11aeb42f1593b7ef',
-            expirationTimeSeconds: new BigNumber('952911858'),
-            feeRecipientAddress: '0xe5cea514b4a6ce775e0e06ae7bbf7cc01b308406',
-            makerAddress: '0x00695b063b2f306d0210d98b4d931afec20ce027',
-            makerAssetAmount: new BigNumber('519075362360104984'),
-            takerAssetAmount: new BigNumber('570131374720806489'),
-            makerFee: new BigNumber('782424419613311665'),
-            takerFee: new BigNumber('731964463215211967'),
-            salt: new BigNumber('739706916'),
-            signature:
-                '0xf86a11e74f6f14d38a09f5ed9e6f8cbf34e762bbbe8bb79377cdb3fc1cd6ae3a518806c2b27c38f0e930e83326e40e53c17d0589f52f5260ca173b96fe96ab62532b',
-            senderAddress: '0x0000000000000000000000000000000000000000',
-            takerAddress: '0x0000000000000000000000000000000000000000',
-            makerAssetData: '0xf47261b0000000000000000000000000b9302bbc853c3e3480a1eefc2bb6bf4cdca809e6',
-            takerAssetData: '0xf47261b00000000000000000000000005471a5833768d1151d34701eba1c9123d1ba2f8a',
-            makerFeeAssetData: '0xf47261b00000000000000000000000006aa46984d0589a3d0714d7678e193f2b3a1237a6',
-            takerFeeAssetData: '0xf47261b0000000000000000000000000325bc5de51da662c8c04f8393fb5cc7f181e58d1',
-        },
-    ],
-    bestCaseQuoteInfo: {
-        feeTakerAssetAmount: new BigNumber('383288145500497440'),
-        makerAssetAmount: new BigNumber('213528060573258946'),
-        gas: 3857345,
-        protocolFeeInWeiAmount: new BigNumber('569793054675519573'),
-        takerAssetAmount: new BigNumber('933887973800245567'),
-        totalTakerAssetAmount: new BigNumber('709708376093637456'),
-    },
+    orders,
+    bestCaseQuoteInfo,
     worstCaseQuoteInfo: {
         feeTakerAssetAmount: new BigNumber('556208982260696635'),
         makerAssetAmount: new BigNumber('195425597817301501'),
@@ -158,4 +161,6 @@ export const randomSellQuote = {
     isTwoHop: false,
     makerTokenDecimals: 18,
     takerTokenDecimals: 18,
+    takerAssetToEthRate: new BigNumber(0),
+    makerAssetToEthRate: new BigNumber(0),
 };
