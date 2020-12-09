@@ -17,13 +17,13 @@ const simpleFunctionRegistryFeature = new wrappers.SimpleFunctionRegistryFeature
     constants.NULL_ADDRESS,
     new Web3ProviderEngine(),
 );
-const governorEncoder = AbiEncoder.create('(bytes[], address[], uint256[])');
 const DO_NOT_ROLLBACK = [
     ownableFeature.getSelector('migrate'),
     ownableFeature.getSelector('transferOwnership'),
     simpleFunctionRegistryFeature.getSelector('rollback'),
     simpleFunctionRegistryFeature.getSelector('extend'),
 ];
+const governorEncoder = AbiEncoder.create('(bytes[], address[], uint256[])');
 
 const selectorToSignature: { [selector: string]: string } = {};
 for (const wrapper of Object.values(wrappers)) {
@@ -134,6 +134,169 @@ enum CommandLineActions {
     Exit = 'Exit',
 }
 
+async function deploymentHistoryAsync(deployments: Deployment[]): Promise<void> {
+    const { index } = await prompts({
+        type: 'select',
+        name: 'index',
+        message: 'What would you like to do?',
+        choices: deployments.map((deployment, i) => ({
+            title: deployment.time,
+            value: i,
+        })),
+    });
+    logUtils.log(
+        deployments[index].updates.map(update => ({
+            selector: update.selector,
+            signature: update.signature || '(function signature not found)',
+            update: `${update.previousImpl} => ${update.newImpl}`,
+        })),
+    );
+}
+
+async function functionHistoryAsync(proxyFunctions: ProxyFunctionEntity[]): Promise<void> {
+    const { fnSelector } = await prompts({
+        type: 'autocomplete',
+        name: 'fnSelector',
+        message: 'Enter the selector or name of the function:',
+        choices: [
+            ..._.flatMap(Object.entries(selectorToSignature), ([selector, signature]) => [
+                { title: selector, value: selector, description: signature },
+                { title: signature, value: selector, description: selector },
+            ]),
+            ...proxyFunctions
+                .filter(fn => !Object.keys(selectorToSignature).includes(fn.id))
+                .map(fn => ({ title: fn.id, value: fn.id, description: '(function signature not found)' })),
+        ],
+    });
+    const functionEntity = proxyFunctions.find(fn => fn.id === fnSelector);
+    if (functionEntity === undefined) {
+        logUtils.log(`Couldn't find deployment history for selector ${fnSelector}`);
+    } else {
+        logUtils.log(
+            functionEntity.fullHistory.map(update => ({
+                date: timestampToUTC(update.timestamp),
+                impl: update.impl,
+            })),
+        );
+    }
+}
+
+async function currentFunctionsAsync(proxyFunctions: ProxyFunctionEntity[]): Promise<void> {
+    const currentFunctions: {
+        [selector: string]: { signature: string; impl: string; lastUpdated: string };
+    } = {};
+    proxyFunctions
+        .filter(fn => fn.currentImpl !== constants.NULL_ADDRESS)
+        .map(fn => {
+            currentFunctions[fn.id] = {
+                signature: selectorToSignature[fn.id] || '(function signature not found)',
+                impl: fn.currentImpl,
+                lastUpdated: timestampToUTC(fn.fullHistory.slice(-1)[0].timestamp),
+            };
+        });
+    logUtils.log(currentFunctions);
+}
+
+async function generateRollbackAsync(
+    proxyFunctions: ProxyFunctionEntity[],
+    zeroEx: wrappers.IZeroExContract,
+): Promise<void> {
+    const { selected } = await prompts({
+        type: 'autocompleteMultiselect',
+        name: 'selected',
+        message: 'Select the functions to rollback:',
+        choices: _.flatMap(
+            proxyFunctions.filter(fn => fn.currentImpl !== constants.NULL_ADDRESS && !DO_NOT_ROLLBACK.includes(fn.id)),
+            fn => [
+                {
+                    title: [
+                        `[${fn.id}]`,
+                        `Implemented @ ${fn.currentImpl}`,
+                        selectorToSignature[fn.id] || '(function signature not found)',
+                    ].join('\n                '),
+                    value: fn.id,
+                },
+            ],
+        ),
+    });
+    const rollbackTargets: { [selector: string]: string } = {};
+    for (const selector of selected) {
+        const rollbackLength = (await zeroEx.getRollbackLength(selector).callAsync()).toNumber();
+        const rollbackHistory = await Promise.all(
+            _.range(rollbackLength).map(async i =>
+                zeroEx.getRollbackEntryAtIndex(selector, new BigNumber(i)).callAsync(),
+            ),
+        );
+        const fullHistory = proxyFunctions.find(fn => fn.id === selector)!.fullHistory;
+        const { target } = await prompts({
+            type: 'select',
+            name: 'target',
+            message: 'Select the implementation to rollback to',
+            hint: `[${selector}] ${selectorToSignature[selector] || '(function signature not found)'}`,
+            choices: [
+                {
+                    title: 'DISABLE',
+                    value: constants.NULL_ADDRESS,
+                    description: 'Rolls back to address(0)',
+                },
+                {
+                    title: 'PREVIOUS',
+                    value: rollbackHistory[rollbackLength - 1],
+                    description: rollbackHistory[rollbackLength - 1],
+                },
+                ...[...new Set(rollbackHistory)]
+                    .filter(impl => impl !== constants.NULL_ADDRESS)
+                    .map(impl => ({
+                        title: impl,
+                        value: impl,
+                        description: timestampToUTC(_.findLast(fullHistory, update => update.impl === impl)!.timestamp),
+                    })),
+            ],
+        });
+        rollbackTargets[selector] = target;
+    }
+
+    const { confirmed } = await prompts({
+        type: 'confirm',
+        name: 'confirmed',
+        message: `Are these the correct rollbacks?\n${selected
+            .map(
+                (selector: string) =>
+                    `[${selector}] ${selectorToSignature[selector] || '(function signature not found)'} \n    ${
+                        proxyFunctions.find(fn => fn.id === selector)!.currentImpl
+                    } => ${rollbackTargets[selector]}`,
+            )
+            .join('\n')}`,
+    });
+    if (confirmed) {
+        const rollbackCallData = governorEncoder.encode([
+            selected.map((selector: string) =>
+                zeroEx.rollback(selector, rollbackTargets[selector]).getABIEncodedTransactionData(),
+            ),
+            new Array(selected.length).fill(zeroEx.address),
+            new Array(selected.length).fill(constants.ZERO_AMOUNT),
+        ]);
+        logUtils.log(rollbackCallData);
+    }
+}
+
+async function generateEmergencyRollbackAsync(
+    proxyFunctions: ProxyFunctionEntity[],
+    zeroEx: wrappers.IZeroExContract,
+): Promise<void> {
+    const allSelectors = proxyFunctions
+        .filter(fn => fn.currentImpl !== constants.NULL_ADDRESS && !DO_NOT_ROLLBACK.includes(fn.id))
+        .map(fn => fn.id);
+    const emergencyCallData = governorEncoder.encode([
+        allSelectors.map((selector: string) =>
+            zeroEx.rollback(selector, constants.NULL_ADDRESS).getABIEncodedTransactionData(),
+        ),
+        new Array(allSelectors.length).fill(zeroEx.address),
+        new Array(allSelectors.length).fill(constants.ZERO_AMOUNT),
+    ]);
+    logUtils.log(emergencyCallData);
+}
+
 (async () => {
     let provider: SupportedProvider | undefined = process.env.RPC_URL
         ? createWeb3Provider(process.env.RPC_URL)
@@ -149,7 +312,7 @@ enum CommandLineActions {
             choices: [
                 { title: '🚢 Deployment history', value: CommandLineActions.History },
                 { title: '📜 Function history', value: CommandLineActions.Function },
-                { title: '🗺️ Currently registered functions', value: CommandLineActions.Current },
+                { title: '🗺️  Currently registered functions', value: CommandLineActions.Current },
                 { title: '🔙 Generate rollback calldata', value: CommandLineActions.Rollback },
                 { title: '🚨 Emergency shutdown calldata', value: CommandLineActions.Emergency },
                 { title: 'Exit', value: CommandLineActions.Exit },
@@ -158,64 +321,13 @@ enum CommandLineActions {
 
         switch (action) {
             case CommandLineActions.History:
-                const { index } = await prompts({
-                    type: 'select',
-                    name: 'index',
-                    message: 'What would you like to do?',
-                    choices: deployments.map((deployment, i) => ({
-                        title: deployment.time,
-                        value: i,
-                    })),
-                });
-                logUtils.log(
-                    deployments[index].updates.map(update => ({
-                        selector: update.selector,
-                        signature: update.signature || '(function signature not found)',
-                        update: `${update.previousImpl} => ${update.newImpl}`,
-                    })),
-                );
+                await deploymentHistoryAsync(deployments);
                 break;
             case CommandLineActions.Function:
-                const { fnSelector } = await prompts({
-                    type: 'autocomplete',
-                    name: 'fnSelector',
-                    message: 'Enter the selector or name of the function:',
-                    choices: [
-                        ..._.flatMap(Object.entries(selectorToSignature), ([selector, signature]) => [
-                            { title: selector, value: selector, description: signature },
-                            { title: signature, value: selector, description: selector },
-                        ]),
-                        ...proxyFunctions
-                            .filter(fn => !Object.keys(selectorToSignature).includes(fn.id))
-                            .map(fn => ({ title: fn.id, value: fn.id, description: '(function signature not found)' })),
-                    ],
-                });
-                const functionEntity = proxyFunctions.find(fn => fn.id === fnSelector);
-                if (functionEntity === undefined) {
-                    logUtils.log(`Couldn't find deployment history for selector ${fnSelector}`);
-                } else {
-                    logUtils.log(
-                        functionEntity.fullHistory.map(update => ({
-                            date: timestampToUTC(update.timestamp),
-                            impl: update.impl,
-                        })),
-                    );
-                }
+                await functionHistoryAsync(proxyFunctions);
                 break;
             case CommandLineActions.Current:
-                const currentFunctions: {
-                    [selector: string]: { signature: string; impl: string; lastUpdated: string };
-                } = {};
-                proxyFunctions
-                    .filter(fn => fn.currentImpl !== constants.NULL_ADDRESS)
-                    .map(fn => {
-                        currentFunctions[fn.id] = {
-                            signature: selectorToSignature[fn.id] || '(function signature not found)',
-                            impl: fn.currentImpl,
-                            lastUpdated: timestampToUTC(fn.fullHistory.slice(-1)[0].timestamp),
-                        };
-                    });
-                logUtils.log(currentFunctions);
+                await currentFunctionsAsync(proxyFunctions);
                 break;
             case CommandLineActions.Rollback:
                 if (provider === undefined) {
@@ -228,105 +340,15 @@ enum CommandLineActions {
                 }
                 const chainId = await new Web3Wrapper(provider).getChainIdAsync();
                 const { exchangeProxy } = getContractAddressesForChainOrThrow(chainId);
-                const zeroEx = new wrappers.IZeroExContract(exchangeProxy, provider);
-
-                const { selected } = await prompts({
-                    type: 'autocompleteMultiselect',
-                    name: 'selected',
-                    message: 'Select the functions to rollback:',
-                    choices: _.flatMap(
-                        proxyFunctions.filter(
-                            fn => fn.currentImpl !== constants.NULL_ADDRESS && !DO_NOT_ROLLBACK.includes(fn.id),
-                        ),
-                        fn => [
-                            {
-                                title: [
-                                    `[${fn.id}]`,
-                                    `Implemented @ ${fn.currentImpl}`,
-                                    selectorToSignature[fn.id] || '(function signature not found)',
-                                ].join('\n                '),
-                                value: fn.id,
-                            },
-                        ],
-                    ),
-                });
-                const rollbackTargets: { [selector: string]: string } = {};
-                for (const selector of selected) {
-                    const rollbackLength = (await zeroEx.getRollbackLength(selector).callAsync()).toNumber();
-                    const rollbackHistory = await Promise.all(
-                        _.range(rollbackLength).map(async i =>
-                            zeroEx.getRollbackEntryAtIndex(selector, new BigNumber(i)).callAsync(),
-                        ),
-                    );
-                    const fullHistory = proxyFunctions.find(fn => fn.id === selector)!.fullHistory;
-                    const { target } = await prompts({
-                        type: 'select',
-                        name: 'target',
-                        message: 'Select the implementation to rollback to',
-                        hint: `[${selector}] ${selectorToSignature[selector] || '(function signature not found)'}`,
-                        choices: [
-                            {
-                                title: 'DISABLE',
-                                value: constants.NULL_ADDRESS,
-                                description: 'Rolls back to address(0)',
-                            },
-                            {
-                                title: 'PREVIOUS',
-                                value: rollbackHistory[rollbackLength - 1],
-                                description: rollbackHistory[rollbackLength - 1],
-                            },
-                            ...[...new Set(rollbackHistory)]
-                                .filter(impl => impl !== constants.NULL_ADDRESS)
-                                .map(impl => ({
-                                    title: impl,
-                                    value: impl,
-                                    description: timestampToUTC(
-                                        _.findLast(fullHistory, update => update.impl === impl)!.timestamp,
-                                    ),
-                                })),
-                        ],
-                    });
-                    rollbackTargets[selector] = target;
-                }
-
-                const { confirmed } = await prompts({
-                    type: 'confirm',
-                    name: 'confirmed',
-                    message: `Are these the correct rollbacks?\n${selected
-                        .map(
-                            (selector: string) =>
-                                `[${selector}] ${selectorToSignature[selector] ||
-                                    '(function signature not found)'} \n    ${
-                                    proxyFunctions.find(fn => fn.id === selector)!.currentImpl
-                                } => ${rollbackTargets[selector]}`,
-                        )
-                        .join('\n')}`,
-                });
-                if (confirmed) {
-                    const rollbackCallData = governorEncoder.encode([
-                        selected.map((selector: string) =>
-                            zeroEx.rollback(selector, rollbackTargets[selector]).getABIEncodedTransactionData(),
-                        ),
-                        new Array(selected.length).fill(exchangeProxy),
-                        new Array(selected.length).fill(constants.ZERO_AMOUNT),
-                    ]);
-                    logUtils.log(rollbackCallData);
-                }
+                let zeroEx = new wrappers.IZeroExContract(exchangeProxy, provider);
+                await generateRollbackAsync(proxyFunctions, zeroEx);
                 break;
             case CommandLineActions.Emergency:
-                const allSelectors = proxyFunctions
-                    .filter(fn => fn.currentImpl !== constants.NULL_ADDRESS && !DO_NOT_ROLLBACK.includes(fn.id))
-                    .map(fn => fn.id);
-                const emergencyCallData = governorEncoder.encode([
-                    allSelectors.map((selector: string) =>
-                        simpleFunctionRegistryFeature
-                            .rollback(selector, constants.NULL_ADDRESS)
-                            .getABIEncodedTransactionData(),
-                    ),
-                    new Array(allSelectors.length).fill(getContractAddressesForChainOrThrow(1).exchangeProxy),
-                    new Array(allSelectors.length).fill(constants.ZERO_AMOUNT),
-                ]);
-                logUtils.log(emergencyCallData);
+                zeroEx = new wrappers.IZeroExContract(
+                    getContractAddressesForChainOrThrow(1).exchangeProxy,
+                    new Web3ProviderEngine(),
+                );
+                await generateEmergencyRollbackAsync(proxyFunctions, zeroEx);
                 break;
             case CommandLineActions.Exit:
             default:
