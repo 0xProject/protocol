@@ -1,5 +1,5 @@
 import { blockchainTests, constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
-import { encodeAffiliateFeeTransformerData, ETH_TOKEN_ADDRESS } from '@0x/order-utils';
+import { encodeAffiliateFeeTransformerData, ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 

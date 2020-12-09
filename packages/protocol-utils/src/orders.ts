@@ -1,4 +1,3 @@
-// tslint:disable: max-classes-per-file
 import { SupportedProvider } from '@0x/subproviders';
 import { EIP712TypedData } from '@0x/types';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';

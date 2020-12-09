@@ -1,5 +1,14 @@
 [
     {
+        "version": "13.11.0",
+        "changes": [
+            {
+                "note": "Regenerate wrappers",
+                "pr": 76
+            }
+        ]
+    },
+    {
         "timestamp": 1607381756,
         "version": "13.10.3",
         "changes": [

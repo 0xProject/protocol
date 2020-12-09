@@ -5,6 +5,10 @@
             {
                 "note": "Add test for selector collisions on the proxy",
                 "pr": 74
+            },
+            {
+                "note": "Move tooling out into `@0x/protocol-utils`.",
+                "pr": 76
             }
         ]
     },

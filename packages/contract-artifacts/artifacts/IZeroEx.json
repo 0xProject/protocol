@@ -6,6 +6,39 @@
             {
                 "anonymous": false,
                 "inputs": [
+                    { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "taker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "feeRecipient", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "makerToken", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "takerToken", "type": "address" },
+                    {
+                        "indexed": false,
+                        "internalType": "uint128",
+                        "name": "takerTokenFilledAmount",
+                        "type": "uint128"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint128",
+                        "name": "makerTokenFilledAmount",
+                        "type": "uint128"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint128",
+                        "name": "takerTokenFeeFilledAmount",
+                        "type": "uint128"
+                    },
+                    { "indexed": false, "internalType": "uint256", "name": "protocolFeePaid", "type": "uint256" },
+                    { "indexed": false, "internalType": "bytes32", "name": "pool", "type": "bytes32" }
+                ],
+                "name": "LimitOrderFilled",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
                     { "indexed": false, "internalType": "bytes32", "name": "hash", "type": "bytes32" },
                     { "indexed": true, "internalType": "bytes4", "name": "selector", "type": "bytes4" },
                     { "indexed": false, "internalType": "address", "name": "signer", "type": "address" },
@@ -27,10 +60,41 @@
             {
                 "anonymous": false,
                 "inputs": [
+                    { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" }
+                ],
+                "name": "OrderCancelled",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
                     { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" },
                     { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }
                 ],
                 "name": "OwnershipTransferred",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "makerToken", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "takerToken", "type": "address" },
+                    { "indexed": false, "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
+                ],
+                "name": "PairCancelledLimitOrders",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "makerToken", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "takerToken", "type": "address" },
+                    { "indexed": false, "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
+                ],
+                "name": "PairCancelledRfqOrders",
                 "type": "event"
             },
             {
@@ -47,6 +111,41 @@
                 "anonymous": false,
                 "inputs": [{ "indexed": false, "internalType": "address", "name": "quoteSigner", "type": "address" }],
                 "name": "QuoteSignerUpdated",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "taker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "makerToken", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "takerToken", "type": "address" },
+                    {
+                        "indexed": false,
+                        "internalType": "uint128",
+                        "name": "takerTokenFilledAmount",
+                        "type": "uint128"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint128",
+                        "name": "makerTokenFilledAmount",
+                        "type": "uint128"
+                    },
+                    { "indexed": false, "internalType": "bytes32", "name": "pool", "type": "bytes32" }
+                ],
+                "name": "RfqOrderFilled",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": false, "internalType": "address", "name": "origin", "type": "address" },
+                    { "indexed": false, "internalType": "address[]", "name": "addrs", "type": "address[]" },
+                    { "indexed": false, "internalType": "bool", "name": "allowed", "type": "bool" }
+                ],
+                "name": "RfqOrderOriginsAllowed",
                 "type": "event"
             },
             {
@@ -89,11 +188,118 @@
                         "name": "mtx",
                         "type": "tuple"
                     },
-                    { "internalType": "bytes", "name": "signature", "type": "bytes" }
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    }
                 ],
                 "name": "_executeMetaTransaction",
                 "outputs": [{ "internalType": "bytes", "name": "returnResult", "type": "bytes" }],
                 "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" },
+                    { "internalType": "address", "name": "taker", "type": "address" },
+                    { "internalType": "address", "name": "sender", "type": "address" }
+                ],
+                "name": "_fillLimitOrder",
+                "outputs": [
+                    { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
+                    { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" },
+                    { "internalType": "address", "name": "taker", "type": "address" }
+                ],
+                "name": "_fillRfqOrder",
+                "outputs": [
+                    { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
+                    { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -125,9 +331,7 @@
                                 "internalType": "struct ITransformERC20Feature.Transformation[]",
                                 "name": "transformations",
                                 "type": "tuple[]"
-                            },
-                            { "internalType": "bytes32", "name": "callDataHash", "type": "bytes32" },
-                            { "internalType": "bytes", "name": "callDataSignature", "type": "bytes" }
+                            }
                         ],
                         "internalType": "struct ITransformERC20Feature.TransformERC20Args",
                         "name": "args",
@@ -137,6 +341,80 @@
                 "name": "_transformERC20",
                 "outputs": [{ "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" }],
                 "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder[]",
+                        "name": "orders",
+                        "type": "tuple[]"
+                    }
+                ],
+                "name": "batchCancelLimitOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
+                ],
+                "name": "batchCancelPairLimitOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
+                ],
+                "name": "batchCancelPairRfqOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder[]",
+                        "name": "orders",
+                        "type": "tuple[]"
+                    }
+                ],
+                "name": "batchCancelRfqOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -158,11 +436,99 @@
                         "name": "mtxs",
                         "type": "tuple[]"
                     },
-                    { "internalType": "bytes[]", "name": "signatures", "type": "bytes[]" }
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature[]",
+                        "name": "signatures",
+                        "type": "tuple[]"
+                    }
                 ],
                 "name": "batchExecuteMetaTransactions",
                 "outputs": [{ "internalType": "bytes[]", "name": "returnResults", "type": "bytes[]" }],
                 "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "cancelLimitOrder",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
+                ],
+                "name": "cancelPairLimitOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
+                ],
+                "name": "cancelPairRfqOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "cancelRfqOrder",
+                "outputs": [],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -191,7 +557,21 @@
                         "name": "mtx",
                         "type": "tuple"
                     },
-                    { "internalType": "bytes", "name": "signature", "type": "bytes" }
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    }
                 ],
                 "name": "executeMetaTransaction",
                 "outputs": [{ "internalType": "bytes", "name": "returnResult", "type": "bytes" }],
@@ -209,6 +589,180 @@
                 "type": "function"
             },
             {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" }
+                ],
+                "name": "fillLimitOrder",
+                "outputs": [
+                    { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
+                    { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" }
+                ],
+                "name": "fillOrKillLimitOrder",
+                "outputs": [{ "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" }
+                ],
+                "name": "fillOrKillRfqOrder",
+                "outputs": [{ "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" }
+                ],
+                "name": "fillRfqOrder",
+                "outputs": [
+                    { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
+                    { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
                 "inputs": [],
                 "name": "getAllowanceTarget",
                 "outputs": [{ "internalType": "address", "name": "target", "type": "address" }],
@@ -216,9 +770,67 @@
                 "type": "function"
             },
             {
-                "inputs": [{ "internalType": "bytes4", "name": "selector", "type": "bytes4" }],
-                "name": "getFunctionImplementation",
-                "outputs": [{ "internalType": "address", "name": "impl", "type": "address" }],
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getLimitOrderHash",
+                "outputs": [{ "internalType": "bytes32", "name": "orderHash", "type": "bytes32" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getLimitOrderInfo",
+                "outputs": [
+                    {
+                        "components": [
+                            { "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                            { "internalType": "enum LibNativeOrder.OrderStatus", "name": "status", "type": "uint8" },
+                            { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OrderInfo",
+                        "name": "orderInfo",
+                        "type": "tuple"
+                    }
+                ],
                 "stateMutability": "view",
                 "type": "function"
             },
@@ -281,8 +893,76 @@
             },
             {
                 "inputs": [],
+                "name": "getProtocolFeeMultiplier",
+                "outputs": [{ "internalType": "uint32", "name": "multiplier", "type": "uint32" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
                 "name": "getQuoteSigner",
                 "outputs": [{ "internalType": "address", "name": "signer", "type": "address" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getRfqOrderHash",
+                "outputs": [{ "internalType": "bytes32", "name": "orderHash", "type": "bytes32" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getRfqOrderInfo",
+                "outputs": [
+                    {
+                        "components": [
+                            { "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                            { "internalType": "enum LibNativeOrder.OrderStatus", "name": "status", "type": "uint8" },
+                            { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OrderInfo",
+                        "name": "orderInfo",
+                        "type": "tuple"
+                    }
+                ],
                 "stateMutability": "view",
                 "type": "function"
             },
@@ -358,6 +1038,16 @@
             },
             {
                 "inputs": [
+                    { "internalType": "address[]", "name": "origins", "type": "address[]" },
+                    { "internalType": "bool", "name": "allowed", "type": "bool" }
+                ],
+                "name": "registerAllowedRfqOrigins",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     { "internalType": "bytes4", "name": "selector", "type": "bytes4" },
                     { "internalType": "address", "name": "targetImpl", "type": "address" }
                 ],
@@ -368,9 +1058,9 @@
             },
             {
                 "inputs": [
-                    { "internalType": "address", "name": "makerToken", "type": "address" },
-                    { "internalType": "address", "name": "takerToken", "type": "address" },
-                    { "internalType": "address payable", "name": "target", "type": "address" },
+                    { "internalType": "address", "name": "inputToken", "type": "address" },
+                    { "internalType": "address", "name": "outputToken", "type": "address" },
+                    { "internalType": "address payable", "name": "provider", "type": "address" },
                     { "internalType": "address", "name": "recipient", "type": "address" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
                     { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
@@ -415,6 +1105,13 @@
                 "type": "function"
             },
             {
+                "inputs": [{ "internalType": "bytes32[]", "name": "poolIds", "type": "bytes32[]" }],
+                "name": "transferProtocolFeesForPools",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
                 "inputs": [
                     { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
                     { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
@@ -451,14 +1148,41 @@
             "details": "Interface for a fully featured Exchange Proxy.",
             "kind": "dev",
             "methods": {
-                "_executeMetaTransaction(address,(address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),bytes)": {
+                "_executeMetaTransaction(address,(address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),(uint8,uint8,bytes32,bytes32))": {
                     "details": "Execute a meta-transaction via `sender`. Privileged variant.      Only callable from within.",
                     "params": {
                         "mtx": "The meta-transaction.",
-                        "sender": "Who is executing the meta-transaction..",
+                        "sender": "Who is executing the meta-transaction.",
                         "signature": "The signature by `mtx.signer`."
                     },
                     "returns": { "returnResult": "The ABI-encoded result of the underlying call." }
+                },
+                "_fillLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128,address,address)": {
+                    "details": "Fill a limit order. Internal variant. ETH protocol fees can be      attached to this call. Any unspent ETH will be refunded to      `msg.sender` (not `sender`).",
+                    "params": {
+                        "order": "The limit order.",
+                        "sender": "The order sender.",
+                        "signature": "The order signature.",
+                        "taker": "The order taker.",
+                        "takerTokenFillAmount": "Maximum taker token to fill this order with."
+                    },
+                    "returns": {
+                        "makerTokenFilledAmount": "How much maker token was filled.",
+                        "takerTokenFilledAmount": "How much maker token was filled."
+                    }
+                },
+                "_fillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128,address)": {
+                    "details": "Fill an RFQ order. Internal variant.",
+                    "params": {
+                        "order": "The RFQ order.",
+                        "signature": "The order signature.",
+                        "taker": "The order taker.",
+                        "takerTokenFillAmount": "Maximum taker token to fill this order with."
+                    },
+                    "returns": {
+                        "makerTokenFilledAmount": "How much maker token was filled.",
+                        "takerTokenFilledAmount": "How much maker token was filled."
+                    }
                 },
                 "_spendERC20Tokens(address,address,address,uint256)": {
                     "details": "Transfers ERC20 tokens from `owner` to `to`.      Only callable from within.",
@@ -469,12 +1193,36 @@
                         "token": "The token to spend."
                     }
                 },
-                "_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bytes32,bytes))": {
+                "_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[]))": {
                     "details": "Internal version of `transformERC20()`. Only callable from within.",
                     "params": { "args": "A `TransformERC20Args` struct." },
                     "returns": { "outputTokenAmount": "The amount of `outputToken` received by the taker." }
                 },
-                "batchExecuteMetaTransactions((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256)[],bytes[])": {
+                "batchCancelLimitOrders((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[])": {
+                    "details": "Cancel multiple limit orders. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "params": { "orders": "The limit orders." }
+                },
+                "batchCancelPairLimitOrders(address[],address[],uint256[])": {
+                    "details": "Cancel all limit orders for a given maker and pair with a salt less      than the value provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "makerTokens": "The maker tokens.",
+                        "minValidSalts": "The new minimum valid salts.",
+                        "takerTokens": "The taker tokens."
+                    }
+                },
+                "batchCancelPairRfqOrders(address[],address[],uint256[])": {
+                    "details": "Cancel all RFQ orders for a given maker and pair with a salt less      than the value provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "makerTokens": "The maker tokens.",
+                        "minValidSalts": "The new minimum valid salts.",
+                        "takerTokens": "The taker tokens."
+                    }
+                },
+                "batchCancelRfqOrders((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[])": {
+                    "details": "Cancel multiple RFQ orders. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "params": { "orders": "The RFQ orders." }
+                },
+                "batchExecuteMetaTransactions((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
                     "details": "Execute multiple meta-transactions.",
                     "params": {
                         "mtxs": "The meta-transactions.",
@@ -482,11 +1230,35 @@
                     },
                     "returns": { "returnResults": "The ABI-encoded results of the underlying calls." }
                 },
+                "cancelLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))": {
+                    "details": "Cancel a single limit order. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "params": { "order": "The limit order." }
+                },
+                "cancelPairLimitOrders(address,address,uint256)": {
+                    "details": "Cancel all limit orders for a given maker and pair with a salt less      than the value provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "makerToken": "The maker token.",
+                        "minValidSalt": "The new minimum valid salt.",
+                        "takerToken": "The taker token."
+                    }
+                },
+                "cancelPairRfqOrders(address,address,uint256)": {
+                    "details": "Cancel all RFQ orders for a given maker and pair with a salt less      than the value provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "makerToken": "The maker token.",
+                        "minValidSalt": "The new minimum valid salt.",
+                        "takerToken": "The taker token."
+                    }
+                },
+                "cancelRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256))": {
+                    "details": "Cancel a single RFQ order. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "params": { "order": "The RFQ order." }
+                },
                 "createTransformWallet()": {
                     "details": "Deploy a new flash wallet instance and replace the current one with it.      Useful if we somehow break the current wallet instance.       Only callable by the owner.",
                     "returns": { "wallet": "The new wallet instance." }
                 },
-                "executeMetaTransaction((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),bytes)": {
+                "executeMetaTransaction((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),(uint8,uint8,bytes32,bytes32))": {
                     "details": "Execute a single meta-transaction.",
                     "params": { "mtx": "The meta-transaction.", "signature": "The signature by `mtx.signer`." },
                     "returns": { "returnResult": "The ABI-encoded result of the underlying call." }
@@ -498,14 +1270,61 @@
                         "selector": "The function selector."
                     }
                 },
+                "fillLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)": {
+                    "details": "Fill a limit order. The taker and sender will be the caller.",
+                    "params": {
+                        "order": "The limit order. ETH protocol fees can be      attached to this call. Any unspent ETH will be refunded to      the caller.",
+                        "signature": "The order signature.",
+                        "takerTokenFillAmount": "Maximum taker token amount to fill this order with."
+                    },
+                    "returns": {
+                        "makerTokenFilledAmount": "How much maker token was filled.",
+                        "takerTokenFilledAmount": "How much maker token was filled."
+                    }
+                },
+                "fillOrKillLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)": {
+                    "details": "Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.      The taker will be the caller. ETH protocol fees can be      attached to this call. Any unspent ETH will be refunded to      the caller.",
+                    "params": {
+                        "order": "The limit order.",
+                        "signature": "The order signature.",
+                        "takerTokenFillAmount": "How much taker token to fill this order with."
+                    },
+                    "returns": { "makerTokenFilledAmount": "How much maker token was filled." }
+                },
+                "fillOrKillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)": {
+                    "details": "Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.      The taker will be the caller.",
+                    "params": {
+                        "order": "The RFQ order.",
+                        "signature": "The order signature.",
+                        "takerTokenFillAmount": "How much taker token to fill this order with."
+                    },
+                    "returns": { "makerTokenFilledAmount": "How much maker token was filled." }
+                },
+                "fillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)": {
+                    "details": "Fill an RFQ order for up to `takerTokenFillAmount` taker tokens.      The taker will be the caller.",
+                    "params": {
+                        "order": "The RFQ order.",
+                        "signature": "The order signature.",
+                        "takerTokenFillAmount": "Maximum taker token amount to fill this order with."
+                    },
+                    "returns": {
+                        "makerTokenFilledAmount": "How much maker token was filled.",
+                        "takerTokenFilledAmount": "How much maker token was filled."
+                    }
+                },
                 "getAllowanceTarget()": {
                     "details": "Get the address of the allowance target.",
                     "returns": { "target": "The target of token allowances." }
                 },
-                "getFunctionImplementation(bytes4)": {
-                    "details": "Get the implementation contract of a registered function.",
-                    "params": { "selector": "The function selector." },
-                    "returns": { "impl": "The implementation contract address." }
+                "getLimitOrderHash((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))": {
+                    "details": "Get the canonical hash of a limit order.",
+                    "params": { "order": "The limit order." },
+                    "returns": { "orderHash": "The order hash." }
+                },
+                "getLimitOrderInfo((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))": {
+                    "details": "Get the order info for a limit order.",
+                    "params": { "order": "The limit order." },
+                    "returns": { "orderInfo": "Info about the order." }
                 },
                 "getMetaTransactionExecutedBlock((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))": {
                     "details": "Get the block at which a meta-transaction has been executed.",
@@ -522,9 +1341,23 @@
                     "params": { "mtxHash": "The meta-transaction hash." },
                     "returns": { "blockNumber": "The block height when the meta-transactioin was executed." }
                 },
+                "getProtocolFeeMultiplier()": {
+                    "details": "Get the protocol fee multiplier. This should be multiplied by the      gas price to arrive at the required protocol fee to fill a native order.",
+                    "returns": { "multiplier": "The protocol fee multiplier." }
+                },
                 "getQuoteSigner()": {
                     "details": "Return the optional signer for `transformERC20()` calldata.",
                     "returns": { "signer": "The transform deployer address." }
+                },
+                "getRfqOrderHash((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256))": {
+                    "details": "Get the canonical hash of an RFQ order.",
+                    "params": { "order": "The RFQ order." },
+                    "returns": { "orderHash": "The order hash." }
+                },
+                "getRfqOrderInfo((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256))": {
+                    "details": "Get the order info for an RFQ order.",
+                    "params": { "order": "The RFQ order." },
+                    "returns": { "orderInfo": "Info about the order." }
                 },
                 "getRollbackEntryAtIndex(bytes4,uint256)": {
                     "details": "Retrieve an entry in the rollback history for a function.",
@@ -572,6 +1405,13 @@
                     "details": "The owner of this contract.",
                     "returns": { "ownerAddress": "The owner address." }
                 },
+                "registerAllowedRfqOrigins(address[],bool)": {
+                    "details": "Mark what tx.origin addresses are allowed to fill an order that      specifies the message sender as its txOrigin.",
+                    "params": {
+                        "allowed": "True to register, false to unregister.",
+                        "origins": "An array of origin addresses to update."
+                    }
+                },
                 "rollback(bytes4,address)": {
                     "details": "Roll back to a prior implementation of a function.",
                     "params": {
@@ -580,17 +1420,17 @@
                     }
                 },
                 "sellToLiquidityProvider(address,address,address,address,uint256,uint256,bytes)": {
-                    "details": "Sells `sellAmount` of `takerToken` to the liquidity provider      at the given `target`.",
+                    "details": "Sells `sellAmount` of `inputToken` to the liquidity provider      at the given `provider` address.",
                     "params": {
-                        "auxiliaryData": "Auxiliary data supplied to the `target` contract.",
-                        "makerToken": "The token being bought.",
-                        "minBuyAmount": "The minimum acceptable amount of `makerToken` to        buy. Reverts if this amount is not satisfied.",
+                        "auxiliaryData": "Auxiliary data supplied to the `provider` contract.",
+                        "inputToken": "The token being sold.",
+                        "minBuyAmount": "The minimum acceptable amount of `outputToken` to        buy. Reverts if this amount is not satisfied.",
+                        "outputToken": "The token being bought.",
+                        "provider": "The address of the on-chain liquidity provider        to trade with.",
                         "recipient": "The recipient of the bought tokens. If equal to        address(0), `msg.sender` is assumed to be the recipient.",
-                        "sellAmount": "The amount of `takerToken` to sell.",
-                        "takerToken": "The token being sold.",
-                        "target": "The address of the on-chain liquidity provider        to trade with."
+                        "sellAmount": "The amount of `inputToken` to sell."
                     },
-                    "returns": { "boughtAmount": "The amount of `makerToken` bought." }
+                    "returns": { "boughtAmount": "The amount of `outputToken` bought." }
                 },
                 "sellToUniswap(address[],uint256,uint256,bool)": {
                     "details": "Efficiently sell directly to uniswap/sushiswap.",
@@ -615,6 +1455,10 @@
                 "transferOwnership(address)": {
                     "details": "Transfers ownership of the contract to a new address.",
                     "params": { "newOwner": "The address that will become the owner." }
+                },
+                "transferProtocolFeesForPools(bytes32[])": {
+                    "details": "Transfers protocol fees from the `FeeCollector` pools into      the staking contract.",
+                    "params": { "poolIds": "Staking pool IDs" }
                 },
                 "transformERC20(address,address,uint256,uint256,(uint32,bytes)[])": {
                     "details": "Executes a series of transformations to convert an ERC20 `inputToken`      to an ERC20 `outputToken`.",
@@ -657,7 +1501,8 @@
                         "evm.bytecode.object",
                         "evm.bytecode.sourceMap",
                         "evm.deployedBytecode.object",
-                        "evm.deployedBytecode.sourceMap"
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
                     ]
                 }
             },
