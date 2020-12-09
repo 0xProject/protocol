@@ -68,7 +68,7 @@ export async function eip712SignTypedDataWithProviderAsync(
     provider: SupportedProvider,
 ): Promise<Signature> {
     const w3w = new Web3Wrapper(providerUtils.standardizeOrThrow(provider));
-    const rpcSig = await w3w.signTypedDataAsync(signer, data);
+    const rpcSig = await w3w.signTypedDataV4Async(signer, data);
     return {
         ...parseRpcSignature(rpcSig),
         signatureType: SignatureType.EIP712,
