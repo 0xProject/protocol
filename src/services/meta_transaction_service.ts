@@ -355,6 +355,7 @@ export class MetaTransactionService {
             // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
             buyTokenAddress: params.isETHBuy ? WETHToken.tokenAddress : params.buyTokenAddress,
             sellTokenAddress: params.sellTokenAddress,
+            shouldSellEntireBalance: false,
         };
 
         const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);

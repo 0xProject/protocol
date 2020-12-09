@@ -159,6 +159,7 @@ export class SwapService {
             // tslint:disable-next-line:boolean-naming
             skipValidation,
             affiliateFee,
+            shouldSellEntireBalance,
         } = params;
         const swapQuote = await this._getMarketBuyOrSellQuoteAsync(params);
 
@@ -184,6 +185,7 @@ export class SwapService {
             isETHSell,
             isETHBuy,
             isMetaTransaction,
+            shouldSellEntireBalance,
             affiliateAddress,
             { recipient: affiliateFee.recipient, buyTokenFeeAmount, sellTokenFeeAmount },
         );
@@ -227,7 +229,12 @@ export class SwapService {
         let adjustedWorstCaseProtocolFee = protocolFee;
         let adjustedValue = value;
 
-        const erc20AllowanceTarget = this._contractAddresses.exchangeProxyAllowanceTarget;
+        // If the entire caller amount is requested to be sold, this requires the new allowance target
+        // i.e the exchange proxy. The old allowance target will eventually be deprecated
+        const erc20AllowanceTarget = shouldSellEntireBalance
+            ? this._contractAddresses.exchangeProxy
+            : this._contractAddresses.exchangeProxyAllowanceTarget;
+
         // With v1 we are able to fill bridges directly so the protocol fee is lower
         const nativeFills = _.flatten(swapQuote.orders.map(order => order.fills)).filter(
             fill => fill.source === ERC20BridgeSource.Native,
@@ -648,12 +655,13 @@ export class SwapService {
         isFromETH: boolean,
         isToETH: boolean,
         isMetaTransaction: boolean,
+        shouldSellEntireBalance: boolean,
         affiliateAddress: string | undefined,
         affiliateFee: AffiliateFee,
     ): Promise<SwapQuoteResponsePartialTransaction> {
         const opts: Partial<SwapQuoteGetOutputOpts> = {
             useExtensionContract: ExtensionContractType.ExchangeProxy,
-            extensionContractOpts: { isFromETH, isToETH, isMetaTransaction, affiliateFee },
+            extensionContractOpts: { isFromETH, isToETH, isMetaTransaction, shouldSellEntireBalance, affiliateFee },
         };
 
         const {

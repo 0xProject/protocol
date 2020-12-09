@@ -222,6 +222,7 @@ export class SwapHandlers {
             affiliateFee,
             // tslint:disable-next-line:boolean-naming
             includePriceComparisons,
+            shouldSellEntireBalance,
         } = params;
 
         const isETHSell = isETHSymbolOrAddress(sellToken);
@@ -277,6 +278,7 @@ export class SwapHandlers {
             affiliateFee,
             isMetaTransaction: false,
             includePriceComparisons,
+            shouldSellEntireBalance,
         };
         try {
             let swapQuote: GetSwapQuoteResponse;
@@ -439,6 +441,9 @@ const parseGetSwapQuoteRequestParams = (
 
     // tslint:disable-next-line:boolean-naming
     const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;
+    // Whether the entire callers balance should be sold, used for contracts where the
+    // amount available is non-deterministic
+    const shouldSellEntireBalance = req.query.shouldSellEntireBalance === 'true' ? true : false;
     return {
         takerAddress,
         sellToken,
@@ -455,5 +460,6 @@ const parseGetSwapQuoteRequestParams = (
         apiKey,
         affiliateFee,
         includePriceComparisons,
+        shouldSellEntireBalance,
     };
 };
