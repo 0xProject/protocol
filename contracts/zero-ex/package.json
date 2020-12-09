@@ -37,7 +37,8 @@
         "compile:truffle": "truffle compile",
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES",
-        "publish:private": "yarn build && gitpkg publish"
+        "publish:private": "yarn build && gitpkg publish",
+        "rollback": "node ./lib/src/rollback.js"
     },
     "config": {
         "publicInterfaceContracts": "IZeroEx,ZeroEx,FullMigration,InitialMigration,IFlashWallet,IAllowanceTarget,IERC20Transformer,IOwnableFeature,ISimpleFunctionRegistryFeature,ITokenSpenderFeature,ITransformERC20Feature,FillQuoteTransformer,PayTakerTransformer,WethTransformer,OwnableFeature,SimpleFunctionRegistryFeature,TransformERC20Feature,TokenSpenderFeature,AffiliateFeeTransformer,SignatureValidatorFeature,MetaTransactionsFeature,LogMetadataTransformer,BridgeAdapter,LiquidityProviderFeature,ILiquidityProviderFeature,NativeOrdersFeature,INativeOrdersFeature,FeeCollectorController,FeeCollector",
@@ -55,6 +56,7 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/zero-ex",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.13",
+        "@0x/contract-addresses": "^5.6.0",
         "@0x/contracts-erc20": "^3.2.12",
         "@0x/contracts-gen": "^2.0.24",
         "@0x/contracts-test-utils": "^5.3.15",
@@ -62,11 +64,15 @@
         "@0x/sol-compiler": "^4.4.1",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.3",
+        "@types/isomorphic-fetch": "^0.0.35",
         "@types/lodash": "4.14.104",
         "@types/mocha": "^5.2.7",
+        "@types/prompts": "^2.0.9",
+        "isomorphic-fetch": "^3.0.0",
         "lodash": "^4.17.11",
         "mocha": "^6.2.0",
         "npm-run-all": "^4.1.2",
+        "prompts": "^2.4.0",
         "shx": "^0.2.2",
         "solhint": "^1.4.1",
         "truffle": "^5.0.32",
