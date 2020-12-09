@@ -38,7 +38,7 @@
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES",
         "publish:private": "yarn build && gitpkg publish",
-        "rollback": "node ./lib/src/rollback.js"
+        "rollback": "node ./lib/scripts/rollback.js"
     },
     "config": {
         "publicInterfaceContracts": "IZeroEx,ZeroEx,FullMigration,InitialMigration,IFlashWallet,IAllowanceTarget,IERC20Transformer,IOwnableFeature,ISimpleFunctionRegistryFeature,ITokenSpenderFeature,ITransformERC20Feature,FillQuoteTransformer,PayTakerTransformer,WethTransformer,OwnableFeature,SimpleFunctionRegistryFeature,TransformERC20Feature,TokenSpenderFeature,AffiliateFeeTransformer,SignatureValidatorFeature,MetaTransactionsFeature,LogMetadataTransformer,BridgeAdapter,LiquidityProviderFeature,ILiquidityProviderFeature,NativeOrdersFeature,INativeOrdersFeature,FeeCollectorController,FeeCollector",

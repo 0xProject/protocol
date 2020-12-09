@@ -8,7 +8,7 @@ import * as fetch from 'isomorphic-fetch';
 import * as _ from 'lodash';
 import * as prompts from 'prompts';
 
-import * as wrappers from './wrappers';
+import * as wrappers from '../src/wrappers';
 
 const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/mzhu25/zeroex-migrations';
 
@@ -23,6 +23,7 @@ const DO_NOT_ROLLBACK = [
     simpleFunctionRegistryFeature.getSelector('rollback'),
     simpleFunctionRegistryFeature.getSelector('extend'),
 ];
+
 const governorEncoder = AbiEncoder.create('(bytes[], address[], uint256[])');
 
 const selectorToSignature: { [selector: string]: string } = {};
@@ -89,26 +90,15 @@ function reconstructDeployments(proxyFunctions: ProxyFunctionEntity[]): Deployme
     const deploymentsByTimestamp: { [timestamp: string]: Deployment } = {};
     proxyFunctions.map(fn => {
         fn.fullHistory.map((update, i) => {
-            if (update.timestamp in deploymentsByTimestamp) {
-                deploymentsByTimestamp[update.timestamp].updates.push({
-                    selector: fn.id,
-                    signature: selectorToSignature[fn.id],
-                    previousImpl: i > 0 ? fn.fullHistory[i - 1].impl : constants.NULL_ADDRESS,
-                    newImpl: update.impl,
-                });
-            } else {
-                deploymentsByTimestamp[update.timestamp] = {
-                    time: timestampToUTC(update.timestamp),
-                    updates: [
-                        {
-                            selector: fn.id,
-                            signature: selectorToSignature[fn.id],
-                            previousImpl: i > 0 ? fn.fullHistory[i - 1].impl : constants.NULL_ADDRESS,
-                            newImpl: update.impl,
-                        },
-                    ],
-                };
-            }
+            const { updates } = (deploymentsByTimestamp[update.timestamp] = deploymentsByTimestamp[
+                update.timestamp
+            ] || { time: timestampToUTC(update.timestamp), updates: [] });
+            updates.push({
+                selector: fn.id,
+                signature: selectorToSignature[fn.id],
+                previousImpl: i > 0 ? fn.fullHistory[i - 1].impl : constants.NULL_ADDRESS,
+                newImpl: update.impl,
+            });
         });
     });
     return Object.values(deploymentsByTimestamp);
@@ -205,19 +195,16 @@ async function generateRollbackAsync(
         type: 'autocompleteMultiselect',
         name: 'selected',
         message: 'Select the functions to rollback:',
-        choices: _.flatMap(
-            proxyFunctions.filter(fn => fn.currentImpl !== constants.NULL_ADDRESS && !DO_NOT_ROLLBACK.includes(fn.id)),
-            fn => [
-                {
-                    title: [
-                        `[${fn.id}]`,
-                        `Implemented @ ${fn.currentImpl}`,
-                        selectorToSignature[fn.id] || '(function signature not found)',
-                    ].join('\n                '),
-                    value: fn.id,
-                },
-            ],
-        ),
+        choices: _.flatMap(proxyFunctions.filter(fn => fn.currentImpl !== constants.NULL_ADDRESS), fn => [
+            {
+                title: [
+                    `[${fn.id}]`,
+                    `Implemented @ ${fn.currentImpl}`,
+                    selectorToSignature[fn.id] || '(function signature not found)',
+                ].join('\n\t\t\t\t'),
+                value: fn.id,
+            },
+        ]),
     });
     const rollbackTargets: { [selector: string]: string } = {};
     for (const selector of selected) {
@@ -228,6 +215,7 @@ async function generateRollbackAsync(
             ),
         );
         const fullHistory = proxyFunctions.find(fn => fn.id === selector)!.fullHistory;
+        const previousImpl = rollbackHistory[rollbackLength - 1];
         const { target } = await prompts({
             type: 'select',
             name: 'target',
@@ -241,8 +229,10 @@ async function generateRollbackAsync(
                 },
                 {
                     title: 'PREVIOUS',
-                    value: rollbackHistory[rollbackLength - 1],
-                    description: rollbackHistory[rollbackLength - 1],
+                    value: previousImpl,
+                    description: `${previousImpl} (${timestampToUTC(
+                        _.findLast(fullHistory, update => update.impl === previousImpl)!.timestamp,
+                    )})`,
                 },
                 ...[...new Set(rollbackHistory)]
                     .filter(impl => impl !== constants.NULL_ADDRESS)
@@ -280,10 +270,11 @@ async function generateRollbackAsync(
     }
 }
 
-async function generateEmergencyRollbackAsync(
-    proxyFunctions: ProxyFunctionEntity[],
-    zeroEx: wrappers.IZeroExContract,
-): Promise<void> {
+async function generateEmergencyRollbackAsync(proxyFunctions: ProxyFunctionEntity[]): Promise<void> {
+    const zeroEx = new wrappers.IZeroExContract(
+        getContractAddressesForChainOrThrow(1).exchangeProxy,
+        new Web3ProviderEngine(),
+    );
     const allSelectors = proxyFunctions
         .filter(fn => fn.currentImpl !== constants.NULL_ADDRESS && !DO_NOT_ROLLBACK.includes(fn.id))
         .map(fn => fn.id);
@@ -315,7 +306,7 @@ async function generateEmergencyRollbackAsync(
                 { title: '🗺️  Currently registered functions', value: CommandLineActions.Current },
                 { title: '🔙 Generate rollback calldata', value: CommandLineActions.Rollback },
                 { title: '🚨 Emergency shutdown calldata', value: CommandLineActions.Emergency },
-                { title: 'Exit', value: CommandLineActions.Exit },
+                { title: '👋 Exit', value: CommandLineActions.Exit },
             ],
         });
 
@@ -340,15 +331,11 @@ async function generateEmergencyRollbackAsync(
                 }
                 const chainId = await new Web3Wrapper(provider).getChainIdAsync();
                 const { exchangeProxy } = getContractAddressesForChainOrThrow(chainId);
-                let zeroEx = new wrappers.IZeroExContract(exchangeProxy, provider);
+                const zeroEx = new wrappers.IZeroExContract(exchangeProxy, provider);
                 await generateRollbackAsync(proxyFunctions, zeroEx);
                 break;
             case CommandLineActions.Emergency:
-                zeroEx = new wrappers.IZeroExContract(
-                    getContractAddressesForChainOrThrow(1).exchangeProxy,
-                    new Web3ProviderEngine(),
-                );
-                await generateEmergencyRollbackAsync(proxyFunctions, zeroEx);
+                await generateEmergencyRollbackAsync(proxyFunctions);
                 break;
             case CommandLineActions.Exit:
             default:
