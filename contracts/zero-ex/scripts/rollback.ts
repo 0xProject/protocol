@@ -106,13 +106,6 @@ function reconstructDeployments(proxyFunctions: ProxyFunctionEntity[]): Deployme
         .map(timestamp => deploymentsByTimestamp[timestamp]);
 }
 
-function createWeb3Provider(rpcUrl: string): SupportedProvider {
-    const providerEngine = new Web3ProviderEngine();
-    providerEngine.addProvider(new RPCSubprovider(rpcUrl));
-    providerUtils.startProviderEngine(providerEngine);
-    return providerEngine;
-}
-
 function timestampToUTC(timestamp: string): string {
     return new Date(Number.parseInt(timestamp, 10) * 1000).toUTCString();
 }
@@ -126,23 +119,91 @@ enum CommandLineActions {
     Exit = 'Exit',
 }
 
-async function deploymentHistoryAsync(deployments: Deployment[]): Promise<void> {
+async function confirmRollbackAsync(
+    rollbackTargets: { [selector: string]: string },
+    proxyFunctions: ProxyFunctionEntity[],
+): Promise<boolean> {
+    const { confirmed } = await prompts({
+        type: 'confirm',
+        name: 'confirmed',
+        message: `Are these the correct rollbacks?\n${Object.entries(rollbackTargets)
+            .map(
+                ([selector, target]) =>
+                    `[${selector}] ${selectorToSignature[selector] || '(function signature not found)'} \n    ${
+                        proxyFunctions.find(fn => fn.id === selector)!.currentImpl
+                    } => ${target}`,
+            )
+            .join('\n')}`,
+    });
+    return confirmed;
+}
+
+async function deploymentHistoryAsync(deployments: Deployment[], proxyFunctions: ProxyFunctionEntity[]): Promise<void> {
     const { index } = await prompts({
         type: 'select',
         name: 'index',
-        message: 'What would you like to do?',
+        message: 'Choose a deployment:',
         choices: deployments.map((deployment, i) => ({
             title: deployment.time,
             value: i,
         })),
     });
-    logUtils.log(
-        deployments[index].updates.map(update => ({
-            selector: update.selector,
-            signature: update.signature || '(function signature not found)',
-            update: `${update.previousImpl} => ${update.newImpl}`,
-        })),
-    );
+
+    const { action } = await prompts({
+        type: 'select',
+        name: 'action',
+        message: 'What would you like to do?',
+        choices: [
+            { title: 'Deployment info', value: 'info' },
+            { title: 'Rollback this deployment', value: 'rollback' },
+        ],
+    });
+
+    if (action === 'info') {
+        logUtils.log(
+            deployments[index].updates.map(update => ({
+                selector: update.selector,
+                signature: update.signature || '(function signature not found)',
+                update: `${update.previousImpl} => ${update.newImpl}`,
+            })),
+        );
+    } else {
+        const zeroEx = await getMainnetContractAsync();
+        const rollbackTargets: { [selector: string]: string } = {};
+        for (const update of deployments[index].updates) {
+            rollbackTargets[update.selector] = update.previousImpl;
+            const rollbackLength = (await zeroEx.getRollbackLength(update.selector).callAsync()).toNumber();
+            for (let i = rollbackLength - 1; i >= 0; i--) {
+                const entry = await zeroEx.getRollbackEntryAtIndex(update.selector, new BigNumber(i)).callAsync();
+                if (entry === update.previousImpl) {
+                    break;
+                } else if (i === 0) {
+                    logUtils.log(
+                        'Cannot rollback this deployment. The following update from this deployment cannot be rolled back:',
+                    );
+                    logUtils.log(`\t[${update.selector}] ${update.signature || '(function signature not found)'}`);
+                    logUtils.log(`\t${update.previousImpl} => ${update.newImpl}`);
+                    logUtils.log(
+                        `Cannot find ${
+                            update.previousImpl
+                        } in the selector's rollback history. It itself may have been previously rolled back.`,
+                    );
+                    return;
+                }
+            }
+        }
+        const isConfirmed = await confirmRollbackAsync(rollbackTargets, proxyFunctions);
+        if (isConfirmed) {
+            const rollbackCallData = governorEncoder.encode([
+                Object.entries(rollbackTargets).map(([selector, target]) =>
+                    zeroEx.rollback(selector, target).getABIEncodedTransactionData(),
+                ),
+                new Array(Object.keys(rollbackTargets).length).fill(zeroEx.address),
+                new Array(Object.keys(rollbackTargets).length).fill(constants.ZERO_AMOUNT),
+            ]);
+            logUtils.log(rollbackCallData);
+        }
+    }
 }
 
 async function functionHistoryAsync(proxyFunctions: ProxyFunctionEntity[]): Promise<void> {
@@ -189,10 +250,8 @@ async function currentFunctionsAsync(proxyFunctions: ProxyFunctionEntity[]): Pro
     logUtils.log(currentFunctions);
 }
 
-async function generateRollbackAsync(
-    proxyFunctions: ProxyFunctionEntity[],
-    zeroEx: wrappers.IZeroExContract,
-): Promise<void> {
+async function generateRollbackAsync(proxyFunctions: ProxyFunctionEntity[]): Promise<void> {
+    const zeroEx = await getMainnetContractAsync();
     const { selected } = await prompts({
         type: 'autocompleteMultiselect',
         name: 'selected',
@@ -248,19 +307,8 @@ async function generateRollbackAsync(
         rollbackTargets[selector] = target;
     }
 
-    const { confirmed } = await prompts({
-        type: 'confirm',
-        name: 'confirmed',
-        message: `Are these the correct rollbacks?\n${selected
-            .map(
-                (selector: string) =>
-                    `[${selector}] ${selectorToSignature[selector] || '(function signature not found)'} \n    ${
-                        proxyFunctions.find(fn => fn.id === selector)!.currentImpl
-                    } => ${rollbackTargets[selector]}`,
-            )
-            .join('\n')}`,
-    });
-    if (confirmed) {
+    const isConfirmed = await confirmRollbackAsync(rollbackTargets, proxyFunctions);
+    if (isConfirmed) {
         const rollbackCallData = governorEncoder.encode([
             selected.map((selector: string) =>
                 zeroEx.rollback(selector, rollbackTargets[selector]).getABIEncodedTransactionData(),
@@ -290,10 +338,30 @@ async function generateEmergencyRollbackAsync(proxyFunctions: ProxyFunctionEntit
     logUtils.log(emergencyCallData);
 }
 
+let provider: SupportedProvider | undefined = process.env.RPC_URL ? createWeb3Provider(process.env.RPC_URL) : undefined;
+
+function createWeb3Provider(rpcUrl: string): SupportedProvider {
+    const providerEngine = new Web3ProviderEngine();
+    providerEngine.addProvider(new RPCSubprovider(rpcUrl));
+    providerUtils.startProviderEngine(providerEngine);
+    return providerEngine;
+}
+
+async function getMainnetContractAsync(): Promise<wrappers.IZeroExContract> {
+    if (provider === undefined) {
+        const { rpcUrl } = await prompts({
+            type: 'text',
+            name: 'rpcUrl',
+            message: 'Enter an RPC endpoint:',
+        });
+        provider = createWeb3Provider(rpcUrl);
+    }
+    const chainId = await new Web3Wrapper(provider).getChainIdAsync();
+    const { exchangeProxy } = getContractAddressesForChainOrThrow(chainId);
+    return new wrappers.IZeroExContract(exchangeProxy, provider);
+}
+
 (async () => {
-    let provider: SupportedProvider | undefined = process.env.RPC_URL
-        ? createWeb3Provider(process.env.RPC_URL)
-        : undefined;
     const proxyFunctions = await querySubgraphAsync();
     const deployments = reconstructDeployments(proxyFunctions);
 
@@ -314,7 +382,7 @@ async function generateEmergencyRollbackAsync(proxyFunctions: ProxyFunctionEntit
 
         switch (action) {
             case CommandLineActions.History:
-                await deploymentHistoryAsync(deployments);
+                await deploymentHistoryAsync(deployments, proxyFunctions);
                 break;
             case CommandLineActions.Function:
                 await functionHistoryAsync(proxyFunctions);
@@ -323,18 +391,7 @@ async function generateEmergencyRollbackAsync(proxyFunctions: ProxyFunctionEntit
                 await currentFunctionsAsync(proxyFunctions);
                 break;
             case CommandLineActions.Rollback:
-                if (provider === undefined) {
-                    const { rpcUrl } = await prompts({
-                        type: 'text',
-                        name: 'rpcUrl',
-                        message: 'Enter an RPC endpoint:',
-                    });
-                    provider = createWeb3Provider(rpcUrl);
-                }
-                const chainId = await new Web3Wrapper(provider).getChainIdAsync();
-                const { exchangeProxy } = getContractAddressesForChainOrThrow(chainId);
-                const zeroEx = new wrappers.IZeroExContract(exchangeProxy, provider);
-                await generateRollbackAsync(proxyFunctions, zeroEx);
+                await generateRollbackAsync(proxyFunctions);
                 break;
             case CommandLineActions.Emergency:
                 await generateEmergencyRollbackAsync(proxyFunctions);
