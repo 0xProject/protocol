@@ -101,7 +101,9 @@ function reconstructDeployments(proxyFunctions: ProxyFunctionEntity[]): Deployme
             });
         });
     });
-    return Object.values(deploymentsByTimestamp);
+    return Object.keys(deploymentsByTimestamp)
+        .sort()
+        .map(timestamp => deploymentsByTimestamp[timestamp]);
 }
 
 function createWeb3Provider(rpcUrl: string): SupportedProvider {
