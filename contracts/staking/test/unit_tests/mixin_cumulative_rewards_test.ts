@@ -35,6 +35,7 @@ blockchainTests.resets('MixinCumulativeRewards unit tests', env => {
             artifacts,
             stakingConstants.NIL_ADDRESS,
             stakingConstants.NIL_ADDRESS,
+            stakingConstants.NIL_ADDRESS,
         );
 
         // Create a test pool

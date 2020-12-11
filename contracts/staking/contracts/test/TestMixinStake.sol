@@ -67,6 +67,8 @@ contract TestMixinStake is
         address delegator
     );
 
+    address public testOnchainGov;
+
     /// @dev Advance the epoch counter.
     function advanceEpoch() external {
         currentEpoch += 1;
@@ -123,6 +125,36 @@ contract TestMixinStake is
         public
     {
         _ownerStakeByStatus[uint8(status)][owner] = stake;
+    }
+
+    /// @dev Sets the onchain goverance contract address
+    /// @param onchainGovAddress The address of the onchain gov entry point
+    function setOnchainGov(address onchainGovAddress)
+        public
+    {
+        testOnchainGov = onchainGovAddress;
+    }
+
+    /// @dev Overriden so that tests use actual address not constant
+    /// note we expect that this contract is deployed without proxy so
+    /// is loaded from storage
+    function getOnchainGov()
+        public
+        view
+        returns (IOnchainGov gov)
+    {
+        gov = IOnchainGov(testOnchainGov);
+        return gov;
+    }
+
+    /// @dev Method so that tests can set onchain gov power
+    function addOnchainGovPower(address who, uint256 amount) public {
+        _addGovPower(who, amount);
+    }
+
+    /// @dev Method so that tests can set onchain gov power
+    function removeOnchainGovPower(address who, uint256 amount) public {
+        _removeGovPower(who, amount);
     }
 
     /// @dev Overridden to use this contract as the ZRX vault.

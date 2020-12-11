@@ -53,7 +53,7 @@ contract MixinDeploymentConstants {
 
     // The contract which tracks goverance power for the onchain
     // goverance system
-    address constant private ONCHAIN_GOVERANCE = address(0x00);
+    address constant private ONCHAIN_GOVERANCE = address(1);
 
     /// @dev An overridable way to access the deployed WETH contract.
     ///      Must be view to allow overrides to access state.
@@ -79,7 +79,7 @@ contract MixinDeploymentConstants {
         return zrxVault;
     }
 
-        /// @dev An overridable way to access the deployed zrxVault.
+    /// @dev An overridable way to access the deployed zrxVault.
     ///      Must be view to allow overrides to access state.
     /// @return zrxVault The zrxVault contract.
     function getOnchainGov()

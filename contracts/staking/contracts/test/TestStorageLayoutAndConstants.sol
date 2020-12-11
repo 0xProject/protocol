@@ -51,6 +51,11 @@ contract TestStorageLayoutAndConstants is
             address(getZrxVault()) != address(0),
             "ZRX_VAULT_MUST_BE_SET"
         );
+
+        require(
+            address(getOnchainGov()) != address(0),
+            "ONCHAIN_GOV_MUST_BE_SET"
+        );
     }
 
     /// @dev This function will fail if the storage layout of this contract deviates from

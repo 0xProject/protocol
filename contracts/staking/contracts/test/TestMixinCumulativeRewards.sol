@@ -28,12 +28,14 @@ contract TestMixinCumulativeRewards is
 
     constructor(
         address wethAddress,
-        address zrxVaultAddress
+        address zrxVaultAddress,
+        address onchainGovAddress
     )
         public
         TestStaking(
             wethAddress,
-            zrxVaultAddress
+            zrxVaultAddress,
+            onchainGovAddress
         )
     {
         _addAuthorizedAddress(msg.sender);

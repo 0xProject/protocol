@@ -14,6 +14,7 @@ import { StakeStatus } from '../../src/types';
 
 import { artifacts } from '../artifacts';
 import {
+    GoverancePowerContract,
     TestMixinStakeContract,
     TestMixinStakeDecreaseCurrentAndNextBalanceEventArgs as DecreaseCurrentAndNextBalanceEventArgs,
     TestMixinStakeDecreaseNextBalanceEventArgs as DecreaseNextBalanceEventArgs,
@@ -32,6 +33,7 @@ import {
 blockchainTests.resets('MixinStake unit tests', env => {
     let testContract: TestMixinStakeContract;
     let staker: string;
+    let govContract: GoverancePowerContract;
     let stakerUndelegatedStakeSlot: string;
     let currentEpoch: BigNumber;
 
@@ -43,6 +45,16 @@ blockchainTests.resets('MixinStake unit tests', env => {
             env.txDefaults,
             artifacts,
         );
+        govContract = await GoverancePowerContract.deployFrom0xArtifactAsync(
+            artifacts.GoverancePower,
+            env.provider,
+            env.txDefaults,
+            artifacts,
+            testContract.address,
+        );
+        // Set the onchain gov contract to the right one
+        await testContract.setOnchainGov(govContract.address).awaitTransactionSuccessAsync();
+
         currentEpoch = await testContract.currentEpoch().callAsync();
         stakerUndelegatedStakeSlot = await testContract
             .getOwnerStakeByStatusSlot(staker, StakeStatus.Undelegated)
@@ -78,6 +90,13 @@ blockchainTests.resets('MixinStake unit tests', env => {
             expect(events).to.be.length(1);
             expect(events[0].staker).to.eq(staker);
             expect(events[0].amount).to.bignumber.eq(amount);
+        });
+
+        it('Increases onchain gov power', async () => {
+            const amount = getRandomInteger(0, 100e18);
+            await testContract.stake(amount).awaitTransactionSuccessAsync();
+            const power_amount = await govContract.balanceOf(staker).callAsync();
+            expect(power_amount).to.be.bignumber.eq(amount);
         });
     });
 
@@ -150,6 +169,19 @@ blockchainTests.resets('MixinStake unit tests', env => {
             expect(events).to.be.length(1);
             expect(events[0].staker).to.eq(staker);
             expect(events[0].amount).to.bignumber.eq(amount);
+        });
+
+        it('decreases goverence power for user', async () => {
+            const amount = getRandomInteger(0, 100e18);
+            // Stake to create balance, and check it was created
+            await testContract.stake(amount).awaitTransactionSuccessAsync();
+            let power_amount = await govContract.balanceOf(staker).callAsync();
+            expect(power_amount).to.be.bignumber.eq(amount);
+            await setUndelegatedStakeAsync(amount, amount);
+            // Unstake to remove balance
+            await testContract.unstake(amount).awaitTransactionSuccessAsync();
+            power_amount = await govContract.balanceOf(staker).callAsync();
+            expect(power_amount).to.be.bignumber.eq(0);
         });
     });
 
@@ -484,6 +516,82 @@ blockchainTests.resets('MixinStake unit tests', env => {
             expect(events[0].fromPool).to.eq(VALID_POOL_IDS[0]);
             expect(events[0].toPool).to.eq(VALID_POOL_IDS[1]);
         });
+
+        // A BigNumber floored half function
+        function half(amount: BigNumber): BigNumber {
+            if (amount.mod(2).eq(1)) {
+                return amount.minus(1).div(2);
+            } else {
+                return amount.div(2);
+            }
+        }
+
+        it('it sets gov power correctly when from is undelegated and too is delegated', async () => {
+            const amount = getRandomInteger(0, 100e18);
+            // We need to put the amount into the contract to create gov power
+            await testContract.addOnchainGovPower(staker, amount).awaitTransactionSuccessAsync();
+            // then we move it
+            await testContract
+                .moveStake(
+                    { status: StakeStatus.Undelegated, poolId: VALID_POOL_IDS[0] },
+                    { status: StakeStatus.Delegated, poolId: VALID_POOL_IDS[1] },
+                    amount,
+                )
+                .awaitTransactionSuccessAsync();
+            // Assigns half to the user
+            let power_amount = await govContract.balanceOf(staker).callAsync();
+            expect(power_amount).to.be.bignumber.eq(amount.minus(half(amount)));
+            // Assigns half to the pool operator
+            const pool = await testContract.getStakingPool(VALID_POOL_IDS[1]).callAsync();
+            power_amount = await govContract.balanceOf(pool.operator).callAsync();
+            expect(power_amount).to.be.bignumber.eq(half(amount));
+        });
+
+        it('it sets gov power correctly when from is delegated and too is undelegated', async () => {
+            const amount = getRandomInteger(0, 100e18);
+            // We need to put the amount into the contract to create gov power
+            const pool = await testContract.getStakingPool(VALID_POOL_IDS[0]).callAsync();
+            await testContract.addOnchainGovPower(staker, amount.minus(half(amount))).awaitTransactionSuccessAsync();
+            await testContract.addOnchainGovPower(pool.operator, half(amount)).awaitTransactionSuccessAsync();
+            // then we move it
+            await testContract
+                .moveStake(
+                    { status: StakeStatus.Delegated, poolId: VALID_POOL_IDS[0] },
+                    { status: StakeStatus.Undelegated, poolId: VALID_POOL_IDS[1] },
+                    amount,
+                )
+                .awaitTransactionSuccessAsync();
+            // Assigns half to the user
+            let power_amount = await govContract.balanceOf(staker).callAsync();
+            expect(power_amount).to.be.bignumber.eq(amount);
+            // Assigns half to the pool operator
+            power_amount = await govContract.balanceOf(pool.operator).callAsync();
+            expect(power_amount).to.be.bignumber.eq(0);
+        });
+
+        it('It sets gov power correctly when moving between pools', async () => {
+            const amount = getRandomInteger(0, 100e18);
+            const pool0 = await testContract.getStakingPool(VALID_POOL_IDS[0]).callAsync();
+            const pool1 = await testContract.getStakingPool(VALID_POOL_IDS[1]).callAsync();
+            // We need to put the amount into the contract to create gov power
+            await testContract.addOnchainGovPower(staker, amount.minus(half(amount))).awaitTransactionSuccessAsync();
+            await testContract.addOnchainGovPower(pool0.operator, half(amount)).awaitTransactionSuccessAsync();
+            // then we move it
+            await testContract
+                .moveStake(
+                    { status: StakeStatus.Delegated, poolId: VALID_POOL_IDS[0] },
+                    { status: StakeStatus.Delegated, poolId: VALID_POOL_IDS[1] },
+                    amount,
+                )
+                .awaitTransactionSuccessAsync();
+            // Assigns half to the user
+            let power_amount = await govContract.balanceOf(staker).callAsync();
+            expect(power_amount).to.be.bignumber.eq(amount.minus(half(amount)));
+            // Assigns half to the pool operator
+            power_amount = await govContract.balanceOf(pool1.operator).callAsync();
+            expect(power_amount).to.be.bignumber.eq(half(amount));
+        });
     });
 });
+
 // tslint:disable: max-file-line-count

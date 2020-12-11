@@ -1,5 +1,5 @@
 import { ERC20Wrapper } from '@0x/contracts-asset-proxy';
-import { blockchainTests, describe, toBaseUnitAmount } from '@0x/contracts-test-utils';
+import { blockchainTests, describe, expect, toBaseUnitAmount } from '@0x/contracts-test-utils';
 import { BigNumber, StakingRevertErrors } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -332,6 +332,39 @@ blockchainTests.resets('Stake Statuses', env => {
             const amount = toBaseUnitAmount(10);
             await staker.stakeAsync(amount);
             await staker.unstakeAsync(amount);
+        });
+    });
+    describe('Synchronize gov power', () => {
+        it("should be able to rebalance next epoch's stake", async () => {
+            // epoch 2
+            const amount = toBaseUnitAmount(10);
+            await staker.stakeAsync(amount);
+            await staker.moveStakeAsync(
+                new StakeInfo(StakeStatus.Undelegated),
+                new StakeInfo(StakeStatus.Delegated, poolIds[0]),
+                amount,
+            );
+            // Load relevant actions and remove current gov power
+            const stakingContract = staker.getStakingApiWrapper().stakingContract;
+            const pool0 = await stakingContract.getStakingPool(poolIds[0]).callAsync();
+            const onchainGov = staker.getStakingApiWrapper().onchainGovContract;
+            await stakingContract.removeOnchainGovPower(owner, amount).awaitTransactionSuccessAsync();
+            await stakingContract.removeOnchainGovPower(pool0.operator, amount).awaitTransactionSuccessAsync();
+            // Assigns half to the user
+            let power_amount = await onchainGov.balanceOf(owner).callAsync();
+            expect(power_amount).to.be.bignumber.eq(0);
+            // Assigns half to the pool operator
+            power_amount = await onchainGov.balanceOf(pool0.operator).callAsync();
+            expect(power_amount).to.be.bignumber.eq(0);
+
+            // Now try to synchronize
+            await stakingContract.synchronizeGovPower(poolIds[0], owner).awaitTransactionSuccessAsync({ from: owner });
+            // Assigns half to the user
+            power_amount = await onchainGov.balanceOf(owner).callAsync();
+            expect(power_amount).to.be.bignumber.eq(amount.div(2));
+            // Assigns half to the pool operator
+            power_amount = await onchainGov.balanceOf(pool0.operator).callAsync();
+            expect(power_amount).to.be.bignumber.eq(amount.div(2));
         });
     });
     describe('Simulations', () => {

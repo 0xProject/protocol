@@ -1,5 +1,6 @@
 pragma solidity ^0.5.16;
 
+
 interface IOnchainGov {
     // Creates goverence power
     function mint(address account, uint96 amount) external;

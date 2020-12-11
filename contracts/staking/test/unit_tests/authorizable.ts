@@ -26,6 +26,7 @@ blockchainTests.resets('Staking Authorization Tests', env => {
             artifacts,
             constants.NULL_ADDRESS,
             constants.NULL_ADDRESS,
+            constants.NULL_ADDRESS,
         );
     });
 

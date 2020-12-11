@@ -3,10 +3,13 @@
 pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 
+
 contract GoverancePower {
     
     /// @notice A name to identify this contract in signature hashes
-    string public constant name = "ZRXGoverance";
+    // Sol hint thinks this isn't SNAKE_CASE
+    // solhint-disable-next-line
+    string public constant name = "ZRX_GOVERANCE";
 
     /// @notice Official record of token balances for each account
     mapping (address => uint96) internal balances;
@@ -41,7 +44,7 @@ contract GoverancePower {
     /// @notice An event thats emitted when a delegate account's vote balance changes
     event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
 
-    address minter;
+    address public minter;
     
     event Minted(address indexed account, uint96 amount);
     
@@ -55,6 +58,47 @@ contract GoverancePower {
         minter = _minter;
     }
 
+    // This function allows the creation of new voting tokens
+    // it is only callable by the minter.
+    // It automatically self delegates the amount minted to the account
+    // for which the tokens are minted.
+    function mint(address account, uint96 amount) external {
+        // Check that the caller is the minter
+        require(msg.sender == minter, "Mint:Caller Lacks Permission"); 
+        _mint(account, amount);
+    }
+    
+    // This function removes voting tokens from existance
+    // it is only callable by the 'minter' contract
+    // It removes the delegates appropriate number of delegates
+    // from whomever has been delegate to by this account.
+    function burn(address account, uint96 amount) external {
+        // Check that the caller is the minter
+        require(msg.sender == minter, "Burn:Caller Lacks Permission");
+        _burn(account, amount);
+    }
+
+    // This function sets the voting power to an indicated level
+    // after the minter calls this function the voting power for 'account'
+    // will be 'amount'
+    function setVotingPower(address account, uint96 amount, address delegator) external {
+        require(msg.sender == minter, "setVotingPower:Caller Lacks Permissions");
+        uint96 balance = balances[account];
+        if (amount > balance) {
+            // Creates the amount minus current balance
+            // so that the voting power afterwords will be amount
+            _mint(account, amount - balance);
+        } else {
+            // Removes current balance minus account tokens
+            // which means that the current voting power will be
+            // 'amount' after.
+            _burn(account, balance - amount);
+        }
+        if (account != delegator) {
+            _delegate(account, delegator);
+        }
+    }
+
     /**
      * @notice Get the number of tokens held by the `account`
      * @param account The address of the account to get the balance of
@@ -64,6 +108,15 @@ contract GoverancePower {
         return balances[account];
     }
 
+    /**
+     * @notice Gets the current votes balance for `account`
+     * @param account The address to get votes balance
+     * @return The number of current votes for `account`
+     */
+    function getCurrentVotes(address account) external view returns (uint96) {
+        uint32 nCheckpoints = numCheckpoints[account];
+        return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
+    }
 
     /**
      * @notice Delegate votes from `msg.sender` to `delegatee`
@@ -91,80 +144,6 @@ contract GoverancePower {
         require(nonce == nonces[signatory]++, "Comp::delegateBySig: invalid nonce");
         require(now <= expiry, "Comp::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
-    }
-    
-    // This function allows the creation of new voting tokens
-    // it is only callable by the minter.
-    // It automatically self delegates the amount minted to the account
-    // for which the tokens are minted.
-    function mint(address account, uint96 amount) external {
-        // Check that the caller is the minter
-        require(msg.sender == minter, "Caller Lacks Permissions"); 
-        _mint(account, amount);
-    }
-    
-    
-    // This function removes voting tokens from existance
-    // it is only callable by the 'minter' contract
-    // It removes the delegates appropriate number of delegates
-    // from whomever has been delegate to by this account.
-    function burn(address account, uint96 amount) external {
-        // Check that the caller is the minter
-        require(msg.sender == minter, "Caller Lacks Permissions");
-        _burn(account, amount);
-    }
-
-    function _mint(address account, uint96 amount) internal {
-        balances[account] = add96(amount, balances[account], "Overflow");
-        _moveDelegates(address(0), account, amount);
-        emit Minted(account, amount);
-    }
-
-    function _burn(address account, uint96 amount) internal {
-        // If the staking contract attempts to burn to much we set to zero
-        // instead of reverting to prevent a user who has balances at
-        // deployment time from not being able to call withdraw until
-        // synchronize is called.
-        if (amount > balances[account]) {
-            balances[account] = 0;
-        } else {
-            balances[account] = balances[account] - amount;
-        }
-
-        address currentDelegate = delegates[account];
-        _moveDelegates(currentDelegate, address(0), amount);
-        emit Burned(account, amount);
-    }
-    
-    // This function sets the voting power to an indicated level
-    // after the minter calls this function the voting power for 'account'
-    // will be 'amount'
-    function setVotingPower(address account, uint96 amount, address delegate) external {
-        require(msg.sender == minter, "Caller Lacks Permissions");
-        uint96 balance = balances[account];
-        if (amount > balance) {
-            // Creates the amount minus current balance
-            // so that the voting power afterwords will be amount
-            _mint(account, amount - balance);
-        } else {
-            // Removes current balance minus account tokens
-            // which means that the current voting power will be
-            // 'amount' after.
-            _burn(account, balance - amount);
-        }
-        if (account != delegate) {
-            _delegate(account, delegate);
-        }
-    }
-
-    /**
-     * @notice Gets the current votes balance for `account`
-     * @param account The address to get votes balance
-     * @return The number of current votes for `account`
-     */
-    function getCurrentVotes(address account) external view returns (uint96) {
-        uint32 nCheckpoints = numCheckpoints[account];
-        return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
     }
 
     /**
@@ -208,6 +187,28 @@ contract GoverancePower {
         return checkpoints[account][lower].votes;
     }
 
+    function _mint(address account, uint96 amount) internal {
+        balances[account] = add96(amount, balances[account], "Overflow");
+        _moveDelegates(address(0), account, amount);
+        emit Minted(account, amount);
+    }
+
+    function _burn(address account, uint96 amount) internal {
+        // If the staking contract attempts to burn to much we set to zero
+        // instead of reverting to prevent a user who has balances at
+        // deployment time from not being able to call withdraw until
+        // synchronize is called.
+        if (amount > balances[account]) {
+            balances[account] = 0;
+        } else {
+            balances[account] = balances[account] - amount;
+        }
+
+        address currentDelegate = delegates[account];
+        _moveDelegates(currentDelegate, address(0), amount);
+        emit Burned(account, amount);
+    }
+
     function _delegate(address delegator, address delegatee) internal {
         address currentDelegate = delegates[delegator];
         uint96 delegatorBalance = balances[delegator];
@@ -237,16 +238,16 @@ contract GoverancePower {
     }
 
     function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint96 oldVotes, uint96 newVotes) internal {
-      uint32 blockNumber = safe32(block.number, "Comp::_writeCheckpoint: block number exceeds 32 bits");
+        uint32 blockNumber = safe32(block.number, "Comp::_writeCheckpoint: block number exceeds 32 bits");
 
-      if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
-          checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
-      } else {
-          checkpoints[delegatee][nCheckpoints] = Checkpoint(blockNumber, newVotes);
-          numCheckpoints[delegatee] = nCheckpoints + 1;
-      }
+        if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
+            checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
+        } else {
+            checkpoints[delegatee][nCheckpoints] = Checkpoint(blockNumber, newVotes);
+            numCheckpoints[delegatee] = nCheckpoints + 1;
+        }
 
-      emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
+        emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
     }
 
     function safe32(uint n, string memory errorMessage) internal pure returns (uint32) {

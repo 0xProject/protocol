@@ -8,10 +8,12 @@ import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
 import {
+    GoverancePowerContract,
     IStakingEventsEpochEndedEventArgs,
     IStakingEventsStakingPoolEarnedRewardsInEpochEventArgs,
     StakingProxyContract,
     TestCobbDouglasContract,
+    TestProxyDestinationContract,
     TestStakingContract,
     TestStakingEvents,
     ZrxVaultContract,
@@ -31,6 +33,7 @@ export class StakingApiWrapper {
     public zrxTokenContract: DummyERC20TokenContract;
     public wethContract: WETH9Contract;
     public cobbDouglasContract: TestCobbDouglasContract;
+    public onchainGovContract: GoverancePowerContract;
     public utils = {
         // Epoch Utils
         fastForwardToNextEpochAsync: async (): Promise<void> => {
@@ -175,6 +178,7 @@ export class StakingApiWrapper {
         zrxTokenContract: DummyERC20TokenContract,
         wethContract: WETH9Contract,
         cobbDouglasContract: TestCobbDouglasContract,
+        onchainGovContract: GoverancePowerContract,
     ) {
         this._web3Wrapper = env.web3Wrapper;
         this.zrxVaultContract = zrxVaultContract;
@@ -183,6 +187,7 @@ export class StakingApiWrapper {
         this.cobbDouglasContract = cobbDouglasContract;
         this.stakingContractAddress = stakingContract.address;
         this.stakingProxyContract = stakingProxyContract;
+        this.onchainGovContract = onchainGovContract;
         // disguise the staking proxy as a StakingContract
         const logDecoderDependencies = _.mapValues({ ...artifacts, ...erc20Artifacts }, v => v.compilerOutput.abi);
         this.stakingContract = new TestStakingContract(
@@ -236,14 +241,13 @@ export async function deployAndConfigureContractsAsync(
 
     await zrxVaultContract.addAuthorizedAddress(ownerAddress).awaitTransactionSuccessAsync();
 
-    // deploy staking contract
-    const stakingContract = await TestStakingContract.deployFrom0xArtifactAsync(
-        customStakingArtifact !== undefined ? customStakingArtifact : artifacts.TestStaking,
+    // a fake staking contract, so that it can be attached to the
+    // proxy.
+    const testContract = await TestProxyDestinationContract.deployFrom0xArtifactAsync(
+        artifacts.TestProxyDestination,
         env.provider,
         env.txDefaults,
         artifacts,
-        wethContract.address,
-        zrxVaultContract.address,
     );
 
     // deploy staking proxy
@@ -252,10 +256,36 @@ export async function deployAndConfigureContractsAsync(
         env.provider,
         env.txDefaults,
         artifacts,
-        stakingContract.address,
+        testContract.address,
     );
 
     await stakingProxyContract.addAuthorizedAddress(ownerAddress).awaitTransactionSuccessAsync();
+
+    // Deploy onchain gov contracts: voting power tracker and voting contract
+    // We still need to set the staking contract as the 'minter'
+    const onchainGovContract = await GoverancePowerContract.deployFrom0xArtifactAsync(
+        artifacts.GoverancePower,
+        env.provider,
+        env.txDefaults,
+        artifacts,
+        stakingProxyContract.address,
+    );
+
+    // deploy staking contract
+    const stakingContract = await TestStakingContract.deployFrom0xArtifactAsync(
+        customStakingArtifact !== undefined ? customStakingArtifact : artifacts.TestStaking,
+        env.provider,
+        env.txDefaults,
+        artifacts,
+        wethContract.address,
+        zrxVaultContract.address,
+        onchainGovContract.address,
+    );
+
+    // Now we need to attach the staking contract to the staking proxy
+    await stakingProxyContract
+        .attachStakingContract(stakingContract.address)
+        .awaitTransactionSuccessAsync({ from: ownerAddress });
 
     // deploy cobb douglas contract
     const cobbDouglasContract = await TestCobbDouglasContract.deployFrom0xArtifactAsync(
@@ -278,5 +308,6 @@ export async function deployAndConfigureContractsAsync(
         zrxTokenContract,
         wethContract,
         cobbDouglasContract,
+        onchainGovContract,
     );
 }

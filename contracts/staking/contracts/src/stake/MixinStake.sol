@@ -25,6 +25,7 @@ import "../staking_pools/MixinStakingPool.sol";
 import "../libs/LibStakingRichErrors.sol";
 import "../interfaces/IOnchainGov.sol";
 
+
 contract MixinStake is
     MixinStakingPool
 {
@@ -187,7 +188,7 @@ contract MixinStake is
     function synchronizeGovPower(bytes32 poolId, address delegate) external {
         // Name the sender and load the gov contracts
         address staker = msg.sender;
-        IOnchainGov onchain_goverence = getOnchainGov();
+        IOnchainGov onchainGoverence = getOnchainGov();
 
         // We give the user thier voting power
         IStructs.StoredBalance memory undelegatedBalance =
@@ -199,16 +200,28 @@ contract MixinStake is
         uint96 userGovPower = LibSafeDowncast.downcastToUint96(
             undelegatedBalance.nextEpochBalance + delegatedBalance.nextEpochBalance/2);
         // Call the goverance contracts and set the user power
-        onchain_goverence.setVotingPower(msg.sender, userGovPower, delegate);
+        onchainGoverence.setVotingPower(msg.sender, userGovPower, delegate);
         
         // Now we refresh the voting power for the pool which is staked too.
         if (delegatedBalance.nextEpochBalance != 0) {
             // Load pool staked balance and the operator
             IStructs.StoredBalance memory stakingGovPower = getTotalStakeDelegatedToPool(poolId);
-            address pool_operator = getStakingPool(poolId).operator;
+            address poolOperator = getStakingPool(poolId).operator;
             // We set the voting power for the pool to the half the total stake delegated to pool
-            onchain_goverence.setVotingPower(pool_operator, LibSafeDowncast.downcastToUint96(stakingGovPower.nextEpochBalance/2), pool_operator);
+            onchainGoverence.setVotingPower(poolOperator, LibSafeDowncast.downcastToUint96(stakingGovPower.nextEpochBalance/2), poolOperator);
         }
+    }
+
+    function _addGovPower(address who, uint256 amount) internal {
+        IOnchainGov onchainGoverence = getOnchainGov();
+        uint96 downcastAmount = LibSafeDowncast.downcastToUint96(amount);
+        onchainGoverence.mint(who, downcastAmount);
+    }
+
+    function _removeGovPower(address who, uint256 amount) internal {
+        IOnchainGov onchainGoverence = getOnchainGov();
+        uint96 downcastAmount = LibSafeDowncast.downcastToUint96(amount);
+        onchainGoverence.burn(who, downcastAmount);
     }
 
     /// @dev Delegates a owners stake to a staking pool.
@@ -285,17 +298,5 @@ contract MixinStake is
             _globalStakeByStatus[uint8(IStructs.StakeStatus.DELEGATED)],
             amount
         );
-    }
-
-    function _addGovPower(address who, uint256 amount) internal {
-        IOnchainGov onchain_goverence = getOnchainGov();
-        uint96 downcastAmount = LibSafeDowncast.downcastToUint96(amount);
-        onchain_goverence.mint(who, downcastAmount);
-    }
-
-    function _removeGovPower(address who, uint256 amount) internal {
-        IOnchainGov onchain_goverence = getOnchainGov();
-        uint96 downcastAmount = LibSafeDowncast.downcastToUint96(amount);
-        onchain_goverence.burn(who, downcastAmount);
     }
 }

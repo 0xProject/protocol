@@ -23,6 +23,7 @@ blockchainTests.resets('MixinScheduler unit tests', env => {
             artifacts,
             stakingConstants.NIL_ADDRESS,
             stakingConstants.NIL_ADDRESS,
+            stakingConstants.NIL_ADDRESS,
         );
     });
 

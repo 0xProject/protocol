@@ -32,12 +32,14 @@ contract TestCumulativeRewardTracking is
 
     constructor(
         address wethAddress,
-        address zrxVaultAddress
+        address zrxVaultAddress,
+        address onchainGovAddress
     )
         public
         TestStaking(
             wethAddress,
-            zrxVaultAddress
+            zrxVaultAddress,
+            onchainGovAddress
         )
     {}
 

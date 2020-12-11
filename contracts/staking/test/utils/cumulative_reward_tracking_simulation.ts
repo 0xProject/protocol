@@ -83,6 +83,7 @@ export class CumulativeRewardTrackingSimulation {
             artifacts,
             this._stakingApiWrapper.wethContract.address,
             this._stakingApiWrapper.zrxVaultContract.address,
+            this._stakingApiWrapper.onchainGovContract.address,
         );
     }
 

@@ -89,7 +89,9 @@ contract MixinParams is
         internal
     {
         // Ensure state is uninitialized.
-        _assertParamsNotInitialized();
+        // We comment this out because without removing it
+        // we actually can't upgrade the staking logic
+        // _assertParamsNotInitialized();
 
         // Set up defaults.
         uint256 _epochDurationInSeconds = 10 days;

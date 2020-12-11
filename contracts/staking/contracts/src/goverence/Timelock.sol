@@ -1,4 +1,8 @@
 // Forked from https://github.com/compound-finance/compound-protocol/
+// We are making the style choice to preserve the compound code
+// as closely as possible from source to make reviewability easier
+// so we turn off the linter which disagrees with Compound style
+// solhint-disable
 pragma solidity ^0.5.16;
 
 import "./SafeMath.sol";

@@ -24,6 +24,7 @@ import "@0x/contracts-erc20/contracts/src/interfaces/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/LibFractions.sol";
 import "../src/Staking.sol";
 import "../src/interfaces/IStructs.sol";
+import "../src/interfaces/IOnchainGov.sol";
 
 
 contract TestStaking is
@@ -31,15 +32,18 @@ contract TestStaking is
 {
     address public testWethAddress;
     address public testZrxVaultAddress;
+    address public testOnchainGov;
 
     constructor(
         address wethAddress,
-        address zrxVaultAddress
+        address zrxVaultAddress,
+        address onchainGov
     )
         public
     {
         testWethAddress = wethAddress;
         testZrxVaultAddress = zrxVaultAddress;
+        testOnchainGov = onchainGov;
     }
 
     /// @dev Sets the weth contract address.
@@ -56,6 +60,14 @@ contract TestStaking is
         external
     {
         testZrxVaultAddress = zrxVaultAddress;
+    }
+
+    /// @dev Sets the onchain goverance contract address
+    /// @param onchainGovAddress The address of the onchain gov entry point
+    function setOnchainGov(address onchainGovAddress)
+        external
+    {
+        testOnchainGov = onchainGovAddress;
     }
 
     // @dev Gets the most recent cumulative reward for a pool, and the epoch it was stored.
@@ -90,4 +102,25 @@ contract TestStaking is
         zrxVault = IZrxVault(zrxVaultAddress);
         return zrxVault;
     }
+
+    /// @dev Overriden so that tests use actual address not constant
+    function getOnchainGov()
+        public
+        view
+        returns (IOnchainGov gov)
+    {
+        gov = IOnchainGov(TestStaking(address(uint160(stakingContract))).testOnchainGov());
+        return gov;
+    }
+
+    /// @dev Method so that tests can set onchain gov power
+    function addOnchainGovPower(address who, uint256 amount) public {
+        _addGovPower(who, amount);
+    }
+
+    /// @dev Method so that tests can set onchain gov power
+    function removeOnchainGovPower(address who, uint256 amount) public {
+        _removeGovPower(who, amount);
+    }
+
 }

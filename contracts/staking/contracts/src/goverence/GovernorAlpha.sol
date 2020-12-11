@@ -1,10 +1,15 @@
 // Forked from https://github.com/compound-finance/compound-protocol/
+// We are making the style choice to preserve the compound code
+// as closely as possible from source to make reviewability easier
+// so we turn off the linter which disagrees with Compound style
+// solhint-disable
 pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 
 contract GovernorAlpha {
+
     /// @notice The name of this contract
-    string public constant name = "Compound Governor Alpha";
+    string public constant name = "0x Governor Alpha";
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     function quorumVotes() public pure returns (uint) { return 400000e18; } // 400,000 = 4% of Comp
