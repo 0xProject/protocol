@@ -1,7 +1,7 @@
 {
     "extends": "../../tsconfig",
     "compilerOptions": { "outDir": "lib", "rootDir": ".", "resolveJsonModule": true },
-    "include": ["./src/**/*", "./test/**/*", "./generated-wrappers/**/*"],
+    "include": ["./src/**/*", "./test/**/*", "./generated-wrappers/**/*", "./scripts/**/*"],
     "files": [
         "generated-artifacts/AffiliateFeeTransformer.json",
         "generated-artifacts/BridgeAdapter.json",
