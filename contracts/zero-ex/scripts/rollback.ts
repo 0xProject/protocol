@@ -138,6 +138,37 @@ async function confirmRollbackAsync(
     return confirmed;
 }
 
+async function printRollbackCalldataAsync(
+    rollbackTargets: { [selector: string]: string },
+    zeroEx: wrappers.IZeroExContract,
+): Promise<void> {
+    const numRollbacks = Object.keys(rollbackTargets).length;
+    const { numTxns } = await prompts({
+        type: 'number',
+        name: 'numTxns',
+        message:
+            'To avoid limitations on calldata size, the full rollback can be split into multiple transactions. How many transactions would you like to split it into?',
+        initial: 1,
+        style: 'default',
+        min: 1,
+        max: numRollbacks,
+    });
+    for (let i = 0; i < numTxns; i++) {
+        const startIndex = i * Math.trunc(numRollbacks / numTxns);
+        const endIndex = startIndex + Math.trunc(numRollbacks / numTxns) + (i < numRollbacks % numTxns ? 1 : 0);
+        const rollbacks = Object.entries(rollbackTargets).slice(startIndex, endIndex);
+        const rollbackCallData = governorEncoder.encode([
+            rollbacks.map(([selector, target]) => zeroEx.rollback(selector, target).getABIEncodedTransactionData()),
+            new Array(rollbacks.length).fill(zeroEx.address),
+            new Array(rollbacks.length).fill(constants.ZERO_AMOUNT),
+        ]);
+        if (numTxns > 1) {
+            logUtils.log(`======================== Governor Calldata #${i + 1} ========================`);
+        }
+        logUtils.log(rollbackCallData);
+    }
+}
+
 async function deploymentHistoryAsync(deployments: Deployment[], proxyFunctions: ProxyFunctionEntity[]): Promise<void> {
     const { index } = await prompts({
         type: 'select',
@@ -194,14 +225,7 @@ async function deploymentHistoryAsync(deployments: Deployment[], proxyFunctions:
         }
         const isConfirmed = await confirmRollbackAsync(rollbackTargets, proxyFunctions);
         if (isConfirmed) {
-            const rollbackCallData = governorEncoder.encode([
-                Object.entries(rollbackTargets).map(([selector, target]) =>
-                    zeroEx.rollback(selector, target).getABIEncodedTransactionData(),
-                ),
-                new Array(Object.keys(rollbackTargets).length).fill(zeroEx.address),
-                new Array(Object.keys(rollbackTargets).length).fill(constants.ZERO_AMOUNT),
-            ]);
-            logUtils.log(rollbackCallData);
+            await printRollbackCalldataAsync(rollbackTargets, zeroEx);
         }
     }
 }
@@ -309,14 +333,7 @@ async function generateRollbackAsync(proxyFunctions: ProxyFunctionEntity[]): Pro
 
     const isConfirmed = await confirmRollbackAsync(rollbackTargets, proxyFunctions);
     if (isConfirmed) {
-        const rollbackCallData = governorEncoder.encode([
-            selected.map((selector: string) =>
-                zeroEx.rollback(selector, rollbackTargets[selector]).getABIEncodedTransactionData(),
-            ),
-            new Array(selected.length).fill(zeroEx.address),
-            new Array(selected.length).fill(constants.ZERO_AMOUNT),
-        ]);
-        logUtils.log(rollbackCallData);
+        await printRollbackCalldataAsync(rollbackTargets, zeroEx);
     }
 }
 
@@ -328,14 +345,10 @@ async function generateEmergencyRollbackAsync(proxyFunctions: ProxyFunctionEntit
     const allSelectors = proxyFunctions
         .filter(fn => fn.currentImpl !== constants.NULL_ADDRESS && !DO_NOT_ROLLBACK.includes(fn.id))
         .map(fn => fn.id);
-    const emergencyCallData = governorEncoder.encode([
-        allSelectors.map((selector: string) =>
-            zeroEx.rollback(selector, constants.NULL_ADDRESS).getABIEncodedTransactionData(),
-        ),
-        new Array(allSelectors.length).fill(zeroEx.address),
-        new Array(allSelectors.length).fill(constants.ZERO_AMOUNT),
-    ]);
-    logUtils.log(emergencyCallData);
+    await printRollbackCalldataAsync(
+        _.zipObject(allSelectors, new Array(allSelectors.length).fill(constants.NULL_ADDRESS)),
+        zeroEx,
+    );
 }
 
 let provider: SupportedProvider | undefined = process.env.RPC_URL ? createWeb3Provider(process.env.RPC_URL) : undefined;
