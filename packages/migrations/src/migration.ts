@@ -21,6 +21,7 @@ import { artifacts as exchangeArtifacts, ExchangeContract } from '@0x/contracts-
 import { artifacts as forwarderArtifacts, ForwarderContract } from '@0x/contracts-exchange-forwarder';
 import {
     artifacts as stakingArtifacts,
+    GoverancePowerContract,
     StakingProxyContract,
     TestStakingContract,
     ZrxVaultContract,
@@ -252,6 +253,7 @@ export async function runMigrationsAsync(
         allArtifacts,
         etherToken.address,
         zrxVault.address,
+        constants.NULL_ADDRESS,
     );
 
     const stakingProxy = await StakingProxyContract.deployFrom0xArtifactAsync(
@@ -261,6 +263,19 @@ export async function runMigrationsAsync(
         allArtifacts,
         stakingLogic.address,
     );
+
+    // Deploy onchain gov contracts: voting power tracker and voting contract
+    // We still need to set the staking contract as the 'minter'
+    const onchainGovContract = await GoverancePowerContract.deployFrom0xArtifactAsync(
+        stakingArtifacts.GoverancePower,
+        provider,
+        txDefaults,
+        allArtifacts,
+        stakingProxy.address,
+    );    
+
+    // Configure the test staking contract to use the gov contract
+    await stakingLogic.setOnchainGov(onchainGovContract.address).awaitTransactionSuccessAsync();
 
     await erc20Proxy.addAuthorizedAddress(zrxVault.address).awaitTransactionSuccessAsync(txDefaults);
 

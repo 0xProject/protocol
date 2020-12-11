@@ -15,6 +15,7 @@ import { artifacts as exchangeArtifacts, ExchangeContract } from '@0x/contracts-
 import { artifacts as multisigArtifacts, ZeroExGovernorContract } from '@0x/contracts-multisig';
 import {
     artifacts as stakingArtifacts,
+    GoverancePowerContract,
     StakingProxyContract,
     TestStakingContract,
     ZrxVaultContract,
@@ -24,6 +25,7 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { TxData } from 'ethereum-types';
 import * as _ from 'lodash';
+import { artifacts } from '../../src';
 
 import { AssetProxyDispatcher, Authorizable, Ownable } from './utils/wrapper_interfaces';
 
@@ -391,6 +393,7 @@ export class DeploymentManager {
             stakingArtifacts,
             tokens.weth.address,
             zrxVault.address,
+            constants.NULL_ADDRESS,
         );
         const stakingProxy = await StakingProxyContract.deployFrom0xArtifactAsync(
             stakingArtifacts.StakingProxy,
@@ -399,6 +402,19 @@ export class DeploymentManager {
             stakingArtifacts,
             stakingLogic.address,
         );
+
+        // Deploy onchain gov contracts: voting power tracker and voting contract
+        // We still need to set the staking contract as the 'minter'
+        const onchainGovContract = await GoverancePowerContract.deployFrom0xArtifactAsync(
+            stakingArtifacts.GoverancePower,
+            environment.provider,
+            txDefaults,
+            artifacts,
+            stakingProxy.address,
+        );    
+
+        // Configure the test staking contract to use the gov contract
+        await stakingLogic.setOnchainGov(onchainGovContract.address).awaitTransactionSuccessAsync();
 
         const logDecoderDependencies = _.mapValues(
             { ...stakingArtifacts, ...ERC20Artifacts },

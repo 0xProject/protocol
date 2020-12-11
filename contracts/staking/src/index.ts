@@ -39,6 +39,7 @@ export {
     IStakingEventsEpochFinalizedEventArgs,
     IStakingEventsEvents,
     IStakingEventsRewardsPaidEventArgs,
+    GoverancePowerContract,
 } from './wrappers';
 export { artifacts } from './artifacts';
 export { StakingRevertErrors, FixedMathRevertErrors } from '@0x/utils';

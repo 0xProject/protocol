@@ -3,6 +3,7 @@
     "compilerOptions": { "outDir": "lib", "rootDir": ".", "resolveJsonModule": true },
     "include": ["./src/**/*", "./test/**/*", "./generated-wrappers/**/*"],
     "files": [
+        "generated-artifacts/GoverancePower.json",
         "generated-artifacts/IStaking.json",
         "generated-artifacts/IStakingEvents.json",
         "generated-artifacts/IStakingProxy.json",

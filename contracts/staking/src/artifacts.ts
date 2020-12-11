@@ -5,6 +5,7 @@
  */
 import { ContractArtifact } from 'ethereum-types';
 
+import * as GoverancePower from '../generated-artifacts/GoverancePower.json';
 import * as IStaking from '../generated-artifacts/IStaking.json';
 import * as IStakingEvents from '../generated-artifacts/IStakingEvents.json';
 import * as IStakingProxy from '../generated-artifacts/IStakingProxy.json';
@@ -24,4 +25,5 @@ export const artifacts = {
     StakingProxy: StakingProxy as ContractArtifact,
     ZrxVault: ZrxVault as ContractArtifact,
     TestStaking: TestStaking as ContractArtifact,
+    GoverancePower: GoverancePower as ContractArtifact,
 };
