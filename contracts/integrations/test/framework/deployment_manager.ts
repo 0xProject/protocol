@@ -25,6 +25,7 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { TxData } from 'ethereum-types';
 import * as _ from 'lodash';
+
 import { artifacts } from '../../src';
 
 import { AssetProxyDispatcher, Authorizable, Ownable } from './utils/wrapper_interfaces';
@@ -411,7 +412,7 @@ export class DeploymentManager {
             txDefaults,
             artifacts,
             stakingProxy.address,
-        );    
+        );
 
         // Configure the test staking contract to use the gov contract
         await stakingLogic.setOnchainGov(onchainGovContract.address).awaitTransactionSuccessAsync();

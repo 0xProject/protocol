@@ -272,7 +272,7 @@ export async function runMigrationsAsync(
         txDefaults,
         allArtifacts,
         stakingProxy.address,
-    );    
+    );
 
     // Configure the test staking contract to use the gov contract
     await stakingLogic.setOnchainGov(onchainGovContract.address).awaitTransactionSuccessAsync();
