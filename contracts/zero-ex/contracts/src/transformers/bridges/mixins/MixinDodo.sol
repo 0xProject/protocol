@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 
 interface IDODOHelper {
 
@@ -40,38 +40,35 @@ interface IDODO {
 }
 
 
-contract MixinDodo is
-    MixinAdapterAddresses
-{
+contract MixinDodo {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the `DOODO Helper` contract.
     IDODOHelper private immutable DODO_HELPER;
 
-    constructor(AdapterAddresses memory addresses)
+    constructor(IBridgeAdapter.Addresses memory addresses)
         public
     {
         DODO_HELPER = IDODOHelper(addresses.dodoHelper);
     }
 
     function _tradeDodo(
-        IERC20TokenV06 /* buyToken */,
+        address poolAddress,
+        IERC20TokenV06 sellToken,
         uint256 sellAmount,
         bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
-        (address fromTokenAddress,
-         address pool,
-         bool isSellBase) = abi.decode(bridgeData, (address, address, bool));
+        (bool isSellBase) = abi.decode(bridgeData, (bool));
 
         // Grant the Dodo pool contract an allowance to sell the first token.
-        IERC20TokenV06(fromTokenAddress).approveIfBelow(pool, sellAmount);
+        sellToken.approveIfBelow(poolAddress, sellAmount);
 
         if (isSellBase) {
             // Sell the Base token directly against the contract
-            boughtAmount = IDODO(pool).sellBaseToken(
+            boughtAmount = IDODO(poolAddress).sellBaseToken(
                 // amount to sell
                 sellAmount,
                 // min receive amount
@@ -81,10 +78,10 @@ contract MixinDodo is
         } else {
             // Need to re-calculate the sell quote amount into buyBase
             boughtAmount = DODO_HELPER.querySellQuoteToken(
-                pool,
+                poolAddress,
                 sellAmount
             );
-            IDODO(pool).buyBaseToken(
+            IDODO(poolAddress).buyBaseToken(
                 // amount to buy
                 boughtAmount,
                 // max pay amount

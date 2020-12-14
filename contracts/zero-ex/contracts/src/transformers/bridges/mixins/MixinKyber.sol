@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 
 interface IKyberNetworkProxy {
 
@@ -54,9 +54,7 @@ interface IKyberNetworkProxy {
         returns (uint256 boughtAmount);
 }
 
-contract MixinKyber is
-    MixinAdapterAddresses
-{
+contract MixinKyber {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Address indicating the trade is using ETH
@@ -66,7 +64,7 @@ contract MixinKyber is
     /// @dev Mainnet address of the KyberNetworkProxy contract.
     IKyberNetworkProxy private immutable KYBER_NETWORK_PROXY;
 
-    constructor(AdapterAddresses memory addresses)
+    constructor(IBridgeAdapter.Addresses memory addresses)
         public
     {
         WETH = IEtherTokenV06(addresses.weth);
@@ -74,16 +72,14 @@ contract MixinKyber is
     }
 
     function _tradeKyber(
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
-        bytes memory bridgeData
+        bytes memory hint
     )
         internal
         returns (uint256 boughtAmount)
     {
-        (IERC20TokenV06 sellToken, bytes memory hint) =
-            abi.decode(bridgeData, (IERC20TokenV06, bytes));
-
         uint256 payableAmount = 0;
         if (sellToken != WETH) {
             // If the input token is not WETH, grant an allowance to the exchange

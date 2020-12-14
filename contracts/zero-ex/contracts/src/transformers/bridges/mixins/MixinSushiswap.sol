@@ -23,18 +23,16 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 import "./MixinUniswapV2.sol";
 
-contract MixinSushiswap is
-    MixinAdapterAddresses
-{
+contract MixinSushiswap {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the `SushiswapRouter` contract.
     IUniswapV2Router02 private immutable SUSHISWAP_ROUTER;
 
-    constructor(AdapterAddresses memory addresses)
+    constructor(IBridgeAdapter.Addresses memory addresses)
         public
     {
         SUSHISWAP_ROUTER = IUniswapV2Router02(addresses.sushiswapRouter);

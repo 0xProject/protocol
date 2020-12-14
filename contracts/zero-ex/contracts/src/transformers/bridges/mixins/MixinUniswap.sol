@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 
 interface IUniswapExchangeFactory {
 
@@ -103,9 +103,7 @@ interface IUniswapExchange {
         returns (uint256 tokensBought);
 }
 
-contract MixinUniswap is
-    MixinAdapterAddresses
-{
+contract MixinUniswap {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the WETH contract.
@@ -113,7 +111,7 @@ contract MixinUniswap is
     /// @dev Mainnet address of the `UniswapExchangeFactory` contract.
     IUniswapExchangeFactory private immutable UNISWAP_EXCHANGE_FACTORY;
 
-    constructor(AdapterAddresses memory addresses)
+    constructor(IBridgeAdapter.Addresses memory addresses)
         public
     {
         WETH = IEtherTokenV06(addresses.weth);
@@ -121,16 +119,13 @@ contract MixinUniswap is
     }
 
     function _tradeUniswap(
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
+        uint256 sellAmount
     )
         internal
         returns (uint256 boughtAmount)
     {
-        // Decode the bridge data to get the `sellToken`.
-        (IERC20TokenV06 sellToken) = abi.decode(bridgeData, (IERC20TokenV06));
-
         // Get the exchange for the token pair.
         IUniswapExchange exchange = _getUniswapExchangeForTokenPair(
             sellToken,
