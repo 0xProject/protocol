@@ -5,6 +5,10 @@
             {
                 "note": "Address audit feedback in UniswapFeature",
                 "pr": 82
+            },
+            {
+                "note": "Cap the ETH transfer amount to a liquidity provider to `msg.value`",
+                "pr": 82
             }
         ]
     },
