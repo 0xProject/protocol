@@ -41,6 +41,13 @@ export type CommonOrderFields = typeof COMMON_ORDER_DEFAULT_VALUES;
 export type LimitOrderFields = typeof LIMIT_ORDER_DEFAULT_VALUES;
 export type RfqOrderFields = typeof RFQ_ORDER_DEFAULT_VALUES;
 
+export interface SignedLimitOrderFields extends LimitOrderFields {
+    signature: Signature;
+}
+export interface SignedRfqOrderFields extends RfqOrderFields {
+    signature: Signature;
+}
+
 export enum OrderStatus {
     Invalid = 0,
     Fillable = 1,
