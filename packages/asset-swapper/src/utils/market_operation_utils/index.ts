@@ -17,7 +17,7 @@ import {
     ZERO_AMOUNT,
 } from './constants';
 import { createFills } from './fills';
-import { getBestTwoHopQuote } from './multihop_utils';
+import { getBestTwoHopQuote, getIntermediateTokens } from './multihop_utils';
 import {
     createOrdersFromTwoHopSample,
     createSignedOrdersFromRfqtIndicativeQuotes,
@@ -38,6 +38,7 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
+    RelevantTokenInfo,
 } from './types';
 
 const ETH_FEE_AMOUNT = new BigNumber(0.01e18);
@@ -101,8 +102,7 @@ export class MarketOperationUtils {
             orderOpts.gasSchedule,
             optimizerResult.input, // sellAmount for sells
             optimizerResult.output,
-            optimizerResult.marketSideLiquidity.ethToOutputRate,
-            optimizerResult.marketSideLiquidity.ethToInputRate,
+            optimizerResult.marketSideLiquidity.relevantTokensInfos!,
             comparisonPrice,
             quoteRequestor,
         );
@@ -188,7 +188,20 @@ export class MarketOperationUtils {
                 takerAmount,
             ),
         );
+        // All tokens used in route finding
+        const relevantTokens = [
+            takerToken,
+            makerToken,
+            ...getIntermediateTokens(makerToken, takerToken, this._sampler.tokenAdjacencyGraph),
+        ];
         const extraSamplesPromise = this._sampler.executeAsync(
+            this._sampler.getTokenDecimalsMany(relevantTokens),
+            this._sampler.getMedianSellRates(
+                feeSourceFilters.sources,
+                relevantTokens,
+                this._wethAddress,
+                ETH_FEE_AMOUNT,
+            ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes2(
                 quoteSourceFilters.exclude(offChainSources).sources,
@@ -231,7 +244,7 @@ export class MarketOperationUtils {
             offChainBalancerQuotes,
             offChainCreamQuotes,
             offChainBancorQuotes,
-            [extraSamples],
+            [relevantTokenDecimals, relevantSellRates, extraSamples],
         ] = await Promise.all([
             samplerPromise,
             rfqtPromise,
@@ -240,6 +253,15 @@ export class MarketOperationUtils {
             offChainBancorPromise,
             extraSamplesPromise,
         ]);
+
+        const relevantTokensInfos: { [tokenAddress: string]: RelevantTokenInfo } = {};
+        relevantTokens.forEach((tokenAddress, i) => {
+            relevantTokensInfos[tokenAddress] = {
+                decimals: relevantTokenDecimals[i].toNumber(),
+                ethRateInTokenBaseUnits: relevantSellRates[i],
+            };
+        });
+        console.log({ relevantTokenDecimals, relevantTokens, relevantSellRates, relevantTokensInfos });
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         return {
@@ -262,6 +284,7 @@ export class MarketOperationUtils {
             quoteSourceFilters,
             makerTokenDecimals: makerTokenDecimals.toNumber(),
             takerTokenDecimals: takerTokenDecimals.toNumber(),
+            relevantTokensInfos,
         };
     }
 

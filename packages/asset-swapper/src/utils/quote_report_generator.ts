@@ -5,6 +5,7 @@ import _ = require('lodash');
 
 import { MarketOperation } from '../types';
 
+import { getSourceId } from './market_operation_utils/sampler_operations';
 import {
     CollapsedFill,
     DexSample,
@@ -13,6 +14,7 @@ import {
     FillData,
     MultiHopFillData,
     NativeCollapsedFill,
+    RelevantTokenInfo,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
 
@@ -60,18 +62,16 @@ export type QuoteReportSource =
 export interface QuoteReport {
     sourcesConsidered: QuoteReportSource[];
     sourcesDelivered: QuoteReportSource[];
-    ethToMakerRate: BigNumber;
-    ethToTakerRate: BigNumber;
     gasPrice: BigNumber;
     sellAmount: BigNumber;
     buyAmount: BigNumber;
+    relevantTokensInfos: { [tokenAddress: string]: RelevantTokenInfo };
 }
 
 interface CostCalculationOpts {
     feeSchedule: FeeSchedule;
     gasSchedule: FeeSchedule;
-    ethToMakerRate: BigNumber;
-    ethToTakerRate: BigNumber;
+    relevantTokensInfos: { [tokenAddress: string]: RelevantTokenInfo };
     gasPrice: BigNumber;
 }
 
@@ -91,22 +91,21 @@ export function generateQuoteReport(
     gasSchedule: FeeSchedule,
     sellAmount: BigNumber,
     buyAmount: BigNumber,
-    ethToMakerRate: BigNumber,
-    ethToTakerRate: BigNumber,
+    relevantTokensInfos: { [tokenAddress: string]: RelevantTokenInfo },
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
     const costOpts = {
         gasPrice,
-        ethToMakerRate,
-        ethToTakerRate,
         gasSchedule,
         feeSchedule,
+        relevantTokensInfos,
     };
     const quotesWithSourceIds = dexQuotes
         .map(quotes => {
-            const sourceId = Math.floor(Math.random() * 1e14).toString();
-            return quotes.map(q => ({ ...q, sourceId })).filter(q => !q.output.isZero());
+            return quotes
+                .filter(q => q && !q.output.isZero())
+                .map(q => ({ ...q, sourceId: getSourceId(q.source, q.fillData!) }));
         })
         .filter(qs => qs.length > 0);
     const dexReportSourcesConsidered = _.flatten(quotesWithSourceIds).map(quote =>
@@ -157,8 +156,7 @@ export function generateQuoteReport(
         gasPrice,
         sellAmount,
         buyAmount,
-        ethToMakerRate,
-        ethToTakerRate,
+        relevantTokensInfos,
     };
 }
 
@@ -183,7 +181,7 @@ function _dexSampleToReportSource(
             fillData: ds.fillData,
             gasCost: new BigNumber(costOpts.gasSchedule[liquiditySource]!(ds.fillData)),
             costInMakerToken: new BigNumber(costOpts.feeSchedule[liquiditySource]!(ds.fillData))
-                .times(costOpts.ethToMakerRate)
+                .times(costOpts.relevantTokensInfos[ds.fillData!.makerToken].ethRateInTokenBaseUnits)
                 .integerValue(),
             sourceId: ds.sourceId,
             takerToken: ds.fillData!.takerToken,
@@ -198,7 +196,7 @@ function _dexSampleToReportSource(
             fillData: ds.fillData,
             gasCost: new BigNumber(costOpts.gasSchedule[liquiditySource]!(ds.fillData)),
             costInMakerToken: new BigNumber(costOpts.feeSchedule[liquiditySource]!(ds.fillData))
-                .times(costOpts.ethToMakerRate)
+                .times(costOpts.relevantTokensInfos[ds.fillData!.makerToken].ethRateInTokenBaseUnits)
                 .integerValue(),
             sourceId: ds.sourceId,
             takerToken: ds.fillData!.takerToken,
@@ -230,7 +228,7 @@ function _multiHopSampleToReportSource(
             ),
             costInMakerToken: new BigNumber(costOpts.feeSchedule[firstHop.source]!(firstHop.fillData))
                 .plus(costOpts.feeSchedule[secondHop.source]!(secondHop.fillData))
-                .times(costOpts.ethToMakerRate)
+                .times(costOpts.relevantTokensInfos[ds.fillData!.makerToken].ethRateInTokenBaseUnits)
                 .integerValue(),
             sourceId: ds.source,
             takerToken: firstHop.fillData!.takerToken,
@@ -249,7 +247,7 @@ function _multiHopSampleToReportSource(
             ),
             costInMakerToken: new BigNumber(costOpts.feeSchedule[firstHop.source]!(firstHop.fillData))
                 .plus(costOpts.feeSchedule[secondHop.source]!(secondHop.fillData))
-                .times(costOpts.ethToMakerRate)
+                .times(costOpts.relevantTokensInfos[ds.fillData!.makerToken].ethRateInTokenBaseUnits)
                 .integerValue(),
             sourceId: ds.source,
             takerToken: firstHop.fillData!.takerToken,
@@ -303,7 +301,11 @@ function _nativeOrderToReportSource(
         nativeOrder,
         gasCost: new BigNumber(costOpts.gasSchedule[ERC20BridgeSource.Native]!()),
         costInMakerToken: new BigNumber(costOpts.feeSchedule[ERC20BridgeSource.Native]!())
-            .times(costOpts.ethToMakerRate)
+            .times(
+                costOpts.relevantTokensInfos[
+                    (assetDataUtils.decodeAssetDataOrThrow(nativeOrder.makerAssetData) as ERC20AssetData).tokenAddress
+                ].ethRateInTokenBaseUnits,
+            )
             .integerValue(),
         sourceId: nativeOrder.salt.toString(),
         makerToken: (assetDataUtils.decodeAssetDataOrThrow(nativeOrder.makerAssetData) as ERC20AssetData).tokenAddress,

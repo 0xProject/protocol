@@ -39,6 +39,7 @@ import {
     LiquidityProviderRegistry,
     MooniswapFillData,
     MultiHopFillData,
+    NativeFillData,
     ShellFillData,
     SnowSwapFillData,
     SnowSwapInfo,
@@ -61,6 +62,51 @@ export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
  * Source filters for `getSellQuotes()` and `getBuyQuotes()`.
  */
 export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]);
+
+export const getSourceId = (source: ERC20BridgeSource, fillData: FillData) => {
+    const defaultSourceId = [source, ...[fillData.takerToken, fillData.makerToken].sort()].join('-');
+    switch (source) {
+        case ERC20BridgeSource.UniswapV2:
+        case ERC20BridgeSource.SushiSwap:
+        case ERC20BridgeSource.CryptoCom:
+            // TODO get the pair ID's and sort
+            return defaultSourceId;
+        case ERC20BridgeSource.Kyber:
+            // TODO just get the reserve id
+            return defaultSourceId;
+        case ERC20BridgeSource.MultiBridge:
+        case ERC20BridgeSource.MStable:
+        case ERC20BridgeSource.Shell:
+        case ERC20BridgeSource.Uniswap:
+        case ERC20BridgeSource.Eth2Dai:
+            return defaultSourceId;
+        case ERC20BridgeSource.LiquidityProvider:
+            return (fillData as LiquidityProviderFillData).poolAddress;
+        case ERC20BridgeSource.Native:
+            const nativeFillData = fillData as NativeFillData;
+            return [nativeFillData.order.makerAddress, nativeFillData.order.salt].join('-');
+        case ERC20BridgeSource.Curve:
+            // TODO handle impact of 3pool where the meta token actually trades
+            // against the 3 pool which will iimpact its uniqueness
+            return (fillData as CurveFillData).pool.poolAddress.toLowerCase();
+        case ERC20BridgeSource.Swerve:
+            return (fillData as SwerveFillData).pool.poolAddress;
+        case ERC20BridgeSource.SnowSwap:
+            return (fillData as SnowSwapFillData).pool.poolAddress;
+        case ERC20BridgeSource.Balancer:
+            return (fillData as BalancerFillData).poolAddress;
+        case ERC20BridgeSource.Cream:
+            return (fillData as BalancerFillData).poolAddress;
+        case ERC20BridgeSource.Mooniswap:
+            return (fillData as MooniswapFillData).poolAddress;
+        case ERC20BridgeSource.Dodo:
+            return (fillData as DODOFillData).poolAddress;
+        case ERC20BridgeSource.Bancor:
+            return [source, ...(fillData as BancorFillData).path.sort()].join('-');
+        default:
+            throw new Error(`No source id defined for ${source}`);
+    }
+};
 
 // tslint:disable:no-inferred-empty-object-type no-unbound-method
 
@@ -87,7 +133,7 @@ export class SamplerOperations {
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
         protected readonly getBancorServiceFn?: () => BancorService, // for dependency injection in tests
-        protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
+        public readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
     ) {}
 
@@ -111,6 +157,46 @@ export class SamplerOperations {
             function: this._samplerContract.getTokenDecimals,
             params: [makerTokenAddress, takerTokenAddress],
         });
+    }
+
+    public getTokenDecimalsMany(addresses: string[]): BatchedOperation<BigNumber[]> {
+        const subOps = addresses.map(a => this.getTokenDecimals(a, a));
+        return {
+            encodeCall: () => {
+                const subCalls = subOps.map(op => op.encodeCall());
+                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
+            },
+            handleCallResults: callResults => {
+                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
+                    'batchCall',
+                    callResults,
+                );
+                const decimals = subOps.map((op, i) => op.handleCallResults(rawSubCallResults[i]));
+                return decimals.map(d => d[0]);
+            },
+        };
+    }
+
+    public getMedianSellRates(
+        sources: ERC20BridgeSource[],
+        buyTokens: string[],
+        sellToken: string,
+        takerFillAmount: BigNumber,
+    ): BatchedOperation<BigNumber[]> {
+        const subOps = buyTokens.map(a => this.getMedianSellRate(sources, a, sellToken, takerFillAmount));
+        return {
+            encodeCall: () => {
+                const subCalls = subOps.map(op => op.encodeCall());
+                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
+            },
+            handleCallResults: callResults => {
+                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
+                    'batchCall',
+                    callResults,
+                );
+                return subOps.map((op, i) => op.handleCallResults(rawSubCallResults[i]));
+            },
+        };
     }
 
     public getOrderFillableTakerAmounts(orders: SignedOrder[], exchangeAddress: string): BatchedOperation<BigNumber[]> {
@@ -191,6 +277,7 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromUniswap,
             params: [takerToken, makerToken, takerFillAmounts],
+            fillData: { makerToken, takerToken },
         });
     }
 
@@ -204,6 +291,7 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromUniswap,
             params: [takerToken, makerToken, makerFillAmounts],
+            fillData: { makerToken, takerToken },
         });
     }
 
@@ -1180,6 +1268,9 @@ export class SamplerOperations {
             if (!paths[i]) {
                 paths[i] = new Set();
             }
+            if (!paths[_makerToken]) {
+                paths[_makerToken] = new Set();
+            }
             // Example UNI->ZRX
             // UNI->ETH
             paths[_takerToken].add(i);
@@ -1191,6 +1282,8 @@ export class SamplerOperations {
                     paths[i].add(ii);
                 }
             });
+            // ZRX->ETH (if we feel like finding an arb)
+            paths[_makerToken].add(i);
         });
         // add the direct path
         paths[_takerToken].add(_makerToken);

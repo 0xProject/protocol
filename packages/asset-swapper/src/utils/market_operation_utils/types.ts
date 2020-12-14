@@ -371,6 +371,11 @@ export interface MarketDepth {
     takerTokenDecimals: number;
 }
 
+export interface RelevantTokenInfo {
+    decimals: number;
+    ethRateInTokenBaseUnits: BigNumber;
+}
+
 export interface MarketSideLiquidity {
     side: MarketOperation;
     inputAmount: BigNumber;
@@ -386,6 +391,7 @@ export interface MarketSideLiquidity {
     quoteSourceFilters: SourceFilters;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
+    relevantTokensInfos?: { [tokenAddress: string]: RelevantTokenInfo };
 }
 
 export interface TokenAdjacencyGraph {
