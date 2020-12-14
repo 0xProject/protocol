@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.11.0 - _December 9, 2020_
+
+    * Regenerate wrappers (#76)
+
+## v13.10.3 - _December 7, 2020_
+
+    * Dependencies updated
+
 ## v13.10.2 - _December 3, 2020_
 
     * Dependencies updated

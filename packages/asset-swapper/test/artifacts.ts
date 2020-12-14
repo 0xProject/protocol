@@ -6,6 +6,7 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as ApproximateBuys from '../test/generated-artifacts/ApproximateBuys.json';
+import * as BalanceChecker from '../test/generated-artifacts/BalanceChecker.json';
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DeploymentConstants from '../test/generated-artifacts/DeploymentConstants.json';
@@ -39,6 +40,7 @@ import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
 export const artifacts = {
     ApproximateBuys: ApproximateBuys as ContractArtifact,
+    BalanceChecker: BalanceChecker as ContractArtifact,
     BalancerSampler: BalancerSampler as ContractArtifact,
     CurveSampler: CurveSampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,

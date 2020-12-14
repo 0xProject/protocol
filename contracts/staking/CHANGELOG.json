@@ -1,10 +1,28 @@
 [
     {
-        "timestamp": 1607957157,
         "version": "2.1.0",
         "changes": [
             {
                 "note": "Added onchain governance functionality and contracts"
+            }
+        ],
+        "timestamp": 1607958094
+    },
+    {
+        "timestamp": 1607485227,
+        "version": "2.0.25",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1607381756,
+        "version": "2.0.24",
+        "changes": [
+            {
+                "note": "Dependencies updated"
             }
         ]
     },

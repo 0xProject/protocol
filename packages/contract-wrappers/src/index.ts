@@ -132,6 +132,12 @@ export {
     IZeroExQuoteSignerUpdatedEventArgs,
     IZeroExTransformedERC20EventArgs,
     IZeroExTransformerDeployerUpdatedEventArgs,
+    IZeroExLimitOrderFilledEventArgs,
+    IZeroExOrderCancelledEventArgs,
+    IZeroExPairCancelledLimitOrdersEventArgs,
+    IZeroExPairCancelledRfqOrdersEventArgs,
+    IZeroExRfqOrderFilledEventArgs,
+    IZeroExRfqOrderOriginsAllowedEventArgs,
 } from './generated-wrappers/i_zero_ex';
 export {
     StakingAuthorizedAddressAddedEventArgs,

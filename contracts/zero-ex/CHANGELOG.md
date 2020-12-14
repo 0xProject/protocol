@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.12.0 - _December 9, 2020_
+
+    * Add test for selector collisions on the proxy (#74)
+    * Move tooling out into `@0x/protocol-utils`. (#76)
+
+## v0.11.1 - _December 7, 2020_
+
+    * Dependencies updated
+
 ## v0.11.0 - _December 3, 2020_
 
     * Turn `LibTokenSpender` into `FixinTokenSpender` (#38)

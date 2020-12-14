@@ -34,10 +34,10 @@
         "exchangeProxyFlashWallet": "0x22f9dcf4647084d6c31b2765f6910cd85c178c18",
         "exchangeProxyLiquidityProviderSandbox": "0xdb971b18ea5075734cec1241732cc1b41031dfc9",
         "transformers": {
-            "wethTransformer": "0x68c0bb685099dc7cb5c5ce2b26185945b357383e",
-            "payTakerTransformer": "0x49b9df2c58491764cf40cb052dd4243df63622c7",
-            "affiliateFeeTransformer": "0x4581b59a05ba373b9f67676f66bdb5fcd67e7567",
-            "fillQuoteTransformer": "0xfbfb26935f15db6a319a43db5085245a6df1e408"
+            "wethTransformer": "0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7",
+            "payTakerTransformer": "0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e",
+            "affiliateFeeTransformer": "0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f",
+            "fillQuoteTransformer": "0x74c35f17a19d4ee0ddd65cc21c671806913f9176"
         }
     },
     "3": {
@@ -75,10 +75,10 @@
         "exchangeProxyFlashWallet": "0x22f9dcf4647084d6c31b2765f6910cd85c178c18",
         "exchangeProxyLiquidityProviderSandbox": "0xb8afda68a9834969a69ebd4aab201feff814d170",
         "transformers": {
-            "wethTransformer": "0x8d822fe2b42f60531203e288f5f357fa79474437",
-            "payTakerTransformer": "0x150652244723102faeaefa4c79597d097ffa26c6",
-            "affiliateFeeTransformer": "0xa39b40642e8e00435857a0fe7d0655e08cc2217e",
-            "fillQuoteTransformer": "0x3fb85e0c1e9e0ba4ba9a4072442a2540c0473db1"
+            "wethTransformer": "0x05ad19aa3826e0609a19568ffbd1dfe86c6c7184",
+            "payTakerTransformer": "0x6d0ebf2bcd9cc93ec553b60ad201943dcca4e291",
+            "affiliateFeeTransformer": "0x6588256778ca4432fa43983ac685c45efb2379e2",
+            "fillQuoteTransformer": "0x5ec162400ec00f0f3ef1d8aae1fed37742d5dc81"
         }
     },
     "4": {

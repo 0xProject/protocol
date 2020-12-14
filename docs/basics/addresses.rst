@@ -23,10 +23,10 @@ Transformers
 ===================
 .. csv-table::
 
-    wethTransformer, `0x68c0bb685099dc7cb5c5ce2b26185945b357383e <https://etherscan.io/address//0x68c0bb685099dc7cb5c5ce2b26185945b357383e>`_
-    payTakerTransformer, `0x49b9df2c58491764cf40cb052dd4243df63622c7 <https://etherscan.io/address//0x49b9df2c58491764cf40cb052dd4243df63622c7>`_
-    fillQuoteTransformer, `0xfbfb26935f15db6a319a43db5085245a6df1e408 <https://etherscan.io/address//0xfbfb26935f15db6a319a43db5085245a6df1e408>`_
-    affiliateFeeTransformer, `0x4581b59a05ba373b9f67676f66bdb5fcd67e7567 <https://etherscan.io/address//0x4581b59a05ba373b9f67676f66bdb5fcd67e7567>`_
+    wethTransformer, `0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7 <https://etherscan.io/address//0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7>`_
+    payTakerTransformer, `0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e <https://etherscan.io/address//0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e>`_
+    fillQuoteTransformer, `0x74c35f17a19d4ee0ddd65cc21c671806913f9176 <https://etherscan.io/address//0x74c35f17a19d4ee0ddd65cc21c671806913f9176>`_
+    affiliateFeeTransformer, `0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f <https://etherscan.io/address//0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f>`_
 
 
 

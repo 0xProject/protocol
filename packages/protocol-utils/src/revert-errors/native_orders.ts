@@ -1,27 +1,7 @@
-// TODO(dorothy-zbornak): Move these into `@0x/protocol-utils` whenever that
-// becomes a thing.
-// tslint:disable:max-classes-per-file
+// tslint:disable: max-classes-per-file
 import { Numberish, RevertError } from '@0x/utils';
 
-import { OrderStatus } from './orders';
-
-export enum SignatureValidationErrorCodes {
-    AlwaysInvalid = 0,
-    InvalidLength = 1,
-    Unsupported = 2,
-    Illegal = 3,
-    WrongSigner = 4,
-    BadSignatureData = 5,
-}
-
-export class SignatureValidationError extends RevertError {
-    constructor(code?: SignatureValidationErrorCodes, hash?: string) {
-        super('SignatureValidationError', 'SignatureValidationError(uint8 code, bytes32 hash)', {
-            code,
-            hash,
-        });
-    }
-}
+import { OrderStatus } from '../orders';
 
 export class ProtocolFeeRefundFailed extends RevertError {
     constructor(receiver?: string, refundAmount?: Numberish) {
@@ -131,7 +111,6 @@ export class OnlyOrderMakerAllowed extends RevertError {
 }
 
 const types = [
-    SignatureValidationError,
     ProtocolFeeRefundFailed,
     OrderNotFillableByOriginError,
     OrderNotFillableError,

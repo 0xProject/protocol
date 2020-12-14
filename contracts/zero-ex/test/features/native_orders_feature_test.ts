@@ -1,9 +1,16 @@
 import { blockchainTests, constants, describe, expect, verifyEventsFromLogs } from '@0x/contracts-test-utils';
+import {
+    LimitOrder,
+    LimitOrderFields,
+    OrderInfo,
+    OrderStatus,
+    RevertErrors,
+    RfqOrder,
+    RfqOrderFields,
+} from '@0x/protocol-utils';
 import { AnyRevertError, BigNumber } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
-import { LimitOrder, LimitOrderFields, OrderInfo, OrderStatus, RfqOrder, RfqOrderFields } from '../../src/orders';
-import * as RevertErrors from '../../src/revert_errors';
 import { IZeroExContract, IZeroExEvents } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { fullMigrateAsync } from '../utils/migration';
@@ -446,7 +453,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder();
             const tx = zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: notMaker });
             return expect(tx).to.revertWith(
-                new RevertErrors.OnlyOrderMakerAllowed(order.getHash(), notMaker, order.maker),
+                new RevertErrors.NativeOrders.OnlyOrderMakerAllowed(order.getHash(), notMaker, order.maker),
             );
         });
     });
@@ -520,7 +527,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
             const tx = zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: notMaker });
             return expect(tx).to.revertWith(
-                new RevertErrors.OnlyOrderMakerAllowed(order.getHash(), notMaker, order.maker),
+                new RevertErrors.NativeOrders.OnlyOrderMakerAllowed(order.getHash(), notMaker, order.maker),
             );
         });
     });
@@ -542,7 +549,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const orders = [...new Array(3)].map(() => getTestLimitOrder());
             const tx = zeroEx.batchCancelLimitOrders(orders).awaitTransactionSuccessAsync({ from: notMaker });
             return expect(tx).to.revertWith(
-                new RevertErrors.OnlyOrderMakerAllowed(orders[0].getHash(), notMaker, orders[0].maker),
+                new RevertErrors.NativeOrders.OnlyOrderMakerAllowed(orders[0].getHash(), notMaker, orders[0].maker),
             );
         });
     });
@@ -564,7 +571,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const orders = [...new Array(3)].map(() => getTestRfqOrder());
             const tx = zeroEx.batchCancelRfqOrders(orders).awaitTransactionSuccessAsync({ from: notMaker });
             return expect(tx).to.revertWith(
-                new RevertErrors.OnlyOrderMakerAllowed(orders[0].getHash(), notMaker, orders[0].maker),
+                new RevertErrors.NativeOrders.OnlyOrderMakerAllowed(orders[0].getHash(), notMaker, orders[0].maker),
             );
         });
     });
@@ -925,7 +932,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder({ expiry: createExpiry(-60) });
             const tx = fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Expired),
+                new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Expired),
             );
         });
 
@@ -934,7 +941,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const tx = fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
+                new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
         });
 
@@ -945,7 +952,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 .awaitTransactionSuccessAsync({ from: maker });
             const tx = fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
+                new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
         });
 
@@ -953,7 +960,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder({ taker });
             const tx = fillLimitOrderAsync(order, { fillAmount: order.takerAmount, taker: notTaker });
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
+                new RevertErrors.NativeOrders.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
             );
         });
 
@@ -961,7 +968,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder({ sender: taker });
             const tx = fillLimitOrderAsync(order, { fillAmount: order.takerAmount, taker: notTaker });
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableBySenderError(order.getHash(), notTaker, order.sender),
+                new RevertErrors.NativeOrders.OrderNotFillableBySenderError(order.getHash(), notTaker, order.sender),
             );
         });
 
@@ -971,7 +978,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             // signature.
             const tx = fillLimitOrderAsync(order.clone({ chainId: 1234 }));
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotSignedByMakerError(order.getHash(), undefined, order.maker),
+                new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), undefined, order.maker),
             );
         });
 
@@ -1173,7 +1180,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
+                new RevertErrors.NativeOrders.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
             );
         });
 
@@ -1218,7 +1225,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
+                new RevertErrors.NativeOrders.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
             );
         });
 
@@ -1226,7 +1233,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder({ txOrigin: NULL_ADDRESS });
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Invalid),
+                new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Invalid),
             );
         });
 
@@ -1234,7 +1241,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder({ taker, txOrigin: notTaker });
             const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
+                new RevertErrors.NativeOrders.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
             );
         });
 
@@ -1242,7 +1249,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder({ expiry: createExpiry(-60) });
             const tx = fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Expired),
+                new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Expired),
             );
         });
 
@@ -1251,7 +1258,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const tx = fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
+                new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
         });
 
@@ -1262,7 +1269,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 .awaitTransactionSuccessAsync({ from: maker });
             const tx = fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
+                new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
         });
 
@@ -1272,7 +1279,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             // signature.
             const tx = fillRfqOrderAsync(order.clone({ chainId: 1234 }));
             return expect(tx).to.revertWith(
-                new RevertErrors.OrderNotSignedByMakerError(order.getHash(), undefined, order.maker),
+                new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), undefined, order.maker),
             );
         });
 
@@ -1309,7 +1316,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 .fillOrKillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), fillAmount)
                 .awaitTransactionSuccessAsync({ from: taker, value: SINGLE_PROTOCOL_FEE });
             return expect(tx).to.revertWith(
-                new RevertErrors.FillOrKillFailedError(order.getHash(), order.takerAmount, fillAmount),
+                new RevertErrors.NativeOrders.FillOrKillFailedError(order.getHash(), order.takerAmount, fillAmount),
             );
         });
 
@@ -1344,7 +1351,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 .fillOrKillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), fillAmount)
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
-                new RevertErrors.FillOrKillFailedError(order.getHash(), order.takerAmount, fillAmount),
+                new RevertErrors.NativeOrders.FillOrKillFailedError(order.getHash(), order.takerAmount, fillAmount),
             );
         });
 

@@ -8,3 +8,4 @@
 # Blacklist tests in lib
 /lib/test/*
 # Package specific ignore
+/lib/scripts/*

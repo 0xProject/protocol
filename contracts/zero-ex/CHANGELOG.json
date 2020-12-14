@@ -1,5 +1,28 @@
 [
     {
+        "version": "0.12.0",
+        "changes": [
+            {
+                "note": "Add test for selector collisions on the proxy",
+                "pr": 74
+            },
+            {
+                "note": "Move tooling out into `@0x/protocol-utils`.",
+                "pr": 76
+            }
+        ],
+        "timestamp": 1607485227
+    },
+    {
+        "timestamp": 1607381756,
+        "version": "0.11.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "version": "0.11.0",
         "changes": [
             {

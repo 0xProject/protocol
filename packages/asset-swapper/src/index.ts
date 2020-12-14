@@ -177,7 +177,7 @@ export {
 } from './utils/quote_report_generator';
 export { QuoteRequestor } from './utils/quote_requestor';
 export { rfqtMocker } from './utils/rfqt_mocker';
-export { ERC20BridgeSamplerContract } from './wrappers';
+export { ERC20BridgeSamplerContract, BalanceCheckerContract } from './wrappers';
 import { ERC20BridgeSource } from './utils/market_operation_utils/types';
 export type Native = ERC20BridgeSource.Native;
 export type MultiHop = ERC20BridgeSource.MultiHop;
