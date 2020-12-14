@@ -17,6 +17,7 @@
 */
 
 pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -45,24 +46,20 @@ contract MixinBalancer {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeBalancer(
+        address poolAddress,
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
+        uint256 sellAmount
     )
         internal
         returns (uint256 boughtAmount)
     {
-        // Decode the bridge data.
-        (IERC20TokenV06 sellToken, IBalancerPool pool) = abi.decode(
-            bridgeData,
-            (IERC20TokenV06, IBalancerPool)
-        );
         sellToken.approveIfBelow(
-            address(pool),
+            poolAddress,
             sellAmount
         );
         // Sell all of this contract's `sellToken` token balance.
-        (boughtAmount,) = pool.swapExactAmountIn(
+        (boughtAmount,) = IBalancerPool(poolAddress).swapExactAmountIn(
             sellToken,  // tokenIn
             sellAmount, // tokenAmountIn
             buyToken,   // tokenOut

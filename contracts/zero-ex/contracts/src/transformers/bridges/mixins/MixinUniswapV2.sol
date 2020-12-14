@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 
 /*
     UniswapV2
@@ -47,15 +47,13 @@ interface IUniswapV2Router02 {
     ) external returns (uint[] memory amounts);
 }
 
-contract MixinUniswapV2 is
-    MixinAdapterAddresses
-{
+contract MixinUniswapV2 {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the `UniswapV2Router02` contract.
     IUniswapV2Router02 private immutable UNISWAP_V2_ROUTER;
 
-    constructor(AdapterAddresses memory addresses)
+    constructor(IBridgeAdapter.Addresses memory addresses)
         public
     {
         UNISWAP_V2_ROUTER = IUniswapV2Router02(addresses.uniswapV2Router);

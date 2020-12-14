@@ -17,10 +17,12 @@
 */
 
 pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "../IBridgeAdapter.sol";
 import "../../../vendor/ILiquidityProvider.sol";
 import "../../../vendor/v3/IERC20Bridge.sol";
 
@@ -35,38 +37,37 @@ contract MixinZeroExBridge {
     /// @param outputToken The token the bridge is converting to.
     /// @param inputTokenAmount Amount of input token.
     /// @param outputTokenAmount Amount of output token.
-    /// @param from The bridge address, indicating the underlying source of the fill.
+    /// @param source The bridge source ID, indicating the underlying source of the fill.
     /// @param to The `to` address, currrently `address(this)`
     event ERC20BridgeTransfer(
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
         uint256 inputTokenAmount,
         uint256 outputTokenAmount,
-        address from,
+        IBridgeAdapter.BridgeSource source,
         address to
     );
 
     function _tradeZeroExBridge(
-        address bridgeAddress,
+        IBridgeAdapter.BridgeOrder memory order,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
+        uint256 sellAmount
     )
         internal
         returns (uint256 boughtAmount)
     {
         // Trade the good old fashioned way
         sellToken.compatTransfer(
-            bridgeAddress,
+            order.sourceAddress,
             sellAmount
         );
-        try ILiquidityProvider(bridgeAddress).sellTokenForToken(
+        try ILiquidityProvider(order.sourceAddress).sellTokenForToken(
                 address(sellToken),
                 address(buyToken),
                 address(this), // recipient
                 1, // minBuyAmount
-                bridgeData
+                order.bridgeData
         ) returns (uint256 _boughtAmount) {
             boughtAmount = _boughtAmount;
             emit ERC20BridgeTransfer(
@@ -74,17 +75,17 @@ contract MixinZeroExBridge {
                 buyToken,
                 sellAmount,
                 boughtAmount,
-                bridgeAddress,
+                order.source,
                 address(this)
             );
         } catch {
             uint256 balanceBefore = buyToken.balanceOf(address(this));
-            IERC20Bridge(bridgeAddress).bridgeTransferFrom(
+            IERC20Bridge(order.sourceAddress).bridgeTransferFrom(
                 address(buyToken),
-                bridgeAddress,
+                order.sourceAddress,
                 address(this), // recipient
                 1, // minBuyAmount
-                bridgeData
+                order.bridgeData
             );
             boughtAmount = buyToken.balanceOf(address(this)).safeSub(balanceBefore);
         }

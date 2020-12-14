@@ -17,12 +17,57 @@
 */
 
 pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
+
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+
 
 interface IBridgeAdapter {
+    enum BridgeSource {
+        Balancer,
+        Curve,
+        Cream,
+        CryptoCom,
+        Dodo,
+        Kyber,
+        Mooniswap,
+        MStable,
+        Oasis,
+        Shell,
+        Snowswap,
+        Sushiswap,
+        Swerve,
+        Uniswap,
+        UniswapV2,
+        LiquidityProvider
+    }
+
+    struct BridgeOrder {
+        BridgeSource source;
+        uint256 takerTokenAmount;
+        uint256 makerTokenAmount;
+        address sourceAddress;
+        bytes bridgeData;
+    }
+
+    struct Addresses {
+        // Exchanges
+        address kyberNetworkProxy;
+        address oasis;
+        address sushiswapRouter;
+        address uniswapV2Router;
+        address uniswapExchangeFactory;
+        address mStable;
+        address dodoHelper;
+        address cryptoComRouter;
+        // Other
+        address weth;
+    }
 
     function trade(
-        bytes calldata makerAssetData,
-        address fromTokenAddress,
+        BridgeOrder calldata order,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
         uint256 sellAmount
     )
         external

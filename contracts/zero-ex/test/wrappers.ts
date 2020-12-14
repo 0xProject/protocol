@@ -72,7 +72,6 @@ export * from '../test/generated-wrappers/liquidity_provider_feature';
 export * from '../test/generated-wrappers/liquidity_provider_sandbox';
 export * from '../test/generated-wrappers/log_metadata_transformer';
 export * from '../test/generated-wrappers/meta_transactions_feature';
-export * from '../test/generated-wrappers/mixin_adapter_addresses';
 export * from '../test/generated-wrappers/mixin_balancer';
 export * from '../test/generated-wrappers/mixin_crypto_com';
 export * from '../test/generated-wrappers/mixin_curve';

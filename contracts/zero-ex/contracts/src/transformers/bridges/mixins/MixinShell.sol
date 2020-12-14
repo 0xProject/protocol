@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "./MixinAdapterAddresses.sol";
 
 interface IShell {
 
@@ -37,29 +36,26 @@ interface IShell {
         returns (uint256 toAmount);
 }
 
-contract MixinShell is
-    MixinAdapterAddresses
-{
+contract MixinShell {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeShell(
+        address poolAddress,
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
+        uint256 sellAmount
     )
         internal
         returns (uint256 boughtAmount)
     {
-        (address fromTokenAddress, address pool) = abi.decode(bridgeData, (address, address));
-
         // Grant the Shell contract an allowance to sell the first token.
-        IERC20TokenV06(fromTokenAddress).approveIfBelow(
-            pool,
+        sellToken.approveIfBelow(
+            poolAddress,
             sellAmount
         );
 
-        boughtAmount = IShell(pool).originSwap(
-            fromTokenAddress,
+        boughtAmount = IShell(poolAddress).originSwap(
+            address(sellToken),
             address(buyToken),
              // Sell all tokens we hold.
             sellAmount,
