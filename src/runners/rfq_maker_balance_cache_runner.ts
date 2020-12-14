@@ -80,7 +80,10 @@ if (require.main === module) {
         const balanceCheckerContractInterface = getBalanceCheckerContractInterface(RANDOM_ADDRESS, provider);
 
         await runRfqBalanceCacheAsync(web3Wrapper, connection, balanceCheckerContractInterface);
-    })().catch(error => logger.error(error.stack));
+    })().catch(error => {
+        logger.error(error.stack);
+        process.exit(1);
+    });
 }
 
 async function runRfqBalanceCacheAsync(
