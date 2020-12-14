@@ -37,7 +37,7 @@ contract UniswapFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "UniswapFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 1);
     /// @dev A bloom filter for tokens that consume all gas when `transferFrom()` fails.
     bytes32 public immutable GREEDY_TOKENS_BLOOM_FILTER;
     /// @dev WETH contract.
