@@ -173,7 +173,7 @@
         "assetProxyOwner": "0x0000000000000000000000000000000000000000",
         "erc20BridgeProxy": "0x371b13d97f4bf77d724e78c16b7dc74099f40e84",
         "zeroExGovernor": "0x0000000000000000000000000000000000000000",
-        "forwarder": "0xa4b3e1659c473623287b2cc13b194705cd792525",
+        "forwarder": "0x72d5a2213bfe46df9fbda08e22f536ac6ca8907e",
         "coordinatorRegistry": "0xaa86dda78e9434aca114b6676fc742a18d15a1cc",
         "coordinator": "0x4d3d5c850dd5bd9d6f4adda3dd039a3c8054ca29",
         "multiAssetProxy": "0xcfc18cec799fbd1793b5c43e773c98d4d61cc2db",
@@ -192,16 +192,16 @@
         "maximumGasPrice": "0x0000000000000000000000000000000000000000",
         "dexForwarderBridge": "0x0000000000000000000000000000000000000000",
         "exchangeProxyGovernor": "0x0000000000000000000000000000000000000000",
-        "exchangeProxy": "0x5315e44798395d4a952530d131249fe00f554565",
-        "exchangeProxyAllowanceTarget": "0x8362c3ebd90041b30ec45908332e592721642637",
+        "exchangeProxy": "0xc1be2c0bb387aa13d5019a9c518e8bc93cb53360",
+        "exchangeProxyAllowanceTarget": "0x8b001453ebbe6d0a61c15a0c5d348513e648157f",
         "exchangeProxyTransformerDeployer": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
-        "exchangeProxyFlashWallet": "0xb9682a8e7920b431f1d412b8510f0077410c8faa",
+        "exchangeProxyFlashWallet": "0xd6724bf180441a89d08ea3aeded2c995180b9a04",
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0x3f16ca81691dab9184cb4606c361d73c4fd2510a",
-            "payTakerTransformer": "0x99356167edba8fbdc36959e3f5d0c43d1ba9c6db",
-            "affiliateFeeTransformer": "0x45b3a72221e571017c0f0ec42189e11d149d0ace",
-            "fillQuoteTransformer": "0xdd66c23e07b4d6925b6089b5fe6fc9e62941afe8"
+            "wethTransformer": "0x45b3a72221e571017c0f0ec42189e11d149d0ace",
+            "payTakerTransformer": "0xdd66c23e07b4d6925b6089b5fe6fc9e62941afe8",
+            "affiliateFeeTransformer": "0x4609e0ed27a8baac57b753d36a5d2971915588f9",
+            "fillQuoteTransformer": "0x4ef5b1e3da5573466fb1724d2fca95290119b664"
         }
     }
 }
