@@ -167,8 +167,13 @@ contract UniswapFeature is
                 }
 
                 if iszero(i) {
+                    // This is the first token in the path.
                     switch eq(sellToken, ETH_TOKEN_ADDRESS_32)
                         case 0 { // Not selling ETH. Selling an ERC20 instead.
+                            // Make sure ETH was not attached to the call.
+                            if gt(callvalue(), 0) {
+                                revert(0, 0)
+                            }
                             // For the first pair we need to transfer sellTokens into the
                             // pair contract.
                             moveTakerTokensTo(sellToken, pair, sellAmount)
@@ -202,6 +207,10 @@ contract UniswapFeature is
                 mstore(0xB00, UNISWAP_PAIR_RESERVES_CALL_SELECTOR_32)
                 if iszero(staticcall(gas(), pair, 0xB00, 0x4, 0xC00, 0x40)) {
                     bubbleRevert()
+                }
+                // Revert if the pair contract does not return two words.
+                if iszero(eq(returndatasize(), 0x40)) {
+                    revert(0,0)
                 }
 
                 // Sell amount for this hop is the previous buy amount.
@@ -374,10 +383,14 @@ contract UniswapFeature is
                     mstore(0xB00, ALLOWANCE_CALL_SELECTOR_32)
                     mstore(0xB04, caller())
                     mstore(0xB24, address())
-                    let success := call(gas(), token, 0, 0xB00, 0x44, 0xC00, 0x20)
+                    let success := staticcall(gas(), token, 0xB00, 0x44, 0xC00, 0x20)
                     if iszero(success) {
                         // Call to allowance() failed.
                         bubbleRevert()
+                    }
+                    // Make sure the allowance call returned a single word.
+                    if iszero(eq(returndatasize(), 0x20)) {
+                        revert(0, 0)
                     }
                     // Call succeeded.
                     // Result is stored in 0xC00-0xC20.
@@ -397,8 +410,6 @@ contract UniswapFeature is
                 mstore(0xB44, amount)
 
                 let success := call(
-                    // Cap the gas limit to prvent all gas being consumed
-                    // if the token reverts.
                     gas(),
                     token,
                     0,
