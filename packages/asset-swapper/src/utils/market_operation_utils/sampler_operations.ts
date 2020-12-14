@@ -1045,7 +1045,17 @@ export class SamplerOperations {
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
         const intermediateTokens = getIntermediateTokens(_makerToken, _takerToken, this.tokenAdjacencyGraph);
         const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
-        const getOps = (makerToken: string, takerToken: string, takerFillAmounts: BigNumber[]) => {
+        // Use intermediate hops here just for a indicative price of the asset when looking for second + third hops
+        // I.e we may not get a good price for WBTC->USDT directly, so make use of WBTC->ETH->USDT for a more approximate
+        // price.
+        // If used incorrectly this can cause collisions as you may get a WBTC->ETH->USDT and a WBTC->ETH and an ETH->USDT
+        // from the same source
+        const getOps = (
+            makerToken: string,
+            takerToken: string,
+            takerFillAmounts: BigNumber[],
+            tokenAdjacency: TokenAdjacencyGraph,
+        ) => {
             return _.flatten(
                 _sources.map(
                     (source): SourceQuoteOperation | SourceQuoteOperation[] => {
@@ -1055,9 +1065,19 @@ export class SamplerOperations {
                             case ERC20BridgeSource.Uniswap:
                                 return this.getUniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
                             case ERC20BridgeSource.UniswapV2:
-                                return this.getUniswapV2SellQuotes([takerToken, makerToken], takerFillAmounts);
+                                return [
+                                    this.getUniswapV2SellQuotes([takerToken, makerToken], takerFillAmounts),
+                                    ...getIntermediateTokens(makerToken, takerToken, tokenAdjacency).map(i =>
+                                        this.getUniswapV2SellQuotes([takerToken, i, makerToken], takerFillAmounts),
+                                    ),
+                                ];
                             case ERC20BridgeSource.SushiSwap:
-                                return this.getSushiSwapSellQuotes([takerToken, makerToken], takerFillAmounts);
+                                return [
+                                    this.getSushiSwapSellQuotes([takerToken, makerToken], takerFillAmounts),
+                                    ...getIntermediateTokens(makerToken, takerToken, tokenAdjacency).map(i =>
+                                        this.getSushiSwapSellQuotes([takerToken, i, makerToken], takerFillAmounts),
+                                    ),
+                                ];
                             case ERC20BridgeSource.CryptoCom:
                                 return this.getCryptoComSellQuotes([takerToken, makerToken], takerFillAmounts);
                             case ERC20BridgeSource.Kyber:
@@ -1144,72 +1164,118 @@ export class SamplerOperations {
                             case ERC20BridgeSource.Dodo:
                                 return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
                             default:
-                                throw new Error(`Unsupported sell sample source: ${source}`);
+                                return [];
+                            // throw new Error(`Unsupported sell sample source: ${source}`);
                         }
                     },
                 ),
             );
         };
-        const firstHops = intermediateTokens.map(i => getOps(i, _takerToken, _takerFillAmounts));
-        const secondHops = intermediateTokens.map(intermediaryToken => {
-            const firstHopOps = getOps(intermediaryToken, _takerToken, _takerFillAmounts);
-            // The first encoding does the actual work, all others rely on the first result to decode
-            // all others are NOOPs in the sampler
-            const secondHopOps = getOps(_makerToken, intermediaryToken, [ZERO_AMOUNT]);
-            let intermediaryInfo: IntermediaryInfo[];
-            let intermediaryAmounts: BigNumber[];
-            const firstSecondHopOp = new SamplerContractOperation({
-                contract: this._samplerContract,
-                source: secondHopOps[0].source,
-                fillData: secondHopOps[0].fillData,
-                function: this._samplerContract.sampleIntermediateSell,
-                params: [
-                    firstHopOps.map(op => op.encodeCall()),
-                    secondHopOps.map(op => op.encodeCall()),
-                    _takerFillAmounts,
-                ],
-                inputAmountOverride: () => intermediaryAmounts,
-                callback: (callResults: string, fillData: FillData): BigNumber[] => {
-                    const [_intermediaryInfo, _intermediaryAmounts] = this._samplerContract.getABIDecodedReturnData<
-                        [IntermediaryInfo[], BigNumber[]]
-                    >('sampleIntermediateSell', callResults);
-                    // Store in the above context for other results to parse
-                    intermediaryInfo = _intermediaryInfo;
-                    intermediaryAmounts = _intermediaryAmounts;
-                    // Parse the extra fill data if required from the return data
-                    secondHopOps[0].handleCallResults(intermediaryInfo[0].returnData);
-                    // assign it to this fill data or something
-                    Object.assign(fillData, { ...secondHopOps[0].fillData });
-                    return intermediaryInfo[0].makerTokenAmounts;
-                },
+        const emptyAdjacency: TokenAdjacencyGraph = { default: [] };
+        const paths: { [i: string]: Set<string> } = {};
+        intermediateTokens.forEach(i => {
+            if (!paths[_takerToken]) {
+                paths[_takerToken] = new Set();
+            }
+            if (!paths[i]) {
+                paths[i] = new Set();
+            }
+            // Example UNI->ZRX
+            // UNI->ETH
+            paths[_takerToken].add(i);
+            // ETH->ZRX
+            paths[i].add(_makerToken);
+            // ETH->DAI, ETH->USDC, ETH->USDT
+            intermediateTokens.forEach(ii => {
+                if (i !== ii) {
+                    paths[i].add(ii);
+                }
             });
-            return secondHopOps.map((op, i) =>
-                i === 0
-                    ? firstSecondHopOp
-                    : new SamplerContractOperation({
-                          contract: this._samplerContract,
-                          source: op.source,
-                          fillData: op.fillData,
-                          function: this._samplerContract.sampleIntermediateSell,
-                          encodeCallback: () => NULL_BYTES,
-                          params: [] as any,
-                          callback: (_callResults: string, _fillData: FillData): BigNumber[] => {
-                              // The first result has already decoded everything for us
-                              op.handleCallResults(intermediaryInfo[i].returnData);
-                              return intermediaryInfo[i].makerTokenAmounts;
-                          },
-                          inputAmountOverride: () => intermediaryAmounts,
-                      }),
-            );
         });
-        const subOps = [
-            // Direct swaps
-            ...getOps(_makerToken, _takerToken, _takerFillAmounts),
-            // First leg hops
-            ..._.flatten(firstHops),
-            // Second leg hops
-            ..._.flatten(secondHops),
-        ];
+        // add the direct path
+        paths[_takerToken].add(_makerToken);
+
+        const subOps = _.flatten(
+            Object.entries(paths).map(([token, iTokens]) => {
+                return _.flatten(
+                    Array.from(iTokens).map(intermediaryToken => {
+                        // Direct trade, from the original taker token
+                        // takerFillAmounts are relevant and do not need to be calculated
+                        if (token === _takerToken) {
+                            // Maker, taker, fillAmounts
+                            return getOps(intermediaryToken, token, _takerFillAmounts, emptyAdjacency);
+                        } else {
+                            // Use the first hop of taker token (e.g UNI->ETH) with the original
+                            // fill amounts to infer the size of the second hop
+                            // Maker, taker, fillAmounts
+                            const firstHopOps = getOps(
+                                token,
+                                _takerToken,
+                                _takerFillAmounts,
+                                // Explicitly use the token adjancency for the first hops as an indication
+                                // of price
+                                this.tokenAdjacencyGraph,
+                            );
+                            // The first encoding does the actual work, all others rely on the first result to decode
+                            // all others are NOOPs in the sampler
+                            // Second Hops, eg ETH->ZRX
+                            const secondHopOps = getOps(intermediaryToken, token, [ZERO_AMOUNT], emptyAdjacency);
+                            let intermediaryInfo: IntermediaryInfo[];
+                            let intermediaryAmounts: BigNumber[];
+                            const firstSecondHopOp = new SamplerContractOperation({
+                                contract: this._samplerContract,
+                                source: secondHopOps[0].source,
+                                fillData: secondHopOps[0].fillData,
+                                function: this._samplerContract.sampleIntermediateSell,
+                                params: [
+                                    firstHopOps.map(op => op.encodeCall()),
+                                    secondHopOps.map(op => op.encodeCall()),
+                                    _takerFillAmounts,
+                                ],
+                                inputAmountOverride: () => intermediaryAmounts,
+                                callback: (callResults: string, fillData: FillData): BigNumber[] => {
+                                    const [
+                                        _intermediaryInfo,
+                                        _intermediaryAmounts,
+                                    ] = this._samplerContract.getABIDecodedReturnData<
+                                        [IntermediaryInfo[], BigNumber[]]
+                                    >('sampleIntermediateSell', callResults);
+                                    // Store in the above context for other results to parse
+                                    intermediaryInfo = _intermediaryInfo;
+                                    intermediaryAmounts = _intermediaryAmounts;
+                                    // Parse the extra fill data if required from the return data
+                                    secondHopOps[0].handleCallResults(intermediaryInfo[0].returnData);
+                                    // assign it to this fill data or something
+                                    Object.assign(fillData, { ...secondHopOps[0].fillData });
+                                    return intermediaryInfo[0].makerTokenAmounts;
+                                },
+                            });
+                            return secondHopOps.map((op, i) =>
+                                i === 0
+                                    ? firstSecondHopOp
+                                    : new SamplerContractOperation({
+                                          contract: this._samplerContract,
+                                          source: op.source,
+                                          fillData: op.fillData,
+                                          function: this._samplerContract.sampleIntermediateSell,
+                                          encodeCallback: () => NULL_BYTES,
+                                          params: [] as any,
+                                          callback: (_callResults: string, _fillData: FillData): BigNumber[] => {
+                                              // The first result has already decoded everything for us
+                                              op.handleCallResults(intermediaryInfo[i].returnData);
+                                              return intermediaryInfo[i].makerTokenAmounts;
+                                          },
+                                          inputAmountOverride: () => intermediaryAmounts,
+                                      }),
+                            );
+                        }
+                    }),
+                );
+            }),
+        );
+
+        console.log(paths);
+
         // ignore all of these samples
         subOps.forEach(s => {
             if (s.fillData) {
