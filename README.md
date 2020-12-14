@@ -108,13 +108,13 @@ To get a local development version of `0x-api` running:
 
 5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file. On start-up, the [event-pipeline](https://github.com/0xProject/0x-event-pipeline) container will crash and restart until Postgres is up. If you switch `CHAIN_ID` after a prior run, you will have to `rm -rf 0x_mesh postgres` to delete the volumes containing stale data.
 
-6) Run the database migrations:
+6. Run the database migrations:
 
 ```
-yarn migrate
+yarn db:migrate
 ```
 
-6. Start the API
+7. Start the API
 
     ```sh
     yarn start

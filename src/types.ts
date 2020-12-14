@@ -57,6 +57,7 @@ export interface APIOrderMetaData {
     orderHash: string;
     remainingFillableTakerAssetAmount: BigNumber;
     state?: OrderEventEndState;
+    createdAt?: string;
 }
 
 export interface APIOrderWithMetaData extends APIOrder {

@@ -143,7 +143,9 @@ describe(SUITE_NAME, () => {
             await saveSignedOrderAsync(apiOrder);
 
             const response = await orderBookService.getOrdersAsync(DEFAULT_PAGE, DEFAULT_PER_PAGE, {});
-            apiOrder.metaData.state = undefined; // state is not saved in SignedOrders table, only saved in PersistentOrders
+            // state and createdAt is not saved in SignedOrders table, only saved in PersistentOrders
+            apiOrder.metaData.state = undefined;
+            apiOrder.metaData.createdAt = undefined;
             expect(response).to.deep.eq({
                 ...EMPTY_PAGINATED_RESPONSE,
                 total: 1,
@@ -156,7 +158,9 @@ describe(SUITE_NAME, () => {
             await saveSignedOrderAsync(apiOrder);
             await savePersistentOrderAsync(apiOrder);
             const response = await orderBookService.getOrdersAsync(DEFAULT_PAGE, DEFAULT_PER_PAGE, {});
-            apiOrder.metaData.state = undefined; // state is not saved in SignedOrders table, only saved in PersistentOrders
+            // state and createdAt is not saved in SignedOrders table, only saved in PersistentOrders
+            apiOrder.metaData.state = undefined;
+            apiOrder.metaData.createdAt = undefined;
             expect(response).to.deep.eq({
                 ...EMPTY_PAGINATED_RESPONSE,
                 total: 1,
@@ -173,6 +177,7 @@ describe(SUITE_NAME, () => {
                 isUnfillable: true,
                 makerAddress: apiOrder.order.makerAddress,
             });
+            apiOrder.metaData.createdAt = response.records[0].metaData.createdAt; // createdAt is saved in the PersistentOrders table directly
             expect(response).to.deep.eq({
                 ...EMPTY_PAGINATED_RESPONSE,
                 total: 1,
@@ -219,6 +224,7 @@ describe(SUITE_NAME, () => {
                 hash: apiOrder.metaData.orderHash,
             });
             const expected = orderUtils.serializePersistentOrder(apiOrder);
+            expected.createdAt = result[0].createdAt; // createdAt is saved in the PersistentOrders table directly
             expect(result).to.deep.equal([expected]);
             await deletePersistentOrderAsync(apiOrder.metaData.orderHash);
         });

@@ -110,7 +110,7 @@ export class OrderBookService {
         page: number,
         perPage: number,
         ordersFilterParams: SRAGetOrdersRequestOpts,
-    ): Promise<PaginatedCollection<APIOrder>> {
+    ): Promise<PaginatedCollection<APIOrderWithMetaData>> {
         // Pre-filters
         const filterObjectWithValuesIfExist: Partial<SignedOrder> = {
             exchangeAddress: ordersFilterParams.exchangeAddress,
