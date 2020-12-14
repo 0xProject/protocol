@@ -111,9 +111,13 @@ contract LiquidityProviderFeature is
             recipient = msg.sender;
         }
 
-        if (inputToken == ETH_TOKEN_ADDRESS) {
-            provider.transfer(LibSafeMathV06.min256(sellAmount, msg.value));
-        } else {
+        // Forward all attached ETH to the provider.
+        if (msg.value > 0) {
+            provider.transfer(msg.value);
+        }
+
+        if (inputToken != ETH_TOKEN_ADDRESS) {
+            // Transfer input ERC20 tokens to the provider.
             _transferERC20Tokens(
                 IERC20TokenV06(inputToken),
                 msg.sender,

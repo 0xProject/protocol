@@ -7,7 +7,7 @@
                 "pr": 82
             },
             {
-                "note": "Cap the ETH transfer amount to a liquidity provider to `msg.value`",
+                "note": "Always transfer `msg.value` to the liquidity provider contract in LiquidityProviderFeature to",
                 "pr": 82
             }
         ]
