@@ -675,7 +675,7 @@ export class MarketOperationUtils {
                     marketSideLiquidity = {
                         ...marketSideLiquidity,
                         rfqtIndicativeQuotes: indicativeQuotes,
-                    }
+                    };
                     optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
                 }
             } else if (!rfqt.isIndicative && isFirmPriceAwareEnabled) {
@@ -708,12 +708,12 @@ export class MarketOperationUtils {
                             ...marketSideLiquidity,
                             nativeOrders: marketSideLiquidity.nativeOrders.concat(firmQuoteSignedOrders),
                             orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(rfqOrderFillableAmounts),
-                        }
+                        };
 
                         // Re-run optimizer with the new firm quote. This is the second and last time
                         // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
                         // and we let it bubble up if it happens.
-                        optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts)
+                        optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
                     }
                 }
             }
