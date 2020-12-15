@@ -181,8 +181,8 @@ contract MixinStake is
         );
     }
 
-    /// @dev Alows a user to look up their staked balances and
-    ///      synchronize thier voting power with the gov contract
+    /// @dev Allows a user to look up their staked balances and
+    ///      synchronize their voting power with the gov contract
     /// @param poolId Unique Id of pool.
     /// @param delegate The address that the caller wants to delegate to
     function synchronizeGovPower(bytes32 poolId, address delegate) external {

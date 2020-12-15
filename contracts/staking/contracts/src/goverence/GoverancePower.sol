@@ -9,7 +9,7 @@ contract GoverancePower {
     /// @notice A name to identify this contract in signature hashes
     // Sol hint thinks this isn't SNAKE_CASE
     // solhint-disable-next-line
-    string public constant name = "ZRX_GOVERANCE";
+    string public constant name = "ZRX_GOVERNANCE";
 
     /// @notice Official record of token balances for each account
     mapping (address => uint96) internal balances;
@@ -68,7 +68,7 @@ contract GoverancePower {
         _mint(account, amount);
     }
     
-    // This function removes voting tokens from existance
+    // This function removes voting tokens from existence
     // it is only callable by the 'minter' contract
     // It removes the delegates appropriate number of delegates
     // from whomever has been delegate to by this account.
@@ -94,7 +94,7 @@ contract GoverancePower {
             // 'amount' after.
             _burn(account, balance - amount);
         }
-        if (account != delegator) {
+        if (delegator != address(0)) {
             _delegate(account, delegator);
         }
     }

@@ -54,7 +54,8 @@ Chat with our team privately on `Discord <https://discord.com/invite/d3FTX3M>`_ 
    tokenomics/research.rst
    tokenomics/staking.md
    tokenomics/staking_reward_formula.rst
-   tokenomics/governance.rst
+   tokenomics/protocol_governance.rst
+   tokenomics/treasury_governance.md
 
 .. toctree::
    :maxdepth: 2

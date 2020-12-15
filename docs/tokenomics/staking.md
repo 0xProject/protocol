@@ -284,7 +284,8 @@ function unstake(uint256 amount)
 1. Deposit ZRX tokens into `ZrxVault`.
 2. `ZrxVault` emits the [Deposit](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IZrxVault.sol#L34) event.
 3. Increase the sender's stake balance.
-4. Emit the [Stake](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IStakingEvents.sol#L9) event.
+4. Call `mint(amount)` on the onchain governance contracts
+5. Emit the [Stake](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IStakingEvents.sol#L9) event.
 
 #### Errors by `stake`
 
@@ -297,9 +298,10 @@ function unstake(uint256 amount)
 1. Compute amount of staked ZRX that can be unstaked: this is the `min` of the user's undelegated stake in the current and next epoch.
 2. Assert the amount to unstake is less or equal to the amount computed in (1).
 3. Decrease the user's stake in the current and next epoch.
-4. Transfer ZRX tokens from the `ZrxVault` to the user.
-5. The `ZrxVault` emits the [Withdraw](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IZrxVault.sol#L42) event.
-6. Emit the [Unstake](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IStakingEvents.sol#L17) event.
+4. Call `burn(amount)` on the onchain governance contracts
+5. Transfer ZRX tokens from the `ZrxVault` to the user.
+6. The `ZrxVault` emits the [Withdraw](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IZrxVault.sol#L42) event.
+7. Emit the [Unstake](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IStakingEvents.sol#L17) event.
 
 #### Errors by `unstake`
 
@@ -374,12 +376,14 @@ Note that when stake is moved its new status comes into effect on the _next epoc
    1. Decrease how much stake the staker has delegated to the input pool.
    1. Decrease how much stake has been delegated to pool.
    1. Decrease balance of global delegated stake (aggregated across all stakers).
+   1. Remove half of the governance power amount from the current pool by calling onchain governance.
 3. If moving to `delegated` state then `delegate` the stake.
    1. Sanity check the pool we're delegating to exists.
    1. Withdraw any rewards owed to the delegator by this pool (see [Section 6.2.3](#623-logic-of-withdrawDelegatorRewards)).
    1. Increase how much stake the staker has delegated to the input pool.
    1. Increase how much stake has been delegated to pool.
    1. Increase balance of global delegated stake (aggregated across all stakers).
+   1. Add half of the governance power to the staking pool
 4. Execute move.
 5. Emit the [MoveStake](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IStakingEvents.sol#L25) event.
 
