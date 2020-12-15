@@ -138,3 +138,43 @@ In both cases, the ``@0x/protocol-utils`` package simplifies generating these si
 The Orderbook 
 =======================
 Orders are shared through a decentralized and permissionless network, called `0x Mesh <https://0x.org/mesh>`_. The simplest way to post and discover orders is through `0x API <https://0x.org/api>`_. See `this guide <https://0x.org/docs/guides/market-making-on-0x>`_ tailored for Market Makers.
+
+Orders are usually represented as a JSON object off-chain. Below is a table represention and example of how orders should be formatted off-chain.
+
+JSON representation of RFQ Orders
+*********************************
+
+A ``RFQOrder`` should be serialized to JSON as following:
+::
+
+    {
+        "maker": "0x66d9357650beF62E9Ca5b7E250091Cf50D06413e",
+        "taker": "0x0000000000000000000000000000000000000000",
+        "makerToken": "0xF84830B73b2ED3C7267E7638f500110eA47FDf30",
+        "takerToken": "0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7",
+        "makerAmount": "100000000000000000000",
+        "takerAmount": "100000000000000000000",
+        "txOrigin": "0xADbEE76d52d95B5939bD18C7851698698af5c508",
+        "pool": "0x0000000000000000000000000000000000000000000000000000000000000017",
+        "chainId": 1,
+        "verifyingContract": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+        "expiry": "1607990235",
+        "salt": "1607989935",
+        "signature": {
+            "signatureType": 3,
+            "v": 27,
+            "s": "0x1437733fecd07e343887ae05a7796ecaab646d084af7f1e718f23b947a4fe344",
+            "r": "0x1efa2c0c207f6b5fc154213268d57b0d5731ddff9366df1a7c59f41d28e3f4f1"
+        }
+    }
+
+A few observations:
+
+- All numerical values are to be serialized as a string, except for `chainId`, `signature.signatureType`, and `signature.v` which are serialized as a number.
+- `chainId` is the ID of the Ethereum chain where the `verifyingContract` is located.
+- `verifyingContract` is the address of the smart contract where the transaction should be sent to and that will settle the order.
+
+JSON representation of Limit Orders
+*********************************
+
+TODO
