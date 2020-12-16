@@ -1,4 +1,3 @@
-import { SupportedProvider } from '@0x/dev-utils';
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
@@ -81,23 +80,16 @@ export class SamplerOperations {
 
     constructor(
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
-        public readonly provider?: SupportedProvider,
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
+        bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
         // Initialize the Bancor service, fetching paths in the background
-        this.initBancorServiceAsync().catch(/* do nothing */);
-    }
-
-    public async initBancorServiceAsync(): Promise<void> {
-        if (this.provider === undefined) {
-            return;
-        }
-        if (this._bancorService === undefined) {
-            this._bancorService = await BancorService.createAsync(this.provider);
-        }
+        bancorServiceFn()
+            .then(service => (this._bancorService = service))
+            .catch(/* do nothing */);
     }
 
     public getTokenDecimals(makerTokenAddress: string, takerTokenAddress: string): BatchedOperation<BigNumber[]> {
