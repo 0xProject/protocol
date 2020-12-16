@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.15.0",
+        "changes": [
+            {
+                "note": "Add MixinBancor to BridgeAdapter",
+                "pr": 91
+            }
+        ]
+    },
+    {
         "version": "0.14.0",
         "changes": [
             {
