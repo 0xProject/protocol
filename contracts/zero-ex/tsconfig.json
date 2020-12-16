@@ -103,6 +103,7 @@
         "test/generated-artifacts/MetaTransactionsFeature.json",
         "test/generated-artifacts/MixinAdapterAddresses.json",
         "test/generated-artifacts/MixinBalancer.json",
+        "test/generated-artifacts/MixinBancor.json",
         "test/generated-artifacts/MixinCryptoCom.json",
         "test/generated-artifacts/MixinCurve.json",
         "test/generated-artifacts/MixinDodo.json",
