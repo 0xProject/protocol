@@ -163,15 +163,9 @@ describe('DexSampler tests', () => {
                     return [toBaseUnitAmount(1001)];
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(
-                sampler,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                { [poolAddress]: { tokens: [expectedMakerToken, expectedTakerToken], gasCost } },
-            );
+            const dexOrderSampler = new DexOrderSampler(sampler, undefined, undefined, undefined, undefined, {
+                [poolAddress]: { tokens: [expectedMakerToken, expectedTakerToken], gasCost },
+            });
             const [result] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getSellQuotes(
                     [ERC20BridgeSource.LiquidityProvider],
@@ -205,15 +199,9 @@ describe('DexSampler tests', () => {
                     return [toBaseUnitAmount(999)];
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(
-                sampler,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                { [poolAddress]: { tokens: [expectedMakerToken, expectedTakerToken], gasCost } },
-            );
+            const dexOrderSampler = new DexOrderSampler(sampler, undefined, undefined, undefined, undefined, {
+                [poolAddress]: { tokens: [expectedMakerToken, expectedTakerToken], gasCost },
+            });
             const [result] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getBuyQuotes(
                     [ERC20BridgeSource.LiquidityProvider],
@@ -376,14 +364,7 @@ describe('DexSampler tests', () => {
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue());
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(
-                sampler,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                tokenAdjacencyGraph,
-            );
+            const dexOrderSampler = new DexOrderSampler(sampler, undefined, undefined, undefined, tokenAdjacencyGraph);
             const [quotes] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getSellQuotes(
                     sources,
@@ -433,12 +414,7 @@ describe('DexSampler tests', () => {
                     return Promise.resolve(pools);
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(
-                new MockSamplerContract({}),
-                undefined,
-                undefined,
-                balancerPoolsCache,
-            );
+            const dexOrderSampler = new DexOrderSampler(new MockSamplerContract({}), undefined, balancerPoolsCache);
             const quotes = await dexOrderSampler.getBalancerSellQuotesOffChainAsync(
                 expectedMakerToken,
                 expectedTakerToken,
@@ -481,14 +457,7 @@ describe('DexSampler tests', () => {
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue());
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(
-                sampler,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                tokenAdjacencyGraph,
-            );
+            const dexOrderSampler = new DexOrderSampler(sampler, undefined, undefined, undefined, tokenAdjacencyGraph);
             const [quotes] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getBuyQuotes(sources, expectedMakerToken, expectedTakerToken, expectedMakerFillAmounts),
             );
@@ -529,12 +498,7 @@ describe('DexSampler tests', () => {
                     return Promise.resolve(pools);
                 },
             });
-            const dexOrderSampler = new DexOrderSampler(
-                new MockSamplerContract({}),
-                undefined,
-                undefined,
-                balancerPoolsCache,
-            );
+            const dexOrderSampler = new DexOrderSampler(new MockSamplerContract({}), undefined, balancerPoolsCache);
             const quotes = await dexOrderSampler.getBalancerBuyQuotesOffChainAsync(
                 expectedMakerToken,
                 expectedTakerToken,

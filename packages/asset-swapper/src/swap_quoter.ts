@@ -1,4 +1,5 @@
-import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { BancorService } from '@0x/asset-swapper/src/utils/market_operation_utils/bancor_service';
+import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { DevUtilsContract } from '@0x/contract-wrappers';
 import { schemas } from '@0x/json-schemas';
 import { assetDataUtils, SignedOrder } from '@0x/order-utils';
@@ -208,15 +209,18 @@ export class SwapQuoter {
                 gas: samplerGasLimit,
             },
         );
+
         this._marketOperationUtils = new MarketOperationUtils(
             new DexOrderSampler(
                 samplerContract,
                 samplerOverrides,
-                provider,
                 undefined, // balancer pool cache
                 undefined, // cream pool cache
                 tokenAdjacencyGraph,
                 liquidityProviderRegistry,
+                this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet
+                    ? async () => BancorService.createAsync(provider)
+                    : async () => undefined,
             ),
             this._contractAddresses,
             {
