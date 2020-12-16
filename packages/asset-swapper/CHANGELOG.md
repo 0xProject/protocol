@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.5.1 - _December 16, 2020_
+
+    * Dependencies updated
+
 ## v5.5.0 - _December 16, 2020_
 
     * Bancor now supported in all pairs (#88)

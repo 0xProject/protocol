@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.14.0 - _December 16, 2020_
+
+    * Use the `MetaTransaction` class from `@0x/protocol-utils` in tests. (#90)
+
 ## v0.13.0 - _December 16, 2020_
 
     * Address audit feedback in UniswapFeature (#82)

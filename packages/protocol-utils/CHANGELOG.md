@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.1.0 - _December 16, 2020_
+
+    * Add the `MetaTransaction` class for EP mtxs (#90)
+
 ## v1.0.1 - _December 9, 2020_
 
     * Dependencies updated

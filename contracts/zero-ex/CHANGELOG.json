@@ -6,7 +6,8 @@
                 "note": "Use the `MetaTransaction` class from `@0x/protocol-utils` in tests.",
                 "pr": 90
             }
-        ]
+        ],
+        "timestamp": 1608149382
     },
     {
         "version": "0.13.0",
