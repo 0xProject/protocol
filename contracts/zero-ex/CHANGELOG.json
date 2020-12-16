@@ -14,7 +14,8 @@
                 "note": "Remove backwards compatibility with old PLP/bridge interface in `LiquidityProviderFeature` and `MixinZeroExBridge`",
                 "pr": 85
             }
-        ]
+        ],
+        "timestamp": 1608105788
     },
     {
         "version": "0.12.0",

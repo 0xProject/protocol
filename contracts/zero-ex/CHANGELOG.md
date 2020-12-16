@@ -5,6 +5,12 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.13.0 - _December 16, 2020_
+
+    * Address audit feedback in UniswapFeature (#82)
+    * Always transfer `msg.value` to the liquidity provider contract in LiquidityProviderFeature to (#82)
+    * Remove backwards compatibility with old PLP/bridge interface in `LiquidityProviderFeature` and `MixinZeroExBridge` (#85)
+
 ## v0.12.0 - _December 9, 2020_
 
     * Add test for selector collisions on the proxy (#74)
