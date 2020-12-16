@@ -5,6 +5,7 @@ import { BridgeContractAddresses } from '../../types';
 
 import { SourceFilters } from './source_filters';
 import {
+    BancorFillData,
     CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
@@ -34,8 +35,7 @@ export const SELL_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Kyber,
     ERC20BridgeSource.Curve,
     ERC20BridgeSource.Balancer,
-    // Bancor is sampled off-chain, but this list should only include on-chain sources (used in ERC20BridgeSampler)
-    // ERC20BridgeSource.Bancor,
+    ERC20BridgeSource.Bancor,
     ERC20BridgeSource.MStable,
     ERC20BridgeSource.Mooniswap,
     ERC20BridgeSource.Swerve,
@@ -60,7 +60,7 @@ export const BUY_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Kyber,
     ERC20BridgeSource.Curve,
     ERC20BridgeSource.Balancer,
-    // ERC20BridgeSource.Bancor, // FIXME: Disabled until Bancor SDK supports buy quotes
+    // ERC20BridgeSource.Bancor, // FIXME: Bancor Buys not implemented in Sampler
     ERC20BridgeSource.MStable,
     ERC20BridgeSource.Mooniswap,
     ERC20BridgeSource.Shell,
@@ -410,7 +410,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
         curveBridge: '0x1796cd592d19e3bcd744fbb025bb61a6d8cb2c09',
         multiBridge: '0xc03117a8c9bde203f70aa911cb64a7a0df5ba1e1',
         balancerBridge: '0xfe01821ca163844203220cd08e4f2b2fb43ae4e4',
-        bancorBridge: '0x259897d9699553edbdf8538599242354e957fb94',
+        bancorBridge: '0x25eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
         mStableBridge: '0x2bf04fcea05f0989a14d9afa37aa376baca6b2b3',
         mooniswapBridge: '0x02b7eca484ad960fca3f7709e0b2ac81eec3069c',
         sushiswapBridge: '0x47ed0262a0b688dcb836d254c6a2e96b6c48a9f5',
@@ -539,7 +539,14 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
                 throw new Error('Unrecognized SnowSwap address');
         }
     },
-    [ERC20BridgeSource.Bancor]: () => 300e3,
+    [ERC20BridgeSource.Bancor]: (fillData?: FillData) => {
+        let gas = 200e3;
+        const path = (fillData as BancorFillData).path;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.assign(

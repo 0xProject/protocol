@@ -213,9 +213,8 @@ export class SwapQuoter {
                 samplerContract,
                 samplerOverrides,
                 provider,
-                undefined,
-                undefined,
-                undefined,
+                undefined, // balancer pool cache
+                undefined, // cream pool cache
                 tokenAdjacencyGraph,
                 liquidityProviderRegistry,
             ),
