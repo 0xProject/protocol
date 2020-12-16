@@ -87,7 +87,8 @@ export class SamplerOperations {
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
     ) {
-        void this.initBancorServiceAsync();
+        // Initialize the Bancor service, fetching paths in the background
+        this.initBancorServiceAsync().catch(/* do nothing */);
     }
 
     public async initBancorServiceAsync(): Promise<void> {

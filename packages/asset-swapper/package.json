@@ -71,7 +71,7 @@
         "@0x/utils": "^6.1.1",
         "@0x/web3-wrapper": "^7.3.0",
         "@balancer-labs/sor": "0.3.2",
-        "@bancor/sdk": "^0.2.9",
+        "@bancor/sdk": "0.2.9",
         "@ethersproject/abi": "^5.0.1",
         "@ethersproject/address": "^5.0.1",
         "@ethersproject/contracts": "^5.0.1",

@@ -73,7 +73,7 @@ contract BancorSampler is
                     maxBoughtAmount = amount;
                     path = paths[i];
                 }
-            } catch (bytes memory) {
+            } catch {
                 // Swallow failures, leaving all results as zero.
                 continue;
             }
@@ -91,7 +91,7 @@ contract BancorSampler is
                 returns (uint256 amount)
             {
                 makerTokenAmounts[i] = amount;
-            } catch (bytes memory) {
+            } catch {
                 // Swallow failures, leaving all results as zero.
                 break;
             }
