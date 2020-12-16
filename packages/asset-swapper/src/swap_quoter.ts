@@ -1,4 +1,3 @@
-import { BancorService } from '@0x/asset-swapper/src/utils/market_operation_utils/bancor_service';
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { DevUtilsContract } from '@0x/contract-wrappers';
 import { schemas } from '@0x/json-schemas';
@@ -27,6 +26,7 @@ import {
 import { assert } from './utils/assert';
 import { calculateLiquidity } from './utils/calculate_liquidity';
 import { MarketOperationUtils } from './utils/market_operation_utils';
+import { BancorService } from './utils/market_operation_utils/bancor_service';
 import { createDummyOrderForSampler } from './utils/market_operation_utils/orders';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
