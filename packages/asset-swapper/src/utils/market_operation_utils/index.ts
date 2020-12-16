@@ -707,7 +707,9 @@ export class MarketOperationUtils {
                         marketSideLiquidity = {
                             ...marketSideLiquidity,
                             nativeOrders: marketSideLiquidity.nativeOrders.concat(firmQuoteSignedOrders),
-                            orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(rfqOrderFillableAmounts),
+                            orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(
+                                rfqOrderFillableAmounts,
+                            ),
                         };
 
                         // Re-run optimizer with the new firm quote. This is the second and last time
