@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-broker",
-    "version": "1.1.17",
+    "version": "1.1.18",
     "engines": {
         "node": ">=6.12"
     },
@@ -52,10 +52,10 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/extensions",
     "devDependencies": {
         "@0x/abi-gen": "^5.4.13",
-        "@0x/contracts-asset-proxy": "^3.6.9",
+        "@0x/contracts-asset-proxy": "^3.7.0",
         "@0x/contracts-erc20": "^3.2.12",
         "@0x/contracts-erc721": "^3.1.18",
-        "@0x/contracts-exchange": "^3.2.18",
+        "@0x/contracts-exchange": "^3.2.19",
         "@0x/contracts-exchange-libs": "^4.3.18",
         "@0x/contracts-gen": "^2.0.24",
         "@0x/contracts-test-utils": "^5.3.15",
