@@ -407,7 +407,6 @@ export class SwapService {
                 excludedSources: [
                     ...(excludedSources || []),
                     ERC20BridgeSource.MultiBridge,
-                    ERC20BridgeSource.Bancor,
                     ERC20BridgeSource.MultiHop,
                 ],
                 includedSources,
