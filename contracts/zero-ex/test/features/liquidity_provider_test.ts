@@ -9,8 +9,6 @@ import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
 import {
     LiquidityProviderSandboxContract,
-    TestBridgeContract,
-    TestBridgeEvents,
     TestLiquidityProviderContract,
     TestLiquidityProviderEvents,
     TestWethContract,
@@ -146,41 +144,6 @@ blockchainTests('LiquidityProvider feature', env => {
                     },
                 ],
                 TestLiquidityProviderEvents.SellTokenForToken,
-            );
-        });
-        it('Successfully executes an ERC20-ERC20 swap (backwards-compatibility)', async () => {
-            const bridge = await TestBridgeContract.deployFrom0xArtifactAsync(
-                artifacts.TestBridge,
-                env.provider,
-                env.txDefaults,
-                artifacts,
-                weth.address,
-                token.address,
-            );
-            const tx = await feature
-                .sellToLiquidityProvider(
-                    token.address,
-                    weth.address,
-                    bridge.address,
-                    constants.NULL_ADDRESS,
-                    constants.ONE_ETHER,
-                    constants.ZERO_AMOUNT,
-                    constants.NULL_BYTES,
-                )
-                .awaitTransactionSuccessAsync({ from: taker });
-            verifyEventsFromLogs(
-                tx.logs,
-                [
-                    {
-                        inputToken: token.address,
-                        outputToken: weth.address,
-                        inputTokenAmount: constants.ONE_ETHER,
-                        outputTokenAmount: constants.ZERO_AMOUNT,
-                        from: bridge.address,
-                        to: taker,
-                    },
-                ],
-                TestBridgeEvents.ERC20BridgeTransfer,
             );
         });
         it('Reverts if cannot fulfill the minimum buy amount', async () => {

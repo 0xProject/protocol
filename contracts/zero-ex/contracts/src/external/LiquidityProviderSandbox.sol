@@ -68,21 +68,13 @@ contract LiquidityProviderSandbox is
         onlyOwner
         override
     {
-        try ILiquidityProvider(provider).sellTokenForToken(
+        ILiquidityProvider(provider).sellTokenForToken(
             inputToken,
             outputToken,
             recipient,
             minBuyAmount,
             auxiliaryData
-        ) {} catch {
-            IERC20Bridge(provider).bridgeTransferFrom(
-                outputToken,
-                provider,
-                recipient,
-                minBuyAmount,
-                auxiliaryData
-            );
-        }
+        );
     }
 
     /// @dev Calls `sellEthForToken` on the given `provider` contract to
