@@ -5,6 +5,10 @@
             {
                 "note": "Add MixinBancor to BridgeAdapter",
                 "pr": 91
+            },
+            {
+                "note": "Add MixinCoFiX to BridgeAdapter",
+                "pr": 92
             }
         ]
     },

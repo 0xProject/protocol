@@ -334,6 +334,7 @@ export async function runMigrationsAsync(
             snowSwapBridge: NULL_ADDRESS,
             cryptoComBridge: NULL_ADDRESS,
             bancorBridge: NULL_ADDRESS,
+            cofixBridge: NULL_ADDRESS,
             weth: etherToken.address,
         },
     );

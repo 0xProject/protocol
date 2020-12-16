@@ -25,6 +25,7 @@ contract MixinAdapterAddresses
         // Bridges
         address balancerBridge;
         address bancorBridge;
+        address cofixBridge;
         address creamBridge;
         address curveBridge;
         address cryptoComBridge;
