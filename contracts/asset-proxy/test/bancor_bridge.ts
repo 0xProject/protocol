@@ -12,13 +12,11 @@ import { DecodedLogs } from 'ethereum-types';
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-
 import { TestBancorBridgeContract } from './generated-wrappers/test_bancor_bridge';
 import {
     TestBancorBridgeConvertByPathInputEventArgs as ConvertByPathArgs,
     TestBancorBridgeEvents as ContractEvents,
     TestBancorBridgeTokenApproveEventArgs as TokenApproveArgs,
-    TestBancorBridgeTokenTransferEventArgs as TokenTransferArgs,
 } from './wrappers';
 
 blockchainTests.resets('Bancor unit tests', env => {
@@ -126,24 +124,6 @@ blockchainTests.resets('Bancor unit tests', env => {
         it('returns magic bytes on success', async () => {
             const { result } = await transferFromAsync();
             expect(result).to.eq(AssetProxyId.ERC20Bridge);
-        });
-
-        it('performs transfer when both tokens are the same', async () => {
-            const createTokenFn = testContract.createToken(constants.NULL_ADDRESS);
-            const tokenAddress = await createTokenFn.callAsync();
-            await createTokenFn.awaitTransactionSuccessAsync();
-
-            const { opts, result, logs } = await transferFromAsync({
-                tokenAddressesPath: [tokenAddress, tokenAddress],
-            });
-            expect(result).to.eq(AssetProxyId.ERC20Bridge, 'asset proxy id');
-            const transfers = filterLogsToArguments<TokenTransferArgs>(logs, ContractEvents.TokenTransfer);
-
-            expect(transfers.length).to.eq(1);
-            expect(transfers[0].token).to.eq(tokenAddress, 'input token address');
-            expect(transfers[0].from).to.eq(testContract.address);
-            expect(transfers[0].to).to.eq(opts.toAddress, 'recipient address');
-            expect(transfers[0].amount).to.bignumber.eq(opts.amount, 'amount');
         });
 
         describe('token -> token', async () => {

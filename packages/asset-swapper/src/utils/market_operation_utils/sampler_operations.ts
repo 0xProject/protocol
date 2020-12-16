@@ -87,17 +87,16 @@ export class SamplerOperations {
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
     ) {
-        void this.getBancorServiceAsync();
+        void this.initBancorServiceAsync();
     }
 
-    public async getBancorServiceAsync(): Promise<BancorService> {
+    public async initBancorServiceAsync(): Promise<void> {
         if (this.provider === undefined) {
-            throw new Error('Cannot sample liquidity from Bancor; no provider supplied.');
+            return;
         }
         if (this._bancorService === undefined) {
             this._bancorService = await BancorService.createAsync(this.provider);
         }
-        return this._bancorService;
     }
 
     public getTokenDecimals(makerTokenAddress: string, takerTokenAddress: string): BatchedOperation<BigNumber[]> {

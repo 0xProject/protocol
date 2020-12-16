@@ -410,7 +410,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
         curveBridge: '0x1796cd592d19e3bcd744fbb025bb61a6d8cb2c09',
         multiBridge: '0xc03117a8c9bde203f70aa911cb64a7a0df5ba1e1',
         balancerBridge: '0xfe01821ca163844203220cd08e4f2b2fb43ae4e4',
-        bancorBridge: '0x25eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        bancorBridge: '0xc880c252db7c51f74161633338a3bdafa8e65276',
         mStableBridge: '0x2bf04fcea05f0989a14d9afa37aa376baca6b2b3',
         mooniswapBridge: '0x02b7eca484ad960fca3f7709e0b2ac81eec3069c',
         sushiswapBridge: '0x47ed0262a0b688dcb836d254c6a2e96b6c48a9f5',
