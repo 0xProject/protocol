@@ -94,7 +94,7 @@ contract MixinBancor is
         }
 
         // Convert the tokens
-        boughtAmount = IBancorNetwork(bancorNetworkAddress).convertByPath.value(payableAmount)(
+        boughtAmount = IBancorNetwork(bancorNetworkAddress).convertByPath{value: payableAmount}(
             path, // path originating with source token and terminating in destination token
             sellAmount, // amount of source token to trade
             1, // minimum amount of destination token expected to receive
@@ -103,7 +103,7 @@ contract MixinBancor is
             0 // affiliateFee; no fee paid
         );
         if (path[path.length - 1] == BANCOR_ETH_ADDRESS) {
-            WETH.deposit.value(boughtAmount)();
+            WETH.deposit{value: boughtAmount}();
         }
 
         return boughtAmount;
