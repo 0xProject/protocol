@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 import "./mixins/MixinAdapterAddresses.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBancor.sol";
+import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
@@ -39,6 +40,7 @@ contract BridgeAdapter is
     MixinAdapterAddresses,
     MixinBalancer,
     MixinBancor,
+    MixinCoFiX,
     MixinCurve,
     MixinCryptoCom,
     MixinDodo,
@@ -71,6 +73,7 @@ contract BridgeAdapter is
 
     address private immutable BALANCER_BRIDGE_ADDRESS;
     address private immutable BANCOR_BRIDGE_ADDRESS;
+    address private immutable COFIX_BRIDGE_ADDRESS;
     address private immutable CREAM_BRIDGE_ADDRESS;
     address private immutable CURVE_BRIDGE_ADDRESS;
     address private immutable CRYPTO_COM_BRIDGE_ADDRESS;
@@ -90,6 +93,7 @@ contract BridgeAdapter is
         public
         MixinBalancer()
         MixinBancor(addresses)
+        MixinCoFiX()
         MixinCurve()
         MixinCryptoCom(addresses)
         MixinDodo(addresses)
@@ -105,6 +109,7 @@ contract BridgeAdapter is
     {
         BALANCER_BRIDGE_ADDRESS = addresses.balancerBridge;
         BANCOR_BRIDGE_ADDRESS = addresses.bancorBridge;
+        COFIX_BRIDGE_ADDRESS = addresses.cofixBridge;
         CURVE_BRIDGE_ADDRESS = addresses.curveBridge;
         CRYPTO_COM_BRIDGE_ADDRESS = addresses.cryptoComBridge;
         KYBER_BRIDGE_ADDRESS = addresses.kyberBridge;
@@ -219,6 +224,12 @@ contract BridgeAdapter is
             );
         } else if (bridgeAddress == BANCOR_BRIDGE_ADDRESS) {
             boughtAmount = _tradeBancor(
+                buyToken,
+                sellAmount,
+                bridgeData
+            );
+        } else if (bridgeAddress == COFIX_BRIDGE_ADDRESS) {
+            boughtAmount = _tradeCoFiX(
                 buyToken,
                 sellAmount,
                 bridgeData
