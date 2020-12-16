@@ -4,7 +4,7 @@ import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import * as ethjs from 'ethereumjs-util';
 
-import { MetaTransaction } from '../src/mtx';
+import { MetaTransaction } from '../src/meta_transactions';
 import { SignatureType } from '../src/signature_utils';
 
 chaiSetup.configure();
@@ -45,7 +45,7 @@ describe('mtxs', () => {
         it('can get the EIP712 hash', () => {
             const actual = mtx.getHash();
             const expected = '0x068f2f98836e489070608461768bfd3331128787d09278d38869c2b56bfc34a4';
-            expect(actual).to.deep.eq(expected);
+            expect(actual).to.eq(expected);
         });
 
         it('can get an EthSign signature with a provider', async () => {

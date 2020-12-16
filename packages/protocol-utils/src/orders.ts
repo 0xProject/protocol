@@ -1,3 +1,4 @@
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { SupportedProvider } from '@0x/subproviders';
 import { EIP712TypedData } from '@0x/types';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
@@ -29,7 +30,7 @@ const COMMON_ORDER_DEFAULT_VALUES = {
     expiry: ZERO,
     salt: ZERO,
     chainId: 1,
-    verifyingContract: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
+    verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
 };
 const LIMIT_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
