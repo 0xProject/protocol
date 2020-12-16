@@ -84,22 +84,20 @@ export class SamplerOperations {
         public readonly provider?: SupportedProvider,
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
-        protected readonly getBancorServiceFn?: () => BancorService, // for dependency injection in tests
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
-    ) {}
+    ) {
+        // Initialize the Bancor service, fetching paths in the background
+        this.initBancorServiceAsync().catch(/* do nothing */);
+    }
 
-    public async getBancorServiceAsync(): Promise<BancorService> {
-        if (this.getBancorServiceFn !== undefined) {
-            return this.getBancorServiceFn();
-        }
+    public async initBancorServiceAsync(): Promise<void> {
         if (this.provider === undefined) {
-            throw new Error('Cannot sample liquidity from Bancor; no provider supplied.');
+            return;
         }
         if (this._bancorService === undefined) {
             this._bancorService = await BancorService.createAsync(this.provider);
         }
-        return this._bancorService;
     }
 
     public getTokenDecimals(makerTokenAddress: string, takerTokenAddress: string): BatchedOperation<BigNumber[]> {
@@ -588,28 +586,48 @@ export class SamplerOperations {
         });
     }
 
-    public async getBancorSellQuotesOffChainAsync(
+    public getBancorSellQuotes(
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-    ): Promise<Array<DexSample<BancorFillData>>> {
-        const bancorService = await this.getBancorServiceAsync();
-        try {
-            const quotes = await bancorService.getQuotesAsync(takerToken, makerToken, takerFillAmounts);
-            return quotes.map((quote, i) => ({
-                source: ERC20BridgeSource.Bancor,
-                output: quote.amount,
-                input: takerFillAmounts[i],
-                fillData: quote.fillData,
-            }));
-        } catch (e) {
-            return takerFillAmounts.map(input => ({
-                source: ERC20BridgeSource.Bancor,
-                output: ZERO_AMOUNT,
-                input,
-                fillData: { path: [], networkAddress: '' },
-            }));
-        }
+    ): SourceQuoteOperation<BancorFillData> {
+        const paths = this._bancorService ? this._bancorService.getPaths(takerToken, makerToken) : [];
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Bancor,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromBancor,
+            params: [paths, takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: BancorFillData): BigNumber[] => {
+                const [networkAddress, path, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [string, string[], BigNumber[]]
+                >('sampleSellsFromBancor', callResults);
+                fillData.networkAddress = networkAddress;
+                fillData.path = path;
+                return samples;
+            },
+        });
+    }
+
+    // Unimplemented
+    public getBancorBuyQuotes(
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<BancorFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Bancor,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromBancor,
+            params: [[], takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: BancorFillData): BigNumber[] => {
+                const [networkAddress, path, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [string, string[], BigNumber[]]
+                >('sampleSellsFromBancor', callResults);
+                fillData.networkAddress = networkAddress;
+                fillData.path = path;
+                return samples;
+            },
+        });
     }
 
     public getMooniswapSellQuotes(
@@ -1114,6 +1132,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
+                        case ERC20BridgeSource.Bancor:
+                            return this.getBancorSellQuotes(makerToken, takerToken, takerFillAmounts);
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1237,6 +1257,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                        case ERC20BridgeSource.Bancor:
+                            return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

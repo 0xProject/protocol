@@ -1,5 +1,14 @@
 [
     {
+        "version": "3.7.0",
+        "changes": [
+            {
+                "note": "Fix Bancor support of ETH",
+                "pr": 88
+            }
+        ]
+    },
+    {
         "timestamp": 1607485227,
         "version": "3.6.9",
         "changes": [

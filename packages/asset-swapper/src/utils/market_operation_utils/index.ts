@@ -203,23 +203,12 @@ export class MarketOperationUtils {
             ? this._sampler.getCreamSellQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
             : Promise.resolve([]);
 
-        const offChainBancorPromise = quoteSourceFilters.isAllowed(ERC20BridgeSource.Bancor)
-            ? this._sampler.getBancorSellQuotesOffChainAsync(makerToken, takerToken, [takerAmount])
-            : Promise.resolve([]);
-
         const [
             [tokenDecimals, orderFillableAmounts, ethToMakerAssetRate, ethToTakerAssetRate, dexQuotes, twoHopQuotes],
             rfqtIndicativeQuotes,
             offChainBalancerQuotes,
             offChainCreamQuotes,
-            offChainBancorQuotes,
-        ] = await Promise.all([
-            samplerPromise,
-            rfqtPromise,
-            offChainBalancerPromise,
-            offChainCreamPromise,
-            offChainBancorPromise,
-        ]);
+        ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         return {
@@ -227,7 +216,7 @@ export class MarketOperationUtils {
             inputAmount: takerAmount,
             inputToken: takerToken,
             outputToken: makerToken,
-            dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes, offChainBancorQuotes]),
+            dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes]),
             nativeOrders,
             orderFillableAmounts,
             ethToOutputRate: ethToMakerAssetRate,

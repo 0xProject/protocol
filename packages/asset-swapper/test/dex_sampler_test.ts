@@ -17,9 +17,7 @@ import { DexOrderSampler, getSampleAmounts } from '../src/utils/market_operation
 import { ERC20BridgeSource, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
 
 import { MockBalancerPoolsCache } from './utils/mock_balancer_pools_cache';
-import { MockBancorService } from './utils/mock_bancor_service';
 import { MockSamplerContract } from './utils/mock_sampler_contract';
-import { provider } from './utils/web3_wrapper';
 
 const CHAIN_ID = 1;
 // tslint:disable: custom-no-magic-numbers
@@ -172,7 +170,6 @@ describe('DexSampler tests', () => {
                 undefined,
                 undefined,
                 undefined,
-                undefined,
                 { [poolAddress]: { tokens: [expectedMakerToken, expectedTakerToken], gasCost } },
             );
             const [result] = await dexOrderSampler.executeAsync(
@@ -210,7 +207,6 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 sampler,
-                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -386,7 +382,6 @@ describe('DexSampler tests', () => {
                 undefined,
                 undefined,
                 undefined,
-                undefined,
                 tokenAdjacencyGraph,
             );
             const [quotes] = await dexOrderSampler.executeAsync(
@@ -451,45 +446,6 @@ describe('DexSampler tests', () => {
             );
             expect(quotes).to.have.lengthOf(0);
         });
-        it('getSellQuotes() uses samples from Bancor', async () => {
-            const expectedTakerToken = randomAddress();
-            const expectedMakerToken = randomAddress();
-            const networkAddress = randomAddress();
-            const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 3);
-            const rate = getRandomFloat(0, 100);
-            const bancorService = await MockBancorService.createMockAsync({
-                getQuotesAsync: async (fromToken: string, toToken: string, amounts: BigNumber[]) => {
-                    expect(fromToken).equal(expectedTakerToken);
-                    expect(toToken).equal(expectedMakerToken);
-                    return Promise.resolve(
-                        amounts.map(a => ({
-                            fillData: { path: [fromToken, toToken], networkAddress },
-                            amount: a.multipliedBy(rate),
-                        })),
-                    );
-                },
-            });
-            const dexOrderSampler = new DexOrderSampler(
-                new MockSamplerContract({}),
-                undefined, // sampler overrides
-                provider,
-                undefined, // balancer cache
-                undefined, // cream cache
-                () => bancorService,
-            );
-            const quotes = await dexOrderSampler.getBancorSellQuotesOffChainAsync(
-                expectedMakerToken,
-                expectedTakerToken,
-                expectedTakerFillAmounts,
-            );
-            const expectedQuotes = expectedTakerFillAmounts.map(a => ({
-                source: ERC20BridgeSource.Bancor,
-                input: a,
-                output: a.multipliedBy(rate),
-                fillData: { path: [expectedTakerToken, expectedMakerToken], networkAddress },
-            }));
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
         it('getBuyQuotes()', async () => {
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
@@ -527,7 +483,6 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 sampler,
-                undefined,
                 undefined,
                 undefined,
                 undefined,

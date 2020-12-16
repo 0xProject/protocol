@@ -62,6 +62,8 @@ contract DeploymentConstants {
     address constant private DODO_REGISTRY = 0x3A97247DF274a17C59A3bd12735ea3FcDFb49950;
     /// @dev Mainnet address of the DODO Helper contract
     address constant private DODO_HELPER = 0x533dA777aeDCE766CEAe696bf90f8541A4bA80Eb;
+    /// @dev Mainnet address of the Bancor Registry contract
+    address constant private BANCOR_REGISTRY = 0x52Ae12ABe5D8BD778BD5397F99cA900624CfADD4;
 
     // // Ropsten addresses ///////////////////////////////////////////////////////
     // /// @dev Mainnet address of the WETH contract.
@@ -336,5 +338,15 @@ contract DeploymentConstants {
         returns (address registry)
     {
         return DODO_HELPER;
+    }
+
+    /// @dev An overridable way to retrieve the Bancor Registry contract address.
+    /// @return registry The Bancor registry contract address.
+    function _getBancorRegistryAddress()
+        internal
+        view
+        returns (address registry)
+    {
+        return BANCOR_REGISTRY;
     }
 }

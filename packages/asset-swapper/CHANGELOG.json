@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.5.0",
+        "changes": [
+            {
+                "note": "Bancor now supported in all pairs",
+                "pr": 88
+            }
+        ]
+    },
+    {
         "timestamp": 1607485227,
         "version": "5.4.2",
         "changes": [
