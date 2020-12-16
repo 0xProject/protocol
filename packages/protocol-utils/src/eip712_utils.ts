@@ -7,6 +7,8 @@ export interface EIP712Domain {
     verifyingContract: string;
 }
 
+export type EIP712_STRUCT_ABI = Array<{ type: string; name: string }>;
+
 export const EIP712_DOMAIN_PARAMETERS = [
     { name: 'name', type: 'string' },
     { name: 'version', type: 'string' },
@@ -66,5 +68,14 @@ export function getExchangeProxyEIP712DomainHash(chainId?: number, verifyingCont
 export function getExchangeProxyEIP712Hash(structHash: string, chainId?: number, verifyingContract?: string): string {
     return hexUtils.hash(
         hexUtils.concat('0x1901', getExchangeProxyEIP712DomainHash(chainId, verifyingContract), structHash),
+    );
+}
+
+/**
+ * Compute the type hash of an EIP712 struct given its ABI.
+ */
+export function getTypeHash(structName: string, abi: EIP712_STRUCT_ABI): string {
+    return hexUtils.hash(
+        hexUtils.toHex(Buffer.from([`${structName}(`, abi.map(a => `${a.type} ${a.name}`).join(','), ')'].join(''))),
     );
 }

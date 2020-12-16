@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.1.0",
+        "changes": [
+            {
+                "note": "Add the `MetaTransaction` class for EP mtxs",
+                "pr": "TODO"
+            }
+        ]
+    },
+    {
         "timestamp": 1607485227,
         "version": "1.0.1",
         "changes": [
