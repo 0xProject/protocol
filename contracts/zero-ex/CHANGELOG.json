@@ -1,5 +1,22 @@
 [
     {
+        "version": "0.13.0",
+        "changes": [
+            {
+                "note": "Address audit feedback in UniswapFeature",
+                "pr": 82
+            },
+            {
+                "note": "Always transfer `msg.value` to the liquidity provider contract in LiquidityProviderFeature to",
+                "pr": 82
+            },
+            {
+                "note": "Remove backwards compatibility with old PLP/bridge interface in `LiquidityProviderFeature` and `MixinZeroExBridge`",
+                "pr": 85
+            }
+        ]
+    },
+    {
         "version": "0.12.0",
         "changes": [
             {

@@ -44,7 +44,7 @@ contract LiquidityProviderFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LiquidityProviderFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 2);
 
     /// @dev ETH pseudo-token address.
     address constant internal ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -111,9 +111,13 @@ contract LiquidityProviderFeature is
             recipient = msg.sender;
         }
 
-        if (inputToken == ETH_TOKEN_ADDRESS) {
-            provider.transfer(sellAmount);
-        } else {
+        // Forward all attached ETH to the provider.
+        if (msg.value > 0) {
+            provider.transfer(msg.value);
+        }
+
+        if (inputToken != ETH_TOKEN_ADDRESS) {
+            // Transfer input ERC20 tokens to the provider.
             _transferERC20Tokens(
                 IERC20TokenV06(inputToken),
                 msg.sender,
