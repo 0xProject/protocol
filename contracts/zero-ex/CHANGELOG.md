@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.15.0 - _December 17, 2020_
+
+    * Add MixinBancor to BridgeAdapter (#91)
+    * Add MixinCoFiX to BridgeAdapter (#92)
+
 ## v0.14.0 - _December 16, 2020_
 
     * Use the `MetaTransaction` class from `@0x/protocol-utils` in tests. (#90)

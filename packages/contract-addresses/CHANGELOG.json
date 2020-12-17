@@ -6,7 +6,8 @@
                 "note": "Redeploy FQT",
                 "pr": 91
             }
-        ]
+        ],
+        "timestamp": 1608245516
     },
     {
         "version": "5.6.0",

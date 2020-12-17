@@ -10,7 +10,8 @@
                 "note": "Add MixinCoFiX to BridgeAdapter",
                 "pr": 92
             }
-        ]
+        ],
+        "timestamp": 1608245516
     },
     {
         "version": "0.14.0",

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.7.0 - _December 17, 2020_
+
+    * Redeploy FQT (#91)
+
 ## v5.6.0 - _December 7, 2020_
 
     * Update mainnet and ropsten transformer addresses for hot-pants release (#70)

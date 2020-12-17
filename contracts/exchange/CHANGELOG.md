@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.2.20 - _December 17, 2020_
+
+    * Dependencies updated
+
 ## v3.2.19 - _December 16, 2020_
 
     * Dependencies updated

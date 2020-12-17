@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.7.1 - _December 17, 2020_
+
+    * Dependencies updated
+
 ## v3.7.0 - _December 16, 2020_
 
     * Fix Bancor support of ETH (#88)
