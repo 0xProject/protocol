@@ -155,6 +155,11 @@
   version "5.6.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-5.6.0.tgz#17217f7278245deb20e8dd0d2beb3865ef42c3d7"
 
+"@0x/contract-addresses@^5.7.0":
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-5.7.0.tgz#23f6e6b90350b22c2f701d3c71547c9eb12c78d3"
+  integrity sha512-LDEn86YuK02nYGexrmEQPTn4eKdAaMUf4qmXoKC5VXY/zL9AEZgAVb+KLiluoO0tjGWejEeT8iaAo9eVG6dEWg==
+
 "@0x/contract-wrappers@^13.10.2":
   version "13.10.2"
   resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.10.2.tgz#34ed6a3e828fc0f35826b86412c3fb11c468a248"
