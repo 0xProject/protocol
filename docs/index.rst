@@ -65,6 +65,7 @@ Chat with our team privately on `Discord <https://discord.com/invite/d3FTX3M>`_ 
    additional/contributing.rst
    additional/exceptional_erc20s.rst
    additional/releases.rst
+   additional/emergency.rst
 
 .. toctree::
    :maxdepth: 1
