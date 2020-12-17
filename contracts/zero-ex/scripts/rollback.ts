@@ -236,13 +236,16 @@ async function functionHistoryAsync(proxyFunctions: ProxyFunctionEntity[]): Prom
         name: 'fnSelector',
         message: 'Enter the selector or name of the function:',
         choices: [
-            ..._.flatMap(Object.entries(selectorToSignature), ([selector, signature]) => [
-                { title: selector, value: selector, description: signature },
-                { title: signature, value: selector, description: selector },
-            ]),
-            ...proxyFunctions
-                .filter(fn => !Object.keys(selectorToSignature).includes(fn.id))
-                .map(fn => ({ title: fn.id, value: fn.id, description: '(function signature not found)' })),
+            ...proxyFunctions.map(fn => ({
+                title: fn.id,
+                value: fn.id,
+                description: selectorToSignature[fn.id] || '(function signature not found)',
+            })),
+            ...proxyFunctions.map(fn => ({
+                title: selectorToSignature[fn.id] || '(function signature not found)',
+                value: fn.id,
+                description: fn.id,
+            })),
         ],
     });
     const functionEntity = proxyFunctions.find(fn => fn.id === fnSelector);
