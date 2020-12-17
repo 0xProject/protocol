@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.7.0",
+        "changes": [
+            {
+                "note": "Redeploy FQT",
+                "pr": 91
+            }
+        ]
+    },
+    {
         "version": "5.6.0",
         "changes": [
             {
