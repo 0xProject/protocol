@@ -315,13 +315,17 @@ async function generateRollbackAsync(proxyFunctions: ProxyFunctionEntity[]): Pro
                     value: constants.NULL_ADDRESS,
                     description: 'Rolls back to address(0)',
                 },
-                {
-                    title: 'PREVIOUS',
-                    value: previousImpl,
-                    description: `${previousImpl} (${timestampToUTC(
-                        _.findLast(fullHistory, update => update.impl === previousImpl)!.timestamp,
-                    )})`,
-                },
+                ...(previousImpl !== constants.NULL_ADDRESS
+                    ? [
+                          {
+                              title: 'PREVIOUS',
+                              value: previousImpl,
+                              description: `${previousImpl} (${timestampToUTC(
+                                  _.findLast(fullHistory, update => update.impl === previousImpl)!.timestamp,
+                              )})`,
+                          },
+                      ]
+                    : []),
                 ...[...new Set(rollbackHistory)]
                     .filter(impl => impl !== constants.NULL_ADDRESS)
                     .map(impl => ({
