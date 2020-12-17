@@ -58,7 +58,6 @@ import {
     TokenMetadata,
     TokenMetadataOptionalSymbol,
 } from '../types';
-import { ethGasStationUtils } from '../utils/gas_station_utils';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { serviceUtils } from '../utils/service_utils';
 import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
@@ -253,15 +252,9 @@ export class SwapService {
         // specifically when RFQT orders are included in the quote
         if (hasRFQTOrders) {
             const maxGasPricePadding = gasPrice.times(RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER);
-            const fastestGasPrice = await ethGasStationUtils.getGasPriceOrThrowAsync('fastest').catch(err => {
-                logger.error(err, 'Failed to fetch ETH Gas Station fastest gas price');
-
-                // Failed to fetch fastest gas estimate, use max padded fast instead
-                return maxGasPricePadding;
-            });
 
             // Use the fastest price but make sure it's never more than max padding and never less than supplied gas price
-            const paddedGasPrice = BigNumber.max(BigNumber.min(fastestGasPrice, maxGasPricePadding), gasPrice);
+            const paddedGasPrice = BigNumber.max(maxGasPricePadding, gasPrice);
 
             adjustedWorstCaseProtocolFee = new BigNumber(PROTOCOL_FEE_MULTIPLIER)
                 .times(paddedGasPrice)
