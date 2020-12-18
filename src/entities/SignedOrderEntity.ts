@@ -55,6 +55,9 @@ export class SignedOrderEntity {
 
     @Column({ name: 'taker_fee_asset_data', type: 'varchar' })
     public takerFeeAssetData?: string;
+
+    @Column({ name: 'created_at', type: 'timestamptz', default: 'now()' })
+    public createdAt?: string;
     constructor(
         opts: {
             hash?: string;

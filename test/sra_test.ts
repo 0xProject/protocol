@@ -129,6 +129,7 @@ describe(SUITE_NAME, () => {
         it('should return orders in the local cache', async () => {
             const apiOrder = await addNewSignedOrderAsync(orderFactory, {});
             const response = await httpGetAsync({ route: `${SRA_PATH}/orders` });
+            apiOrder.metaData.createdAt = response.body.records[0].metaData.createdAt; // createdAt is saved in the SignedOrders table directly
 
             expect(response.type).to.eq(`application/json`);
             expect(response.status).to.eq(HttpStatus.OK);
@@ -145,6 +146,7 @@ describe(SUITE_NAME, () => {
             const response = await httpGetAsync({
                 route: `${SRA_PATH}/orders?makerAddress=${apiOrder.order.makerAddress}`,
             });
+            apiOrder.metaData.createdAt = response.body.records[0].metaData.createdAt; // createdAt is saved in the SignedOrders table directly
 
             expect(response.type).to.eq(`application/json`);
             expect(response.status).to.eq(HttpStatus.OK);
@@ -171,6 +173,7 @@ describe(SUITE_NAME, () => {
             const response = await httpGetAsync({
                 route: `${SRA_PATH}/orders?makerAddress=${apiOrder.order.makerAddress.toUpperCase()}`,
             });
+            apiOrder.metaData.createdAt = response.body.records[0].metaData.createdAt; // createdAt is saved in the SignedOrders table directly
 
             expect(response.type).to.eq(`application/json`);
             expect(response.status).to.eq(HttpStatus.OK);
@@ -187,6 +190,7 @@ describe(SUITE_NAME, () => {
         it('should return order by order hash', async () => {
             const apiOrder = await addNewSignedOrderAsync(orderFactory, {});
             const response = await httpGetAsync({ route: `${SRA_PATH}/order/${apiOrder.metaData.orderHash}` });
+            apiOrder.metaData.createdAt = response.body.metaData.createdAt; // createdAt is saved in the SignedOrders table directly
 
             expect(response.type).to.eq(`application/json`);
             expect(response.status).to.eq(HttpStatus.OK);
@@ -226,6 +230,7 @@ describe(SUITE_NAME, () => {
                     },
                 }),
             });
+            apiOrder.metaData.createdAt = response.body.asks.records[0].metaData.createdAt; // createdAt is saved in the SignedOrders table directly
 
             expect(response.type).to.eq(`application/json`);
             expect(response.status).to.eq(HttpStatus.OK);

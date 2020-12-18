@@ -92,7 +92,6 @@ export class PersistentSignedOrderEntity extends SignedOrderEntity {
             signature?: string;
             remainingFillableTakerAssetAmount?: string;
             orderState?: OrderEventEndState;
-            createdAt?: string;
         } = {},
     ) {
         super(opts);
