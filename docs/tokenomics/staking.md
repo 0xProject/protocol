@@ -80,7 +80,7 @@ Staking aligns all market participants with the long-term mission and objectives
 
 Token holders stake their ZRX to unlock utility within the 0x ecosystem. This includes earning liquidity rewards through market making on the 0x protocol and participating in governance over the protocol.
 
-A market maker provides liquidity by creating 0x orders that are filled by takers through the [`Exchange`](../v3/v3-specifications.md#exchange) contract. The `Exchange` charges a fee to the taker on each fill and forwards it to the [`Staking`](#staking) contract. The fee is attributed to the maker so long as they have created a staking pool that holds at least 100 ZRX. After every 10 day epoch, the fees are aggregated and distributed to the makers as a liquidity reward: the reward is proportional to the maker's collected fees and stake relative to other makers.
+A market maker provides liquidity by creating 0x orders that are filled by takers through the [`Exchange`](../v3/v3-specifications.md#exchange) contract. The `Exchange` charges a fee to the taker on each fill and forwards it to the [`Staking`](#staking) contract. The fee is attributed to the maker so long as they have created a staking pool that holds at least 100 ZRX. After every 7 day epoch, the fees are aggregated and distributed to the makers as a liquidity reward: the reward is proportional to the maker's collected fees and stake relative to other makers.
 
 Governance over the protocol is conducted by voting on [ZEIPs (ZeroEx Improvement Proposals)](https://github.com/0xProject/ZEIPs). A ZEIP generally corresponds to a modification or upgrade to the 0x protocol. The ecosystem votes on the proposal, collectively deciding whether the feature will be included in a future version of the protocol. One Staked ZRX equals one vote.
 
@@ -215,7 +215,7 @@ function validExchanges(address addr)
 
 ## Epochs & Scheduling
 
-All processes in the system are segmented into contiguous time intervals, called epochs. Epochs have a fixed minimum period (10 days at time of writing), which is configurable via [MixinParams](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/sys/MixinParams.sol). Epochs serve as the basis for all other timeframes within the system, which provides a more stable and consistent scheduling metric than blocks or block timestamps.
+All processes in the system are segmented into contiguous time intervals, called epochs. Epochs have a fixed minimum period (7 days at time of writing), which is configurable via [MixinParams](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/sys/MixinParams.sol). Epochs serve as the basis for all other timeframes within the system, which provides a more stable and consistent scheduling metric than blocks or block timestamps.
 
 <p align="center"><img src="../_static/staking/Epochs.png" width="700" /></p>
 
