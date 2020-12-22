@@ -209,8 +209,8 @@ contract UniswapFeature is
                 if iszero(staticcall(gas(), pair, 0xB00, 0x4, 0xC00, 0x40)) {
                     bubbleRevert()
                 }
-                // Revert if the pair contract does not return two words.
-                if iszero(eq(returndatasize(), 0x40)) {
+                // Revert if the pair contract does not return at least two words.
+                if lt(returndatasize(), 0x40) {
                     revert(0,0)
                 }
 
@@ -389,8 +389,8 @@ contract UniswapFeature is
                         // Call to allowance() failed.
                         bubbleRevert()
                     }
-                    // Make sure the allowance call returned a single word.
-                    if iszero(eq(returndatasize(), 0x20)) {
+                    // Make sure the allowance call returned at least a word.
+                    if lt(returndatasize(), 0x20) {
                         revert(0, 0)
                     }
                     // Call succeeded.
