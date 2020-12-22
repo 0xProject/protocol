@@ -51,6 +51,7 @@ contract NativeOrdersFeature is
     using LibSafeMathV06 for uint256;
     using LibSafeMathV06 for uint128;
     using LibRichErrorsV06 for bytes;
+    using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Params for `_settleOrder()`.
     struct SettleOrderInfo {
@@ -95,6 +96,15 @@ contract NativeOrdersFeature is
         uint128 takerTokenFilledAmount;
         uint128 makerTokenFilledAmount;
         uint128 takerTokenFeeFilledAmount;
+    }
+
+    // @dev Params for `_getActualFillableTakerTokenAmount()`.
+    struct GetActualFillableTakerTokenAmountParams {
+        address maker;
+        IERC20TokenV06 makerToken;
+        uint128 orderMakerAmount;
+        uint128 orderTakerAmount;
+        LibNativeOrder.OrderInfo orderInfo;
     }
 
     /// @dev Name of this feature.
@@ -148,6 +158,10 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.getRfqOrderHash.selector);
         _registerFeatureFunction(this.getProtocolFeeMultiplier.selector);
         _registerFeatureFunction(this.registerAllowedRfqOrigins.selector);
+        _registerFeatureFunction(this.getLimitOrderRelevantState.selector);
+        _registerFeatureFunction(this.getRfqOrderRelevantState.selector);
+        _registerFeatureFunction(this.batchGetLimitOrderRelevantStates.selector);
+        _registerFeatureFunction(this.batchGetRfqOrderRelevantStates.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -687,6 +701,148 @@ contract NativeOrdersFeature is
         );
     }
 
+    /// @dev Get order info, fillable amount, and signature validity for a limit order.
+    ///      Fillable amount is determined using balances and allowances of the maker.
+    /// @param order The limit order.
+    /// @param signature The order signature.
+    /// @return orderInfo Info about the order.
+    /// @return actualFillableTakerTokenAmount How much of the order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValid Whether the signature is valid.
+    function getLimitOrderRelevantState(
+        LibNativeOrder.LimitOrder memory order,
+        LibSignature.Signature calldata signature
+    )
+        public
+        override
+        view
+        returns (
+            LibNativeOrder.OrderInfo memory orderInfo,
+            uint128 actualFillableTakerTokenAmount,
+            bool isSignatureValid
+        )
+    {
+        orderInfo = getLimitOrderInfo(order);
+        actualFillableTakerTokenAmount = _getActualFillableTakerTokenAmount(
+            GetActualFillableTakerTokenAmountParams({
+                maker: order.maker,
+                makerToken: order.makerToken,
+                orderMakerAmount: order.makerAmount,
+                orderTakerAmount: order.takerAmount,
+                orderInfo: orderInfo
+            })
+        );
+        isSignatureValid = order.maker ==
+            LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
+    }
+
+    /// @dev Get order info, fillable amount, and signature validity for an RFQ order.
+    ///      Fillable amount is determined using balances and allowances of the maker.
+    /// @param order The RFQ order.
+    /// @param signature The order signature.
+    /// @return orderInfo Info about the order.
+    /// @return actualFillableTakerTokenAmount How much of the order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValid Whether the signature is valid.
+    function getRfqOrderRelevantState(
+        LibNativeOrder.RfqOrder memory order,
+        LibSignature.Signature memory signature
+    )
+        public
+        override
+        view
+        returns (
+            LibNativeOrder.OrderInfo memory orderInfo,
+            uint128 actualFillableTakerTokenAmount,
+            bool isSignatureValid
+        )
+    {
+        orderInfo = getRfqOrderInfo(order);
+        actualFillableTakerTokenAmount = _getActualFillableTakerTokenAmount(
+            GetActualFillableTakerTokenAmountParams({
+                maker: order.maker,
+                makerToken: order.makerToken,
+                orderMakerAmount: order.makerAmount,
+                orderTakerAmount: order.takerAmount,
+                orderInfo: orderInfo
+            })
+        );
+        isSignatureValid = order.maker ==
+            LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
+    }
+
+    /// @dev Batch version of `getLimitOrderRelevantState()`.
+    /// @param orders The limit orders.
+    /// @param signatures The order signatures.
+    /// @return orderInfos Info about the orders.
+    /// @return actualFillableTakerTokenAmounts How much of each order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValids Whether each signature is valid for the order.
+    function batchGetLimitOrderRelevantStates(
+        LibNativeOrder.LimitOrder[] calldata orders,
+        LibSignature.Signature[] calldata signatures
+    )
+        external
+        override
+        view
+        returns (
+            LibNativeOrder.OrderInfo[] memory orderInfos,
+            uint128[] memory actualFillableTakerTokenAmounts,
+            bool[] memory isSignatureValids
+        )
+    {
+        require(
+            orders.length == signatures.length,
+            "NativeOrdersFeature/MISMATCHED_ARRAY_LENGTHS"
+        );
+        orderInfos = new LibNativeOrder.OrderInfo[](orders.length);
+        actualFillableTakerTokenAmounts = new uint128[](orders.length);
+        isSignatureValids = new bool[](orders.length);
+        for (uint256 i = 0; i < orders.length; ++i) {
+            (
+                orderInfos[i],
+                actualFillableTakerTokenAmounts[i],
+                isSignatureValids[i]
+            ) = getLimitOrderRelevantState(orders[i], signatures[i]);
+        }
+    }
+
+    /// @dev Batch version of `getRfqOrderRelevantState()`.
+    /// @param orders The RFQ orders.
+    /// @param signatures The order signatures.
+    /// @return orderInfos Info about the orders.
+    /// @return actualFillableTakerTokenAmounts How much of each order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValids Whether each signature is valid for the order.
+    function batchGetRfqOrderRelevantStates(
+        LibNativeOrder.RfqOrder[] calldata orders,
+        LibSignature.Signature[] calldata signatures
+    )
+        external
+        override
+        view
+        returns (
+            LibNativeOrder.OrderInfo[] memory orderInfos,
+            uint128[] memory actualFillableTakerTokenAmounts,
+            bool[] memory isSignatureValids
+        )
+    {
+        require(
+            orders.length == signatures.length,
+            "NativeOrdersFeature/MISMATCHED_ARRAY_LENGTHS"
+        );
+        orderInfos = new LibNativeOrder.OrderInfo[](orders.length);
+        actualFillableTakerTokenAmounts = new uint128[](orders.length);
+        isSignatureValids = new bool[](orders.length);
+        for (uint256 i = 0; i < orders.length; ++i) {
+            (
+                orderInfos[i],
+                actualFillableTakerTokenAmounts[i],
+                isSignatureValids[i]
+            ) = getRfqOrderRelevantState(orders[i], signatures[i]);
+        }
+    }
+
     /// @dev Get the protocol fee multiplier. This should be multiplied by the
     ///      gas price to arrive at the required protocol fee to fill a native order.
     /// @return multiplier The protocol fee multiplier.
@@ -749,6 +905,48 @@ contract NativeOrdersFeature is
             return;
         }
         orderInfo.status = LibNativeOrder.OrderStatus.FILLABLE;
+    }
+
+    /// @dev Calculate the actual fillable taker token amount of an order
+    ///      based on maker allowance and balances.
+    function _getActualFillableTakerTokenAmount(
+        GetActualFillableTakerTokenAmountParams memory params
+    )
+        private
+        view
+        returns (uint128 actualFillableTakerTokenAmount)
+    {
+        if (params.orderMakerAmount == 0 || params.orderTakerAmount == 0) {
+            // Empty order.
+            return 0;
+        }
+        if (params.orderInfo.takerTokenFilledAmount >= params.orderTakerAmount) {
+            // Already fully filled.
+            return 0;
+        }
+
+        // Get the fillable maker amount based on the order quantities and
+        // previously filled amount
+        uint256 fillableMakerTokenAmount = LibMathV06.getPartialAmountFloor(
+            uint256(
+                params.orderTakerAmount
+                - params.orderInfo.takerTokenFilledAmount
+            ),
+            uint256(params.orderTakerAmount),
+            uint256(params.orderMakerAmount)
+        );
+        // Clamp it to the amount of maker tokens we can spend on behalf of the
+        // maker.
+        fillableMakerTokenAmount = LibSafeMathV06.min256(
+            fillableMakerTokenAmount,
+            _getSpendableERC20BalanceOf(params.makerToken, params.maker)
+        );
+        // Conver to taker token amount.
+        return uint128(LibMathV06.getPartialAmountCeil(
+            fillableMakerTokenAmount,
+            uint256(params.orderMakerAmount),
+            uint256(params.orderTakerAmount)
+        ));
     }
 
     /// @dev Cancel a limit or RFQ order directly by its order hash.

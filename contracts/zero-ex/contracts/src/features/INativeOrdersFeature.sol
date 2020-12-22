@@ -346,4 +346,81 @@ interface INativeOrdersFeature {
         view
         returns (uint32 multiplier);
 
+    /// @dev Get order info, fillable amount, and signature validity for a limit order.
+    ///      Fillable amount is determined using balances and allowances of the maker.
+    /// @param order The limit order.
+    /// @param signature The order signature.
+    /// @return orderInfo Info about the order.
+    /// @return actualFillableTakerTokenAmount How much of the order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValid Whether the signature is valid.
+    function getLimitOrderRelevantState(
+        LibNativeOrder.LimitOrder calldata order,
+        LibSignature.Signature calldata signature
+    )
+        external
+        view
+        returns (
+            LibNativeOrder.OrderInfo memory orderInfo,
+            uint128 actualFillableTakerTokenAmount,
+            bool isSignatureValid
+        );
+
+    /// @dev Get order info, fillable amount, and signature validity for an RFQ order.
+    ///      Fillable amount is determined using balances and allowances of the maker.
+    /// @param order The RFQ order.
+    /// @param signature The order signature.
+    /// @return orderInfo Info about the order.
+    /// @return actualFillableTakerTokenAmount How much of the order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValid Whether the signature is valid.
+    function getRfqOrderRelevantState(
+        LibNativeOrder.RfqOrder calldata order,
+        LibSignature.Signature calldata signature
+    )
+        external
+        view
+        returns (
+            LibNativeOrder.OrderInfo memory orderInfo,
+            uint128 actualFillableTakerTokenAmount,
+            bool isSignatureValid
+        );
+
+    /// @dev Batch version of `getLimitOrderRelevantState()`.
+    /// @param orders The limit orders.
+    /// @param signatures The order signatures.
+    /// @return orderInfos Info about the orders.
+    /// @return actualFillableTakerTokenAmounts How much of each order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValids Whether each signature is valid for the order.
+    function batchGetLimitOrderRelevantStates(
+        LibNativeOrder.LimitOrder[] calldata orders,
+        LibSignature.Signature[] calldata signatures
+    )
+        external
+        view
+        returns (
+            LibNativeOrder.OrderInfo[] memory orderInfos,
+            uint128[] memory actualFillableTakerTokenAmounts,
+            bool[] memory isSignatureValids
+        );
+
+    /// @dev Batch version of `getRfqOrderRelevantState()`.
+    /// @param orders The RFQ orders.
+    /// @param signatures The order signatures.
+    /// @return orderInfos Info about the orders.
+    /// @return actualFillableTakerTokenAmounts How much of each order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValids Whether each signature is valid for the order.
+    function batchGetRfqOrderRelevantStates(
+        LibNativeOrder.RfqOrder[] calldata orders,
+        LibSignature.Signature[] calldata signatures
+    )
+        external
+        view
+        returns (
+            LibNativeOrder.OrderInfo[] memory orderInfos,
+            uint128[] memory actualFillableTakerTokenAmounts,
+            bool[] memory isSignatureValids
+        );
 }
