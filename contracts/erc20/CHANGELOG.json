@@ -1,10 +1,24 @@
 [
     {
+        "version": "3.3.0",
+        "changes": [
+            {
+                "note": "Allow for excess return data in `LibERC20TokenV06` compat* functions",
+                "pr": 97
+            }
+        ]
+    },
+    {
         "timestamp": 1608692071,
         "version": "3.2.14",
         "changes": [
             {
                 "note": "Dependencies updated"
+        "version": "3.3.0",
+        "changes": [
+            {
+                "note": "Allow for excess return data in `LibERC20TokenV06` compat* functions",
+                "pr": 97
             }
         ]
     },
