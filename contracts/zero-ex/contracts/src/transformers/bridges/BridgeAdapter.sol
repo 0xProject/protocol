@@ -95,7 +95,7 @@ contract BridgeAdapter is
         MixinBancor(addresses)
         MixinCoFiX()
         MixinCurve()
-        MixinCryptoCom(addresses)
+        MixinCryptoCom()
         MixinDodo(addresses)
         MixinKyber(addresses)
         MixinMooniswap(addresses)
