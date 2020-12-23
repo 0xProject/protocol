@@ -5,7 +5,8 @@
             {
                 "note": "Fix CryptoCom rollup"
             }
-        ]
+        ],
+        "timestamp": 1608692071
     },
     {
         "version": "0.15.0",

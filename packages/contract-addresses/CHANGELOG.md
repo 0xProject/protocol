@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.8.0 - _December 23, 2020_
+
+    * redeploy FQT (#99)
+
 ## v5.7.0 - _December 17, 2020_
 
     * Redeploy FQT (#91)

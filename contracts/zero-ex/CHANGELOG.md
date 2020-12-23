@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.16.0 - _December 23, 2020_
+
+    * Fix CryptoCom rollup
+
 ## v0.15.0 - _December 17, 2020_
 
     * Add MixinBancor to BridgeAdapter (#91)
