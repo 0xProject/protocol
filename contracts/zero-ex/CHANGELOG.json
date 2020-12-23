@@ -1,5 +1,13 @@
 [
     {
+        "version": "0.16.0",
+        "changes": [
+            {
+                "note": "Fix CryptoCom rollup"
+            }
+        ]
+    },
+    {
         "version": "0.15.0",
         "changes": [
             {
