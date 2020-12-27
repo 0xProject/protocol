@@ -9,6 +9,8 @@ import { BancorService } from './bancor_service';
 import {
     LIQUIDITY_PROVIDER_REGISTRY,
     MAINNET_CRYPTO_COM_ROUTER,
+    MAINNET_MOONISWAP_REGISTRY,
+    MAINNET_MOONISWAP_V2_REGISTRY,
     MAINNET_SUSHI_SWAP_ROUTER,
     MAX_UINT256,
     ZERO_AMOUNT,
@@ -623,6 +625,7 @@ export class SamplerOperations {
     }
 
     public getMooniswapSellQuotes(
+        registry: string,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -631,7 +634,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Mooniswap,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromMooniswap,
-            params: [takerToken, makerToken, takerFillAmounts],
+            params: [registry, takerToken, makerToken, takerFillAmounts],
             callback: (callResults: string, fillData: MooniswapFillData): BigNumber[] => {
                 const [poolAddress, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
                     'sampleSellsFromMooniswap',
@@ -644,6 +647,7 @@ export class SamplerOperations {
     }
 
     public getMooniswapBuyQuotes(
+        registry: string,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -652,7 +656,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Mooniswap,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromMooniswap,
-            params: [takerToken, makerToken, makerFillAmounts],
+            params: [registry, takerToken, makerToken, makerFillAmounts],
             callback: (callResults: string, fillData: MooniswapFillData): BigNumber[] => {
                 const [poolAddress, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
                     'sampleBuysFromMooniswap',
@@ -1093,7 +1097,20 @@ export class SamplerOperations {
                         case ERC20BridgeSource.MStable:
                             return this.getMStableSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
-                            return this.getMooniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
+                            return [
+                                this.getMooniswapSellQuotes(
+                                    MAINNET_MOONISWAP_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                ),
+                                this.getMooniswapSellQuotes(
+                                    MAINNET_MOONISWAP_V2_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                ),
+                            ];
                         case ERC20BridgeSource.Balancer:
                             return this.balancerPoolsCache
                                 .getCachedPoolAddressesForPair(takerToken, makerToken)!
@@ -1218,7 +1235,20 @@ export class SamplerOperations {
                         case ERC20BridgeSource.MStable:
                             return this.getMStableBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
-                            return this.getMooniswapBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                            return [
+                                this.getMooniswapBuyQuotes(
+                                    MAINNET_MOONISWAP_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                ),
+                                this.getMooniswapBuyQuotes(
+                                    MAINNET_MOONISWAP_V2_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                ),
+                            ];
                         case ERC20BridgeSource.Balancer:
                             return this.balancerPoolsCache
                                 .getCachedPoolAddressesForPair(takerToken, makerToken)!

@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.6.0",
+        "changes": [
+            {
+                "note": "Added Mooniswap V2 factory address",
+                "pr": 100
+            }
+        ]
+    },
+    {
         "timestamp": 1608692071,
         "version": "5.5.3",
         "changes": [
