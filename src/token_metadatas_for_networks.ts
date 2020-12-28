@@ -1079,4 +1079,14 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
+    {
+        symbol: '1INCH',
+        name: '1INCH',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x111111111117dc0aa78b770fa6a738034120c302',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
 ];
