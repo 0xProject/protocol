@@ -362,11 +362,11 @@ export const MAINNET_MOONISWAP_V2_REGISTRY = '0xc4a8b7e29e3c8ec560cd4945c1cf3461
 
 export const MAINNET_SHELL_POOLS = {
     StableCoins: {
-        poolAddress: '0x2E703D658f8dd21709a7B458967aB4081F8D3d05',
+        poolAddress: '0x8f26d7bab7a73309141a291525c965ecdea7bf42',
         tokens: [TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD, TOKENS.DAI],
     },
     Bitcoin: {
-        poolAddress: '0x02Af7C867d6Ddd2c87dEcec2E4AFF809ee118FBb',
+        poolAddress: '0xc2d019b901f8d4fdb2b9a65b5d226ad88c66ee8d',
         tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
     },
 };
