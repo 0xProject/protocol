@@ -23,10 +23,10 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "../IBridgeAdapter.sol";
 import "./MixinUniswapV2.sol";
 
 contract MixinSushiswap {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the `SushiswapRouter` contract.
@@ -46,17 +46,20 @@ contract MixinSushiswap {
         internal
         returns (uint256 boughtAmount)
     {
-        // solhint-disable indent
-        address[] memory path = abi.decode(bridgeData, (address[]));
-        // solhint-enable indent
+        IERC20TokenV06[] memory path;
+        {
+            address[] memory _path = abi.decode(bridgeData, (address[]));
+            // To get around `abi.decode()` not supporting interface array types.
+            assembly { path := _path }
+        }
 
         require(path.length >= 2, "SushiswapBridge/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
-            path[path.length - 1] == address(buyToken),
+            path[path.length - 1] == buyToken,
             "SushiswapBridge/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
         // Grant the Uniswap router an allowance to sell the first token.
-        IERC20TokenV06(path[0]).approveIfBelow(
+        path[0].approveIfBelow(
             address(SUSHISWAP_ROUTER),
             sellAmount
         );

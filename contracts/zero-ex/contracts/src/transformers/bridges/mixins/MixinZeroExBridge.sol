@@ -18,12 +18,10 @@
 */
 
 pragma solidity ^0.6.5;
-pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "../IBridgeAdapter.sol";
 import "../../../vendor/ILiquidityProvider.sol";
 
 
@@ -33,20 +31,21 @@ contract MixinZeroExBridge {
     using LibSafeMathV06 for uint256;
 
     function _tradeZeroExBridge(
-        IBridgeAdapter.BridgeOrder memory order,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
+        (ILiquidityProvider provider) = abi.decode(bridgeData, (ILiquidityProvider));
         // Trade the good old fashioned way
         sellToken.compatTransfer(
-            order.sourceAddress,
+            address(provider),
             sellAmount
         );
-        boughtAmount = ILiquidityProvider(bridgeAddress).sellTokenForToken(
+        boughtAmount = provider.sellTokenForToken(
             address(sellToken),
             address(buyToken),
             address(this), // recipient

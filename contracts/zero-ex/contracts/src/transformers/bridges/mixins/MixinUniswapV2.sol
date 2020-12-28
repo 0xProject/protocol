@@ -42,13 +42,14 @@ interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
-        address[] calldata path,
+        IERC20TokenV06[] calldata path,
         address to,
         uint deadline
     ) external returns (uint[] memory amounts);
 }
 
 contract MixinUniswapV2 {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the `UniswapV2Router02` contract.
@@ -68,17 +69,20 @@ contract MixinUniswapV2 {
         internal
         returns (uint256 boughtAmount)
     {
-        // solhint-disable indent
-        address[] memory path = abi.decode(bridgeData, (address[]));
-        // solhint-enable indent
+        IERC20TokenV06[] memory path;
+        {
+            address[] memory _path = abi.decode(bridgeData, (address[]));
+            // To get around `abi.decode()` not supporting interface array types.
+            assembly { path := _path }
+        }
 
         require(path.length >= 2, "UniswapV2Bridge/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
-            path[path.length - 1] == address(buyToken),
+            path[path.length - 1] == buyToken,
             "UniswapV2Bridge/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
         // Grant the Uniswap router an allowance to sell the first token.
-        IERC20TokenV06(path[0]).approveIfBelow(
+        path[0].approveIfBelow(
             address(UNISWAP_V2_ROUTER),
             sellAmount
         );

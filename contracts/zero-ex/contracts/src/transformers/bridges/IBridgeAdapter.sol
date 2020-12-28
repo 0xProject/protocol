@@ -24,30 +24,11 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 
 interface IBridgeAdapter {
-    enum BridgeSource {
-        Balancer,
-        Curve,
-        Cream,
-        CryptoCom,
-        Dodo,
-        Kyber,
-        Mooniswap,
-        MStable,
-        Oasis,
-        Shell,
-        Snowswap,
-        Sushiswap,
-        Swerve,
-        Uniswap,
-        UniswapV2,
-        LiquidityProvider
-    }
 
     struct BridgeOrder {
-        BridgeSource source;
+        uint256 source;
         uint256 takerTokenAmount;
         uint256 makerTokenAmount;
-        address sourceAddress;
         bytes bridgeData;
     }
 
@@ -60,7 +41,6 @@ interface IBridgeAdapter {
         address uniswapExchangeFactory;
         address mStable;
         address dodoHelper;
-        address cryptoComRouter;
         // Other
         address weth;
     }

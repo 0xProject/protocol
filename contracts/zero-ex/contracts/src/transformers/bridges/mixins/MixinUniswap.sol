@@ -104,6 +104,7 @@ interface IUniswapExchange {
 }
 
 contract MixinUniswap {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the WETH contract.

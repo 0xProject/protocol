@@ -55,10 +55,12 @@ interface IKyberNetworkProxy {
 }
 
 contract MixinKyber {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Address indicating the trade is using ETH
-    address private immutable KYBER_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    IERC20TokenV06 private immutable KYBER_ETH_ADDRESS =
+        IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     /// @dev Mainnet address of the WETH contract.
     IEtherTokenV06 private immutable WETH;
     /// @dev Mainnet address of the KyberNetworkProxy contract.
@@ -75,11 +77,13 @@ contract MixinKyber {
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
-        bytes memory hint
+        bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
+        (bytes memory hint) = abi.decode(bridgeData, (bytes));
+
         uint256 payableAmount = 0;
         if (sellToken != WETH) {
             // If the input token is not WETH, grant an allowance to the exchange
@@ -98,11 +102,11 @@ contract MixinKyber {
         // `KyberNetworkProxy.trade()`.
         boughtAmount = KYBER_NETWORK_PROXY.tradeWithHint{ value: payableAmount }(
             // Input token.
-            sellToken == WETH ? IERC20TokenV06(KYBER_ETH_ADDRESS) : sellToken,
+            sellToken == WETH ? KYBER_ETH_ADDRESS : sellToken,
             // Sell amount.
             sellAmount,
             // Output token.
-            buyToken == WETH ? IERC20TokenV06(KYBER_ETH_ADDRESS) : buyToken,
+            buyToken == WETH ? KYBER_ETH_ADDRESS : buyToken,
             // Transfer to this contract
             address(uint160(address(this))),
             // Buy as much as possible.

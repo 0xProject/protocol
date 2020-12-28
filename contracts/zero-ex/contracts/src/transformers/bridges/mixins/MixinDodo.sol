@@ -25,22 +25,39 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../IBridgeAdapter.sol";
 
-interface IDODOHelper {
 
-    function querySellQuoteToken(address dodo, uint256 amount) external view returns (uint256);
+interface IDODO {
+    function sellBaseToken(
+        uint256 amount,
+        uint256 minReceiveQuote,
+        bytes calldata data
+    )
+        external
+        returns (uint256);
+
+    function buyBaseToken(
+        uint256 amount,
+        uint256 maxPayQuote,
+        bytes calldata data
+    )
+        external
+        returns (uint256);
 }
 
 
-interface IDODO {
-
-    function sellBaseToken(uint256 amount, uint256 minReceiveQuote, bytes calldata data) external returns (uint256);
-
-    function buyBaseToken(uint256 amount, uint256 maxPayQuote, bytes calldata data) external returns (uint256);
-
+interface IDODOHelper {
+    function querySellQuoteToken(
+        IDODO dodo,
+        uint256 amount
+    )
+        external
+        view
+        returns (uint256);
 }
 
 
 contract MixinDodo {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the `DOODO Helper` contract.
@@ -53,7 +70,6 @@ contract MixinDodo {
     }
 
     function _tradeDodo(
-        address poolAddress,
         IERC20TokenV06 sellToken,
         uint256 sellAmount,
         bytes memory bridgeData
@@ -61,14 +77,14 @@ contract MixinDodo {
         internal
         returns (uint256 boughtAmount)
     {
-        (bool isSellBase) = abi.decode(bridgeData, (bool));
+        (IDODO pool, bool isSellBase) = abi.decode(bridgeData, (IDODO, bool));
 
         // Grant the Dodo pool contract an allowance to sell the first token.
-        sellToken.approveIfBelow(poolAddress, sellAmount);
+        sellToken.approveIfBelow(address(pool), sellAmount);
 
         if (isSellBase) {
             // Sell the Base token directly against the contract
-            boughtAmount = IDODO(poolAddress).sellBaseToken(
+            boughtAmount = pool.sellBaseToken(
                 // amount to sell
                 sellAmount,
                 // min receive amount
@@ -78,10 +94,10 @@ contract MixinDodo {
         } else {
             // Need to re-calculate the sell quote amount into buyBase
             boughtAmount = DODO_HELPER.querySellQuoteToken(
-                poolAddress,
+                pool,
                 sellAmount
             );
-            IDODO(poolAddress).buyBaseToken(
+            pool.buyBaseToken(
                 // amount to buy
                 boughtAmount,
                 // max pay amount

@@ -21,6 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "./IBridgeAdapter.sol";
+import "./BridgeSource.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
@@ -85,116 +86,106 @@ contract BridgeAdapter is
         override
         returns (uint256 boughtAmount)
     {
-        if (order.source == BridgeSource.Curve ||
-            order.source == BridgeSource.Swerve ||
-            order.source == BridgeSource.Snowswap) {
+        if (order.source == BridgeSource.CURVE ||
+            order.source == BridgeSource.SWERVE ||
+            order.source == BridgeSource.SNOWSWAP) {
             boughtAmount = _tradeCurve(
-                order.sourceAddress,
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.Sushiswap) {
+        } else if (order.source == BridgeSource.SUSHISWAP) {
             boughtAmount = _tradeSushiswap(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.UniswapV2) {
+        } else if (order.source == BridgeSource.UNISWAPV2) {
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.Uniswap) {
+        } else if (order.source == BridgeSource.UNISWAP) {
             boughtAmount = _tradeUniswap(
                 sellToken,
                 buyToken,
                 sellAmount
             );
-        } else if (order.source == BridgeSource.Balancer ||
-                   order.source == BridgeSource.Cream) {
+        } else if (order.source == BridgeSource.BALANCER ||
+                   order.source == BridgeSource.CREAM) {
             boughtAmount = _tradeBalancer(
-                order.sourceAddress,
                 sellToken,
                 buyToken,
-                sellAmount
+                sellAmount,
+                order.bridgeData
             );
-        } else if (order.source == BridgeSource.Kyber) {
+        } else if (order.source == BridgeSource.KYBER) {
             boughtAmount = _tradeKyber(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.Mooniswap) {
+        } else if (order.source == BridgeSource.MOONISWAP) {
             boughtAmount = _tradeMooniswap(
-                order.sourceAddress,
                 sellToken,
                 buyToken,
-                sellAmount
+                sellAmount,
+                order.bridgeData
             );
-        } else if (order.source == BridgeSource.MStable) {
+        } else if (order.source == BridgeSource.MSTABLE) {
             boughtAmount = _tradeMStable(
                 sellToken,
                 buyToken,
                 sellAmount
             );
-        } else if (order.source == BridgeSource.Oasis) {
+        } else if (order.source == BridgeSource.OASIS) {
             boughtAmount = _tradeOasis(
                 sellToken,
                 buyToken,
                 sellAmount
             );
-        } else if (order.source == BridgeSource.Shell) {
+        } else if (order.source == BridgeSource.SHELL) {
             boughtAmount = _tradeShell(
-                order.sourceAddress,
                 sellToken,
                 buyToken,
-                sellAmount
+                sellAmount,
+                order.bridgeData
             );
-        } else if (order.source == BridgeSource.Dodo) {
+        } else if (order.source == BridgeSource.DODO) {
             boughtAmount = _tradeDodo(
-                order.sourceAddress,
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.CryptoCom) {
+        } else if (order.source == BridgeSource.CRYPTOCOM) {
             boughtAmount = _tradeCryptoCom(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (bridgeAddress == BANCOR_BRIDGE_ADDRESS) {
+        } else if (order.source == BridgeSource.BANCOR) {
             boughtAmount = _tradeBancor(
                 buyToken,
                 sellAmount,
-                bridgeData
+                order.bridgeData
             );
-        } else if (bridgeAddress == COFIX_BRIDGE_ADDRESS) {
+        } else if (order.source == BridgeSource.COFIX) {
             boughtAmount = _tradeCoFiX(
+                sellToken,
                 buyToken,
                 sellAmount,
-                bridgeData
+                order.bridgeData
             );
         } else {
             boughtAmount = _tradeZeroExBridge(
-                order,
                 sellToken,
                 buyToken,
-                sellAmount
+                sellAmount,
+                order.bridgeData
             );
         }
-
-        emit ERC20BridgeTransfer(
-            sellToken,
-            buyToken,
-            sellAmount,
-            boughtAmount,
-            order.source,
-            address(this)
-        );
     }
 }

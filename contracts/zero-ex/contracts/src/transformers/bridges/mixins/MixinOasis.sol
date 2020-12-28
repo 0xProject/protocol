@@ -43,6 +43,7 @@ interface IOasis {
 }
 
 contract MixinOasis {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the Oasis `MatchingMarket` contract.

@@ -7,9 +7,16 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { assetDataUtils } from '@0x/order-utils';
-import { encodeFillQuoteTransformerData, FillQuoteTransformerData, FillQuoteTransformerSide } from '@0x/protocol-utils';
-import { Order } from '@0x/types';
+import {
+    encodeFillQuoteTransformerData,
+    FillQuoteTransformerBridgeOrder as BridgeOrder,
+    FillQuoteTransformerData,
+    FillQuoteTransformerSide,
+    LimitOrder,
+    LimitOrderFields,
+    RfqOrder,
+    RfqOrderFields,
+} from '@0x/protocol-utils';
 import { BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -22,6 +29,7 @@ import {
     TestFillQuoteTransformerHostContract,
     TestMintableERC20TokenContract,
 } from '../wrappers';
+import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
 
 const { NULL_ADDRESS, NULL_BYTES, MAX_UINT256, ZERO_AMOUNT } = constants;
 
@@ -55,31 +63,14 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             env.txDefaults,
             artifacts,
             {
-                balancerBridge: NULL_ADDRESS,
-                curveBridge: NULL_ADDRESS,
-                kyberBridge: NULL_ADDRESS,
-                mooniswapBridge: NULL_ADDRESS,
-                mStableBridge: NULL_ADDRESS,
-                oasisBridge: NULL_ADDRESS,
-                sushiswapBridge: NULL_ADDRESS,
-                swerveBridge: NULL_ADDRESS,
-                uniswapBridge: NULL_ADDRESS,
-                uniswapV2Bridge: NULL_ADDRESS,
                 kyberNetworkProxy: NULL_ADDRESS,
                 oasis: NULL_ADDRESS,
                 sushiswapRouter: NULL_ADDRESS,
                 uniswapV2Router: NULL_ADDRESS,
                 uniswapExchangeFactory: NULL_ADDRESS,
                 mStable: NULL_ADDRESS,
-                weth: NULL_ADDRESS,
-                shellBridge: NULL_ADDRESS,
-                creamBridge: NULL_ADDRESS,
-                dodoBridge: NULL_ADDRESS,
                 dodoHelper: NULL_ADDRESS,
-                snowSwapBridge: NULL_ADDRESS,
-                cryptoComBridge: NULL_ADDRESS,
-                bancorBridge: NULL_ADDRESS,
-                cofixBridge: NULL_ADDRESS,
+                weth: NULL_ADDRESS,
             },
         );
         transformer = await FillQuoteTransformerContract.deployFrom0xArtifactAsync(
@@ -118,33 +109,30 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         singleProtocolFee = (await exchange.protocolFeeMultiplier().callAsync()).times(GAS_PRICE);
     });
 
-    type FilledOrder = Order & { filledTakerAssetAmount: BigNumber };
+    interface FilledLimitOrder {
+        order: LimitOrder;
+        filledTakerAmount: BigNumber;
+    }
 
-    function createOrder(fields: Partial<Order> = {}): FilledOrder {
+    function createLimitOrder(fields: Partial<LimitOrderFields> = {}): FilledLimitOrder {
         return {
-            chainId: 1,
-            exchangeAddress: exchange.address,
-            expirationTimeSeconds: ZERO_AMOUNT,
-            salt: ZERO_AMOUNT,
-            senderAddress: NULL_ADDRESS,
-            takerAddress: NULL_ADDRESS,
-            makerAddress: maker,
-            feeRecipientAddress: feeRecipient,
-            makerAssetAmount: getRandomInteger('0.1e18', '1e18'),
-            takerAssetAmount: getRandomInteger('0.1e18', '1e18'),
-            makerFee: ZERO_AMOUNT,
-            takerFee: getRandomInteger('0.001e18', '0.1e18'),
-            makerAssetData: assetDataUtils.encodeERC20AssetData(makerToken.address),
-            takerAssetData: assetDataUtils.encodeERC20AssetData(takerToken.address),
-            makerFeeAssetData: NULL_BYTES,
-            takerFeeAssetData: assetDataUtils.encodeERC20AssetData(takerToken.address),
-            filledTakerAssetAmount: ZERO_AMOUNT,
-            ...fields,
+            order: getRandomLimitOrder({
+                maker,
+                feeRecipient,
+                makerToken: makerToken.address,
+                takerToken: takerToken.address,
+                makerAmount: getRandomInteger('0.1e18', '1e18'),
+                takerAmount: getRandomInteger('0.1e18', '1e18'),
+                ...fields,
+            }),
+            filledTakerAmount: ZERO_AMOUNT,
         };
     }
 
-    function createBridgeOrder(fields: Partial<Order> = {}, fillRatio: Numberish = 1.0): FilledOrder {
-        const order = createOrder(fields);
+    function createBridgeOrder(fields: Partial<BridgeOrder> = {}, fillRatio: Numberish = 1.0): BridgeOrder {
+        const order = {
+            source: 
+        }
         const bridgeData = encodeBridgeBehavior(order.makerAssetAmount, fillRatio);
         return {
             ...order,
@@ -180,7 +168,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             }
             const singleFillAmount = BigNumber.min(
                 takerAssetFillAmount.minus(qfr.takerAssetSpent),
-                order.takerAssetAmount.minus(order.filledTakerAssetAmount),
+                order.takerAssetAmount.minus(order.filledTakerAmount),
             );
             const fillRatio = singleFillAmount.div(order.takerAssetAmount);
             qfr.takerAssetSpent = qfr.takerAssetSpent.plus(singleFillAmount);
@@ -209,7 +197,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             if (qfr.makerAssetBought.gte(makerAssetFillAmount)) {
                 break;
             }
-            const filledMakerAssetAmount = order.filledTakerAssetAmount
+            const filledMakerAssetAmount = order.filledTakerAmount
                 .times(order.makerAssetAmount.div(order.takerAssetAmount))
                 .integerValue(BigNumber.ROUND_DOWN);
             const singleFillAmount = BigNumber.min(
@@ -287,13 +275,13 @@ blockchainTests.resets('FillQuoteTransformer', env => {
     }
 
     function encodeExchangeBehavior(
-        filledTakerAssetAmount: Numberish = 0,
+        filledTakerAmount: Numberish = 0,
         makerAssetMintRatio: Numberish = 1.0,
     ): string {
         return hexUtils.slice(
             exchange
                 .encodeBehaviorData({
-                    filledTakerAssetAmount: new BigNumber(filledTakerAssetAmount),
+                    filledTakerAmount: new BigNumber(filledTakerAmount),
                     makerAssetMintRatio: new BigNumber(makerAssetMintRatio).times('1e18').integerValue(),
                 })
                 .getABIEncodedTransactionData(),
@@ -317,7 +305,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
     describe('sell quotes', () => {
         it('can fully sell to a single order quote', async () => {
-            const orders = _.times(1, () => createOrder());
+            const orders = _.times(1, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             await host
@@ -340,7 +328,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can fully sell to multi order quote', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             await host
@@ -363,7 +351,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can partially sell to single order quote', async () => {
-            const orders = _.times(1, () => createOrder());
+            const orders = _.times(1, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(
                 orders,
@@ -389,7 +377,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can partially sell to multi order quote and refund unused protocol fees', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders.slice(0, 2));
             const maxProtocolFees = singleProtocolFee.times(orders.length);
@@ -414,7 +402,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can sell to multi order quote with a failing order', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             // First order will fail.
             const validOrders = orders.slice(1);
             const signatures = [NULL_BYTES, ...validOrders.map(() => encodeExchangeBehavior())];
@@ -440,7 +428,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
         it('succeeds if an order transfers too few maker tokens', async () => {
             const mintScale = 0.5;
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             // First order mints less than expected.
             const signatures = [
                 encodeExchangeBehavior(0, mintScale),
@@ -469,15 +457,15 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can fail if an order is partially filled', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             // First order is partially filled.
             const filledOrder = {
                 ...orders[0],
-                filledTakerAssetAmount: orders[0].takerAssetAmount.dividedToIntegerBy(2),
+                filledTakerAmount: orders[0].takerAssetAmount.dividedToIntegerBy(2),
             };
             // First order is partially filled.
             const signatures = [
-                encodeExchangeBehavior(filledOrder.filledTakerAssetAmount),
+                encodeExchangeBehavior(filledOrder.filledTakerAmount),
                 ...orders.slice(1).map(() => encodeExchangeBehavior()),
             ];
             const qfr = getExpectedSellQuoteFillResults(orders);
@@ -504,7 +492,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('fails if not enough protocol fee provided', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const tx = host
@@ -530,7 +518,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can sell less than the taker token balance', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const takerTokenBalance = qfr.takerAssetSpent.times(1.01).integerValue();
@@ -556,7 +544,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('fails to sell more than the taker token balance', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const takerTokenBalance = qfr.takerAssetSpent.times(0.99).integerValue();
@@ -585,7 +573,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
         it('can fully sell to a single order with maker asset taker fees', async () => {
             const orders = _.times(1, () =>
-                createOrder({
+                createLimitOrder({
                     takerFeeAssetData: assetDataUtils.encodeERC20AssetData(makerToken.address),
                 }),
             );
@@ -612,7 +600,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
         it('fails if an order has a non-standard taker fee asset', async () => {
             const BAD_ASSET_DATA = hexUtils.random(36);
-            const orders = _.times(1, () => createOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
+            const orders = _.times(1, () => createLimitOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const tx = host
@@ -636,7 +624,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         it('fails if an order has a fee asset that is neither maker or taker asset', async () => {
             const badToken = randomAddress();
             const BAD_ASSET_DATA = hexUtils.concat(ERC20_ASSET_PROXY_ID, hexUtils.leftPad(badToken));
-            const orders = _.times(1, () => createOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
+            const orders = _.times(1, () => createLimitOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const tx = host
@@ -656,7 +644,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('respects `maxOrderFillAmounts`', async () => {
-            const orders = _.times(2, () => createOrder());
+            const orders = _.times(2, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders.slice(1));
             const protocolFee = singleProtocolFee.times(2);
@@ -682,7 +670,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can refund unspent protocol fee to the `refundReceiver`', async () => {
-            const orders = _.times(2, () => createOrder());
+            const orders = _.times(2, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const protocolFee = qfr.protocolFeePaid.plus(1);
@@ -706,7 +694,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can refund unspent protocol fee to the taker', async () => {
-            const orders = _.times(2, () => createOrder());
+            const orders = _.times(2, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const protocolFee = qfr.protocolFeePaid.plus(1);
@@ -731,7 +719,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can refund unspent protocol fee to the sender', async () => {
-            const orders = _.times(2, () => createOrder());
+            const orders = _.times(2, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedSellQuoteFillResults(orders);
             const protocolFee = qfr.protocolFeePaid.plus(1);
@@ -758,7 +746,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
     describe('buy quotes', () => {
         it('can fully buy from a single order quote', async () => {
-            const orders = _.times(1, () => createOrder());
+            const orders = _.times(1, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(orders);
             await host
@@ -783,7 +771,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can fully buy from a multi order quote', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(orders);
             await host
@@ -808,7 +796,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can partially buy from a single order quote', async () => {
-            const orders = _.times(1, () => createOrder());
+            const orders = _.times(1, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(
                 orders,
@@ -836,7 +824,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can partially buy from multi order quote and refund unused protocol fees', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(orders.slice(0, 2));
             const maxProtocolFees = singleProtocolFee.times(orders.length);
@@ -863,7 +851,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can buy from multi order quote with a failing order', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             // First order will fail.
             const validOrders = orders.slice(1);
             const signatures = [NULL_BYTES, ...validOrders.map(() => encodeExchangeBehavior())];
@@ -890,7 +878,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('fails to buy more than available in orders', async () => {
-            const orders = _.times(3, () => createOrder());
+            const orders = _.times(3, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(orders);
             const tx = host
@@ -919,7 +907,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
         it('can fully buy from a single order with maker asset taker fees', async () => {
             const orders = _.times(1, () =>
-                createOrder({
+                createLimitOrder({
                     takerFeeAssetData: assetDataUtils.encodeERC20AssetData(makerToken.address),
                 }),
             );
@@ -948,7 +936,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
         it('fails if an order has a non-standard taker fee asset', async () => {
             const BAD_ASSET_DATA = hexUtils.random(36);
-            const orders = _.times(1, () => createOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
+            const orders = _.times(1, () => createLimitOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(orders);
             const tx = host
@@ -974,7 +962,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         it('fails if an order has a fee asset that is neither maker or taker asset', async () => {
             const badToken = randomAddress();
             const BAD_ASSET_DATA = hexUtils.concat(ERC20_ASSET_PROXY_ID, hexUtils.leftPad(badToken));
-            const orders = _.times(1, () => createOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
+            const orders = _.times(1, () => createLimitOrder({ takerFeeAssetData: BAD_ASSET_DATA }));
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(orders);
             const tx = host
@@ -996,7 +984,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('respects `maxOrderFillAmounts`', async () => {
-            const orders = _.times(2, () => createOrder());
+            const orders = _.times(2, () => createLimitOrder());
             const signatures = orders.map(() => encodeExchangeBehavior());
             const qfr = getExpectedBuyQuoteFillResults(orders.slice(1));
             const protocolFee = singleProtocolFee.times(2);
@@ -1049,7 +1037,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can sell to a mix of order quote', async () => {
-            const nativeOrders = [createOrder()];
+            const nativeOrders = [createLimitOrder()];
             const bridgeOrders = [createBridgeOrder()];
             const orders = [...nativeOrders, ...bridgeOrders];
             const signatures = [
@@ -1077,7 +1065,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can attempt to sell to a mix of order quote handling reverts', async () => {
-            const nativeOrders = _.times(3, () => createOrder());
+            const nativeOrders = _.times(3, () => createLimitOrder());
             const bridgeOrders = [createBridgeOrder()];
             const orders = [...nativeOrders, ...bridgeOrders];
             const signatures = [
@@ -1107,7 +1095,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         });
 
         it('can continue to the bridge order if the native order reverts', async () => {
-            const nativeOrders = [createOrder()];
+            const nativeOrders = [createLimitOrder()];
             const bridgeOrders = [createBridgeOrder()];
             const orders = [...nativeOrders, ...bridgeOrders];
             const signatures = [

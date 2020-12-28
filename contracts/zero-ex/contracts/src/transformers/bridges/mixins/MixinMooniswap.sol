@@ -42,7 +42,9 @@ interface IMooniswapPool {
         returns (uint256 boughtAmount);
 }
 
+/// @dev BridgeAdapter mixin for mooniswap.
 contract MixinMooniswap {
+
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibERC20TokenV06 for IEtherTokenV06;
 
@@ -56,14 +58,16 @@ contract MixinMooniswap {
     }
 
     function _tradeMooniswap(
-        address poolAddress,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
+        (IMooniswapPool pool) = abi.decode(bridgeData, (IMooniswapPool));
+
         // Convert WETH to ETH.
         uint256 ethValue = 0;
         if (sellToken == WETH) {
@@ -72,12 +76,12 @@ contract MixinMooniswap {
         } else {
             // Grant the pool an allowance.
             sellToken.approveIfBelow(
-                poolAddress,
+                address(pool),
                 sellAmount
             );
         }
 
-        boughtAmount = IMooniswapPool(poolAddress).swap{value: ethValue}(
+        boughtAmount = pool.swap{value: ethValue}(
             sellToken == WETH ? IERC20TokenV06(0) : sellToken,
             buyToken == WETH ? IERC20TokenV06(0) : buyToken,
             sellAmount,
