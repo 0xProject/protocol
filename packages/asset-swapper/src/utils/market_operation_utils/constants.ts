@@ -324,14 +324,14 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         tokens: [TOKENS.EURS, TOKENS.sEUR],
         metaToken: undefined,
     },
-    [POOLS.curve_seth]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.exchange,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_seth,
-        tokens: [TOKENS.ETH, TOKENS.sETH],
-        metaToken: undefined,
-    },
+    // [POOLS.curve_seth]: {
+    //     exchangeFunctionSelector: CurveFunctionSelectors.exchange,
+    //     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
+    //     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    //     poolAddress: POOLS.curve_seth,
+    //     tokens: [TOKENS.ETH, TOKENS.sETH],
+    //     metaToken: undefined,
+    // },
     [POOLS.curve_aave]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
