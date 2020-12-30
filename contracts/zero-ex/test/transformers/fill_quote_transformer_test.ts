@@ -48,6 +48,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
     let singleProtocolFee: BigNumber;
 
     const GAS_PRICE = 1337;
+    const TEST_BRIDGE_SOURCE = 12345678;
 
     before(async () => {
         [maker, feeRecipient, sender, taker] = await env.getAccountAddressesAsync();
@@ -129,19 +130,13 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         };
     }
 
-    function createBridgeOrder(fields: Partial<BridgeOrder> = {}, fillRatio: Numberish = 1.0): BridgeOrder {
-        const order = {
-            source: 
-        }
-        const bridgeData = encodeBridgeBehavior(order.makerAssetAmount, fillRatio);
+    function createBridgeOrder(fillRatio: Numberish = 1.0): BridgeOrder {
+        const makerTokenAmount = getRandomInteger('0.1e18', '1e18');
         return {
-            ...order,
-            makerAddress: bridge.address,
-            makerAssetData: assetDataUtils.encodeERC20BridgeAssetData(makerToken.address, bridge.address, bridgeData),
-            makerFeeAssetData: NULL_BYTES,
-            takerFeeAssetData: NULL_BYTES,
-            makerFee: ZERO_AMOUNT,
-            takerFee: ZERO_AMOUNT,
+            makerTokenAmount,
+            source: TEST_BRIDGE_SOURCE,
+            takerTokenAmount: getRandomInteger('0.1e18', '1e18'),
+            bridgeData: encodeBridgeBehavior(makerTokenAmount, fillRatio),
         };
     }
 
@@ -156,6 +151,26 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         takerAssetSpent: ZERO_AMOUNT,
         protocolFeePaid: ZERO_AMOUNT,
     };
+
+    interface FillBalances {
+        takerTokenBalance: BigNumber;
+        ethBalance: BigNumber;
+    }
+
+    function getExpectedQuoteFillResults(data: FillQuoteTransformerData, balances: FillBalances): QuoteFillResults {
+        let takerTokenBalanceRemaining = balances.takerTokenBalance;
+        let ethBalanceRemaining = balances.ethBalance;
+
+        for (let i = 0; i < data.fillSequence.length; ++i) {
+
+        }
+
+        if (data.side === FillQuoteTransformerSide.Sell) {
+
+        } else { // Buy
+
+        }
+    }
 
     function getExpectedSellQuoteFillResults(
         orders: FilledOrder[],
