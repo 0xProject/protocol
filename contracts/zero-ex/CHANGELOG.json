@@ -5,6 +5,10 @@
             {
                 "note": "Add DevUtils-like functions to `NativeOrdersFeature`",
                 "pr": 97
+            },
+            {
+                "note": "Add SPDX license identifiers to solidity files",
+                "pr": 105
             }
         ],
         "timestamp": 1609802516
