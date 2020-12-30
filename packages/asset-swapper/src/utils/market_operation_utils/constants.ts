@@ -92,8 +92,6 @@ export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } = Object.as
 // Mainnet tokens
 // Not an exhaustive list, just enough so we don't repeat ourselves
 export const TOKENS = {
-    // TODO(Romain): how to use ETH for the ETH/sETH pool?
-    // ETH: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     // Stable Coins
     DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -139,7 +137,7 @@ export const POOLS = {
     curve_renBTC: '0x93054188d876f558f4a66b2ef1d97d16edf0895b', // 6.ren
     curve_sBTC: '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714', // 7.sbtc
     curve_HBTC: '0x4ca9b3063ec5866a4b82e437059d2c43d1be596f', // 8.hbtc
-    curve_TRI: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',  // 9.3pool
+    curve_TRI: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7', // 9.3pool
     curve_GUSD: '0x4f062658eaaf2c1ccf8c8e36d6824cdf41167956', // 10.gusd
     curve_HUSD: '0x3ef6a01a0f81d6046290f3e2a8c5b843e738e604', // 11.husd
     // 12.usdk is dead
@@ -152,9 +150,9 @@ export const POOLS = {
     curve_pBTC: '0x5228a22e72ccc52d415ecfd199f99d0665e7733b', // 19.pbtc
     curve_bBTC: '0x071c661b4deefb59e2a3ddb20db036821eee8f4b', // 20.bbtc
     curve_oBTC: '0xd81da8d904b52208541bade1bd6595d8a251f8dd', // 21.obtc
-    curve_UST: '0x890f4e345b1daed0367a877a1612f86a1f86985f',  // 22.ust
+    curve_UST: '0x890f4e345b1daed0367a877a1612f86a1f86985f', // 22.ust
     curve_eurs: '0x0ce6a5ff5217e38315f87032cf90686c96627caa', // 23.eurs
-    curve_seth: '0xc5424b857f758e906013f3555dad202e4bdb4567', // 24.seth
+    // curve_seth: '0xc5424b857f758e906013f3555dad202e4bdb4567', // 24.seth
     curve_aave: '0xdebf20617708857ebe4f679508e7b7863a8a8eee', // 25.aave
 };
 
@@ -551,23 +549,23 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
             case POOLS.curve_HUSD:
                 return 310e3;
             case POOLS.curve_tBTC:
-                return 370e3;        
-            case POOLS.curve_UST: 
+                return 370e3;
+            case POOLS.curve_UST:
                 return 500e3;
-            case POOLS.curve_dUSD: 
-            case POOLS.curve_bBTC: 
-            case POOLS.curve_oBTC: 
-            case POOLS.curve_eurs: 
-                return 600e3;    
+            case POOLS.curve_dUSD:
+            case POOLS.curve_bBTC:
+            case POOLS.curve_oBTC:
+            case POOLS.curve_eurs:
+                return 600e3;
             case POOLS.curve_compound:
                 return 750e3;
-            case POOLS.curve_aave: 
+            case POOLS.curve_aave:
                 return 800e3;
             case POOLS.curve_PAX:
             case POOLS.curve_y:
             case POOLS.curve_BUSD:
                 return 850e3;
-            // case POOLS.curve_seth: 
+            // case POOLS.curve_seth:
             default:
                 throw new Error(`Unrecognized Curve address: ${poolAddress}`);
         }
