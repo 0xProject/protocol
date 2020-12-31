@@ -5,7 +5,8 @@
             {
                 "note": "Fix fillAmount `ExchangeProxySwapQuoteConsumer` encoding when quote is a BuyQuote"
             }
-        ]
+        ],
+        "timestamp": 1609387311
     },
     {
         "version": "5.6.0",
