@@ -1,5 +1,13 @@
 [
     {
+        "version": "5.6.1",
+        "changes": [
+            {
+                "note": "Fix fillAmount `ExchangeProxySwapQuoteConsumer` encoding when quote is a BuyQuote"
+            }
+        ]
+    },
+    {
         "version": "5.6.0",
         "changes": [
             {

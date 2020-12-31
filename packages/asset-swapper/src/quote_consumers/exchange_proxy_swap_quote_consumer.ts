@@ -205,7 +205,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     buyToken,
                     refundReceiver: refundReceiver || NULL_ADDRESS,
                     side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
-                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
+                    fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
                     maxOrderFillAmounts: [],
                     rfqtTakerAddress: NULL_ADDRESS,
                     orders: quote.orders,
