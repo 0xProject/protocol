@@ -45,6 +45,20 @@ interface IBridgeAdapter {
         address weth;
     }
 
+    /// @dev Emitted when tokens are swapped with an external source.
+    /// @param source The unique ID for the source. See `BridgeSource.sol`
+    /// @param inputToken The token the bridge is converting from.
+    /// @param outputToken The token the bridge is converting to.
+    /// @param inputTokenAmount Amount of input token sold.
+    /// @param outputTokenAmount Amount of output token bought.
+    event BridgeOrderFilled(
+        uint256 source,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount
+    );
+
     function trade(
         BridgeOrder calldata order,
         IERC20TokenV06 sellToken,

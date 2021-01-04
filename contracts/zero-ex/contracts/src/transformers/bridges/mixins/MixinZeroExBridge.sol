@@ -39,7 +39,8 @@ contract MixinZeroExBridge {
         internal
         returns (uint256 boughtAmount)
     {
-        (ILiquidityProvider provider) = abi.decode(bridgeData, (ILiquidityProvider));
+        (ILiquidityProvider provider, bytes memory lpData) =
+            abi.decode(bridgeData, (ILiquidityProvider, bytes));
         // Trade the good old fashioned way
         sellToken.compatTransfer(
             address(provider),
@@ -50,7 +51,7 @@ contract MixinZeroExBridge {
             address(buyToken),
             address(this), // recipient
             1, // minBuyAmount
-            bridgeData
+            lpData
         );
     }
 }

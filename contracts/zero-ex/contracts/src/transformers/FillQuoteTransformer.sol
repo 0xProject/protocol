@@ -132,23 +132,6 @@ contract FillQuoteTransformer is
     /// @param orderHash The hash of the order that was skipped.
     event ProtocolFeeUnfunded(bytes32 orderHash);
 
-    /// @dev Emitted when a fill in a quote occurs.
-    /// @param orderType The order type (bridge, limit, RFQ)
-    /// @param source bytes32-padded extra data. For bridge orders, this is the
-    ///        bridge source ID, for limit and RFQ orders this is the maker address.
-    /// @param inputToken The token the bridge is converting from.
-    /// @param outputToken The token the bridge is converting to.
-    /// @param inputTokenAmount Amount of input token sold.
-    /// @param outputTokenAmount Amount of output token bought.
-    event PartialQuoteFill(
-        OrderType orderType,
-        bytes32 source,
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount
-    );
-
     /// @dev Maximum uint256 value.
     uint256 private constant MAX_UINT256 = uint256(-1);
     /// @dev The highest bit of a uint256 value.
@@ -301,6 +284,7 @@ contract FillQuoteTransformer is
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
 
+    // Fill a single bridge order.
     function _fillBridgeOrder(
         IBridgeAdapter.BridgeOrder memory order,
         TransformData memory data,
@@ -329,18 +313,10 @@ contract FillQuoteTransformer is
         if (success) {
             results.makerTokenBoughtAmount = abi.decode(resultData, (uint256));
             results.takerTokenSoldAmount = takerTokenFillAmount;
-
-            emit PartialQuoteFill(
-                OrderType.Bridge,
-                bytes32(uint256(order.source)),
-                data.sellToken,
-                data.buyToken,
-                results.takerTokenSoldAmount,
-                results.makerTokenBoughtAmount
-            );
         }
     }
 
+    // Fill a single limit order.
     function _fillLimitOrder(
         LimitOrderInfo memory orderInfo,
         TransformData memory data,
@@ -389,20 +365,10 @@ contract FillQuoteTransformer is
             results.takerTokenSoldAmount = takerTokenFilledAmount;
             results.makerTokenBoughtAmount = makerTokenFilledAmount;
             results.protocolFeePaid = state.protocolFee;
-
-            emit PartialQuoteFill(
-                OrderType.Limit,
-                bytes32(uint256(orderInfo.order.maker)),
-                data.sellToken,
-                data.buyToken,
-                results.takerTokenSoldAmount,
-                results.makerTokenBoughtAmount
-            );
-        } catch {
-            // Swallow failures, leaving all results as zero.
-        }
+        } catch {}
     }
 
+    // Fill a single RFQ order.
     function _fillRfqOrder(
         RfqOrderInfo memory orderInfo,
         TransformData memory data,
@@ -433,20 +399,10 @@ contract FillQuoteTransformer is
         {
             results.takerTokenSoldAmount = takerTokenFilledAmount;
             results.makerTokenBoughtAmount = makerTokenFilledAmount;
-
-            emit PartialQuoteFill(
-                OrderType.Rfq,
-                bytes32(uint256(orderInfo.order.maker)),
-                data.sellToken,
-                data.buyToken,
-                results.takerTokenSoldAmount,
-                results.makerTokenBoughtAmount
-            );
-        } catch {
-            // Swallow failures, leaving all results as zero.
-        }
+        } catch {}
     }
 
+    // Compute the next taker token fill amount of a generic order.
     function _computeTakerTokenFillAmount(
         TransformData memory data,
         FillState memory state,
@@ -467,28 +423,20 @@ contract FillQuoteTransformer is
                     orderTakerAmount
                 );
             }
-            return LibSafeMathV06.min256(
-                LibSafeMathV06.min256(takerTokenFillAmount, orderTakerAmount),
-                state.takerTokenBalanceRemaining
-            );
         } else { // Buy
-            takerTokenFillAmount = data.fillAmount.safeSub(state.boughtAmount);
             takerTokenFillAmount = LibMathV06.getPartialAmountCeil(
-                takerTokenFillAmount, // This is initially in buy tokens.
+                data.fillAmount.safeSub(state.boughtAmount),
                 orderMakerAmount,
                 orderTakerAmount
             );
-            takerTokenFillAmount = LibSafeMathV06.min256(
-                takerTokenFillAmount,
-                orderTakerAmount
-            );
-            return LibSafeMathV06.min256(
-                takerTokenFillAmount,
-                state.takerTokenBalanceRemaining
-            );
         }
+        return LibSafeMathV06.min256(
+            LibSafeMathV06.min256(takerTokenFillAmount, orderTakerAmount),
+            state.takerTokenBalanceRemaining
+        );
     }
 
+    // Convert possible proportional values to absolute quantities.
     function _normalizeFillAmount(uint256 rawAmount, uint256 balance)
         private
         pure
@@ -497,9 +445,12 @@ contract FillQuoteTransformer is
         if ((rawAmount & HIGH_BIT) == HIGH_BIT) {
             // If the high bit of `rawAmount` is set then the lower 255 bits
             // specify a fraction of `balance`.
-            return balance
-                * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)
-                / 1e18;
+            return LibSafeMathV06.min256(
+                balance
+                    * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)
+                    / 1e18,
+                balance
+            );
         }
         return rawAmount;
     }

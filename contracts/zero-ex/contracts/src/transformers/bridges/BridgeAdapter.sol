@@ -56,7 +56,6 @@ contract BridgeAdapter is
     MixinUniswapV2,
     MixinZeroExBridge
 {
-
     constructor(IBridgeAdapter.Addresses memory addresses)
         public
         MixinBalancer()
@@ -187,5 +186,13 @@ contract BridgeAdapter is
                 order.bridgeData
             );
         }
+
+        emit BridgeOrderFilled(
+            order.source,
+            sellToken,
+            buyToken,
+            sellAmount,
+            boughtAmount
+        );
     }
 }

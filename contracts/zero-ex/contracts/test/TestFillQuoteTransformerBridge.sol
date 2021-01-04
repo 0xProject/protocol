@@ -27,39 +27,25 @@ import "./TestMintableERC20Token.sol";
 
 contract TestFillQuoteTransformerBridge {
 
-    struct FillBehavior {
-        // Scaling for maker assets minted, in 1e18.
-        uint256 makerAssetMintRatio;
-        uint256 amount;
-    }
+    uint256 private constant REVERT_AMOUNT = 0xdeadbeef;
 
     function sellTokenForToken(
-        address takerToken,
+        address /* takerToken */,
         address makerToken,
         address recipient,
-        uint256 minBuyAmount,
+        uint256 /* minBuyAmount */,
         bytes calldata auxiliaryData
     )
         external
         returns (uint256 boughtAmount)
     {
-        FillBehavior memory behavior = abi.decode(auxiliaryData, (FillBehavior));
-        boughtAmount = LibMathV06.getPartialAmountFloor(
-            behavior.makerAssetMintRatio,
-            1e18,
-            behavior.amount
-        );
+        boughtAmount = abi.decode(auxiliaryData, (uint256));
+        if (REVERT_AMOUNT == boughtAmount) {
+            revert("REVERT_AMOUNT");
+        }
         TestMintableERC20Token(makerToken).mint(
           recipient,
           boughtAmount
         );
-    }
-
-    function encodeBehaviorData(FillBehavior calldata behavior)
-        external
-        pure
-        returns (bytes memory encoded)
-    {
-        return abi.encode(behavior);
     }
 }
