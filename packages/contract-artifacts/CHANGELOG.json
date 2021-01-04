@@ -6,7 +6,8 @@
                 "note": "Update IZeroEx artifact",
                 "pr": 97
             }
-        ]
+        ],
+        "timestamp": 1609802516
     },
     {
         "version": "3.10.0",

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.6.2 - _January 4, 2021_
+
+    * Dependencies updated
+
 ## v5.6.1 - _December 31, 2020_
 
     * Fix fillAmount `ExchangeProxySwapQuoteConsumer` encoding when quote is a BuyQuote

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.12.0 - _January 4, 2021_
+
+    * Update IZeroExContract wrapper (#97)
+
 ## v13.11.2 - _December 23, 2020_
 
     * Dependencies updated

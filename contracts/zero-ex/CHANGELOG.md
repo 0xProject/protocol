@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.17.0 - _January 4, 2021_
+
+    * Add DevUtils-like functions to `NativeOrdersFeature` (#97)
+
 ## v0.16.0 - _December 23, 2020_
 
     * Fix CryptoCom rollup

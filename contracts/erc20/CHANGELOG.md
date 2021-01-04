@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.3.0 - _January 4, 2021_
+
+    * Allow for excess return data in `LibERC20TokenV06` compat* functions (#97)
+
 ## v3.2.14 - _December 23, 2020_
 
     * Dependencies updated

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.7.0 - _January 4, 2021_
+
+    * Add `LibSafeMathV06.safeDowncastToUint128()` (#97)
+
 ## v4.6.5 - _December 23, 2020_
 
     * Dependencies updated
