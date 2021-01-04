@@ -920,8 +920,8 @@ contract NativeOrdersFeature is
             // Empty order.
             return 0;
         }
-        if (params.orderInfo.takerTokenFilledAmount >= params.orderTakerAmount) {
-            // Already fully filled.
+        if (params.orderInfo.status != LibNativeOrder.OrderStatus.FILLABLE) {
+            // Not fillable.
             return 0;
         }
 
@@ -941,12 +941,12 @@ contract NativeOrdersFeature is
             fillableMakerTokenAmount,
             _getSpendableERC20BalanceOf(params.makerToken, params.maker)
         );
-        // Conver to taker token amount.
-        return uint128(LibMathV06.getPartialAmountCeil(
+        // Convert to taker token amount.
+        return LibMathV06.getPartialAmountCeil(
             fillableMakerTokenAmount,
             uint256(params.orderMakerAmount),
             uint256(params.orderTakerAmount)
-        ));
+        ).safeDowncastToUint128();
     }
 
     /// @dev Cancel a limit or RFQ order directly by its order hash.
