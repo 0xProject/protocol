@@ -1422,6 +1422,22 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             expect(isSignatureValid).to.eq(true);
         });
 
+        it('works with cancelled order', async () => {
+            const order = getTestLimitOrder();
+            await fundOrderMakerAsync(order);
+            await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
+            const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx
+                .getLimitOrderRelevantState(order, await order.getSignatureWithProviderAsync(env.provider))
+                .callAsync();
+            expect(orderInfo).to.deep.eq({
+                orderHash: order.getHash(),
+                status: OrderStatus.Cancelled,
+                takerTokenFilledAmount: ZERO_AMOUNT,
+            });
+            expect(fillableTakerAmount).to.bignumber.eq(0);
+            expect(isSignatureValid).to.eq(true);
+        });
+
         it('works with a bad signature', async () => {
             const order = getTestLimitOrder();
             await fundOrderMakerAsync(order);
@@ -1519,6 +1535,22 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             expect(orderInfo).to.deep.eq({
                 orderHash: order.getHash(),
                 status: OrderStatus.Filled,
+                takerTokenFilledAmount: ZERO_AMOUNT,
+            });
+            expect(fillableTakerAmount).to.bignumber.eq(0);
+            expect(isSignatureValid).to.eq(true);
+        });
+
+        it('works with cancelled order', async () => {
+            const order = getTestRfqOrder();
+            await fundOrderMakerAsync(order);
+            await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
+            const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx
+                .getRfqOrderRelevantState(order, await order.getSignatureWithProviderAsync(env.provider))
+                .callAsync();
+            expect(orderInfo).to.deep.eq({
+                orderHash: order.getHash(),
+                status: OrderStatus.Cancelled,
                 takerTokenFilledAmount: ZERO_AMOUNT,
             });
             expect(fillableTakerAmount).to.bignumber.eq(0);

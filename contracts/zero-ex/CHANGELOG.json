@@ -2,6 +2,7 @@
     {
         "version": "0.17.0",
         "changes": [
+            {
                 "note": "Add DevUtils-like functions to `NativeOrdersFeature`",
                 "pr": 97
             }
