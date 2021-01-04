@@ -81,13 +81,12 @@ export class MarketOperationUtils {
     private readonly _feeSources = new SourceFilters(FEE_QUOTE_SOURCES);
 
     private static _computeQuoteReport(
-        nativeOrders: SignedOrder[],
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
         optimizerResult: OptimizerResult,
         comparisonPrice?: BigNumber | undefined,
     ): QuoteReport {
-        const { side, dexQuotes, twoHopQuotes, orderFillableAmounts } = marketSideLiquidity;
+        const { side, dexQuotes, twoHopQuotes, orderFillableAmounts, nativeOrders } = marketSideLiquidity;
         const { liquidityDelivered } = optimizerResult;
         return generateQuoteReport(
             side,
@@ -204,23 +203,12 @@ export class MarketOperationUtils {
             ? this._sampler.getCreamSellQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
             : Promise.resolve([]);
 
-        const offChainBancorPromise = quoteSourceFilters.isAllowed(ERC20BridgeSource.Bancor)
-            ? this._sampler.getBancorSellQuotesOffChainAsync(makerToken, takerToken, [takerAmount])
-            : Promise.resolve([]);
-
         const [
             [tokenDecimals, orderFillableAmounts, ethToMakerAssetRate, ethToTakerAssetRate, dexQuotes, twoHopQuotes],
             rfqtIndicativeQuotes,
             offChainBalancerQuotes,
             offChainCreamQuotes,
-            offChainBancorQuotes,
-        ] = await Promise.all([
-            samplerPromise,
-            rfqtPromise,
-            offChainBalancerPromise,
-            offChainCreamPromise,
-            offChainBancorPromise,
-        ]);
+        ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         return {
@@ -228,7 +216,7 @@ export class MarketOperationUtils {
             inputAmount: takerAmount,
             inputToken: takerToken,
             outputToken: makerToken,
-            dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes, offChainBancorQuotes]),
+            dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes]),
             nativeOrders,
             orderFillableAmounts,
             ethToOutputRate: ethToMakerAssetRate,
@@ -630,7 +618,7 @@ export class MarketOperationUtils {
             side === MarketOperation.Sell
                 ? this.getMarketSellLiquidityAsync.bind(this)
                 : this.getMarketBuyLiquidityAsync.bind(this);
-        const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
+        let marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
         let optimizerResult: OptimizerResult | undefined;
         try {
             optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
@@ -673,13 +661,11 @@ export class MarketOperationUtils {
                 );
                 // Re-run optimizer with the new indicative quote
                 if (indicativeQuotes.length > 0) {
-                    optimizerResult = await this._generateOptimizedOrdersAsync(
-                        {
-                            ...marketSideLiquidity,
-                            rfqtIndicativeQuotes: indicativeQuotes,
-                        },
-                        optimizerOpts,
-                    );
+                    marketSideLiquidity = {
+                        ...marketSideLiquidity,
+                        rfqtIndicativeQuotes: indicativeQuotes,
+                    };
+                    optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
                 }
             } else if (!rfqt.isIndicative && isFirmPriceAwareEnabled) {
                 // A firm quote is being requested, and firm quotes price-aware enabled. Ensure that `intentOnFilling` is enabled.
@@ -707,19 +693,18 @@ export class MarketOperationUtils {
                                 ? firmQuoteSignedOrders.map(signedOrder => signedOrder.takerAssetAmount)
                                 : await rfqt.firmQuoteValidator.getRfqtTakerFillableAmountsAsync(firmQuoteSignedOrders);
 
+                        marketSideLiquidity = {
+                            ...marketSideLiquidity,
+                            nativeOrders: marketSideLiquidity.nativeOrders.concat(firmQuoteSignedOrders),
+                            orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(
+                                rfqOrderFillableAmounts,
+                            ),
+                        };
+
                         // Re-run optimizer with the new firm quote. This is the second and last time
                         // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
                         // and we let it bubble up if it happens.
-                        optimizerResult = await this._generateOptimizedOrdersAsync(
-                            {
-                                ...marketSideLiquidity,
-                                nativeOrders: marketSideLiquidity.nativeOrders.concat(firmQuoteSignedOrders),
-                                orderFillableAmounts: marketSideLiquidity.orderFillableAmounts.concat(
-                                    rfqOrderFillableAmounts,
-                                ),
-                            },
-                            optimizerOpts,
-                        );
+                        optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
                     }
                 }
             }
@@ -735,7 +720,6 @@ export class MarketOperationUtils {
         let quoteReport: QuoteReport | undefined;
         if (_opts.shouldGenerateQuoteReport) {
             quoteReport = MarketOperationUtils._computeQuoteReport(
-                nativeOrders,
                 _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
                 marketSideLiquidity,
                 optimizerResult,

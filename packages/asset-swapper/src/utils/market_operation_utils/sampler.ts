@@ -1,4 +1,3 @@
-import { SupportedProvider } from '@0x/dev-utils';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import { SamplerOverrides } from '../../types';
@@ -36,21 +35,19 @@ export class DexOrderSampler extends SamplerOperations {
     constructor(
         _samplerContract: ERC20BridgeSamplerContract,
         private readonly _samplerOverrides?: SamplerOverrides,
-        provider?: SupportedProvider,
         balancerPoolsCache?: BalancerPoolsCache,
         creamPoolsCache?: CreamPoolsCache,
-        getBancorServiceFn?: () => BancorService,
         tokenAdjacencyGraph?: TokenAdjacencyGraph,
         liquidityProviderRegistry?: LiquidityProviderRegistry,
+        bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
         super(
             _samplerContract,
-            provider,
             balancerPoolsCache,
             creamPoolsCache,
-            getBancorServiceFn,
             tokenAdjacencyGraph,
             liquidityProviderRegistry,
+            bancorServiceFn,
         );
     }
 

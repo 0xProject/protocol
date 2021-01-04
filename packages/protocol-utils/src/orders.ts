@@ -1,8 +1,15 @@
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { SupportedProvider } from '@0x/subproviders';
 import { EIP712TypedData } from '@0x/types';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 
-import { createExchangeProxyEIP712Domain, EIP712_DOMAIN_PARAMETERS, getExchangeProxyEIP712Hash } from './eip712_utils';
+import { ZERO } from './constants';
+import {
+    createExchangeProxyEIP712Domain,
+    EIP712_DOMAIN_PARAMETERS,
+    getExchangeProxyEIP712Hash,
+    getTypeHash,
+} from './eip712_utils';
 import {
     eip712SignTypedDataWithKey,
     eip712SignTypedDataWithProviderAsync,
@@ -12,7 +19,6 @@ import {
     SignatureType,
 } from './signature_utils';
 
-const ZERO = new BigNumber(0);
 const COMMON_ORDER_DEFAULT_VALUES = {
     makerToken: NULL_ADDRESS,
     takerToken: NULL_ADDRESS,
@@ -24,7 +30,7 @@ const COMMON_ORDER_DEFAULT_VALUES = {
     expiry: ZERO,
     salt: ZERO,
     chainId: 1,
-    verifyingContract: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
+    verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
 };
 const LIMIT_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
@@ -117,30 +123,22 @@ export abstract class OrderBase {
 }
 
 export class LimitOrder extends OrderBase {
-    public static readonly TYPE_HASH = hexUtils.hash(
-        hexUtils.toHex(
-            Buffer.from(
-                [
-                    'LimitOrder(',
-                    [
-                        'address makerToken',
-                        'address takerToken',
-                        'uint128 makerAmount',
-                        'uint128 takerAmount',
-                        'uint128 takerTokenFeeAmount',
-                        'address maker',
-                        'address taker',
-                        'address sender',
-                        'address feeRecipient',
-                        'bytes32 pool',
-                        'uint64 expiry',
-                        'uint256 salt',
-                    ].join(','),
-                    ')',
-                ].join(''),
-            ),
-        ),
-    );
+    public static readonly STRUCT_NAME = 'LimitOrder';
+    public static readonly STRUCT_ABI = [
+        { type: 'address', name: 'makerToken' },
+        { type: 'address', name: 'takerToken' },
+        { type: 'uint128', name: 'makerAmount' },
+        { type: 'uint128', name: 'takerAmount' },
+        { type: 'uint128', name: 'takerTokenFeeAmount' },
+        { type: 'address', name: 'maker' },
+        { type: 'address', name: 'taker' },
+        { type: 'address', name: 'sender' },
+        { type: 'address', name: 'feeRecipient' },
+        { type: 'bytes32', name: 'pool' },
+        { type: 'uint64', name: 'expiry' },
+        { type: 'uint256', name: 'salt' },
+    ];
+    public static readonly TYPE_HASH = getTypeHash(LimitOrder.STRUCT_NAME, LimitOrder.STRUCT_ABI);
 
     public takerTokenFeeAmount: BigNumber;
     public sender: string;
@@ -198,23 +196,10 @@ export class LimitOrder extends OrderBase {
         return {
             types: {
                 EIP712Domain: EIP712_DOMAIN_PARAMETERS,
-                LimitOrder: [
-                    { type: 'address', name: 'makerToken' },
-                    { type: 'address', name: 'takerToken' },
-                    { type: 'uint128', name: 'makerAmount' },
-                    { type: 'uint128', name: 'takerAmount' },
-                    { type: 'uint128', name: 'takerTokenFeeAmount' },
-                    { type: 'address', name: 'maker' },
-                    { type: 'address', name: 'taker' },
-                    { type: 'address', name: 'sender' },
-                    { type: 'address', name: 'feeRecipient' },
-                    { type: 'bytes32', name: 'pool' },
-                    { type: 'uint64', name: 'expiry' },
-                    { type: 'uint256', name: 'salt' },
-                ],
+                [LimitOrder.STRUCT_NAME]: LimitOrder.STRUCT_ABI,
             },
             domain: createExchangeProxyEIP712Domain(this.chainId, this.verifyingContract) as any,
-            primaryType: 'LimitOrder',
+            primaryType: LimitOrder.STRUCT_NAME,
             message: {
                 makerToken: this.makerToken,
                 takerToken: this.takerToken,
@@ -234,28 +219,20 @@ export class LimitOrder extends OrderBase {
 }
 
 export class RfqOrder extends OrderBase {
-    public static readonly TYPE_HASH = hexUtils.hash(
-        hexUtils.toHex(
-            Buffer.from(
-                [
-                    'RfqOrder(',
-                    [
-                        'address makerToken',
-                        'address takerToken',
-                        'uint128 makerAmount',
-                        'uint128 takerAmount',
-                        'address maker',
-                        'address taker',
-                        'address txOrigin',
-                        'bytes32 pool',
-                        'uint64 expiry',
-                        'uint256 salt',
-                    ].join(','),
-                    ')',
-                ].join(''),
-            ),
-        ),
-    );
+    public static readonly STRUCT_NAME = 'RfqOrder';
+    public static readonly STRUCT_ABI = [
+        { type: 'address', name: 'makerToken' },
+        { type: 'address', name: 'takerToken' },
+        { type: 'uint128', name: 'makerAmount' },
+        { type: 'uint128', name: 'takerAmount' },
+        { type: 'address', name: 'maker' },
+        { type: 'address', name: 'taker' },
+        { type: 'address', name: 'txOrigin' },
+        { type: 'bytes32', name: 'pool' },
+        { type: 'uint64', name: 'expiry' },
+        { type: 'uint256', name: 'salt' },
+    ];
+    public static readonly TYPE_HASH = getTypeHash(RfqOrder.STRUCT_NAME, RfqOrder.STRUCT_ABI);
 
     public txOrigin: string;
 
@@ -305,21 +282,10 @@ export class RfqOrder extends OrderBase {
         return {
             types: {
                 EIP712Domain: EIP712_DOMAIN_PARAMETERS,
-                RfqOrder: [
-                    { type: 'address', name: 'makerToken' },
-                    { type: 'address', name: 'takerToken' },
-                    { type: 'uint128', name: 'makerAmount' },
-                    { type: 'uint128', name: 'takerAmount' },
-                    { type: 'address', name: 'maker' },
-                    { type: 'address', name: 'taker' },
-                    { type: 'address', name: 'txOrigin' },
-                    { type: 'bytes32', name: 'pool' },
-                    { type: 'uint64', name: 'expiry' },
-                    { type: 'uint256', name: 'salt' },
-                ],
+                [RfqOrder.STRUCT_NAME]: RfqOrder.STRUCT_ABI,
             },
             domain: createExchangeProxyEIP712Domain(this.chainId, this.verifyingContract) as any,
-            primaryType: 'RfqOrder',
+            primaryType: RfqOrder.STRUCT_NAME,
             message: {
                 makerToken: this.makerToken,
                 takerToken: this.takerToken,

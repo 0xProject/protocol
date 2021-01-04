@@ -1,4 +1,3 @@
-import { SupportedProvider } from '@0x/dev-utils';
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
@@ -10,6 +9,8 @@ import { BancorService } from './bancor_service';
 import {
     LIQUIDITY_PROVIDER_REGISTRY,
     MAINNET_CRYPTO_COM_ROUTER,
+    MAINNET_MOONISWAP_REGISTRY,
+    MAINNET_MOONISWAP_V2_REGISTRY,
     MAINNET_SUSHI_SWAP_ROUTER,
     MAX_UINT256,
     ZERO_AMOUNT,
@@ -81,25 +82,16 @@ export class SamplerOperations {
 
     constructor(
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
-        public readonly provider?: SupportedProvider,
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
-        protected readonly getBancorServiceFn?: () => BancorService, // for dependency injection in tests
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
-    ) {}
-
-    public async getBancorServiceAsync(): Promise<BancorService> {
-        if (this.getBancorServiceFn !== undefined) {
-            return this.getBancorServiceFn();
-        }
-        if (this.provider === undefined) {
-            throw new Error('Cannot sample liquidity from Bancor; no provider supplied.');
-        }
-        if (this._bancorService === undefined) {
-            this._bancorService = await BancorService.createAsync(this.provider);
-        }
-        return this._bancorService;
+        bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
+    ) {
+        // Initialize the Bancor service, fetching paths in the background
+        bancorServiceFn()
+            .then(service => (this._bancorService = service))
+            .catch(/* do nothing */);
     }
 
     public getTokenDecimals(makerTokenAddress: string, takerTokenAddress: string): BatchedOperation<BigNumber[]> {
@@ -588,31 +580,52 @@ export class SamplerOperations {
         });
     }
 
-    public async getBancorSellQuotesOffChainAsync(
+    public getBancorSellQuotes(
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-    ): Promise<Array<DexSample<BancorFillData>>> {
-        const bancorService = await this.getBancorServiceAsync();
-        try {
-            const quotes = await bancorService.getQuotesAsync(takerToken, makerToken, takerFillAmounts);
-            return quotes.map((quote, i) => ({
-                source: ERC20BridgeSource.Bancor,
-                output: quote.amount,
-                input: takerFillAmounts[i],
-                fillData: quote.fillData,
-            }));
-        } catch (e) {
-            return takerFillAmounts.map(input => ({
-                source: ERC20BridgeSource.Bancor,
-                output: ZERO_AMOUNT,
-                input,
-                fillData: { path: [], networkAddress: '' },
-            }));
-        }
+    ): SourceQuoteOperation<BancorFillData> {
+        const paths = this._bancorService ? this._bancorService.getPaths(takerToken, makerToken) : [];
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Bancor,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromBancor,
+            params: [paths, takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: BancorFillData): BigNumber[] => {
+                const [networkAddress, path, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [string, string[], BigNumber[]]
+                >('sampleSellsFromBancor', callResults);
+                fillData.networkAddress = networkAddress;
+                fillData.path = path;
+                return samples;
+            },
+        });
+    }
+
+    // Unimplemented
+    public getBancorBuyQuotes(
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<BancorFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Bancor,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromBancor,
+            params: [[], takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: BancorFillData): BigNumber[] => {
+                const [networkAddress, path, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [string, string[], BigNumber[]]
+                >('sampleSellsFromBancor', callResults);
+                fillData.networkAddress = networkAddress;
+                fillData.path = path;
+                return samples;
+            },
+        });
     }
 
     public getMooniswapSellQuotes(
+        registry: string,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -621,7 +634,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Mooniswap,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromMooniswap,
-            params: [takerToken, makerToken, takerFillAmounts],
+            params: [registry, takerToken, makerToken, takerFillAmounts],
             callback: (callResults: string, fillData: MooniswapFillData): BigNumber[] => {
                 const [poolAddress, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
                     'sampleSellsFromMooniswap',
@@ -634,6 +647,7 @@ export class SamplerOperations {
     }
 
     public getMooniswapBuyQuotes(
+        registry: string,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -642,7 +656,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Mooniswap,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromMooniswap,
-            params: [takerToken, makerToken, makerFillAmounts],
+            params: [registry, takerToken, makerToken, makerFillAmounts],
             callback: (callResults: string, fillData: MooniswapFillData): BigNumber[] => {
                 const [poolAddress, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
                     'sampleBuysFromMooniswap',
@@ -1083,7 +1097,20 @@ export class SamplerOperations {
                         case ERC20BridgeSource.MStable:
                             return this.getMStableSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
-                            return this.getMooniswapSellQuotes(makerToken, takerToken, takerFillAmounts);
+                            return [
+                                this.getMooniswapSellQuotes(
+                                    MAINNET_MOONISWAP_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                ),
+                                this.getMooniswapSellQuotes(
+                                    MAINNET_MOONISWAP_V2_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                ),
+                            ];
                         case ERC20BridgeSource.Balancer:
                             return this.balancerPoolsCache
                                 .getCachedPoolAddressesForPair(takerToken, makerToken)!
@@ -1114,6 +1141,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
+                        case ERC20BridgeSource.Bancor:
+                            return this.getBancorSellQuotes(makerToken, takerToken, takerFillAmounts);
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1206,7 +1235,20 @@ export class SamplerOperations {
                         case ERC20BridgeSource.MStable:
                             return this.getMStableBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
-                            return this.getMooniswapBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                            return [
+                                this.getMooniswapBuyQuotes(
+                                    MAINNET_MOONISWAP_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                ),
+                                this.getMooniswapBuyQuotes(
+                                    MAINNET_MOONISWAP_V2_REGISTRY,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                ),
+                            ];
                         case ERC20BridgeSource.Balancer:
                             return this.balancerPoolsCache
                                 .getCachedPoolAddressesForPair(takerToken, makerToken)!
@@ -1237,6 +1279,8 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                        case ERC20BridgeSource.Bancor:
+                            return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

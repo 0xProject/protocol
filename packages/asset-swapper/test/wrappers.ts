@@ -6,6 +6,7 @@
 export * from '../test/generated-wrappers/approximate_buys';
 export * from '../test/generated-wrappers/balance_checker';
 export * from '../test/generated-wrappers/balancer_sampler';
+export * from '../test/generated-wrappers/bancor_sampler';
 export * from '../test/generated-wrappers/curve_sampler';
 export * from '../test/generated-wrappers/d_o_d_o_sampler';
 export * from '../test/generated-wrappers/deployment_constants';
@@ -13,6 +14,7 @@ export * from '../test/generated-wrappers/dummy_liquidity_provider';
 export * from '../test/generated-wrappers/erc20_bridge_sampler';
 export * from '../test/generated-wrappers/eth2_dai_sampler';
 export * from '../test/generated-wrappers/i_balancer';
+export * from '../test/generated-wrappers/i_bancor';
 export * from '../test/generated-wrappers/i_curve';
 export * from '../test/generated-wrappers/i_eth2_dai';
 export * from '../test/generated-wrappers/i_kyber_network';

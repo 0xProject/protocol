@@ -5,6 +5,25 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.16.0 - _December 23, 2020_
+
+    * Fix CryptoCom rollup
+
+## v0.15.0 - _December 17, 2020_
+
+    * Add MixinBancor to BridgeAdapter (#91)
+    * Add MixinCoFiX to BridgeAdapter (#92)
+
+## v0.14.0 - _December 16, 2020_
+
+    * Use the `MetaTransaction` class from `@0x/protocol-utils` in tests. (#90)
+
+## v0.13.0 - _December 16, 2020_
+
+    * Address audit feedback in UniswapFeature (#82)
+    * Always transfer `msg.value` to the liquidity provider contract in LiquidityProviderFeature to (#82)
+    * Remove backwards compatibility with old PLP/bridge interface in `LiquidityProviderFeature` and `MixinZeroExBridge` (#85)
+
 ## v0.12.0 - _December 9, 2020_
 
     * Add test for selector collisions on the proxy (#74)

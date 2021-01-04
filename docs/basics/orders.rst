@@ -138,3 +138,33 @@ In both cases, the ``@0x/protocol-utils`` package simplifies generating these si
 The Orderbook 
 =======================
 Orders are shared through a decentralized and permissionless network, called `0x Mesh <https://0x.org/mesh>`_. The simplest way to post and discover orders is through `0x API <https://0x.org/api>`_. See `this guide <https://0x.org/docs/guides/market-making-on-0x>`_ tailored for Market Makers.
+
+Orders are usually represented as a JSON object off-chain. Below is a table represention and example of how orders should be formatted off-chain.
+
+JSON representation of RFQ Orders
+*********************************
+
+A ``RFQOrder`` should be serialized to JSON as following:
+
+.. code-block:: typescript
+
+    interface RfqOrderJson {
+        "maker": string,
+        "taker": string,
+        "makerToken": string,
+        "takerToken": string,
+        "makerAmount": string,
+        "takerAmount": string,
+        "txOrigin": string,
+        "pool": string,
+        "expiry": number,
+        "salt": string,
+        "chainId": number,             // Ethereum Chain Id where the transaction is submitted.
+        "verifyingContract": string,   // Address of the contract where the transaction should be sent.
+        "signature": {
+            "signatureType": number,
+            "v": number,
+            "s": string,
+            "r": string,
+        }
+    }

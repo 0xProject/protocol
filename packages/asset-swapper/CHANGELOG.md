@@ -5,6 +5,30 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.6.1 - _December 31, 2020_
+
+    * Fix fillAmount `ExchangeProxySwapQuoteConsumer` encoding when quote is a BuyQuote
+
+## v5.6.0 - _December 27, 2020_
+
+    * Added Mooniswap V2 factory address (#100)
+
+## v5.5.3 - _December 23, 2020_
+
+    * Dependencies updated
+
+## v5.5.2 - _December 17, 2020_
+
+    * Dependencies updated
+
+## v5.5.1 - _December 16, 2020_
+
+    * Dependencies updated
+
+## v5.5.0 - _December 16, 2020_
+
+    * Bancor now supported in all pairs (#88)
+
 ## v5.4.2 - _December 9, 2020_
 
     * Dependencies updated

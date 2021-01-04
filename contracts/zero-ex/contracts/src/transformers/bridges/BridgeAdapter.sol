@@ -21,6 +21,8 @@ pragma experimental ABIEncoderV2;
 
 import "./mixins/MixinAdapterAddresses.sol";
 import "./mixins/MixinBalancer.sol";
+import "./mixins/MixinBancor.sol";
+import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
@@ -37,6 +39,8 @@ import "./mixins/MixinZeroExBridge.sol";
 contract BridgeAdapter is
     MixinAdapterAddresses,
     MixinBalancer,
+    MixinBancor,
+    MixinCoFiX,
     MixinCurve,
     MixinCryptoCom,
     MixinDodo,
@@ -51,7 +55,25 @@ contract BridgeAdapter is
     MixinZeroExBridge
 {
 
+    /// @dev Emitted when a trade occurs.
+    /// @param inputToken The token the bridge is converting from.
+    /// @param outputToken The token the bridge is converting to.
+    /// @param inputTokenAmount Amount of input token.
+    /// @param outputTokenAmount Amount of output token.
+    /// @param from The bridge address, indicating the underlying source of the fill.
+    /// @param to The `to` address, currrently `address(this)`
+    event ERC20BridgeTransfer(
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount,
+        address from,
+        address to
+    );
+
     address private immutable BALANCER_BRIDGE_ADDRESS;
+    address private immutable BANCOR_BRIDGE_ADDRESS;
+    address private immutable COFIX_BRIDGE_ADDRESS;
     address private immutable CREAM_BRIDGE_ADDRESS;
     address private immutable CURVE_BRIDGE_ADDRESS;
     address private immutable CRYPTO_COM_BRIDGE_ADDRESS;
@@ -70,8 +92,10 @@ contract BridgeAdapter is
     constructor(AdapterAddresses memory addresses)
         public
         MixinBalancer()
+        MixinBancor(addresses)
+        MixinCoFiX()
         MixinCurve()
-        MixinCryptoCom(addresses)
+        MixinCryptoCom()
         MixinDodo(addresses)
         MixinKyber(addresses)
         MixinMooniswap(addresses)
@@ -84,6 +108,8 @@ contract BridgeAdapter is
         MixinZeroExBridge()
     {
         BALANCER_BRIDGE_ADDRESS = addresses.balancerBridge;
+        BANCOR_BRIDGE_ADDRESS = addresses.bancorBridge;
+        COFIX_BRIDGE_ADDRESS = addresses.cofixBridge;
         CURVE_BRIDGE_ADDRESS = addresses.curveBridge;
         CRYPTO_COM_BRIDGE_ADDRESS = addresses.cryptoComBridge;
         KYBER_BRIDGE_ADDRESS = addresses.kyberBridge;
@@ -196,6 +222,18 @@ contract BridgeAdapter is
                 sellAmount,
                 bridgeData
             );
+        } else if (bridgeAddress == BANCOR_BRIDGE_ADDRESS) {
+            boughtAmount = _tradeBancor(
+                buyToken,
+                sellAmount,
+                bridgeData
+            );
+        } else if (bridgeAddress == COFIX_BRIDGE_ADDRESS) {
+            boughtAmount = _tradeCoFiX(
+                buyToken,
+                sellAmount,
+                bridgeData
+            );
         } else {
             boughtAmount = _tradeZeroExBridge(
                 bridgeAddress,
@@ -204,9 +242,6 @@ contract BridgeAdapter is
                 sellAmount,
                 bridgeData
             );
-            // Old bridge contracts should emit an `ERC20BridgeTransfer` themselves,
-            // otherwise an event will be emitted from `_tradeZeroExBridge`.
-            return boughtAmount;
         }
 
         emit ERC20BridgeTransfer(

@@ -1,5 +1,61 @@
 [
     {
+        "version": "5.6.1",
+        "changes": [
+            {
+                "note": "Fix fillAmount `ExchangeProxySwapQuoteConsumer` encoding when quote is a BuyQuote"
+            }
+        ],
+        "timestamp": 1609387311
+    },
+    {
+        "version": "5.6.0",
+        "changes": [
+            {
+                "note": "Added Mooniswap V2 factory address",
+                "pr": 100
+            }
+        ],
+        "timestamp": 1609113560
+    },
+    {
+        "timestamp": 1608692071,
+        "version": "5.5.3",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1608245516,
+        "version": "5.5.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1608149382,
+        "version": "5.5.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "5.5.0",
+        "changes": [
+            {
+                "note": "Bancor now supported in all pairs",
+                "pr": 88
+            }
+        ],
+        "timestamp": 1608105788
+    },
+    {
         "timestamp": 1607485227,
         "version": "5.4.2",
         "changes": [

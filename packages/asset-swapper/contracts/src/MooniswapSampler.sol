@@ -34,6 +34,7 @@ contract MooniswapSampler is
     uint256 constant private MOONISWAP_CALL_GAS = 150e3; // 150k
 
     /// @dev Sample sell quotes from Mooniswap.
+    /// @param registry Address of the Mooniswap Registry.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
@@ -41,6 +42,7 @@ contract MooniswapSampler is
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromMooniswap(
+        address registry,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -58,6 +60,7 @@ contract MooniswapSampler is
 
         for (uint256 i = 0; i < numSamples; i++) {
             uint256 buyAmount = sampleSingleSellFromMooniswapPool(
+                registry,
                 mooniswapTakerToken,
                 mooniswapMakerToken,
                 takerTokenAmounts[i]
@@ -70,11 +73,12 @@ contract MooniswapSampler is
         }
 
         pool = IMooniswap(
-            IMooniswapRegistry(_getMooniswapAddress()).pools(mooniswapTakerToken, mooniswapMakerToken)
+            IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken)
         );
     }
 
     function sampleSingleSellFromMooniswapPool(
+        address registry,
         address mooniswapTakerToken,
         address mooniswapMakerToken,
         uint256 takerTokenAmount
@@ -85,7 +89,7 @@ contract MooniswapSampler is
     {
         // Find the pool for the pair.
         IMooniswap pool = IMooniswap(
-            IMooniswapRegistry(_getMooniswapAddress()).pools(mooniswapTakerToken, mooniswapMakerToken)
+            IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken)
         );
         // If there is no pool then return early
         if (address(pool) == address(0)) {
@@ -113,6 +117,7 @@ contract MooniswapSampler is
     }
 
     /// @dev Sample buy quotes from Mooniswap.
+    /// @param registry Address of the Mooniswap Registry.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token sell amount for each sample.
@@ -120,6 +125,7 @@ contract MooniswapSampler is
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromMooniswap(
+        address registry,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -137,15 +143,15 @@ contract MooniswapSampler is
 
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(mooniswapMakerToken),
-                takerTokenData: abi.encode(mooniswapTakerToken),
+                makerTokenData: abi.encode(registry, mooniswapMakerToken),
+                takerTokenData: abi.encode(registry, mooniswapTakerToken),
                 getSellQuoteCallback: _sampleSellForApproximateBuyFromMooniswap
             }),
             makerTokenAmounts
         );
 
         pool = IMooniswap(
-            IMooniswapRegistry(_getMooniswapAddress()).pools(mooniswapTakerToken, mooniswapMakerToken)
+            IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken)
         );
     }
 
@@ -158,9 +164,10 @@ contract MooniswapSampler is
         view
         returns (uint256 buyAmount)
     {
-        address mooniswapTakerToken = abi.decode(takerTokenData, (address));
-        address mooniswapMakerToken = abi.decode(makerTokenData, (address));
+        (address registry, address mooniswapTakerToken) = abi.decode(takerTokenData, (address, address));
+        (address _registry, address mooniswapMakerToken) = abi.decode(makerTokenData, (address, address));
         return sampleSingleSellFromMooniswapPool(
+            registry,
             mooniswapTakerToken,
             mooniswapMakerToken,
             sellAmount

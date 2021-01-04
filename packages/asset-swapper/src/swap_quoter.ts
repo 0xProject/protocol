@@ -1,4 +1,4 @@
-import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { DevUtilsContract } from '@0x/contract-wrappers';
 import { schemas } from '@0x/json-schemas';
 import { assetDataUtils, SignedOrder } from '@0x/order-utils';
@@ -26,6 +26,7 @@ import {
 import { assert } from './utils/assert';
 import { calculateLiquidity } from './utils/calculate_liquidity';
 import { MarketOperationUtils } from './utils/market_operation_utils';
+import { BancorService } from './utils/market_operation_utils/bancor_service';
 import { createDummyOrderForSampler } from './utils/market_operation_utils/orders';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
@@ -208,16 +209,18 @@ export class SwapQuoter {
                 gas: samplerGasLimit,
             },
         );
+
         this._marketOperationUtils = new MarketOperationUtils(
             new DexOrderSampler(
                 samplerContract,
                 samplerOverrides,
-                provider,
-                undefined,
-                undefined,
-                undefined,
+                undefined, // balancer pool cache
+                undefined, // cream pool cache
                 tokenAdjacencyGraph,
                 liquidityProviderRegistry,
+                this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet
+                    ? async () => BancorService.createAsync(provider)
+                    : async () => undefined,
             ),
             this._contractAddresses,
             {

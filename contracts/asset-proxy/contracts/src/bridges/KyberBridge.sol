@@ -56,11 +56,14 @@ contract KyberBridge is
     uint256 constant private KYBER_RATE_BASE = 10 ** 18;
 
     // solhint-disable no-empty-blocks
-    /// @dev Payable fallback to receive ETH from Kyber.
+    /// @dev Payable fallback to receive ETH from Kyber/WETH.
     function ()
         external
         payable
-    {}
+    {
+        // Poor man's receive in 0.5.9
+        require(msg.data.length == 0);
+    }
 
     /// @dev Callback for `IKyberBridge`. Tries to buy `amount` of
     ///      `toTokenAddress` tokens by selling the entirety of the opposing asset

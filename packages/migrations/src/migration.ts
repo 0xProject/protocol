@@ -348,6 +348,8 @@ export async function runMigrationsAsync(
             dodoHelper: NULL_ADDRESS,
             snowSwapBridge: NULL_ADDRESS,
             cryptoComBridge: NULL_ADDRESS,
+            bancorBridge: NULL_ADDRESS,
+            cofixBridge: NULL_ADDRESS,
             weth: etherToken.address,
         },
     );
