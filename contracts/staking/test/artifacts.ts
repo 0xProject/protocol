@@ -5,6 +5,7 @@
  */
 import { ContractArtifact } from 'ethereum-types';
 
+import * as BootstrapFactory from '../test/generated-artifacts/BootstrapFactory.json';
 import * as GoverancePower from '../test/generated-artifacts/GoverancePower.json';
 import * as GovernorAlpha from '../test/generated-artifacts/GovernorAlpha.json';
 import * as IOnchainGov from '../test/generated-artifacts/IOnchainGov.json';
@@ -36,6 +37,7 @@ import * as MixinStakingPool from '../test/generated-artifacts/MixinStakingPool.
 import * as MixinStakingPoolRewards from '../test/generated-artifacts/MixinStakingPoolRewards.json';
 import * as MixinStorage from '../test/generated-artifacts/MixinStorage.json';
 import * as SafeMath from '../test/generated-artifacts/SafeMath.json';
+import * as Staker from '../test/generated-artifacts/Staker.json';
 import * as Staking from '../test/generated-artifacts/Staking.json';
 import * as StakingProxy from '../test/generated-artifacts/StakingProxy.json';
 import * as TestAssertStorageParams from '../test/generated-artifacts/TestAssertStorageParams.json';
@@ -63,6 +65,7 @@ import * as TestStakingProxy from '../test/generated-artifacts/TestStakingProxy.
 import * as TestStakingProxyUnit from '../test/generated-artifacts/TestStakingProxyUnit.json';
 import * as TestStorageLayoutAndConstants from '../test/generated-artifacts/TestStorageLayoutAndConstants.json';
 import * as Timelock from '../test/generated-artifacts/Timelock.json';
+import * as TreasuryVault from '../test/generated-artifacts/TreasuryVault.json';
 import * as ZrxVault from '../test/generated-artifacts/ZrxVault.json';
 export const artifacts = {
     Staking: Staking as ContractArtifact,
@@ -70,10 +73,13 @@ export const artifacts = {
     ZrxVault: ZrxVault as ContractArtifact,
     MixinExchangeFees: MixinExchangeFees as ContractArtifact,
     MixinExchangeManager: MixinExchangeManager as ContractArtifact,
+    BootstrapFactory: BootstrapFactory as ContractArtifact,
     GoverancePower: GoverancePower as ContractArtifact,
     GovernorAlpha: GovernorAlpha as ContractArtifact,
     SafeMath: SafeMath as ContractArtifact,
+    Staker: Staker as ContractArtifact,
     Timelock: Timelock as ContractArtifact,
+    TreasuryVault: TreasuryVault as ContractArtifact,
     MixinConstants: MixinConstants as ContractArtifact,
     MixinDeploymentConstants: MixinDeploymentConstants as ContractArtifact,
     MixinStorage: MixinStorage as ContractArtifact,

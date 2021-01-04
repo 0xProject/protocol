@@ -8,4 +8,6 @@ interface IOnchainGov {
     function burn(address account, uint96 amount) external;
     // Sets goverence power
     function setVotingPower(address account, uint96 amount, address delegate) external;
+    // Delegates goverence power
+    function delegate(address delegatee) external;
 }

@@ -16,7 +16,7 @@ The 0x Governance Power contract is based off a fork of the COMP token contract,
 
 The 0x Governor Alpha contracts are a direct fork of the Compound Governor Alpha contracts. Only cosmetic and naming changes have been made. A user with enough 0x voting power to meet the proposal threshold requirements can initiate a vote, which anyone with voting power at the instant of the creation of the vote can then vote on. If the vote meets Quorum and passes then after the timelock the proposed action can be executed. Detailed documentation of the Governor Alpha can be found [here](https://compound.finance/docs/governance#governor-alpha)
 
-## Spesification
+## Specification
 
 ### Staking
 

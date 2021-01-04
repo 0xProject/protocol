@@ -100,6 +100,14 @@ contract GoverancePower {
     }
 
     /**
+     * @notice Delegate votes from `msg.sender` to `delegatee`
+     * @param delegatee The address to delegate votes to
+     */
+    function delegate(address delegatee) external {
+        return _delegate(msg.sender, delegatee);
+    }
+
+    /**
      * @notice Get the number of tokens held by the `account`
      * @param account The address of the account to get the balance of
      * @return The number of tokens held
@@ -116,14 +124,6 @@ contract GoverancePower {
     function getCurrentVotes(address account) external view returns (uint96) {
         uint32 nCheckpoints = numCheckpoints[account];
         return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
-    }
-
-    /**
-     * @notice Delegate votes from `msg.sender` to `delegatee`
-     * @param delegatee The address to delegate votes to
-     */
-    function delegate(address delegatee) public {
-        return _delegate(msg.sender, delegatee);
     }
 
     /**
@@ -189,7 +189,17 @@ contract GoverancePower {
 
     function _mint(address account, uint96 amount) internal {
         balances[account] = add96(amount, balances[account], "Overflow");
-        _moveDelegates(address(0), account, amount);
+        // We want to move the votes to the address this account is 
+        // delegated to
+        address delegatee = delegates[account];
+        // Only zero if the address has never been minted votes before
+        if (delegatee == address(0)) {
+            // We self delegate
+            delegates[account] = account;
+            // And set delegatee to account
+            delegatee = account;
+        }
+        _moveDelegates(address(0), delegatee, amount);
         emit Minted(account, amount);
     }
 
@@ -198,11 +208,11 @@ contract GoverancePower {
         // instead of reverting to prevent a user who has balances at
         // deployment time from not being able to call withdraw until
         // synchronize is called.
-        if (amount > balances[account]) {
-            balances[account] = 0;
-        } else {
-            balances[account] = balances[account] - amount;
+        uint96 balance = balances[account];
+        if (amount > balance) {
+            amount = balance;
         }
+        balances[account] -= amount;
 
         address currentDelegate = delegates[account];
         _moveDelegates(currentDelegate, address(0), amount);

@@ -105,6 +105,10 @@ export class StakingApiWrapper {
             return this.zrxTokenContract.balanceOf(this.zrxVaultContract.address).callAsync();
         },
 
+        getZrxAssetProxyAsync: async (): Promise<string> => {
+            return this.zrxVaultContract.zrxAssetProxy().callAsync();
+        },
+
         setParamsAsync: async (params: Partial<StakingParams>): Promise<TransactionReceiptWithDecodedLogs> => {
             const _params = {
                 ...stakingConstants.DEFAULT_PARAMS,

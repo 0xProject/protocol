@@ -13,6 +13,7 @@
         "generated-artifacts/StakingProxy.json",
         "generated-artifacts/TestStaking.json",
         "generated-artifacts/ZrxVault.json",
+        "test/generated-artifacts/BootstrapFactory.json",
         "test/generated-artifacts/GoverancePower.json",
         "test/generated-artifacts/GovernorAlpha.json",
         "test/generated-artifacts/IOnchainGov.json",
@@ -44,6 +45,7 @@
         "test/generated-artifacts/MixinStakingPoolRewards.json",
         "test/generated-artifacts/MixinStorage.json",
         "test/generated-artifacts/SafeMath.json",
+        "test/generated-artifacts/Staker.json",
         "test/generated-artifacts/Staking.json",
         "test/generated-artifacts/StakingProxy.json",
         "test/generated-artifacts/TestAssertStorageParams.json",
@@ -71,6 +73,7 @@
         "test/generated-artifacts/TestStakingProxyUnit.json",
         "test/generated-artifacts/TestStorageLayoutAndConstants.json",
         "test/generated-artifacts/Timelock.json",
+        "test/generated-artifacts/TreasuryVault.json",
         "test/generated-artifacts/ZrxVault.json"
     ],
     "exclude": ["./deploy/solc/solc_bin"]
