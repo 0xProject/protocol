@@ -14,11 +14,6 @@
         "changes": [
             {
                 "note": "Dependencies updated"
-        "version": "3.3.0",
-        "changes": [
-            {
-                "note": "Allow for excess return data in `LibERC20TokenV06` compat* functions",
-                "pr": 97
             }
         ]
     },
