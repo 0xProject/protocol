@@ -1232,6 +1232,220 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'orders',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerTokenFeeAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'sender',
+                                type: 'address',
+                            },
+                            {
+                                name: 'feeRecipient',
+                                type: 'address',
+                            },
+                            {
+                                name: 'pool',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint64',
+                            },
+                            {
+                                name: 'salt',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signatures',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'batchGetLimitOrderRelevantStates',
+                outputs: [
+                    {
+                        name: 'orderInfos',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'orderHash',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'status',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'takerTokenFilledAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'actualFillableTakerTokenAmounts',
+                        type: 'uint128[]',
+                    },
+                    {
+                        name: 'isSignatureValids',
+                        type: 'bool[]',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'orders',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'txOrigin',
+                                type: 'address',
+                            },
+                            {
+                                name: 'pool',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint64',
+                            },
+                            {
+                                name: 'salt',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signatures',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'batchGetRfqOrderRelevantStates',
+                outputs: [
+                    {
+                        name: 'orderInfos',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'orderHash',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'status',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'takerTokenFilledAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'actualFillableTakerTokenAmounts',
+                        type: 'uint128[]',
+                    },
+                    {
+                        name: 'isSignatureValids',
+                        type: 'bool[]',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'order',
                         type: 'tuple',
                         components: [
@@ -2021,6 +2235,117 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerTokenFeeAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'sender',
+                                type: 'address',
+                            },
+                            {
+                                name: 'feeRecipient',
+                                type: 'address',
+                            },
+                            {
+                                name: 'pool',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint64',
+                            },
+                            {
+                                name: 'salt',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'getLimitOrderRelevantState',
+                outputs: [
+                    {
+                        name: 'orderInfo',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'orderHash',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'status',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'takerTokenFilledAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'actualFillableTakerTokenAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'isSignatureValid',
+                        type: 'bool',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'mtx',
                         type: 'tuple',
                         components: [
@@ -2304,6 +2629,109 @@ export class IZeroExContract extends BaseContract {
                                 type: 'uint128',
                             },
                         ],
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'txOrigin',
+                                type: 'address',
+                            },
+                            {
+                                name: 'pool',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint64',
+                            },
+                            {
+                                name: 'salt',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'getRfqOrderRelevantState',
+                outputs: [
+                    {
+                        name: 'orderInfo',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'orderHash',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'status',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'takerTokenFilledAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'actualFillableTakerTokenAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'isSignatureValid',
+                        type: 'bool',
                     },
                 ],
                 stateMutability: 'view',
@@ -3430,6 +3858,178 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Batch version of `getLimitOrderRelevantState()`.
+     * @param orders The limit orders.
+     * @param signatures The order signatures.
+     */
+    public batchGetLimitOrderRelevantStates(
+        orders: Array<{
+            makerToken: string;
+            takerToken: string;
+            makerAmount: BigNumber;
+            takerAmount: BigNumber;
+            takerTokenFeeAmount: BigNumber;
+            maker: string;
+            taker: string;
+            sender: string;
+            feeRecipient: string;
+            pool: string;
+            expiry: BigNumber;
+            salt: BigNumber;
+        }>,
+        signatures: Array<{ signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string }>,
+    ): ContractTxFunctionObj<
+        [Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>, BigNumber[], boolean[]]
+    > {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('orders', orders);
+        assert.isArray('signatures', signatures);
+        const functionSignature =
+            'batchGetLimitOrderRelevantStates((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<
+                [
+                    Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
+                    BigNumber[],
+                    boolean[]
+                ]
+            > {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<
+                    [
+                        Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
+                        BigNumber[],
+                        boolean[]
+                    ]
+                >(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [orders, signatures]);
+            },
+        };
+    }
+    /**
+     * Batch version of `getRfqOrderRelevantState()`.
+     * @param orders The RFQ orders.
+     * @param signatures The order signatures.
+     */
+    public batchGetRfqOrderRelevantStates(
+        orders: Array<{
+            makerToken: string;
+            takerToken: string;
+            makerAmount: BigNumber;
+            takerAmount: BigNumber;
+            maker: string;
+            taker: string;
+            txOrigin: string;
+            pool: string;
+            expiry: BigNumber;
+            salt: BigNumber;
+        }>,
+        signatures: Array<{ signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string }>,
+    ): ContractTxFunctionObj<
+        [Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>, BigNumber[], boolean[]]
+    > {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('orders', orders);
+        assert.isArray('signatures', signatures);
+        const functionSignature =
+            'batchGetRfqOrderRelevantStates((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<
+                [
+                    Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
+                    BigNumber[],
+                    boolean[]
+                ]
+            > {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<
+                    [
+                        Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
+                        BigNumber[],
+                        boolean[]
+                    ]
+                >(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [orders, signatures]);
+            },
+        };
+    }
+    /**
      * Cancel a single limit order. The caller must be the maker.
      * Silently succeeds if the order has already been cancelled.
      * @param order The limit order.
@@ -4347,6 +4947,83 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Get order info, fillable amount, and signature validity for a limit order.
+     * Fillable amount is determined using balances and allowances of the maker.
+     * @param order The limit order.
+     * @param signature The order signature.
+     */
+    public getLimitOrderRelevantState(
+        order: {
+            makerToken: string;
+            takerToken: string;
+            makerAmount: BigNumber;
+            takerAmount: BigNumber;
+            takerTokenFeeAmount: BigNumber;
+            maker: string;
+            taker: string;
+            sender: string;
+            feeRecipient: string;
+            pool: string;
+            expiry: BigNumber;
+            salt: BigNumber;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+    ): ContractTxFunctionObj<
+        [{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }, BigNumber, boolean]
+    > {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'getLimitOrderRelevantState((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32))';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<[{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }, BigNumber, boolean]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<
+                    [{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }, BigNumber, boolean]
+                >(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order, signature]);
+            },
+        };
+    }
+    /**
      * Get the block at which a meta-transaction has been executed.
      * @param mtx The meta-transaction.
      */
@@ -4752,6 +5429,81 @@ export class IZeroExContract extends BaseContract {
             },
             getABIEncodedTransactionData(): string {
                 return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
+     * Get order info, fillable amount, and signature validity for an RFQ order.
+     * Fillable amount is determined using balances and allowances of the maker.
+     * @param order The RFQ order.
+     * @param signature The order signature.
+     */
+    public getRfqOrderRelevantState(
+        order: {
+            makerToken: string;
+            takerToken: string;
+            makerAmount: BigNumber;
+            takerAmount: BigNumber;
+            maker: string;
+            taker: string;
+            txOrigin: string;
+            pool: string;
+            expiry: BigNumber;
+            salt: BigNumber;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+    ): ContractTxFunctionObj<
+        [{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }, BigNumber, boolean]
+    > {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'getRfqOrderRelevantState((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32))';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<[{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }, BigNumber, boolean]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<
+                    [{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }, BigNumber, boolean]
+                >(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order, signature]);
             },
         };
     }

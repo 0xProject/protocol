@@ -118,7 +118,7 @@ library LibERC20TokenV06 {
     {
         tokenDecimals = 18;
         (bool didSucceed, bytes memory resultData) = address(token).staticcall(DECIMALS_CALL_DATA);
-        if (didSucceed && resultData.length == 32) {
+        if (didSucceed && resultData.length >= 32) {
             tokenDecimals = uint8(LibBytesV06.readUint256(resultData, 0));
         }
     }
@@ -141,7 +141,7 @@ library LibERC20TokenV06 {
                 spender
             )
         );
-        if (didSucceed && resultData.length == 32) {
+        if (didSucceed && resultData.length >= 32) {
             allowance_ = LibBytesV06.readUint256(resultData, 0);
         }
     }
@@ -162,7 +162,7 @@ library LibERC20TokenV06 {
                 owner
             )
         );
-        if (didSucceed && resultData.length == 32) {
+        if (didSucceed && resultData.length >= 32) {
             balance = LibBytesV06.readUint256(resultData, 0);
         }
     }
@@ -180,7 +180,7 @@ library LibERC20TokenV06 {
         if (resultData.length == 0) {
             return true;
         }
-        if (resultData.length == 32) {
+        if (resultData.length >= 32) {
             uint256 result = LibBytesV06.readUint256(resultData, 0);
             if (result == 1) {
                 return true;

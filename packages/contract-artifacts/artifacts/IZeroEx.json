@@ -474,6 +474,114 @@
                             { "internalType": "uint64", "name": "expiry", "type": "uint64" },
                             { "internalType": "uint256", "name": "salt", "type": "uint256" }
                         ],
+                        "internalType": "struct LibNativeOrder.LimitOrder[]",
+                        "name": "orders",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature[]",
+                        "name": "signatures",
+                        "type": "tuple[]"
+                    }
+                ],
+                "name": "batchGetLimitOrderRelevantStates",
+                "outputs": [
+                    {
+                        "components": [
+                            { "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                            { "internalType": "enum LibNativeOrder.OrderStatus", "name": "status", "type": "uint8" },
+                            { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OrderInfo[]",
+                        "name": "orderInfos",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint128[]", "name": "actualFillableTakerTokenAmounts", "type": "uint128[]" },
+                    { "internalType": "bool[]", "name": "isSignatureValids", "type": "bool[]" }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder[]",
+                        "name": "orders",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature[]",
+                        "name": "signatures",
+                        "type": "tuple[]"
+                    }
+                ],
+                "name": "batchGetRfqOrderRelevantStates",
+                "outputs": [
+                    {
+                        "components": [
+                            { "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                            { "internalType": "enum LibNativeOrder.OrderStatus", "name": "status", "type": "uint8" },
+                            { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OrderInfo[]",
+                        "name": "orderInfos",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint128[]", "name": "actualFillableTakerTokenAmounts", "type": "uint128[]" },
+                    { "internalType": "bool[]", "name": "isSignatureValids", "type": "bool[]" }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
                         "internalType": "struct LibNativeOrder.LimitOrder",
                         "name": "order",
                         "type": "tuple"
@@ -838,6 +946,61 @@
                 "inputs": [
                     {
                         "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getLimitOrderRelevantState",
+                "outputs": [
+                    {
+                        "components": [
+                            { "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                            { "internalType": "enum LibNativeOrder.OrderStatus", "name": "status", "type": "uint8" },
+                            { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OrderInfo",
+                        "name": "orderInfo",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "actualFillableTakerTokenAmount", "type": "uint128" },
+                    { "internalType": "bool", "name": "isSignatureValid", "type": "bool" }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
                             { "internalType": "address payable", "name": "signer", "type": "address" },
                             { "internalType": "address", "name": "sender", "type": "address" },
                             { "internalType": "uint256", "name": "minGasPrice", "type": "uint256" },
@@ -962,6 +1125,59 @@
                         "name": "orderInfo",
                         "type": "tuple"
                     }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getRfqOrderRelevantState",
+                "outputs": [
+                    {
+                        "components": [
+                            { "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                            { "internalType": "enum LibNativeOrder.OrderStatus", "name": "status", "type": "uint8" },
+                            { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OrderInfo",
+                        "name": "orderInfo",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "actualFillableTakerTokenAmount", "type": "uint128" },
+                    { "internalType": "bool", "name": "isSignatureValid", "type": "bool" }
                 ],
                 "stateMutability": "view",
                 "type": "function"
@@ -1230,6 +1446,24 @@
                     },
                     "returns": { "returnResults": "The ABI-encoded results of the underlying calls." }
                 },
+                "batchGetLimitOrderRelevantStates((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
+                    "details": "Batch version of `getLimitOrderRelevantState()`.",
+                    "params": { "orders": "The limit orders.", "signatures": "The order signatures." },
+                    "returns": {
+                        "actualFillableTakerTokenAmounts": "How much of each order is fillable         based on maker funds, in taker tokens.",
+                        "isSignatureValids": "Whether each signature is valid for the order.",
+                        "orderInfos": "Info about the orders."
+                    }
+                },
+                "batchGetRfqOrderRelevantStates((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
+                    "details": "Batch version of `getRfqOrderRelevantState()`.",
+                    "params": { "orders": "The RFQ orders.", "signatures": "The order signatures." },
+                    "returns": {
+                        "actualFillableTakerTokenAmounts": "How much of each order is fillable         based on maker funds, in taker tokens.",
+                        "isSignatureValids": "Whether each signature is valid for the order.",
+                        "orderInfos": "Info about the orders."
+                    }
+                },
                 "cancelLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))": {
                     "details": "Cancel a single limit order. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
                     "params": { "order": "The limit order." }
@@ -1326,6 +1560,15 @@
                     "params": { "order": "The limit order." },
                     "returns": { "orderInfo": "Info about the order." }
                 },
+                "getLimitOrderRelevantState((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32))": {
+                    "details": "Get order info, fillable amount, and signature validity for a limit order.      Fillable amount is determined using balances and allowances of the maker.",
+                    "params": { "order": "The limit order.", "signature": "The order signature." },
+                    "returns": {
+                        "actualFillableTakerTokenAmount": "How much of the order is fillable         based on maker funds, in taker tokens.",
+                        "isSignatureValid": "Whether the signature is valid.",
+                        "orderInfo": "Info about the order."
+                    }
+                },
                 "getMetaTransactionExecutedBlock((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))": {
                     "details": "Get the block at which a meta-transaction has been executed.",
                     "params": { "mtx": "The meta-transaction." },
@@ -1358,6 +1601,15 @@
                     "details": "Get the order info for an RFQ order.",
                     "params": { "order": "The RFQ order." },
                     "returns": { "orderInfo": "Info about the order." }
+                },
+                "getRfqOrderRelevantState((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32))": {
+                    "details": "Get order info, fillable amount, and signature validity for an RFQ order.      Fillable amount is determined using balances and allowances of the maker.",
+                    "params": { "order": "The RFQ order.", "signature": "The order signature." },
+                    "returns": {
+                        "actualFillableTakerTokenAmount": "How much of the order is fillable         based on maker funds, in taker tokens.",
+                        "isSignatureValid": "Whether the signature is valid.",
+                        "orderInfo": "Info about the order."
+                    }
                 },
                 "getRollbackEntryAtIndex(bytes4,uint256)": {
                     "details": "Retrieve an entry in the rollback history for a function.",

@@ -187,4 +187,18 @@ library LibSafeMathV06 {
     {
         return a < b ? a : b;
     }
+
+    function safeDowncastToUint128(uint256 a)
+        internal
+        pure
+        returns (uint128)
+    {
+        if (a > type(uint128).max) {
+            LibRichErrorsV06.rrevert(LibSafeMathRichErrorsV06.Uint256DowncastError(
+                LibSafeMathRichErrorsV06.DowncastErrorCodes.VALUE_TOO_LARGE_TO_DOWNCAST_TO_UINT128,
+                a
+            ));
+        }
+        return uint128(a);
+    }
 }
