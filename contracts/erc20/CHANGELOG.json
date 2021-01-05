@@ -3,6 +3,10 @@
         "version": "3.3.0",
         "changes": [
             {
+                "note": "Add SPDX license identifiers to solidity files",
+                "pr": 105
+            },
+            {
                 "note": "Allow for excess return data in `LibERC20TokenV06` compat* functions",
                 "pr": 97
             }
