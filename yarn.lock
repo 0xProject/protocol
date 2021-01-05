@@ -45,17 +45,18 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^5.6.1":
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.6.1.tgz#02c3bdaef3456431cf6e65892e1e02b04858ae14"
+"@0x/asset-swapper@^5.6.2":
+  version "5.6.2"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.6.2.tgz#946cbc7f6db328f61d54d73e871e9774fe475e32"
+  integrity sha512-9ecxrFxX13IKwJiTaZxxfoia1IldAYEyJ9wfXRjvKGIBwx3WK6dZrzGrEej3wOT7Fo84ydAiqU+u4aMaU0DGBw==
   dependencies:
     "@0x/assert" "^3.0.19"
     "@0x/base-contract" "^6.2.14"
     "@0x/contract-addresses" "^5.8.0"
-    "@0x/contract-wrappers" "^13.11.2"
+    "@0x/contract-wrappers" "^13.12.0"
     "@0x/dev-utils" "^4.1.3"
     "@0x/json-schemas" "^5.3.4"
-    "@0x/order-utils" "^10.4.12"
+    "@0x/order-utils" "^10.4.13"
     "@0x/orderbook" "0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023"
     "@0x/quote-server" "^3.1.0"
     "@0x/types" "^3.3.1"
@@ -187,9 +188,10 @@
     ethereum-types "^3.4.0"
     ethers "~4.0.4"
 
-"@0x/contract-wrappers@^13.11.2":
-  version "13.11.2"
-  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.11.2.tgz#252eafabb4ccaee38eb0ddfc1d2b0873e6df5fb1"
+"@0x/contract-wrappers@^13.12.0":
+  version "13.12.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.12.0.tgz#7847090571fe4db18b84f20e5be0e38950c4f26c"
+  integrity sha512-mw+jgQQVSdzuzRv1buNwrTg7hOukRN9L3HW8p1biz9S5TeykQZA7NDfL7ASBW8f3LVO/bc6TI2hUJ/Nujm6nYg==
   dependencies:
     "@0x/assert" "^3.0.19"
     "@0x/base-contract" "^6.2.14"
@@ -637,13 +639,14 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/order-utils@^10.4.12":
-  version "10.4.12"
-  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.12.tgz#125ce28539b227784b13fc08073edd2b9af1f4f7"
+"@0x/order-utils@^10.4.13":
+  version "10.4.13"
+  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.13.tgz#9be075a94c446459508b1d92dbcec7a909bfaf45"
+  integrity sha512-12Q7F+LjVuJZFH1V7fpB3+TiFIdhzNiGlWJOEW3LDlE4NghgKOHkan/uPbtaF2kgUJr2AqNaMrkmnVMsZflLaQ==
   dependencies:
     "@0x/assert" "^3.0.19"
     "@0x/contract-addresses" "^5.8.0"
-    "@0x/contract-wrappers" "^13.11.2"
+    "@0x/contract-wrappers" "^13.12.0"
     "@0x/json-schemas" "^5.3.4"
     "@0x/utils" "^6.1.1"
     "@0x/web3-wrapper" "^7.3.0"
