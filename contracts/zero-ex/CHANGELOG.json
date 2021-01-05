@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.18.0",
+        "changes": [
+            {
+                "note": "Use consistent returndatasize checks in UniswapFeature",
+                "pr": 96
+            }
+        ]
+    },
+    {
         "version": "0.17.0",
         "changes": [
             {
