@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.9.0",
+        "changes": [
+            {
+                "note": "Redeploy LiquidityProviderSandbox",
+                "pr": 107
+            }
+        ]
+    },
+    {
         "version": "5.8.0",
         "changes": [
             {
