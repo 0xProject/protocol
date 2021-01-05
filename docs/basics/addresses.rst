@@ -25,7 +25,7 @@ Transformers
 
     wethTransformer, `0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7 <https://etherscan.io/address//0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7>`_
     payTakerTransformer, `0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e <https://etherscan.io/address//0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e>`_
-    fillQuoteTransformer, `0x74c35f17a19d4ee0ddd65cc21c671806913f9176 <https://etherscan.io/address//0x74c35f17a19d4ee0ddd65cc21c671806913f9176>`_
+    fillQuoteTransformer, `0x5ce5174d7442061135ea849970ffc7763920e0fd <https://etherscan.io/address//0x5ce5174d7442061135ea849970ffc7763920e0fd>`_
     affiliateFeeTransformer, `0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f <https://etherscan.io/address//0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f>`_
 
 
