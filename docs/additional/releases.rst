@@ -10,30 +10,35 @@ This page outlines upcoming releases and expected changes.
 .. table::
     :widths: 20 50 10 10 10
 
-    +--------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
-    | **Name**     | **Overview**                                                  | **Est Release Date** | **Status**  | **Additional**                                                                                                |
-    +--------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
-    | `Tinker`_    | `V4 Orders <../basics/orders.html>`_                          | 01/05/21             | In Audits   |                                                                                                               |
-    +--------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
-    | `Panettone`_ | Minor patches from Consensys Audit.                           | 01/11/21             | Development |                                                                                                               |
-    +--------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
-    | *The following releases have been deployed*                                                                                                                                                                                       |
-    +--------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
-    | `Hot-Pants`_ | Remove calldata signing / DeFi Saver Fix / Allowance on Proxy | 12/07/20             | Deployed    | `Release Notes <https://github.com/0xProject/0x-migrations/blob/main/src/exchange-proxy/migrations/LOG.md>`__ |
-    +--------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
-    | `Plop`_      | PLP VIP                                                       | 12/01/20             | Deployed    |                                                                                                               |
-    +--------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | **Name**                                    | **Overview**                                                  | **Est Release Date** | **Status**  | **Additional**                                                                                                |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | `cyberpants2077`_                           | `V4 Orders <../basics/orders.html>`_                          | 01/05/21             | Timelocked  |                                                                                                               |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | `Panettone`_                                | Minor patches from Consensys Audit                            | 01/11/21             | Development |                                                                                                               |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | `Squire`_                                   | Aggregation for `V4 Orders <../basics/orders.html>`_          | TBA                  | Development | Depends on AssetSwapper / 0x API Upgrade                                                                      |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | `Babooshka`_                                | Connect Exchange Proxy to Staking                             | 01/24/21             | Vote        | Requires community vote                                                                                       |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | *The following releases have been deployed* |                                                               |                      |             |                                                                                                               |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | `Hot-Pants`_                                | Remove calldata signing / DeFi Saver Fix / Allowance on Proxy | 12/07/20             | Deployed    | `Release Notes <https://github.com/0xProject/0x-migrations/blob/main/src/exchange-proxy/migrations/LOG.md>`__ |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | `Plop`_                                     | PLP VIP                                                       | 12/01/20             | Deployed    |                                                                                                               |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
+    | `Tinker`_                                   | Set allowances directly on Exchange Proxy                     | 11/12/20             | Deployed    |                                                                                                               |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+---------------------------------------------------------------------------------------------------------------+
 
 
 Upcoming
 ========
 
-Tinker
-------
+cyberpants2077
+---------------
 
 - Deploy `NativeLiquidityFeature <../architecture/features.html>`_. This incldues order validation that was previously in Dev-Utils.
-- Deploy updated `FillQuoteTransformer <../architecture/transformers.html>`_, which can fill `V4 Orders <../basics/orders.html>`_. This transformer will no longer call Exchange V3.
-- Introduce `new events <../basics/events.html>`_.
+- Introduces `new events <../basics/events.html>`_.
 
 
 Panettone
@@ -44,6 +49,18 @@ Panettone
 - Extends deployment timelock from 24h to 48h.
 - Decommission `SignatureValidationFeature <../architecture/features.html>`_.
 - Decommission `TokenSpenderFeature <../architecture/features.html>`_.
+
+
+Squire
+-------
+
+- Deploy updated `FillQuoteTransformer <../architecture/transformers.html>`_, which can fill `V4 Orders <../basics/orders.html>`_. This transformer will no longer call Exchange V3.
+
+
+Babooshka
+----------
+
+- Register the 0x Exchange Proxy with the Staking Proxy, allowing protocol fees from V4 Orders to be paid to Staking Pools.
 
 
 Past
@@ -61,3 +78,11 @@ Plop
 
 - Deploy the `LiquidityProviderFeature <../architecture/features.html>`_, which enables optimized trades directly with `PLP <../advanced/plp.html>`_
 
+Tinker
+------
+
+.. note::
+
+    This release was partially rolled back due to breaking allowances for some `Exceptional ERC20 Tokens <./exceptional_erc20s.html>`_. These features were fixed and re-deployed in the Hot-Pants release, above.
+
+- Upgrade any features that transfer user funds to use allowances on the Proxy contract. Transfers will still fallback to the Allowance Target, but integrators will get reduced transaction costs from setting their allowance on the Proxy. This involves redeploying the following `Features <../architecture/features.html>`_: ``MetaTransactionsFeature``, ``TransformERC20Feature``, ``UniswapFeature``.
