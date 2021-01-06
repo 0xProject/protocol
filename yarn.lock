@@ -892,12 +892,14 @@
     "@0x/order-utils" "^10.4.2"
     "@0x/utils" "^6.1.0"
 
-"@0x/quote-server@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-3.1.0.tgz#ba5c0de9f88fedfd522ec1ef608dd8eebb868509"
+"@0x/quote-server@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-4.0.1.tgz#05947589bfa7905d274ac3c726cb9918b93b0f9e"
+  integrity sha512-/5yP07a78Fqfj7IKicz57Z1R337iLYQP5qi17lMAmuIjwr7DOoUPMh0HL8FSmrf/Mk79GqC+f3jApTkXyR99fw==
   dependencies:
     "@0x/json-schemas" "^5.0.7"
     "@0x/order-utils" "^10.2.4"
+    "@0x/protocol-utils" "^1.0.1"
     "@0x/utils" "^5.4.1"
     "@types/express" "^4.17.3"
     express "^4.17.1"
