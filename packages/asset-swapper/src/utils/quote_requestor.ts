@@ -1,6 +1,6 @@
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { assetDataUtils, orderCalculationUtils, SignedOrder } from '@0x/order-utils';
-import { RFQTFirmQuote, RFQTIndicativeQuote, TakerRequestQueryParams } from '@0x/quote-server';
+import { TakerRequestQueryParams, V3RFQFirmQuote, V3RFQIndicativeQuote } from '@0x/quote-server';
 import { ERC20AssetData } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
@@ -111,12 +111,15 @@ export class QuoteRequestor {
 
         const requestParamsWithBigNumbers: Pick<
             TakerRequestQueryParams,
-            'buyTokenAddress' | 'sellTokenAddress' | 'takerAddress' | 'comparisonPrice'
+            'buyTokenAddress' | 'sellTokenAddress' | 'takerAddress' | 'comparisonPrice' | 'protocolVersion'
         > = {
             takerAddress,
             comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
             buyTokenAddress,
             sellTokenAddress,
+
+            // The request parameter below defines what protocol version the RFQ servers should be returning.
+            protocolVersion: '3',
         };
 
         // convert BigNumbers to strings
@@ -152,7 +155,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
-    ): Promise<RFQTFirmQuote[]> {
+    ): Promise<V3RFQFirmQuote[]> {
         const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         if (
             _opts.takerAddress === undefined ||
@@ -164,7 +167,7 @@ export class QuoteRequestor {
             throw new Error('RFQ-T firm quotes require the presence of a taker address');
         }
 
-        const firmQuoteResponses = await this._getQuotesAsync<RFQTFirmQuote>( // not yet BigNumber
+        const firmQuoteResponses = await this._getQuotesAsync<V3RFQFirmQuote>( // not yet BigNumber
             makerAssetData,
             takerAssetData,
             assetFillAmount,
@@ -174,7 +177,7 @@ export class QuoteRequestor {
             'firm',
         );
 
-        const result: RFQTFirmQuote[] = [];
+        const result: V3RFQFirmQuote[] = [];
         firmQuoteResponses.forEach(firmQuoteResponse => {
             const orderWithStringInts = firmQuoteResponse.response.signedOrder;
 
@@ -242,7 +245,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
-    ): Promise<RFQTIndicativeQuote[]> {
+    ): Promise<V3RFQIndicativeQuote[]> {
         const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
 
         // Originally a takerAddress was required for indicative quotes, but
@@ -254,7 +257,7 @@ export class QuoteRequestor {
             _opts.takerAddress = constants.NULL_ADDRESS;
         }
 
-        const responsesWithStringInts = await this._getQuotesAsync<RFQTIndicativeQuote>( // not yet BigNumber
+        const responsesWithStringInts = await this._getQuotesAsync<V3RFQIndicativeQuote>( // not yet BigNumber
             makerAssetData,
             takerAssetData,
             assetFillAmount,
@@ -307,7 +310,7 @@ export class QuoteRequestor {
         return this._orderSignatureToMakerUri[orderSignature];
     }
 
-    private _isValidRfqtIndicativeQuoteResponse(response: RFQTIndicativeQuote): boolean {
+    private _isValidRfqtIndicativeQuoteResponse(response: V3RFQIndicativeQuote): boolean {
         const hasValidMakerAssetAmount =
             response.makerAssetAmount !== undefined &&
             this._schemaValidator.isValid(response.makerAssetAmount, schemas.wholeNumberSchema);

@@ -1,4 +1,4 @@
-import { RFQTIndicativeQuote } from '@0x/quote-server';
+import { V3RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation, SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
@@ -373,7 +373,7 @@ export interface MarketSideLiquidity {
     orderFillableAmounts: BigNumber[];
     ethToOutputRate: BigNumber;
     ethToInputRate: BigNumber;
-    rfqtIndicativeQuotes: RFQTIndicativeQuote[];
+    rfqtIndicativeQuotes: V3RFQIndicativeQuote[];
     twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     quoteSourceFilters: SourceFilters;
     makerTokenDecimals: number;

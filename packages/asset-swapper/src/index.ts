@@ -18,7 +18,7 @@ export {
     SRAPollingOrderProviderOpts,
     SRAWebsocketOrderProviderOpts,
 } from '@0x/orderbook';
-export { RFQTFirmQuote, RFQTIndicativeQuote, TakerRequestQueryParams } from '@0x/quote-server';
+export { V3RFQFirmQuote, V3RFQIndicativeQuote, TakerRequestQueryParams } from '@0x/quote-server';
 export {
     APIOrder,
     Asset,

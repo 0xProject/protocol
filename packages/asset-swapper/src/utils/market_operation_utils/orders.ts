@@ -1,5 +1,5 @@
 import { assetDataUtils, ERC20AssetData, generatePseudoRandomSalt, orderCalculationUtils } from '@0x/order-utils';
-import { RFQTIndicativeQuote } from '@0x/quote-server';
+import { V3RFQIndicativeQuote } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
@@ -498,7 +498,7 @@ export function createNativeOrder(fill: NativeCollapsedFill): OptimizedMarketOrd
 }
 
 export function createSignedOrdersFromRfqtIndicativeQuotes(
-    quotes: RFQTIndicativeQuote[],
+    quotes: V3RFQIndicativeQuote[],
 ): SignedOrderWithFillableAmounts[] {
     return quotes.map(quote => {
         return {
