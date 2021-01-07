@@ -37,7 +37,7 @@ import {
 
 const { NULL_ADDRESS, NULL_BYTES, MAX_UINT256, ZERO_AMOUNT } = constants;
 
-blockchainTests.resets.only('FillQuoteTransformer', env => {
+blockchainTests.resets('FillQuoteTransformer', env => {
     let maker: string;
     let feeRecipient: string;
     let sender: string;
