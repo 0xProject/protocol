@@ -5,6 +5,10 @@
             {
                 "note": "Use consistent returndatasize checks in UniswapFeature",
                 "pr": 96
+            },
+            {
+                "note": "Remove `MetaTransactionsFeature._executeMetaTransaction()` and `SignatureValidatorFeature`",
+                "pr": 109
             }
         ]
     },

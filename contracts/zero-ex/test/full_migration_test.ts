@@ -12,7 +12,6 @@ import {
     IMetaTransactionsFeatureContract,
     INativeOrdersFeatureContract,
     IOwnableFeatureContract,
-    ISignatureValidatorFeatureContract,
     ITokenSpenderFeatureContract,
     ITransformERC20FeatureContract,
     TestFullMigrationContract,
@@ -86,22 +85,17 @@ blockchainTests.resets('Full migration', env => {
                 'setQuoteSigner',
             ],
         },
-        SignatureValidator: {
-            contractType: ISignatureValidatorFeatureContract,
-            fns: ['isValidHashSignature', 'validateHashSignature'],
-        },
         MetaTransactions: {
             contractType: IMetaTransactionsFeatureContract,
             fns: [
                 'executeMetaTransaction',
                 'batchExecuteMetaTransactions',
-                '_executeMetaTransaction',
                 'getMetaTransactionExecutedBlock',
                 'getMetaTransactionHashExecutedBlock',
                 'getMetaTransactionHash',
             ],
         },
-        LimitOrdersFeature: {
+        NativeOrdersFeature: {
             contractType: INativeOrdersFeatureContract,
             fns: [
                 'transferProtocolFeesForPools',
@@ -124,6 +118,11 @@ blockchainTests.resets('Full migration', env => {
                 'getLimitOrderHash',
                 'getRfqOrderHash',
                 'getProtocolFeeMultiplier',
+                'registerAllowedRfqOrigins',
+                'getLimitOrderRelevantState',
+                'getRfqOrderRelevantState',
+                'batchGetLimitOrderRelevantStates',
+                'batchGetRfqOrderRelevantStates',
             ],
         },
     };

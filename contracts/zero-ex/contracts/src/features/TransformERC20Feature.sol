@@ -35,7 +35,6 @@ import "../transformers/IERC20Transformer.sol";
 import "../transformers/LibERC20Transformer.sol";
 import "./ITransformERC20Feature.sol";
 import "./IFeature.sol";
-import "./ISignatureValidatorFeature.sol";
 
 
 /// @dev Feature to composably transform between ERC20 tokens.
@@ -372,37 +371,6 @@ contract TransformERC20Feature is
                 transformation.data,
                 resultData
             ).rrevert();
-        }
-    }
-
-    /// @dev Check if a call data hash is signed by the quote signer.
-    /// @param callDataHash The hash of the callData.
-    /// @param signature The signature provided by `getQuoteSigner()`.
-    /// @return validCallDataHash `callDataHash` if so and `0x0` otherwise.
-    function _getValidCallDataHash(
-        bytes32 callDataHash,
-        bytes memory signature
-    )
-        private
-        view
-        returns (bytes32 validCallDataHash)
-    {
-        address quoteSigner = getQuoteSigner();
-        if (quoteSigner == address(0)) {
-            // If no quote signer is configured, then all calldata hashes are
-            // valid.
-            return callDataHash;
-        }
-        if (signature.length == 0) {
-            return bytes32(0);
-        }
-
-        if (ISignatureValidatorFeature(address(this)).isValidHashSignature(
-            callDataHash,
-            quoteSigner,
-            signature
-        )) {
-            return callDataHash;
         }
     }
 }
