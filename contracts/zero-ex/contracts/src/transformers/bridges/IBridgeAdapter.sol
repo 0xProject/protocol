@@ -51,7 +51,7 @@ interface IBridgeAdapter {
     /// @param outputToken The token the bridge is converting to.
     /// @param inputTokenAmount Amount of input token sold.
     /// @param outputTokenAmount Amount of output token bought.
-    event BridgeOrderFilled(
+    event BridgeFill(
         uint256 source,
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,

@@ -187,7 +187,7 @@ contract BridgeAdapter is
             );
         }
 
-        emit BridgeOrderFilled(
+        emit BridgeFill(
             order.source,
             sellToken,
             buyToken,
