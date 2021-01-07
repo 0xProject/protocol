@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.6.0",
+        "changes": [
+            {
+                "note": "Update `BridgeAdapter` deployment",
+                "pr": 104
+            }
+        ]
+    },
+    {
         "timestamp": 1609802516,
         "version": "6.5.9",
         "changes": [
