@@ -14,7 +14,7 @@ Exchange V4
     exchangeProxyAllowanceTarget, `0xf740b67da229f2f10bcbd38a7979992fcc71b8eb <https://etherscan.io/address//0xf740b67da229f2f10bcbd38a7979992fcc71b8eb>`_
     exchangeProxyFlashWallet, `0x22f9dcf4647084d6c31b2765f6910cd85c178c18 <https://etherscan.io/address//0x22f9dcf4647084d6c31b2765f6910cd85c178c18>`_
     exchangeProxyGovernor, `0x618f9c67ce7bf1a50afa1e7e0238422601b0ff6e <https://etherscan.io/address//0x618f9c67ce7bf1a50afa1e7e0238422601b0ff6e>`_
-    exchangeProxyLiquidityProviderSandbox, `0xdb971b18ea5075734cec1241732cc1b41031dfc9 <https://etherscan.io/address//0xdb971b18ea5075734cec1241732cc1b41031dfc9>`_
+    exchangeProxyLiquidityProviderSandbox, `0x407b4128e9ecad8769b2332312a9f655cb9f5f3a <https://etherscan.io/address//0x407b4128e9ecad8769b2332312a9f655cb9f5f3a>`_
     exchangeProxyTransformerDeployer, `0x39dce47a67ad34344eab877eae3ef1fa2a1d50bb <https://etherscan.io/address//0x39dce47a67ad34344eab877eae3ef1fa2a1d50bb>`_
 
 
