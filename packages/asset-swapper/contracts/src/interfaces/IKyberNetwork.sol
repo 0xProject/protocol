@@ -44,6 +44,22 @@ interface IKyberHintHandler {
 
     enum TradeType {BestOfAll, MaskIn, MaskOut, Split}
 
+    enum ProcessWithRate {NotRequired, Required}
+
+    function getTradingReserves(
+        address tokenSrc,
+        address tokenDest,
+        bool isTokenToToken,
+        bytes calldata hint
+    )
+        external
+        view
+        returns (
+            bytes32[] memory reserveIds,
+            uint256[] memory splitValuesBps,
+            ProcessWithRate processWithRate
+        );
+
     function buildTokenToEthHint(
         address tokenSrc,
         TradeType tokenToEthType,

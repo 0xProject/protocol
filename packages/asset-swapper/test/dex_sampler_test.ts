@@ -147,11 +147,11 @@ describe('DexSampler tests', () => {
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const sampler = new MockSamplerContract({
-                sampleSellsFromKyberNetwork: (_reserveId, takerToken, makerToken, fillAmounts) => {
+                sampleSellsFromKyberNetwork: (_reserveOffset, takerToken, makerToken, fillAmounts) => {
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
                     expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
-                    return ['0x', expectedMakerFillAmounts];
+                    return ['0x', '0x', expectedMakerFillAmounts];
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
@@ -165,7 +165,7 @@ describe('DexSampler tests', () => {
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getKyberSellQuotes(
-                    '0x',
+                    new BigNumber(0),
                     expectedMakerToken,
                     expectedTakerToken,
                     expectedTakerFillAmounts,
