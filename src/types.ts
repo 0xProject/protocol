@@ -649,8 +649,8 @@ export interface SRAGetOrdersRequestOpts {
     takerAssetAddress?: string;
     exchangeAddress?: string;
     senderAddress?: string;
-    makerAssetData?: string;
-    takerAssetData?: string;
+    makerAssetData?: string | string[];
+    takerAssetData?: string | string[];
     makerFeeAssetData?: string;
     takerFeeAssetData?: string;
     makerAddress?: string;

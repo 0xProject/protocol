@@ -18,6 +18,7 @@ import { schemas as apiSchemas } from '../schemas/schemas';
 import { OrderBookService } from '../services/orderbook_service';
 import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
+import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
 export class SRAHandlers {
@@ -63,10 +64,20 @@ export class SRAHandlers {
         }
     }
     public async ordersAsync(req: express.Request, res: express.Response): Promise<void> {
-        schemaUtils.validateSchema(req.query, apiSchemas.sraGetOrdersRequestSchema);
-        const isUnfillable = req.query.unfillable ? req.query.unfillable === 'true' : false;
+        // Parse the maker asset data, allowing for a comma separated list
+        const query = {
+            ...req.query,
+            makerAssetData: req.query.makerAssetData
+                ? parseUtils.parseAssetDatasStringFromQueryParam(req.query.makerAssetData as string)
+                : undefined,
+            takerAssetData: req.query.takerAssetData
+                ? parseUtils.parseAssetDatasStringFromQueryParam(req.query.takerAssetData as string)
+                : undefined,
+        } as any;
+        schemaUtils.validateSchema(query, apiSchemas.sraGetOrdersRequestSchema);
+        const isUnfillable = query.unfillable ? query.unfillable === 'true' : false;
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
-        const paginatedOrders = await this._orderBook.getOrdersAsync(page, perPage, { ...req.query, isUnfillable });
+        const paginatedOrders = await this._orderBook.getOrdersAsync(page, perPage, { ...query, isUnfillable });
         res.status(HttpStatus.OK).send(paginatedOrders);
     }
     public async orderbookAsync(req: express.Request, res: express.Response): Promise<void> {

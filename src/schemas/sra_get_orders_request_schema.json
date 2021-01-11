@@ -21,10 +21,30 @@
             "$ref": "/addressSchema"
         },
         "makerAssetData": {
-            "$ref": "/hexSchema"
+            "oneOf": [
+                {
+                    "$ref": "/hexSchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "/hexSchema"
+                    }
+                }
+            ]
         },
         "takerAssetData": {
-            "$ref": "/hexSchema"
+            "oneOf": [
+                {
+                    "$ref": "/hexSchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "/hexSchema"
+                    }
+                }
+            ]
         },
         "traderAssetData": {
             "$ref": "/hexSchema"

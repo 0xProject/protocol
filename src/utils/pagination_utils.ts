@@ -5,14 +5,34 @@ import { DEFAULT_PAGE, DEFAULT_PER_PAGE } from '../constants';
 import { ValidationError, ValidationErrorCodes } from '../errors';
 
 export const paginationUtils = {
-    paginate: <T>(collection: T[], page: number, perPage: number) => {
-        const paginatedCollection = {
-            total: collection.length,
+    /**
+     *  Paginates locally in memory from a larger collection
+     * @param records The records to paginate
+     * @param page The current page for these records
+     * @param perPage The total number of records to return per page
+     */
+    paginate: <T>(records: T[], page: number, perPage: number) => {
+        return paginationUtils.paginateSerialize(
+            records.slice((page - 1) * perPage, page * perPage),
+            records.length,
             page,
             perPage,
-            records: collection.slice((page - 1) * perPage, page * perPage),
+        );
+    },
+    paginateDBFilters: (page: number, perPage: number) => {
+        return {
+            skip: (page - 1) * perPage,
+            take: perPage,
         };
-        return paginatedCollection;
+    },
+    paginateSerialize: <T>(collection: T[], total: number, page: number, perPage: number) => {
+        const paginated = {
+            total,
+            page,
+            perPage,
+            records: collection,
+        };
+        return paginated;
     },
     parsePaginationConfig: (req: express.Request): { page: number; perPage: number } => {
         const page = req.query.page === undefined ? DEFAULT_PAGE : Number(req.query.page);

@@ -15,7 +15,7 @@ import {
     StaticCallAssetData,
 } from '@0x/types';
 import { BigNumber, errorUtils } from '@0x/utils';
-import { Connection } from 'typeorm';
+import { Connection, In, Like } from 'typeorm';
 
 import {
     CHAIN_ID,
@@ -290,6 +290,18 @@ export const orderUtils = {
             takerFeeAssetData: TAKER_FEE_ASSET_DATA,
         };
         return orderConfigResponse;
+    },
+    assetDataOrAssetProxyId: (assetData: string | string[] | undefined, assetProxyId: string | undefined) => {
+        if (!assetData && !assetProxyId) {
+            return undefined;
+        }
+        if (assetProxyId) {
+            return Like(`${assetProxyId}%`);
+        }
+        if (Array.isArray(assetData)) {
+            return In(assetData);
+        }
+        return assetData;
     },
     filterOrders: (apiOrders: APIOrderWithMetaData[], filters: SRAGetOrdersRequestOpts): APIOrderWithMetaData[] => {
         const { traderAddress, makerAssetAddress, takerAssetAddress, makerAssetProxyId, takerAssetProxyId } = filters;
