@@ -9,6 +9,7 @@ import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateF
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
+import * as BridgeSource from '../test/generated-artifacts/BridgeSource.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../test/generated-artifacts/FillQuoteTransformer.json';
@@ -24,10 +25,8 @@ import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeatur
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
 import * as IERC20Transformer from '../test/generated-artifacts/IERC20Transformer.json';
-import * as IExchange from '../test/generated-artifacts/IExchange.json';
 import * as IFeature from '../test/generated-artifacts/IFeature.json';
 import * as IFlashWallet from '../test/generated-artifacts/IFlashWallet.json';
-import * as IGasToken from '../test/generated-artifacts/IGasToken.json';
 import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvider.json';
 import * as ILiquidityProviderFeature from '../test/generated-artifacts/ILiquidityProviderFeature.json';
 import * as ILiquidityProviderSandbox from '../test/generated-artifacts/ILiquidityProviderSandbox.json';
@@ -53,7 +52,6 @@ import * as LibMigrate from '../test/generated-artifacts/LibMigrate.json';
 import * as LibNativeOrder from '../test/generated-artifacts/LibNativeOrder.json';
 import * as LibNativeOrdersRichErrors from '../test/generated-artifacts/LibNativeOrdersRichErrors.json';
 import * as LibNativeOrdersStorage from '../test/generated-artifacts/LibNativeOrdersStorage.json';
-import * as LibOrderHash from '../test/generated-artifacts/LibOrderHash.json';
 import * as LibOwnableRichErrors from '../test/generated-artifacts/LibOwnableRichErrors.json';
 import * as LibOwnableStorage from '../test/generated-artifacts/LibOwnableStorage.json';
 import * as LibProxyRichErrors from '../test/generated-artifacts/LibProxyRichErrors.json';
@@ -73,7 +71,6 @@ import * as LiquidityProviderFeature from '../test/generated-artifacts/Liquidity
 import * as LiquidityProviderSandbox from '../test/generated-artifacts/LiquidityProviderSandbox.json';
 import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
-import * as MixinAdapterAddresses from '../test/generated-artifacts/MixinAdapterAddresses.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
 import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
@@ -211,8 +208,8 @@ export const artifacts = {
     Transformer: Transformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     BridgeAdapter: BridgeAdapter as ContractArtifact,
+    BridgeSource: BridgeSource as ContractArtifact,
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
-    MixinAdapterAddresses: MixinAdapterAddresses as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
     MixinCoFiX: MixinCoFiX as ContractArtifact,
@@ -230,10 +227,7 @@ export const artifacts = {
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
-    IExchange: IExchange as ContractArtifact,
-    IGasToken: IGasToken as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
-    LibOrderHash: LibOrderHash as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
     TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,

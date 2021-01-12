@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 
 interface IOasis {
 
@@ -42,21 +42,12 @@ interface IOasis {
         returns (uint256 boughtAmount);
 }
 
-contract MixinOasis is
-    MixinAdapterAddresses
-{
+contract MixinOasis {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the Oasis `MatchingMarket` contract.
-    IOasis private immutable OASIS;
-
-    constructor(AdapterAddresses memory addresses)
-        public
-    {
-        OASIS = IOasis(addresses.oasis);
-    }
-
     function _tradeOasis(
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
@@ -64,15 +55,16 @@ contract MixinOasis is
         internal
         returns (uint256 boughtAmount)
     {
-        // Decode the bridge data to get the `sellToken`.
-        (IERC20TokenV06 sellToken) = abi.decode(bridgeData, (IERC20TokenV06));
+
+        (IOasis oasis) = abi.decode(bridgeData, (IOasis));
+
         // Grant an allowance to the exchange to spend `sellToken` token.
         sellToken.approveIfBelow(
-            address(OASIS),
+            address(oasis),
             sellAmount
         );
         // Try to sell all of this contract's `sellToken` token balance.
-        boughtAmount = OASIS.sellAllAmount(
+        boughtAmount = oasis.sellAllAmount(
             sellToken,
             sellAmount,
             buyToken,
