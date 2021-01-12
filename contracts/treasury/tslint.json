@@ -1,0 +1,13 @@
+{
+    "extends": ["@0x/tslint-config"],
+    "rules": {
+        "custom-no-magic-numbers": false,
+        "max-file-line-count": false,
+        "no-non-null-assertion": false,
+        "no-unnecessary-type-assertion": false,
+        "number-literal-format": false
+    },
+    "linterOptions": {
+        "exclude": ["src/artifacts.ts", "test/artifacts.ts"]
+    }
+}

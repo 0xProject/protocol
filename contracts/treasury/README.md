@@ -1,13 +1,13 @@
-## ZeroEx (ExchangeProxy)
+## Governance
 
-This package contains contracts for the ZeroEx extensible contract architecture.
+This package contains contracts for the governance of the 0x ZRX treasury.
 
 ## Installation
 
 **Install**
 
 ```bash
-npm install @0x/contracts-zero-ex --save
+npm install @0x/contracts-treasury --save
 ```
 
 ## Contributing
@@ -37,13 +37,13 @@ yarn install
 To build this package and all other monorepo packages that it depends on, run the following from the monorepo root directory:
 
 ```bash
-PKG=@0x/contracts-zero-ex yarn build
+PKG=@0x/contracts-treasury yarn build
 ```
 
 Or continuously rebuild on change:
 
 ```bash
-PKG=@0x/contracts-zero-ex yarn watch
+PKG=@0x/contracts-treasury yarn watch
 ```
 
 ### Clean
