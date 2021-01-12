@@ -310,16 +310,7 @@ export async function runMigrationsAsync(
         provider,
         txDefaults,
         allArtifacts,
-        {
-            kyberNetworkProxy: NULL_ADDRESS,
-            oasis: NULL_ADDRESS,
-            sushiswapRouter: NULL_ADDRESS,
-            uniswapV2Router: NULL_ADDRESS,
-            uniswapExchangeFactory: NULL_ADDRESS,
-            mStable: NULL_ADDRESS,
-            dodoHelper: NULL_ADDRESS,
-            weth: etherToken.address,
-        },
+        etherToken.address,
     );
 
     const exchangeProxy = await fullMigrateExchangeProxyAsync(txDefaults.from, provider, txDefaults);
