@@ -142,7 +142,7 @@
         "@0x/web3-wrapper": "^7.2.8",
         "@types/uuid": "^7.0.2",
         "@types/uuid-validate": "^0.0.1",
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "body-parser": "^1.19.0",
         "cors": "^2.8.5",
         "debug": "^4.1.1",
