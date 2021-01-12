@@ -20,7 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./mixins/MixinAdapterAddresses.sol";
+import "./IBridgeAdapter.sol";
+import "./BridgeSource.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
@@ -38,7 +39,7 @@ import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract BridgeAdapter is
-    MixinAdapterAddresses,
+    IBridgeAdapter,
     MixinBalancer,
     MixinBancor,
     MixinCoFiX,
@@ -55,203 +56,146 @@ contract BridgeAdapter is
     MixinUniswapV2,
     MixinZeroExBridge
 {
-
-    /// @dev Emitted when a trade occurs.
-    /// @param inputToken The token the bridge is converting from.
-    /// @param outputToken The token the bridge is converting to.
-    /// @param inputTokenAmount Amount of input token.
-    /// @param outputTokenAmount Amount of output token.
-    /// @param from The bridge address, indicating the underlying source of the fill.
-    /// @param to The `to` address, currrently `address(this)`
-    event ERC20BridgeTransfer(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount,
-        address from,
-        address to
-    );
-
-    address private immutable BALANCER_BRIDGE_ADDRESS;
-    address private immutable BANCOR_BRIDGE_ADDRESS;
-    address private immutable COFIX_BRIDGE_ADDRESS;
-    address private immutable CREAM_BRIDGE_ADDRESS;
-    address private immutable CURVE_BRIDGE_ADDRESS;
-    address private immutable CRYPTO_COM_BRIDGE_ADDRESS;
-    address private immutable DODO_BRIDGE_ADDRESS;
-    address private immutable KYBER_BRIDGE_ADDRESS;
-    address private immutable MOONISWAP_BRIDGE_ADDRESS;
-    address private immutable MSTABLE_BRIDGE_ADDRESS;
-    address private immutable OASIS_BRIDGE_ADDRESS;
-    address private immutable SHELL_BRIDGE_ADDRESS;
-    address private immutable SNOW_SWAP_BRIDGE_ADDRESS;
-    address private immutable SUSHISWAP_BRIDGE_ADDRESS;
-    address private immutable SWERVE_BRIDGE_ADDRESS;
-    address private immutable UNISWAP_BRIDGE_ADDRESS;
-    address private immutable UNISWAP_V2_BRIDGE_ADDRESS;
-
-    constructor(AdapterAddresses memory addresses)
+    constructor(IEtherTokenV06 weth)
         public
         MixinBalancer()
-        MixinBancor(addresses)
+        MixinBancor(weth)
         MixinCoFiX()
         MixinCurve()
         MixinCryptoCom()
-        MixinDodo(addresses)
-        MixinKyber(addresses)
-        MixinMooniswap(addresses)
-        MixinMStable(addresses)
-        MixinOasis(addresses)
+        MixinDodo()
+        MixinKyber(weth)
+        MixinMooniswap(weth)
+        MixinMStable()
+        MixinOasis()
         MixinShell()
-        MixinSushiswap(addresses)
-        MixinUniswap(addresses)
-        MixinUniswapV2(addresses)
+        MixinSushiswap()
+        MixinUniswap(weth)
+        MixinUniswapV2()
         MixinZeroExBridge()
-    {
-        BALANCER_BRIDGE_ADDRESS = addresses.balancerBridge;
-        BANCOR_BRIDGE_ADDRESS = addresses.bancorBridge;
-        COFIX_BRIDGE_ADDRESS = addresses.cofixBridge;
-        CURVE_BRIDGE_ADDRESS = addresses.curveBridge;
-        CRYPTO_COM_BRIDGE_ADDRESS = addresses.cryptoComBridge;
-        KYBER_BRIDGE_ADDRESS = addresses.kyberBridge;
-        MOONISWAP_BRIDGE_ADDRESS = addresses.mooniswapBridge;
-        MSTABLE_BRIDGE_ADDRESS = addresses.mStableBridge;
-        OASIS_BRIDGE_ADDRESS = addresses.oasisBridge;
-        SHELL_BRIDGE_ADDRESS = addresses.shellBridge;
-        SUSHISWAP_BRIDGE_ADDRESS = addresses.sushiswapBridge;
-        SWERVE_BRIDGE_ADDRESS = addresses.swerveBridge;
-        UNISWAP_BRIDGE_ADDRESS = addresses.uniswapBridge;
-        UNISWAP_V2_BRIDGE_ADDRESS = addresses.uniswapV2Bridge;
-        CREAM_BRIDGE_ADDRESS = addresses.creamBridge;
-        SNOW_SWAP_BRIDGE_ADDRESS = addresses.snowSwapBridge;
-        DODO_BRIDGE_ADDRESS = addresses.dodoBridge;
-    }
+    {}
 
     function trade(
-        bytes calldata makerAssetData,
+        BridgeOrder memory order,
         IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
         uint256 sellAmount
     )
-        external
+        public
+        override
         returns (uint256 boughtAmount)
     {
-        (
-            IERC20TokenV06 buyToken,
-            address bridgeAddress,
-            bytes memory bridgeData
-        ) = abi.decode(
-            makerAssetData[4:],
-            (IERC20TokenV06, address, bytes)
-        );
-        require(
-            bridgeAddress != address(this) && bridgeAddress != address(0),
-            "BridgeAdapter/INVALID_BRIDGE_ADDRESS"
-        );
-
-        if (bridgeAddress == CURVE_BRIDGE_ADDRESS ||
-            bridgeAddress == SWERVE_BRIDGE_ADDRESS ||
-            bridgeAddress == SNOW_SWAP_BRIDGE_ADDRESS) {
+        if (order.source == BridgeSource.CURVE ||
+            order.source == BridgeSource.SWERVE ||
+            order.source == BridgeSource.SNOWSWAP) {
             boughtAmount = _tradeCurve(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == SUSHISWAP_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeSushiswap(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == UNISWAP_V2_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeUniswapV2(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == UNISWAP_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeUniswap(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == BALANCER_BRIDGE_ADDRESS ||
-                   bridgeAddress == CREAM_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeBalancer(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == KYBER_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeKyber(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == MOONISWAP_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeMooniswap(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == MSTABLE_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeMStable(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == OASIS_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeOasis(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == SHELL_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeShell(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == DODO_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeDodo(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == CRYPTO_COM_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeCryptoCom(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == BANCOR_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeBancor(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else if (bridgeAddress == COFIX_BRIDGE_ADDRESS) {
-            boughtAmount = _tradeCoFiX(
-                buyToken,
-                sellAmount,
-                bridgeData
-            );
-        } else {
-            boughtAmount = _tradeZeroExBridge(
-                bridgeAddress,
                 sellToken,
                 buyToken,
                 sellAmount,
-                bridgeData
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.SUSHISWAP) {
+            boughtAmount = _tradeSushiswap(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.UNISWAPV2) {
+            boughtAmount = _tradeUniswapV2(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.UNISWAP) {
+            boughtAmount = _tradeUniswap(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.BALANCER ||
+                   order.source == BridgeSource.CREAM) {
+            boughtAmount = _tradeBalancer(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.KYBER) {
+            boughtAmount = _tradeKyber(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.MOONISWAP) {
+            boughtAmount = _tradeMooniswap(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.MSTABLE) {
+            boughtAmount = _tradeMStable(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.OASIS) {
+            boughtAmount = _tradeOasis(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.SHELL) {
+            boughtAmount = _tradeShell(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.DODO) {
+            boughtAmount = _tradeDodo(
+                sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.CRYPTOCOM) {
+            boughtAmount = _tradeCryptoCom(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.BANCOR) {
+            boughtAmount = _tradeBancor(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.COFIX) {
+            boughtAmount = _tradeCoFiX(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else {
+            boughtAmount = _tradeZeroExBridge(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
             );
         }
 
-        emit ERC20BridgeTransfer(
+        emit BridgeFill(
+            order.source,
             sellToken,
             buyToken,
             sellAmount,
-            boughtAmount,
-            bridgeAddress,
-            address(this)
+            boughtAmount
         );
     }
 }

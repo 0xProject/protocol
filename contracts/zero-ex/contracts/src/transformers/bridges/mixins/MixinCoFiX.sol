@@ -23,7 +23,6 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "./MixinAdapterAddresses.sol";
 
 
 interface ICoFiXRouter {
@@ -53,15 +52,20 @@ interface ICoFiXPair {
     function swapWithExact(address outToken, address to)
         external
         payable
-        returns (uint amountIn, uint amountOut, uint oracleFeeChange, uint256[4] memory tradeInfo);
+        returns (
+            uint amountIn,
+            uint amountOut,
+            uint oracleFeeChange,
+            uint256[4] memory tradeInfo
+        );
 }
 
-contract MixinCoFiX is
-    MixinAdapterAddresses
-{
+contract MixinCoFiX {
+
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeCoFiX(
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
@@ -69,15 +73,16 @@ contract MixinCoFiX is
         internal
         returns (uint256 boughtAmount)
     {
-        (address fromTokenAddress, uint256 fee, address pool) = abi.decode(bridgeData, (address, uint256, address));
+        (uint256 fee, ICoFiXPair pool) = abi.decode(bridgeData, (uint256, ICoFiXPair));
         // Transfer tokens into the pool
         LibERC20TokenV06.compatTransfer(
-            IERC20TokenV06(fromTokenAddress),
-            pool,
-            sellAmount);
+            sellToken,
+            address(pool),
+            sellAmount
+        );
         // Call the swap exact with the tokens now in the pool
         // pay the NEST Oracle fee with ETH
-        (/* In */, boughtAmount, , ) = ICoFiXPair(pool).swapWithExact{value: fee}(
+        (/* In */, boughtAmount, , ) = pool.swapWithExact{value: fee}(
             address(buyToken),
             address(this)
         );

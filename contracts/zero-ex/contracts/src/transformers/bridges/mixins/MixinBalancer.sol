@@ -46,6 +46,7 @@ contract MixinBalancer {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeBalancer(
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
@@ -54,9 +55,9 @@ contract MixinBalancer {
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.
-        (IERC20TokenV06 sellToken, IBalancerPool pool) = abi.decode(
+        (IBalancerPool pool) = abi.decode(
             bridgeData,
-            (IERC20TokenV06, IBalancerPool)
+            (IBalancerPool)
         );
         sellToken.approveIfBelow(
             address(pool),

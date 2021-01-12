@@ -5,6 +5,10 @@
             {
                 "note": "Use consistent returndatasize checks in UniswapFeature",
                 "pr": 96
+            },
+            {
+                "note": "Update FQT for v4 native orders",
+                "pr": 104
             }
         ]
     },

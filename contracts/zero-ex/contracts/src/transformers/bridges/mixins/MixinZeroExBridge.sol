@@ -31,7 +31,6 @@ contract MixinZeroExBridge {
     using LibSafeMathV06 for uint256;
 
     function _tradeZeroExBridge(
-        address bridgeAddress,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
@@ -40,17 +39,19 @@ contract MixinZeroExBridge {
         internal
         returns (uint256 boughtAmount)
     {
+        (ILiquidityProvider provider, bytes memory lpData) =
+            abi.decode(bridgeData, (ILiquidityProvider, bytes));
         // Trade the good old fashioned way
         sellToken.compatTransfer(
-            bridgeAddress,
+            address(provider),
             sellAmount
         );
-        boughtAmount = ILiquidityProvider(bridgeAddress).sellTokenForToken(
+        boughtAmount = provider.sellTokenForToken(
             address(sellToken),
             address(buyToken),
             address(this), // recipient
             1, // minBuyAmount
-            bridgeData
+            lpData
         );
     }
 }
