@@ -7,8 +7,7 @@ Below are links to our third-party audit reports.
 +------------------+---------------------------------------------------------------------------------------------------------------+
 | **Release**      | **Reports**                                                                                                   |
 +------------------+---------------------------------------------------------------------------------------------------------------+
-| Exchange V4      | We have an external audit scheduld with Consensys Diligence that will run from                                |
-|                  | November 30th - December 14th, 2020.                                                                          |
+| Exchange V4      | * `Consensys Diligence (December 2020) <https://consensys.net/diligence/audits/2020/12/0x-exchange-v4/>`__    |
 +------------------+---------------------------------------------------------------------------------------------------------------+
 | Exchange V3      | * `Trail of Bits <http://zeips.0x.org.s3-website.us-east-2.amazonaws.com/audits/56/trail-of-bits/audit.pdf>`_ |
 |                  | * `Consensys Diligence (Exchange) <https://diligence.consensys.net/audits/2019/09/0x-v3-exchange/>`__         |

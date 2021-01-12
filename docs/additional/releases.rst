@@ -5,6 +5,10 @@ Releases
 .. role:: strike
     :class: strike
 
+.. note:: 
+
+    Come out and vote! The community vote for Protocol V4 goes live on Saturday, January 16 2021. Cast your vote `HERE <https://0x.org/zrx/vote/zeip-82>`_! 
+
 This page outlines upcoming releases and expected changes.
 
 .. table::
@@ -13,13 +17,13 @@ This page outlines upcoming releases and expected changes.
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | **Name**                                    | **Overview**                                                  | **Est Release Date** | **Status**  | **Additional**                                                                                                              |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
-    | `Panettone`_                                | Minor patches from Consensys Audit                            | 01/11/21             | Timelocked  |                                                                                                                             |
-    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | `Squire`_                                   | Aggregation for `V4 Orders <../basics/orders.html>`_          | TBA                  | Development | Depends on AssetSwapper / 0x API Upgrade                                                                                    |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | `Babooshka`_                                | Connect Exchange Proxy to Staking                             | 01/24/21             | Vote        | Requires community vote                                                                                                     |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | *The following releases have been deployed* |                                                               |                      |             |                                                                                                                             |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
+    | `Panettone`_                                | Minor patches from `Consensys Audit <./audits.html>`_         | 01/12/21             | Deployed    | `Release Notes <https://github.com/0xProject/0x-migrations/blob/main/src/exchange-proxy/migrations/LOG.md#panettone>`_      |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | `cyberpants2077`_                           | `V4 Orders <../basics/orders.html>`_                          | 01/05/21             | Deployed    | `Release Notes <https://github.com/0xProject/0x-migrations/blob/main/src/exchange-proxy/migrations/LOG.md#cyberpants2077>`_ |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
@@ -33,16 +37,6 @@ This page outlines upcoming releases and expected changes.
 
 Upcoming
 ========
-
-Panettone
-----------
-
-- Minor patches from the Consensys Audit. No breaking changes.
-- Decommissions the internal `_executeMetaTransaction` function.
-- Extends deployment timelock from 24h to 48h.
-- Decommission `SignatureValidationFeature <../architecture/features.html>`_.
-- Decommission `TokenSpenderFeature <../architecture/features.html>`_.
-
 
 Squire
 -------
@@ -59,6 +53,15 @@ Babooshka
 
 Past
 =====
+
+Panettone
+----------
+
+- Minor patches from the Consensys Audit. No breaking changes.
+- Decommissions the internal `_executeMetaTransaction` function.
+- Extends deployment timelock from 24h to 48h.
+- Decommission `SignatureValidationFeature <../architecture/features.html>`_.
+- Decommission `TokenSpenderFeature <../architecture/features.html>`_.
 
 cyberpants2077
 ---------------

@@ -26,7 +26,6 @@
         "generated-artifacts/NativeOrdersFeature.json",
         "generated-artifacts/OwnableFeature.json",
         "generated-artifacts/PayTakerTransformer.json",
-        "generated-artifacts/SignatureValidatorFeature.json",
         "generated-artifacts/SimpleFunctionRegistryFeature.json",
         "generated-artifacts/TokenSpenderFeature.json",
         "generated-artifacts/TransformERC20Feature.json",
