@@ -23,7 +23,6 @@ pragma experimental ABIEncoderV2;
 import "./features/IOwnableFeature.sol";
 import "./features/ISimpleFunctionRegistryFeature.sol";
 import "./features/ITokenSpenderFeature.sol";
-import "./features/ISignatureValidatorFeature.sol";
 import "./features/ITransformERC20Feature.sol";
 import "./features/IMetaTransactionsFeature.sol";
 import "./features/IUniswapFeature.sol";
@@ -36,7 +35,6 @@ interface IZeroEx is
     IOwnableFeature,
     ISimpleFunctionRegistryFeature,
     ITokenSpenderFeature,
-    ISignatureValidatorFeature,
     ITransformERC20Feature,
     IMetaTransactionsFeature,
     IUniswapFeature,

@@ -35,7 +35,6 @@ import * as IMetaTransactionsFeature from '../test/generated-artifacts/IMetaTran
 import * as INativeOrdersFeature from '../test/generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../test/generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../test/generated-artifacts/IOwnableFeature.json';
-import * as ISignatureValidatorFeature from '../test/generated-artifacts/ISignatureValidatorFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../test/generated-artifacts/ISimpleFunctionRegistryFeature.json';
 import * as IStaking from '../test/generated-artifacts/IStaking.json';
 import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts/ITestSimpleFunctionRegistryFeature.json';
@@ -94,7 +93,6 @@ import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFe
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
-import * as SignatureValidatorFeature from '../test/generated-artifacts/SignatureValidatorFeature.json';
 import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
 import * as TestCallTarget from '../test/generated-artifacts/TestCallTarget.json';
@@ -172,7 +170,6 @@ export const artifacts = {
     IMetaTransactionsFeature: IMetaTransactionsFeature as ContractArtifact,
     INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
     IOwnableFeature: IOwnableFeature as ContractArtifact,
-    ISignatureValidatorFeature: ISignatureValidatorFeature as ContractArtifact,
     ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,
     ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
@@ -181,7 +178,6 @@ export const artifacts = {
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
-    SignatureValidatorFeature: SignatureValidatorFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
     TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,

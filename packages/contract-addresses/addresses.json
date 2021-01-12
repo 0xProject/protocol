@@ -198,10 +198,10 @@
         "exchangeProxyFlashWallet": "0xb9682a8e7920b431f1d412b8510f0077410c8faa",
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0x3f16ca81691dab9184cb4606c361d73c4fd2510a",
-            "payTakerTransformer": "0x99356167edba8fbdc36959e3f5d0c43d1ba9c6db",
-            "affiliateFeeTransformer": "0x45b3a72221e571017c0f0ec42189e11d149d0ace",
-            "fillQuoteTransformer": "0xdd66c23e07b4d6925b6089b5fe6fc9e62941afe8"
+            "wethTransformer": "0x7209185959d7227fb77274e1e88151d7c4c368d3",
+            "payTakerTransformer": "0x3f16ca81691dab9184cb4606c361d73c4fd2510a",
+            "affiliateFeeTransformer": "0x99356167edba8fbdc36959e3f5d0c43d1ba9c6db",
+            "fillQuoteTransformer": "0x45b3a72221e571017c0f0ec42189e11d149d0ace"
         }
     }
 }

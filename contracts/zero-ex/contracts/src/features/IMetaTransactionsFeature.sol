@@ -86,21 +86,6 @@ interface IMetaTransactionsFeature {
         payable
         returns (bytes[] memory returnResults);
 
-    /// @dev Execute a meta-transaction via `sender`. Privileged variant.
-    ///      Only callable from within.
-    /// @param sender Who is executing the meta-transaction.
-    /// @param mtx The meta-transaction.
-    /// @param signature The signature by `mtx.signer`.
-    /// @return returnResult The ABI-encoded result of the underlying call.
-    function _executeMetaTransaction(
-        address sender,
-        MetaTransactionData memory mtx,
-        LibSignature.Signature memory signature
-    )
-        external
-        payable
-        returns (bytes memory returnResult);
-
     /// @dev Get the block at which a meta-transaction has been executed.
     /// @param mtx The meta-transaction.
     /// @return blockNumber The block height when the meta-transactioin was executed.
