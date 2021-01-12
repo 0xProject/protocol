@@ -152,20 +152,12 @@ export interface FillQuoteTransformerBridgeOrder {
 /**
  * `FillQuoteTransformer.LimitOrderInfo`
  */
-export interface FillQuoteTransformerLimitOrderInfo {
-    order: LimitOrder;
-    signature: Signature;
-    maxTakerTokenFillAmount: BigNumber;
-}
+export type FillQuoteTransformerLimitOrderInfo = FillQouteTransformerNativeOrderInfo<LimitOrder>;
 
 /**
- * `FillQuoteTransformer.LimitOrderInfo`
+ * `FillQuoteTransformer.RfqOrderInfo`
  */
-export interface FillQuoteTransformerRfqOrderInfo {
-    order: RfqOrder;
-    signature: Signature;
-    maxTakerTokenFillAmount: BigNumber;
-}
+export type FillQuoteTransformerRfqOrderInfo = FillQouteTransformerNativeOrderInfo<RfqOrder>;
 
 /**
  * ABI-encode a `FillQuoteTransformer.TransformData` type.
