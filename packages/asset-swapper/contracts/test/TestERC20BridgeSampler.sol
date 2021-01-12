@@ -310,6 +310,7 @@ contract TestERC20BridgeSamplerKyberNetwork is
         )
     {
         reserveIds = new bytes32[](1);
+        reserveIds[0] = bytes32(uint256(1));
         splitValuesBps = new uint256[](0);
         processWithRate = ProcessWithRate.NotRequired;
     }

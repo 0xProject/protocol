@@ -700,32 +700,20 @@ export class SamplerOperations {
                 },
             });
         });
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<SamplerCallResult[]>(
-                    'batchCall',
-                    callResults,
-                );
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
-                    const [output] = rawSubCallResults[i].success
-                        ? op.handleCallResults(rawSubCallResults[i].data)
-                        : op.handleRevert(rawSubCallResults[i].data);
                     return {
                         source: op.source,
-                        output,
+                        output: samples[i][0],
                         input: sellAmount,
                         fillData: op.fillData,
                     };
                 });
             },
-            handleRevert: _callResults => {
-                return [];
-            },
-        };
+            () => [],
+        );
     }
 
     public getTwoHopBuyQuotes(
@@ -767,32 +755,20 @@ export class SamplerOperations {
                 },
             });
         });
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<SamplerCallResult[]>(
-                    'batchCall',
-                    callResults,
-                );
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
-                    const [output] = rawSubCallResults[i].success
-                        ? op.handleCallResults(rawSubCallResults[i].data)
-                        : op.handleRevert(rawSubCallResults[i].data);
                     return {
                         source: op.source,
-                        output,
+                        output: samples[i][0],
                         input: buyAmount,
                         fillData: op.fillData,
                     };
                 });
             },
-            handleRevert: _callResults => {
-                return [];
-            },
-        };
+            () => [],
+        );
     }
 
     public getSushiSwapSellQuotes(
@@ -931,21 +907,9 @@ export class SamplerOperations {
         const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, [takerFillAmount], {
             default: [],
         });
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<SamplerCallResult[]>(
-                    'batchCall',
-                    callResults,
-                );
-                const samples = subOps.map((op, i) =>
-                    rawSubCallResults[i].success
-                        ? op.handleCallResults(rawSubCallResults[i].data)
-                        : op.handleRevert(rawSubCallResults[i].data),
-                );
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 if (samples.length === 0) {
                     return ZERO_AMOUNT;
                 }
@@ -959,10 +923,8 @@ export class SamplerOperations {
                 const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
                 return medianSample.div(takerFillAmount);
             },
-            handleRevert: _callResults => {
-                return ZERO_AMOUNT;
-            },
-        };
+            () => ZERO_AMOUNT,
+        );
     }
 
     public getSellQuotes(
@@ -972,21 +934,9 @@ export class SamplerOperations {
         takerFillAmounts: BigNumber[],
     ): BatchedOperation<DexSample[][]> {
         const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, takerFillAmounts);
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<SamplerCallResult[]>(
-                    'batchCall',
-                    callResults,
-                );
-                const samples = subOps.map((op, i) =>
-                    rawSubCallResults[i].success
-                        ? op.handleCallResults(rawSubCallResults[i].data)
-                        : op.handleRevert(rawSubCallResults[i].data),
-                );
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
                     return samples[i].map((output, j) => ({
                         source: op.source,
@@ -996,10 +946,8 @@ export class SamplerOperations {
                     }));
                 });
             },
-            handleRevert: _callResults => {
-                return [];
-            },
-        };
+            () => [],
+        );
     }
 
     public getBuyQuotes(
@@ -1009,21 +957,9 @@ export class SamplerOperations {
         makerFillAmounts: BigNumber[],
     ): BatchedOperation<DexSample[][]> {
         const subOps = this._getBuyQuoteOperations(sources, makerToken, takerToken, makerFillAmounts);
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<SamplerCallResult[]>(
-                    'batchCall',
-                    callResults,
-                );
-                const samples = subOps.map((op, i) =>
-                    rawSubCallResults[i].success
-                        ? op.handleCallResults(rawSubCallResults[i].data)
-                        : op.handleRevert(rawSubCallResults[i].data),
-                );
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
                     return samples[i].map((output, j) => ({
                         source: op.source,
@@ -1033,10 +969,8 @@ export class SamplerOperations {
                     }));
                 });
             },
-            handleRevert: _callResults => {
-                return [];
-            },
-        };
+            () => [],
+        );
     }
 
     private _getSellQuoteOperations(
@@ -1222,7 +1156,7 @@ export class SamplerOperations {
                             return cryptoComOps;
                         case ERC20BridgeSource.Kyber:
                             return getKyberOffsets().map(offset =>
-                                this.getKyberSellQuotes(offset, makerToken, takerToken, makerFillAmounts),
+                                this.getKyberBuyQuotes(offset, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.Curve:
                             return getCurveInfosForPair(takerToken, makerToken).map(pool =>
@@ -1314,6 +1248,38 @@ export class SamplerOperations {
                 },
             ),
         );
+    }
+
+    /**
+     * Wraps `subOps` operations into a batch call to the sampler
+     * @param subOps An array of Sampler operations
+     * @param resultHandler The handler of the parsed batch results
+     * @param revertHandler The handle for when the batch operation reverts. The result data is provided as an argument
+     */
+    private _createBatch<T, TResult>(
+        subOps: Array<BatchedOperation<TResult>>,
+        resultHandler: (results: TResult[]) => T,
+        revertHandler: (result: string) => T,
+    ): BatchedOperation<T> {
+        return {
+            encodeCall: () => {
+                const subCalls = subOps.map(op => op.encodeCall());
+                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
+            },
+            handleCallResults: callResults => {
+                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<SamplerCallResult[]>(
+                    'batchCall',
+                    callResults,
+                );
+                const results = subOps.map((op, i) =>
+                    rawSubCallResults[i].success
+                        ? op.handleCallResults(rawSubCallResults[i].data)
+                        : op.handleRevert(rawSubCallResults[i].data),
+                );
+                return resultHandler(results);
+            },
+            handleRevert: revertHandler,
+        };
     }
 }
 // tslint:disable max-file-line-count

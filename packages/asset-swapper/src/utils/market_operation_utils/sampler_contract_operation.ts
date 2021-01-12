@@ -56,7 +56,7 @@ export class SamplerContractOperation<
         } catch (e) {
             // do nothing
         }
-        logUtils.warn(`ERC20BridgeSampler: ${this.source}.${this._samplerFunction.name} reverted ${msg}`);
+        logUtils.warn(`SamplerContractOperation: ${this.source}.${this._samplerFunction.name} reverted ${msg}`);
         return [];
     }
 }
