@@ -69,16 +69,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             env.provider,
             env.txDefaults,
             artifacts,
-            {
-                kyberNetworkProxy: NULL_ADDRESS,
-                oasis: NULL_ADDRESS,
-                sushiswapRouter: NULL_ADDRESS,
-                uniswapV2Router: NULL_ADDRESS,
-                uniswapExchangeFactory: NULL_ADDRESS,
-                mStable: NULL_ADDRESS,
-                dodoHelper: NULL_ADDRESS,
-                weth: NULL_ADDRESS,
-            },
+            NULL_ADDRESS,
         );
         transformer = await FillQuoteTransformerContract.deployFrom0xArtifactAsync(
             artifacts.FillQuoteTransformer,
@@ -1125,7 +1116,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             return assertFinalBalancesAsync(qfr);
         });
 
-        it('can fully sell to a single RFQ order', async () => {
+        it('can fully buy to a single RFQ order', async () => {
             const rfqOrders = [createRfqOrder()];
             const totalTakerTokens = BigNumber.sum(...rfqOrders.map(o => o.takerAmount));
             const data = createTransformData({
@@ -1149,7 +1140,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             return assertFinalBalancesAsync(qfr);
         });
 
-        it('can partially sell to a single RFQ order', async () => {
+        it('can partially buy to a single RFQ order', async () => {
             const rfqOrders = [createRfqOrder()];
             const totalTakerTokens = BigNumber.sum(...rfqOrders.map(o => o.takerAmount));
             const data = createTransformData({

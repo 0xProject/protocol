@@ -109,26 +109,28 @@ contract MixinUniswap {
 
     /// @dev Mainnet address of the WETH contract.
     IEtherTokenV06 private immutable WETH;
-    /// @dev Mainnet address of the `UniswapExchangeFactory` contract.
-    IUniswapExchangeFactory private immutable UNISWAP_EXCHANGE_FACTORY;
 
-    constructor(IBridgeAdapter.Addresses memory addresses)
+    constructor(IEtherTokenV06 weth)
         public
     {
-        WETH = IEtherTokenV06(addresses.weth);
-        UNISWAP_EXCHANGE_FACTORY = IUniswapExchangeFactory(addresses.uniswapExchangeFactory);
+        WETH = weth;
     }
 
     function _tradeUniswap(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
+        IUniswapExchangeFactory exchangeFactory =
+            abi.decode(bridgeData, (IUniswapExchangeFactory));
+
         // Get the exchange for the token pair.
         IUniswapExchange exchange = _getUniswapExchangeForTokenPair(
+            exchangeFactory,
             sellToken,
             buyToken
         );
@@ -193,10 +195,12 @@ contract MixinUniswap {
     /// @dev Retrieves the uniswap exchange for a given token pair.
     ///      In the case of a WETH-token exchange, this will be the non-WETH token.
     ///      In th ecase of a token-token exchange, this will be the first token.
+    /// @param exchangeFactory The exchange factory.
     /// @param sellToken The address of the token we are converting from.
     /// @param buyToken The address of the token we are converting to.
     /// @return exchange The uniswap exchange.
     function _getUniswapExchangeForTokenPair(
+        IUniswapExchangeFactory exchangeFactory,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken
     )
@@ -206,8 +210,8 @@ contract MixinUniswap {
     {
         // Whichever isn't WETH is the exchange token.
         exchange = sellToken == WETH
-            ? UNISWAP_EXCHANGE_FACTORY.getExchange(buyToken)
-            : UNISWAP_EXCHANGE_FACTORY.getExchange(sellToken);
-        require(address(exchange) != address(0), "NO_UNISWAP_EXCHANGE_FOR_TOKEN");
+            ? exchangeFactory.getExchange(buyToken)
+            : exchangeFactory.getExchange(sellToken);
+        require(address(exchange) != address(0), "MixinUniswap/NO_EXCHANGE");
     }
 }

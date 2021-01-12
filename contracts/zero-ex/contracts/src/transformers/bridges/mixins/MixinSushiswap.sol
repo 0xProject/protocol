@@ -29,15 +29,6 @@ contract MixinSushiswap {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the `SushiswapRouter` contract.
-    IUniswapV2Router02 private immutable SUSHISWAP_ROUTER;
-
-    constructor(IBridgeAdapter.Addresses memory addresses)
-        public
-    {
-        SUSHISWAP_ROUTER = IUniswapV2Router02(addresses.sushiswapRouter);
-    }
-
     function _tradeSushiswap(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
@@ -47,24 +38,27 @@ contract MixinSushiswap {
         returns (uint256 boughtAmount)
     {
         IERC20TokenV06[] memory path;
+        IUniswapV2Router02 router;
         {
-            address[] memory _path = abi.decode(bridgeData, (address[]));
+            address[] memory _path;
+            (router, _path) =
+                abi.decode(bridgeData, (IUniswapV2Router02, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly { path := _path }
         }
 
-        require(path.length >= 2, "SushiswapBridge/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path.length >= 2, "MixinSushiswap/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
             path[path.length - 1] == buyToken,
-            "SushiswapBridge/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+            "MixinSushiswap/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
         // Grant the Uniswap router an allowance to sell the first token.
         path[0].approveIfBelow(
-            address(SUSHISWAP_ROUTER),
+            address(router),
             sellAmount
         );
 
-        uint[] memory amounts = SUSHISWAP_ROUTER.swapExactTokensForTokens(
+        uint[] memory amounts = router.swapExactTokensForTokens(
              // Sell all tokens we hold.
             sellAmount,
              // Minimum buy amount.

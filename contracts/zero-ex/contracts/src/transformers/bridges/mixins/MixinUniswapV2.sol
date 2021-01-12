@@ -52,15 +52,6 @@ contract MixinUniswapV2 {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the `UniswapV2Router02` contract.
-    IUniswapV2Router02 private immutable UNISWAP_V2_ROUTER;
-
-    constructor(IBridgeAdapter.Addresses memory addresses)
-        public
-    {
-        UNISWAP_V2_ROUTER = IUniswapV2Router02(addresses.uniswapV2Router);
-    }
-
     function _tradeUniswapV2(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
@@ -69,25 +60,24 @@ contract MixinUniswapV2 {
         internal
         returns (uint256 boughtAmount)
     {
+        IUniswapV2Router02 router;
         IERC20TokenV06[] memory path;
         {
-            address[] memory _path = abi.decode(bridgeData, (address[]));
+            address[] memory _path;
+            (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly { path := _path }
         }
 
-        require(path.length >= 2, "UniswapV2Bridge/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path.length >= 2, "MixinUniswapV3/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
             path[path.length - 1] == buyToken,
-            "UniswapV2Bridge/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+            "MixinUniswapV2/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
         // Grant the Uniswap router an allowance to sell the first token.
-        path[0].approveIfBelow(
-            address(UNISWAP_V2_ROUTER),
-            sellAmount
-        );
+        path[0].approveIfBelow(address(router), sellAmount);
 
-        uint[] memory amounts = UNISWAP_V2_ROUTER.swapExactTokensForTokens(
+        uint[] memory amounts = router.swapExactTokensForTokens(
              // Sell all tokens we hold.
             sellAmount,
              // Minimum buy amount.

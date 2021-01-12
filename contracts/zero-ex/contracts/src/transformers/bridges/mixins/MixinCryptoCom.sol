@@ -46,10 +46,10 @@ contract MixinCryptoCom
             assembly { path := _path }
         }
 
-        require(path.length >= 2, "CryptoComBridge/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path.length >= 2, "MixinCryotpt/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
             path[path.length - 1] == buyToken,
-            "CryptoComBridge/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+            "MixinCryptoCom/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
         // Grant the CryptoCom router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);

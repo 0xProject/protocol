@@ -49,10 +49,10 @@ contract MixinBancor {
         IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IBridgeAdapter.Addresses memory addresses)
+    constructor(IEtherTokenV06 weth)
         public
     {
-        WETH = IEtherTokenV06(addresses.weth);
+        WETH = weth;
     }
 
     function _tradeBancor(

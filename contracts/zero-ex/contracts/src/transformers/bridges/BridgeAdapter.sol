@@ -56,22 +56,22 @@ contract BridgeAdapter is
     MixinUniswapV2,
     MixinZeroExBridge
 {
-    constructor(IBridgeAdapter.Addresses memory addresses)
+    constructor(IEtherTokenV06 weth)
         public
         MixinBalancer()
-        MixinBancor(addresses)
+        MixinBancor(weth)
         MixinCoFiX()
         MixinCurve()
         MixinCryptoCom()
-        MixinDodo(addresses)
-        MixinKyber(addresses)
-        MixinMooniswap(addresses)
-        MixinMStable(addresses)
-        MixinOasis(addresses)
+        MixinDodo()
+        MixinKyber(weth)
+        MixinMooniswap(weth)
+        MixinMStable()
+        MixinOasis()
         MixinShell()
-        MixinSushiswap(addresses)
-        MixinUniswap(addresses)
-        MixinUniswapV2(addresses)
+        MixinSushiswap()
+        MixinUniswap(weth)
+        MixinUniswapV2()
         MixinZeroExBridge()
     {}
 
@@ -110,7 +110,8 @@ contract BridgeAdapter is
             boughtAmount = _tradeUniswap(
                 sellToken,
                 buyToken,
-                sellAmount
+                sellAmount,
+                order.bridgeData
             );
         } else if (order.source == BridgeSource.BALANCER ||
                    order.source == BridgeSource.CREAM) {
@@ -138,13 +139,15 @@ contract BridgeAdapter is
             boughtAmount = _tradeMStable(
                 sellToken,
                 buyToken,
-                sellAmount
+                sellAmount,
+                order.bridgeData
             );
         } else if (order.source == BridgeSource.OASIS) {
             boughtAmount = _tradeOasis(
                 sellToken,
                 buyToken,
-                sellAmount
+                sellAmount,
+                order.bridgeData
             );
         } else if (order.source == BridgeSource.SHELL) {
             boughtAmount = _tradeShell(

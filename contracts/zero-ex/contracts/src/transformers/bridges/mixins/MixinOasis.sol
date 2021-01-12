@@ -46,30 +46,25 @@ contract MixinOasis {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the Oasis `MatchingMarket` contract.
-    IOasis private immutable OASIS;
-
-    constructor(IBridgeAdapter.Addresses memory addresses)
-        public
-    {
-        OASIS = IOasis(addresses.oasis);
-    }
-
     function _tradeOasis(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
+
+        (IOasis oasis) = abi.decode(bridgeData, (IOasis));
+
         // Grant an allowance to the exchange to spend `sellToken` token.
         sellToken.approveIfBelow(
-            address(OASIS),
+            address(oasis),
             sellAmount
         );
         // Try to sell all of this contract's `sellToken` token balance.
-        boughtAmount = OASIS.sellAllAmount(
+        boughtAmount = oasis.sellAllAmount(
             sellToken,
             sellAmount,
             buyToken,

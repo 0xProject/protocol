@@ -41,27 +41,21 @@ contract MixinMStable {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the mStable mUSD contract.
-    IMStable private immutable MSTABLE;
-
-    constructor(IBridgeAdapter.Addresses memory addresses)
-        public
-    {
-        MSTABLE = IMStable(addresses.mStable);
-    }
-
     function _tradeMStable(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
-        // Grant an allowance to the exchange to spend `sellToken` token.
-        sellToken.approveIfBelow(address(MSTABLE), sellAmount);
+        (IMStable mstable) = abi.decode(bridgeData, (IMStable));
 
-        boughtAmount = MSTABLE.swap(
+        // Grant an allowance to the exchange to spend `sellToken` token.
+        sellToken.approveIfBelow(address(mstable), sellAmount);
+
+        boughtAmount = mstable.swap(
             sellToken,
             buyToken,
             sellAmount,

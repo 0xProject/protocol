@@ -60,15 +60,6 @@ contract MixinDodo {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    /// @dev Mainnet address of the `DOODO Helper` contract.
-    IDODOHelper private immutable DODO_HELPER;
-
-    constructor(IBridgeAdapter.Addresses memory addresses)
-        public
-    {
-        DODO_HELPER = IDODOHelper(addresses.dodoHelper);
-    }
-
     function _tradeDodo(
         IERC20TokenV06 sellToken,
         uint256 sellAmount,
@@ -77,7 +68,8 @@ contract MixinDodo {
         internal
         returns (uint256 boughtAmount)
     {
-        (IDODO pool, bool isSellBase) = abi.decode(bridgeData, (IDODO, bool));
+        (IDODOHelper helper, IDODO pool, bool isSellBase) =
+            abi.decode(bridgeData, (IDODOHelper, IDODO, bool));
 
         // Grant the Dodo pool contract an allowance to sell the first token.
         sellToken.approveIfBelow(address(pool), sellAmount);
@@ -93,7 +85,7 @@ contract MixinDodo {
             );
         } else {
             // Need to re-calculate the sell quote amount into buyBase
-            boughtAmount = DODO_HELPER.querySellQuoteToken(
+            boughtAmount = helper.querySellQuoteToken(
                 pool,
                 sellAmount
             );

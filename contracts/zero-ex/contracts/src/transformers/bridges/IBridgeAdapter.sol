@@ -32,19 +32,6 @@ interface IBridgeAdapter {
         bytes bridgeData;
     }
 
-    struct Addresses {
-        // Exchanges
-        address kyberNetworkProxy;
-        address oasis;
-        address sushiswapRouter;
-        address uniswapV2Router;
-        address uniswapExchangeFactory;
-        address mStable;
-        address dodoHelper;
-        // Other
-        address weth;
-    }
-
     /// @dev Emitted when tokens are swapped with an external source.
     /// @param source The unique ID for the source. See `BridgeSource.sol`
     /// @param inputToken The token the bridge is converting from.

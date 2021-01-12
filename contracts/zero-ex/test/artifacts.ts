@@ -72,7 +72,6 @@ import * as LiquidityProviderFeature from '../test/generated-artifacts/Liquidity
 import * as LiquidityProviderSandbox from '../test/generated-artifacts/LiquidityProviderSandbox.json';
 import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
-import * as MixinAdapterAddresses from '../test/generated-artifacts/MixinAdapterAddresses.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
 import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
@@ -215,7 +214,6 @@ export const artifacts = {
     BridgeAdapter: BridgeAdapter as ContractArtifact,
     BridgeSource: BridgeSource as ContractArtifact,
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
-    MixinAdapterAddresses: MixinAdapterAddresses as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
     MixinCoFiX: MixinCoFiX as ContractArtifact,

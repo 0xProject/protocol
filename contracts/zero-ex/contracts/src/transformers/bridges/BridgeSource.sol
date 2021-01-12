@@ -40,4 +40,6 @@ library BridgeSource {
     uint256 constant internal SWERVE = 15;
     uint256 constant internal UNISWAP = 16;
     uint256 constant internal UNISWAPV2 = 17;
+    // New sources should be APPENDED to this list, taking the next highest
+    // integer value.
 }

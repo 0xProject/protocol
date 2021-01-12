@@ -63,14 +63,11 @@ contract MixinKyber {
         IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     /// @dev Mainnet address of the WETH contract.
     IEtherTokenV06 private immutable WETH;
-    /// @dev Mainnet address of the KyberNetworkProxy contract.
-    IKyberNetworkProxy private immutable KYBER_NETWORK_PROXY;
 
-    constructor(IBridgeAdapter.Addresses memory addresses)
+    constructor(IEtherTokenV06 weth)
         public
     {
-        WETH = IEtherTokenV06(addresses.weth);
-        KYBER_NETWORK_PROXY = IKyberNetworkProxy(addresses.kyberNetworkProxy);
+        WETH = weth;
     }
 
     function _tradeKyber(
@@ -82,14 +79,15 @@ contract MixinKyber {
         internal
         returns (uint256 boughtAmount)
     {
-        (bytes memory hint) = abi.decode(bridgeData, (bytes));
+        (IKyberNetworkProxy kyber, bytes memory hint) =
+            abi.decode(bridgeData, (IKyberNetworkProxy, bytes));
 
         uint256 payableAmount = 0;
         if (sellToken != WETH) {
             // If the input token is not WETH, grant an allowance to the exchange
             // to spend them.
             sellToken.approveIfBelow(
-                address(KYBER_NETWORK_PROXY),
+                address(kyber),
                 sellAmount
             );
         } else {
@@ -100,7 +98,7 @@ contract MixinKyber {
 
         // Try to sell all of this contract's input token balance through
         // `KyberNetworkProxy.trade()`.
-        boughtAmount = KYBER_NETWORK_PROXY.tradeWithHint{ value: payableAmount }(
+        boughtAmount = kyber.tradeWithHint{ value: payableAmount }(
             // Input token.
             sellToken == WETH ? KYBER_ETH_ADDRESS : sellToken,
             // Sell amount.
