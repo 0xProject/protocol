@@ -11,6 +11,7 @@ import {
     LIQUIDITY_PROVIDER_REGISTRY,
     MAINNET_CRYPTO_COM_ROUTER,
     MAINNET_MOONISWAP_REGISTRY,
+    MAINNET_MOONISWAP_V2_1_REGISTRY,
     MAINNET_MOONISWAP_V2_REGISTRY,
     MAINNET_SUSHI_SWAP_ROUTER,
     MAX_UINT256,
@@ -1059,17 +1060,12 @@ export class SamplerOperations {
                             return this.getMStableSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
                             return [
-                                this.getMooniswapSellQuotes(
+                                ...[
                                     MAINNET_MOONISWAP_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    takerFillAmounts,
-                                ),
-                                this.getMooniswapSellQuotes(
                                     MAINNET_MOONISWAP_V2_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    takerFillAmounts,
+                                    MAINNET_MOONISWAP_V2_1_REGISTRY,
+                                ].map(registry =>
+                                    this.getMooniswapSellQuotes(registry, makerToken, takerToken, takerFillAmounts),
                                 ),
                             ];
                         case ERC20BridgeSource.Balancer:
@@ -1197,17 +1193,12 @@ export class SamplerOperations {
                             return this.getMStableBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
                             return [
-                                this.getMooniswapBuyQuotes(
+                                ...[
                                     MAINNET_MOONISWAP_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    makerFillAmounts,
-                                ),
-                                this.getMooniswapBuyQuotes(
                                     MAINNET_MOONISWAP_V2_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    makerFillAmounts,
+                                    MAINNET_MOONISWAP_V2_1_REGISTRY,
+                                ].map(registry =>
+                                    this.getMooniswapBuyQuotes(registry, makerToken, takerToken, makerFillAmounts),
                                 ),
                             ];
                         case ERC20BridgeSource.Balancer:
