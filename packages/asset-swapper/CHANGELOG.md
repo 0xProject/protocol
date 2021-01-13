@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.8.0 - _January 13, 2021_
+
+    * Automatically Discover Kyber reserves for tokens using `getTradingReserves` (#111)
+    * Return `CallResults` from the Sampler (#111)
+
+## v5.7.0 - _Invalid date_
+
+    * Add SPDX license identifiers to solidity files (#105)
+
 ## v5.6.2 - _January 4, 2021_
 
     * Dependencies updated

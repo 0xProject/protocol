@@ -5,8 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.3.1 - _January 13, 2021_
+
+    * Dependencies updated
+
 ## v3.3.0 - _January 4, 2021_
 
+    * Add SPDX license identifiers to solidity files (#105)
     * Allow for excess return data in `LibERC20TokenV06` compat* functions (#97)
 
 ## v3.2.14 - _December 23, 2020_

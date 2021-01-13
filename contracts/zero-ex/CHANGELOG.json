@@ -10,7 +10,8 @@
                 "note": "Remove `MetaTransactionsFeature._executeMetaTransaction()` and `SignatureValidatorFeature`",
                 "pr": 109
             }
-        ]
+        ],
+        "timestamp": 1610510890
     },
     {
         "version": "0.17.0",

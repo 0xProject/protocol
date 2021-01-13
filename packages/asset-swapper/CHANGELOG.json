@@ -10,7 +10,8 @@
                 "note": "Return `CallResults` from the Sampler",
                 "pr": 111
             }
-        ]
+        ],
+        "timestamp": 1610510890
     },
     {
         "version": "5.7.0",
