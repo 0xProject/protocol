@@ -45,18 +45,17 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^5.6.2":
-  version "5.6.2"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.6.2.tgz#946cbc7f6db328f61d54d73e871e9774fe475e32"
-  integrity sha512-9ecxrFxX13IKwJiTaZxxfoia1IldAYEyJ9wfXRjvKGIBwx3WK6dZrzGrEej3wOT7Fo84ydAiqU+u4aMaU0DGBw==
+"@0x/asset-swapper@^5.8.0":
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-5.8.0.tgz#7cb8f1fce6241ec3c77d04568c99a104eb9794cd"
   dependencies:
     "@0x/assert" "^3.0.19"
     "@0x/base-contract" "^6.2.14"
-    "@0x/contract-addresses" "^5.8.0"
-    "@0x/contract-wrappers" "^13.12.0"
+    "@0x/contract-addresses" "^5.9.0"
+    "@0x/contract-wrappers" "^13.12.1"
     "@0x/dev-utils" "^4.1.3"
     "@0x/json-schemas" "^5.3.4"
-    "@0x/order-utils" "^10.4.13"
+    "@0x/order-utils" "^10.4.14"
     "@0x/orderbook" "0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023"
     "@0x/quote-server" "^3.1.0"
     "@0x/types" "^3.3.1"
@@ -160,6 +159,10 @@
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-5.8.0.tgz#63d8fee1094982b6269af85982f82adcc0a0abde"
 
+"@0x/contract-addresses@^5.9.0":
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-5.9.0.tgz#75acddea81b2c3400dc83ae07a300996989ba7cf"
+
 "@0x/contract-wrappers@^13.10.2":
   version "13.10.2"
   resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.10.2.tgz#34ed6a3e828fc0f35826b86412c3fb11c468a248"
@@ -188,14 +191,13 @@
     ethereum-types "^3.4.0"
     ethers "~4.0.4"
 
-"@0x/contract-wrappers@^13.12.0":
-  version "13.12.0"
-  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.12.0.tgz#7847090571fe4db18b84f20e5be0e38950c4f26c"
-  integrity sha512-mw+jgQQVSdzuzRv1buNwrTg7hOukRN9L3HW8p1biz9S5TeykQZA7NDfL7ASBW8f3LVO/bc6TI2hUJ/Nujm6nYg==
+"@0x/contract-wrappers@^13.12.1":
+  version "13.12.1"
+  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.12.1.tgz#1f479d83454ab5c420e3ddb97f9b693a9fb6b291"
   dependencies:
     "@0x/assert" "^3.0.19"
     "@0x/base-contract" "^6.2.14"
-    "@0x/contract-addresses" "^5.8.0"
+    "@0x/contract-addresses" "^5.9.0"
     "@0x/json-schemas" "^5.3.4"
     "@0x/types" "^3.3.1"
     "@0x/utils" "^6.1.1"
@@ -639,14 +641,13 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/order-utils@^10.4.13":
-  version "10.4.13"
-  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.13.tgz#9be075a94c446459508b1d92dbcec7a909bfaf45"
-  integrity sha512-12Q7F+LjVuJZFH1V7fpB3+TiFIdhzNiGlWJOEW3LDlE4NghgKOHkan/uPbtaF2kgUJr2AqNaMrkmnVMsZflLaQ==
+"@0x/order-utils@^10.4.14":
+  version "10.4.14"
+  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.14.tgz#3a6d4c1354cf234dfc0b99279ab3a26509cd5827"
   dependencies:
     "@0x/assert" "^3.0.19"
-    "@0x/contract-addresses" "^5.8.0"
-    "@0x/contract-wrappers" "^13.12.0"
+    "@0x/contract-addresses" "^5.9.0"
+    "@0x/contract-wrappers" "^13.12.1"
     "@0x/json-schemas" "^5.3.4"
     "@0x/utils" "^6.1.1"
     "@0x/web3-wrapper" "^7.3.0"
@@ -668,7 +669,7 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/orderbook@0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023":
+"@0x/orderbook@0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023", "@0x/orderbook@github:0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023":
   version "2.2.7"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/c4b7cdf7770608fa1005a3f91c740ed417541fd9"
   dependencies:
@@ -2171,7 +2172,6 @@ axios@^0.19.2:
 axios@^0.21.1:
   version "0.21.1"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
-  integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   dependencies:
     follow-redirects "^1.10.0"
 
@@ -4884,7 +4884,6 @@ follow-redirects@1.5.10:
 follow-redirects@^1.10.0:
   version "1.13.1"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.1.tgz#5f69b813376cee4fd0474a3aba835df04ab763b7"
-  integrity sha512-SSG5xmZh1mkPGyKzjZP8zLjltIfpW32Y5QpdNJyjcfGxK3qo3NDDkZOZSFiGn1A6SclQxY9GzEwAHQ3dmYRWpg==
 
 for-each@~0.3.3:
   version "0.3.3"
@@ -5368,7 +5367,6 @@ heartbeats@^5.0.1:
 highlight.js@^10.0.0:
   version "10.5.0"
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.5.0.tgz#3f09fede6a865757378f2d9ebdcbc15ba268f98f"
-  integrity sha512-xTmvd9HiIHR6L53TMC7TKolEj65zG1XU+Onr8oi86mYa+nLcIbxTTWkpW7CsEwv/vK7u1zb8alZIMLDqqN6KTw==
 
 hmac-drbg@^1.0.0:
   version "1.0.1"
