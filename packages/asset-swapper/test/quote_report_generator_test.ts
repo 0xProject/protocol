@@ -375,11 +375,13 @@ describe('generateQuoteReport', async () => {
                 source: ERC20BridgeSource.Balancer,
                 encodeCall: () => '',
                 handleCallResults: _callResults => [new BigNumber(1337)],
+                handleRevert: _c => [],
             },
             secondHopSource: {
                 source: ERC20BridgeSource.Curve,
                 encodeCall: () => '',
                 handleCallResults: _callResults => [new BigNumber(1337)],
+                handleRevert: _c => [],
             },
         };
 

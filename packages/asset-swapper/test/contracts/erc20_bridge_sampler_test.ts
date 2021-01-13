@@ -10,6 +10,7 @@ import { Order } from '@0x/types';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { SamplerCallResult } from '../../src/types';
 import { artifacts } from '../artifacts';
 import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '../wrappers';
 
@@ -34,7 +35,7 @@ blockchainTests('erc20-bridge-sampler', env => {
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
     const INTERMEDIATE_TOKEN = randomAddress();
-    const KYBER_RESERVE_ID = '0x';
+    const KYBER_RESERVE_OFFSET = new BigNumber(0);
 
     before(async () => {
         testContract = await TestERC20BridgeSamplerContract.deployFrom0xArtifactAsync(
@@ -328,14 +329,14 @@ blockchainTests('erc20-bridge-sampler', env => {
 
         it('throws if tokens are the same', async () => {
             const tx = testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, MAKER_TOKEN, MAKER_TOKEN, [])
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, MAKER_TOKEN, MAKER_TOKEN, [])
                 .callAsync();
             return expect(tx).to.revertWith(INVALID_TOKEN_PAIR_ERROR);
         });
 
         it('can return no quotes', async () => {
-            const [, quotes] = await testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, MAKER_TOKEN, [])
+            const [, , quotes] = await testContract
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, MAKER_TOKEN, [])
                 .callAsync();
             expect(quotes).to.deep.eq([]);
         });
@@ -344,8 +345,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
-            const [, quotes] = await testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -353,8 +354,8 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can quote token -> ETH', async () => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const [expectedQuotes] = getDeterministicSellQuotes(TAKER_TOKEN, WETH_ADDRESS, ['Kyber'], sampleAmounts);
-            const [, quotes] = await testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -362,8 +363,8 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can quote token -> token', async () => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const [expectedQuotes] = getDeterministicSellQuotes(TAKER_TOKEN, MAKER_TOKEN, ['Kyber'], sampleAmounts);
-            const [, quotes] = await testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -372,8 +373,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
-            const [, quotes] = await testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -381,8 +382,8 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can quote ETH -> token', async () => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const [expectedQuotes] = getDeterministicSellQuotes(WETH_ADDRESS, TAKER_TOKEN, ['Kyber'], sampleAmounts);
-            const [, quotes] = await testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -391,8 +392,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
-            const [, quotes] = await testContract
-                .sampleSellsFromKyberNetwork(KYBER_RESERVE_ID, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleSellsFromKyberNetwork(KYBER_RESERVE_OFFSET, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -406,14 +407,14 @@ blockchainTests('erc20-bridge-sampler', env => {
 
         it('throws if tokens are the same', async () => {
             const tx = testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, MAKER_TOKEN, MAKER_TOKEN, [])
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, MAKER_TOKEN, MAKER_TOKEN, [])
                 .callAsync();
             return expect(tx).to.revertWith(INVALID_TOKEN_PAIR_ERROR);
         });
 
         it('can return no quotes', async () => {
-            const [, quotes] = await testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, MAKER_TOKEN, [])
+            const [, , quotes] = await testContract
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, MAKER_TOKEN, [])
                 .callAsync();
             expect(quotes).to.deep.eq([]);
         });
@@ -421,8 +422,8 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can quote token -> token', async () => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const [expectedQuotes] = getDeterministicBuyQuotes(TAKER_TOKEN, MAKER_TOKEN, ['Kyber'], sampleAmounts);
-            const [, quotes] = await testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expectQuotesWithinRange(quotes, expectedQuotes, ACCEPTABLE_SLIPPAGE);
         });
@@ -431,8 +432,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
-            const [, quotes] = await testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -440,8 +441,8 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can quote token -> ETH', async () => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const [expectedQuotes] = getDeterministicBuyQuotes(TAKER_TOKEN, WETH_ADDRESS, ['Kyber'], sampleAmounts);
-            const [, quotes] = await testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
                 .callAsync();
             expectQuotesWithinRange(quotes, expectedQuotes, ACCEPTABLE_SLIPPAGE);
         });
@@ -450,8 +451,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
-            const [, quotes] = await testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, TAKER_TOKEN, WETH_ADDRESS, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -459,8 +460,8 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can quote ETH -> token', async () => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const [expectedQuotes] = getDeterministicBuyQuotes(WETH_ADDRESS, TAKER_TOKEN, ['Kyber'], sampleAmounts);
-            const [, quotes] = await testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expectQuotesWithinRange(quotes, expectedQuotes, ACCEPTABLE_SLIPPAGE);
         });
@@ -469,8 +470,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
-            const [, quotes] = await testContract
-                .sampleBuysFromKyberNetwork(KYBER_RESERVE_ID, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
+            const [, , quotes] = await testContract
+                .sampleBuysFromKyberNetwork(KYBER_RESERVE_OFFSET, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -943,7 +944,10 @@ blockchainTests('erc20-bridge-sampler', env => {
             ];
             const r = await testContract.batchCall(calls).callAsync();
             expect(r).to.be.length(1);
-            const actual = testContract.getABIDecodedReturnData<BigNumber[]>('getOrderFillableTakerAssetAmounts', r[0]);
+            const actual = testContract.getABIDecodedReturnData<BigNumber[]>(
+                'getOrderFillableTakerAssetAmounts',
+                r[0].data,
+            );
             expect(actual).to.deep.eq(expected);
         });
 
@@ -965,10 +969,10 @@ blockchainTests('erc20-bridge-sampler', env => {
             ];
             const r = await testContract.batchCall(calls).callAsync();
             expect(r).to.be.length(2);
-            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0])).to.deep.eq(
+            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0].data)).to.deep.eq(
                 expecteds[0],
             );
-            expect(testContract.getABIDecodedReturnData('getOrderFillableMakerAssetAmounts', r[1])).to.deep.eq(
+            expect(testContract.getABIDecodedReturnData('getOrderFillableMakerAssetAmounts', r[1].data)).to.deep.eq(
                 expecteds[1],
             );
         });
@@ -990,9 +994,9 @@ blockchainTests('erc20-bridge-sampler', env => {
                 ])
                 .callAsync();
             expect(r).to.be.length(1);
-            r = testContract.getABIDecodedReturnData<string[]>('batchCall', r[0]);
+            r = testContract.getABIDecodedReturnData<SamplerCallResult[]>('batchCall', r[0].data);
             expect(r).to.be.length(1);
-            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0])).to.deep.eq(
+            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0].data)).to.deep.eq(
                 expected,
             );
         });

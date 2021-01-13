@@ -165,8 +165,10 @@ export class DexOrderSampler extends SamplerOperations {
         // Return the parsed results.
         let rawCallResultsIdx = 0;
         return callDatas.map((callData, i) => {
-            const result = callData !== NULL_BYTES ? rawCallResults[rawCallResultsIdx++] : NULL_BYTES;
-            return ops[i].handleCallResults(result);
+            // tslint:disable-next-line:boolean-naming
+            const { data, success } =
+                callData !== NULL_BYTES ? rawCallResults[rawCallResultsIdx++] : { success: true, data: NULL_BYTES };
+            return success ? ops[i].handleCallResults(data) : ops[i].handleRevert(data);
         });
     }
 }

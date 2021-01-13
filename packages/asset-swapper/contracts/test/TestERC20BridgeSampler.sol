@@ -256,6 +256,7 @@ contract TestERC20BridgeSamplerKyberNetwork is
     address constant public ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     enum TradeType {BestOfAll, MaskIn, MaskOut, Split}
+    enum ProcessWithRate {NotRequired, Required}
 
     // IKyberHintHandler
     function buildTokenToEthHint(
@@ -291,6 +292,27 @@ contract TestERC20BridgeSamplerKyberNetwork is
     ) external view returns (bytes memory hint)
     {
         return abi.encode(tokenSrc);
+    }
+
+    // IKyberHintHandler
+    function getTradingReserves(
+        address tokenSrc,
+        address tokenDest,
+        bool isTokenToToken,
+        bytes calldata hint
+    )
+        external
+        view
+        returns (
+            bytes32[] memory reserveIds,
+            uint256[] memory splitValuesBps,
+            ProcessWithRate processWithRate
+        )
+    {
+        reserveIds = new bytes32[](1);
+        reserveIds[0] = bytes32(uint256(1));
+        splitValuesBps = new uint256[](0);
+        processWithRate = ProcessWithRate.NotRequired;
     }
 
     // Deterministic `IKyberNetworkProxy.getExpectedRateAfterFee()`.
