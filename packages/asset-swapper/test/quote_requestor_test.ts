@@ -23,7 +23,7 @@ function makeThreeMinuteExpiry(): BigNumber {
     return new BigNumber(Math.round(expiry.valueOf() / constants.ONE_SECOND_MS));
 }
 
-describe('QuoteRequestor', async () => {
+describe.only('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const makerAssetData = assetDataUtils.encodeERC20AssetData(makerToken);
     const takerAssetData = assetDataUtils.encodeERC20AssetData(takerToken);
@@ -42,6 +42,7 @@ describe('QuoteRequestor', async () => {
                 sellAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
                 takerAddress,
+                protocolVersion: '4',
             };
             // Successful response
             const successfulOrder1 = testOrderFactory.generateTestSignedOrder({
@@ -215,6 +216,7 @@ describe('QuoteRequestor', async () => {
                 sellAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
                 takerAddress,
+                protocolVersion: '4',
             };
             // Successful response
             const successfulQuote1 = {
@@ -314,6 +316,7 @@ describe('QuoteRequestor', async () => {
                 buyAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
                 takerAddress,
+                protocolVersion: '4',
             };
             // Successful response
             const successfulQuote1 = {
