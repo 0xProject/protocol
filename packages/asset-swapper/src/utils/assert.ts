@@ -1,9 +1,9 @@
 import { assert as sharedAssert } from '@0x/assert';
 import { schemas } from '@0x/json-schemas';
-import { Orderbook } from '@0x/orderbook';
 import { Order, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 
+import { Orderbook } from '../swap_quoter';
 import { MarketOperation, OrderProviderRequest, SwapQuote, SwapQuoteInfo } from '../types';
 
 import {
@@ -121,6 +121,7 @@ export const assert = {
     },
     isValidOrderbook(variableName: string, orderFetcher: Orderbook): void {
         sharedAssert.isFunction(`${variableName}.getOrdersAsync`, orderFetcher.getOrdersAsync);
+        sharedAssert.isFunction(`${variableName}.getBatchOrdersAsync`, orderFetcher.getBatchOrdersAsync);
     },
     isValidOrderProviderRequest(variableName: string, orderFetcherRequest: OrderProviderRequest): void {
         sharedAssert.isHexString(`${variableName}.makerAssetData`, orderFetcherRequest.makerAssetData);

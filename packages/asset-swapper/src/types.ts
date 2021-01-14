@@ -364,14 +364,6 @@ export enum SwapQuoterError {
 }
 
 /**
- * Represents available liquidity for a given assetData.
- */
-export interface LiquidityForTakerMakerAssetDataPair {
-    makerAssetAvailableInBaseUnits: BigNumber;
-    takerAssetAvailableInBaseUnits: BigNumber;
-}
-
-/**
  * Represents two main market operations supported by asset-swapper.
  */
 export enum MarketOperation {
