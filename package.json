@@ -66,8 +66,8 @@
         "ignoreDependencyVersionsForPackage": "contract-wrappers"
     },
     "devDependencies": {
-        "@0x/monorepo-scripts": "^3.0.4",
         "@0x-lerna-fork/lerna": "3.16.10",
+        "@0x/monorepo-scripts": "^3.0.4",
         "@0xproject/npm-cli-login": "^0.0.11",
         "async-child-process": "^1.1.1",
         "coveralls": "^3.0.0",
@@ -82,5 +82,6 @@
     },
     "resolutions": {
         "merkle-patricia-tree": "^2.3.2"
-    }
+    },
+    "version": "0.0.0"
 }
