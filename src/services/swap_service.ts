@@ -228,12 +228,6 @@ export class SwapService {
         let adjustedWorstCaseProtocolFee = protocolFee;
         let adjustedValue = value;
 
-        // If the entire caller amount is requested to be sold, this requires the new allowance target
-        // i.e the exchange proxy. The old allowance target will eventually be deprecated
-        const erc20AllowanceTarget = shouldSellEntireBalance
-            ? this._contractAddresses.exchangeProxy
-            : this._contractAddresses.exchangeProxyAllowanceTarget;
-
         // With v1 we are able to fill bridges directly so the protocol fee is lower
         const nativeFills = _.flatten(swapQuote.orders.map(order => order.fills)).filter(
             fill => fill.source === ERC20BridgeSource.Native,
@@ -269,7 +263,8 @@ export class SwapService {
             ? adjustedWorstCaseProtocolFee.plus(swapQuote.worstCaseQuoteInfo.takerAssetAmount)
             : adjustedWorstCaseProtocolFee;
 
-        const allowanceTarget = isETHSell ? NULL_ADDRESS : erc20AllowanceTarget;
+        // No allowance target is needed if this is an ETH sell, so set to 0x000..
+        const allowanceTarget = isETHSell ? NULL_ADDRESS : this._contractAddresses.exchangeProxy;
 
         const { takerAssetToEthRate, makerAssetToEthRate } = swapQuote;
 

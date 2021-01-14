@@ -169,7 +169,7 @@ describe(SUITE_NAME, () => {
                             : SYMBOL_TO_ADDRESS[parameters.buyToken],
                         allowanceTarget: isETHSymbolOrAddress(parameters.sellToken)
                             ? NULL_ADDRESS
-                            : CONTRACT_ADDRESSES.exchangeProxyAllowanceTarget,
+                            : CONTRACT_ADDRESSES.exchangeProxy,
                     });
                 });
             }
