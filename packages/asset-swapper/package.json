@@ -65,7 +65,7 @@
         "@0x/json-schemas": "^5.3.4",
         "@0x/order-utils": "^10.4.14",
         "@0x/orderbook": "0xProject/gitpkg-registry#0x-orderbook-v2.2.7-e10a81023",
-        "@0x/quote-server": "^3.1.0",
+        "@0x/quote-server": "^4.0.1",
         "@0x/types": "^3.3.1",
         "@0x/typescript-typings": "^5.1.6",
         "@0x/utils": "^6.1.1",

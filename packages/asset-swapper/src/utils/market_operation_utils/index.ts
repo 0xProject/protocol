@@ -1,4 +1,4 @@
-import { RFQTIndicativeQuote } from '@0x/quote-server';
+import { V3RFQIndicativeQuote } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
@@ -59,7 +59,7 @@ export async function getRfqtIndicativeQuotesAsync(
     assetFillAmount: BigNumber,
     comparisonPrice: BigNumber | undefined,
     opts: Partial<GetMarketOrdersOpts>,
-): Promise<RFQTIndicativeQuote[]> {
+): Promise<V3RFQIndicativeQuote[]> {
     if (opts.rfqt && opts.rfqt.isIndicative === true && opts.rfqt.quoteRequestor) {
         return opts.rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
             makerAssetData,
@@ -70,7 +70,7 @@ export async function getRfqtIndicativeQuotesAsync(
             opts.rfqt,
         );
     } else {
-        return Promise.resolve<RFQTIndicativeQuote[]>([]);
+        return Promise.resolve<V3RFQIndicativeQuote[]>([]);
     }
 }
 

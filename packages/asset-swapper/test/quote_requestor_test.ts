@@ -42,6 +42,7 @@ describe('QuoteRequestor', async () => {
                 sellAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
                 takerAddress,
+                protocolVersion: '3',
             };
             // Successful response
             const successfulOrder1 = testOrderFactory.generateTestSignedOrder({
@@ -214,6 +215,7 @@ describe('QuoteRequestor', async () => {
                 buyTokenAddress: makerToken,
                 sellAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
+                protocolVersion: '3',
                 takerAddress,
             };
             // Successful response
@@ -313,6 +315,7 @@ describe('QuoteRequestor', async () => {
                 buyTokenAddress: makerToken,
                 buyAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
+                protocolVersion: '3',
                 takerAddress,
             };
             // Successful response
