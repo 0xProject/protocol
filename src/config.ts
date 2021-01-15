@@ -52,6 +52,7 @@ enum EnvVarType {
     RfqtMakerAssetOfferings,
     RateLimitConfig,
     LiquidityProviderRegistry,
+    JsonStringList,
 }
 
 // Log level for pino.js
@@ -184,13 +185,21 @@ export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = _.isEmpty(
           EnvVarType.LiquidityProviderRegistry,
       );
 
-export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST)
+export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGISTRY_PASSWORDS)
     ? []
-    : assertEnvVarType('RFQT_API_KEY_WHITELIST', process.env.RFQT_API_KEY_WHITELIST, EnvVarType.StringList);
+    : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
-export const PLP_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.PLP_API_KEY_WHITELIST)
+export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
     ? []
-    : assertEnvVarType('PLP_API_KEY_WHITELIST', process.env.PLP_API_KEY_WHITELIST, EnvVarType.StringList);
+    : assertEnvVarType(
+          'RFQT_API_KEY_WHITELIST_JSON',
+          process.env.RFQT_API_KEY_WHITELIST_JSON,
+          EnvVarType.JsonStringList,
+      );
+
+export const PLP_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.PLP_API_KEY_WHITELIST_JSON)
+    ? []
+    : assertEnvVarType('PLP_API_KEY_WHITELIST_JSON', process.env.PLP_API_KEY_WHITELIST_JSON, EnvVarType.JsonStringList);
 
 export const RFQT_MAKER_ASSET_OFFERINGS: RfqtMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
     ? {}
@@ -464,6 +473,9 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 }
             });
             return apiKeys;
+        case EnvVarType.JsonStringList:
+            assert.isString(name, value);
+            return JSON.parse(value);
         case EnvVarType.RfqtMakerAssetOfferings:
             const offerings: RfqtMakerAssetOfferings = JSON.parse(value);
             // tslint:disable-next-line:forin
