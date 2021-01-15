@@ -125,6 +125,13 @@ export const TOKENS = {
     EURS: '0xdb25f211ab05b1c97d595516f45794528a807ad8',
     sEUR: '0xd71ecff9342a5ced620049e616c5035f1db98620',
     sETH: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
+    stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+    // Open pools, algorithmic stable coins
+    ESD: '0x36f3fd68e7325a35eb768f1aedaae9ea0689d723',
+    FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
+    BAC: '0x3449fc1cd036255ba1eb19d65ff4ba2b8903a69a',
+    MIC: '0x368b3a58b5f49392e5c9e4c998cb0bb966752e51',
+    // DSD: '0xbd2f0cd039e0bfcf88901c98c0bfac5ab27566e3', // seems broken at the moment
 };
 
 export const POOLS = {
@@ -154,7 +161,27 @@ export const POOLS = {
     curve_eurs: '0x0ce6a5ff5217e38315f87032cf90686c96627caa', // 23.eurs
     // curve_seth: '0xc5424b857f758e906013f3555dad202e4bdb4567', // 24.seth
     curve_aave: '0xdebf20617708857ebe4f679508e7b7863a8a8eee', // 25.aave
+    // curve steth: '0xdc24316b9ae028f1497c275eb9192a3ea0f67022' // 26.stETH
+
+    // Open pools - These pools do not currently live in the registry
+    curve_ESD: '0xfd9f9784ac00432794c8d370d4910d2a3782324c',
+    curve_DSD: '0xfe2a2b08b37ea3834cd9331d7f67e443afb50101',
+    curve_FRAX: '0x83d2944d5fc10a064451dc5852f4f47759f249b6',
+    curve_BAC: '0x86dec049fc430d9eb7682a044cf105a570f226db',
+    curve_MIC: '0xee507b77e4a0d1782f0598c7f72440a65447b16e',
 };
+
+// Order dependent
+const CURVE_TRI_POOL_TOKENS = [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT];
+
+const createCurveMetaTriPool = (info: { token: string; pool: string }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: [info.token, ...CURVE_TRI_POOL_TOKENS],
+    metaToken: info.token,
+    poolAddress: info.pool,
+});
 
 /**
  * Mainnet Curve configuration
@@ -239,7 +266,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_GUSD,
-        tokens: [TOKENS.GUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        tokens: [TOKENS.GUSD, ...CURVE_TRI_POOL_TOKENS],
         metaToken: TOKENS.GUSD,
     },
     [POOLS.curve_HUSD]: {
@@ -247,7 +274,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_HUSD,
-        tokens: [TOKENS.HUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        tokens: [TOKENS.HUSD, ...CURVE_TRI_POOL_TOKENS],
         metaToken: TOKENS.HUSD,
     },
     [POOLS.curve_USDN]: {
@@ -255,7 +282,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_USDN,
-        tokens: [TOKENS.USDN, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        tokens: [TOKENS.USDN, ...CURVE_TRI_POOL_TOKENS],
         metaToken: TOKENS.USDN,
     },
     [POOLS.curve_mUSD]: {
@@ -263,7 +290,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_mUSD,
-        tokens: [TOKENS.mUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        tokens: [TOKENS.mUSD, ...CURVE_TRI_POOL_TOKENS],
         metaToken: TOKENS.mUSD,
     },
     [POOLS.curve_tBTC]: {
@@ -279,7 +306,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_dUSD,
-        tokens: [TOKENS.dUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        tokens: [TOKENS.dUSD, ...CURVE_TRI_POOL_TOKENS],
         metaToken: TOKENS.dUSD,
     },
     [POOLS.curve_pBTC]: {
@@ -311,7 +338,7 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_UST,
-        tokens: [TOKENS.UST, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
+        tokens: [TOKENS.UST, ...CURVE_TRI_POOL_TOKENS],
         metaToken: TOKENS.UST,
     },
     [POOLS.curve_eurs]: {
@@ -330,6 +357,14 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
     //     tokens: [TOKENS.ETH, TOKENS.sETH],
     //     metaToken: undefined,
     // },
+    // [POOLS.curve_steth]: {
+    //     exchangeFunctionSelector: CurveFunctionSelectors.exchange,
+    //     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
+    //     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    //     poolAddress: POOLS.curve_steth,
+    //     tokens: [TOKENS.ETH, TOKENS.stETH],
+    //     metaToken: undefined,
+    // },
     [POOLS.curve_aave]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
@@ -346,6 +381,12 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         tokens: [TOKENS.aDAI, TOKENS.aUSDC, TOKENS.aUSDT],
         metaToken: undefined,
     },
+    // Open pools
+    [POOLS.curve_ESD]: createCurveMetaTriPool({ token: TOKENS.ESD, pool: POOLS.curve_ESD }),
+    [POOLS.curve_BAC]: createCurveMetaTriPool({ token: TOKENS.BAC, pool: POOLS.curve_BAC }),
+    [POOLS.curve_MIC]: createCurveMetaTriPool({ token: TOKENS.MIC, pool: POOLS.curve_MIC }),
+    [POOLS.curve_FRAX]: createCurveMetaTriPool({ token: TOKENS.FRAX, pool: POOLS.curve_FRAX }),
+    // [POOLS.curve_DSD]: createCurveMetaTriPool({ token: TOKENS.DSD, pool: POOLS.curve_DSD }), // seems broken at the moment
 };
 
 export const MAINNET_SWERVE_INFOS: { [name: string]: CurveInfo } = {
@@ -520,6 +561,11 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
                 return 150e3;
             case POOLS.curve_USDN:
             case POOLS.curve_mUSD:
+            case POOLS.curve_ESD:
+            case POOLS.curve_BAC:
+            case POOLS.curve_MIC:
+            case POOLS.curve_FRAX:
+            case POOLS.curve_DSD:
                 return 300e3;
             case POOLS.curve_GUSD:
             case POOLS.curve_HUSD:
