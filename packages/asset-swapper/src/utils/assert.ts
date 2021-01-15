@@ -51,15 +51,11 @@ export const assert = {
         _.every(orders, (order: SignedOrder, index: number) => {
             assert.assert(
                 isAssetDataEquivalent(takerAssetData, order.takerAssetData),
-                `Expected ${variableName}[${index}].takerAssetData to be ${takerAssetData} but found ${
-                    order.takerAssetData
-                }`,
+                `Expected ${variableName}[${index}].takerAssetData to be ${takerAssetData} but found ${order.takerAssetData}`,
             );
             assert.assert(
                 isAssetDataEquivalent(makerAssetData, order.makerAssetData),
-                `Expected ${variableName}[${index}].makerAssetData to be ${makerAssetData} but found ${
-                    order.makerAssetData
-                }`,
+                `Expected ${variableName}[${index}].makerAssetData to be ${makerAssetData} but found ${order.makerAssetData}`,
             );
         });
     },
@@ -80,9 +76,7 @@ export const assert = {
         );
         assert.assert(
             isAssetDataEquivalent(orders[0].makerAssetData, orders[1].takerAssetData),
-            `Expected ${variableName}[0].makerAssetData (${
-                orders[0].makerAssetData
-            }) to equal ${variableName}[1].takerAssetData (${orders[1].takerAssetData})`,
+            `Expected ${variableName}[0].makerAssetData (${orders[0].makerAssetData}) to equal ${variableName}[1].takerAssetData (${orders[1].takerAssetData})`,
         );
     },
     isValidOrdersForSwapQuoter<T extends Order>(variableName: string, orders: T[]): void {
@@ -91,9 +85,7 @@ export const assert = {
                 order.takerFee.isZero() ||
                     isOrderTakerFeePayableWithTakerAsset(order) ||
                     isOrderTakerFeePayableWithMakerAsset(order),
-                `Expected ${variableName}[${index}].takerFeeAssetData to be ${order.makerAssetData} or ${
-                    order.takerAssetData
-                } but found ${order.takerFeeAssetData}`,
+                `Expected ${variableName}[${index}].takerFeeAssetData to be ${order.makerAssetData} or ${order.takerAssetData} but found ${order.takerFeeAssetData}`,
             );
         });
     },

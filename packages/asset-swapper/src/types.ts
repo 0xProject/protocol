@@ -1,7 +1,8 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
+import { LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
-import { SignedOrder } from '@0x/types';
+import { SignedOrder, APIOrder as APIOrderV3 } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import {
@@ -12,6 +13,10 @@ import {
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
 import { QuoteReport } from './utils/quote_report_generator';
+
+export interface APIOrder extends Omit<APIOrderV3, 'order'> {
+    order: LimitOrder;
+}
 
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).
@@ -181,20 +186,16 @@ export interface GetExtensionContractTypeOpts {
  * orders: An array of objects conforming to OptimizedMarketOrder. These orders can be used to cover the requested assetBuyAmount plus slippage.
  * bestCaseQuoteInfo: Info about the best case price for the asset.
  * worstCaseQuoteInfo: Info about the worst case price for the asset.
- * unoptimizedQuoteInfo: Info about the unoptimized (best single source) price for the swap
- * unoptimizedOrders: Orders used in the unoptimized quote info
  */
 export interface SwapQuoteBase {
-    takerAssetData: string;
-    makerAssetData: string;
+    takerToken: string;
+    makerToken: string;
     gasPrice: BigNumber;
     orders: OptimizedMarketOrder[];
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
-    unoptimizedQuoteInfo: SwapQuoteInfo;
-    unoptimizedOrders: OptimizedMarketOrder[];
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
@@ -306,7 +307,7 @@ export interface RfqtMakerAssetOfferings {
 export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
 
 export interface RfqtFirmQuoteValidator {
-    getRfqtTakerFillableAmountsAsync(quotes: SignedOrder[]): Promise<BigNumber[]>;
+    getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
 }
 
 export interface SwapQuoterRfqtOpts {

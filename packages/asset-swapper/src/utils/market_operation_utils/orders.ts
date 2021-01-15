@@ -1,5 +1,4 @@
 import { assetDataUtils, ERC20AssetData, generatePseudoRandomSalt, orderCalculationUtils } from '@0x/order-utils';
-import { RFQTIndicativeQuote } from '@0x/quote-server';
 import { SignedOrder } from '@0x/types';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
@@ -39,37 +38,10 @@ import {
 } from './types';
 
 // tslint:disable completed-docs no-unnecessary-type-assertion
-
-export function createDummyOrderForSampler(
-    makerAssetData: string,
-    takerAssetData: string,
-    makerAddress: string,
-): SignedOrder {
-    return {
-        makerAddress,
-        takerAddress: NULL_ADDRESS,
-        senderAddress: NULL_ADDRESS,
-        feeRecipientAddress: NULL_ADDRESS,
-        salt: ZERO_AMOUNT,
-        expirationTimeSeconds: ZERO_AMOUNT,
-        makerAssetData,
-        takerAssetData,
-        makerFeeAssetData: NULL_BYTES,
-        takerFeeAssetData: NULL_BYTES,
-        makerFee: ZERO_AMOUNT,
-        takerFee: ZERO_AMOUNT,
-        makerAssetAmount: ZERO_AMOUNT,
-        takerAssetAmount: ZERO_AMOUNT,
-        signature: NULL_BYTES,
-        chainId: 1,
-        exchangeAddress: NULL_ADDRESS,
-    };
-}
-
 export function getNativeOrderTokens(order: SignedOrder): [string, string] {
     const assets = [order.makerAssetData, order.takerAssetData].map(a => assetDataUtils.decodeAssetDataOrThrow(a)) as [
         ERC20AssetData,
-        ERC20AssetData
+        ERC20AssetData,
     ];
     if (assets.some(a => a.assetProxyId !== ERC20_PROXY_ID)) {
         throw new Error(AggregationError.NotERC20AssetData);
@@ -98,9 +70,7 @@ export function createSignedOrdersWithFillableAmounts(
     // Quick safety check: ensures that orders maps perfectly to fillable amounts.
     if (orders.length !== fillableAmounts.length) {
         throw new Error(
-            `Number of orders was ${orders.length} but fillable amounts was ${
-                fillableAmounts.length
-            }. This should never happen`,
+            `Number of orders was ${orders.length} but fillable amounts was ${fillableAmounts.length}. This should never happen`,
         );
     }
 
@@ -396,7 +366,10 @@ function createBancorBridgeData(path: string[], networkAddress: string): string 
 }
 
 function createKyberBridgeData(fromTokenAddress: string, hint: string): string {
-    const encoder = AbiEncoder.create([{ name: 'fromTokenAddress', type: 'address' }, { name: 'hint', type: 'bytes' }]);
+    const encoder = AbiEncoder.create([
+        { name: 'fromTokenAddress', type: 'address' },
+        { name: 'hint', type: 'bytes' },
+    ]);
     return encoder.encode({ fromTokenAddress, hint });
 }
 
@@ -495,33 +468,4 @@ export function createNativeOrder(fill: NativeCollapsedFill): OptimizedMarketOrd
         fills: [fill],
         ...fill.fillData!.order, // tslint:disable-line:no-non-null-assertion
     };
-}
-
-export function createSignedOrdersFromRfqtIndicativeQuotes(
-    quotes: RFQTIndicativeQuote[],
-): SignedOrderWithFillableAmounts[] {
-    return quotes.map(quote => {
-        return {
-            fillableMakerAssetAmount: quote.makerAssetAmount,
-            fillableTakerAssetAmount: quote.takerAssetAmount,
-            makerAssetAmount: quote.makerAssetAmount,
-            takerAssetAmount: quote.takerAssetAmount,
-            makerAssetData: quote.makerAssetData,
-            takerAssetData: quote.takerAssetData,
-            takerAddress: NULL_ADDRESS,
-            makerAddress: NULL_ADDRESS,
-            senderAddress: NULL_ADDRESS,
-            feeRecipientAddress: NULL_ADDRESS,
-            salt: ZERO_AMOUNT,
-            expirationTimeSeconds: quote.expirationTimeSeconds,
-            makerFeeAssetData: NULL_BYTES,
-            takerFeeAssetData: NULL_BYTES,
-            makerFee: ZERO_AMOUNT,
-            takerFee: ZERO_AMOUNT,
-            fillableTakerFeeAmount: ZERO_AMOUNT,
-            signature: WALLET_SIGNATURE,
-            chainId: 0,
-            exchangeAddress: NULL_ADDRESS,
-        };
-    });
 }

@@ -198,7 +198,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
-    ): Promise<RfqOrder[]> {
+    ): Promise<V4RFQIndicativeQuote[]> {
         const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         // Originally a takerAddress was required for indicative quotes, but
         // now we've eliminated that requirement.  @0x/quote-server, however,
@@ -226,7 +226,12 @@ export class QuoteRequestor {
                 this._warningLogger(result, 'Invalid RFQ-T indicative quote received, filtering out');
                 return false;
             }
-            if (!hasExpectedTokenAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
+            if (
+                !hasExpectedTokenAddresses([
+                    [makerToken, order.makerToken],
+                    [takerToken, order.takerToken],
+                ])
+            ) {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
                 return false;
             }
@@ -237,7 +242,7 @@ export class QuoteRequestor {
                 return true;
             }
         });
-        return validQuotes.map(q => new RfqOrder(q.response));
+        return validQuotes.map(r => r.response);
     }
 
     /**
@@ -374,9 +379,7 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(url, latencyMs >= maxResponseTimeMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${url} for API key ${
-                            options.apiKey
-                        } for taker address ${options.takerAddress}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${url} for API key ${options.apiKey} for taker address ${options.takerAddress}`,
                     );
                     return;
                 }

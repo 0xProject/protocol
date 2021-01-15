@@ -1,12 +1,17 @@
-import { RFQTIndicativeQuote } from '@0x/quote-server';
-import { MarketOperation, SignedOrder } from '@0x/types';
+import {
+    FillQuoteTransformerBridgeOrder,
+    FillQuoteTransformerOrderType,
+    LimitOrder,
+    RfqOrder,
+} from '@0x/protocol-utils';
+import { V4RFQIndicativeQuote } from '@0x/quote-server';
+import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { RfqtFirmQuoteValidator, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
-import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
 
 /**
@@ -89,6 +94,7 @@ export interface FillData {}
 export interface SourceInfo<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
     fillData?: TFillData;
+    orderType?: FillQuoteTransformerOrderType;
 }
 
 // `FillData` for native fills.
@@ -340,12 +346,16 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData>
 }
 
 export interface OptimizerResult {
-    optimizedOrders: OptimizedMarketOrder[];
+    optimizedOrders: {
+        bridgeOrders: FillQuoteTransformerBridgeOrder[];
+        limitOrders: LimitOrder[];
+        rfqOrders: RfqOrder[];
+        fillSequence: FillQuoteTransformerOrderType[];
+    };
     sourceFlags: number;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
-    unoptimizedPath?: CollapsedPath;
     takerAssetToEthRate: BigNumber;
     makerAssetToEthRate: BigNumber;
 }
@@ -368,16 +378,23 @@ export interface MarketSideLiquidity {
     inputAmount: BigNumber;
     inputToken: string;
     outputToken: string;
-    dexQuotes: Array<Array<DexSample<FillData>>>;
-    nativeOrders: SignedOrder[];
-    orderFillableAmounts: BigNumber[];
     ethToOutputRate: BigNumber;
     ethToInputRate: BigNumber;
-    rfqtIndicativeQuotes: RFQTIndicativeQuote[];
-    twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     quoteSourceFilters: SourceFilters;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
+    quotes: RawQuotes;
+}
+
+export interface RawQuotes {
+    nativeOrders: {
+        order: LimitOrder | RfqOrder;
+        orderFillableAmount: BigNumber;
+        orderType: FillQuoteTransformerOrderType;
+    }[];
+    rfqtIndicativeQuotes: V4RFQIndicativeQuote[];
+    twoHopQuotes: Array<DexSample<MultiHopFillData>>;
+    dexQuotes: Array<Array<DexSample<FillData>>>;
 }
 
 export interface TokenAdjacencyGraph {

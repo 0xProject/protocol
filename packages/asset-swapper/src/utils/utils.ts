@@ -1,4 +1,5 @@
 import { assetDataUtils } from '@0x/order-utils';
+import { LimitOrderFields } from '@0x/protocol-utils';
 import { AssetData, AssetProxyId, ERC20AssetData, ERC20BridgeAssetData, Order, SignedOrder } from '@0x/types';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -25,31 +26,16 @@ export function getPriceAwareRFQRolloutFlags(priceAwareRFQFlags?: PriceAwareRFQF
           };
 }
 
-export function isSupportedAssetDataInOrders(orders: SignedOrder[]): boolean {
-    const firstOrderMakerAssetData = !!orders[0]
-        ? assetDataUtils.decodeAssetDataOrThrow(orders[0].makerAssetData)
-        : { assetProxyId: '' };
-    return orders.every(o => {
-        const takerAssetData = assetDataUtils.decodeAssetDataOrThrow(o.takerAssetData);
-        const makerAssetData = assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData);
-        return (
-            makerAssetData.assetProxyId === AssetProxyId.ERC20 &&
-            takerAssetData.assetProxyId === AssetProxyId.ERC20 &&
-            firstOrderMakerAssetData.assetProxyId === makerAssetData.assetProxyId
-        ); // checks that all native order maker assets are of the same type
-    });
-}
-
 export function numberPercentageToEtherTokenAmountPercentage(percentage: number): BigNumber {
     return Web3Wrapper.toBaseUnitAmount(constants.ONE_AMOUNT, constants.ETHER_TOKEN_DECIMALS).multipliedBy(percentage);
 }
 
-export function isOrderTakerFeePayableWithMakerAsset<T extends Order>(order: T): boolean {
-    return !order.takerFee.isZero() && isAssetDataEquivalent(order.takerFeeAssetData, order.makerAssetData);
+export function isOrderTakerFeePayableWithMakerAsset<T extends LimitOrderFields>(order: T): boolean {
+    return !order.takerTokenFeeAmount.isZero() && isAssetDataEquivalent(order.takerFeeAssetData, order.makerAssetData);
 }
 
-export function isOrderTakerFeePayableWithTakerAsset<T extends Order>(order: T): boolean {
-    return !order.takerFee.isZero() && isAssetDataEquivalent(order.takerFeeAssetData, order.takerAssetData);
+export function isOrderTakerFeePayableWithTakerAsset<T extends LimitOrderFields>(order: T): boolean {
+    return !order.takerTokenFeeAmount.isZero() && isAssetDataEquivalent(order.takerFeeAssetData, order.takerAssetData);
 }
 
 export function getAdjustedMakerAndTakerAmountsFromTakerFees<T extends Order>(order: T): [BigNumber, BigNumber] {

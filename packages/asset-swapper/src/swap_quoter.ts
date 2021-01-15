@@ -1,8 +1,7 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { DevUtilsContract } from '@0x/contract-wrappers';
-import { assetDataUtils, SignedOrder } from '@0x/order-utils';
-import { LimitOrder, RfqOrder } from '@0x/protocol-utils';
-import { APIOrder } from '@0x/types';
+import { assetDataUtils } from '@0x/order-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
@@ -10,6 +9,7 @@ import * as _ from 'lodash';
 import { artifacts } from './artifacts';
 import { BRIDGE_ADDRESSES_BY_CHAIN, constants } from './constants';
 import {
+    APIOrder,
     AssetSwapperContractAddresses,
     CalculateSwapQuoteOpts,
     MarketBuySwapQuote,
@@ -24,7 +24,6 @@ import {
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { createDummyOrderForSampler } from './utils/market_operation_utils/orders';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
@@ -43,11 +42,11 @@ import { getPriceAwareRFQRolloutFlags } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
 
 export abstract class Orderbook {
-    abstract public async getOrdersAsync(makerToken: string, takerToken: string): Promise<APIOrder[]>;
-    abstract public async getBatchOrdersAsync(makerTokens: string[], takerTokens: string[]): Promise<APIOrder[][]>;
+    public abstract getOrdersAsync(makerToken: string, takerToken: string): Promise<APIOrder[]>;
+    public abstract getBatchOrdersAsync(makerTokens: string[], takerTokens: string[]): Promise<APIOrder[][]>;
     public async destroyAsync(): Promise<void> {
         return;
-    };
+    }
 }
 export class SwapQuoter {
     public readonly provider: ZeroExProvider;
@@ -168,20 +167,21 @@ export class SwapQuoter {
             );
             if (prunedOrders.length === 0) {
                 return [
-                    createDummyOrderForSampler(
-                        makerTokens[i],
+                    new LimitOrder({
+                        makerToken: makerTokens[i],
                         takerToken,
-                        this._contractAddresses.uniswapBridge,
-                    ),
+                        maker: this._contractAddresses.uniswapBridge,
+                    }),
                 ];
             } else {
                 return sortingUtils.sortOrders(prunedOrders);
             }
         });
 
-        const swapQuotes = await this._swapQuoteCalculator.calculateBatchMarketBuySwapQuoteAsync(
+        const swapQuotes = await this._swapQuoteCalculator.calculateBatchBuySwapQuoteAsync(
             allPrunedOrders,
             makerAssetBuyAmount,
+            MarketOperation.Buy,
             gasPrice,
             calculateSwapQuoteOpts,
         );
@@ -212,7 +212,7 @@ export class SwapQuoter {
             makerAssetBuyAmount,
             MarketOperation.Buy,
             options,
-        ) as Promise<MarketBuySwapQuote>
+        ) as Promise<MarketBuySwapQuote>;
     }
 
     /**
@@ -240,7 +240,7 @@ export class SwapQuoter {
             takerAssetSellAmount,
             MarketOperation.Sell,
             options,
-        ) as Promise<MarketSellSwapQuote>
+        ) as Promise<MarketSellSwapQuote>;
     }
 
     /**
@@ -254,31 +254,29 @@ export class SwapQuoter {
      *          information for the source.
      */
     public async getBidAskLiquidityForMakerTakerAssetPairAsync(
-        makerTokenAddress: string,
-        takerTokenAddress: string,
+        makerToken: string,
+        takerToken: string,
         takerAssetAmount: BigNumber,
         options: Partial<SwapQuoteRequestOpts> = {},
     ): Promise<MarketDepth> {
-        assert.isString('makerTokenAddress', makerTokenAddress);
-        assert.isString('takerTokenAddress', takerTokenAddress);
-        const makerAssetData = assetDataUtils.encodeERC20AssetData(makerTokenAddress);
-        const takerAssetData = assetDataUtils.encodeERC20AssetData(takerTokenAddress);
+        assert.isString('makerToken', makerToken);
+        assert.isString('takerToken', takerToken);
         const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
         let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
             ? [[], []]
             : await Promise.all([
-                  this.orderbook.getOrdersAsync(makerAssetData, takerAssetData),
-                  this.orderbook.getOrdersAsync(takerAssetData, makerAssetData),
+                  this.orderbook.getOrdersAsync(makerToken, takerToken),
+                  this.orderbook.getOrdersAsync(takerToken, makerToken),
               ]);
         if (!sellOrders || sellOrders.length === 0) {
             sellOrders = [
                 {
                     metaData: {},
-                    order: createDummyOrderForSampler(
-                        makerAssetData,
-                        takerAssetData,
-                        this._contractAddresses.uniswapBridge,
-                    ),
+                    order: new LimitOrder({
+                        makerToken,
+                        takerToken,
+                        maker: this._contractAddresses.uniswapBridge,
+                    }),
                 },
             ];
         }
@@ -286,29 +284,31 @@ export class SwapQuoter {
             buyOrders = [
                 {
                     metaData: {},
-                    order: createDummyOrderForSampler(
-                        takerAssetData,
-                        makerAssetData,
-                        this._contractAddresses.uniswapBridge,
-                    ),
+                    order: new LimitOrder({
+                        takerToken,
+                        makerToken,
+                        maker: this._contractAddresses.uniswapBridge,
+                    }),
                 },
             ];
         }
         const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
-            const { dexQuotes, nativeOrders, orderFillableAmounts, side } = marketSideLiquidity;
+            const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
+            const { side } = marketSideLiquidity;
+
             return [
                 ...dexQuotes,
-                nativeOrders.map((o, i) => {
+                nativeOrders.map(o => {
                     // When sell order fillable amount is taker
                     // When buy order fillable amount is maker
-                    const scaleFactor = orderFillableAmounts[i].div(
-                        side === MarketOperation.Sell ? o.takerAssetAmount : o.makerAssetAmount,
+                    const scaleFactor = o.orderFillableAmount.div(
+                        side === MarketOperation.Sell ? o.order.takerAmount : o.order.makerAmount,
                     );
                     return {
-                        input: (side === MarketOperation.Sell ? o.takerAssetAmount : o.makerAssetAmount)
+                        input: (side === MarketOperation.Sell ? o.order.takerAmount : o.order.makerAmount)
                             .times(scaleFactor)
                             .integerValue(),
-                        output: (side === MarketOperation.Sell ? o.makerAssetAmount : o.takerAssetAmount)
+                        output: (side === MarketOperation.Sell ? o.order.makerAmount : o.order.takerAmount)
                             .times(scaleFactor)
                             .integerValue(),
                         fillData: o,
@@ -319,12 +319,12 @@ export class SwapQuoter {
         };
         const [bids, asks] = await Promise.all([
             this._marketOperationUtils.getMarketBuyLiquidityAsync(
-                (buyOrders || []).map(o => o.order),
+                (buyOrders || []).map(o => ({ order: o.order, orderType: FillQuoteTransformerOrderType.Limit })),
                 takerAssetAmount,
                 options,
             ),
             this._marketOperationUtils.getMarketSellLiquidityAsync(
-                (sellOrders || []).map(o => o.order),
+                (sellOrders || []).map(o => ({ order: o.order, orderType: FillQuoteTransformerOrderType.Limit })),
                 takerAssetAmount,
                 options,
             ),
@@ -364,7 +364,7 @@ export class SwapQuoter {
      * @param   makerAssetData      The makerAssetData of the desired asset to swap for (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
      * @param   takerAssetData      The takerAssetData of the asset to swap makerAssetData for (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
      */
-    private async _getSignedOrdersAsync(makerToken: string, takerToken: string): Promise<LimitOrder[]> {
+    private async _getLimitOrdersAsync(makerToken: string, takerToken: string): Promise<LimitOrder[]> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
         // get orders
@@ -437,7 +437,7 @@ export class SwapQuoter {
             }
             proceedWithRfq = true;
         }
-        const rfqtOptions = this._rfqtOptions
+        const rfqtOptions = this._rfqtOptions;
         const quoteRequestor = new QuoteRequestor(
             rfqtOptions ? rfqtOptions.makerAssetOfferings || {} : {},
             rfqtOptions ? rfqtOptions.warningLogger : undefined,
@@ -446,52 +446,60 @@ export class SwapQuoter {
         );
 
         // Get RFQ orders if valid
-        const rfqOrdersPromise = proceedWithRfq ? quoteRequestor.requestRfqtFirmQuotesAsync(makerToken, takerToken, assetFillAmount, marketOperation, undefined, opts.rfqt!) : [];
-        
+        const rfqOrdersPromise = proceedWithRfq
+            ? quoteRequestor.requestRfqtFirmQuotesAsync(
+                  makerToken,
+                  takerToken,
+                  assetFillAmount,
+                  marketOperation,
+                  undefined,
+                  opts.rfqt!,
+              )
+            : [];
+
         // Get SRA orders (limit orders)
         const skipOpenOrderbook =
             !sourceFilters.isAllowed(ERC20BridgeSource.Native) ||
             (opts.rfqt && opts.rfqt.nativeExclusivelyRFQT === true);
-        const limitOrdersPromise = skipOpenOrderbook ? Promise.resolve([]) : this._getSignedOrdersAsync(makerToken, takerToken);
+        const limitOrdersPromise = skipOpenOrderbook
+            ? Promise.resolve([])
+            : this._getLimitOrdersAsync(makerToken, takerToken);
 
-        const nativeOrders: { limitOrders: SignedOrder[], rfqOrders: RfqOrder[] } = { limitOrders: [], rfqOrders: [] };
-
-        Promise.allSettled([rfqOrdersPromise, limitOrdersPromise]).then((results: [ RfqOrder[], SignedOrder[] ]) => {
-            nativeOrders.rfqOrders = results[0]
-            nativeOrders.limitOrders = results[1],
+        // Join the results together
+        const nativeOrders: {
+            order: LimitOrder | RfqOrder;
+            orderType: FillQuoteTransformerOrderType;
+        }[] = await Promise.all([limitOrdersPromise, rfqOrdersPromise]).then((results: [LimitOrder[], RfqOrder[]]) => {
+            const limitOrders = results[0].map(order => ({ order, orderType: FillQuoteTransformerOrderType.Limit }));
+            const rfqOrders = results[1].map(order => ({ order, orderType: FillQuoteTransformerOrderType.Rfq }));
+            return [...limitOrders, ...rfqOrders];
         });
 
-
         // if no native orders, pass in a dummy order for the sampler to have required metadata for sampling
-        if (nativeOrders.limitOrders.length === 0 && nativeOrders.rfqOrders.length === 0) {
-            nativeOrders.limitOrders.push(
-                createDummyOrderForSampler(makerToken, takerToken, this._contractAddresses.uniswapBridge),
-            );
+        if (nativeOrders.length === 0) {
+            nativeOrders.push({
+                order: new LimitOrder({
+                    makerToken,
+                    takerToken,
+                    chainId: 1,
+                    maker: this._contractAddresses.uniswapBridge,
+                }),
+                orderType: FillQuoteTransformerOrderType.Limit,
+            });
         }
 
-        let swapQuote: SwapQuote;
         const calcOpts: CalculateSwapQuoteOpts = opts;
-
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = quoteRequestor;
         }
 
-        if (marketOperation === MarketOperation.Buy) {
-            swapQuote = await this._swapQuoteCalculator.calculateMarketBuySwapQuoteAsync(
-                orders,
-                assetFillAmount,
-                gasPrice,
-                calcOpts,
-            );
-        } else {
-            swapQuote = await this._swapQuoteCalculator.calculateMarketSellSwapQuoteAsync(
-                orders,
-                assetFillAmount,
-                gasPrice,
-                calcOpts,
-            );
-        }
-
+        const swapQuote = await this._swapQuoteCalculator.calculateSwapQuoteAsync(
+            nativeOrders,
+            assetFillAmount,
+            gasPrice,
+            marketOperation,
+            calcOpts,
+        );
         return swapQuote;
     }
     private _isApiKeyWhitelisted(apiKey: string): boolean {

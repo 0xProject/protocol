@@ -169,7 +169,10 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         {
             type: 'tuple[]',
             name: 'transformations',
-            components: [{ type: 'uint32', name: 'deploymentNonce' }, { type: 'bytes', name: 'data' }],
+            components: [
+                { type: 'uint32', name: 'deploymentNonce' },
+                { type: 'bytes', name: 'data' },
+            ],
         },
     ]);
 

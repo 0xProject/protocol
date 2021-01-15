@@ -1,3 +1,4 @@
+import { RfqOrder, LimitOrder, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
@@ -7,11 +8,9 @@ import {
     CalculateSwapQuoteOpts,
     MarketBuySwapQuote,
     MarketOperation,
-    MarketSellSwapQuote,
     SwapQuote,
     SwapQuoteInfo,
     SwapQuoteOrdersBreakdown,
-    SwapQuoterError,
 } from '../types';
 
 import { MarketOperationUtils } from './market_operation_utils';
@@ -25,7 +24,6 @@ import {
     OptimizerResultWithReport,
 } from './market_operation_utils/types';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './quote_simulation';
-import { getTokenFromAssetData, isSupportedAssetDataInOrders } from './utils';
 
 // TODO(dave4506) How do we want to reintroduce InsufficientAssetLiquidityError?
 export class SwapQuoteCalculator {
@@ -35,53 +33,8 @@ export class SwapQuoteCalculator {
         this._marketOperationUtils = marketOperationUtils;
     }
 
-    public async calculateMarketSellSwapQuoteAsync(
-        prunedOrders: SignedOrder[],
-        takerAssetFillAmount: BigNumber,
-        gasPrice: BigNumber,
-        opts: CalculateSwapQuoteOpts,
-    ): Promise<MarketSellSwapQuote> {
-        return (await this._calculateSwapQuoteAsync(
-            prunedOrders,
-            takerAssetFillAmount,
-            gasPrice,
-            MarketOperation.Sell,
-            opts,
-        )) as MarketSellSwapQuote;
-    }
-
-    public async calculateMarketBuySwapQuoteAsync(
-        prunedOrders: SignedOrder[],
-        takerAssetFillAmount: BigNumber,
-        gasPrice: BigNumber,
-        opts: CalculateSwapQuoteOpts,
-    ): Promise<MarketBuySwapQuote> {
-        return (await this._calculateSwapQuoteAsync(
-            prunedOrders,
-            takerAssetFillAmount,
-            gasPrice,
-            MarketOperation.Buy,
-            opts,
-        )) as MarketBuySwapQuote;
-    }
-
-    public async calculateBatchMarketBuySwapQuoteAsync(
-        batchPrunedOrders: SignedOrder[][],
-        takerAssetFillAmounts: BigNumber[],
-        gasPrice: BigNumber,
-        opts: CalculateSwapQuoteOpts,
-    ): Promise<Array<MarketBuySwapQuote | undefined>> {
-        return (await this._calculateBatchBuySwapQuoteAsync(
-            batchPrunedOrders,
-            takerAssetFillAmounts,
-            gasPrice,
-            MarketOperation.Buy,
-            opts,
-        )) as Array<MarketBuySwapQuote | undefined>;
-    }
-
-    private async _calculateBatchBuySwapQuoteAsync(
-        batchPrunedOrders: SignedOrder[][],
+    public async calculateBatchBuySwapQuoteAsync(
+        batchPrunedOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[][],
         assetFillAmounts: BigNumber[],
         gasPrice: BigNumber,
         operation: MarketOperation,
@@ -96,11 +49,11 @@ export class SwapQuoteCalculator {
         const batchSwapQuotes = await Promise.all(
             optimizerResults.map(async (result, i) => {
                 if (result) {
-                    const { makerAssetData, takerAssetData } = batchPrunedOrders[i][0];
+                    const { makerToken, takerToken } = batchPrunedOrders[i][0].order;
                     return createSwapQuote(
                         result,
-                        makerAssetData,
-                        takerAssetData,
+                        makerToken,
+                        takerToken,
                         operation,
                         assetFillAmounts[i],
                         gasPrice,
@@ -113,19 +66,15 @@ export class SwapQuoteCalculator {
         );
         return batchSwapQuotes;
     }
-    private async _calculateSwapQuoteAsync(
-        prunedOrders: SignedOrder[],
+    public async calculateSwapQuoteAsync(
+        orders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
         assetFillAmount: BigNumber,
         gasPrice: BigNumber,
         operation: MarketOperation,
         opts: CalculateSwapQuoteOpts,
     ): Promise<SwapQuote> {
-        // checks if maker asset is ERC20 and taker asset is ERC20
-        if (!isSupportedAssetDataInOrders(prunedOrders)) {
-            throw Error(SwapQuoterError.AssetDataUnsupported);
-        }
-        // since prunedOrders do not have fillState, we will add a buffer of fillable orders to consider that some native are orders are partially filled
-
+        // Since prunedOrders do not have fillState, we will add a buffer of fillable orders to consider that
+        //     some native are orders are partially filled.
         // Scale fees by gas price.
         const _opts: GetMarketOrdersOpts = {
             ...opts,
@@ -134,17 +83,18 @@ export class SwapQuoteCalculator {
             ),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
+        const result = await this._marketOperationUtils.getMarketSideOrdersAsync(
+            orders,
+            assetFillAmount,
+            operation,
+            _opts,
+        );
 
-        const result =
-            operation === MarketOperation.Buy
-                ? await this._marketOperationUtils.getMarketBuyOrdersAsync(prunedOrders, assetFillAmount, _opts)
-                : await this._marketOperationUtils.getMarketSellOrdersAsync(prunedOrders, assetFillAmount, _opts);
-
-        const { makerAssetData, takerAssetData } = prunedOrders[0];
+        const { makerToken, takerToken } = orders[0].order;
         const swapQuote = createSwapQuote(
             result,
-            makerAssetData,
-            takerAssetData,
+            makerToken,
+            takerToken,
             operation,
             assetFillAmount,
             gasPrice,
@@ -155,7 +105,6 @@ export class SwapQuoteCalculator {
         const exchangeProxyOverhead = opts.exchangeProxyOverhead(result.sourceFlags).toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
-        swapQuote.unoptimizedQuoteInfo.gas += exchangeProxyOverhead;
 
         return swapQuote;
     }
@@ -163,21 +112,14 @@ export class SwapQuoteCalculator {
 
 function createSwapQuote(
     optimizerResult: OptimizerResultWithReport,
-    makerAssetData: string,
-    takerAssetData: string,
+    makerToken: string,
+    takerToken: string,
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
     gasSchedule: FeeSchedule,
 ): SwapQuote {
-    const {
-        optimizedOrders,
-        quoteReport,
-        sourceFlags,
-        unoptimizedPath,
-        takerAssetToEthRate,
-        makerAssetToEthRate,
-    } = optimizerResult;
+    const { optimizedOrders, quoteReport, sourceFlags, takerAssetToEthRate, makerAssetToEthRate } = optimizerResult;
     const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
 
     // Calculate quote info
@@ -185,28 +127,15 @@ function createSwapQuote(
         ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule)
         : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule);
 
-    // Calculate the unoptimised alternative
-    const unoptimizedOrders = unoptimizedPath !== undefined ? unoptimizedPath.orders : [];
-    const unoptimizedFillResult = simulateBestCaseFill({
-        gasPrice,
-        orders: unoptimizedOrders,
-        side: operation,
-        fillAmount: assetFillAmount,
-        opts: { gasSchedule },
-    });
-    const unoptimizedQuoteInfo = fillResultsToQuoteInfo(unoptimizedFillResult);
-
     // Put together the swap quote
     const { makerTokenDecimals, takerTokenDecimals } = optimizerResult.marketSideLiquidity;
     const swapQuote = {
-        makerAssetData,
-        takerAssetData,
+        makerToken,
+        takerToken,
         gasPrice,
         orders: optimizedOrders,
         bestCaseQuoteInfo,
         worstCaseQuoteInfo,
-        unoptimizedQuoteInfo,
-        unoptimizedOrders,
         sourceBreakdown,
         makerTokenDecimals,
         takerTokenDecimals,

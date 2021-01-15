@@ -108,7 +108,11 @@ function rateBySourcePathId(
     return Object.assign(
         {},
         ...sourcePathIds.map(s => ({
-            [s]: Path.create(side, flattenedFills.filter(f => f.sourcePathId === s), targetInput).adjustedRate(),
+            [s]: Path.create(
+                side,
+                flattenedFills.filter(f => f.sourcePathId === s),
+                targetInput,
+            ).adjustedRate(),
         })),
     );
 }

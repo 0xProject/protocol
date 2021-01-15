@@ -1,7 +1,7 @@
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
-import { MarketOperation, SignedOrderWithFillableAmounts } from '../../types';
-import { fillableAmountsUtils } from '../../utils/fillable_amounts_utils';
+import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
@@ -13,7 +13,11 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
  */
 export function createFills(opts: {
     side: MarketOperation;
-    orders?: SignedOrderWithFillableAmounts[];
+    orders?: {
+        order: RfqOrder | LimitOrder;
+        orderFillableAmount: BigNumber;
+        orderType: FillQuoteTransformerOrderType;
+    }[];
     dexQuotes?: DexSample[][];
     targetInput?: BigNumber;
     ethToOutputRate?: BigNumber;
@@ -71,9 +75,17 @@ function hasLiquidity(fills: Fill[]): boolean {
     return true;
 }
 
+function isLimitOrder(o: LimitOrder | RfqOrder): o is LimitOrder {
+    return (o as LimitOrder).takerTokenFeeAmount !== undefined;
+}
+
 function nativeOrdersToFills(
     side: MarketOperation,
-    orders: SignedOrderWithFillableAmounts[],
+    orders: {
+        order: RfqOrder | LimitOrder;
+        orderFillableAmount: BigNumber;
+        orderType: FillQuoteTransformerOrderType;
+    }[],
     targetInput: BigNumber = POSITIVE_INF,
     ethToOutputRate: BigNumber,
     ethToInputRate: BigNumber,
@@ -82,9 +94,12 @@ function nativeOrdersToFills(
     const sourcePathId = hexUtils.random();
     // Create a single path from all orders.
     let fills: Array<Fill & { adjustedRate: BigNumber }> = [];
-    for (const order of orders) {
-        const makerAmount = fillableAmountsUtils.getMakerAssetAmountSwappedAfterOrderFees(order);
-        const takerAmount = fillableAmountsUtils.getTakerAssetAmountSwappedAfterOrderFees(order);
+    for (const o of orders) {
+        const { order, orderFillableAmount } = o;
+        const makerAmount = order.makerAmount;
+        const takerAmount = isLimitOrder(order)
+            ? orderFillableAmount.plus(order.takerTokenFeeAmount)
+            : orderFillableAmount;
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
         const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
         const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!();
@@ -117,7 +132,7 @@ function nativeOrdersToFills(
             index: 0, // TBD
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
-            fillData: { order },
+            fillData: { o },
         });
     }
     // Sort by descending adjusted rate.
@@ -166,7 +181,7 @@ function dexSamplesToFills(
             output,
             adjustedOutput,
             source,
-            fillData,
+            fillData: { ...fillData, orderType: FillQuoteTransformerOrderType.Bridge },
             index: i,
             parent: i !== 0 ? fills[fills.length - 1] : undefined,
             flags: SOURCE_FLAGS[source],

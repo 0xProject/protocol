@@ -9,7 +9,8 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { assetDataUtils, generatePseudoRandomSalt } from '@0x/order-utils';
+import { assetDataUtils } from '@0x/order-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { AssetProxyId, ERC20BridgeAssetData, SignedOrder } from '@0x/types';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -18,7 +19,7 @@ import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../src';
 import { PriceAwareRFQFlags } from '../src/types';
-import { getRfqtIndicativeQuotesAsync, MarketOperationUtils } from '../src/utils/market_operation_utils/';
+import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
     BRIDGE_ADDRESSES_BY_CHAIN,
@@ -26,7 +27,6 @@ import {
     POSITIVE_INF,
     SELL_SOURCE_FILTER,
     SOURCE_FLAGS,
-    ZERO_AMOUNT,
 } from '../src/utils/market_operation_utils/constants';
 import { CreamPoolsCache } from '../src/utils/market_operation_utils/cream_utils';
 import { createFills } from '../src/utils/market_operation_utils/fills';
@@ -42,12 +42,12 @@ import {
     GetMarketOrdersOpts,
     MarketSideLiquidity,
     NativeFillData,
+    OptimizerResultWithReport,
     TokenAdjacencyGraph,
 } from '../src/utils/market_operation_utils/types';
 
 const MAKER_TOKEN = randomAddress();
 const TAKER_TOKEN = randomAddress();
-const MAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(MAKER_TOKEN);
 const TAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(TAKER_TOKEN);
 const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.UniswapV2,
@@ -74,6 +74,40 @@ const PRICE_AWARE_RFQ_ENABLED: PriceAwareRFQFlags = {
     isIndicativePriceAwareEnabled: true,
 };
 
+/**
+ * gets the orders required for a market sell operation by (potentially) merging native orders with
+ * generated bridge orders.
+ * @param nativeOrders Native orders.
+ * @param takerAmount Amount of taker asset to sell.
+ * @param opts Options object.
+ * @return object with optimized orders and a QuoteReport
+ */
+function getMarketSellOrdersAsync(
+    utils: MarketOperationUtils,
+    nativeOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
+    takerAmount: BigNumber,
+    opts?: Partial<GetMarketOrdersOpts>,
+): Promise<OptimizerResultWithReport> {
+    return utils.getMarketSideOrdersAsync(nativeOrders, takerAmount, MarketOperation.Sell, opts);
+}
+
+/**
+ * gets the orders required for a market buy operation by (potentially) merging native orders with
+ * generated bridge orders.
+ * @param nativeOrders Native orders.
+ * @param makerAmount Amount of maker asset to buy.
+ * @param opts Options object.
+ * @return object with optimized orders and a QuoteReport
+ */
+function getMarketBuyOrdersAsync(
+    utils: MarketOperationUtils,
+    nativeOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
+    makerAmount: BigNumber,
+    opts?: Partial<GetMarketOrdersOpts>,
+): Promise<OptimizerResultWithReport> {
+    return utils.getMarketSideOrdersAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
+}
+
 // tslint:disable: custom-no-magic-numbers promise-function-async
 describe('MarketOperationUtils tests', () => {
     const CHAIN_ID = ChainId.Mainnet;
@@ -84,7 +118,7 @@ describe('MarketOperationUtils tests', () => {
 
     function getMockedQuoteRequestor(
         type: 'indicative' | 'firm',
-        results: SignedOrder[],
+        results: RfqOrder[],
         verifiable: TypeMoq.Times,
     ): TypeMoq.IMock<QuoteRequestor> {
         const args: [any, any, any, any, any, any] = [
@@ -99,7 +133,7 @@ describe('MarketOperationUtils tests', () => {
         if (type === 'firm') {
             requestor
                 .setup(r => r.requestRfqtFirmQuotesAsync(...args))
-                .returns(async () => results.map(result => ({ signedOrder: result })))
+                .returns(async () => results)
                 .verifiable(verifiable);
         } else {
             requestor
@@ -110,27 +144,10 @@ describe('MarketOperationUtils tests', () => {
         return requestor;
     }
 
-    function createOrder(overrides?: Partial<SignedOrder>): SignedOrder {
-        return {
-            chainId: CHAIN_ID,
-            exchangeAddress: contractAddresses.exchange,
-            makerAddress: constants.NULL_ADDRESS,
-            takerAddress: constants.NULL_ADDRESS,
-            senderAddress: constants.NULL_ADDRESS,
-            feeRecipientAddress: randomAddress(),
-            salt: generatePseudoRandomSalt(),
-            expirationTimeSeconds: getRandomInteger(0, 2 ** 64),
-            makerAssetData: MAKER_ASSET_DATA,
-            takerAssetData: TAKER_ASSET_DATA,
-            makerFeeAssetData: constants.NULL_BYTES,
-            takerFeeAssetData: constants.NULL_BYTES,
-            makerAssetAmount: getRandomInteger(1, 1e18),
-            takerAssetAmount: getRandomInteger(1, 1e18),
-            makerFee: constants.ZERO_AMOUNT,
-            takerFee: constants.ZERO_AMOUNT,
-            signature: hexUtils.random(),
+    function createOrder(overrides?: Partial<LimitOrder>): LimitOrder {
+        return new LimitOrder({
             ...overrides,
-        };
+        });
     }
 
     function getSourceFromAssetData(assetData: string): ERC20BridgeSource {
@@ -173,24 +190,32 @@ describe('MarketOperationUtils tests', () => {
         expect(actual.substr(0, expected.length)).to.eq(expected);
     }
 
-    function createOrdersFromSellRates(takerAssetAmount: BigNumber, rates: Numberish[]): SignedOrder[] {
-        const singleTakerAssetAmount = takerAssetAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
-        return rates.map(r =>
-            createOrder({
-                makerAssetAmount: singleTakerAssetAmount.times(r).integerValue(),
-                takerAssetAmount: singleTakerAssetAmount,
+    function createOrdersFromSellRates(
+        takerAmount: BigNumber,
+        rates: Numberish[],
+    ): { order: RfqOrder; orderType: FillQuoteTransformerOrderType }[] {
+        const singleTakerAmount = takerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
+        return rates.map(r => ({
+            order: new RfqOrder({
+                makerAmount: singleTakerAmount.times(r).integerValue(),
+                takerAmount: singleTakerAmount,
             }),
-        );
+            orderType: FillQuoteTransformerOrderType.Rfq,
+        }));
     }
 
-    function createOrdersFromBuyRates(makerAssetAmount: BigNumber, rates: Numberish[]): SignedOrder[] {
-        const singleMakerAssetAmount = makerAssetAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
-        return rates.map(r =>
-            createOrder({
-                makerAssetAmount: singleMakerAssetAmount,
-                takerAssetAmount: singleMakerAssetAmount.div(r).integerValue(),
+    function createOrdersFromBuyRates(
+        makerAmount: BigNumber,
+        rates: Numberish[],
+    ): { order: LimitOrder; orderType: FillQuoteTransformerOrderType }[] {
+        const singleMakerAmount = makerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
+        return rates.map(r => ({
+            order: new LimitOrder({
+                makerAmount: singleMakerAmount,
+                takerAmount: singleMakerAmount.div(r).integerValue(),
             }),
-        );
+            orderType: FillQuoteTransformerOrderType.Rfq,
+        }));
     }
 
     const ORDER_DOMAIN = {
@@ -252,7 +277,11 @@ describe('MarketOperationUtils tests', () => {
             _wethAddress: string,
         ) => {
             return BATCH_SOURCE_FILTERS.getAllowed(sources).map(s =>
-                createSamplesFromRates(s, fillAmounts, rates[s].map(r => new BigNumber(1).div(r))),
+                createSamplesFromRates(
+                    s,
+                    fillAmounts,
+                    rates[s].map(r => new BigNumber(1).div(r)),
+                ),
             );
         };
     }
@@ -368,7 +397,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.LiquidityProvider]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.SushiSwap]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Mooniswap]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.Native]: { order: createOrder() },
+        [ERC20BridgeSource.Native]: { order: new LimitOrder() },
         [ERC20BridgeSource.MultiHop]: {},
         [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
@@ -458,43 +487,6 @@ describe('MarketOperationUtils tests', () => {
         Object.assign(MOCK_SAMPLER, ops);
     }
 
-    describe('getRfqtIndicativeQuotesAsync', () => {
-        const partialRfqt: RfqtRequestOpts = {
-            apiKey: 'foo',
-            takerAddress: NULL_ADDRESS,
-            isIndicative: true,
-            intentOnFilling: false,
-        };
-
-        it('calls RFQT', async () => {
-            const requestor = TypeMoq.Mock.ofType(QuoteRequestor, TypeMoq.MockBehavior.Loose);
-            requestor
-                .setup(r =>
-                    r.requestRfqtIndicativeQuotesAsync(
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => Promise.resolve([]))
-                .verifiable(TypeMoq.Times.once());
-            await getRfqtIndicativeQuotesAsync(
-                MAKER_ASSET_DATA,
-                TAKER_ASSET_DATA,
-                MarketOperation.Sell,
-                new BigNumber('100e18'),
-                undefined,
-                {
-                    rfqt: { quoteRequestor: requestor.object, ...partialRfqt },
-                },
-            );
-            requestor.verifyAll();
-        });
-    });
-
     describe('MarketOperationUtils', () => {
         let marketOperationUtils: MarketOperationUtils;
 
@@ -539,7 +531,7 @@ describe('MarketOperationUtils tests', () => {
                         );
                     },
                 });
-                await marketOperationUtils.getMarketSellOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketSellOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     numSamples,
                 });
@@ -581,7 +573,7 @@ describe('MarketOperationUtils tests', () => {
                         return DEFAULT_OPS.getCreamSellQuotesOffChainAsync(makerToken, takerToken, takerFillAmounts);
                     },
                 });
-                await marketOperationUtils.getMarketSellOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketSellOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     excludedSources: [],
                 });
@@ -627,7 +619,7 @@ describe('MarketOperationUtils tests', () => {
                         return DEFAULT_OPS.getCreamSellQuotesOffChainAsync(makerToken, takerToken, takerFillAmounts);
                     },
                 });
-                await marketOperationUtils.getMarketSellOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketSellOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     excludedSources,
                 });
@@ -673,7 +665,7 @@ describe('MarketOperationUtils tests', () => {
                         return DEFAULT_OPS.getCreamSellQuotesOffChainAsync(makerToken, takerToken, takerFillAmounts);
                     },
                 });
-                await marketOperationUtils.getMarketSellOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketSellOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     excludedSources: [],
                     includedSources,
@@ -682,7 +674,8 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('generates bridge orders with correct asset data', async () => {
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
                     ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
@@ -723,8 +716,13 @@ describe('MarketOperationUtils tests', () => {
                     .returns(async (a, b) => mockedMarketOpUtils.target._generateOptimizedOrdersAsync(a, b))
                     .verifiable(TypeMoq.Times.once());
 
-                const totalAssetAmount = ORDERS.map(o => o.takerAssetAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSellOrdersAsync(ORDERS, totalAssetAmount, DEFAULT_OPTS);
+                const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
+                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                    ORDERS,
+                    totalAssetAmount,
+                    MarketOperation.Sell,
+                    DEFAULT_OPTS,
+                );
                 mockedMarketOpUtils.verifyAll();
             });
 
@@ -764,14 +762,12 @@ describe('MarketOperationUtils tests', () => {
                     )
                     .returns(async () => {
                         return [
-                            {
-                                signedOrder: createOrder({
-                                    makerAssetData: MAKER_ASSET_DATA,
-                                    takerAssetData: TAKER_ASSET_DATA,
-                                    makerAssetAmount: Web3Wrapper.toBaseUnitAmount(321, 6),
-                                    takerAssetAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                                }),
-                            },
+                            new RfqOrder({
+                                makerToken: MAKER_TOKEN,
+                                takerToken: TAKER_TOKEN,
+                                makerAmount: Web3Wrapper.toBaseUnitAmount(321, 6),
+                                takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
+                            }),
                         ];
                     });
 
@@ -791,32 +787,38 @@ describe('MarketOperationUtils tests', () => {
                     )
                     .returns(async () => {
                         return {
-                            dexQuotes: [],
-                            ethToInputRate: Web3Wrapper.toBaseUnitAmount(1, 18),
-                            ethToOutputRate: Web3Wrapper.toBaseUnitAmount(1, 6),
+                            side: MarketOperation.Sell,
                             inputAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
                             inputToken: MAKER_TOKEN,
                             outputToken: TAKER_TOKEN,
-                            nativeOrders: [
-                                createOrder({
-                                    makerAssetData: MAKER_ASSET_DATA,
-                                    takerAssetData: TAKER_ASSET_DATA,
-                                    makerAssetAmount: Web3Wrapper.toBaseUnitAmount(320, 6),
-                                    takerAssetAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                                }),
-                            ],
-                            orderFillableAmounts: [Web3Wrapper.toBaseUnitAmount(1, 18)],
-                            rfqtIndicativeQuotes: [],
-                            side: MarketOperation.Sell,
-                            twoHopQuotes: [],
+                            ethToInputRate: Web3Wrapper.toBaseUnitAmount(1, 18),
+                            ethToOutputRate: Web3Wrapper.toBaseUnitAmount(1, 6),
                             quoteSourceFilters: new SourceFilters(),
                             makerTokenDecimals: 6,
                             takerTokenDecimals: 18,
+                            quotes: {
+                                dexQuotes: [],
+                                rfqtIndicativeQuotes: [],
+                                twoHopQuotes: [],
+                                nativeOrders: [
+                                    {
+                                        order: new LimitOrder({
+                                            makerToken: MAKER_TOKEN,
+                                            takerToken: TAKER_TOKEN,
+                                            makerAmount: Web3Wrapper.toBaseUnitAmount(320, 6),
+                                            takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
+                                        }),
+                                        orderFillableAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
+                                        orderType: FillQuoteTransformerOrderType.Limit,
+                                    },
+                                ],
+                            },
                         };
                     });
-                const result = await mockedMarketOpUtils.object.getMarketSellOrdersAsync(
+                const result = await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
                     ORDERS,
                     Web3Wrapper.toBaseUnitAmount(1, 18),
+                    MarketOperation.Sell,
                     {
                         ...DEFAULT_OPTS,
                         feeSchedule,
@@ -857,26 +859,35 @@ describe('MarketOperationUtils tests', () => {
 
                 const requestor = getMockedQuoteRequestor('firm', [], TypeMoq.Times.once());
 
-                const totalAssetAmount = ORDERS.map(o => o.takerAssetAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSellOrdersAsync(ORDERS, totalAssetAmount, {
-                    ...DEFAULT_OPTS,
-                    rfqt: {
-                        isIndicative: false,
-                        apiKey: 'foo',
-                        takerAddress: randomAddress(),
-                        intentOnFilling: true,
-                        priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
-                        quoteRequestor: {
-                            requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
-                        } as any,
+                const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
+                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                    ORDERS,
+                    totalAssetAmount,
+                    MarketOperation.Sell,
+                    {
+                        ...DEFAULT_OPTS,
+                        rfqt: {
+                            isIndicative: false,
+                            apiKey: 'foo',
+                            takerAddress: randomAddress(),
+                            intentOnFilling: true,
+                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
+                            quoteRequestor: {
+                                requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
+                            } as any,
+                        },
                     },
-                });
+                );
                 mockedMarketOpUtils.verifyAll();
                 requestor.verifyAll();
             });
 
             it('getMarketSellOrdersAsync() will rerun the optimizer if one or more indicative are returned', async () => {
-                const requestor = getMockedQuoteRequestor('indicative', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
+                const requestor = getMockedQuoteRequestor(
+                    'indicative',
+                    [ORDERS[0].order, ORDERS[1].order],
+                    TypeMoq.Times.once(),
+                );
 
                 const numOrdersInCall: number[] = [];
                 const numIndicativeQuotesInCall: number[] = [];
@@ -893,16 +904,17 @@ describe('MarketOperationUtils tests', () => {
                 mockedMarketOpUtils
                     .setup(m => m._generateOptimizedOrdersAsync(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                     .callback(async (msl: MarketSideLiquidity, _opts: GenerateOptimizedOrdersOpts) => {
-                        numOrdersInCall.push(msl.nativeOrders.length);
-                        numIndicativeQuotesInCall.push(msl.rfqtIndicativeQuotes.length);
+                        numOrdersInCall.push(msl.quotes.nativeOrders.length);
+                        numIndicativeQuotesInCall.push(msl.quotes.rfqtIndicativeQuotes.length);
                     })
                     .returns(async (a, b) => mockedMarketOpUtils.target._generateOptimizedOrdersAsync(a, b))
                     .verifiable(TypeMoq.Times.exactly(2));
 
-                const totalAssetAmount = ORDERS.map(o => o.takerAssetAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSellOrdersAsync(
+                const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
+                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
                     ORDERS.slice(2, ORDERS.length),
                     totalAssetAmount,
+                    MarketOperation.Sell,
                     {
                         ...DEFAULT_OPTS,
                         rfqt: {
@@ -933,7 +945,7 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('getMarketSellOrdersAsync() will rerun the optimizer if one or more RFQ orders are returned', async () => {
-                const requestor = getMockedQuoteRequestor('firm', [ORDERS[0]], TypeMoq.Times.once());
+                const requestor = getMockedQuoteRequestor('firm', [ORDERS[0].order], TypeMoq.Times.once());
 
                 // Ensure that `_generateOptimizedOrdersAsync` is only called once
 
@@ -951,15 +963,16 @@ describe('MarketOperationUtils tests', () => {
                 mockedMarketOpUtils
                     .setup(m => m._generateOptimizedOrdersAsync(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                     .callback(async (msl: MarketSideLiquidity, _opts: GenerateOptimizedOrdersOpts) => {
-                        numOrdersInCall.push(msl.nativeOrders.length);
+                        numOrdersInCall.push(msl.quotes.nativeOrders.length);
                     })
                     .returns(async (a, b) => mockedMarketOpUtils.target._generateOptimizedOrdersAsync(a, b))
                     .verifiable(TypeMoq.Times.exactly(2));
 
-                const totalAssetAmount = ORDERS.map(o => o.takerAssetAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSellOrdersAsync(
+                const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
+                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
                     ORDERS.slice(1, ORDERS.length),
                     totalAssetAmount,
+                    MarketOperation.Sell,
                     {
                         ...DEFAULT_OPTS,
                         rfqt: {
@@ -987,7 +1000,11 @@ describe('MarketOperationUtils tests', () => {
             it('getMarketSellOrdersAsync() will not raise a NoOptimalPath error if no initial path was found during on-chain DEX optimization, but a path was found after RFQ optimization', async () => {
                 let hasFirstOptimizationRun = false;
                 let hasSecondOptimizationRun = false;
-                const requestor = getMockedQuoteRequestor('firm', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
+                const requestor = getMockedQuoteRequestor(
+                    'firm',
+                    [ORDERS[0].order, ORDERS[1].order],
+                    TypeMoq.Times.once(),
+                );
 
                 const mockedMarketOpUtils = TypeMoq.Mock.ofType(
                     MarketOperationUtils,
@@ -1001,10 +1018,10 @@ describe('MarketOperationUtils tests', () => {
                 mockedMarketOpUtils
                     .setup(m => m._generateOptimizedOrdersAsync(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                     .returns(async (msl: MarketSideLiquidity, _opts: GenerateOptimizedOrdersOpts) => {
-                        if (msl.nativeOrders.length === 1) {
+                        if (msl.quotes.nativeOrders.length === 1) {
                             hasFirstOptimizationRun = true;
                             throw new Error(AggregationError.NoOptimalPath);
-                        } else if (msl.nativeOrders.length === 3) {
+                        } else if (msl.quotes.nativeOrders.length === 3) {
                             hasSecondOptimizationRun = true;
                             return mockedMarketOpUtils.target._generateOptimizedOrdersAsync(msl, _opts);
                         } else {
@@ -1013,10 +1030,11 @@ describe('MarketOperationUtils tests', () => {
                     })
                     .verifiable(TypeMoq.Times.exactly(2));
 
-                const totalAssetAmount = ORDERS.map(o => o.takerAssetAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSellOrdersAsync(
+                const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
+                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
                     ORDERS.slice(2, ORDERS.length),
                     totalAssetAmount,
+                    MarketOperation.Sell,
                     {
                         ...DEFAULT_OPTS,
                         rfqt: {
@@ -1056,9 +1074,10 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.exactly(1));
 
                 try {
-                    await mockedMarketOpUtils.object.getMarketSellOrdersAsync(
+                    await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
                         ORDERS.slice(2, ORDERS.length),
-                        ORDERS[0].takerAssetAmount,
+                        ORDERS[0].order.takerAmount,
+                        MarketOperation.Sell,
                         DEFAULT_OPTS,
                     );
                     expect.fail(`Call should have thrown "${AggregationError.NoOptimalPath}" but instead succeded`);
@@ -1071,7 +1090,8 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('generates bridge orders with correct taker amount', async () => {
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
                     ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
@@ -1084,7 +1104,8 @@ describe('MarketOperationUtils tests', () => {
 
             it('generates bridge orders with max slippage of `bridgeSlippage`', async () => {
                 const bridgeSlippage = _.random(0.1, true);
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
                     ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
@@ -1108,7 +1129,8 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4 },
@@ -1147,7 +1169,8 @@ describe('MarketOperationUtils tests', () => {
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
@@ -1185,7 +1208,8 @@ describe('MarketOperationUtils tests', () => {
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
@@ -1211,7 +1235,8 @@ describe('MarketOperationUtils tests', () => {
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4 },
@@ -1235,7 +1260,8 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true },
@@ -1256,7 +1282,8 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
@@ -1284,14 +1311,18 @@ describe('MarketOperationUtils tests', () => {
                 });
 
                 const sampler = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
-                const ordersAndReport = await sampler.getMarketSellOrdersAsync(
+                const ordersAndReport = await sampler.getMarketSideOrdersAsync(
                     [
-                        createOrder({
-                            makerAssetData: assetDataUtils.encodeERC20AssetData(MAKER_TOKEN),
-                            takerAssetData: assetDataUtils.encodeERC20AssetData(TAKER_TOKEN),
-                        }),
+                        {
+                            order: new LimitOrder({
+                                makerToken: MAKER_TOKEN,
+                                takerToken: TAKER_TOKEN,
+                            }),
+                            orderType: FillQuoteTransformerOrderType.Limit,
+                        },
                     ],
                     FILL_AMOUNT,
+                    MarketOperation.Sell,
                     {
                         includedSources: [ERC20BridgeSource.LiquidityProvider],
                         excludedSources: [],
@@ -1334,9 +1365,10 @@ describe('MarketOperationUtils tests', () => {
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);
-                const improvedOrdersResponse = await optimizer.getMarketSellOrdersAsync(
+                const improvedOrdersResponse = await optimizer.getMarketSideOrdersAsync(
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
+                    MarketOperation.Sell,
                     {
                         ...DEFAULT_OPTS,
                         numSamples: 4,
@@ -1393,7 +1425,7 @@ describe('MarketOperationUtils tests', () => {
                         );
                     },
                 });
-                await marketOperationUtils.getMarketBuyOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketBuyOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     numSamples,
                 });
@@ -1438,7 +1470,7 @@ describe('MarketOperationUtils tests', () => {
                         return DEFAULT_OPS.getCreamBuyQuotesOffChainAsync(makerToken, takerToken, makerFillAmounts);
                     },
                 });
-                await marketOperationUtils.getMarketBuyOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketBuyOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     excludedSources: [],
                 });
@@ -1484,7 +1516,7 @@ describe('MarketOperationUtils tests', () => {
                         return DEFAULT_OPS.getCreamBuyQuotesOffChainAsync(makerToken, takerToken, makerFillAmounts);
                     },
                 });
-                await marketOperationUtils.getMarketBuyOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketBuyOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     excludedSources,
                 });
@@ -1530,7 +1562,7 @@ describe('MarketOperationUtils tests', () => {
                         return DEFAULT_OPS.getCreamBuyQuotesOffChainAsync(makerToken, takerToken, makerFillAmounts);
                     },
                 });
-                await marketOperationUtils.getMarketBuyOrdersAsync(ORDERS, FILL_AMOUNT, {
+                await getMarketBuyOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     excludedSources: [],
                     includedSources,
@@ -1539,7 +1571,8 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('generates bridge orders with correct asset data', async () => {
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
                     ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
@@ -1564,7 +1597,8 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('generates bridge orders with correct maker amount', async () => {
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
                     ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
@@ -1577,7 +1611,8 @@ describe('MarketOperationUtils tests', () => {
 
             it('generates bridge orders with max slippage of `bridgeSlippage`', async () => {
                 const bridgeSlippage = _.random(0.1, true);
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
                     ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
@@ -1600,7 +1635,8 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4 },
@@ -1640,7 +1676,8 @@ describe('MarketOperationUtils tests', () => {
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_TAKER_RATE),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
@@ -1678,7 +1715,8 @@ describe('MarketOperationUtils tests', () => {
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_TAKER_RATE),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
@@ -1701,7 +1739,8 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true },
@@ -1721,7 +1760,8 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
                 });
-                const improvedOrdersResponse = await marketOperationUtils.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+                    marketOperationUtils,
                     createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
@@ -1756,9 +1796,10 @@ describe('MarketOperationUtils tests', () => {
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);
-                const improvedOrdersResponse = await optimizer.getMarketBuyOrdersAsync(
+                const improvedOrdersResponse = await optimizer.getMarketSideOrdersAsync(
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
+                    MarketOperation.Buy,
                     {
                         ...DEFAULT_OPTS,
                         numSamples: 4,
@@ -1780,32 +1821,28 @@ describe('MarketOperationUtils tests', () => {
     });
 
     describe('createFills', () => {
-        const takerAssetAmount = new BigNumber(5000000);
+        const takerAmount = new BigNumber(5000000);
         const ethToOutputRate = new BigNumber(0.5);
         // tslint:disable-next-line:no-object-literal-type-assertion
         const smallOrder = {
-            chainId: 1,
-            makerAddress: 'SMALL_ORDER',
-            takerAddress: NULL_ADDRESS,
-            takerAssetAmount,
-            makerAssetAmount: takerAssetAmount.times(2),
-            makerFee: ZERO_AMOUNT,
-            takerFee: ZERO_AMOUNT,
-            makerAssetData: '0xf47261b0000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-            takerAssetData: '0xf47261b0000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            makerFeeAssetData: '0x',
-            takerFeeAssetData: '0x',
-            fillableTakerAssetAmount: takerAssetAmount,
-            fillableMakerAssetAmount: takerAssetAmount.times(2),
-            fillableTakerFeeAmount: ZERO_AMOUNT,
-        } as SignedOrderWithFillableAmounts;
+            order: new LimitOrder({
+                chainId: 1,
+                maker: 'SMALL_ORDER',
+                takerAmount,
+                makerAmount: takerAmount.times(2),
+            }),
+            orderFillableAmount: takerAmount,
+            orderType: FillQuoteTransformerOrderType.Limit,
+        };
         const largeOrder = {
-            ...smallOrder,
-            makerAddress: 'LARGE_ORDER',
-            fillableMakerAssetAmount: smallOrder.fillableMakerAssetAmount.times(2),
-            fillableTakerAssetAmount: smallOrder.fillableTakerAssetAmount.times(2),
-            makerAssetAmount: smallOrder.makerAssetAmount.times(2),
-            takerAssetAmount: smallOrder.takerAssetAmount.times(2),
+            order: new LimitOrder({
+                chainId: 1,
+                maker: 'LARGE_ORDER',
+                takerAmount: smallOrder.order.takerAmount.times(2),
+                makerAmount: smallOrder.order.makerAmount.times(2),
+            }),
+            orderFillableAmount: smallOrder.orderFillableAmount.times(2),
+            orderType: FillQuoteTransformerOrderType.Limit,
         };
         const orders = [smallOrder, largeOrder];
         const feeSchedule = {
@@ -1817,12 +1854,12 @@ describe('MarketOperationUtils tests', () => {
                 side: MarketOperation.Sell,
                 orders,
                 dexQuotes: [],
-                targetInput: takerAssetAmount.minus(1),
+                targetInput: takerAmount.minus(1),
                 ethToOutputRate,
                 feeSchedule,
             });
-            expect((path[0][0].fillData as NativeFillData).order.makerAddress).to.eq(smallOrder.makerAddress);
-            expect(path[0][0].input).to.be.bignumber.eq(takerAssetAmount.minus(1));
+            expect((path[0][0].fillData as NativeFillData).order.makerAddress).to.eq(smallOrder.order.maker);
+            expect(path[0][0].input).to.be.bignumber.eq(takerAmount.minus(1));
         });
 
         it('penalizes native fill based on available amount when target is larger', () => {
@@ -1834,8 +1871,8 @@ describe('MarketOperationUtils tests', () => {
                 ethToOutputRate,
                 feeSchedule,
             });
-            expect((path[0][0].fillData as NativeFillData).order.makerAddress).to.eq(largeOrder.makerAddress);
-            expect((path[0][1].fillData as NativeFillData).order.makerAddress).to.eq(smallOrder.makerAddress);
+            expect((path[0][0].fillData as NativeFillData).order.makerAddress).to.eq(largeOrder.order.maker);
+            expect((path[0][1].fillData as NativeFillData).order.makerAddress).to.eq(smallOrder.order.maker);
         });
     });
 });
