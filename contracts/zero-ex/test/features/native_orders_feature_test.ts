@@ -1405,6 +1405,36 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     }
 
     describe('getLimitOrderRelevantState()', () => {
+
+        it('does not revert with this one particular order', async () => {
+            const order = new LimitOrder({
+                makerToken: '0x349e8d89e8b37214d9ce3949fc5754152c525bc3',
+                takerToken: '0x83c62b2e67dea0df2a27be0def7a22bd7102642c',
+                makerAmount: new BigNumber(1234),
+                takerAmount: new BigNumber(5678),
+                takerTokenFeeAmount: new BigNumber(9101112),
+                maker: '0x6ecbe1db9ef729cbe972c83fb886247691fb6beb',
+                taker: '0x615312fb74c31303eab07dea520019bb23f4c6c2',
+                sender: '0x70f2d6c7acd257a6700d745b76c602ceefeb8e20',
+                feeRecipient: '0xcc3c7ea403427154ec908203ba6c418bd699f7ce',
+                pool: '0x0bbff69b85a87da39511aefc3211cb9aff00e1a1779dc35b8f3635d8b5ea2680',
+                expiry: new BigNumber(9223372036854775807),
+                salt: new BigNumber(2001),
+            });
+            await fundOrderMakerAsync(order);
+            const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx
+                .getLimitOrderRelevantState(order, await order.getSignatureWithProviderAsync(env.provider))
+                .callAsync();
+            // <SPOILER>It does revert!</SPOILER> So I never got to check these ↓ values. I expect the order to be invalid though (values are taken from `protocol/packages/protocol-utils/test/orders_test.ts`
+            expect(orderInfo).to.deep.eq({
+                orderHash: order.getHash(),
+                status: OrderStatus.Invalid,
+                takerTokenFilledAmount: ZERO_AMOUNT,
+            });
+            expect(fillableTakerAmount).to.bignumber.eq(0);
+            expect(isSignatureValid).to.eq(true);
+        });
+
         it('works with an empty order', async () => {
             const order = getTestLimitOrder({
                 takerAmount: ZERO_AMOUNT,
