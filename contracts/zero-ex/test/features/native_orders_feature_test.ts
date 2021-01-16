@@ -1425,7 +1425,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx
                 .getLimitOrderRelevantState(order, await order.getSignatureWithProviderAsync(env.provider))
                 .callAsync();
-            // <SPOILER>It does revert!</SPOILER> So I never got to check these ↓ values. I expect the order to be invalid though (values are taken from `protocol/packages/protocol-utils/test/orders_test.ts`
+            // <SPOILER>It does revert!</SPOILER> So I never got to check these ↓ values. I expect the order to be invalid though (values are taken from `protocol/packages/protocol-utils/test/orders_test.ts`, except for the maker and expiry).
             expect(orderInfo).to.deep.eq({
                 orderHash: order.getHash(),
                 status: OrderStatus.Invalid,
