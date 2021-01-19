@@ -409,7 +409,7 @@ interface INativeOrdersFeature {
         );
 
     /// @dev Batch version of `getRfqOrderRelevantState()`, without reverting.
-    ///      Orders that would normally cause `getLimitOrderRelevantState()`
+    ///      Orders that would normally cause `getRfqOrderRelevantState()`
     ///      to revert will have empty results.
     /// @param orders The RFQ orders.
     /// @param signatures The order signatures.
