@@ -5,19 +5,18 @@ import {
     constants,
     expect,
     getRandomFloat,
-    getRandomInteger,
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
 import { assetDataUtils } from '@0x/order-utils';
 import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { AssetProxyId, ERC20BridgeAssetData, SignedOrder } from '@0x/types';
-import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
-import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../src';
+import { MarketOperation, QuoteRequestor, RfqtRequestOpts } from '../src';
 import { PriceAwareRFQFlags } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
@@ -82,9 +81,9 @@ const PRICE_AWARE_RFQ_ENABLED: PriceAwareRFQFlags = {
  * @param opts Options object.
  * @return object with optimized orders and a QuoteReport
  */
-function getMarketSellOrdersAsync(
+async function getMarketSellOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
+    nativeOrders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
     takerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -99,9 +98,9 @@ function getMarketSellOrdersAsync(
  * @param opts Options object.
  * @return object with optimized orders and a QuoteReport
  */
-function getMarketBuyOrdersAsync(
+async function getMarketBuyOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
+    nativeOrders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
     makerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -142,12 +141,6 @@ describe('MarketOperationUtils tests', () => {
                 .verifiable(verifiable);
         }
         return requestor;
-    }
-
-    function createOrder(overrides?: Partial<LimitOrder>): LimitOrder {
-        return new LimitOrder({
-            ...overrides,
-        });
     }
 
     function getSourceFromAssetData(assetData: string): ERC20BridgeSource {
@@ -193,7 +186,7 @@ describe('MarketOperationUtils tests', () => {
     function createOrdersFromSellRates(
         takerAmount: BigNumber,
         rates: Numberish[],
-    ): { order: RfqOrder; orderType: FillQuoteTransformerOrderType }[] {
+    ): Array<{ order: RfqOrder; orderType: FillQuoteTransformerOrderType }> {
         const singleTakerAmount = takerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map(r => ({
             order: new RfqOrder({
@@ -207,7 +200,7 @@ describe('MarketOperationUtils tests', () => {
     function createOrdersFromBuyRates(
         makerAmount: BigNumber,
         rates: Numberish[],
-    ): { order: LimitOrder; orderType: FillQuoteTransformerOrderType }[] {
+    ): Array<{ order: LimitOrder; orderType: FillQuoteTransformerOrderType }> {
         const singleMakerAmount = makerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map(r => ({
             order: new LimitOrder({
@@ -277,11 +270,7 @@ describe('MarketOperationUtils tests', () => {
             _wethAddress: string,
         ) => {
             return BATCH_SOURCE_FILTERS.getAllowed(sources).map(s =>
-                createSamplesFromRates(
-                    s,
-                    fillAmounts,
-                    rates[s].map(r => new BigNumber(1).div(r)),
-                ),
+                createSamplesFromRates(s, fillAmounts, rates[s].map(r => new BigNumber(1).div(r))),
             );
         };
     }

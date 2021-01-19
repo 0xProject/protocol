@@ -11,7 +11,7 @@ export const affiliateFeeUtils = {
      * @param feePercentage Percentage of additive fees to apply to totalTakerAssetAmount + protocol fee.
      */
     getTotalEthAmountWithAffiliateFee(swapQuoteInfo: SwapQuoteInfo, feePercentage: number): BigNumber {
-        const ethAmount = swapQuoteInfo.protocolFeeInWeiAmount.plus(swapQuoteInfo.totalTakerAssetAmount);
+        const ethAmount = swapQuoteInfo.protocolFeeInWeiAmount.plus(swapQuoteInfo.totalTakerAmount);
         const ethAmountWithFees = ethAmount.plus(affiliateFeeUtils.getFeeAmount(swapQuoteInfo, feePercentage));
         return ethAmountWithFees;
     },
@@ -22,7 +22,7 @@ export const affiliateFeeUtils = {
      */
     getFeeAmount(swapQuoteInfo: SwapQuoteInfo, feePercentage: number): BigNumber {
         assert.assert(feePercentage >= 0, 'feePercentage must be >= 0');
-        const ethAmount = swapQuoteInfo.protocolFeeInWeiAmount.plus(swapQuoteInfo.totalTakerAssetAmount);
+        const ethAmount = swapQuoteInfo.protocolFeeInWeiAmount.plus(swapQuoteInfo.totalTakerAmount);
         // HACK(dekz): This is actually in WEI amount not ETH
         return ethAmount.times(feePercentage).integerValue(BigNumber.ROUND_UP);
     },

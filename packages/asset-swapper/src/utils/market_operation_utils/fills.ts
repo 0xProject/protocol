@@ -13,11 +13,11 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
  */
 export function createFills(opts: {
     side: MarketOperation;
-    orders?: {
+    orders?: Array<{
         order: RfqOrder | LimitOrder;
         orderFillableAmount: BigNumber;
         orderType: FillQuoteTransformerOrderType;
-    }[];
+    }>;
     dexQuotes?: DexSample[][];
     targetInput?: BigNumber;
     ethToOutputRate?: BigNumber;
@@ -81,11 +81,11 @@ function isLimitOrder(o: LimitOrder | RfqOrder): o is LimitOrder {
 
 function nativeOrdersToFills(
     side: MarketOperation,
-    orders: {
+    orders: Array<{
         order: RfqOrder | LimitOrder;
         orderFillableAmount: BigNumber;
         orderType: FillQuoteTransformerOrderType;
-    }[],
+    }>,
     targetInput: BigNumber = POSITIVE_INF,
     ethToOutputRate: BigNumber,
     ethToInputRate: BigNumber,

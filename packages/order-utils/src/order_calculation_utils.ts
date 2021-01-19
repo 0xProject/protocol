@@ -5,30 +5,6 @@ import { constants } from './constants';
 
 export const orderCalculationUtils = {
     /**
-     * Determines if the order is expired given the current time
-     * @param order The order for expiry calculation
-     */
-    isOrderExpired(order: Order): boolean {
-        return orderCalculationUtils.willOrderExpire(order, 0);
-    },
-    /**
-     * Calculates if the order will expire in the future.
-     * @param order The order for expiry calculation
-     * @param secondsFromNow The amount of seconds from current time
-     */
-    willOrderExpire(order: Order, secondsFromNow: number): boolean {
-        const millisecondsInSecond = 1000;
-        const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
-        return order.expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));
-    },
-    /**
-     * Determines if the order is open and fillable by any taker.
-     * @param order The order
-     */
-    isOpenOrder(order: Order): boolean {
-        return order.taker === constants.NULL_ADDRESS;
-    },
-    /**
      * Given an amount of taker asset, calculate the the amount of maker asset
      * @param order The order
      * @param makerFillAmount the amount of taker asset

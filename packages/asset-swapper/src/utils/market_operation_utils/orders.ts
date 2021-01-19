@@ -41,7 +41,7 @@ import {
 export function getNativeOrderTokens(order: SignedOrder): [string, string] {
     const assets = [order.makerAssetData, order.takerAssetData].map(a => assetDataUtils.decodeAssetDataOrThrow(a)) as [
         ERC20AssetData,
-        ERC20AssetData,
+        ERC20AssetData
     ];
     if (assets.some(a => a.assetProxyId !== ERC20_PROXY_ID)) {
         throw new Error(AggregationError.NotERC20AssetData);
@@ -70,7 +70,9 @@ export function createSignedOrdersWithFillableAmounts(
     // Quick safety check: ensures that orders maps perfectly to fillable amounts.
     if (orders.length !== fillableAmounts.length) {
         throw new Error(
-            `Number of orders was ${orders.length} but fillable amounts was ${fillableAmounts.length}. This should never happen`,
+            `Number of orders was ${orders.length} but fillable amounts was ${
+                fillableAmounts.length
+            }. This should never happen`,
         );
     }
 
@@ -366,10 +368,7 @@ function createBancorBridgeData(path: string[], networkAddress: string): string 
 }
 
 function createKyberBridgeData(fromTokenAddress: string, hint: string): string {
-    const encoder = AbiEncoder.create([
-        { name: 'fromTokenAddress', type: 'address' },
-        { name: 'hint', type: 'bytes' },
-    ]);
+    const encoder = AbiEncoder.create([{ name: 'fromTokenAddress', type: 'address' }, { name: 'hint', type: 'bytes' }]);
     return encoder.encode({ fromTokenAddress, hint });
 }
 

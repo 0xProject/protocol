@@ -43,9 +43,17 @@ const RFQ_ORDER_DEFAULT_VALUES = {
     txOrigin: NULL_ADDRESS,
 };
 
+const BRIDGE_ORDER_DEFAULT_VALUES = {
+    source: ZERO,
+    takerTokenAmount: ZERO,
+    makerTokenAmount: ZERO,
+    bridgeData: '',
+}
+
 export type CommonOrderFields = typeof COMMON_ORDER_DEFAULT_VALUES;
 export type LimitOrderFields = typeof LIMIT_ORDER_DEFAULT_VALUES;
 export type RfqOrderFields = typeof RFQ_ORDER_DEFAULT_VALUES;
+export type BridgeOrderFields = typeof BRIDGE_ORDER_DEFAULT_VALUES;
 
 export enum OrderStatus {
     Invalid = 0,
@@ -94,6 +102,12 @@ export abstract class OrderBase {
 
     public getHash(): string {
         return getExchangeProxyEIP712Hash(this.getStructHash(), this.chainId, this.verifyingContract);
+    }
+
+    public willExpire(secondsFromNow: number = 0): boolean {
+        const millisecondsInSecond = 1000;
+        const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
+        return this.expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));
     }
 
     public async getSignatureWithProviderAsync(

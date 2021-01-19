@@ -226,12 +226,7 @@ export class QuoteRequestor {
                 this._warningLogger(result, 'Invalid RFQ-T indicative quote received, filtering out');
                 return false;
             }
-            if (
-                !hasExpectedTokenAddresses([
-                    [makerToken, order.makerToken],
-                    [takerToken, order.takerToken],
-                ])
-            ) {
+            if (!hasExpectedTokenAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
                 return false;
             }
@@ -303,7 +298,7 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
         quoteType: 'firm' | 'indicative',
-    ): Promise<RfqQuote<ResponseT>[]> {
+    ): Promise<Array<RfqQuote<ResponseT>>> {
         const requestParams = QuoteRequestor.makeQueryParameters(
             options.takerAddress,
             marketOperation,
@@ -379,13 +374,15 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(url, latencyMs >= maxResponseTimeMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${url} for API key ${options.apiKey} for taker address ${options.takerAddress}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${url} for API key ${
+                            options.apiKey
+                        } for taker address ${options.takerAddress}`,
                     );
                     return;
                 }
             }
         });
         const results = (await Promise.all(quotePromises)).filter(x => x !== undefined);
-        return results as RfqQuote<ResponseT>[];
+        return results as Array<RfqQuote<ResponseT>>;
     }
 }

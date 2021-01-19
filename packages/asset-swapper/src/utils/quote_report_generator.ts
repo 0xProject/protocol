@@ -1,4 +1,4 @@
-import { SignedOrder } from '@0x/types';
+import { LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -33,14 +33,15 @@ interface NativeReportSourceBase {
     liquiditySource: ERC20BridgeSource.Native;
     makerAmount: BigNumber;
     takerAmount: BigNumber;
-    nativeOrder: SignedOrder;
     fillableTakerAmount: BigNumber;
 }
 export interface NativeOrderbookReportSource extends NativeReportSourceBase {
     isRfqt: false;
+    nativeOrder: LimitOrder;
 }
 export interface NativeRFQTReportSource extends NativeReportSourceBase {
     isRfqt: true;
+    nativeOrder: RfqOrder;
     makerUri: string;
     comparisonPrice?: number;
 }
@@ -63,15 +64,14 @@ export function generateQuoteReport(
     marketOperation: MarketOperation,
     dexQuotes: DexSample[],
     multiHopQuotes: Array<DexSample<MultiHopFillData>>,
-    nativeOrders: SignedOrder[],
-    orderFillableAmounts: BigNumber[],
+    nativeOrders: Array<{ order: LimitOrder | RfqOrder; orderFillableAmount: BigNumber }>,
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
     const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
-    const nativeOrderSourcesConsidered = nativeOrders.map((order, idx) =>
-        _nativeOrderToReportSource(order, orderFillableAmounts[idx], comparisonPrice, quoteRequestor),
+    const nativeOrderSourcesConsidered = nativeOrders.map(order =>
+        _nativeOrderToReportSource(order.order, order.orderFillableAmount, comparisonPrice, quoteRequestor),
     );
     const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
         _multiHopSampleToReportSource(quote, marketOperation),
@@ -85,9 +85,10 @@ export function generateQuoteReport(
     let sourcesDelivered;
     if (Array.isArray(liquidityDelivered)) {
         // create easy way to look up fillable amounts
-        const nativeOrderSignaturesToFillableAmounts = _nativeOrderSignaturesToFillableAmounts(
-            nativeOrders,
-            orderFillableAmounts,
+        const nativeOrderSignaturesToFillableAmounts = Object.fromEntries(
+            nativeOrders.map(o => {
+                return [o.order.getHash(), o.orderFillableAmount];
+            }),
         );
         // map sources delivered
         sourcesDelivered = liquidityDelivered.map(collapsedFill => {
@@ -95,7 +96,7 @@ export function generateQuoteReport(
             if (foundNativeOrder) {
                 return _nativeOrderToReportSource(
                     foundNativeOrder,
-                    nativeOrderSignaturesToFillableAmounts[foundNativeOrder.signature],
+                    nativeOrderSignaturesToFillableAmounts[foundNativeOrder.getHash()],
                     comparisonPrice,
                     quoteRequestor,
                 );
@@ -104,9 +105,7 @@ export function generateQuoteReport(
             }
         });
     } else {
-        sourcesDelivered = [
-            _multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
-        ];
+        sourcesDelivered = [_multiHopSampleToReportSource(liquidityDelivered, marketOperation)];
     }
     return {
         sourcesConsidered,
@@ -170,23 +169,7 @@ function _multiHopSampleToReportSource(
     }
 }
 
-function _nativeOrderSignaturesToFillableAmounts(
-    nativeOrders: SignedOrder[],
-    fillableAmounts: BigNumber[],
-): { [orderSignature: string]: BigNumber } {
-    // create easy way to look up fillable amounts based on native order signatures
-    if (fillableAmounts.length !== nativeOrders.length) {
-        // length mismatch, abort
-        throw new Error('orderFillableAmounts must be the same length as nativeOrders');
-    }
-    const nativeOrderSignaturesToFillableAmounts: { [orderSignature: string]: BigNumber } = {};
-    nativeOrders.forEach((nativeOrder, idx) => {
-        nativeOrderSignaturesToFillableAmounts[nativeOrder.signature] = fillableAmounts[idx];
-    });
-    return nativeOrderSignaturesToFillableAmounts;
-}
-
-function _nativeOrderFromCollapsedFill(cf: CollapsedFill): SignedOrder | undefined {
+function _nativeOrderFromCollapsedFill(cf: CollapsedFill): LimitOrder | RfqOrder | undefined {
     // Cast as NativeCollapsedFill and then check
     // if it really is a NativeCollapsedFill
     const possibleNativeCollapsedFill = cf as NativeCollapsedFill;
@@ -198,24 +181,24 @@ function _nativeOrderFromCollapsedFill(cf: CollapsedFill): SignedOrder | undefin
 }
 
 function _nativeOrderToReportSource(
-    nativeOrder: SignedOrder,
+    nativeOrder: RfqOrder | LimitOrder,
     fillableAmount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): NativeRFQTReportSource | NativeOrderbookReportSource {
     const nativeOrderBase: NativeReportSourceBase = {
         liquiditySource: ERC20BridgeSource.Native,
-        makerAmount: nativeOrder.makerAssetAmount,
-        takerAmount: nativeOrder.takerAssetAmount,
+        makerAmount: nativeOrder.makerAmount,
+        takerAmount: nativeOrder.takerAmount,
         fillableTakerAmount: fillableAmount,
-        nativeOrder,
     };
 
     // if we find this is an rfqt order, label it as such and associate makerUri
-    const foundRfqtMakerUri = quoteRequestor && quoteRequestor.getMakerUriForOrderSignature(nativeOrder.signature);
+    const foundRfqtMakerUri = quoteRequestor && quoteRequestor.getMakerUriForOrderHash(nativeOrder.getHash());
     if (foundRfqtMakerUri) {
         const rfqtSource: NativeRFQTReportSource = {
             ...nativeOrderBase,
+            nativeOrder: nativeOrder as RfqOrder,
             isRfqt: true,
             makerUri: foundRfqtMakerUri,
         };
@@ -227,6 +210,7 @@ function _nativeOrderToReportSource(
         // if it's not an rfqt order, treat as normal
         const regularNativeOrder: NativeOrderbookReportSource = {
             ...nativeOrderBase,
+            nativeOrder: nativeOrder as LimitOrder,
             isRfqt: false,
         };
         return regularNativeOrder;

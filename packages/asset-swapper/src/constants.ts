@@ -29,10 +29,7 @@ const ZERO_AMOUNT = new BigNumber(0);
 
 const DEFAULT_ORDER_PRUNER_OPTS: OrderPrunerOpts = {
     expiryBufferMs: 120000, // 2 minutes
-    permittedOrderFeeTypes: new Set<OrderPrunerPermittedFeeTypes>([
-        OrderPrunerPermittedFeeTypes.NoFees,
-        OrderPrunerPermittedFeeTypes.MakerDenominatedTakerFee,
-    ]), // Default asset-swapper for CFL oriented fee types
+    permittedOrderFeeTypes: new Set<OrderPrunerPermittedFeeTypes>([OrderPrunerPermittedFeeTypes.NoFees]), // Default asset-swapper for CFL oriented fee types
 };
 
 // 6 seconds polling interval

@@ -1,5 +1,5 @@
 import { schemas } from '@0x/json-schemas';
-import { Order } from '@0x/types';
+import { CommonOrderFields as Order } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -9,7 +9,6 @@ import { getAdjustedMakerAndTakerAmountsFromTakerFees } from './utils';
 export const sortingUtils = {
     sortOrders<T extends Order>(orders: T[]): T[] {
         assert.doesConformToSchema('orders', orders, schemas.ordersSchema);
-        assert.isValidOrdersForSwapQuoter('orders', orders);
         const copiedOrders = _.cloneDeep(orders);
         copiedOrders.sort((firstOrder, secondOrder) => {
             const firstOrderRate = getTakerFeeAdjustedRateOfOrder(firstOrder);

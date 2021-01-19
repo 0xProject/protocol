@@ -1,5 +1,4 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { DevUtilsContract } from '@0x/contract-wrappers';
 import { assetDataUtils } from '@0x/order-utils';
 import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
@@ -32,22 +31,30 @@ import {
     MarketDepthSide,
     MarketSideLiquidity,
 } from './utils/market_operation_utils/types';
-import { orderPrunerUtils } from './utils/order_prune_utils';
-import { OrderStateUtils } from './utils/order_state_utils';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
-import { sortingUtils } from './utils/sorting_utils';
 import { SwapQuoteCalculator } from './utils/swap_quote_calculator';
-import { getPriceAwareRFQRolloutFlags } from './utils/utils';
+import { getPriceAwareRFQRolloutFlags, isOrderTakerFeePayableWithTakerAsset } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
 
 export abstract class Orderbook {
-    public abstract getOrdersAsync(makerToken: string, takerToken: string): Promise<APIOrder[]>;
-    public abstract getBatchOrdersAsync(makerTokens: string[], takerTokens: string[]): Promise<APIOrder[][]>;
+    public abstract getOrdersAsync(
+        makerToken: string,
+        takerToken: string,
+        pruneFn?: (o: APIOrder) => boolean,
+    ): Promise<APIOrder[]>;
+    public abstract getBatchOrdersAsync(
+        makerTokens: string[],
+        takerTokens: string[],
+        pruneFn?: (o: APIOrder) => boolean,
+    ): Promise<APIOrder[][]>;
+    // tslint:disable-next-line:prefer-function-over-method
     public async destroyAsync(): Promise<void> {
         return;
     }
 }
+
+// tslint:disable:max-classes-per-file
 export class SwapQuoter {
     public readonly provider: ZeroExProvider;
     public readonly orderbook: Orderbook;
@@ -57,9 +64,7 @@ export class SwapQuoter {
     private readonly _contractAddresses: AssetSwapperContractAddresses;
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
     private readonly _swapQuoteCalculator: SwapQuoteCalculator;
-    private readonly _devUtilsContract: DevUtilsContract;
     private readonly _marketOperationUtils: MarketOperationUtils;
-    private readonly _orderStateUtils: OrderStateUtils;
     private readonly _rfqtOptions?: SwapQuoterRfqtOpts;
 
     /**
@@ -95,12 +100,10 @@ export class SwapQuoter {
             ...getContractAddressesForChainOrThrow(chainId),
             ...BRIDGE_ADDRESSES_BY_CHAIN[chainId],
         };
-        this._devUtilsContract = new DevUtilsContract(this._contractAddresses.devUtils, provider);
         this._protocolFeeUtils = ProtocolFeeUtils.getInstance(
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
             options.ethGasStationUrl,
         );
-        this._orderStateUtils = new OrderStateUtils(this._devUtilsContract);
         // Allow the sampler bytecode to be overwritten using geths override functionality
         const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
         const defaultCodeOverrides = samplerBytecode
@@ -146,7 +149,7 @@ export class SwapQuoter {
         takerToken: string,
         makerAssetBuyAmount: BigNumber[],
         options: Partial<SwapQuoteRequestOpts> = {},
-    ): Promise<Array<MarketBuySwapQuote>> {
+    ): Promise<MarketBuySwapQuote[]> {
         makerAssetBuyAmount.map((a, i) => assert.isBigNumber(`makerAssetBuyAmount[${i}]`, a));
         let gasPrice: BigNumber;
         const calculateSwapQuoteOpts = _.merge({}, constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, options);
@@ -157,32 +160,20 @@ export class SwapQuoter {
             gasPrice = await this.getGasPriceEstimationOrThrowAsync();
         }
 
-        const apiOrders = await this.orderbook.getBatchOrdersAsync(makerTokens, [takerToken]);
-        const allOrders = apiOrders.map(orders => orders.map(o => o.order));
-        const allPrunedOrders = allOrders.map((orders, i) => {
-            const prunedOrders = orderPrunerUtils.pruneForUsableSignedOrders(
-                orders,
-                this.permittedOrderFeeTypes,
-                this.expiryBufferMs,
-            );
-            if (prunedOrders.length === 0) {
-                return [
-                    new LimitOrder({
-                        makerToken: makerTokens[i],
-                        takerToken,
-                        maker: this._contractAddresses.uniswapBridge,
-                    }),
-                ];
-            } else {
-                return sortingUtils.sortOrders(prunedOrders);
-            }
-        });
+        const apiOrders = await this.orderbook.getBatchOrdersAsync(
+            makerTokens,
+            [takerToken],
+            this._limitOrderPruningFn,
+        );
+        const allOrders = apiOrders.map(orders =>
+            orders.map(o => ({ order: o.order, orderType: FillQuoteTransformerOrderType.Limit })),
+        );
 
         const swapQuotes = await this._swapQuoteCalculator.calculateBatchBuySwapQuoteAsync(
-            allPrunedOrders,
+            allOrders,
             makerAssetBuyAmount,
-            MarketOperation.Buy,
             gasPrice,
+            MarketOperation.Buy,
             calculateSwapQuoteOpts,
         );
         return swapQuotes.filter(x => x !== undefined) as MarketBuySwapQuote[];
@@ -359,6 +350,18 @@ export class SwapQuoter {
         return assetDataUtils.encodeERC20AssetData(this._contractAddresses.etherToken);
     }
 
+    private readonly _limitOrderPruningFn = (apiOrder: APIOrder) => {
+        const order = apiOrder.order;
+        const isOpenOrder = order.taker === constants.NULL_ADDRESS;
+        const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS); // tslint:disable-line:boolean-naming
+        const isFeeTypeAllowed =
+            (this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.NoFees) &&
+                order.takerTokenFeeAmount.eq(constants.ZERO_AMOUNT)) ||
+            (this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.TakerDenominatedTakerFee) &&
+                isOrderTakerFeePayableWithTakerAsset(order));
+        return isOpenOrder && !willOrderExpire && isFeeTypeAllowed;
+    }; // tslint:disable-line:semicolon
+
     /**
      * Grab orders from the order provider, prunes for valid orders with provided OrderPruner options
      * @param   makerAssetData      The makerAssetData of the desired asset to swap for (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
@@ -368,14 +371,8 @@ export class SwapQuoter {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
         // get orders
-        const apiOrders = await this.orderbook.getOrdersAsync(makerToken, takerToken); // todo(xianny)
-        const orders = _.map(apiOrders, o => o.order);
-        const prunedOrders = orderPrunerUtils.pruneForUsableSignedOrders(
-            orders,
-            this.permittedOrderFeeTypes,
-            this.expiryBufferMs,
-        );
-        return prunedOrders;
+        const apiOrders = await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn); // todo(xianny)
+        return apiOrders.map(o => o.order);
     }
 
     /**
@@ -423,7 +420,7 @@ export class SwapQuoter {
         }
 
         // Otherwise check other RFQ options
-        let proceedWithRfq = false;
+        let shouldProceedWithRfq = false;
         if (
             opts.rfqt && // This is an RFQT-enabled API request
             !getPriceAwareRFQRolloutFlags(opts.rfqt.priceAwareRFQFlag).isFirmPriceAwareEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
@@ -435,7 +432,7 @@ export class SwapQuoter {
             if (!opts.rfqt.takerAddress || opts.rfqt.takerAddress === constants.NULL_ADDRESS) {
                 throw new Error('RFQ-T firm quote requests must specify a taker address');
             }
-            proceedWithRfq = true;
+            shouldProceedWithRfq = true;
         }
         const rfqtOptions = this._rfqtOptions;
         const quoteRequestor = new QuoteRequestor(
@@ -446,7 +443,7 @@ export class SwapQuoter {
         );
 
         // Get RFQ orders if valid
-        const rfqOrdersPromise = proceedWithRfq
+        const rfqOrdersPromise = shouldProceedWithRfq
             ? quoteRequestor.requestRfqtFirmQuotesAsync(
                   makerToken,
                   takerToken,
@@ -466,10 +463,10 @@ export class SwapQuoter {
             : this._getLimitOrdersAsync(makerToken, takerToken);
 
         // Join the results together
-        const nativeOrders: {
+        const nativeOrders: Array<{
             order: LimitOrder | RfqOrder;
             orderType: FillQuoteTransformerOrderType;
-        }[] = await Promise.all([limitOrdersPromise, rfqOrdersPromise]).then((results: [LimitOrder[], RfqOrder[]]) => {
+        }> = await Promise.all([limitOrdersPromise, rfqOrdersPromise]).then((results: [LimitOrder[], RfqOrder[]]) => {
             const limitOrders = results[0].map(order => ({ order, orderType: FillQuoteTransformerOrderType.Limit }));
             const rfqOrders = results[1].map(order => ({ order, orderType: FillQuoteTransformerOrderType.Rfq }));
             return [...limitOrders, ...rfqOrders];

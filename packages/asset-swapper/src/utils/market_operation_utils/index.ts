@@ -1,6 +1,4 @@
-import { CommonOrderFields, FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
-import { V4RFQIndicativeQuote } from '@0x/quote-server';
-import { SignedOrder } from '@0x/types';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -76,7 +74,6 @@ export class MarketOperationUtils {
             _.flatten(dexQuotes),
             twoHopQuotes,
             nativeOrders,
-            orderFillableAmounts,
             liquidityDelivered,
             comparisonPrice,
             quoteRequestor,
@@ -101,7 +98,7 @@ export class MarketOperationUtils {
      * @return MarketSideLiquidity.
      */
     public async getMarketSellLiquidityAsync(
-        nativeOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
+        nativeOrders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
         takerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
@@ -140,10 +137,7 @@ export class MarketOperationUtils {
         const samplerPromise = this._sampler.executeAsync(
             this._sampler.getTokenDecimals(makerToken, takerToken),
             // Get native order fillable amounts.
-            this._sampler.getOrderFillableTakerAmounts(
-                nativeOrders.map(o => o.order),
-                this.contractAddresses.exchange,
-            ),
+            this._sampler.getOrderFillableTakerAmounts(nativeOrders.map(o => o.order), this.contractAddresses.exchange),
             // Get ETH -> maker token price.
             this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
             // Get ETH -> taker token price.
@@ -165,19 +159,21 @@ export class MarketOperationUtils {
 
         const isPriceAwareRfqEnabled =
             _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.priceAwareRFQFlag).isIndicativePriceAwareEnabled;
-        const rfqtPromise =
+        const shouldFetchRfqtIndicativeQuotes =
             !isPriceAwareRfqEnabled &&
             quoteSourceFilters.isAllowed(ERC20BridgeSource.Native) &&
-            shouldIncludeIndicativeRfqt(_opts)
-                ? _opts.rfqt?.quoteRequestor?.requestRfqtIndicativeQuotesAsync(
+            shouldIncludeIndicativeRfqt(_opts);
+        const rfqtPromise =
+            shouldFetchRfqtIndicativeQuotes && _opts.rfqt && _opts.rfqt.quoteRequestor
+                ? _opts.rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
                       makerToken,
                       takerToken,
                       takerAmount,
                       MarketOperation.Sell,
                       undefined,
                       _opts.rfqt,
-                  ) || []
-                : Promise.resolve([] as V4RFQIndicativeQuote[]);
+                  ) || Promise.resolve([])
+                : Promise.resolve([]);
 
         const offChainBalancerPromise = sampleBalancerOffChain
             ? this._sampler.getBalancerSellQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
@@ -225,7 +221,7 @@ export class MarketOperationUtils {
      * @return MarketSideLiquidity.
      */
     public async getMarketBuyLiquidityAsync(
-        nativeOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
+        nativeOrders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
         makerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
@@ -264,10 +260,7 @@ export class MarketOperationUtils {
         const samplerPromise = this._sampler.executeAsync(
             this._sampler.getTokenDecimals(makerToken, takerToken),
             // Get native order fillable amounts.
-            this._sampler.getOrderFillableMakerAmounts(
-                nativeOrders.map(o => o.order),
-                this.contractAddresses.exchange,
-            ),
+            this._sampler.getOrderFillableMakerAmounts(nativeOrders.map(o => o.order), this.contractAddresses.exchange),
             // Get ETH -> makerToken token price.
             this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
             // Get ETH -> taker token price.
@@ -291,8 +284,10 @@ export class MarketOperationUtils {
         const rfqtPromise =
             !isPriceAwareRfqEnabled &&
             quoteSourceFilters.isAllowed(ERC20BridgeSource.Native) &&
-            shouldIncludeIndicativeRfqt(_opts)
-                ? _opts.rfqt?.quoteRequestor?.requestRfqtIndicativeQuotesAsync(
+            shouldIncludeIndicativeRfqt(_opts) &&
+            _opts.rfqt &&
+            _opts.rfqt.quoteRequestor
+                ? _opts.rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
                       makerToken,
                       takerToken,
                       makerAmount,
@@ -350,7 +345,7 @@ export class MarketOperationUtils {
      * @return orders.
      */
     public async getBatchMarketBuyOrdersAsync(
-        batchNativeOrders: { order: RfqOrder | LimitOrder; orderType: FillQuoteTransformerOrderType }[][],
+        batchNativeOrders: Array<Array<{ order: RfqOrder | LimitOrder; orderType: FillQuoteTransformerOrderType }>>,
         makerAmounts: BigNumber[],
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<Array<OptimizerResult | undefined>> {
@@ -366,10 +361,7 @@ export class MarketOperationUtils {
 
         const ops = [
             ...batchNativeOrders.map(orders =>
-                this._sampler.getOrderFillableMakerAmounts(
-                    orders.map(o => o.order),
-                    this.contractAddresses.exchange,
-                ),
+                this._sampler.getOrderFillableMakerAmounts(orders.map(o => o.order), this.contractAddresses.exchange),
             ),
             ...batchNativeOrders.map(orders =>
                 this._sampler.getMedianSellRate(
@@ -500,8 +492,8 @@ export class MarketOperationUtils {
         };
 
         // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-        const takerAssetToEthRate = side === MarketOperation.Sell ? ethToInputRate : ethToOutputRate;
-        const makerAssetToEthRate = side === MarketOperation.Sell ? ethToOutputRate : ethToInputRate;
+        const takerTokenToEthRate = side === MarketOperation.Sell ? ethToInputRate : ethToOutputRate;
+        const makerTokenToEthRate = side === MarketOperation.Sell ? ethToOutputRate : ethToInputRate;
 
         // Find the optimal path
         const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, optimizerOpts);
@@ -520,8 +512,8 @@ export class MarketOperationUtils {
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
-                takerAssetToEthRate,
-                makerAssetToEthRate,
+                takerTokenToEthRate,
+                makerTokenToEthRate,
             };
         }
 
@@ -554,13 +546,13 @@ export class MarketOperationUtils {
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
-            takerAssetToEthRate,
-            makerAssetToEthRate,
+            takerTokenToEthRate,
+            makerTokenToEthRate,
         };
     }
 
     public async getMarketSideOrdersAsync(
-        nativeOrders: { order: RfqOrder | LimitOrder; orderType: FillQuoteTransformerOrderType }[],
+        nativeOrders: Array<{ order: RfqOrder | LimitOrder; orderType: FillQuoteTransformerOrderType }>,
         amount: BigNumber,
         side: MarketOperation,
         opts?: Partial<GetMarketOrdersOpts>,
@@ -584,7 +576,7 @@ export class MarketOperationUtils {
             side === MarketOperation.Sell
                 ? this.getMarketSellLiquidityAsync.bind(this)
                 : this.getMarketBuyLiquidityAsync.bind(this);
-        let marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
+        const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
         let optimizerResult: OptimizerResult | undefined;
         try {
             optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);

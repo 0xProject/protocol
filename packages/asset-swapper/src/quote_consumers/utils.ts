@@ -7,12 +7,12 @@ import { ERC20BridgeSource, OptimizedMarketOrder } from '../utils/market_operati
 /**
  * Compute the minimum buy token amount for market operations by inferring
  * the slippage from the orders in a quote. We cannot rely on
- * `worstCaseQuoteInfo.makerAssetAmount` because that does not stop at
+ * `worstCaseQuoteInfo.makerAmount` because that does not stop at
  * maximum slippage.
  */
 export function getSwapMinBuyAmount(quote: SwapQuote): BigNumber {
     if (quote.type === MarketOperation.Buy || quote.isTwoHop) {
-        return quote.worstCaseQuoteInfo.makerAssetAmount;
+        return quote.worstCaseQuoteInfo.makerAmount;
     }
     let slipRatio = new BigNumber(1);
     // Infer the allowed maker asset slippage from any non-native order.
@@ -21,15 +21,15 @@ export function getSwapMinBuyAmount(quote: SwapQuote): BigNumber {
             // No slippage on native orders.
             continue;
         }
-        const totalFillMakerAssetAmount = BigNumber.sum(...o.fills.map(f => f.output));
-        slipRatio = o.fillableMakerAssetAmount.div(totalFillMakerAssetAmount);
+        const totalFillmakerAmount = BigNumber.sum(...o.fills.map(f => f.output));
+        slipRatio = o.fillableMakerAmount.div(totalFillmakerAmount);
         break;
     }
     if (slipRatio.gte(1)) {
         // No slippage allowed across all orders.
-        return quote.bestCaseQuoteInfo.makerAssetAmount;
+        return quote.bestCaseQuoteInfo.makerAmount;
     }
-    return quote.bestCaseQuoteInfo.makerAssetAmount.times(slipRatio).integerValue(BigNumber.ROUND_DOWN);
+    return quote.bestCaseQuoteInfo.makerAmount.times(slipRatio).integerValue(BigNumber.ROUND_DOWN);
 }
 
 /**
@@ -43,7 +43,7 @@ export function getQuoteInfoMinBuyAmount(
     marketOperation: MarketOperation,
 ): BigNumber {
     if (marketOperation === MarketOperation.Buy) {
-        return quoteInfo.makerAssetAmount;
+        return quoteInfo.makerAmount;
     }
     let slipRatio = new BigNumber(1);
     // Infer the allowed maker asset slippage from any non-native order.
@@ -52,13 +52,13 @@ export function getQuoteInfoMinBuyAmount(
             // No slippage on native orders.
             continue;
         }
-        const totalFillMakerAssetAmount = BigNumber.sum(...o.fills.map(f => f.output));
-        slipRatio = o.fillableMakerAssetAmount.div(totalFillMakerAssetAmount);
+        const totalFillmakerAmount = BigNumber.sum(...o.fills.map(f => f.output));
+        slipRatio = o.fillableMakerAmount.div(totalFillmakerAmount);
         break;
     }
     if (slipRatio.gte(1)) {
         // No slippage allowed across all orders.
-        return quoteInfo.makerAssetAmount;
+        return quoteInfo.makerAmount;
     }
-    return quoteInfo.makerAssetAmount.times(slipRatio).integerValue(BigNumber.ROUND_DOWN);
+    return quoteInfo.makerAmount.times(slipRatio).integerValue(BigNumber.ROUND_DOWN);
 }

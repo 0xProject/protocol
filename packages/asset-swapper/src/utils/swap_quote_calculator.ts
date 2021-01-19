@@ -1,17 +1,9 @@
-import { RfqOrder, LimitOrder, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
-import { SignedOrder } from '@0x/types';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { constants } from '../constants';
-import {
-    CalculateSwapQuoteOpts,
-    MarketBuySwapQuote,
-    MarketOperation,
-    SwapQuote,
-    SwapQuoteInfo,
-    SwapQuoteOrdersBreakdown,
-} from '../types';
+import { CalculateSwapQuoteOpts, MarketOperation, SwapQuote, SwapQuoteInfo, SwapQuoteOrdersBreakdown } from '../types';
 
 import { MarketOperationUtils } from './market_operation_utils';
 import { SOURCE_FLAGS } from './market_operation_utils/constants';
@@ -34,7 +26,7 @@ export class SwapQuoteCalculator {
     }
 
     public async calculateBatchBuySwapQuoteAsync(
-        batchPrunedOrders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[][],
+        batchPrunedOrders: Array<Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>>,
         assetFillAmounts: BigNumber[],
         gasPrice: BigNumber,
         operation: MarketOperation,
@@ -67,7 +59,7 @@ export class SwapQuoteCalculator {
         return batchSwapQuotes;
     }
     public async calculateSwapQuoteAsync(
-        orders: { order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }[],
+        orders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
         assetFillAmount: BigNumber,
         gasPrice: BigNumber,
         operation: MarketOperation,
@@ -119,7 +111,7 @@ function createSwapQuote(
     gasPrice: BigNumber,
     gasSchedule: FeeSchedule,
 ): SwapQuote {
-    const { optimizedOrders, quoteReport, sourceFlags, takerAssetToEthRate, makerAssetToEthRate } = optimizerResult;
+    const { optimizedOrders, quoteReport, sourceFlags, takerTokenToEthRate, makerTokenToEthRate } = optimizerResult;
     const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
 
     // Calculate quote info
@@ -139,8 +131,8 @@ function createSwapQuote(
         sourceBreakdown,
         makerTokenDecimals,
         takerTokenDecimals,
-        takerAssetToEthRate,
-        makerAssetToEthRate,
+        takerTokenToEthRate,
+        makerTokenToEthRate,
         quoteReport,
         isTwoHop,
     };
@@ -204,28 +196,27 @@ function calculateTwoHopQuoteInfo(
             secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
         }),
     ).toNumber();
-
     return {
         bestCaseQuoteInfo: {
-            makerAssetAmount: operation === MarketOperation.Sell ? secondHopFill.output : secondHopFill.input,
-            takerAssetAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
-            totalTakerAssetAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
-            feeTakerAssetAmount: constants.ZERO_AMOUNT,
+            makerAmount: operation === MarketOperation.Sell ? secondHopFill.output : secondHopFill.input,
+            takerAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
+            totalTakerAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
+            feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
         },
         worstCaseQuoteInfo: {
-            makerAssetAmount: secondHopOrder.makerAssetAmount,
-            takerAssetAmount: firstHopOrder.takerAssetAmount,
-            totalTakerAssetAmount: firstHopOrder.takerAssetAmount,
-            feeTakerAssetAmount: constants.ZERO_AMOUNT,
+            makerAmount: secondHopOrder.makerAmount,
+            takerAmount: firstHopOrder.takerAmount,
+            totalTakerAmount: firstHopOrder.takerAmount,
+            feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
         },
         sourceBreakdown: {
             [ERC20BridgeSource.MultiHop]: {
                 proportion: new BigNumber(1),
-                intermediateToken: getTokenFromAssetData(secondHopOrder.takerAssetData),
+                intermediateToken: secondHopOrder.takerToken,
                 hops: [firstHopFill.source, secondHopFill.source],
             },
         },
@@ -243,10 +234,10 @@ function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: Big
 
 function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
     return {
-        makerAssetAmount: fr.totalMakerAssetAmount,
-        takerAssetAmount: fr.takerAssetAmount,
-        totalTakerAssetAmount: fr.totalTakerAssetAmount,
-        feeTakerAssetAmount: fr.takerFeeTakerAssetAmount,
+        makerAmount: fr.totalMakerAssetAmount,
+        takerAmount: fr.takerAssetAmount,
+        totalTakerAmount: fr.totalTakerAssetAmount,
+        feeTakerTokenAmount: fr.takerFeeTakerAssetAmount,
         protocolFeeInWeiAmount: fr.protocolFeeAmount,
         gas: fr.gas,
     };

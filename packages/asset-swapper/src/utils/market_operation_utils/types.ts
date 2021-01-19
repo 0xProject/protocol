@@ -1,14 +1,9 @@
-import {
-    FillQuoteTransformerBridgeOrder,
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    RfqOrder,
-} from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { RfqtFirmQuoteValidator, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../../types';
+import { OrderWithFillableAmounts, RfqtFirmQuoteValidator, RfqtRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
@@ -99,7 +94,7 @@ export interface SourceInfo<TFillData extends FillData = FillData> {
 
 // `FillData` for native fills.
 export interface NativeFillData extends FillData {
-    order: SignedOrderWithFillableAmounts;
+    order: OrderWithFillableAmounts;
 }
 
 export interface CurveFillData extends FillData {
@@ -239,7 +234,7 @@ export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 /**
  * Optimized orders to fill.
  */
-export interface OptimizedMarketOrder extends SignedOrderWithFillableAmounts {
+export interface OptimizedMarketOrder extends OrderWithFillableAmounts {
     /**
      * The optimized fills that generated this order.
      */
@@ -346,18 +341,13 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData>
 }
 
 export interface OptimizerResult {
-    optimizedOrders: {
-        bridgeOrders: FillQuoteTransformerBridgeOrder[];
-        limitOrders: LimitOrder[];
-        rfqOrders: RfqOrder[];
-        fillSequence: FillQuoteTransformerOrderType[];
-    };
+    optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: number;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
-    takerAssetToEthRate: BigNumber;
-    makerAssetToEthRate: BigNumber;
+    takerTokenToEthRate: BigNumber;
+    makerTokenToEthRate: BigNumber;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
@@ -387,11 +377,11 @@ export interface MarketSideLiquidity {
 }
 
 export interface RawQuotes {
-    nativeOrders: {
+    nativeOrders: Array<{
         order: LimitOrder | RfqOrder;
         orderFillableAmount: BigNumber;
         orderType: FillQuoteTransformerOrderType;
-    }[];
+    }>;
     rfqtIndicativeQuotes: V4RFQIndicativeQuote[];
     twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     dexQuotes: Array<Array<DexSample<FillData>>>;

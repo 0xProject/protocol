@@ -6,9 +6,11 @@ import {
     encodePayTakerTransformerData,
     encodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
+    FillQuoteTransformerData,
+    FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
     findTransformerNonce,
-} from '@0x/order-utils';
+} from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { SupportedProvider, ZeroExProvider } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
@@ -28,7 +30,6 @@ import {
 } from '../types';
 import { assert } from '../utils/assert';
 import { ERC20BridgeSource, UniswapV2FillData } from '../utils/market_operation_utils/types';
-import { getTokenFromAssetData } from '../utils/utils';
 
 import { getSwapMinBuyAmount } from './utils';
 
@@ -92,8 +93,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         // tslint:disable-next-line:no-object-literal-type-assertion
         const { refundReceiver, affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = optsWithDefaults;
 
-        const sellToken = getTokenFromAssetData(quote.takerAssetData);
-        const buyToken = getTokenFromAssetData(quote.makerAssetData);
+        const sellToken = quote.takerToken;
+        const buyToken = quote.makerToken;
         const sellAmount = quote.worstCaseQuoteInfo.totalTakerAssetAmount;
         let minBuyAmount = getSwapMinBuyAmount(quote);
         let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
@@ -132,7 +133,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
 
         if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
-            const target = quote.orders[0].makerAddress;
+            const target = quote.orders[0].order.makerAddress; // TODO (xianny)
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(
@@ -164,52 +165,54 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
-        const intermediateToken = quote.isTwoHop ? getTokenFromAssetData(quote.orders[0].makerAssetData) : NULL_ADDRESS;
+        const intermediateToken = quote.isTwoHop ? quote.orders[0].order.makerToken : NULL_ADDRESS;
         // This transformer will fill the quote.
         if (quote.isTwoHop) {
             const [firstHopOrder, secondHopOrder] = quote.orders;
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
+                    side: FillQuoteTransformerSide.Sell,
                     sellToken,
                     buyToken: intermediateToken,
-                    side: FillQuoteTransformerSide.Sell,
+                    bridgeOrders: [firstHopOrder],
+                    limitOrders: [],
+                    rfqOrders: [],
+                    fillSequence: [FillQuoteTransformerOrderType.Bridge],
                     refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAssetAmount,
-                    maxOrderFillAmounts: [],
-                    rfqtTakerAddress: NULL_ADDRESS,
-                    orders: [firstHopOrder],
-                    signatures: [firstHopOrder.signature],
+                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerTokenAmount,
                 }),
             });
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
+                    side: FillQuoteTransformerSide.Sell,
                     buyToken,
                     sellToken: intermediateToken,
+                    bridgeOrders: [secondHopOrder],
+                    limitOrders: [],
+                    rfqOrders: [],
+                    fillSequence: [FillQuoteTransformerOrderType.Bridge],
                     refundReceiver: refundReceiver || NULL_ADDRESS,
-                    side: FillQuoteTransformerSide.Sell,
                     fillAmount: MAX_UINT256,
-                    maxOrderFillAmounts: [],
-                    rfqtTakerAddress: NULL_ADDRESS,
-                    orders: [secondHopOrder],
-                    signatures: [secondHopOrder.signature],
                 }),
             });
         } else {
             const fillAmount = isBuyQuote(quote) ? quote.makerAssetFillAmount : quote.takerAssetFillAmount;
+
+            const { bridgeOrders, limitOrders, rfqOrders, fillSequence } = getFQTTransformerDataForOrders(quote.orders);
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
+                    side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
                     sellToken,
                     buyToken,
+                    bridgeOrders,
+                    limitOrders,
+                    rfqOrders,
+                    fillSequence,
                     refundReceiver: refundReceiver || NULL_ADDRESS,
-                    side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
                     fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
-                    maxOrderFillAmounts: [],
-                    rfqtTakerAddress: NULL_ADDRESS,
-                    orders: quote.orders,
-                    signatures: quote.orders.map(o => o.signature),
                 }),
             });
         }
@@ -317,4 +320,27 @@ function isDirectSwapCompatible(
         return false;
     }
     return true;
+}
+
+// TODO (xianny)
+function getFQTTransformerDataForOrders(
+    orders: SwapQuoteOrder[],
+): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
+    const fillSequence = [];
+    const typeToArray = {
+        [FillQuoteTransformerOrderType.Bridge]: [],
+        [FillQuoteTransformerOrderType.Limit]: [],
+        [FillQuoteTransformerOrderType.Rfq]: [],
+    };
+
+    for (const order of orders) {
+        typeToArray[order.orderType].push(order.order);
+        fillSequence.push(order.orderType);
+    }
+    return {
+        bridgeOrders: typeToArray[FillQuoteTransformerOrderType.Bridge],
+        limitOrders: typeToArray[FillQuoteTransformerOrderType.Limit],
+        rfqOrders: typeToArray[FillQuoteTransformerOrderType.Rfq],
+        fillSequence,
+    };
 }

@@ -221,15 +221,15 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
         order: o,
         ...(side === MarketOperation.Sell
             ? {
-                  totalOrderInput: o.takerAssetAmount,
-                  totalOrderOutput: o.makerAssetAmount,
+                  totalOrderInput: o.takerAmount,
+                  totalOrderOutput: o.makerAmount,
                   totalOrderInputFee: isOrderTakerFeePayableWithTakerAsset(o) ? o.takerFee : ZERO_AMOUNT,
                   totalOrderOutputFee: isOrderTakerFeePayableWithMakerAsset(o) ? o.takerFee.negated() : ZERO_AMOUNT,
               }
             : // Buy
               {
-                  totalOrderInput: o.makerAssetAmount,
-                  totalOrderOutput: o.takerAssetAmount,
+                  totalOrderInput: o.makerAmount,
+                  totalOrderOutput: o.takerAmount,
                   totalOrderInputFee: isOrderTakerFeePayableWithMakerAsset(o) ? o.takerFee.negated() : ZERO_AMOUNT,
                   totalOrderOutputFee: isOrderTakerFeePayableWithTakerAsset(o) ? o.takerFee : ZERO_AMOUNT,
               }),
@@ -252,9 +252,7 @@ function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrder
             }))
             // Sort by ascending price.
             .sort((a, b) =>
-                a.order.makerAssetAmount
-                    .div(a.order.takerAssetAmount)
-                    .comparedTo(b.order.makerAssetAmount.div(b.order.takerAssetAmount)),
+                a.order.makerAmount.div(a.order.takerAmount).comparedTo(b.order.makerAmount.div(b.order.takerAmount)),
             )
     );
 }
@@ -273,13 +271,13 @@ function getSlippedOrderFills(order: OptimizedMarketOrder, side: MarketOperation
         if (side === MarketOperation.Sell) {
             const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
             const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-            inputScaling = order.fillableTakerAssetAmount.div(totalFillableTakerAssetAmount);
-            outputScaling = order.fillableMakerAssetAmount.div(totalFillableMakerAssetAmount);
+            inputScaling = order.fillableTakerAmount.div(totalFillableTakerAssetAmount);
+            outputScaling = order.fillableMakerAmount.div(totalFillableMakerAssetAmount);
         } else {
             const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
             const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-            inputScaling = order.fillableMakerAssetAmount.div(totalFillableMakerAssetAmount);
-            outputScaling = order.fillableTakerAssetAmount.div(totalFillableTakerAssetAmount);
+            inputScaling = order.fillableMakerAmount.div(totalFillableMakerAssetAmount);
+            outputScaling = order.fillableTakerAmount.div(totalFillableTakerAssetAmount);
         }
     }
     return order.fills.map(f => ({

@@ -1,8 +1,8 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
-import { LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import { CommonOrderFields, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
-import { SignedOrder, APIOrder as APIOrderV3 } from '@0x/types';
+import { APIOrder as APIOrderV3 } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import {
@@ -48,13 +48,13 @@ export interface OrderProviderRequest {
 }
 
 /**
- * fillableMakerAssetAmount: Amount of makerAsset that is fillable
- * fillableTakerAssetAmount: Amount of takerAsset that is fillable
- * fillableTakerFeeAmount: Amount of takerFee paid to fill fillableTakerAssetAmount
+ * fillableMakerAmount: Amount of makerAsset that is fillable
+ * fillableTakerAmount: Amount of takerAsset that is fillable
+ * fillableTakerFeeAmount: Amount of takerFee paid to fill fillableTakerAmount
  */
-export interface SignedOrderWithFillableAmounts extends SignedOrder {
-    fillableMakerAssetAmount: BigNumber;
-    fillableTakerAssetAmount: BigNumber;
+export interface OrderWithFillableAmounts extends CommonOrderFields {
+    fillableMakerAmount: BigNumber;
+    fillableTakerAmount: BigNumber;
     fillableTakerFeeAmount: BigNumber;
 }
 
@@ -199,8 +199,8 @@ export interface SwapQuoteBase {
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
-    takerAssetToEthRate: BigNumber;
-    makerAssetToEthRate: BigNumber;
+    takerTokenToEthRate: BigNumber;
+    makerTokenToEthRate: BigNumber;
 }
 
 /**
@@ -224,18 +224,18 @@ export interface MarketBuySwapQuote extends SwapQuoteBase {
 export type SwapQuote = MarketBuySwapQuote | MarketSellSwapQuote;
 
 /**
- * feeTakerAssetAmount: The amount of takerAsset reserved for paying takerFees when swapping for desired assets.
- * takerAssetAmount: The amount of takerAsset swapped for desired makerAsset.
- * totalTakerAssetAmount: The total amount of takerAsset required to complete the swap (filling orders, and paying takerFees).
- * makerAssetAmount: The amount of makerAsset that will be acquired through the swap.
+ * feeTakerTokenAmount: The amount of takerAsset reserved for paying takerFees when swapping for desired assets.
+ * takerTokenAmount: The amount of takerAsset swapped for desired makerAsset.
+ * totalTakerTokenAmount: The total amount of takerAsset required to complete the swap (filling orders, and paying takerFees).
+ * makerTokenAmount: The amount of makerAsset that will be acquired through the swap.
  * protocolFeeInWeiAmount: The amount of ETH to pay (in WEI) as protocol fee to perform the swap for desired asset.
  * gas: Amount of estimated gas needed to fill the quote.
  */
 export interface SwapQuoteInfo {
-    feeTakerAssetAmount: BigNumber;
-    takerAssetAmount: BigNumber;
-    totalTakerAssetAmount: BigNumber;
-    makerAssetAmount: BigNumber;
+    feeTakerTokenAmount: BigNumber;
+    takerAmount: BigNumber;
+    totalTakerAmount: BigNumber;
+    makerAmount: BigNumber;
     protocolFeeInWeiAmount: BigNumber;
     gas: number;
 }
@@ -377,7 +377,6 @@ export enum MarketOperation {
  */
 export enum OrderPrunerPermittedFeeTypes {
     NoFees = 'NO_FEES',
-    MakerDenominatedTakerFee = 'MAKER_DENOMINATED_TAKER_FEE',
     TakerDenominatedTakerFee = 'TAKER_DENOMINATED_TAKER_FEE',
 }
 
