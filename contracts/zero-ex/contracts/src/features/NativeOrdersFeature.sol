@@ -111,7 +111,7 @@ contract NativeOrdersFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LimitOrders";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
     /// @dev Highest bit of a uint256, used to flag cancelled orders.
     uint256 private constant HIGH_BIT = 1 << 255;
 
@@ -772,7 +772,9 @@ contract NativeOrdersFeature is
             LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
     }
 
-    /// @dev Batch version of `getLimitOrderRelevantState()`.
+    /// @dev Batch version of `getLimitOrderRelevantState()`, without reverting.
+    ///      Orders that would normally cause `getLimitOrderRelevantState()`
+    ///      to revert will have empty results.
     /// @param orders The limit orders.
     /// @param signatures The order signatures.
     /// @return orderInfos Info about the orders.
@@ -800,15 +802,25 @@ contract NativeOrdersFeature is
         actualFillableTakerTokenAmounts = new uint128[](orders.length);
         isSignatureValids = new bool[](orders.length);
         for (uint256 i = 0; i < orders.length; ++i) {
-            (
-                orderInfos[i],
-                actualFillableTakerTokenAmounts[i],
-                isSignatureValids[i]
-            ) = getLimitOrderRelevantState(orders[i], signatures[i]);
+            try
+                this.getLimitOrderRelevantState(orders[i], signatures[i])
+                    returns (
+                        LibNativeOrder.OrderInfo memory orderInfo,
+                        uint128 actualFillableTakerTokenAmount,
+                        bool isSignatureValid
+                    )
+            {
+                orderInfos[i] = orderInfo;
+                actualFillableTakerTokenAmounts[i] = actualFillableTakerTokenAmount;
+                isSignatureValids[i] = isSignatureValid;
+            }
+            catch {}
         }
     }
 
-    /// @dev Batch version of `getRfqOrderRelevantState()`.
+    /// @dev Batch version of `getRfqOrderRelevantState()`, without reverting.
+    ///      Orders that would normally cause `getLimitOrderRelevantState()`
+    ///      to revert will have empty results.
     /// @param orders The RFQ orders.
     /// @param signatures The order signatures.
     /// @return orderInfos Info about the orders.
@@ -836,11 +848,19 @@ contract NativeOrdersFeature is
         actualFillableTakerTokenAmounts = new uint128[](orders.length);
         isSignatureValids = new bool[](orders.length);
         for (uint256 i = 0; i < orders.length; ++i) {
-            (
-                orderInfos[i],
-                actualFillableTakerTokenAmounts[i],
-                isSignatureValids[i]
-            ) = getRfqOrderRelevantState(orders[i], signatures[i]);
+            try
+                this.getRfqOrderRelevantState(orders[i], signatures[i])
+                    returns (
+                        LibNativeOrder.OrderInfo memory orderInfo,
+                        uint128 actualFillableTakerTokenAmount,
+                        bool isSignatureValid
+                    )
+            {
+                orderInfos[i] = orderInfo;
+                actualFillableTakerTokenAmounts[i] = actualFillableTakerTokenAmount;
+                isSignatureValids[i] = isSignatureValid;
+            }
+            catch {}
         }
     }
 

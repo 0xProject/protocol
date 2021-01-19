@@ -387,7 +387,9 @@ interface INativeOrdersFeature {
             bool isSignatureValid
         );
 
-    /// @dev Batch version of `getLimitOrderRelevantState()`.
+    /// @dev Batch version of `getLimitOrderRelevantState()`, without reverting.
+    ///      Orders that would normally cause `getLimitOrderRelevantState()`
+    ///      to revert will have empty results.
     /// @param orders The limit orders.
     /// @param signatures The order signatures.
     /// @return orderInfos Info about the orders.
@@ -406,7 +408,9 @@ interface INativeOrdersFeature {
             bool[] memory isSignatureValids
         );
 
-    /// @dev Batch version of `getRfqOrderRelevantState()`.
+    /// @dev Batch version of `getRfqOrderRelevantState()`, without reverting.
+    ///      Orders that would normally cause `getLimitOrderRelevantState()`
+    ///      to revert will have empty results.
     /// @param orders The RFQ orders.
     /// @param signatures The order signatures.
     /// @return orderInfos Info about the orders.
