@@ -1,4 +1,11 @@
-import { blockchainTests, constants, describe, expect, verifyEventsFromLogs } from '@0x/contracts-test-utils';
+import {
+    blockchainTests,
+    constants,
+    describe,
+    expect,
+    randomAddress,
+    verifyEventsFromLogs,
+} from '@0x/contracts-test-utils';
 import {
     LimitOrder,
     LimitOrderFields,
@@ -18,7 +25,7 @@ import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
 import { TestMintableERC20TokenContract, TestRfqOriginRegistrationContract } from '../wrappers';
 
 blockchainTests.resets('NativeOrdersFeature', env => {
-    const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT } = constants;
+    const { NULL_ADDRESS, MAX_UINT256, NULL_BYTES32, ZERO_AMOUNT } = constants;
     const GAS_PRICE = new BigNumber('123e9');
     const PROTOCOL_FEE_MULTIPLIER = 1337e3;
     const SINGLE_PROTOCOL_FEE = GAS_PRICE.times(PROTOCOL_FEE_MULTIPLIER);
@@ -1666,6 +1673,30 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 });
                 expect(fillableTakerAmounts[i]).to.bignumber.eq(orders[i].takerAmount);
                 expect(isSignatureValids[i]).to.eq(true);
+            }
+        });
+        it('swallows reverts', async () => {
+            const orders = new Array(3).fill(0).map(() => getTestLimitOrder());
+            // The second order will revert because its maker token is not valid.
+            orders[1].makerToken = randomAddress();
+            await batchFundOrderMakerAsync(orders);
+            const [orderInfos, fillableTakerAmounts, isSignatureValids] = await zeroEx
+                .batchGetLimitOrderRelevantStates(
+                    orders,
+                    await Promise.all(orders.map(async o => o.getSignatureWithProviderAsync(env.provider))),
+                )
+                .callAsync();
+            expect(orderInfos).to.be.length(orders.length);
+            expect(fillableTakerAmounts).to.be.length(orders.length);
+            expect(isSignatureValids).to.be.length(orders.length);
+            for (let i = 0; i < orders.length; ++i) {
+                expect(orderInfos[i]).to.deep.eq({
+                    orderHash: i === 1 ? NULL_BYTES32 : orders[i].getHash(),
+                    status: i === 1 ? OrderStatus.Invalid : OrderStatus.Fillable,
+                    takerTokenFilledAmount: ZERO_AMOUNT,
+                });
+                expect(fillableTakerAmounts[i]).to.bignumber.eq(i === 1 ? ZERO_AMOUNT : orders[i].takerAmount);
+                expect(isSignatureValids[i]).to.eq(i !== 1);
             }
         });
     });

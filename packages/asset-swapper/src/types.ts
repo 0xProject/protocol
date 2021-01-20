@@ -415,6 +415,11 @@ export interface SamplerOverrides {
     block: BlockParam;
 }
 
+export interface SamplerCallResult {
+    success: boolean;
+    data: string;
+}
+
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 /**
  * The Contract addresses of the deployed Bridges

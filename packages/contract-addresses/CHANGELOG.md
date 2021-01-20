@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.9.0 - _January 13, 2021_
+
+    * Redeploy LiquidityProviderSandbox (#107)
+    * Update ganache snapshot addresses (#109)
+
 ## v5.8.0 - _December 23, 2020_
 
     * redeploy FQT (#99)

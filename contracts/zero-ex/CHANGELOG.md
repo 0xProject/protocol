@@ -5,9 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.18.0 - _January 13, 2021_
+
+    * Use consistent returndatasize checks in UniswapFeature (#96)
+    * Remove `MetaTransactionsFeature._executeMetaTransaction()` and `SignatureValidatorFeature` (#109)
+
 ## v0.17.0 - _January 4, 2021_
 
     * Add DevUtils-like functions to `NativeOrdersFeature` (#97)
+    * Add SPDX license identifiers to solidity files (#105)
 
 ## v0.16.0 - _December 23, 2020_
 

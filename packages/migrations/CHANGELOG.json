@@ -5,6 +5,19 @@
             {
                 "note": "Update `BridgeAdapter` deployment",
                 "pr": 104
+            },
+            {
+                "note": "Set BOTH networkId and chainId to 1337 in dockerfile",
+                "pr": 118
+            }
+        ]
+    },
+    {
+        "timestamp": 1610510890,
+        "version": "6.5.10",
+        "changes": [
+            {
+                "note": "Dependencies updated"
             }
         ]
     },

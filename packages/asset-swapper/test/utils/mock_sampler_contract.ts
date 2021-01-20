@@ -3,6 +3,7 @@ import { constants } from '@0x/contracts-test-utils';
 import { Order } from '@0x/types';
 import { BigNumber, hexUtils } from '@0x/utils';
 
+import { SamplerCallResult } from '../../src/types';
 import { ERC20BridgeSamplerContract } from '../../src/wrappers';
 
 export type GetOrderFillableAssetAmountResult = BigNumber[];
@@ -24,11 +25,11 @@ export type SampleBuysHandler = (
     makerTokenAmounts: BigNumber[],
 ) => SampleResults;
 export type SampleSellsKyberHandler = (
-    reserveId: string,
+    reserveOffset: BigNumber,
     takerToken: string,
     makerToken: string,
     takerTokenAmounts: BigNumber[],
-) => [string, SampleResults];
+) => [string, string, SampleResults];
 export type SampleBuysKyberHandler = (
     reserveId: string,
     takerToken: string,
@@ -74,10 +75,11 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         this._handlers = handlers;
     }
 
-    public batchCall(callDatas: string[]): ContractTxFunctionObj<string[]> {
+    public batchCall(callDatas: string[]): ContractTxFunctionObj<SamplerCallResult[]> {
         return {
             ...super.batchCall(callDatas),
-            callAsync: async (..._callArgs: any[]) => callDatas.map(callData => this._callEncodedFunction(callData)),
+            callAsync: async (..._callArgs: any[]) =>
+                callDatas.map(callData => ({ success: true, data: this._callEncodedFunction(callData) })),
         };
     }
 
@@ -108,15 +110,15 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     }
 
     public sampleSellsFromKyberNetwork(
-        reserveId: string,
+        reserveOffset: BigNumber,
         takerToken: string,
         makerToken: string,
         takerAssetAmounts: BigNumber[],
-    ): ContractTxFunctionObj<[string, BigNumber[]]> {
+    ): ContractTxFunctionObj<[string, string, BigNumber[]]> {
         return this._wrapCall(
             super.sampleSellsFromKyberNetwork,
             this._handlers.sampleSellsFromKyberNetwork,
-            reserveId,
+            reserveOffset,
             takerToken,
             makerToken,
             takerAssetAmounts,
@@ -236,7 +238,10 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         }
         if (selector === this.getSelector('batchCall')) {
             const calls = this.getABIDecodedTransactionData<string[]>('batchCall', callData);
-            const results = calls.map(cd => this._callEncodedFunction(cd));
+            const results: SamplerCallResult[] = calls.map(cd => ({
+                success: true,
+                data: this._callEncodedFunction(cd),
+            }));
             return this._lookupAbiEncoder(this.getFunctionSignature('batchCall')).encodeReturnValues([results]);
         }
         throw new Error(`Unkown selector: ${selector}`);

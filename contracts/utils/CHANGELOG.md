@@ -5,9 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.7.1 - _January 13, 2021_
+
+    * Dependencies updated
+
 ## v4.7.0 - _January 4, 2021_
 
     * Add `LibSafeMathV06.safeDowncastToUint128()` (#97)
+    * Add SPDX license identifiers to solidity files (#105)
 
 ## v4.6.5 - _December 23, 2020_
 

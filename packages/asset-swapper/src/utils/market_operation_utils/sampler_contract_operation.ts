@@ -1,5 +1,5 @@
 import { ContractFunctionObj } from '@0x/base-contract';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, decodeBytesAsRevertError, logUtils } from '@0x/utils';
 
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
@@ -48,5 +48,15 @@ export class SamplerContractOperation<
         } else {
             return this._samplerContract.getABIDecodedReturnData<BigNumber[]>(this._samplerFunction.name, callResults);
         }
+    }
+    public handleRevert(callResults: string): BigNumber[] {
+        let msg = callResults;
+        try {
+            msg = decodeBytesAsRevertError(callResults).toString();
+        } catch (e) {
+            // do nothing
+        }
+        logUtils.warn(`SamplerContractOperation: ${this.source}.${this._samplerFunction.name} reverted ${msg}`);
+        return [];
     }
 }

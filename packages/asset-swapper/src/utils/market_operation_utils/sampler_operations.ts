@@ -2,6 +2,7 @@ import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { SamplerCallResult } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BalancerPoolsCache } from './balancer_utils';
@@ -10,6 +11,7 @@ import {
     LIQUIDITY_PROVIDER_REGISTRY,
     MAINNET_CRYPTO_COM_ROUTER,
     MAINNET_MOONISWAP_REGISTRY,
+    MAINNET_MOONISWAP_V2_1_REGISTRY,
     MAINNET_MOONISWAP_V2_REGISTRY,
     MAINNET_SUSHI_SWAP_ROUTER,
     MAX_UINT256,
@@ -17,7 +19,7 @@ import {
 } from './constants';
 import { CreamPoolsCache } from './cream_utils';
 import { getCurveInfosForPair, getSnowSwapInfosForPair, getSwerveInfosForPair } from './curve_utils';
-import { getKyberReserveIdsForPair } from './kyber_utils';
+import { getKyberOffsets, isAllowedKyberReserveId } from './kyber_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { SamplerContractOperation } from './sampler_contract_operation';
@@ -71,12 +73,9 @@ export class SamplerOperations {
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
-            encodeCall: () => {
-                return '0x';
-            },
-            handleCallResults: _callResults => {
-                return result;
-            },
+            encodeCall: () => '0x',
+            handleCallResults: _callResults => result,
+            handleRevert: _callResults => result,
         };
     }
 
@@ -122,7 +121,7 @@ export class SamplerOperations {
     }
 
     public getKyberSellQuotes(
-        reserveId: string,
+        reserveOffset: BigNumber,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -131,21 +130,20 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Kyber,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromKyberNetwork,
-            params: [reserveId, takerToken, makerToken, takerFillAmounts],
+            params: [reserveOffset, takerToken, makerToken, takerFillAmounts],
             callback: (callResults: string, fillData: KyberFillData): BigNumber[] => {
-                const [hint, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
-                    'sampleSellsFromKyberNetwork',
-                    callResults,
-                );
+                const [reserveId, hint, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [string, string, BigNumber[]]
+                >('sampleSellsFromKyberNetwork', callResults);
                 fillData.hint = hint;
                 fillData.reserveId = reserveId;
-                return samples;
+                return isAllowedKyberReserveId(reserveId) ? samples : [];
             },
         });
     }
 
     public getKyberBuyQuotes(
-        reserveId: string,
+        reserveOffset: BigNumber,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -154,15 +152,14 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Kyber,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromKyberNetwork,
-            params: [reserveId, takerToken, makerToken, makerFillAmounts],
+            params: [reserveOffset, takerToken, makerToken, makerFillAmounts],
             callback: (callResults: string, fillData: KyberFillData): BigNumber[] => {
-                const [hint, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
-                    'sampleBuysFromKyberNetwork',
-                    callResults,
-                );
+                const [reserveId, hint, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [string, string, BigNumber[]]
+                >('sampleBuysFromKyberNetwork', callResults);
                 fillData.hint = hint;
                 fillData.reserveId = reserveId;
-                return samples;
+                return isAllowedKyberReserveId(reserveId) ? samples : [];
             },
         });
     }
@@ -704,27 +701,20 @@ export class SamplerOperations {
                 },
             });
         });
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
-                    'batchCall',
-                    callResults,
-                );
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
-                    const [output] = op.handleCallResults(rawSubCallResults[i]);
                     return {
                         source: op.source,
-                        output,
+                        output: samples[i][0],
                         input: sellAmount,
                         fillData: op.fillData,
                     };
                 });
             },
-        };
+            () => [],
+        );
     }
 
     public getTwoHopBuyQuotes(
@@ -766,27 +756,20 @@ export class SamplerOperations {
                 },
             });
         });
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
-                    'batchCall',
-                    callResults,
-                );
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
-                    const [output] = op.handleCallResults(rawSubCallResults[i]);
                     return {
                         source: op.source,
-                        output,
+                        output: samples[i][0],
                         input: buyAmount,
                         fillData: op.fillData,
                     };
                 });
             },
-        };
+            () => [],
+        );
     }
 
     public getSushiSwapSellQuotes(
@@ -925,17 +908,9 @@ export class SamplerOperations {
         const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, [takerFillAmount], {
             default: [],
         });
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
-                    'batchCall',
-                    callResults,
-                );
-                const samples = subOps.map((op, i) => op.handleCallResults(rawSubCallResults[i]));
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 if (samples.length === 0) {
                     return ZERO_AMOUNT;
                 }
@@ -949,7 +924,8 @@ export class SamplerOperations {
                 const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
                 return medianSample.div(takerFillAmount);
             },
-        };
+            () => ZERO_AMOUNT,
+        );
     }
 
     public getSellQuotes(
@@ -959,17 +935,9 @@ export class SamplerOperations {
         takerFillAmounts: BigNumber[],
     ): BatchedOperation<DexSample[][]> {
         const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, takerFillAmounts);
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
-                    'batchCall',
-                    callResults,
-                );
-                const samples = subOps.map((op, i) => op.handleCallResults(rawSubCallResults[i]));
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
                     return samples[i].map((output, j) => ({
                         source: op.source,
@@ -979,7 +947,8 @@ export class SamplerOperations {
                     }));
                 });
             },
-        };
+            () => [],
+        );
     }
 
     public getBuyQuotes(
@@ -989,17 +958,9 @@ export class SamplerOperations {
         makerFillAmounts: BigNumber[],
     ): BatchedOperation<DexSample[][]> {
         const subOps = this._getBuyQuoteOperations(sources, makerToken, takerToken, makerFillAmounts);
-        return {
-            encodeCall: () => {
-                const subCalls = subOps.map(op => op.encodeCall());
-                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
-            },
-            handleCallResults: callResults => {
-                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<string[]>(
-                    'batchCall',
-                    callResults,
-                );
-                const samples = subOps.map((op, i) => op.handleCallResults(rawSubCallResults[i]));
+        return this._createBatch(
+            subOps,
+            (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
                     return samples[i].map((output, j) => ({
                         source: op.source,
@@ -1009,7 +970,8 @@ export class SamplerOperations {
                     }));
                 });
             },
-        };
+            () => [],
+        );
     }
 
     private _getSellQuoteOperations(
@@ -1056,8 +1018,8 @@ export class SamplerOperations {
                             });
                             return cryptoComOps;
                         case ERC20BridgeSource.Kyber:
-                            return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
-                                this.getKyberSellQuotes(reserveId, makerToken, takerToken, takerFillAmounts),
+                            return getKyberOffsets().map(offset =>
+                                this.getKyberSellQuotes(offset, makerToken, takerToken, takerFillAmounts),
                             );
                         case ERC20BridgeSource.Curve:
                             return getCurveInfosForPair(takerToken, makerToken).map(pool =>
@@ -1098,17 +1060,12 @@ export class SamplerOperations {
                             return this.getMStableSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
                             return [
-                                this.getMooniswapSellQuotes(
+                                ...[
                                     MAINNET_MOONISWAP_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    takerFillAmounts,
-                                ),
-                                this.getMooniswapSellQuotes(
                                     MAINNET_MOONISWAP_V2_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    takerFillAmounts,
+                                    MAINNET_MOONISWAP_V2_1_REGISTRY,
+                                ].map(registry =>
+                                    this.getMooniswapSellQuotes(registry, makerToken, takerToken, takerFillAmounts),
                                 ),
                             ];
                         case ERC20BridgeSource.Balancer:
@@ -1194,8 +1151,8 @@ export class SamplerOperations {
                             });
                             return cryptoComOps;
                         case ERC20BridgeSource.Kyber:
-                            return getKyberReserveIdsForPair(takerToken, makerToken).map(reserveId =>
-                                this.getKyberBuyQuotes(reserveId, makerToken, takerToken, makerFillAmounts),
+                            return getKyberOffsets().map(offset =>
+                                this.getKyberBuyQuotes(offset, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.Curve:
                             return getCurveInfosForPair(takerToken, makerToken).map(pool =>
@@ -1236,17 +1193,12 @@ export class SamplerOperations {
                             return this.getMStableBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.Mooniswap:
                             return [
-                                this.getMooniswapBuyQuotes(
+                                ...[
                                     MAINNET_MOONISWAP_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    makerFillAmounts,
-                                ),
-                                this.getMooniswapBuyQuotes(
                                     MAINNET_MOONISWAP_V2_REGISTRY,
-                                    makerToken,
-                                    takerToken,
-                                    makerFillAmounts,
+                                    MAINNET_MOONISWAP_V2_1_REGISTRY,
+                                ].map(registry =>
+                                    this.getMooniswapBuyQuotes(registry, makerToken, takerToken, makerFillAmounts),
                                 ),
                             ];
                         case ERC20BridgeSource.Balancer:
@@ -1287,6 +1239,38 @@ export class SamplerOperations {
                 },
             ),
         );
+    }
+
+    /**
+     * Wraps `subOps` operations into a batch call to the sampler
+     * @param subOps An array of Sampler operations
+     * @param resultHandler The handler of the parsed batch results
+     * @param revertHandler The handle for when the batch operation reverts. The result data is provided as an argument
+     */
+    private _createBatch<T, TResult>(
+        subOps: Array<BatchedOperation<TResult>>,
+        resultHandler: (results: TResult[]) => T,
+        revertHandler: (result: string) => T,
+    ): BatchedOperation<T> {
+        return {
+            encodeCall: () => {
+                const subCalls = subOps.map(op => op.encodeCall());
+                return this._samplerContract.batchCall(subCalls).getABIEncodedTransactionData();
+            },
+            handleCallResults: callResults => {
+                const rawSubCallResults = this._samplerContract.getABIDecodedReturnData<SamplerCallResult[]>(
+                    'batchCall',
+                    callResults,
+                );
+                const results = subOps.map((op, i) =>
+                    rawSubCallResults[i].success
+                        ? op.handleCallResults(rawSubCallResults[i].data)
+                        : op.handleRevert(rawSubCallResults[i].data),
+                );
+                return resultHandler(results);
+            },
+            handleRevert: revertHandler,
+        };
     }
 }
 // tslint:disable max-file-line-count
