@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.5.11",
+        "changes": [
+            {
+                "note": "Set BOTH networkId and chainId to 1337 in dockerfile",
+                "pr": 118
+            }
+        ]
+    },
+    {
         "timestamp": 1610510890,
         "version": "6.5.10",
         "changes": [
