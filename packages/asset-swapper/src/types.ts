@@ -52,11 +52,13 @@ export interface OrderProviderRequest {
  * fillableTakerAmount: Amount of takerAsset that is fillable
  * fillableTakerFeeAmount: Amount of takerFee paid to fill fillableTakerAmount
  */
-export interface OrderWithFillableAmounts extends CommonOrderFields {
+export interface NativeOrderFillableAmountFields {
     fillableMakerAmount: BigNumber;
     fillableTakerAmount: BigNumber;
     fillableTakerFeeAmount: BigNumber;
 }
+
+export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
 
 /**
  * Represents the metadata to call a smart contract with calldata.

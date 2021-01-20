@@ -129,7 +129,7 @@ export class MarketOperationUtils {
         const samplerPromise = this._sampler.executeAsync(
             this._sampler.getTokenDecimals(makerToken, takerToken),
             // Get native order fillable amounts.
-            this._sampler.getOrderFillableTakerAmounts(nativeOrders.map(o => o.order), this.contractAddresses.exchange),
+            // this._sampler.getOrderFillableTakerAmounts(nativeOrders.map(o => o.order), this.contractAddresses.exchange),
             // Get ETH -> maker token price.
             this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
             // Get ETH -> taker token price.
@@ -176,7 +176,14 @@ export class MarketOperationUtils {
             : Promise.resolve([]);
 
         const [
-            [tokenDecimals, orderFillableAmounts, ethToMakerAssetRate, ethToTakerAssetRate, dexQuotes, twoHopQuotes],
+            [
+                tokenDecimals,
+                /* orderFillableAmounts , */
+                ethToMakerAssetRate,
+                ethToTakerAssetRate,
+                dexQuotes,
+                twoHopQuotes,
+            ],
             rfqtIndicativeQuotes,
             offChainBalancerQuotes,
             offChainCreamQuotes,
@@ -194,10 +201,11 @@ export class MarketOperationUtils {
             makerTokenDecimals: makerTokenDecimals.toNumber(),
             takerTokenDecimals: takerTokenDecimals.toNumber(),
             quotes: {
-                nativeOrders: nativeOrders.map((order, i) => ({
-                    ...order,
-                    orderFillableAmount: orderFillableAmounts[i],
-                })),
+                nativeOrders: [],
+                // nativeOrders: nativeOrders.map((order, i) => ({
+                //    ...order,
+                //    orderFillableAmount: orderFillableAmounts[i],
+                // })),
                 rfqtIndicativeQuotes,
                 twoHopQuotes,
                 dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes]),

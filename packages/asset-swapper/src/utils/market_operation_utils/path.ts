@@ -110,6 +110,7 @@ export class Path {
                 continue;
             }
             // If there are contiguous bridge orders, we can batch them together.
+            // TODO jacob pretty sure this is from DFB and we can remove
             const contiguousBridgeFills = [collapsedFills[i]];
             for (let j = i + 1; j < collapsedFills.length; ++j) {
                 if (collapsedFills[j].source === ERC20BridgeSource.Native) {
@@ -118,7 +119,7 @@ export class Path {
                 contiguousBridgeFills.push(collapsedFills[j]);
             }
 
-            this.orders.push(createBridgeOrder(contiguousBridgeFills[0], makerToken, takerToken, opts));
+            this.orders.push(createBridgeOrder(contiguousBridgeFills[0], makerToken, takerToken, opts.side));
             i += 1;
         }
         return this as CollapsedPath;
