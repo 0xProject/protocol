@@ -1,6 +1,4 @@
-import { assetDataUtils } from '@0x/order-utils';
-import { LimitOrderFields } from '@0x/protocol-utils';
-import { AssetData, AssetProxyId, ERC20AssetData, ERC20BridgeAssetData, Order } from '@0x/types';
+import { LimitOrderFields as Order } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
@@ -30,33 +28,6 @@ export function numberPercentageToEtherTokenAmountPercentage(percentage: number)
     return Web3Wrapper.toBaseUnitAmount(constants.ONE_AMOUNT, constants.ETHER_TOKEN_DECIMALS).multipliedBy(percentage);
 }
 
-export function isOrderTakerFeePayableWithMakerAsset<T extends LimitOrderFields>(order: T): boolean {
-    return !order.takerTokenFeeAmount.isZero() && isAssetDataEquivalent(order.takerFeeAssetData, order.makerAssetData);
-}
-
-export function isOrderTakerFeePayableWithTakerAsset<T extends LimitOrderFields>(order: T): boolean {
-    return !order.takerTokenFeeAmount.isZero() && isAssetDataEquivalent(order.takerFeeAssetData, order.takerAssetData);
-}
-
-export function getAdjustedMakerAndTakerAmountsFromTakerFees<T extends Order>(order: T): [BigNumber, BigNumber] {
-    const adjustedMakerAssetAmount = isOrderTakerFeePayableWithMakerAsset(order)
-        ? order.makerAssetAmount.minus(order.takerFee)
-        : order.makerAssetAmount;
-    const adjustedTakerAssetAmount = isOrderTakerFeePayableWithTakerAsset(order)
-        ? order.takerAssetAmount.plus(order.takerFee)
-        : order.takerAssetAmount;
-    return [adjustedMakerAssetAmount, adjustedTakerAssetAmount];
-}
-
-export function isERC20EquivalentAssetData(assetData: AssetData): assetData is ERC20AssetData | ERC20BridgeAssetData {
-    return assetDataUtils.isERC20TokenAssetData(assetData) || assetDataUtils.isERC20BridgeAssetData(assetData);
-}
-
-export function getTokenFromAssetData(assetData: string): string {
-    const data = assetDataUtils.decodeAssetDataOrThrow(assetData);
-    if (data.assetProxyId !== AssetProxyId.ERC20 && data.assetProxyId !== AssetProxyId.ERC20Bridge) {
-        throw new Error(`Unsupported exchange proxy quote asset type: ${data.assetProxyId}`);
-    }
-    // tslint:disable-next-line:no-unnecessary-type-assertion
-    return (data as ERC20AssetData).tokenAddress;
+export function getAdjustedTakerAmountFromFees<T extends Order>(order: T): BigNumber {
+    return order.takerAmount.plus(order.takerTokenFeeAmount);
 }

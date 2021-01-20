@@ -1,5 +1,5 @@
 // tslint:disable:custom-no-magic-numbers
-import { SignedOrder } from '@0x/types';
+import { FillQuoteTransformerOrderType, LimitOrder, NativeOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as chai from 'chai';
 import * as _ from 'lodash';
@@ -25,22 +25,21 @@ import {
     QuoteReportSource,
 } from './../src/utils/quote_report_generator';
 import { chaiSetup } from './utils/chai_setup';
-import { testOrderFactory } from './utils/test_order_factory';
 
 chaiSetup.configure();
 const expect = chai.expect;
 
-const collapsedFillFromNativeOrder = (order: SignedOrder): NativeCollapsedFill => {
+const collapsedFillFromNativeOrder = (order: NativeOrder): NativeCollapsedFill => {
     return {
         sourcePathId: hexUtils.random(),
         source: ERC20BridgeSource.Native,
-        input: order.takerAssetAmount,
-        output: order.makerAssetAmount,
+        input: order.takerAmount,
+        output: order.makerAmount,
         fillData: {
             order: {
                 ...order,
-                fillableMakerAssetAmount: new BigNumber(1),
-                fillableTakerAssetAmount: new BigNumber(1),
+                fillableMakerAmount: new BigNumber(1),
+                fillableTakerAmount: new BigNumber(1),
                 fillableTakerFeeAmount: new BigNumber(1),
             },
         },
@@ -78,57 +77,56 @@ describe('generateQuoteReport', async () => {
         };
         const dexQuotes: DexSample[] = [kyberSample1, kyberSample2, uniswapSample1, uniswapSample2];
 
-        const orderbookOrder1FillableAmount = new BigNumber(1000);
-        const orderbookOrder1 = testOrderFactory.generateTestSignedOrder({
-            signature: 'orderbookOrder1',
-            takerAssetAmount: orderbookOrder1FillableAmount,
-        });
-        const orderbookOrder2FillableAmount = new BigNumber(99);
-        const orderbookOrder2 = testOrderFactory.generateTestSignedOrder({
-            signature: 'orderbookOrder2',
-            takerAssetAmount: orderbookOrder2FillableAmount.plus(99),
-        });
-        const rfqtOrder1FillableAmount = new BigNumber(100);
-        const rfqtOrder1 = testOrderFactory.generateTestSignedOrder({
-            signature: 'rfqtOrder1',
-            takerAssetAmount: rfqtOrder1FillableAmount,
-        });
-        const rfqtOrder2FillableAmount = new BigNumber(1001);
-        const rfqtOrder2 = testOrderFactory.generateTestSignedOrder({
-            signature: 'rfqtOrder2',
-            takerAssetAmount: rfqtOrder2FillableAmount.plus(100),
-        });
-        const nativeOrders: SignedOrder[] = [orderbookOrder1, rfqtOrder1, rfqtOrder2, orderbookOrder2];
-        const orderFillableAmounts: BigNumber[] = [
-            orderbookOrder1FillableAmount,
-            rfqtOrder1FillableAmount,
-            rfqtOrder2FillableAmount,
-            orderbookOrder2FillableAmount,
-        ];
+        const orderbookOrder1 = {
+            order: new LimitOrder({ takerAmount: new BigNumber(1000) }),
+            type: FillQuoteTransformerOrderType.Limit,
+            orderFillableAmount: new BigNumber(1000),
+        };
+        const orderbookOrder2 = {
+            order: new LimitOrder({ takerAmount: new BigNumber(198) }),
+            type: FillQuoteTransformerOrderType.Limit,
+            orderFillableAmount: new BigNumber(99), // takerAmount minus 99
+        };
+        const rfqtOrder1 = {
+            order: new RfqOrder({ takerAmount: new BigNumber(100) }),
+            type: FillQuoteTransformerOrderType.Bridge,
+            orderFillableAmount: new BigNumber(100),
+        };
+        const rfqtOrder2 = {
+            order: new RfqOrder({ takerAmount: new BigNumber(1101) }),
+            type: FillQuoteTransformerOrderType.Bridge,
+            orderFillableAmount: new BigNumber(1001),
+        };
+
+        const nativeOrders: Array<{
+            order: NativeOrder;
+            type: FillQuoteTransformerOrderType;
+            orderFillableAmount: BigNumber;
+        }> = [orderbookOrder1, rfqtOrder1, rfqtOrder2, orderbookOrder2];
 
         // generate path
         const uniswap2Fill: CollapsedFill = { ...uniswapSample2, subFills: [], sourcePathId: hexUtils.random() };
         const kyber2Fill: CollapsedFill = { ...kyberSample2, subFills: [], sourcePathId: hexUtils.random() };
-        const orderbookOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder2);
-        const rfqtOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(rfqtOrder2);
+        const orderbookOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder2.order);
+        const rfqtOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(rfqtOrder2.order);
         const pathGenerated: CollapsedFill[] = [rfqtOrder2Fill, orderbookOrder2Fill, uniswap2Fill, kyber2Fill];
 
         // quote generator mock
         const quoteRequestor = TypeMoq.Mock.ofType<QuoteRequestor>();
         quoteRequestor
-            .setup(qr => qr.getMakerUriForOrderSignature(orderbookOrder2.signature))
+            .setup(qr => qr.getMakerUriForOrderHash(orderbookOrder2.order.getHash()))
             .returns(() => {
                 return undefined;
             })
             .verifiable(TypeMoq.Times.atLeastOnce());
         quoteRequestor
-            .setup(qr => qr.getMakerUriForOrderSignature(rfqtOrder1.signature))
+            .setup(qr => qr.getMakerUriForOrderHash(rfqtOrder1.order.getHash()))
             .returns(() => {
                 return 'https://rfqt1.provider.club';
             })
             .verifiable(TypeMoq.Times.atLeastOnce());
         quoteRequestor
-            .setup(qr => qr.getMakerUriForOrderSignature(rfqtOrder2.signature))
+            .setup(qr => qr.getMakerUriForOrderHash(rfqtOrder2.order.getHash()))
             .returns(() => {
                 return 'https://rfqt2.provider.club';
             })
@@ -139,7 +137,6 @@ describe('generateQuoteReport', async () => {
             dexQuotes,
             [],
             nativeOrders,
-            orderFillableAmounts,
             pathGenerated,
             undefined,
             quoteRequestor.object,
@@ -147,36 +144,36 @@ describe('generateQuoteReport', async () => {
 
         const rfqtOrder1Source: NativeRFQTReportSource = {
             liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: rfqtOrder1.makerAssetAmount,
-            takerAmount: rfqtOrder1.takerAssetAmount,
-            nativeOrder: rfqtOrder1,
-            fillableTakerAmount: rfqtOrder1FillableAmount,
+            makerAmount: rfqtOrder1.order.makerAmount,
+            takerAmount: rfqtOrder1.order.takerAmount,
+            nativeOrder: rfqtOrder1.order,
+            fillableTakerAmount: rfqtOrder1.orderFillableAmount,
             isRfqt: true,
             makerUri: 'https://rfqt1.provider.club',
         };
         const rfqtOrder2Source: NativeRFQTReportSource = {
             liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: rfqtOrder2.makerAssetAmount,
-            takerAmount: rfqtOrder2.takerAssetAmount,
-            nativeOrder: rfqtOrder2,
-            fillableTakerAmount: rfqtOrder2FillableAmount,
+            makerAmount: rfqtOrder2.order.makerAmount,
+            takerAmount: rfqtOrder2.order.takerAmount,
+            nativeOrder: rfqtOrder2.order,
+            fillableTakerAmount: rfqtOrder2.orderFillableAmount,
             isRfqt: true,
             makerUri: 'https://rfqt2.provider.club',
         };
         const orderbookOrder1Source: NativeOrderbookReportSource = {
             liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder1.makerAssetAmount,
-            takerAmount: orderbookOrder1.takerAssetAmount,
-            nativeOrder: orderbookOrder1,
-            fillableTakerAmount: orderbookOrder1FillableAmount,
+            makerAmount: orderbookOrder1.order.makerAmount,
+            takerAmount: orderbookOrder1.order.takerAmount,
+            nativeOrder: orderbookOrder1.order,
+            fillableTakerAmount: orderbookOrder1.orderFillableAmount,
             isRfqt: false,
         };
         const orderbookOrder2Source: NativeOrderbookReportSource = {
             liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder2.makerAssetAmount,
-            takerAmount: orderbookOrder2.takerAssetAmount,
-            nativeOrder: orderbookOrder2,
-            fillableTakerAmount: orderbookOrder2FillableAmount,
+            makerAmount: orderbookOrder2.order.makerAmount,
+            takerAmount: orderbookOrder2.order.takerAmount,
+            nativeOrder: orderbookOrder2.order,
+            fillableTakerAmount: orderbookOrder2.orderFillableAmount,
             isRfqt: false,
         };
         const uniswap1Source: BridgeReportSource = {
@@ -238,10 +235,10 @@ describe('generateQuoteReport', async () => {
             // remove fillable values
             if (actualSourceDelivered.liquiditySource === ERC20BridgeSource.Native) {
                 actualSourceDelivered.nativeOrder = _.omit(actualSourceDelivered.nativeOrder, [
-                    'fillableMakerAssetAmount',
-                    'fillableTakerAssetAmount',
+                    'fillableMakerAmount',
+                    'fillableTakerAmount',
                     'fillableTakerFeeAmount',
-                ]) as SignedOrder;
+                ]) as NativeOrder;
             }
 
             expect(actualSourceDelivered).to.eql(expectedSourceDelivered, `sourceDelivered incorrect at index ${idx}`);
@@ -264,49 +261,40 @@ describe('generateQuoteReport', async () => {
             fillData: {},
         };
         const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
-
-        const orderbookOrder1FillableAmount = new BigNumber(1000);
-        const orderbookOrder1 = testOrderFactory.generateTestSignedOrder({
-            signature: 'orderbookOrder1',
-            takerAssetAmount: orderbookOrder1FillableAmount.plus(101),
-        });
-        const orderbookOrder2FillableAmount = new BigNumber(5000);
-        const orderbookOrder2 = testOrderFactory.generateTestSignedOrder({
-            signature: 'orderbookOrder2',
-            takerAssetAmount: orderbookOrder2FillableAmount.plus(101),
-        });
-        const nativeOrders: SignedOrder[] = [orderbookOrder1, orderbookOrder2];
-        const orderFillableAmounts: BigNumber[] = [orderbookOrder1FillableAmount, orderbookOrder2FillableAmount];
+        const orderbookOrder1 = {
+            order: new LimitOrder({ takerAmount: new BigNumber(1101) }),
+            type: FillQuoteTransformerOrderType.Limit,
+            orderFillableAmount: new BigNumber(1000),
+        };
+        const orderbookOrder2 = {
+            order: new LimitOrder({ takerAmount: new BigNumber(5101) }),
+            type: FillQuoteTransformerOrderType.Limit,
+            orderFillableAmount: new BigNumber(5000), // takerAmount minus 99
+        };
+        const nativeOrders = [orderbookOrder1, orderbookOrder2];
 
         // generate path
-        const orderbookOrder1Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder1);
+        const orderbookOrder1Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder1.order);
         const uniswap1Fill: CollapsedFill = { ...uniswapSample1, subFills: [], sourcePathId: hexUtils.random() };
         const kyber1Fill: CollapsedFill = { ...kyberSample1, subFills: [], sourcePathId: hexUtils.random() };
         const pathGenerated: CollapsedFill[] = [orderbookOrder1Fill, uniswap1Fill, kyber1Fill];
 
-        const orderReport = generateQuoteReport(
-            marketOperation,
-            dexQuotes,
-            [],
-            nativeOrders,
-            orderFillableAmounts,
-            pathGenerated,
-        );
+        const orderReport = generateQuoteReport(marketOperation, dexQuotes, [], nativeOrders, pathGenerated);
 
         const orderbookOrder1Source: NativeOrderbookReportSource = {
             liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder1.makerAssetAmount,
-            takerAmount: orderbookOrder1.takerAssetAmount,
-            nativeOrder: orderbookOrder1,
-            fillableTakerAmount: orderbookOrder1FillableAmount,
+            makerAmount: orderbookOrder1.order.makerAmount,
+            takerAmount: orderbookOrder1.order.takerAmount,
+            nativeOrder: orderbookOrder1.order,
+            fillableTakerAmount: orderbookOrder1.orderFillableAmount,
             isRfqt: false,
         };
         const orderbookOrder2Source: NativeOrderbookReportSource = {
             liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder2.makerAssetAmount,
-            takerAmount: orderbookOrder2.takerAssetAmount,
-            nativeOrder: orderbookOrder2,
-            fillableTakerAmount: orderbookOrder2FillableAmount,
+            makerAmount: orderbookOrder2.order.makerAmount,
+            takerAmount: orderbookOrder2.order.takerAmount,
+            nativeOrder: orderbookOrder2.order,
+            fillableTakerAmount: orderbookOrder2.orderFillableAmount,
             isRfqt: false,
         };
         const uniswap1Source: BridgeReportSource = {
@@ -345,10 +333,10 @@ describe('generateQuoteReport', async () => {
             // remove fillable values
             if (actualSourceDelivered.liquiditySource === ERC20BridgeSource.Native) {
                 actualSourceDelivered.nativeOrder = _.omit(actualSourceDelivered.nativeOrder, [
-                    'fillableMakerAssetAmount',
-                    'fillableTakerAssetAmount',
+                    'fillableMakerAmount',
+                    'fillableTakerAmount',
                     'fillableTakerFeeAmount',
-                ]) as SignedOrder;
+                ]) as NativeOrder;
             }
 
             expect(actualSourceDelivered).to.eql(expectedSourceDelivered, `sourceDelivered incorrect at index ${idx}`);
@@ -362,13 +350,11 @@ describe('generateQuoteReport', async () => {
             output: new BigNumber(10001),
             fillData: {},
         };
-
-        const orderbookOrder1FillableAmount = new BigNumber(1000);
-        const orderbookOrder1 = testOrderFactory.generateTestSignedOrder({
-            signature: 'orderbookOrder1',
-            takerAssetAmount: orderbookOrder1FillableAmount.plus(101),
-        });
-
+        const orderbookOrder1 = {
+            order: new LimitOrder({ takerAmount: new BigNumber(1101) }),
+            type: FillQuoteTransformerOrderType.Limit,
+            orderFillableAmount: new BigNumber(1000),
+        };
         const twoHopFillData: MultiHopFillData = {
             intermediateToken: hexUtils.random(20),
             firstHopSource: {
@@ -384,7 +370,6 @@ describe('generateQuoteReport', async () => {
                 handleRevert: _c => [],
             },
         };
-
         const twoHopSample: DexSample<MultiHopFillData> = {
             source: ERC20BridgeSource.MultiHop,
             input: new BigNumber(3005),
@@ -397,15 +382,14 @@ describe('generateQuoteReport', async () => {
             [kyberSample1],
             [twoHopSample],
             [orderbookOrder1],
-            [orderbookOrder1FillableAmount],
             twoHopSample,
         );
         const orderbookOrder1Source: NativeOrderbookReportSource = {
             liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder1.makerAssetAmount,
-            takerAmount: orderbookOrder1.takerAssetAmount,
-            nativeOrder: orderbookOrder1,
-            fillableTakerAmount: orderbookOrder1FillableAmount,
+            makerAmount: orderbookOrder1.order.makerAmount,
+            takerAmount: orderbookOrder1.order.takerAmount,
+            nativeOrder: orderbookOrder1.order,
+            fillableTakerAmount: orderbookOrder1.orderFillableAmount,
             isRfqt: false,
         };
         const kyber1Source: BridgeReportSource = {

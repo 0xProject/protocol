@@ -1,5 +1,4 @@
 import { constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
-import { assetDataUtils } from '@0x/order-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -20,8 +19,6 @@ describe('quote_simulation tests', async () => {
     const ONE = new BigNumber(1);
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
-    const DEFAULT_MAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(MAKER_TOKEN);
-    const DEFAULT_TAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(TAKER_TOKEN);
     const GAS_SCHEDULE = { [ERC20BridgeSource.Uniswap]: _.constant(1) };
 
     // Check if two numbers are within `maxError` error rate within each other.
@@ -116,43 +113,44 @@ describe('quote_simulation tests', async () => {
             .integerValue(BigNumber.ROUND_DOWN);
         const fillableInput = input.minus(filledInput);
         const fillableOutput = output.minus(filledOutput);
-        const makerAssetAmount = side === MarketOperation.Sell ? output : input;
-        const takerAssetAmount = side === MarketOperation.Sell ? input : output;
-        const fillableMakerAssetAmount = side === MarketOperation.Sell ? fillableOutput : fillableInput;
-        const fillableTakerAssetAmount = side === MarketOperation.Sell ? fillableInput : fillableOutput;
+        const makerAmount = side === MarketOperation.Sell ? output : input;
+        const takerAmount = side === MarketOperation.Sell ? input : output;
+        const fillableMakerAmount = side === MarketOperation.Sell ? fillableOutput : fillableInput;
+        const fillableTakerAmount = side === MarketOperation.Sell ? fillableInput : fillableOutput;
         const takerFee = BigNumber.max(takerInputFee, takerOutputFee);
-        let takerFeeAssetData = '0x';
-        if (!takerInputFee.eq(0)) {
-            takerFeeAssetData = side === MarketOperation.Sell ? DEFAULT_TAKER_ASSET_DATA : DEFAULT_MAKER_ASSET_DATA;
-        } else if (!takerOutputFee.eq(0)) {
-            takerFeeAssetData = side === MarketOperation.Sell ? DEFAULT_MAKER_ASSET_DATA : DEFAULT_TAKER_ASSET_DATA;
-        }
-        const fillableTakerFeeAmount = fillableTakerAssetAmount
-            .div(takerAssetAmount)
+        // let takerFeeAssetData = '0x';
+        // if (!takerInputFee.eq(0)) {
+        //     takerFeeAssetData = side === MarketOperation.Sell ? TAKER_TOKEN : MAKER_TOKEN;
+        // } else if (!takerOutputFee.eq(0)) {
+        //     takerFeeAssetData = side === MarketOperation.Sell ? MAKER_TOKEN : TAKER_TOKEN;
+        // }
+        const fillableTakerFeeAmount = fillableTakerAmount
+            .div(takerAmount)
             .times(takerFee)
             .integerValue(BigNumber.ROUND_DOWN);
         return {
-            makerAssetAmount,
-            takerAssetAmount,
-            fillableTakerAssetAmount,
-            fillableMakerAssetAmount,
+            makerAmount,
+            takerAmount,
+            fillableTakerAmount,
+            fillableMakerAmount,
             fillableTakerFeeAmount,
-            takerFee,
-            takerFeeAssetData,
+            // takerFee,
+            // takerFeeAssetData,
             fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
             chainId: 1,
-            exchangeAddress: NULL_ADDRESS,
-            expirationTimeSeconds: ZERO,
-            feeRecipientAddress: NULL_ADDRESS,
-            senderAddress: NULL_ADDRESS,
-            makerAddress: NULL_ADDRESS,
-            takerAddress: NULL_ADDRESS,
-            makerAssetData: DEFAULT_MAKER_ASSET_DATA,
-            takerAssetData: DEFAULT_TAKER_ASSET_DATA,
-            makerFeeAssetData: '0x',
+            verifyingContract: NULL_ADDRESS, // exchange?
+            pool: '', // ?
+            expiry: ZERO,
+            // feeRecipientAddress: NULL_ADDRESS,
+            // senderAddress: NULL_ADDRESS,
+            maker: NULL_ADDRESS,
+            taker: NULL_ADDRESS,
+            makerToken: MAKER_TOKEN,
+            takerToken: TAKER_TOKEN,
+            // makerFeeAssetData: '0x',
             salt: ZERO,
-            makerFee: ZERO,
-            signature: '0x',
+            // makerFee: ZERO,
+            // signature: '0x',
         };
     }
     const nativeSourcePathId = hexUtils.random();
@@ -674,10 +672,10 @@ describe('quote_simulation tests', async () => {
         const takerScaling = side === MarketOperation.Sell ? 1 : orderSlippage + 1;
         return {
             ...order,
-            makerAssetAmount: order.makerAssetAmount.times(makerScaling),
-            fillableMakerAssetAmount: order.fillableMakerAssetAmount.times(makerScaling),
-            takerAssetAmount: order.takerAssetAmount.times(takerScaling),
-            fillableTakerAssetAmount: order.fillableTakerAssetAmount.times(takerScaling),
+            makerAmount: order.makerAmount.times(makerScaling),
+            fillableMakerAmount: order.fillableMakerAmount.times(makerScaling),
+            takerAmount: order.takerAmount.times(takerScaling),
+            fillableTakerAmount: order.fillableTakerAmount.times(takerScaling),
         };
     }
 

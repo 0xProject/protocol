@@ -4,7 +4,7 @@ import { SupportedProvider } from 'ethereum-types';
 
 import { constants } from './constants';
 import { orderHashUtils } from './order_hash_utils';
-import { generatePseudoRandomSalt } from './salt';
+import { generatePseudoRandomSalt } from '@0x/protocol-utils/src/salt';
 import { signatureUtils } from './signature_utils';
 import { CreateOrderOpts } from './types';
 

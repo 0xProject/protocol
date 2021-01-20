@@ -1,9 +1,4 @@
-
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    RfqOrder,
-} from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -43,15 +38,7 @@ import {
 
 // tslint:disable:boolean-naming
 
-/**
- * Returns a indicative quotes or an empty array if RFQT is not enabled or requested
- * @param makerAssetData the maker asset data
- * @param takerAssetData the taker asset data
- * @param marketOperation Buy or Sell
- * @param assetFillAmount the amount to fill, in base units
- * @param opts market request options
- */
-export function shouldIncludeIndicativeRfqt(opts: Partial<GetMarketOrdersOpts>): boolean {
+function shouldIncludeIndicativeRfqt(opts: Partial<GetMarketOrdersOpts>): boolean {
     if (opts.rfqt && opts.rfqt.isIndicative === true && opts.rfqt.quoteRequestor) {
         return true;
     } else {

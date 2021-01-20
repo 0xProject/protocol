@@ -4,7 +4,6 @@ import { constants } from '../constants';
 import { MarketOperation } from '../types';
 
 import { CollapsedFill, ERC20BridgeSource, FeeSchedule, OptimizedMarketOrder } from './market_operation_utils/types';
-import { isOrderTakerFeePayableWithMakerAsset, isOrderTakerFeePayableWithTakerAsset } from './utils';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;
@@ -223,15 +222,15 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
             ? {
                   totalOrderInput: o.takerAmount,
                   totalOrderOutput: o.makerAmount,
-                  totalOrderInputFee: isOrderTakerFeePayableWithTakerAsset(o) ? o.takerFee : ZERO_AMOUNT,
-                  totalOrderOutputFee: isOrderTakerFeePayableWithMakerAsset(o) ? o.takerFee.negated() : ZERO_AMOUNT,
+                  totalOrderInputFee: o.fillableTakerFeeAmount,
+                  totalOrderOutputFee: ZERO_AMOUNT,
               }
             : // Buy
               {
                   totalOrderInput: o.makerAmount,
                   totalOrderOutput: o.takerAmount,
-                  totalOrderInputFee: isOrderTakerFeePayableWithMakerAsset(o) ? o.takerFee.negated() : ZERO_AMOUNT,
-                  totalOrderOutputFee: isOrderTakerFeePayableWithTakerAsset(o) ? o.takerFee : ZERO_AMOUNT,
+                  totalOrderInputFee: ZERO_AMOUNT,
+                  totalOrderOutputFee: o.fillableTakerFeeAmount,
               }),
     }));
 }

@@ -1,5 +1,4 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { assetDataUtils } from '@0x/order-utils';
 import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
@@ -34,7 +33,7 @@ import {
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { SwapQuoteCalculator } from './utils/swap_quote_calculator';
-import { getPriceAwareRFQRolloutFlags, isOrderTakerFeePayableWithTakerAsset } from './utils/utils';
+import { getPriceAwareRFQRolloutFlags } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
 
 export abstract class Orderbook {
@@ -344,10 +343,10 @@ export class SwapQuoter {
     }
 
     /**
-     * Utility function to get assetData for Ether token.
+     * Utility function to get Ether token address
      */
-    public async getEtherTokenAssetDataOrThrowAsync(): Promise<string> {
-        return assetDataUtils.encodeERC20AssetData(this._contractAddresses.etherToken);
+    public getEtherToken(): string {
+        return this._contractAddresses.etherToken;
     }
 
     private readonly _limitOrderPruningFn = (apiOrder: APIOrder) => {
@@ -356,17 +355,10 @@ export class SwapQuoter {
         const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS); // tslint:disable-line:boolean-naming
         const isFeeTypeAllowed =
             (this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.NoFees) &&
-                order.takerTokenFeeAmount.eq(constants.ZERO_AMOUNT)) ||
-            (this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.TakerDenominatedTakerFee) &&
-                isOrderTakerFeePayableWithTakerAsset(order));
+                order.takerTokenFeeAmount.eq(constants.ZERO_AMOUNT));
         return isOpenOrder && !willOrderExpire && isFeeTypeAllowed;
     }; // tslint:disable-line:semicolon
 
-    /**
-     * Grab orders from the order provider, prunes for valid orders with provided OrderPruner options
-     * @param   makerAssetData      The makerAssetData of the desired asset to swap for (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
-     * @param   takerAssetData      The takerAssetData of the asset to swap makerAssetData for (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
-     */
     private async _getLimitOrdersAsync(makerToken: string, takerToken: string): Promise<LimitOrder[]> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);

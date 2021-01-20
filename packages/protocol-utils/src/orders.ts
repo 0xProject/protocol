@@ -54,6 +54,7 @@ export type CommonOrderFields = typeof COMMON_ORDER_DEFAULT_VALUES;
 export type LimitOrderFields = typeof LIMIT_ORDER_DEFAULT_VALUES;
 export type RfqOrderFields = typeof RFQ_ORDER_DEFAULT_VALUES;
 export type BridgeOrderFields = typeof BRIDGE_ORDER_DEFAULT_VALUES;
+export type NativeOrder = RfqOrder | LimitOrder;
 
 export enum OrderStatus {
     Invalid = 0,

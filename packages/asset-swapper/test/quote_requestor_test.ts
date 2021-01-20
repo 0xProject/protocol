@@ -1,5 +1,5 @@
 import { tokenUtils } from '@0x/dev-utils';
-import { assetDataUtils } from '@0x/order-utils';
+import { RfqOrder } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -12,7 +12,6 @@ import { QuoteRequestor, quoteRequestorHttpClient } from '../src/utils/quote_req
 import { rfqtMocker } from '../src/utils/rfqt_mocker';
 
 import { chaiSetup } from './utils/chai_setup';
-import { testOrderFactory } from './utils/test_order_factory';
 
 chaiSetup.configure();
 const expect = chai.expect;
@@ -25,8 +24,6 @@ function makeThreeMinuteExpiry(): BigNumber {
 
 describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
-    const makerAssetData = assetDataUtils.encodeERC20AssetData(makerToken);
-    const takerAssetData = assetDataUtils.encodeERC20AssetData(takerToken);
 
     describe('requestRfqtFirmQuotesAsync for firm quotes', async () => {
         it('should return successful RFQT requests', async () => {
@@ -45,12 +42,12 @@ describe('QuoteRequestor', async () => {
                 protocolVersion: '4',
             };
             // Successful response
-            const successfulOrder1 = testOrderFactory.generateTestSignedOrder({
-                makerAssetData,
-                takerAssetData,
-                takerAddress,
-                feeRecipientAddress: '0x0000000000000000000000000000000000000001',
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
+            const successfulOrder1 = new RfqOrder({
+                makerToken,
+                takerToken,
+                taker: takerAddress,
+                // feeRecipientAddress: '0x0000000000000000000000000000000000000001',
+                expiry: makeThreeMinuteExpiry(),
             });
             mockedRequests.push({
                 endpoint: 'https://1337.0.0.1',
@@ -72,7 +69,7 @@ describe('QuoteRequestor', async () => {
                 endpoint: 'https://421.0.0.1',
                 requestApiKey: apiKey,
                 requestParams: expectedParams,
-                responseData: { makerAssetData: '123' },
+                responseData: { makerToken: '123' },
                 responseCode: StatusCodes.Success,
             });
             // ensure that a non-JSON response doesn't throw an error when trying to parse
@@ -84,39 +81,39 @@ describe('QuoteRequestor', async () => {
                 responseCode: StatusCodes.Success,
             });
             // A successful response code and valid order, but for wrong maker asset data
-            const wrongMakerAssetDataOrder = testOrderFactory.generateTestSignedOrder({
-                makerAssetData: assetDataUtils.encodeERC20AssetData(otherToken1),
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
-                takerAssetData,
+            const wrongMakerTokenOrder = new RfqOrder({
+                makerToken: otherToken1,
+                expiry: makeThreeMinuteExpiry(),
+                takerToken,
             });
             mockedRequests.push({
                 endpoint: 'https://422.0.0.1',
                 requestApiKey: apiKey,
                 requestParams: expectedParams,
-                responseData: { signedOrder: wrongMakerAssetDataOrder },
+                responseData: { signedOrder: wrongMakerTokenOrder },
                 responseCode: StatusCodes.Success,
             });
             // A successful response code and valid order, but for wrong taker asset data
-            const wrongTakerAssetDataOrder = testOrderFactory.generateTestSignedOrder({
-                makerAssetData,
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
-                takerAssetData: assetDataUtils.encodeERC20AssetData(otherToken1),
+            const wrongTakerTokenOrder = new RfqOrder({
+                makerToken,
+                expiry: makeThreeMinuteExpiry(),
+                takerToken: otherToken1,
             });
             mockedRequests.push({
                 endpoint: 'https://423.0.0.1',
                 requestApiKey: apiKey,
                 requestParams: expectedParams,
-                responseData: { signedOrder: wrongTakerAssetDataOrder },
+                responseData: { signedOrder: wrongTakerTokenOrder },
                 responseCode: StatusCodes.Success,
             });
             // A successful response code and good order but its unsigned
-            const unsignedOrder = testOrderFactory.generateTestSignedOrder({
-                makerAssetData,
-                takerAssetData,
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
-                feeRecipientAddress: '0x0000000000000000000000000000000000000002',
+            const unsignedOrder = new RfqOrder({
+                makerToken,
+                takerToken,
+                expiry: makeThreeMinuteExpiry(),
+                // feeRecipientAddress: '0x0000000000000000000000000000000000000002',
             });
-            delete unsignedOrder.signature;
+            // delete unsignedOrder.signature;
             mockedRequests.push({
                 endpoint: 'https://424.0.0.1',
                 requestApiKey: apiKey,
@@ -125,12 +122,12 @@ describe('QuoteRequestor', async () => {
                 responseCode: StatusCodes.Success,
             });
             // A successful response code and good order but for the wrong takerAddress
-            const orderWithNullTaker = testOrderFactory.generateTestSignedOrder({
-                makerAssetData,
-                takerAssetData,
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
-                takerAddress: constants.NULL_ADDRESS,
-                feeRecipientAddress: '0x0000000000000000000000000000000000000002',
+            const orderWithNullTaker = new RfqOrder({
+                makerToken,
+                takerToken,
+                expiry: makeThreeMinuteExpiry(),
+                taker: constants.NULL_ADDRESS,
+                // feeRecipientAddress: '0x0000000000000000000000000000000000000002',
             });
             mockedRequests.push({
                 endpoint: 'https://425.0.0.1',
@@ -141,11 +138,11 @@ describe('QuoteRequestor', async () => {
             });
 
             // Another Successful response
-            const successfulOrder2 = testOrderFactory.generateTestSignedOrder({
-                makerAssetData,
-                takerAssetData,
-                takerAddress,
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
+            const successfulOrder2 = new RfqOrder({
+                makerToken,
+                takerToken,
+                taker: takerAddress,
+                expiry: makeThreeMinuteExpiry(),
             });
             mockedRequests.push({
                 endpoint: 'https://37.0.0.1',
@@ -172,8 +169,8 @@ describe('QuoteRequestor', async () => {
                         'https://37.0.0.1': [[makerToken, takerToken]],
                     });
                     const resp = await qr.requestRfqtFirmQuotesAsync(
-                        makerAssetData,
-                        takerAssetData,
+                        makerToken,
+                        takerToken,
                         new BigNumber(10000),
                         MarketOperation.Sell,
                         undefined,
@@ -196,8 +193,8 @@ describe('QuoteRequestor', async () => {
             const response = QuoteRequestor.makeQueryParameters(
                 otherToken1,
                 MarketOperation.Sell,
-                makerAssetData,
-                takerAssetData,
+                makerToken,
+                takerToken,
                 new BigNumber(1000),
                 new BigNumber(300.2),
             );
@@ -220,11 +217,11 @@ describe('QuoteRequestor', async () => {
             };
             // Successful response
             const successfulQuote1 = {
-                makerAssetData,
-                takerAssetData,
-                makerAssetAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
-                takerAssetAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
+                makerToken,
+                takerToken,
+                makerAmount: new BigNumber(expectedParams.sellAmountBaseUnits!),
+                takerAmount: new BigNumber(expectedParams.sellAmountBaseUnits!),
+                expiry: makeThreeMinuteExpiry(),
             };
             mockedRequests.push({
                 endpoint: 'https://1337.0.0.1',
@@ -246,7 +243,7 @@ describe('QuoteRequestor', async () => {
                 endpoint: 'https://421.0.0.1',
                 requestApiKey: apiKey,
                 requestParams: expectedParams,
-                responseData: { makerAssetData: '123' },
+                responseData: { makerToken: '123' },
                 responseCode: StatusCodes.Success,
             });
             // A successful response code and valid response data, but for wrong maker asset data
@@ -254,7 +251,7 @@ describe('QuoteRequestor', async () => {
                 endpoint: 'https://422.0.0.1',
                 requestApiKey: apiKey,
                 requestParams: expectedParams,
-                responseData: { ...successfulQuote1, makerAssetData: assetDataUtils.encodeERC20AssetData(otherToken1) },
+                responseData: { ...successfulQuote1, makerToken: otherToken1 },
                 responseCode: StatusCodes.Success,
             });
             // A successful response code and valid response data, but for wrong taker asset data
@@ -262,7 +259,7 @@ describe('QuoteRequestor', async () => {
                 endpoint: 'https://423.0.0.1',
                 requestApiKey: apiKey,
                 requestParams: expectedParams,
-                responseData: { ...successfulQuote1, takerAssetData: assetDataUtils.encodeERC20AssetData(otherToken1) },
+                responseData: { ...successfulQuote1, takerToken: otherToken1 },
                 responseCode: StatusCodes.Success,
             });
             // Another Successful response
@@ -287,8 +284,8 @@ describe('QuoteRequestor', async () => {
                         'https://37.0.0.1': [[makerToken, takerToken]],
                     });
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
-                        makerAssetData,
-                        takerAssetData,
+                        makerToken,
+                        takerToken,
                         new BigNumber(10000),
                         MarketOperation.Sell,
                         undefined,
@@ -320,11 +317,11 @@ describe('QuoteRequestor', async () => {
             };
             // Successful response
             const successfulQuote1 = {
-                makerAssetData,
-                takerAssetData,
-                makerAssetAmount: new BigNumber(expectedParams.buyAmountBaseUnits),
-                takerAssetAmount: new BigNumber(expectedParams.buyAmountBaseUnits),
-                expirationTimeSeconds: makeThreeMinuteExpiry(),
+                makerToken,
+                takerToken,
+                makerAmount: new BigNumber(expectedParams.buyAmountBaseUnits!),
+                takerAmount: new BigNumber(expectedParams.buyAmountBaseUnits!),
+                expiry: makeThreeMinuteExpiry(),
             };
             mockedRequests.push({
                 endpoint: 'https://1337.0.0.1',
@@ -339,8 +336,8 @@ describe('QuoteRequestor', async () => {
                 async () => {
                     const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] });
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
-                        makerAssetData,
-                        takerAssetData,
+                        makerToken,
+                        takerToken,
                         new BigNumber(10000),
                         MarketOperation.Buy,
                         undefined,

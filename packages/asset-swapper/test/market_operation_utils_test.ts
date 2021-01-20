@@ -8,9 +8,7 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { assetDataUtils } from '@0x/order-utils';
-import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
-import { AssetProxyId, ERC20BridgeAssetData, SignedOrder } from '@0x/types';
+import { FillQuoteTransformerOrderType, LimitOrder, NativeOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
@@ -47,7 +45,7 @@ import {
 
 const MAKER_TOKEN = randomAddress();
 const TAKER_TOKEN = randomAddress();
-const TAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(TAKER_TOKEN);
+
 const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.UniswapV2,
     ERC20BridgeSource.Curve,
@@ -141,46 +139,6 @@ describe('MarketOperationUtils tests', () => {
                 .verifiable(verifiable);
         }
         return requestor;
-    }
-
-    function getSourceFromAssetData(assetData: string): ERC20BridgeSource {
-        if (assetData.length === 74) {
-            return ERC20BridgeSource.Native;
-        }
-        const bridgeData = assetDataUtils.decodeAssetDataOrThrow(assetData);
-        if (!assetDataUtils.isERC20BridgeAssetData(bridgeData)) {
-            throw new Error('AssetData is not ERC20BridgeAssetData');
-        }
-        const { bridgeAddress } = bridgeData;
-        switch (bridgeAddress) {
-            case contractAddresses.kyberBridge.toLowerCase():
-                return ERC20BridgeSource.Kyber;
-            case contractAddresses.eth2DaiBridge.toLowerCase():
-                return ERC20BridgeSource.Eth2Dai;
-            case contractAddresses.uniswapBridge.toLowerCase():
-                return ERC20BridgeSource.Uniswap;
-            case contractAddresses.uniswapV2Bridge.toLowerCase():
-                return ERC20BridgeSource.UniswapV2;
-            case contractAddresses.curveBridge.toLowerCase():
-                return ERC20BridgeSource.Curve;
-            case contractAddresses.mStableBridge.toLowerCase():
-                return ERC20BridgeSource.MStable;
-            case contractAddresses.mooniswapBridge.toLowerCase():
-                return ERC20BridgeSource.Mooniswap;
-            case contractAddresses.sushiswapBridge.toLowerCase():
-                return ERC20BridgeSource.SushiSwap;
-            case contractAddresses.shellBridge.toLowerCase():
-                return ERC20BridgeSource.Shell;
-            case contractAddresses.dodoBridge.toLowerCase():
-                return ERC20BridgeSource.Dodo;
-            default:
-                break;
-        }
-        throw new Error(`Unknown bridge address: ${bridgeAddress}`);
-    }
-
-    function assertSamePrefix(actual: string, expected: string): void {
-        expect(actual.substr(0, expected.length)).to.eq(expected);
     }
 
     function createOrdersFromSellRates(
@@ -399,11 +357,11 @@ describe('MarketOperationUtils tests', () => {
             const result = new BigNumber(18);
             return [result, result];
         },
-        getOrderFillableTakerAmounts(orders: SignedOrder[]): BigNumber[] {
-            return orders.map(o => o.takerAssetAmount);
+        getOrderFillableTakerAmounts(orders: NativeOrder[]): BigNumber[] {
+            return orders.map(o => o.takerAmount);
         },
-        getOrderFillableMakerAmounts(orders: SignedOrder[]): BigNumber[] {
-            return orders.map(o => o.makerAssetAmount);
+        getOrderFillableMakerAmounts(orders: NativeOrder[]): BigNumber[] {
+            return orders.map(o => o.makerAmount);
         },
         getSellQuotes: createGetMultipleSellQuotesOperationFromRates(DEFAULT_RATES),
         getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(DEFAULT_RATES),
@@ -662,31 +620,32 @@ describe('MarketOperationUtils tests', () => {
                 expect(_.uniq(sourcesPolled).sort()).to.deep.equals(includedSources.sort());
             });
 
-            it('generates bridge orders with correct asset data', async () => {
-                const improvedOrdersResponse = await getMarketSellOrdersAsync(
-                    marketOperationUtils,
-                    // Pass in empty orders to prevent native orders from being used.
-                    ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
-                    FILL_AMOUNT,
-                    DEFAULT_OPTS,
-                );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                expect(improvedOrders).to.not.be.length(0);
-                for (const order of improvedOrders) {
-                    expect(getSourceFromAssetData(order.makerAssetData)).to.exist('');
-                    const makerAssetDataPrefix = hexUtils.slice(
-                        assetDataUtils.encodeERC20BridgeAssetData(
-                            MAKER_TOKEN,
-                            constants.NULL_ADDRESS,
-                            constants.NULL_BYTES,
-                        ),
-                        0,
-                        36,
-                    );
-                    assertSamePrefix(order.makerAssetData, makerAssetDataPrefix);
-                    expect(order.takerAssetData).to.eq(TAKER_ASSET_DATA);
-                }
-            });
+            // // TODO (xianny): v4 will have a new way of representing bridge data
+            // it('generates bridge orders with correct asset data', async () => {
+            //     const improvedOrdersResponse = await getMarketSellOrdersAsync(
+            //         marketOperationUtils,
+            //         // Pass in empty orders to prevent native orders from being used.
+            //         ORDERS.map(o => ({ ...o, makerAmount: constants.ZERO_AMOUNT })),
+            //         FILL_AMOUNT,
+            //         DEFAULT_OPTS,
+            //     );
+            //     const improvedOrders = improvedOrdersResponse.optimizedOrders;
+            //     expect(improvedOrders).to.not.be.length(0);
+            //     for (const order of improvedOrders) {
+            //         expect(getSourceFromAssetData(order.makerAssetData)).to.exist('');
+            //         const makerAssetDataPrefix = hexUtils.slice(
+            //             assetDataUtils.encodeERC20BridgeAssetData(
+            //                 MAKER_TOKEN,
+            //                 constants.NULL_ADDRESS,
+            //                 constants.NULL_BYTES,
+            //             ),
+            //             0,
+            //             36,
+            //         );
+            //         assertSamePrefix(order.makerAssetData, makerAssetDataPrefix);
+            //         expect(order.takerAssetData).to.eq(TAKER_ASSET_DATA);
+            //     }
+            // });
 
             it('getMarketSellOrdersAsync() optimizer will be called once only if price-aware RFQ is disabled', async () => {
                 const mockedMarketOpUtils = TypeMoq.Mock.ofType(
@@ -826,8 +785,8 @@ describe('MarketOperationUtils tests', () => {
                 expect(result.optimizedOrders.length).to.eql(1);
                 // tslint:disable-next-line:no-unnecessary-type-assertion
                 expect(requestedComparisonPrice!.toString()).to.eql('320');
-                expect(result.optimizedOrders[0].makerAssetAmount.toString()).to.eql('321000000');
-                expect(result.optimizedOrders[0].takerAssetAmount.toString()).to.eql('1000000000000000000');
+                expect(result.optimizedOrders[0].makerAmount.toString()).to.eql('321000000');
+                expect(result.optimizedOrders[0].takerAmount.toString()).to.eql('1000000000000000000');
             });
 
             it('getMarketSellOrdersAsync() will not rerun the optimizer if no orders are returned', async () => {
@@ -1082,13 +1041,13 @@ describe('MarketOperationUtils tests', () => {
                 const improvedOrdersResponse = await getMarketSellOrdersAsync(
                     marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
-                    ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
+                    ORDERS.map(o => ({ ...o, makerAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
                     DEFAULT_OPTS,
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const totalTakerAssetAmount = BigNumber.sum(...improvedOrders.map(o => o.takerAssetAmount));
-                expect(totalTakerAssetAmount).to.bignumber.gte(FILL_AMOUNT);
+                const totaltakerAmount = BigNumber.sum(...improvedOrders.map(o => o.takerAmount));
+                expect(totaltakerAmount).to.bignumber.gte(FILL_AMOUNT);
             });
 
             it('generates bridge orders with max slippage of `bridgeSlippage`', async () => {
@@ -1096,7 +1055,7 @@ describe('MarketOperationUtils tests', () => {
                 const improvedOrdersResponse = await getMarketSellOrdersAsync(
                     marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
-                    ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
+                    ORDERS.map(o => ({ ...o, makerAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, bridgeSlippage },
                 );
@@ -1104,7 +1063,7 @@ describe('MarketOperationUtils tests', () => {
                 expect(improvedOrders).to.not.be.length(0);
                 for (const order of improvedOrders) {
                     const expectedMakerAmount = order.fills[0].output;
-                    const slippage = new BigNumber(1).minus(order.makerAssetAmount.div(expectedMakerAmount.plus(1)));
+                    const slippage = new BigNumber(1).minus(order.makerAmount.div(expectedMakerAmount.plus(1)));
                     assertRoughlyEquals(slippage, bridgeSlippage, 1);
                 }
             });
@@ -1321,15 +1280,16 @@ describe('MarketOperationUtils tests', () => {
                 );
                 const result = ordersAndReport.optimizedOrders;
                 expect(result.length).to.eql(1);
-                expect(result[0].makerAddress).to.eql(liquidityProviderAddress);
+                expect(result[0].maker).to.eql(liquidityProviderAddress);
 
-                // tslint:disable-next-line:no-unnecessary-type-assertion
-                const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(
-                    result[0].makerAssetData,
-                ) as ERC20BridgeAssetData;
-                expect(decodedAssetData.assetProxyId).to.eql(AssetProxyId.ERC20Bridge);
-                expect(decodedAssetData.bridgeAddress).to.eql(liquidityProviderAddress);
-                expect(result[0].takerAssetAmount).to.bignumber.eql(FILL_AMOUNT);
+                // // TODO (xianny): decode bridge data in v4 format
+                // // tslint:disable-next-line:no-unnecessary-type-assertion
+                // const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(
+                //     result[0].makerAssetData,
+                // ) as ERC20BridgeAssetData;
+                // expect(decodedAssetData.assetProxyId).to.eql(AssetProxyId.ERC20Bridge);
+                // expect(decodedAssetData.bridgeAddress).to.eql(liquidityProviderAddress);
+                // expect(result[0].takerAmount).to.bignumber.eql(FILL_AMOUNT);
             });
 
             it('factors in exchange proxy gas overhead', async () => {
@@ -1559,43 +1519,43 @@ describe('MarketOperationUtils tests', () => {
                 expect(_.uniq(sourcesPolled).sort()).to.deep.eq(includedSources.sort());
             });
 
-            it('generates bridge orders with correct asset data', async () => {
-                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
-                    marketOperationUtils,
-                    // Pass in empty orders to prevent native orders from being used.
-                    ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
-                    FILL_AMOUNT,
-                    DEFAULT_OPTS,
-                );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                expect(improvedOrders).to.not.be.length(0);
-                for (const order of improvedOrders) {
-                    expect(getSourceFromAssetData(order.makerAssetData)).to.exist('');
-                    const makerAssetDataPrefix = hexUtils.slice(
-                        assetDataUtils.encodeERC20BridgeAssetData(
-                            MAKER_TOKEN,
-                            constants.NULL_ADDRESS,
-                            constants.NULL_BYTES,
-                        ),
-                        0,
-                        36,
-                    );
-                    assertSamePrefix(order.makerAssetData, makerAssetDataPrefix);
-                    expect(order.takerAssetData).to.eq(TAKER_ASSET_DATA);
-                }
-            });
+            // it('generates bridge orders with correct asset data', async () => {
+            //     const improvedOrdersResponse = await getMarketBuyOrdersAsync(
+            //         marketOperationUtils,
+            //         // Pass in empty orders to prevent native orders from being used.
+            //         ORDERS.map(o => ({ ...o, makerAmount: constants.ZERO_AMOUNT })),
+            //         FILL_AMOUNT,
+            //         DEFAULT_OPTS,
+            //     );
+            //     const improvedOrders = improvedOrdersResponse.optimizedOrders;
+            //     expect(improvedOrders).to.not.be.length(0);
+            //     for (const order of improvedOrders) {
+            //         expect(getSourceFromAssetData(order.makerAssetData)).to.exist('');
+            //         const makerAssetDataPrefix = hexUtils.slice(
+            //             assetDataUtils.encodeERC20BridgeAssetData(
+            //                 MAKER_TOKEN,
+            //                 constants.NULL_ADDRESS,
+            //                 constants.NULL_BYTES,
+            //             ),
+            //             0,
+            //             36,
+            //         );
+            //         assertSamePrefix(order.makerAssetData, makerAssetDataPrefix);
+            //         expect(order.takerAssetData).to.eq(TAKER_ASSET_DATA);
+            //     }
+            // });
 
             it('generates bridge orders with correct maker amount', async () => {
                 const improvedOrdersResponse = await getMarketBuyOrdersAsync(
                     marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
-                    ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
+                    ORDERS.map(o => ({ ...o, makerAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
                     DEFAULT_OPTS,
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const totalMakerAssetAmount = BigNumber.sum(...improvedOrders.map(o => o.makerAssetAmount));
-                expect(totalMakerAssetAmount).to.bignumber.gte(FILL_AMOUNT);
+                const totalmakerAmount = BigNumber.sum(...improvedOrders.map(o => o.makerAmount));
+                expect(totalmakerAmount).to.bignumber.gte(FILL_AMOUNT);
             });
 
             it('generates bridge orders with max slippage of `bridgeSlippage`', async () => {
@@ -1603,7 +1563,7 @@ describe('MarketOperationUtils tests', () => {
                 const improvedOrdersResponse = await getMarketBuyOrdersAsync(
                     marketOperationUtils,
                     // Pass in empty orders to prevent native orders from being used.
-                    ORDERS.map(o => ({ ...o, makerAssetAmount: constants.ZERO_AMOUNT })),
+                    ORDERS.map(o => ({ ...o, makerAmount: constants.ZERO_AMOUNT })),
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, bridgeSlippage },
                 );
@@ -1611,7 +1571,7 @@ describe('MarketOperationUtils tests', () => {
                 expect(improvedOrders).to.not.be.length(0);
                 for (const order of improvedOrders) {
                     const expectedTakerAmount = order.fills[0].output;
-                    const slippage = order.takerAssetAmount.div(expectedTakerAmount.plus(1)).minus(1);
+                    const slippage = order.takerAmount.div(expectedTakerAmount.plus(1)).minus(1);
                     assertRoughlyEquals(slippage, bridgeSlippage, 1);
                 }
             });
@@ -1847,7 +1807,7 @@ describe('MarketOperationUtils tests', () => {
                 ethToOutputRate,
                 feeSchedule,
             });
-            expect((path[0][0].fillData as NativeFillData).order.makerAddress).to.eq(smallOrder.order.maker);
+            expect((path[0][0].fillData as NativeFillData).order.maker).to.eq(smallOrder.order.maker);
             expect(path[0][0].input).to.be.bignumber.eq(takerAmount.minus(1));
         });
 
@@ -1860,8 +1820,8 @@ describe('MarketOperationUtils tests', () => {
                 ethToOutputRate,
                 feeSchedule,
             });
-            expect((path[0][0].fillData as NativeFillData).order.makerAddress).to.eq(largeOrder.order.maker);
-            expect((path[0][1].fillData as NativeFillData).order.makerAddress).to.eq(smallOrder.order.maker);
+            expect((path[0][0].fillData as NativeFillData).order.maker).to.eq(largeOrder.order.maker);
+            expect((path[0][1].fillData as NativeFillData).order.maker).to.eq(smallOrder.order.maker);
         });
     });
 });

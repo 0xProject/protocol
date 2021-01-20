@@ -1,4 +1,4 @@
-import { assetDataUtils, ERC20AssetData, generatePseudoRandomSalt, orderCalculationUtils } from '@0x/order-utils';
+import { assetDataUtils, ERC20AssetData, generatePseudoRandomSalt } from '@0x/order-utils';
 import { SignedOrder } from '@0x/types';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 

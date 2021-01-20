@@ -49,11 +49,12 @@ const buyMarketSideLiquidity: MarketSideLiquidity = {
     inputAmount: new BigNumber(0),
     inputToken: ETH_TOKEN,
     outputToken: DAI_TOKEN,
-    dexQuotes: [dexQuotes],
-    nativeOrders: [],
-    orderFillableAmounts: [],
-    twoHopQuotes: [],
-    rfqtIndicativeQuotes: [],
+    quotes: {
+        twoHopQuotes: [],
+        rfqtIndicativeQuotes: [],
+        dexQuotes: [dexQuotes],
+        nativeOrders: [],
+    },
     quoteSourceFilters: new SourceFilters(),
 };
 
@@ -68,11 +69,12 @@ const sellMarketSideLiquidity: MarketSideLiquidity = {
     inputAmount: new BigNumber(0),
     inputToken: ETH_TOKEN,
     outputToken: DAI_TOKEN,
-    dexQuotes: [dexQuotes],
-    nativeOrders: [],
-    orderFillableAmounts: [],
-    twoHopQuotes: [],
-    rfqtIndicativeQuotes: [],
+    quotes: {
+        dexQuotes: [dexQuotes],
+        nativeOrders: [],
+        twoHopQuotes: [],
+        rfqtIndicativeQuotes: [],
+    },
     quoteSourceFilters: new SourceFilters(),
 };
 

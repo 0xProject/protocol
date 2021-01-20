@@ -1,4 +1,3 @@
-import { LimitOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -102,30 +101,30 @@ export class SamplerOperations {
         });
     }
 
-    public getOrderFillableTakerAmounts(
-        orders: Array<LimitOrder | RfqOrder>,
-        signatures: Signature[],
-        exchangeAddress: string,
-    ): BatchedOperation<BigNumber[]> {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Native,
-            contract: this._samplerContract,
-            function: this._samplerContract.getOrderFillableTakerAssetAmounts,
-            params: [orders, signatures, exchangeAddress],
-        });
-    }
+    // public getOrderFillableTakerAmounts(
+    //     orders: Array<LimitOrder | RfqOrder>,
+    //     signatures: Signature[],
+    //     exchangeAddress: string,
+    // ): BatchedOperation<BigNumber[]> {
+    //     return new SamplerContractOperation({
+    //         source: ERC20BridgeSource.Native,
+    //         contract: this._samplerContract,
+    //         function: this._samplerContract.getOrderFillableTakerAssetAmounts,
+    //         params: [orders, signatures, exchangeAddress],
+    //     });
+    // }
 
-    public getOrderFillableMakerAmounts(
-        orders: Array<LimitOrder | RfqOrder>,
-        exchangeAddress: string,
-    ): BatchedOperation<BigNumber[]> {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Native,
-            contract: this._samplerContract,
-            function: this._samplerContract.getOrderFillableMakerAssetAmounts,
-            params: [orders, signatures, exchangeAddress],
-        });
-    }
+    // public getOrderFillableMakerAmounts(
+    //     orders: Array<LimitOrder | RfqOrder>,
+    //     exchangeAddress: string,
+    // ): BatchedOperation<BigNumber[]> {
+    //     return new SamplerContractOperation({
+    //         source: ERC20BridgeSource.Native,
+    //         contract: this._samplerContract,
+    //         function: this._samplerContract.getOrderFillableMakerAssetAmounts,
+    //         params: [orders, signatures, exchangeAddress],
+    //     });
+    // }
 
     public getKyberSellQuotes(
         reserveOffset: BigNumber,
