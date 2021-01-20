@@ -2,7 +2,7 @@ import { assetDataUtils, ERC20AssetData, generatePseudoRandomSalt, orderCalculat
 import { SignedOrder } from '@0x/types';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
-import { AssetSwapperContractAddresses, MarketOperation, SignedOrderWithFillableAmounts } from '../../types';
+import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
 import {
     ERC20_PROXY_ID,
@@ -57,47 +57,6 @@ export function convertNativeOrderToFullyFillableOptimizedOrders(order: SignedOr
         fillableTakerFeeAmount: order.takerFee,
         fills: [],
     };
-}
-
-/**
- * Augments native orders with fillable amounts and filters out unfillable orders.
- */
-export function createSignedOrdersWithFillableAmounts(
-    side: MarketOperation,
-    orders: SignedOrder[],
-    fillableAmounts: BigNumber[],
-): SignedOrderWithFillableAmounts[] {
-    // Quick safety check: ensures that orders maps perfectly to fillable amounts.
-    if (orders.length !== fillableAmounts.length) {
-        throw new Error(
-            `Number of orders was ${orders.length} but fillable amounts was ${
-                fillableAmounts.length
-            }. This should never happen`,
-        );
-    }
-
-    return orders
-        .map((order: SignedOrder, i: number) => {
-            const fillableAmount = fillableAmounts[i];
-            const fillableMakerAssetAmount =
-                side === MarketOperation.Buy
-                    ? fillableAmount
-                    : orderCalculationUtils.getMakerFillAmount(order, fillableAmount);
-            const fillableTakerAssetAmount =
-                side === MarketOperation.Sell
-                    ? fillableAmount
-                    : orderCalculationUtils.getTakerFillAmount(order, fillableAmount);
-            const fillableTakerFeeAmount = orderCalculationUtils.getTakerFeeAmount(order, fillableTakerAssetAmount);
-            return {
-                ...order,
-                fillableMakerAssetAmount,
-                fillableTakerAssetAmount,
-                fillableTakerFeeAmount,
-            };
-        })
-        .filter(order => {
-            return !order.fillableMakerAssetAmount.isZero() && !order.fillableTakerAssetAmount.isZero();
-        });
 }
 
 export interface CreateOrderFromPathOpts {

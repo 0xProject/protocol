@@ -332,6 +332,7 @@ export interface GetMarketOrdersOpts {
 export interface BatchedOperation<TResult> {
     encodeCall(): string;
     handleCallResults(callResults: string): TResult;
+    handleRevert(callResults: string): TResult;
 }
 
 export interface SourceQuoteOperation<TFillData extends FillData = FillData>

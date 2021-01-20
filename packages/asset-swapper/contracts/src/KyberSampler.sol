@@ -35,55 +35,73 @@ contract KyberSampler is
     uint256 constant private KYBER_CALL_GAS = 500e3; // 500k
 
     /// @dev Sample sell quotes from Kyber.
-    /// @param reserveId The selected kyber reserve
+    /// @param reserveOffset The nth reserve
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return reserveId The id of the reserve found at reserveOffset
     /// @return hint The hint for the selected reserve
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromKyberNetwork(
-        bytes32 reserveId,
+        uint256 reserveOffset,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
         public
         view
-        returns (bytes memory hint, uint256[] memory makerTokenAmounts)
+        returns (bytes32 reserveId, bytes memory hint, uint256[] memory makerTokenAmounts)
     {
         _assertValidPair(makerToken, takerToken);
+        reserveId = _getNextReserveId(takerToken, makerToken, reserveOffset);
+        if (reserveId == 0x0) {
+            return (reserveId, hint, makerTokenAmounts);
+        }
+        hint = this.encodeKyberHint(reserveId, takerToken, makerToken);
+
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
-        hint = this.encodeKyberHint(reserveId, takerToken, makerToken);
         for (uint256 i = 0; i < numSamples; i++) {
-            uint256 value = this.sampleSellFromKyberNetwork(hint, takerToken, makerToken, takerTokenAmounts[i]);
+            uint256 value = this.sampleSellFromKyberNetwork(
+                hint,
+                takerToken,
+                makerToken,
+                takerTokenAmounts[i]
+            );
             // Return early if the source has no liquidity
             if (value == 0) {
-                return (hint, makerTokenAmounts);
+                return (reserveId, hint, makerTokenAmounts);
             }
             makerTokenAmounts[i] = value;
         }
     }
 
     /// @dev Sample buy quotes from Kyber.
-    /// @param reserveId The selected kyber reserve
+    /// @param reserveOffset The nth reserve
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
+    /// @return reserveId The id of the reserve found at reserveOffset
     /// @return hint The hint for the selected reserve
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromKyberNetwork(
-        bytes32 reserveId,
+        uint256 reserveOffset,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
         public
         view
-        returns (bytes memory hint, uint256[] memory takerTokenAmounts)
+        returns (bytes32 reserveId, bytes memory hint, uint256[] memory takerTokenAmounts)
     {
         _assertValidPair(makerToken, takerToken);
+
+        reserveId = _getNextReserveId(takerToken, makerToken, reserveOffset);
+        if (reserveId == 0x0) {
+            return (reserveId, hint, takerTokenAmounts);
+        }
         hint = this.encodeKyberHint(reserveId, takerToken, makerToken);
+
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
                 makerTokenData: abi.encode(makerToken, hint),
@@ -92,7 +110,7 @@ contract KyberSampler is
             }),
             makerTokenAmounts
         );
-        return (hint, takerTokenAmounts);
+        return (reserveId, hint, takerTokenAmounts);
     }
 
     function encodeKyberHint(
@@ -237,5 +255,36 @@ contract KyberSampler is
             // Swallow failures, leaving all results as zero.
             return 0;
         }
+    }
+
+    function _getNextReserveId(
+        address takerToken,
+        address makerToken,
+        uint256 reserveOffset
+    )
+        internal
+        view
+        returns (bytes32 reserveId)
+    {
+        // Fetch the registered reserves for this pair
+        IKyberHintHandler kyberHint = IKyberHintHandler(_getKyberHintHandlerAddress());
+        (bytes32[] memory reserveIds, ,) = kyberHint.getTradingReserves(
+            takerToken == _getWethAddress() ? KYBER_ETH_ADDRESS : takerToken,
+            makerToken == _getWethAddress() ? KYBER_ETH_ADDRESS : makerToken,
+            true,
+            new bytes(0) // empty hint
+        );
+
+        if (reserveOffset >= reserveIds.length) {
+            return 0x0;
+        }
+
+        reserveId = reserveIds[reserveOffset];
+        // Ignore Kyber Bridged Reserves (0xbb)
+        if (uint256(reserveId >> 248) == 0xbb) {
+            return 0x0;
+        }
+
+        return reserveId;
     }
 }

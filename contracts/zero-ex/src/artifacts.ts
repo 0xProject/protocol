@@ -28,7 +28,6 @@ import * as MetaTransactionsFeature from '../generated-artifacts/MetaTransaction
 import * as NativeOrdersFeature from '../generated-artifacts/NativeOrdersFeature.json';
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
-import * as SignatureValidatorFeature from '../generated-artifacts/SignatureValidatorFeature.json';
 import * as SimpleFunctionRegistryFeature from '../generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TokenSpenderFeature from '../generated-artifacts/TokenSpenderFeature.json';
 import * as TransformERC20Feature from '../generated-artifacts/TransformERC20Feature.json';
@@ -54,7 +53,6 @@ export const artifacts = {
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     AffiliateFeeTransformer: AffiliateFeeTransformer as ContractArtifact,
-    SignatureValidatorFeature: SignatureValidatorFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
     LogMetadataTransformer: LogMetadataTransformer as ContractArtifact,
     BridgeAdapter: BridgeAdapter as ContractArtifact,

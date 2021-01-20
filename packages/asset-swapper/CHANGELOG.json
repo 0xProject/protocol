@@ -1,5 +1,19 @@
 [
     {
+        "version": "5.8.0",
+        "changes": [
+            {
+                "note": "Automatically Discover Kyber reserves for tokens using `getTradingReserves`",
+                "pr": 111
+            },
+            {
+                "note": "Return `CallResults` from the Sampler",
+                "pr": 111
+            }
+        ],
+        "timestamp": 1610510890
+    },
+    {
         "version": "5.7.0",
         "changes": [
             {

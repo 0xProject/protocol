@@ -14,7 +14,6 @@ import {
     MetaTransactionsFeatureContract,
     NativeOrdersFeatureContract,
     OwnableFeatureContract,
-    SignatureValidatorFeatureContract,
     SimpleFunctionRegistryFeatureContract,
     TokenSpenderFeatureContract,
     TransformERC20FeatureContract,
@@ -111,7 +110,6 @@ export async function initialMigrateAsync(
 export interface FullFeatures extends BootstrapFeatures {
     tokenSpender: string;
     transformERC20: string;
-    signatureValidator: string;
     metaTransactions: string;
     nativeOrders: string;
 }
@@ -122,7 +120,6 @@ export interface FullFeatures extends BootstrapFeatures {
 export interface FullFeatureArtifacts extends BootstrapFeatureArtifacts {
     tokenSpender: SimpleContractArtifact;
     transformERC20: SimpleContractArtifact;
-    signatureValidator: SimpleContractArtifact;
     metaTransactions: SimpleContractArtifact;
     nativeOrders: SimpleContractArtifact;
     feeCollectorController: SimpleContractArtifact;
@@ -158,7 +155,6 @@ const DEFAULT_FULL_FEATURES_DEPLOY_CONFIG = {
 const DEFAULT_FULL_FEATURES_ARTIFACTS = {
     tokenSpender: artifacts.TokenSpenderFeature,
     transformERC20: artifacts.TransformERC20Feature,
-    signatureValidator: artifacts.SignatureValidatorFeature,
     metaTransactions: artifacts.MetaTransactionsFeature,
     nativeOrders: artifacts.NativeOrdersFeature,
     feeCollectorController: artifacts.FeeCollectorController,
@@ -207,14 +203,6 @@ export async function deployFullFeaturesAsync(
                 txDefaults,
                 artifacts,
                 _config.greedyTokensBloomFilter,
-            )).address,
-        signatureValidator:
-            features.signatureValidator ||
-            (await SignatureValidatorFeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.signatureValidator,
-                provider,
-                txDefaults,
-                artifacts,
             )).address,
         metaTransactions:
             features.metaTransactions ||

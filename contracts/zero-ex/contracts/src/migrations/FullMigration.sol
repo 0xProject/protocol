@@ -24,7 +24,6 @@ import "../ZeroEx.sol";
 import "../features/IOwnableFeature.sol";
 import "../features/TokenSpenderFeature.sol";
 import "../features/TransformERC20Feature.sol";
-import "../features/SignatureValidatorFeature.sol";
 import "../features/MetaTransactionsFeature.sol";
 import "../features/NativeOrdersFeature.sol";
 import "../external/AllowanceTarget.sol";
@@ -42,7 +41,6 @@ contract FullMigration {
         OwnableFeature ownable;
         TokenSpenderFeature tokenSpender;
         TransformERC20Feature transformERC20;
-        SignatureValidatorFeature signatureValidator;
         MetaTransactionsFeature metaTransactions;
         NativeOrdersFeature nativeOrders;
     }
@@ -172,17 +170,6 @@ contract FullMigration {
                 abi.encodeWithSelector(
                     TransformERC20Feature.migrate.selector,
                     migrateOpts.transformerDeployer
-                ),
-                address(this)
-            );
-        }
-        // SignatureValidatorFeature
-        {
-            // Register the feature.
-            ownable.migrate(
-                address(features.signatureValidator),
-                abi.encodeWithSelector(
-                    SignatureValidatorFeature.migrate.selector
                 ),
                 address(this)
             );

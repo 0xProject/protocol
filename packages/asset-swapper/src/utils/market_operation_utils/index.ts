@@ -1,4 +1,9 @@
-import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
+
+import {
+    FillQuoteTransformerOrderType,
+    LimitOrder,
+    RfqOrder,
+} from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
