@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.18.1",
+        "changes": [
+            {
+                "note": "Swallow reverts in `batchGetLimitOrderRelevantStates()` and `batchGetRfqOrderRelevantStates()`",
+                "pr": 117
+            }
+        ]
+    },
+    {
         "version": "0.18.0",
         "changes": [
             {

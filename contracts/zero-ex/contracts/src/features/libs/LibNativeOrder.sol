@@ -103,8 +103,8 @@ library LibNativeOrder {
     //       "uint128 makerAmount,",
     //       "uint128 takerAmount,",
     //       "address maker,",
-    //       "address txOrigin,",
     //       "address taker,",
+    //       "address txOrigin,",
     //       "bytes32 pool,",
     //       "uint64 expiry,",
     //       "uint256 salt"
