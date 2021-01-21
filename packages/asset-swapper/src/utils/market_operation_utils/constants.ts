@@ -1,4 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { BridgeContractAddresses } from '../../types';
@@ -17,6 +18,9 @@ import {
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MultiHopFillData,
+    NativeFillData,
+    NativeLimitOrderFillData,
+    NativeRfqOrderFillData,
     SnowSwapFillData,
     SushiSwapFillData,
     UniswapV2FillData,
@@ -502,7 +506,10 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
  */
 // tslint:disable:custom-no-magic-numbers
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
-    [ERC20BridgeSource.Native]: () => 150e3,
+    [ERC20BridgeSource.Native]: _fillData => {
+        // const nativeFillData = (_fillData as NativeRfqOrderFillData|NativeLimitOrderFillData)
+        return 150e3;
+    },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
         return (fillData as LiquidityProviderFillData).gasCost;

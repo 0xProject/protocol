@@ -266,8 +266,9 @@ export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData>
     fillData: TFillData;
     makerToken: string;
     takerToken: string;
-    makerTokenAmount: BigNumber;
-    takerTokenAmount: BigNumber;
+    makerTokenAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
+    takerTokenAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
+    fills: CollapsedFill[];
 }
 
 export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
@@ -294,13 +295,6 @@ export type OptimizedMarketOrder =
     | OptimizedMarketBridgeOrder<FillData>
     | OptimizedMarketOrderBase<NativeLimitOrderFillData>
     | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
-
-// export interface OptimizedMarketOrder extends OrderWithFillableAmounts {
-//    /**
-//     * The optimized fills that generated this order.
-//     */
-//    fills: CollapsedFill[];
-// }
 
 export interface GetMarketOrdersRfqtOpts extends RfqtRequestOpts {
     quoteRequestor?: QuoteRequestor;
@@ -439,11 +433,7 @@ export interface MarketSideLiquidity {
 }
 
 export interface RawQuotes {
-    nativeOrders: Array<{
-        order: LimitOrder | RfqOrder;
-        orderFillableAmount: BigNumber;
-        orderType: FillQuoteTransformerOrderType;
-    }>;
+    nativeOrders: NativeOrderWithFillableAmounts[];
     rfqtIndicativeQuotes: V4RFQIndicativeQuote[];
     twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     dexQuotes: Array<Array<DexSample<FillData>>>;

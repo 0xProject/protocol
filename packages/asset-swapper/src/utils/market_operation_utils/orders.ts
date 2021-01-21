@@ -57,6 +57,8 @@ export function convertNativeOrderToFullyFillableOptimizedOrders(
             fillableTakerAmount: order.takerAmount,
             fillableTakerFeeAmount: order.takerTokenFeeAmount,
         },
+        // TODO jacob
+        fills: [],
         source: ERC20BridgeSource.Native,
         takerTokenAmount: order.takerAmount,
         makerTokenAmount: order.makerAmount,
@@ -79,6 +81,8 @@ export function convertNativeRFQOrderToFullyFillableOptimizedOrders(
         source: ERC20BridgeSource.Native,
         takerTokenAmount: order.takerAmount,
         makerTokenAmount: order.makerAmount,
+        // TODO jacob
+        fills: [],
     };
 }
 
@@ -237,6 +241,8 @@ export function createBridgeOrder(
         source: fill.source,
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
+        // TODO jacob
+        fills: [],
         // fillableMakerAssetAmount: slippedMakerAssetAmount,
         // fillableTakerAssetAmount: slippedTakerAssetAmount,
     };

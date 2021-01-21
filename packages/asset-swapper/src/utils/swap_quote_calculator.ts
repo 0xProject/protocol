@@ -14,6 +14,7 @@ import {
     GetMarketOrdersOpts,
     OptimizedMarketOrder,
     OptimizerResultWithReport,
+    SignedNativeOrder,
 } from './market_operation_utils/types';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './quote_simulation';
 
@@ -26,7 +27,7 @@ export class SwapQuoteCalculator {
     }
 
     public async calculateBatchBuySwapQuoteAsync(
-        batchPrunedOrders: Array<Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>>,
+        batchPrunedOrders: SignedNativeOrder[][],
         assetFillAmounts: BigNumber[],
         gasPrice: BigNumber,
         operation: MarketOperation,
@@ -59,7 +60,7 @@ export class SwapQuoteCalculator {
         return batchSwapQuotes;
     }
     public async calculateSwapQuoteAsync(
-        orders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
+        orders: SignedNativeOrder[],
         assetFillAmount: BigNumber,
         gasPrice: BigNumber,
         operation: MarketOperation,
@@ -206,9 +207,9 @@ function calculateTwoHopQuoteInfo(
             gas,
         },
         worstCaseQuoteInfo: {
-            makerAmount: secondHopOrder.makerAmount,
-            takerAmount: firstHopOrder.takerAmount,
-            totalTakerAmount: firstHopOrder.takerAmount,
+            makerAmount: secondHopOrder.makerTokenAmount,
+            takerAmount: firstHopOrder.takerTokenAmount,
+            totalTakerAmount: firstHopOrder.takerTokenAmount,
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,

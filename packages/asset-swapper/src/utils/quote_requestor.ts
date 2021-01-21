@@ -1,5 +1,5 @@
 import { schemas, SchemaValidator } from '@0x/json-schemas';
-import { RfqOrder } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, RfqOrder, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
@@ -10,6 +10,7 @@ import { constants } from '../constants';
 import { LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts } from '../types';
 
 import { ONE_SECOND_MS } from './market_operation_utils/constants';
+import { SignedNativeOrder } from './market_operation_utils/types';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
 
 // tslint:disable-next-line: custom-no-magic-numbers
@@ -133,7 +134,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
-    ): Promise<RfqOrder[]> {
+    ): Promise<SignedNativeOrder[]> {
         const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         if (
             _opts.takerAddress === undefined ||
@@ -184,8 +185,12 @@ export class QuoteRequestor {
 
         // Save the maker URI for later and return just the order
         const rfqQuotes = validQuotes.map(result => {
-            const order = new RfqOrder(result.response);
-            this._orderHashToMakerUri[order.getHash()] = result.makerUri;
+            const order: SignedNativeOrder = {
+                order: result.response,
+                type: FillQuoteTransformerOrderType.Rfq,
+                signature: result.response.signature,
+            };
+            this._orderHashToMakerUri[new RfqOrder(result.response).getHash()] = result.makerUri;
             return order;
         });
         return rfqQuotes;

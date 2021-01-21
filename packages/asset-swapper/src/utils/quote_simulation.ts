@@ -1,9 +1,16 @@
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { constants } from '../constants';
 import { MarketOperation } from '../types';
 
-import { CollapsedFill, ERC20BridgeSource, FeeSchedule, OptimizedMarketOrder } from './market_operation_utils/types';
+import {
+    CollapsedFill,
+    ERC20BridgeSource,
+    FeeSchedule,
+    NativeLimitOrderFillData,
+    OptimizedMarketOrder,
+} from './market_operation_utils/types';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;
@@ -124,7 +131,7 @@ export function simulateWorstCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult
             opts.gasSchedule,
         ),
         // Worst case gas and protocol fee is hitting all orders.
-        gas: getTotalGasUsedByFills(getFlattenedFillsFromOrders(quoteInfo.orders), opts.gasSchedule),
+        gas: getTotalGasUsedByFills(quoteInfo.orders, opts.gasSchedule),
         protocolFee: protocolFeePerFillOrder.times(quoteInfo.orders.length),
     };
     return fromIntermediateQuoteFillResult(result, quoteInfo);
@@ -220,17 +227,23 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
         order: o,
         ...(side === MarketOperation.Sell
             ? {
-                  totalOrderInput: o.takerAmount,
-                  totalOrderOutput: o.makerAmount,
-                  totalOrderInputFee: o.fillableTakerFeeAmount,
+                  totalOrderInput: o.takerTokenAmount,
+                  totalOrderOutput: o.makerTokenAmount,
+                  totalOrderInputFee:
+                      o.type === FillQuoteTransformerOrderType.Limit
+                          ? (o.fillData as NativeLimitOrderFillData).fillableTakerFeeAmount
+                          : ZERO_AMOUNT,
                   totalOrderOutputFee: ZERO_AMOUNT,
               }
             : // Buy
               {
-                  totalOrderInput: o.makerAmount,
-                  totalOrderOutput: o.takerAmount,
+                  totalOrderInput: o.makerTokenAmount,
+                  totalOrderOutput: o.takerTokenAmount,
                   totalOrderInputFee: ZERO_AMOUNT,
-                  totalOrderOutputFee: o.fillableTakerFeeAmount,
+                  totalOrderOutputFee:
+                      o.type === FillQuoteTransformerOrderType.Limit
+                          ? (o.fillData as NativeLimitOrderFillData).fillableTakerFeeAmount
+                          : ZERO_AMOUNT,
               }),
     }));
 }
@@ -251,7 +264,9 @@ function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrder
             }))
             // Sort by ascending price.
             .sort((a, b) =>
-                a.order.makerAmount.div(a.order.takerAmount).comparedTo(b.order.makerAmount.div(b.order.takerAmount)),
+                a.order.makerTokenAmount
+                    .div(a.order.takerTokenAmount)
+                    .comparedTo(b.order.makerTokenAmount.div(b.order.takerTokenAmount)),
             )
     );
 }
@@ -270,13 +285,13 @@ function getSlippedOrderFills(order: OptimizedMarketOrder, side: MarketOperation
         if (side === MarketOperation.Sell) {
             const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
             const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-            inputScaling = order.fillableTakerAmount.div(totalFillableTakerAssetAmount);
-            outputScaling = order.fillableMakerAmount.div(totalFillableMakerAssetAmount);
+            inputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
+            outputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
         } else {
             const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
             const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-            inputScaling = order.fillableMakerAmount.div(totalFillableMakerAssetAmount);
-            outputScaling = order.fillableTakerAmount.div(totalFillableTakerAssetAmount);
+            inputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
+            outputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
         }
     }
     return order.fills.map(f => ({
@@ -346,15 +361,7 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getFlattenedFillsFromOrders(orders: OptimizedMarketOrder[]): CollapsedFill[] {
-    const fills: CollapsedFill[] = [];
-    for (const o of orders) {
-        fills.push(...o.fills);
-    }
-    return fills;
-}
-
-function getTotalGasUsedByFills(fills: CollapsedFill[], gasSchedule: FeeSchedule): number {
+function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: FeeSchedule): number {
     let gasUsed = 0;
     for (const f of fills) {
         const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);
