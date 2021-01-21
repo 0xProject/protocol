@@ -116,7 +116,8 @@ export interface SwapQuoteConsumerOpts {
 export interface SwapQuoteGetOutputOpts {
     useExtensionContract: ExtensionContractType;
     extensionContractOpts?: ForwarderExtensionContractOpts | ExchangeProxyContractOpts | any;
-    slippagePercentage: BigNumber;
+    // TODO jacob
+    // slippagePercentage: BigNumber;
 }
 
 /**

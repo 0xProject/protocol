@@ -87,58 +87,59 @@ export function generateQuoteReport(
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
-    const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
-    const nativeOrderSourcesConsidered = nativeOrders.map(order =>
-        _nativeOrderToReportSource(
-            { ...order.order, signature: order.signature },
-            order.fillableTakerAmount,
-            comparisonPrice,
-            quoteRequestor,
-        ),
-    );
-    const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
-        _multiHopSampleToReportSource(quote, marketOperation),
-    );
-    const sourcesConsidered = [
-        ...dexReportSourcesConsidered,
-        ...nativeOrderSourcesConsidered,
-        ...multiHopSourcesConsidered,
-    ];
+    throw new Error('Bleh');
+    // const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
+    // const nativeOrderSourcesConsidered = nativeOrders.map(order =>
+    //    _nativeOrderToReportSource(
+    //        { ...order.order, signature: order.signature },
+    //        order.fillableTakerAmount,
+    //        comparisonPrice,
+    //        quoteRequestor,
+    //    ),
+    // );
+    // const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
+    //    _multiHopSampleToReportSource(quote, marketOperation),
+    // );
+    // const sourcesConsidered = [
+    //    ...dexReportSourcesConsidered,
+    //    ...nativeOrderSourcesConsidered,
+    //    ...multiHopSourcesConsidered,
+    // ];
 
-    let sourcesDelivered;
-    if (Array.isArray(liquidityDelivered)) {
-        // create easy way to look up fillable amounts
-        const nativeOrderSignaturesToFillableAmounts = Object.fromEntries(
-            nativeOrders.map(o => {
-                return [
-                    o.type === FillQuoteTransformerOrderType.Rfq
-                        ? new RfqOrder(o.order).getHash()
-                        : new LimitOrder(o.order).getHash(),
-                    o.fillableTakerAmount,
-                ];
-            }),
-        );
-        // map sources delivered
-        sourcesDelivered = liquidityDelivered.map(collapsedFill => {
-            const foundNativeOrder = _nativeOrderFromCollapsedFill(collapsedFill);
-            if (foundNativeOrder) {
-                return _nativeOrderToReportSource(
-                    foundNativeOrder,
-                    nativeOrderSignaturesToFillableAmounts[getOrder(foundNativeOrder).getHash()],
-                    comparisonPrice,
-                    quoteRequestor,
-                );
-            } else {
-                return _dexSampleToReportSource(collapsedFill, marketOperation);
-            }
-        });
-    } else {
-        sourcesDelivered = [_multiHopSampleToReportSource(liquidityDelivered, marketOperation)];
-    }
-    return {
-        sourcesConsidered,
-        sourcesDelivered,
-    };
+    // let sourcesDelivered;
+    // if (Array.isArray(liquidityDelivered)) {
+    //    // create easy way to look up fillable amounts
+    //    const nativeOrderSignaturesToFillableAmounts = Object.fromEntries(
+    //        nativeOrders.map(o => {
+    //            return [
+    //                o.type === FillQuoteTransformerOrderType.Rfq
+    //                    ? new RfqOrder(o.order).getHash()
+    //                    : new LimitOrder(o.order).getHash(),
+    //                o.fillableTakerAmount,
+    //            ];
+    //        }),
+    //    );
+    //    // map sources delivered
+    //    sourcesDelivered = liquidityDelivered.map(collapsedFill => {
+    //        const foundNativeOrder = _nativeOrderFromCollapsedFill(collapsedFill);
+    //        if (foundNativeOrder) {
+    //            return _nativeOrderToReportSource(
+    //                foundNativeOrder,
+    //                nativeOrderSignaturesToFillableAmounts[getOrder(foundNativeOrder).getHash()],
+    //                comparisonPrice,
+    //                quoteRequestor,
+    //            );
+    //        } else {
+    //            return _dexSampleToReportSource(collapsedFill, marketOperation);
+    //        }
+    //    });
+    // } else {
+    //    sourcesDelivered = [_multiHopSampleToReportSource(liquidityDelivered, marketOperation)];
+    // }
+    // return {
+    //    sourcesConsidered,
+    //    sourcesDelivered,
+    // };
 }
 
 function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeReportSource {

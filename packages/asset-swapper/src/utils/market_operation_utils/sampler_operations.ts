@@ -13,6 +13,7 @@ import {
     MAINNET_MOONISWAP_V2_1_REGISTRY,
     MAINNET_MOONISWAP_V2_REGISTRY,
     MAINNET_SUSHI_SWAP_ROUTER,
+    MAINNET_UNISWAP_V2_ROUTER,
     MAX_UINT256,
     ZERO_AMOUNT,
 } from './constants';
@@ -202,10 +203,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<UniswapV2FillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.UniswapV2,
-            fillData: { tokenAddressPath },
+            fillData: { tokenAddressPath, router: MAINNET_UNISWAP_V2_ROUTER },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromUniswapV2,
-            params: [tokenAddressPath, takerFillAmounts],
+            params: [MAINNET_UNISWAP_V2_ROUTER, tokenAddressPath, takerFillAmounts],
         });
     }
 
@@ -215,10 +216,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<UniswapV2FillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.UniswapV2,
-            fillData: { tokenAddressPath },
+            fillData: { tokenAddressPath, router: MAINNET_UNISWAP_V2_ROUTER },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromUniswapV2,
-            params: [tokenAddressPath, makerFillAmounts],
+            params: [MAINNET_UNISWAP_V2_ROUTER, tokenAddressPath, makerFillAmounts],
         });
     }
 

@@ -227,8 +227,13 @@ function calculateTwoHopQuoteInfo(
 function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: BigNumber }): SwapQuoteOrdersBreakdown {
     const totalFillAmount = BigNumber.sum(...Object.values(fillAmountBySource));
     const breakdown: SwapQuoteOrdersBreakdown = {};
-    Object.entries(fillAmountBySource).forEach(([source, fillAmount]) => {
-        breakdown[source as keyof SwapQuoteOrdersBreakdown] = fillAmount.div(totalFillAmount);
+    Object.entries(fillAmountBySource).forEach(([s, fillAmount]) => {
+        const source = s as keyof SwapQuoteOrdersBreakdown;
+        if (source === ERC20BridgeSource.MultiHop) {
+            // TODO jacob has a different breakdown
+        } else {
+            breakdown[source] = fillAmount.div(totalFillAmount);
+        }
     });
     return breakdown;
 }

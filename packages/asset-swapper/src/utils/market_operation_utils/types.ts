@@ -141,11 +141,10 @@ export interface BalancerFillData extends FillData {
 
 export interface UniswapV2FillData extends FillData {
     tokenAddressPath: string[];
-}
-
-export interface SushiSwapFillData extends UniswapV2FillData {
     router: string;
 }
+
+export interface SushiSwapFillData extends UniswapV2FillData {}
 
 export interface ShellFillData extends FillData {
     poolAddress: string;

@@ -6,6 +6,7 @@ import {
     encodePayTakerTransformerData,
     encodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
+    FillQuoteTransformerBridgeOrder,
     FillQuoteTransformerData,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
@@ -97,7 +98,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: MarketBuySwapQuote | MarketSellSwapQuote,
         opts: Partial<SwapQuoteGetOutputOpts> = {},
     ): Promise<CalldataInfo> {
-        assert.isValidSwapQuote('quote', quote);
+        // assert.isValidSwapQuote('quote', quote);
         const optsWithDefaults: ExchangeProxyContractOpts = {
             ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
             ...opts.extensionContractOpts,
@@ -107,8 +108,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         const sellToken = quote.takerToken;
         const buyToken = quote.makerToken;
-        const sellAmount = quote.worstCaseQuoteInfo.totalTakerAmount;
-        let minBuyAmount = getSwapMinBuyAmount(quote);
+        // const sellAmount = quote.worstCaseQuoteInfo.totalTakerAmount;
+        const sellAmount = quote.bestCaseQuoteInfo.totalTakerAmount;
+        // let minBuyAmount = getSwapMinBuyAmount(quote);
+        let minBuyAmount = new BigNumber(1);
         let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
         if (isFromETH) {
             ethAmount = ethAmount.plus(sellAmount);
@@ -334,10 +337,12 @@ function getFQTTransformerDataFromOptimizedOrders(
         switch (order.type) {
             case FillQuoteTransformerOrderType.Bridge:
                 // remap human readable sources into the ints required in FQT
+                // tslint:disable-next-line: no-object-literal-type-assertion
                 fqtData.bridgeOrders.push({
-                    ...(order as OptimizedMarketBridgeOrder),
-                    source: getERC20BridgeSourceToBridgeSource(order.source),
                     bridgeData: createBridgeDataForBridgeOrder(order as OptimizedMarketBridgeOrder),
+                    makerTokenAmount: order.makerTokenAmount,
+                    takerTokenAmount: order.takerTokenAmount,
+                    source: getERC20BridgeSourceToBridgeSource(order.source),
                 });
                 break;
             case FillQuoteTransformerOrderType.Rfq:

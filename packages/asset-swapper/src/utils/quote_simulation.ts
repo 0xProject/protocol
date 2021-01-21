@@ -256,10 +256,11 @@ function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrder
                 ...fo,
                 order: {
                     ...fo.order,
-                    // Apply slippage to order fills and reverse them.
-                    fills: getSlippedOrderFills(fo.order, quoteInfo.side)
-                        .map(f => ({ ...f, subFills: f.subFills.slice().reverse() }))
-                        .reverse(),
+                    fills: [],
+                    //// Apply slippage to order fills and reverse them.
+                    // fills: getSlippedOrderFills(fo.order, quoteInfo.side)
+                    //    .map(f => ({ ...f, subFills: f.subFills.slice().reverse() }))
+                    //    .reverse(),
                 },
             }))
             // Sort by ascending price.
@@ -271,40 +272,41 @@ function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrder
     );
 }
 
-// Apply order slippage to its fill paths.
-function getSlippedOrderFills(order: OptimizedMarketOrder, side: MarketOperation): CollapsedFill[] {
-    // Infer the slippage from the order amounts vs fill amounts.
-    let inputScaling: BigNumber;
-    let outputScaling: BigNumber;
-    const source = order.fills[0].source;
-    if (source === ERC20BridgeSource.Native) {
-        // Native orders do not have slippage applied to them.
-        inputScaling = new BigNumber(1);
-        outputScaling = new BigNumber(1);
-    } else {
-        if (side === MarketOperation.Sell) {
-            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-            inputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
-            outputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
-        } else {
-            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-            inputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
-            outputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
-        }
-    }
-    return order.fills.map(f => ({
-        ...f,
-        input: f.input.times(inputScaling),
-        output: f.output.times(outputScaling),
-        subFills: f.subFills.map(sf => ({
-            ...sf,
-            input: sf.input.times(inputScaling),
-            output: sf.output.times(outputScaling),
-        })),
-    }));
-}
+//// Apply order slippage to its fill paths.
+// function getSlippedOrderFills(order: OptimizedMarketOrder, side: MarketOperation): CollapsedFill[] {
+//    // Infer the slippage from the order amounts vs fill amounts.
+//    let inputScaling: BigNumber;
+//    let outputScaling: BigNumber;
+//    console.log(order);
+//    const source = order.source;
+//    if (source === ERC20BridgeSource.Native) {
+//        // Native orders do not have slippage applied to them.
+//        inputScaling = new BigNumber(1);
+//        outputScaling = new BigNumber(1);
+//    } else {
+//        if (side === MarketOperation.Sell) {
+//            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
+//            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
+//            inputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
+//            outputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
+//        } else {
+//            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
+//            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
+//            inputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
+//            outputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
+//        }
+//    }
+//    return order.fills.map(f => ({
+//        ...f,
+//        input: f.input.times(inputScaling),
+//        output: f.output.times(outputScaling),
+//        subFills: f.subFills.map(sf => ({
+//            ...sf,
+//            input: sf.input.times(inputScaling),
+//            output: sf.output.times(outputScaling),
+//        })),
+//    }));
+// }
 
 function roundInputAmount(amount: BigNumber, side: MarketOperation): BigNumber {
     return amount.integerValue(side === MarketOperation.Sell ? ROUND_UP : ROUND_DOWN);
