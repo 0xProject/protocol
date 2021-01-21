@@ -185,7 +185,11 @@ export function fillQuoteOrders(
                 remainingInput = remainingInput.minus(filledInput.plus(filledInputFee));
             }
         }
-        result.protocolFee = result.protocolFee.plus(protocolFeePerFillOrder);
+        // NOTE: V4 RFQ orders has no protocol fee
+        result.protocolFee =
+            fo.order.type === FillQuoteTransformerOrderType.Rfq
+                ? ZERO_AMOUNT
+                : result.protocolFee.plus(protocolFeePerFillOrder);
     }
     return result;
 }
