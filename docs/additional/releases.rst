@@ -5,9 +5,9 @@ Releases
 .. role:: strike
     :class: strike
 
-.. note:: 
+.. note::
 
-    Come out and vote! The community vote for Protocol V4 goes live on Saturday, January 16 2021. Cast your vote `HERE <https://0x.org/zrx/vote/zeip-82>`_! 
+    Come out and vote! The community vote for Protocol V4 goes live on Saturday, January 16 2021. Cast your vote `HERE <https://0x.org/zrx/vote/zeip-82>`_!
 
 This page outlines upcoming releases and expected changes.
 
@@ -17,9 +17,11 @@ This page outlines upcoming releases and expected changes.
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | **Name**                                    | **Overview**                                                  | **Est Release Date** | **Status**  | **Additional**                                                                                                              |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
+    | `big-pantsuit-energy`_                      | Patch batch ```getOrderRelevantState()``` functions           | 01/25/21             | Timelock    |                                                                                                                             |
+    +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | `Squire`_                                   | Aggregation for `V4 Orders <../basics/orders.html>`_          | TBA                  | Development | Depends on AssetSwapper / 0x API Upgrade                                                                                    |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
-    | `Babooshka`_                                | Connect Exchange Proxy to Staking                             | 01/24/21             | Vote        | Requires community vote                                                                                                     |
+    | `Babooshka`_                                | Connect Exchange Proxy to Staking                             | 02/08/21             | Vote        | Requires community vote                                                                                                     |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
     | *The following releases have been deployed* |                                                               |                      |             |                                                                                                                             |
     +---------------------------------------------+---------------------------------------------------------------+----------------------+-------------+-----------------------------------------------------------------------------------------------------------------------------+
@@ -37,6 +39,12 @@ This page outlines upcoming releases and expected changes.
 
 Upcoming
 ========
+
+big-pantsuit-energy
+-------------------
+
+- Swallow reverts in `batchGetRfqOrderRelevantStates()` and `batchGetLimitOrderRelevantStates()` functions.
+
 
 Squire
 -------
