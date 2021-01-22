@@ -1,4 +1,5 @@
 import { constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -40,9 +41,10 @@ describe('quote_simulation tests', async () => {
             count: number;
             fillsCount: number;
             side: MarketOperation;
+            type?: FillQuoteTransformerOrderType;
         }> = {},
     ): QuoteFillOrderCall[] {
-        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, fillsCount, side } = {
+        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, fillsCount, side, type } = {
             fillableInput: getRandomOrderSize(),
             fillableOutput: getRandomOrderSize(),
             inputFeeRate: 0,
@@ -79,6 +81,7 @@ describe('quote_simulation tests', async () => {
                     filledInput: filledInputs[i],
                     takerInputFee: inputFees[i].abs(),
                     takerOutputFee: outputFees[i].abs(),
+                    type,
                 }),
                 totalOrderInput: totalInputs[i],
                 totalOrderOutput: totalOutputs[i],
@@ -97,14 +100,16 @@ describe('quote_simulation tests', async () => {
             side: MarketOperation;
             takerInputFee: BigNumber;
             takerOutputFee: BigNumber;
+            type: FillQuoteTransformerOrderType;
         }> = {},
     ): OptimizedMarketOrder {
-        const { filledInput, fillsCount, side, takerInputFee, takerOutputFee } = {
+        const { filledInput, fillsCount, side, takerInputFee, takerOutputFee, type } = {
             side: MarketOperation.Sell,
             filledInput: ZERO,
             fillsCount: 3,
             takerInputFee: ZERO,
             takerOutputFee: ZERO,
+            type: FillQuoteTransformerOrderType.Limit,
             ...opts,
         };
         const filledOutput = filledInput
@@ -151,6 +156,7 @@ describe('quote_simulation tests', async () => {
             salt: ZERO,
             // makerFee: ZERO,
             // signature: '0x',
+            type,
         };
     }
     const nativeSourcePathId = hexUtils.random();
@@ -471,6 +477,28 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, totalFillableOutput);
                 assertEqualRates(result.outputFee.div(result.output), signedOutputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(1);
+                expect(result.gas).to.eq(fillsCount);
+            });
+
+            it('does not charge a protocol fee for rfq orders', () => {
+                const side = randomSide();
+                const fillsCount = _.random(1, 3);
+                const fillableInput = getRandomOrderSize();
+                const fillableOutput = getRandomOrderSize();
+                const fillOrders = createQuoteFillOrders({
+                    fillableInput,
+                    fillableOutput,
+                    side,
+                    fillsCount,
+                    count: 1,
+                    type: FillQuoteTransformerOrderType.Rfq,
+                });
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const totalFilledInput = result.input.plus(result.inputFee);
+                const totalFilledOutput = result.output.plus(result.outputFee);
+                expect(totalFilledInput).to.bignumber.eq(fillableInput);
+                assertRoughlyEquals(totalFilledOutput, fillableOutput);
+                expect(result.protocolFee).to.bignumber.eq(0);
                 expect(result.gas).to.eq(fillsCount);
             });
         });
