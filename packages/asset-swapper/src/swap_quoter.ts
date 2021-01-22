@@ -49,13 +49,13 @@ export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,
         takerToken: string,
-        pruneFn?: (o: APIOrder) => boolean,
-    ): Promise<APIOrder[]>;
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[]>;
     public abstract getBatchOrdersAsync(
         makerTokens: string[],
         takerTokens: string[],
-        pruneFn?: (o: APIOrder) => boolean,
-    ): Promise<APIOrder[][]>;
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[][]>;
     // tslint:disable-next-line:prefer-function-over-method
     public async destroyAsync(): Promise<void> {
         return;
@@ -276,24 +276,26 @@ export class SwapQuoter {
         if (!sellOrders || sellOrders.length === 0) {
             sellOrders = [
                 {
-                    metaData: {},
+                    type: FillQuoteTransformerOrderType.Limit,
                     order: new LimitOrder({
                         makerToken,
                         takerToken,
                         maker: this._contractAddresses.uniswapBridge,
                     }),
+                    signature: {} as any,
                 },
             ];
         }
         if (!buyOrders || buyOrders.length === 0) {
             buyOrders = [
                 {
-                    metaData: {},
+                    type: FillQuoteTransformerOrderType.Limit,
                     order: new LimitOrder({
                         takerToken,
                         makerToken,
                         maker: this._contractAddresses.uniswapBridge,
                     }),
+                    signature: {} as any,
                 },
             ];
         }
@@ -367,8 +369,11 @@ export class SwapQuoter {
         return this._contractAddresses.etherToken;
     }
 
-    private readonly _limitOrderPruningFn = (apiOrder: APIOrder) => {
-        const order = apiOrder.order;
+    private readonly _limitOrderPruningFn = (signedOrder: SignedNativeOrder) => {
+        if (signedOrder.type !== FillQuoteTransformerOrderType.Limit) {
+            return false;
+        }
+        const order = new LimitOrder(signedOrder.order);
         const isOpenOrder = order.taker === constants.NULL_ADDRESS;
         const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS); // tslint:disable-line:boolean-naming
         const isFeeTypeAllowed =
@@ -380,11 +385,7 @@ export class SwapQuoter {
     private async _getLimitOrdersAsync(makerToken: string, takerToken: string): Promise<SignedNativeOrder[]> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
-        // get orders
-        const _apiOrders = await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn); // todo(xianny)
-        // TODO jacob signatures
-        return [];
-        // return apiOrders.map((o: APIOrder) => ({ order: o.order, type: FillQuoteTransformerOrderType.Limit, signature: o.order.  }));
+        return this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
     }
 
     /**
