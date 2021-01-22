@@ -1,9 +1,26 @@
-import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import {
+    BridgeOrderFields,
+    FillQuoteTransformerBridgeOrder,
+    FillQuoteTransformerLimitOrderInfo,
+    FillQuoteTransformerOrderType,
+    FillQuoteTransformerRfqOrderInfo,
+    LimitOrder,
+    LimitOrderFields,
+    RfqOrder,
+    RfqOrderFields,
+    Signature,
+} from '@0x/protocol-utils';
+import { Signatures } from '@0x/protocol-utils/lib/src/revert-errors';
 import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { OrderWithFillableAmounts, RfqtFirmQuoteValidator, RfqtRequestOpts } from '../../types';
+import {
+    NativeOrderFillableAmountFields,
+    OrderWithFillableAmounts,
+    RfqtFirmQuoteValidator,
+    RfqtRequestOpts,
+} from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
@@ -89,13 +106,16 @@ export interface FillData {}
 export interface SourceInfo<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
     fillData?: TFillData;
-    orderType?: FillQuoteTransformerOrderType;
 }
 
-// `FillData` for native fills.
-export interface NativeFillData extends FillData {
-    order: OrderWithFillableAmounts;
+interface OrderSignature {
+    signature: Signature;
 }
+// `FillData` for native fills.
+export type NativeRfqOrderFillData = RfqOrderFields & OrderSignature & OrderWithFillableAmounts & FillData;
+export type NativeLimitOrderFillData = NativeFillData;
+// TODO rename to NativeLimitOrderFillData
+export type NativeFillData = LimitOrderFields & OrderSignature & OrderWithFillableAmounts & FillData;
 
 export interface CurveFillData extends FillData {
     fromTokenIdx: number;
@@ -121,11 +141,10 @@ export interface BalancerFillData extends FillData {
 
 export interface UniswapV2FillData extends FillData {
     tokenAddressPath: string[];
-}
-
-export interface SushiSwapFillData extends UniswapV2FillData {
     router: string;
 }
+
+export interface SushiSwapFillData extends UniswapV2FillData {}
 
 export interface ShellFillData extends FillData {
     poolAddress: string;
@@ -231,15 +250,50 @@ export interface CollapsedFill<TFillData extends FillData = FillData> extends So
  */
 export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 
+export interface NativeOrderWithType {
+    order: RfqOrderFields | LimitOrderFields;
+    type: FillQuoteTransformerOrderType;
+}
+
+export type SignedNativeOrder = NativeOrderWithType & { signature: Signature };
+
+export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
+
+export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
+    source: ERC20BridgeSource;
+    type: FillQuoteTransformerOrderType;
+    fillData: TFillData;
+    makerToken: string;
+    takerToken: string;
+    makerTokenAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
+    takerTokenAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
+    fills: CollapsedFill[];
+}
+
+export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
+    extends OptimizedMarketOrderBase<TFillData> {
+    type: FillQuoteTransformerOrderType.Bridge;
+    fillData: TFillData;
+    sourcePathId: string;
+}
+
+export interface OptimizedLimitOrder extends OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+    type: FillQuoteTransformerOrderType.Limit;
+    fillData: NativeLimitOrderFillData;
+}
+
+export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+    type: FillQuoteTransformerOrderType.Rfq;
+    fillData: NativeRfqOrderFillData;
+}
+
 /**
  * Optimized orders to fill.
  */
-export interface OptimizedMarketOrder extends OrderWithFillableAmounts {
-    /**
-     * The optimized fills that generated this order.
-     */
-    fills: CollapsedFill[];
-}
+export type OptimizedMarketOrder =
+    | OptimizedMarketBridgeOrder<FillData>
+    | OptimizedMarketOrderBase<NativeLimitOrderFillData>
+    | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
 
 export interface GetMarketOrdersRfqtOpts extends RfqtRequestOpts {
     quoteRequestor?: QuoteRequestor;
@@ -378,11 +432,7 @@ export interface MarketSideLiquidity {
 }
 
 export interface RawQuotes {
-    nativeOrders: Array<{
-        order: LimitOrder | RfqOrder;
-        orderFillableAmount: BigNumber;
-        orderType: FillQuoteTransformerOrderType;
-    }>;
+    nativeOrders: NativeOrderWithFillableAmounts[];
     rfqtIndicativeQuotes: V4RFQIndicativeQuote[];
     twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     dexQuotes: Array<Array<DexSample<FillData>>>;

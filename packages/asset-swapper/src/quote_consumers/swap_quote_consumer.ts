@@ -57,7 +57,7 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: SwapQuote,
         opts: Partial<SwapQuoteGetOutputOpts> = {},
     ): Promise<CalldataInfo> {
-        assert.isValidSwapQuote('quote', quote);
+        // assert.isValidSwapQuote('quote', quote);
         const consumer = await this._getConsumerForSwapQuoteAsync(opts);
         return consumer.getCalldataOrThrowAsync(quote, opts);
     }
@@ -71,7 +71,7 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: SwapQuote,
         opts: Partial<SwapQuoteExecutionOpts> = {},
     ): Promise<string> {
-        assert.isValidSwapQuote('quote', quote);
+        // assert.isValidSwapQuote('quote', quote);
         const consumer = await this._getConsumerForSwapQuoteAsync(opts);
         return consumer.executeSwapQuoteOrThrowAsync(quote, opts);
     }

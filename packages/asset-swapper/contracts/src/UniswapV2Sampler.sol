@@ -31,11 +31,13 @@ contract UniswapV2Sampler is
     uint256 constant private UNISWAPV2_CALL_GAS = 150e3; // 150k
 
     /// @dev Sample sell quotes from UniswapV2.
+    /// @param router Router to look up tokens and amounts
     /// @param path Token route. Should be takerToken -> makerToken
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromUniswapV2(
+        address router,
         address[] memory path,
         uint256[] memory takerTokenAmounts
     )
@@ -47,7 +49,7 @@ contract UniswapV2Sampler is
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IUniswapV2Router01(_getUniswapV2Router01Address()).getAmountsOut
+                IUniswapV2Router01(router).getAmountsOut
                     {gas: UNISWAPV2_CALL_GAS}
                     (takerTokenAmounts[i], path)
                 returns (uint256[] memory amounts)
@@ -61,11 +63,13 @@ contract UniswapV2Sampler is
     }
 
     /// @dev Sample buy quotes from UniswapV2.
+    /// @param router Router to look up tokens and amounts
     /// @param path Token route. Should be takerToken -> makerToken.
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromUniswapV2(
+        address router,
         address[] memory path,
         uint256[] memory makerTokenAmounts
     )
@@ -77,7 +81,7 @@ contract UniswapV2Sampler is
         takerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IUniswapV2Router01(_getUniswapV2Router01Address()).getAmountsIn
+                IUniswapV2Router01(router).getAmountsIn
                     {gas: UNISWAPV2_CALL_GAS}
                     (makerTokenAmounts[i], path)
                 returns (uint256[] memory amounts)

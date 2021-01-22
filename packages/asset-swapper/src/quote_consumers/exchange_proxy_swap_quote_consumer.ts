@@ -6,6 +6,7 @@ import {
     encodePayTakerTransformerData,
     encodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
+    FillQuoteTransformerBridgeOrder,
     FillQuoteTransformerData,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
@@ -29,7 +30,19 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
-import { ERC20BridgeSource, UniswapV2FillData } from '../utils/market_operation_utils/types';
+import {
+    createBridgeDataForBridgeOrder,
+    getERC20BridgeSourceToBridgeSource,
+} from '../utils/market_operation_utils/orders';
+import {
+    ERC20BridgeSource,
+    LiquidityProviderFillData,
+    NativeLimitOrderFillData,
+    NativeRfqOrderFillData,
+    OptimizedMarketBridgeOrder,
+    OptimizedMarketOrder,
+    UniswapV2FillData,
+} from '../utils/market_operation_utils/types';
 
 import { getSwapMinBuyAmount } from './utils';
 
@@ -85,7 +98,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: MarketBuySwapQuote | MarketSellSwapQuote,
         opts: Partial<SwapQuoteGetOutputOpts> = {},
     ): Promise<CalldataInfo> {
-        assert.isValidSwapQuote('quote', quote);
+        // assert.isValidSwapQuote('quote', quote);
         const optsWithDefaults: ExchangeProxyContractOpts = {
             ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
             ...opts.extensionContractOpts,
@@ -95,8 +108,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         const sellToken = quote.takerToken;
         const buyToken = quote.makerToken;
-        const sellAmount = quote.worstCaseQuoteInfo.totalTakerAssetAmount;
-        let minBuyAmount = getSwapMinBuyAmount(quote);
+        // const sellAmount = quote.worstCaseQuoteInfo.totalTakerAmount;
+        const sellAmount = quote.bestCaseQuoteInfo.totalTakerAmount;
+        // let minBuyAmount = getSwapMinBuyAmount(quote);
+        let minBuyAmount = new BigNumber(1);
         let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
         if (isFromETH) {
             ethAmount = ethAmount.plus(sellAmount);
@@ -107,8 +122,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         if (
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
         ) {
-            const source = quote.orders[0].fills[0].source;
-            const fillData = quote.orders[0].fills[0].fillData as UniswapV2FillData;
+            const source = quote.orders[0].source;
+            const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToUniswap(
@@ -133,7 +148,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
 
         if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
-            const target = quote.orders[0].order.makerAddress; // TODO (xianny)
+            const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
+            const target = fillData.poolAddress;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(
@@ -165,7 +181,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
-        const intermediateToken = quote.isTwoHop ? quote.orders[0].order.makerToken : NULL_ADDRESS;
+        const intermediateToken = quote.isTwoHop ? quote.orders[0].makerToken : NULL_ADDRESS;
         // This transformer will fill the quote.
         if (quote.isTwoHop) {
             const [firstHopOrder, secondHopOrder] = quote.orders;
@@ -175,10 +191,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     side: FillQuoteTransformerSide.Sell,
                     sellToken,
                     buyToken: intermediateToken,
-                    bridgeOrders: [firstHopOrder],
-                    limitOrders: [],
-                    rfqOrders: [],
-                    fillSequence: [FillQuoteTransformerOrderType.Bridge],
+                    ...getFQTTransformerDataFromOptimizedOrders([firstHopOrder]),
                     refundReceiver: refundReceiver || NULL_ADDRESS,
                     fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerTokenAmount,
                 }),
@@ -189,10 +202,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     side: FillQuoteTransformerSide.Sell,
                     buyToken,
                     sellToken: intermediateToken,
-                    bridgeOrders: [secondHopOrder],
-                    limitOrders: [],
-                    rfqOrders: [],
-                    fillSequence: [FillQuoteTransformerOrderType.Bridge],
+                    ...getFQTTransformerDataFromOptimizedOrders([secondHopOrder]),
                     refundReceiver: refundReceiver || NULL_ADDRESS,
                     fillAmount: MAX_UINT256,
                 }),
@@ -200,17 +210,13 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         } else {
             const fillAmount = isBuyQuote(quote) ? quote.makerAssetFillAmount : quote.takerAssetFillAmount;
 
-            const { bridgeOrders, limitOrders, rfqOrders, fillSequence } = getFQTTransformerDataForOrders(quote.orders);
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
                     side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
                     sellToken,
                     buyToken,
-                    bridgeOrders,
-                    limitOrders,
-                    rfqOrders,
-                    fillSequence,
+                    ...getFQTTransformerDataFromOptimizedOrders(quote.orders),
                     refundReceiver: refundReceiver || NULL_ADDRESS,
                     fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
                 }),
@@ -307,12 +313,7 @@ function isDirectSwapCompatible(
         return false;
     }
     const order = quote.orders[0];
-    // With a single underlying fill/source.
-    if (order.fills.length !== 1) {
-        return false;
-    }
-    const fill = order.fills[0];
-    if (!directSources.includes(fill.source)) {
+    if (!directSources.includes(order.source)) {
         return false;
     }
     // VIP does not support selling the entire balance
@@ -322,25 +323,49 @@ function isDirectSwapCompatible(
     return true;
 }
 
-// TODO (xianny)
-function getFQTTransformerDataForOrders(
-    orders: SwapQuoteOrder[],
+function getFQTTransformerDataFromOptimizedOrders(
+    orders: OptimizedMarketOrder[],
 ): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
-    const fillSequence = [];
-    const typeToArray = {
-        [FillQuoteTransformerOrderType.Bridge]: [],
-        [FillQuoteTransformerOrderType.Limit]: [],
-        [FillQuoteTransformerOrderType.Rfq]: [],
+    const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> = {
+        bridgeOrders: [],
+        limitOrders: [],
+        rfqOrders: [],
+        fillSequence: [],
     };
 
     for (const order of orders) {
-        typeToArray[order.orderType].push(order.order);
-        fillSequence.push(order.orderType);
+        switch (order.type) {
+            case FillQuoteTransformerOrderType.Bridge:
+                // remap human readable sources into the ints required in FQT
+                // tslint:disable-next-line: no-object-literal-type-assertion
+                fqtData.bridgeOrders.push({
+                    bridgeData: createBridgeDataForBridgeOrder(order as OptimizedMarketBridgeOrder),
+                    makerTokenAmount: order.makerTokenAmount,
+                    takerTokenAmount: order.takerTokenAmount,
+                    source: getERC20BridgeSourceToBridgeSource(order.source),
+                });
+                break;
+            case FillQuoteTransformerOrderType.Rfq:
+                const rfqData = order.fillData as NativeRfqOrderFillData;
+                fqtData.rfqOrders.push({
+                    order: rfqData,
+                    signature: rfqData.signature,
+                    maxTakerTokenFillAmount: order.takerTokenAmount,
+                });
+                break;
+            case FillQuoteTransformerOrderType.Limit:
+                const limitData = order.fillData as NativeLimitOrderFillData;
+                fqtData.limitOrders.push({
+                    order: limitData,
+                    signature: limitData.signature,
+                    maxTakerTokenFillAmount: order.takerTokenAmount,
+                });
+                break;
+            default:
+                // Should never happen
+                throw new Error('Unknown Order type');
+        }
+        fqtData.fillSequence.push(order.type);
     }
-    return {
-        bridgeOrders: typeToArray[FillQuoteTransformerOrderType.Bridge],
-        limitOrders: typeToArray[FillQuoteTransformerOrderType.Limit],
-        rfqOrders: typeToArray[FillQuoteTransformerOrderType.Rfq],
-        fillSequence,
-    };
+    return fqtData;
 }

@@ -1,5 +1,12 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import {
+    FillQuoteTransformerOrderType,
+    LimitOrder,
+    LimitOrderFields,
+    RfqOrder,
+    RfqOrderFields,
+    Signature,
+} from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
@@ -29,6 +36,8 @@ import {
     MarketDepth,
     MarketDepthSide,
     MarketSideLiquidity,
+    NativeOrderWithType,
+    SignedNativeOrder,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
@@ -40,13 +49,13 @@ export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,
         takerToken: string,
-        pruneFn?: (o: APIOrder) => boolean,
-    ): Promise<APIOrder[]>;
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[]>;
     public abstract getBatchOrdersAsync(
         makerTokens: string[],
         takerTokens: string[],
-        pruneFn?: (o: APIOrder) => boolean,
-    ): Promise<APIOrder[][]>;
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[][]>;
     // tslint:disable-next-line:prefer-function-over-method
     public async destroyAsync(): Promise<void> {
         return;
@@ -165,7 +174,13 @@ export class SwapQuoter {
             this._limitOrderPruningFn,
         );
         const allOrders = apiOrders.map(orders =>
-            orders.map(o => ({ order: o.order, orderType: FillQuoteTransformerOrderType.Limit })),
+            orders.map(o => ({
+                order: o.order,
+                type: FillQuoteTransformerOrderType.Limit,
+                // TODO jacob
+                // tslint:disable-next-line: no-object-literal-type-assertion
+                signature: {} as Signature,
+            })),
         );
 
         const swapQuotes = await this._swapQuoteCalculator.calculateBatchBuySwapQuoteAsync(
@@ -261,24 +276,26 @@ export class SwapQuoter {
         if (!sellOrders || sellOrders.length === 0) {
             sellOrders = [
                 {
-                    metaData: {},
+                    type: FillQuoteTransformerOrderType.Limit,
                     order: new LimitOrder({
                         makerToken,
                         takerToken,
                         maker: this._contractAddresses.uniswapBridge,
                     }),
+                    signature: {} as any,
                 },
             ];
         }
         if (!buyOrders || buyOrders.length === 0) {
             buyOrders = [
                 {
-                    metaData: {},
+                    type: FillQuoteTransformerOrderType.Limit,
                     order: new LimitOrder({
                         takerToken,
                         makerToken,
                         maker: this._contractAddresses.uniswapBridge,
                     }),
+                    signature: {} as any,
                 },
             ];
         }
@@ -289,18 +306,9 @@ export class SwapQuoter {
             return [
                 ...dexQuotes,
                 nativeOrders.map(o => {
-                    // When sell order fillable amount is taker
-                    // When buy order fillable amount is maker
-                    const scaleFactor = o.orderFillableAmount.div(
-                        side === MarketOperation.Sell ? o.order.takerAmount : o.order.makerAmount,
-                    );
                     return {
-                        input: (side === MarketOperation.Sell ? o.order.takerAmount : o.order.makerAmount)
-                            .times(scaleFactor)
-                            .integerValue(),
-                        output: (side === MarketOperation.Sell ? o.order.makerAmount : o.order.takerAmount)
-                            .times(scaleFactor)
-                            .integerValue(),
+                        input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
+                        output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
                         fillData: o,
                         source: ERC20BridgeSource.Native,
                     };
@@ -309,12 +317,24 @@ export class SwapQuoter {
         };
         const [bids, asks] = await Promise.all([
             this._marketOperationUtils.getMarketBuyLiquidityAsync(
-                (buyOrders || []).map(o => ({ order: o.order, orderType: FillQuoteTransformerOrderType.Limit })),
+                (buyOrders || []).map(o => ({
+                    order: o.order,
+                    type: FillQuoteTransformerOrderType.Limit,
+                    // TODO jacob
+                    // tslint:disable-next-line: no-object-literal-type-assertion
+                    signature: {} as Signature,
+                })),
                 takerAssetAmount,
                 options,
             ),
             this._marketOperationUtils.getMarketSellLiquidityAsync(
-                (sellOrders || []).map(o => ({ order: o.order, orderType: FillQuoteTransformerOrderType.Limit })),
+                (sellOrders || []).map(o => ({
+                    order: o.order,
+                    type: FillQuoteTransformerOrderType.Limit,
+                    // TODO jacob
+                    // tslint:disable-next-line: no-object-literal-type-assertion
+                    signature: {} as Signature,
+                })),
                 takerAssetAmount,
                 options,
             ),
@@ -349,22 +369,23 @@ export class SwapQuoter {
         return this._contractAddresses.etherToken;
     }
 
-    private readonly _limitOrderPruningFn = (apiOrder: APIOrder) => {
-        const order = apiOrder.order;
+    private readonly _limitOrderPruningFn = (signedOrder: SignedNativeOrder) => {
+        if (signedOrder.type !== FillQuoteTransformerOrderType.Limit) {
+            return false;
+        }
+        const order = new LimitOrder(signedOrder.order);
         const isOpenOrder = order.taker === constants.NULL_ADDRESS;
         const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS); // tslint:disable-line:boolean-naming
         const isFeeTypeAllowed =
-            (this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.NoFees) &&
-                order.takerTokenFeeAmount.eq(constants.ZERO_AMOUNT));
+            this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.NoFees) &&
+            order.takerTokenFeeAmount.eq(constants.ZERO_AMOUNT);
         return isOpenOrder && !willOrderExpire && isFeeTypeAllowed;
     }; // tslint:disable-line:semicolon
 
-    private async _getLimitOrdersAsync(makerToken: string, takerToken: string): Promise<LimitOrder[]> {
+    private async _getLimitOrdersAsync(makerToken: string, takerToken: string): Promise<SignedNativeOrder[]> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
-        // get orders
-        const apiOrders = await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn); // todo(xianny)
-        return apiOrders.map(o => o.order);
+        return this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
     }
 
     /**
@@ -455,25 +476,22 @@ export class SwapQuoter {
             : this._getLimitOrdersAsync(makerToken, takerToken);
 
         // Join the results together
-        const nativeOrders: Array<{
-            order: LimitOrder | RfqOrder;
-            orderType: FillQuoteTransformerOrderType;
-        }> = await Promise.all([limitOrdersPromise, rfqOrdersPromise]).then((results: [LimitOrder[], RfqOrder[]]) => {
-            const limitOrders = results[0].map(order => ({ order, orderType: FillQuoteTransformerOrderType.Limit }));
-            const rfqOrders = results[1].map(order => ({ order, orderType: FillQuoteTransformerOrderType.Rfq }));
-            return [...limitOrders, ...rfqOrders];
-        });
+        const nativeOrders: SignedNativeOrder[] = _.flatten(await Promise.all([limitOrdersPromise, rfqOrdersPromise]));
 
         // if no native orders, pass in a dummy order for the sampler to have required metadata for sampling
         if (nativeOrders.length === 0) {
             nativeOrders.push({
-                order: new LimitOrder({
-                    makerToken,
-                    takerToken,
-                    chainId: 1,
-                    maker: this._contractAddresses.uniswapBridge,
-                }),
-                orderType: FillQuoteTransformerOrderType.Limit,
+                // tslint:disable-next-line: no-object-literal-type-assertion
+                signature: {} as Signature,
+                order: {
+                    ...new LimitOrder({
+                        makerToken,
+                        takerToken,
+                        chainId: 1,
+                        maker: this._contractAddresses.uniswapBridge,
+                    }),
+                },
+                type: FillQuoteTransformerOrderType.Limit,
             });
         }
 

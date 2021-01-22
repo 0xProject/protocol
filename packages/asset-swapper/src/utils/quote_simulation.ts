@@ -1,9 +1,16 @@
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { constants } from '../constants';
 import { MarketOperation } from '../types';
 
-import { CollapsedFill, ERC20BridgeSource, FeeSchedule, OptimizedMarketOrder } from './market_operation_utils/types';
+import {
+    CollapsedFill,
+    ERC20BridgeSource,
+    FeeSchedule,
+    NativeLimitOrderFillData,
+    OptimizedMarketOrder,
+} from './market_operation_utils/types';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;
@@ -124,7 +131,7 @@ export function simulateWorstCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult
             opts.gasSchedule,
         ),
         // Worst case gas and protocol fee is hitting all orders.
-        gas: getTotalGasUsedByFills(getFlattenedFillsFromOrders(quoteInfo.orders), opts.gasSchedule),
+        gas: getTotalGasUsedByFills(quoteInfo.orders, opts.gasSchedule),
         protocolFee: protocolFeePerFillOrder.times(quoteInfo.orders.length),
     };
     return fromIntermediateQuoteFillResult(result, quoteInfo);
@@ -220,17 +227,23 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
         order: o,
         ...(side === MarketOperation.Sell
             ? {
-                  totalOrderInput: o.takerAmount,
-                  totalOrderOutput: o.makerAmount,
-                  totalOrderInputFee: o.fillableTakerFeeAmount,
+                  totalOrderInput: o.takerTokenAmount,
+                  totalOrderOutput: o.makerTokenAmount,
+                  totalOrderInputFee:
+                      o.type === FillQuoteTransformerOrderType.Limit
+                          ? (o.fillData as NativeLimitOrderFillData).fillableTakerFeeAmount
+                          : ZERO_AMOUNT,
                   totalOrderOutputFee: ZERO_AMOUNT,
               }
             : // Buy
               {
-                  totalOrderInput: o.makerAmount,
-                  totalOrderOutput: o.takerAmount,
+                  totalOrderInput: o.makerTokenAmount,
+                  totalOrderOutput: o.takerTokenAmount,
                   totalOrderInputFee: ZERO_AMOUNT,
-                  totalOrderOutputFee: o.fillableTakerFeeAmount,
+                  totalOrderOutputFee:
+                      o.type === FillQuoteTransformerOrderType.Limit
+                          ? (o.fillData as NativeLimitOrderFillData).fillableTakerFeeAmount
+                          : ZERO_AMOUNT,
               }),
     }));
 }
@@ -243,53 +256,57 @@ function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrder
                 ...fo,
                 order: {
                     ...fo.order,
-                    // Apply slippage to order fills and reverse them.
-                    fills: getSlippedOrderFills(fo.order, quoteInfo.side)
-                        .map(f => ({ ...f, subFills: f.subFills.slice().reverse() }))
-                        .reverse(),
+                    fills: [],
+                    //// Apply slippage to order fills and reverse them.
+                    // fills: getSlippedOrderFills(fo.order, quoteInfo.side)
+                    //    .map(f => ({ ...f, subFills: f.subFills.slice().reverse() }))
+                    //    .reverse(),
                 },
             }))
             // Sort by ascending price.
             .sort((a, b) =>
-                a.order.makerAmount.div(a.order.takerAmount).comparedTo(b.order.makerAmount.div(b.order.takerAmount)),
+                a.order.makerTokenAmount
+                    .div(a.order.takerTokenAmount)
+                    .comparedTo(b.order.makerTokenAmount.div(b.order.takerTokenAmount)),
             )
     );
 }
 
-// Apply order slippage to its fill paths.
-function getSlippedOrderFills(order: OptimizedMarketOrder, side: MarketOperation): CollapsedFill[] {
-    // Infer the slippage from the order amounts vs fill amounts.
-    let inputScaling: BigNumber;
-    let outputScaling: BigNumber;
-    const source = order.fills[0].source;
-    if (source === ERC20BridgeSource.Native) {
-        // Native orders do not have slippage applied to them.
-        inputScaling = new BigNumber(1);
-        outputScaling = new BigNumber(1);
-    } else {
-        if (side === MarketOperation.Sell) {
-            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-            inputScaling = order.fillableTakerAmount.div(totalFillableTakerAssetAmount);
-            outputScaling = order.fillableMakerAmount.div(totalFillableMakerAssetAmount);
-        } else {
-            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-            inputScaling = order.fillableMakerAmount.div(totalFillableMakerAssetAmount);
-            outputScaling = order.fillableTakerAmount.div(totalFillableTakerAssetAmount);
-        }
-    }
-    return order.fills.map(f => ({
-        ...f,
-        input: f.input.times(inputScaling),
-        output: f.output.times(outputScaling),
-        subFills: f.subFills.map(sf => ({
-            ...sf,
-            input: sf.input.times(inputScaling),
-            output: sf.output.times(outputScaling),
-        })),
-    }));
-}
+//// Apply order slippage to its fill paths.
+// function getSlippedOrderFills(order: OptimizedMarketOrder, side: MarketOperation): CollapsedFill[] {
+//    // Infer the slippage from the order amounts vs fill amounts.
+//    let inputScaling: BigNumber;
+//    let outputScaling: BigNumber;
+//    console.log(order);
+//    const source = order.source;
+//    if (source === ERC20BridgeSource.Native) {
+//        // Native orders do not have slippage applied to them.
+//        inputScaling = new BigNumber(1);
+//        outputScaling = new BigNumber(1);
+//    } else {
+//        if (side === MarketOperation.Sell) {
+//            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
+//            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
+//            inputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
+//            outputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
+//        } else {
+//            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
+//            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
+//            inputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
+//            outputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
+//        }
+//    }
+//    return order.fills.map(f => ({
+//        ...f,
+//        input: f.input.times(inputScaling),
+//        output: f.output.times(outputScaling),
+//        subFills: f.subFills.map(sf => ({
+//            ...sf,
+//            input: sf.input.times(inputScaling),
+//            output: sf.output.times(outputScaling),
+//        })),
+//    }));
+// }
 
 function roundInputAmount(amount: BigNumber, side: MarketOperation): BigNumber {
     return amount.integerValue(side === MarketOperation.Sell ? ROUND_UP : ROUND_DOWN);
@@ -346,15 +363,7 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getFlattenedFillsFromOrders(orders: OptimizedMarketOrder[]): CollapsedFill[] {
-    const fills: CollapsedFill[] = [];
-    for (const o of orders) {
-        fills.push(...o.fills);
-    }
-    return fills;
-}
-
-function getTotalGasUsedByFills(fills: CollapsedFill[], gasSchedule: FeeSchedule): number {
+function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: FeeSchedule): number {
     let gasUsed = 0;
     for (const f of fills) {
         const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);

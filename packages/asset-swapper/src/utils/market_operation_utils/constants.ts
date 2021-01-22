@@ -1,4 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { BridgeContractAddresses } from '../../types';
@@ -17,6 +18,9 @@ import {
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MultiHopFillData,
+    NativeFillData,
+    NativeLimitOrderFillData,
+    NativeRfqOrderFillData,
     SnowSwapFillData,
     SushiSwapFillData,
     UniswapV2FillData,
@@ -408,6 +412,7 @@ export const MAX_KYBER_RESERVES_QUERIED = 5;
 
 export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
 
+export const MAINNET_UNISWAP_V2_ROUTER = '0xf164fC0Ec4E93095b804a4795bBe1e041497b92a';
 export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F';
 export const MAINNET_CRYPTO_COM_ROUTER = '0xCeB90E4C17d626BE0fACd78b79c9c87d7ca181b3';
 
@@ -502,7 +507,10 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
  */
 // tslint:disable:custom-no-magic-numbers
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
-    [ERC20BridgeSource.Native]: () => 150e3,
+    [ERC20BridgeSource.Native]: _fillData => {
+        // const nativeFillData = (_fillData as NativeRfqOrderFillData|NativeLimitOrderFillData)
+        return 150e3;
+    },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
         return (fillData as LiquidityProviderFillData).gasCost;

@@ -4,7 +4,7 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
+import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, NativeOrderWithFillableAmounts } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 
@@ -13,11 +13,7 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
  */
 export function createFills(opts: {
     side: MarketOperation;
-    orders?: Array<{
-        order: RfqOrder | LimitOrder;
-        orderFillableAmount: BigNumber;
-        orderType: FillQuoteTransformerOrderType;
-    }>;
+    orders?: NativeOrderWithFillableAmounts[];
     dexQuotes?: DexSample[][];
     targetInput?: BigNumber;
     ethToOutputRate?: BigNumber;
@@ -81,11 +77,7 @@ function isLimitOrder(o: LimitOrder | RfqOrder): o is LimitOrder {
 
 function nativeOrdersToFills(
     side: MarketOperation,
-    orders: Array<{
-        order: RfqOrder | LimitOrder;
-        orderFillableAmount: BigNumber;
-        orderType: FillQuoteTransformerOrderType;
-    }>,
+    orders: NativeOrderWithFillableAmounts[],
     targetInput: BigNumber = POSITIVE_INF,
     ethToOutputRate: BigNumber,
     ethToInputRate: BigNumber,
@@ -95,11 +87,9 @@ function nativeOrdersToFills(
     // Create a single path from all orders.
     let fills: Array<Fill & { adjustedRate: BigNumber }> = [];
     for (const o of orders) {
-        const { order, orderFillableAmount } = o;
-        const makerAmount = order.makerAmount;
-        const takerAmount = isLimitOrder(order)
-            ? orderFillableAmount.plus(order.takerTokenFeeAmount)
-            : orderFillableAmount;
+        const { fillableTakerAmount, fillableTakerFeeAmount, fillableMakerAmount } = o;
+        const makerAmount = fillableMakerAmount;
+        const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
         const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
         const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!();

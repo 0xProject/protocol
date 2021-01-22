@@ -6,6 +6,8 @@ import * as _ from 'lodash';
 import { Orderbook } from '../swap_quoter';
 import { MarketOperation, OrderProviderRequest, SwapQuote, SwapQuoteInfo } from '../types';
 
+import { OptimizedMarketOrder } from './market_operation_utils/types';
+
 export const assert = {
     ...sharedAssert,
     isValidSwapQuote(variableName: string, swapQuote: SwapQuote): void {
@@ -35,8 +37,13 @@ export const assert = {
             sharedAssert.isBigNumber(`${variableName}.takerAssetFillAmount`, swapQuote.takerAssetFillAmount);
         }
     },
-    isValidSwapQuoteOrders(variableName: string, orders: Order[], makerToken: string, takerToken: string): void {
-        return orders.forEach((order: Order, index: number) => {
+    isValidSwapQuoteOrders(
+        variableName: string,
+        orders: OptimizedMarketOrder[],
+        makerToken: string,
+        takerToken: string,
+    ): void {
+        return orders.forEach((order: OptimizedMarketOrder, index: number) => {
             assert.assert(
                 makerToken === order.makerToken,
                 `Expected ${variableName}[${index}].takerToken to be ${takerToken} but found ${order.takerToken}`,
@@ -47,7 +54,12 @@ export const assert = {
             );
         });
     },
-    isValidTwoHopSwapQuoteOrders(variableName: string, orders: Order[], makerToken: string, takerToken: string): void {
+    isValidTwoHopSwapQuoteOrders(
+        variableName: string,
+        orders: OptimizedMarketOrder[],
+        makerToken: string,
+        takerToken: string,
+    ): void {
         assert.assert(orders.length === 2, `Expected ${variableName}.length to be 2 for a two-hop quote`);
         assert.assert(
             takerToken === orders[0].takerToken,
@@ -62,21 +74,6 @@ export const assert = {
             `Expected ${variableName}[0].makerToken (${orders[0].makerToken}) to equal ${variableName}[1].takerToken (${
                 orders[1].takerToken
             })`,
-        );
-    },
-    isValidForwarderSwapQuote(variableName: string, swapQuote: SwapQuote, wethToken: string): void {
-        assert.isValidSwapQuote(variableName, swapQuote);
-        assert.isValidForwarderSignedOrders(`${variableName}.orders`, swapQuote.orders, wethToken);
-    },
-    isValidForwarderSignedOrders(variableName: string, orders: Order[], wethToken: string): void {
-        _.forEach(orders, (o: Order, i: number) => {
-            assert.isValidForwarderSignedOrder(`${variableName}[${i}]`, o, wethToken);
-        });
-    },
-    isValidForwarderSignedOrder(variableName: string, order: Order, wethToken: string): void {
-        assert.assert(
-            order.takerToken === wethToken,
-            `Expected ${variableName} to have takerAssetData set as ${wethToken}, but is ${order.takerToken}`,
         );
     },
     isValidSwapQuoteInfo(variableName: string, swapQuoteInfo: SwapQuoteInfo): void {

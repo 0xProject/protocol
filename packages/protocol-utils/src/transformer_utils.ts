@@ -1,7 +1,7 @@
 import { AbiEncoder, BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 
-import { LimitOrder, RfqOrder } from './orders';
+import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from './orders';
 import { Signature, SIGNATURE_ABI } from './signature_utils';
 
 const BRIDGE_ORDER_ABI_COMPONENTS = [
@@ -107,8 +107,8 @@ export interface FillQuoteTransformerData {
     sellToken: string;
     buyToken: string;
     bridgeOrders: FillQuoteTransformerBridgeOrder[];
-    limitOrders: Array<FillQouteTransformerNativeOrderInfo<LimitOrder>>;
-    rfqOrders: Array<FillQouteTransformerNativeOrderInfo<RfqOrder>>;
+    limitOrders: Array<FillQouteTransformerNativeOrderInfo<LimitOrderFields>>;
+    rfqOrders: Array<FillQouteTransformerNativeOrderInfo<RfqOrderFields>>;
     fillSequence: FillQuoteTransformerOrderType[];
     fillAmount: BigNumber;
     refundReceiver: string;
