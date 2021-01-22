@@ -22,6 +22,7 @@ import {
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
+import { SOURCE_FLAGS } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
@@ -38,10 +39,9 @@ import {
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
+import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';
 import { getPriceAwareRFQRolloutFlags } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
-import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';
-import { SOURCE_FLAGS } from './utils/market_operation_utils/constants';
 
 export abstract class Orderbook {
     public abstract getOrdersAsync(
@@ -178,11 +178,11 @@ export class SwapQuoter {
             })),
         );
 
-        const opts: GetMarketOrdersOpts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
+        const opts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
         const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
             allOrders,
             makerAssetBuyAmounts,
-            opts,
+            opts as GetMarketOrdersOpts,
         );
 
         const batchSwapQuotes = await Promise.all(
@@ -504,13 +504,13 @@ export class SwapQuoter {
 
         //  ** Prepare options for fetching market side liquidity **
         // Scale fees by gas price.
-        const calcOpts: GetMarketOrdersOpts = {
+        const calcOpts = {
             ...opts,
             feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData?: FillData) =>
                 gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
             ),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
-        };
+        } as GetMarketOrdersOpts;
         // pass the QuoteRequestor on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = quoteRequestor;

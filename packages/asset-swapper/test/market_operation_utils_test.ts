@@ -8,7 +8,7 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { FillQuoteTransformerOrderType, LimitOrder, NativeOrder, RfqOrder } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, NativeOrder, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
@@ -39,7 +39,10 @@ import {
     GetMarketOrdersOpts,
     MarketSideLiquidity,
     NativeFillData,
+    OptimizedLimitOrder,
+    OptimizedRfqOrder,
     OptimizerResultWithReport,
+    SignedNativeOrder,
     TokenAdjacencyGraph,
 } from '../src/utils/market_operation_utils/types';
 
@@ -81,7 +84,7 @@ const PRICE_AWARE_RFQ_ENABLED: PriceAwareRFQFlags = {
  */
 async function getMarketSellOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
+    nativeOrders: SignedNativeOrder[],
     takerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -98,7 +101,7 @@ async function getMarketSellOrdersAsync(
  */
 async function getMarketBuyOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: Array<{ order: LimitOrder | RfqOrder; orderType: FillQuoteTransformerOrderType }>,
+    nativeOrders: SignedNativeOrder[],
     makerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -115,7 +118,7 @@ describe('MarketOperationUtils tests', () => {
 
     function getMockedQuoteRequestor(
         type: 'indicative' | 'firm',
-        results: RfqOrder[],
+        results: SignedNativeOrder[],
         verifiable: TypeMoq.Times,
     ): TypeMoq.IMock<QuoteRequestor> {
         const args: [any, any, any, any, any, any] = [
@@ -135,37 +138,33 @@ describe('MarketOperationUtils tests', () => {
         } else {
             requestor
                 .setup(r => r.requestRfqtIndicativeQuotesAsync(...args))
-                .returns(async () => results)
+                .returns(async () => results.map(r => r.order))
                 .verifiable(verifiable);
         }
         return requestor;
     }
 
-    function createOrdersFromSellRates(
-        takerAmount: BigNumber,
-        rates: Numberish[],
-    ): Array<{ order: RfqOrder; orderType: FillQuoteTransformerOrderType }> {
+    function createOrdersFromSellRates(takerAmount: BigNumber, rates: Numberish[]): SignedNativeOrder[] {
         const singleTakerAmount = takerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map(r => ({
             order: new RfqOrder({
                 makerAmount: singleTakerAmount.times(r).integerValue(),
                 takerAmount: singleTakerAmount,
             }),
-            orderType: FillQuoteTransformerOrderType.Rfq,
+            signature: {} as any,
+            type: FillQuoteTransformerOrderType.Rfq,
         }));
     }
 
-    function createOrdersFromBuyRates(
-        makerAmount: BigNumber,
-        rates: Numberish[],
-    ): Array<{ order: LimitOrder; orderType: FillQuoteTransformerOrderType }> {
+    function createOrdersFromBuyRates(makerAmount: BigNumber, rates: Numberish[]): SignedNativeOrder[] {
         const singleMakerAmount = makerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map(r => ({
             order: new LimitOrder({
                 makerAmount: singleMakerAmount,
                 takerAmount: singleMakerAmount.div(r).integerValue(),
             }),
-            orderType: FillQuoteTransformerOrderType.Rfq,
+            signature: {} as any,
+            type: FillQuoteTransformerOrderType.Limit,
         }));
     }
 
@@ -710,12 +709,16 @@ describe('MarketOperationUtils tests', () => {
                     )
                     .returns(async () => {
                         return [
-                            new RfqOrder({
-                                makerToken: MAKER_TOKEN,
-                                takerToken: TAKER_TOKEN,
-                                makerAmount: Web3Wrapper.toBaseUnitAmount(321, 6),
-                                takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                            }),
+                            {
+                                order: new RfqOrder({
+                                    makerToken: MAKER_TOKEN,
+                                    takerToken: TAKER_TOKEN,
+                                    makerAmount: Web3Wrapper.toBaseUnitAmount(321, 6),
+                                    takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
+                                }),
+                                signature: {} as any,
+                                type: FillQuoteTransformerOrderType.Rfq,
+                            },
                         ];
                     });
 
@@ -756,8 +759,11 @@ describe('MarketOperationUtils tests', () => {
                                             makerAmount: Web3Wrapper.toBaseUnitAmount(320, 6),
                                             takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
                                         }),
-                                        orderFillableAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                                        orderType: FillQuoteTransformerOrderType.Limit,
+                                        fillableTakerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
+                                        fillableMakerAmount: Web3Wrapper.toBaseUnitAmount(320, 6),
+                                        fillableTakerFeeAmount: new BigNumber(0),
+                                        type: FillQuoteTransformerOrderType.Limit,
+                                        signature: {} as any,
                                     },
                                 ],
                             },
@@ -831,11 +837,7 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('getMarketSellOrdersAsync() will rerun the optimizer if one or more indicative are returned', async () => {
-                const requestor = getMockedQuoteRequestor(
-                    'indicative',
-                    [ORDERS[0].order, ORDERS[1].order],
-                    TypeMoq.Times.once(),
-                );
+                const requestor = getMockedQuoteRequestor('indicative', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
 
                 const numOrdersInCall: number[] = [];
                 const numIndicativeQuotesInCall: number[] = [];
@@ -893,7 +895,7 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('getMarketSellOrdersAsync() will rerun the optimizer if one or more RFQ orders are returned', async () => {
-                const requestor = getMockedQuoteRequestor('firm', [ORDERS[0].order], TypeMoq.Times.once());
+                const requestor = getMockedQuoteRequestor('firm', [ORDERS[0]], TypeMoq.Times.once());
 
                 // Ensure that `_generateOptimizedOrdersAsync` is only called once
 
@@ -948,11 +950,7 @@ describe('MarketOperationUtils tests', () => {
             it('getMarketSellOrdersAsync() will not raise a NoOptimalPath error if no initial path was found during on-chain DEX optimization, but a path was found after RFQ optimization', async () => {
                 let hasFirstOptimizationRun = false;
                 let hasSecondOptimizationRun = false;
-                const requestor = getMockedQuoteRequestor(
-                    'firm',
-                    [ORDERS[0].order, ORDERS[1].order],
-                    TypeMoq.Times.once(),
-                );
+                const requestor = getMockedQuoteRequestor('firm', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
 
                 const mockedMarketOpUtils = TypeMoq.Mock.ofType(
                     MarketOperationUtils,
@@ -1266,7 +1264,8 @@ describe('MarketOperationUtils tests', () => {
                                 makerToken: MAKER_TOKEN,
                                 takerToken: TAKER_TOKEN,
                             }),
-                            orderType: FillQuoteTransformerOrderType.Limit,
+                            type: FillQuoteTransformerOrderType.Limit,
+                            signature: {} as any,
                         },
                     ],
                     FILL_AMOUNT,
@@ -1280,7 +1279,7 @@ describe('MarketOperationUtils tests', () => {
                 );
                 const result = ordersAndReport.optimizedOrders;
                 expect(result.length).to.eql(1);
-                expect(result[0].maker).to.eql(liquidityProviderAddress);
+                expect((result[0] as OptimizedLimitOrder).fillData.order.maker).to.eql(liquidityProviderAddress);
 
                 // // TODO (xianny): decode bridge data in v4 format
                 // // tslint:disable-next-line:no-unnecessary-type-assertion
@@ -1780,8 +1779,11 @@ describe('MarketOperationUtils tests', () => {
                 takerAmount,
                 makerAmount: takerAmount.times(2),
             }),
-            orderFillableAmount: takerAmount,
-            orderType: FillQuoteTransformerOrderType.Limit,
+            fillableMakerAmount: takerAmount.times(2),
+            fillableTakerAmount: takerAmount,
+            fillableTakerFeeAmount: new BigNumber(0),
+            type: FillQuoteTransformerOrderType.Limit,
+            signature: {} as any,
         };
         const largeOrder = {
             order: new LimitOrder({
@@ -1790,8 +1792,11 @@ describe('MarketOperationUtils tests', () => {
                 takerAmount: smallOrder.order.takerAmount.times(2),
                 makerAmount: smallOrder.order.makerAmount.times(2),
             }),
-            orderFillableAmount: smallOrder.orderFillableAmount.times(2),
-            orderType: FillQuoteTransformerOrderType.Limit,
+            fillableTakerAmount: smallOrder.fillableTakerAmount.times(2),
+            fillableMakerAmount: smallOrder.fillableMakerAmount.times(2),
+            fillableTakerFeeAmount: new BigNumber(0),
+            type: FillQuoteTransformerOrderType.Limit,
+            signature: {} as any,
         };
         const orders = [smallOrder, largeOrder];
         const feeSchedule = {

@@ -166,12 +166,12 @@ export {
 } from './utils/market_operation_utils/types';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {
-    BridgeReportSource,
-    MultiHopReportSource,
-    NativeOrderbookReportSource,
-    NativeRFQTReportSource,
+    BridgeQuoteReportEntry,
+    MultiHopQuoteReportEntry,
+    NativeLimitOrderQuoteReportEntry,
+    NativeRfqOrderQuoteReportEntry,
     QuoteReport,
-    QuoteReportSource,
+    QuoteReportEntry,
 } from './utils/quote_report_generator';
 export { QuoteRequestor } from './utils/quote_requestor';
 export { rfqtMocker } from './utils/rfqt_mocker';

@@ -22,7 +22,7 @@ export function getSwapMinBuyAmount(quote: SwapQuote): BigNumber {
             continue;
         }
         const totalFillmakerAmount = BigNumber.sum(...o.fills.map(f => f.output));
-        slipRatio = o.makerTokenAmount.div(totalFillmakerAmount);
+        slipRatio = o.makerAmount.div(totalFillmakerAmount);
         break;
     }
     if (slipRatio.gte(1)) {
@@ -53,7 +53,7 @@ export function getQuoteInfoMinBuyAmount(
             continue;
         }
         const totalFillmakerAmount = BigNumber.sum(...o.fills.map(f => f.output));
-        slipRatio = o.makerTokenAmount.div(totalFillmakerAmount);
+        slipRatio = o.makerAmount.div(totalFillmakerAmount);
         break;
     }
     if (slipRatio.gte(1)) {

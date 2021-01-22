@@ -1,10 +1,10 @@
 import {
+    FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
+    FillQuoteTransformerRfqOrderInfo,
     LimitOrderFields,
     RfqOrderFields,
     Signature,
-    FillQuoteTransformerLimitOrderInfo,
-    FillQuoteTransformerRfqOrderInfo,
 } from '@0x/protocol-utils';
 import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
@@ -186,6 +186,7 @@ export interface DexSample<TFillData extends FillData = FillData> {
 export interface Fill<TFillData extends FillData = FillData> {
     // basic data for every fill
     source: ERC20BridgeSource;
+    type: FillQuoteTransformerOrderType; // should correspond with TFillData
     fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
@@ -210,6 +211,7 @@ export interface Fill<TFillData extends FillData = FillData> {
  */
 export interface CollapsedFill<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
+    type: FillQuoteTransformerOrderType; // should correspond with TFillData
     fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish

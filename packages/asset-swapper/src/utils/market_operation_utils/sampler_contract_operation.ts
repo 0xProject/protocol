@@ -3,7 +3,7 @@ import { BigNumber, decodeBytesAsRevertError, logUtils } from '@0x/utils';
 
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
-import { ERC20BridgeSource, FillData, SourceInfo, SourceQuoteOperation } from './types';
+import { ERC20BridgeSource, FillData, SourceQuoteOperation } from './types';
 
 export type Parameters<T> = T extends (...args: infer TArgs) => any ? TArgs : never;
 
@@ -28,7 +28,7 @@ export class SamplerContractOperation<
     private readonly _params: Parameters<TFunc>;
     private readonly _callback?: (callResults: string, fillData: TFillData) => BigNumber[];
 
-    constructor(opts: SourceInfo<TFillData> & SamplerContractCall<TFunc, TFillData>) {
+    constructor(opts: { source: ERC20BridgeSource; fillData?: TFillData } & SamplerContractCall<TFunc, TFillData>) {
         this.source = opts.source;
         this.fillData = opts.fillData || ({} as TFillData); // tslint:disable-line:no-object-literal-type-assertion
         this._samplerContract = opts.contract;

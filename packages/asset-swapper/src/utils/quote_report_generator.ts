@@ -1,4 +1,4 @@
-import { LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -17,54 +17,55 @@ import {
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
 
-export interface BridgeReportSource {
-    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
+export interface QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource;
     makerAmount: BigNumber;
     takerAmount: BigNumber;
+}
+export interface BridgeQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
     fillData?: FillData;
 }
 
-export interface MultiHopReportSource {
+export interface MultiHopQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.MultiHop;
-    makerAmount: BigNumber;
-    takerAmount: BigNumber;
     hopSources: ERC20BridgeSource[];
     fillData: FillData;
 }
 
-interface NativeReportSourceBase {
+export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
-    makerAmount: BigNumber;
-    takerAmount: BigNumber;
+    nativeOrder: LimitOrderFields;
     fillableTakerAmount: BigNumber;
-}
-export interface NativeOrderbookReportSource extends NativeReportSourceBase {
     isRfqt: false;
-    nativeOrder: LimitOrder;
 }
-export interface NativeRFQTReportSource extends NativeReportSourceBase {
+
+export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    nativeOrder: RfqOrderFields;
+    fillableTakerAmount: BigNumber;
     isRfqt: true;
-    nativeOrder: RfqOrder;
     makerUri: string;
     comparisonPrice?: number;
 }
-export type QuoteReportSource =
-    | BridgeReportSource
-    | NativeOrderbookReportSource
-    | NativeRFQTReportSource
-    | MultiHopReportSource;
+
+export type QuoteReportEntry =
+    | BridgeQuoteReportEntry
+    | MultiHopQuoteReportEntry
+    | NativeLimitOrderQuoteReportEntry
+    | NativeRfqOrderQuoteReportEntry;
 
 export interface QuoteReport {
-    sourcesConsidered: QuoteReportSource[];
-    sourcesDelivered: QuoteReportSource[];
+    sourcesConsidered: QuoteReportEntry[];
+    sourcesDelivered: QuoteReportEntry[];
 }
 
 function isFillDataLimitOrder(fillData: NativeRfqOrderFillData | NativeLimitOrderFillData): boolean {
-    return (fillData as NativeRfqOrderFillData).txOrigin === undefined;
+    return (fillData as NativeRfqOrderFillData).order.txOrigin === undefined;
 }
 
 function getOrder(fillData: NativeRfqOrderFillData | NativeLimitOrderFillData): RfqOrder | LimitOrder {
-    return isFillDataLimitOrder(fillData) ? new LimitOrder(fillData) : new RfqOrder(fillData);
+    return isFillDataLimitOrder(fillData) ? new LimitOrder(fillData.order) : new RfqOrder(fillData.order);
 }
 
 /**
@@ -135,7 +136,7 @@ export function generateQuoteReport(
     // };
 }
 
-function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeReportSource {
+function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
     const liquiditySource = ds.source;
 
     if (liquiditySource === ERC20BridgeSource.Native) {
@@ -166,7 +167,7 @@ function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperatio
 function _multiHopSampleToReportSource(
     ds: DexSample<MultiHopFillData>,
     marketOperation: MarketOperation,
-): MultiHopReportSource {
+): MultiHopQuoteReportEntry {
     const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData!;
     // input and output map to different values
     // based on the market operation
@@ -204,43 +205,40 @@ function _nativeOrderFromCollapsedFill(
     }
 }
 
-function _nativeOrderToReportSource(
+function _nativeOrderToReportEntry(
     nativeOrder: NativeRfqOrderFillData | NativeLimitOrderFillData,
     fillableAmount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
-): NativeRFQTReportSource | NativeOrderbookReportSource {
-    const nativeOrderBase: NativeReportSourceBase = {
+): NativeRfqOrderQuoteReportEntry | NativeLimitOrderQuoteReportEntry {
+    const nativeOrderBase = {
         liquiditySource: ERC20BridgeSource.Native,
-        makerAmount: nativeOrder.makerAmount,
-        takerAmount: nativeOrder.takerAmount,
+        makerAmount: nativeOrder.order.makerAmount,
+        takerAmount: nativeOrder.order.takerAmount,
         fillableTakerAmount: fillableAmount,
     };
 
     // if we find this is an rfqt order, label it as such and associate makerUri
-    const foundRfqtMakerUri =
+    const isRfqt =
         quoteRequestor &&
         // TODO jacob HACK
-        (nativeOrder as NativeRfqOrderFillData).txOrigin &&
-        quoteRequestor.getMakerUriForOrderHash(new RfqOrder(nativeOrder).getHash());
-    if (foundRfqtMakerUri) {
-        const rfqtSource: NativeRFQTReportSource = {
+        (nativeOrder as NativeRfqOrderFillData).order.txOrigin;
+
+    const rfqtMakerUri = isRfqt ? quoteRequestor!.getMakerUriForSignature(nativeOrder.signature) : undefined;
+
+    if (isRfqt) {
+        return {
             ...nativeOrderBase,
-            nativeOrder: new RfqOrder(nativeOrder),
+            nativeOrder: nativeOrder.order as RfqOrderFields,
             isRfqt: true,
-            makerUri: foundRfqtMakerUri,
-        };
-        if (comparisonPrice) {
-            rfqtSource.comparisonPrice = comparisonPrice.toNumber();
-        }
-        return rfqtSource;
+            makerUri: rfqtMakerUri || '', // potentially undefined, do we want to return as limit order instead?
+            comparisonPrice: comparisonPrice ? comparisonPrice.toNumber() : comparisonPrice,
+        } as NativeRfqOrderQuoteReportEntry;
     } else {
-        // if it's not an rfqt order, treat as normal
-        const regularNativeOrder: NativeOrderbookReportSource = {
+        return {
             ...nativeOrderBase,
-            nativeOrder: new LimitOrder(nativeOrder),
             isRfqt: false,
-        };
-        return regularNativeOrder;
+            nativeOrder: nativeOrder.order,
+        } as NativeLimitOrderQuoteReportEntry;
     }
 }

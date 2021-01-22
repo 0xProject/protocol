@@ -69,7 +69,7 @@ function convertIfAxiosError(error: any): Error | object /* axios' .d.ts has Axi
 
 export class QuoteRequestor {
     private readonly _schemaValidator: SchemaValidator = new SchemaValidator();
-    private readonly _orderHashToMakerUri: { [hash: string]: string } = {};
+    private readonly _orderSignatureToMakerUri: { [hash: string]: string } = {};
 
     public static makeQueryParameters(
         takerAddress: string,
@@ -190,7 +190,7 @@ export class QuoteRequestor {
                 type: FillQuoteTransformerOrderType.Rfq,
                 signature: result.response.signature,
             };
-            this._orderHashToMakerUri[new RfqOrder(result.response).getHash()] = result.makerUri;
+            this._orderSignatureToMakerUri[result.response.signature.toString()] = result.makerUri; // todo (xianny): hack
             return order;
         });
         return rfqQuotes;
@@ -248,8 +248,8 @@ export class QuoteRequestor {
     /**
      * Given an order signature, returns the makerUri that the order originated from
      */
-    public getMakerUriForOrderHash(hash: string): string | undefined {
-        return this._orderHashToMakerUri[hash];
+    public getMakerUriForSignature(signature: Signature): string | undefined {
+        return this._orderSignatureToMakerUri[signature.toString()]; // todo (xianny): hack
     }
 
     private _isValidRfqtIndicativeQuoteResponse(response: V4RFQIndicativeQuote): boolean {

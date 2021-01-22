@@ -31,9 +31,9 @@ export const assert = {
         assert.isValidSwapQuoteInfo(`${variableName}.bestCaseQuoteInfo`, swapQuote.bestCaseQuoteInfo);
         assert.isValidSwapQuoteInfo(`${variableName}.worstCaseQuoteInfo`, swapQuote.worstCaseQuoteInfo);
         if (swapQuote.type === MarketOperation.Buy) {
-            sharedAssert.isBigNumber(`${variableName}.makerAssetFillAmount`, swapQuote.makerAssetFillAmount);
+            sharedAssert.isBigNumber(`${variableName}.makerTokenFillAmount`, swapQuote.makerTokenFillAmount);
         } else {
-            sharedAssert.isBigNumber(`${variableName}.takerAssetFillAmount`, swapQuote.takerAssetFillAmount);
+            sharedAssert.isBigNumber(`${variableName}.takerTokenFillAmount`, swapQuote.takerTokenFillAmount);
         }
     },
     isValidSwapQuoteOrders(

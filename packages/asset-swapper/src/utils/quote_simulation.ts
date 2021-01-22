@@ -231,22 +231,22 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
         order: o,
         ...(side === MarketOperation.Sell
             ? {
-                  totalOrderInput: o.takerTokenAmount,
-                  totalOrderOutput: o.makerTokenAmount,
+                  totalOrderInput: o.takerAmount,
+                  totalOrderOutput: o.makerAmount,
                   totalOrderInputFee:
                       o.type === FillQuoteTransformerOrderType.Limit
-                          ? (o.fillData as NativeLimitOrderFillData).fillableTakerFeeAmount
+                          ? (o.fillData as NativeLimitOrderFillData).order.takerTokenFeeAmount
                           : ZERO_AMOUNT,
                   totalOrderOutputFee: ZERO_AMOUNT,
               }
             : // Buy
               {
-                  totalOrderInput: o.makerTokenAmount,
-                  totalOrderOutput: o.takerTokenAmount,
+                  totalOrderInput: o.makerAmount,
+                  totalOrderOutput: o.takerAmount,
                   totalOrderInputFee: ZERO_AMOUNT,
                   totalOrderOutputFee:
                       o.type === FillQuoteTransformerOrderType.Limit
-                          ? (o.fillData as NativeLimitOrderFillData).fillableTakerFeeAmount
+                          ? (o.fillData as NativeLimitOrderFillData).order.takerTokenFeeAmount
                           : ZERO_AMOUNT,
               }),
     }));
@@ -269,9 +269,7 @@ function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrder
             }))
             // Sort by ascending price.
             .sort((a, b) =>
-                a.order.makerTokenAmount
-                    .div(a.order.takerTokenAmount)
-                    .comparedTo(b.order.makerTokenAmount.div(b.order.takerTokenAmount)),
+                a.order.makerAmount.div(a.order.takerAmount).comparedTo(b.order.makerAmount.div(b.order.takerAmount)),
             )
     );
 }

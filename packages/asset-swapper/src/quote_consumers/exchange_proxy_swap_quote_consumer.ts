@@ -190,7 +190,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     buyToken: intermediateToken,
                     ...getFQTTransformerDataFromOptimizedOrders([firstHopOrder]),
                     refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerTokenAmount,
+                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAmount,
                 }),
             });
             transforms.push({
@@ -337,25 +337,25 @@ function getFQTTransformerDataFromOptimizedOrders(
                 // tslint:disable-next-line: no-object-literal-type-assertion
                 fqtData.bridgeOrders.push({
                     bridgeData: createBridgeDataForBridgeOrder(order as OptimizedMarketBridgeOrder),
-                    makerTokenAmount: order.makerTokenAmount,
-                    takerTokenAmount: order.takerTokenAmount,
+                    makerTokenAmount: order.makerAmount,
+                    takerTokenAmount: order.takerAmount,
                     source: getERC20BridgeSourceToBridgeSource(order.source),
                 });
                 break;
             case FillQuoteTransformerOrderType.Rfq:
                 const rfqData = order.fillData as NativeRfqOrderFillData;
                 fqtData.rfqOrders.push({
-                    order: rfqData,
+                    order: rfqData.order,
                     signature: rfqData.signature,
-                    maxTakerTokenFillAmount: order.takerTokenAmount,
+                    maxTakerTokenFillAmount: order.takerAmount,
                 });
                 break;
             case FillQuoteTransformerOrderType.Limit:
                 const limitData = order.fillData as NativeLimitOrderFillData;
                 fqtData.limitOrders.push({
-                    order: limitData,
+                    order: limitData.order,
                     signature: limitData.signature,
-                    maxTakerTokenFillAmount: order.takerTokenAmount,
+                    maxTakerTokenFillAmount: order.takerAmount,
                 });
                 break;
             default:

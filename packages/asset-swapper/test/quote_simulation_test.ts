@@ -1,10 +1,15 @@
 import { constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
-import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, NativeOrder } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { MarketOperation } from '../src/types';
-import { CollapsedFill, ERC20BridgeSource, OptimizedMarketOrder } from '../src/utils/market_operation_utils/types';
+import {
+    CollapsedFill,
+    ERC20BridgeSource,
+    NativeFillData,
+    OptimizedMarketOrder,
+} from '../src/utils/market_operation_utils/types';
 import {
     fillQuoteOrders,
     QuoteFillOrderCall,
@@ -698,12 +703,22 @@ describe('quote_simulation tests', async () => {
     ): OptimizedMarketOrder {
         const makerScaling = side === MarketOperation.Sell ? 1 - orderSlippage : 1;
         const takerScaling = side === MarketOperation.Sell ? 1 : orderSlippage + 1;
+
+        const nativeFillData = order.fillData as NativeFillData;
+        const slippedFillData = {
+            order: {
+                ...nativeFillData.order,
+                takerAmount: nativeFillData.order.takerAmount.times(takerScaling),
+                makerAmount: nativeFillData.order.makerAmount.times(makerScaling),
+            },
+            signature: nativeFillData.order.signature,
+            maxTakerTokenFillAmount: nativeFillData.maxTakerTokenFillAmount.times(takerScaling),
+        };
         return {
             ...order,
             makerAmount: order.makerAmount.times(makerScaling),
-            fillableMakerAmount: order.fillableMakerAmount.times(makerScaling),
             takerAmount: order.takerAmount.times(takerScaling),
-            fillableTakerAmount: order.fillableTakerAmount.times(takerScaling),
+            fillData: slippedFillData,
         };
     }
 

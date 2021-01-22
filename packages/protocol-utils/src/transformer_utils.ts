@@ -81,16 +81,6 @@ export enum FillQuoteTransformerSide {
 }
 
 /**
- * Represents either `FillQuoteTransformer.LimitOrderInfo`
- * or `FillQuoteTransformer.RfqOrderInfo`
- */
-interface FillQuoteTransformerNativeOrderInfo<T> {
-    order: T;
-    signature: Signature;
-    maxTakerTokenFillAmount: BigNumber;
-}
-
-/**
  * `FillQuoteTransformer.OrderType`
  */
 export enum FillQuoteTransformerOrderType {
@@ -147,6 +137,17 @@ export interface FillQuoteTransformerBridgeOrder {
     takerTokenAmount: BigNumber;
     makerTokenAmount: BigNumber;
     bridgeData: string;
+}
+
+
+/**
+ * Represents either `FillQuoteTransformer.LimitOrderInfo`
+ * or `FillQuoteTransformer.RfqOrderInfo`
+ */
+interface FillQuoteTransformerNativeOrderInfo<T> {
+    order: T;
+    signature: Signature;
+    maxTakerTokenFillAmount: BigNumber;
 }
 
 /**

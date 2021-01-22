@@ -105,7 +105,7 @@ export class Path {
         this.orders = [];
         for (let i = 0; i < collapsedFills.length; ) {
             if (collapsedFills[i].source === ERC20BridgeSource.Native) {
-                this.orders.push(createNativeOrder(collapsedFills[i] as NativeCollapsedFill));
+                this.orders.push(createNativeOrder(collapsedFills[i] as NativeCollapsedFill)); // TODO: RFQ orders handled differently
                 ++i;
                 continue;
             }
@@ -237,6 +237,7 @@ export class Path {
             (this.collapsedFills as CollapsedFill[]).push({
                 sourcePathId: fill.sourcePathId,
                 source: fill.source,
+                type: fill.type,
                 fillData: fill.fillData,
                 input: fill.input,
                 output: fill.output,

@@ -118,6 +118,7 @@ function nativeOrdersToFills(
             index: 0, // TBD
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
+            type: o.type,
             fillData: { o },
         });
     }
@@ -167,7 +168,8 @@ function dexSamplesToFills(
             output,
             adjustedOutput,
             source,
-            fillData: { ...fillData, orderType: FillQuoteTransformerOrderType.Bridge },
+            fillData,
+            type: FillQuoteTransformerOrderType.Bridge,
             index: i,
             parent: i !== 0 ? fills[fills.length - 1] : undefined,
             flags: SOURCE_FLAGS[source],
