@@ -1,10 +1,9 @@
 import { Order, SignedOrder } from '@0x/types';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { SupportedProvider } from 'ethereum-types';
-
+import { generatePseudoRandomSalt } from './salt';
 import { constants } from './constants';
 import { orderHashUtils } from './order_hash_utils';
-import { generatePseudoRandomSalt } from '@0x/protocol-utils/src/salt';
 import { signatureUtils } from './signature_utils';
 import { CreateOrderOpts } from './types';
 

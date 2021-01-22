@@ -1,5 +1,5 @@
 export { signatureUtils } from './signature_utils';
-export { generatePseudoRandomSalt } from '@0x/protocol-utils/src/salt';
+export { generatePseudoRandomSalt } from './salt';
 export { marketUtils } from './market_utils';
 export { rateUtils } from './rate_utils';
 export { sortingUtils } from './sorting_utils';

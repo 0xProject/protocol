@@ -4,5 +4,5 @@
         "outDir": "lib",
         "rootDir": "."
     },
-    "include": ["src/**/*", "test/**/*", "../order-utils/src/salt.ts"]
+    "include": ["src/**/*", "test/**/*"]
 }

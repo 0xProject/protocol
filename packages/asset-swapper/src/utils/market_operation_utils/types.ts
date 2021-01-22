@@ -1,16 +1,4 @@
-import {
-    BridgeOrderFields,
-    FillQuoteTransformerBridgeOrder,
-    FillQuoteTransformerLimitOrderInfo,
-    FillQuoteTransformerOrderType,
-    FillQuoteTransformerRfqOrderInfo,
-    LimitOrder,
-    LimitOrderFields,
-    RfqOrder,
-    RfqOrderFields,
-    Signature,
-} from '@0x/protocol-utils';
-import { Signatures } from '@0x/protocol-utils/lib/src/revert-errors';
+import { FillQuoteTransformerOrderType, LimitOrderFields, RfqOrderFields, Signature } from '@0x/protocol-utils';
 import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';

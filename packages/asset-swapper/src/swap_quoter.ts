@@ -1,12 +1,5 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    LimitOrderFields,
-    RfqOrder,
-    RfqOrderFields,
-    Signature,
-} from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
@@ -14,7 +7,6 @@ import * as _ from 'lodash';
 import { artifacts } from './artifacts';
 import { BRIDGE_ADDRESSES_BY_CHAIN, constants } from './constants';
 import {
-    APIOrder,
     AssetSwapperContractAddresses,
     CalculateSwapQuoteOpts,
     MarketBuySwapQuote,
@@ -36,7 +28,6 @@ import {
     MarketDepth,
     MarketDepthSide,
     MarketSideLiquidity,
-    NativeOrderWithType,
     SignedNativeOrder,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';

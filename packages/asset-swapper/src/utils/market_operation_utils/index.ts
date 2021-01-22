@@ -1,4 +1,4 @@
-import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -32,7 +32,6 @@ import {
     GetMarketOrdersOpts,
     MarketSideLiquidity,
     NativeOrderWithFillableAmounts,
-    NativeOrderWithType,
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,

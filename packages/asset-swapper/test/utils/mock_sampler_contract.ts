@@ -36,6 +36,7 @@ export type SampleBuysKyberHandler = (
     makerToken: string,
     makerTokenAmounts: BigNumber[],
 ) => [string, SampleResults];
+export type SampleUniswapV2Handler = (router: string, path: string[], assetAmounts: BigNumber[]) => SampleResults;
 export type SampleBuysMultihopHandler = (path: string[], takerTokenAmounts: BigNumber[]) => SampleResults;
 export type SampleSellsLPHandler = (
     providerAddress: string,
@@ -58,10 +59,10 @@ interface Handlers {
     sampleSellsFromLiquidityProvider: SampleSellsLPHandler;
     sampleSellsFromEth2Dai: SampleSellsHandler;
     sampleSellsFromUniswap: SampleSellsHandler;
-    sampleSellsFromUniswapV2: SampleSellsMultihopHandler;
+    sampleSellsFromUniswapV2: SampleUniswapV2Handler;
     sampleBuysFromEth2Dai: SampleBuysHandler;
     sampleBuysFromUniswap: SampleBuysHandler;
-    sampleBuysFromUniswapV2: SampleBuysMultihopHandler;
+    sampleBuysFromUniswapV2: SampleUniswapV2Handler;
     sampleBuysFromLiquidityProvider: SampleSellsLPHandler;
 }
 
@@ -154,12 +155,14 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     }
 
     public sampleSellsFromUniswapV2(
+        router: string,
         path: string[],
         takerAssetAmounts: BigNumber[],
     ): ContractTxFunctionObj<BigNumber[]> {
         return this._wrapCall(
             super.sampleSellsFromUniswapV2,
             this._handlers.sampleSellsFromUniswapV2,
+            router,
             path,
             takerAssetAmounts,
         );
@@ -209,10 +212,15 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         );
     }
 
-    public sampleBuysFromUniswapV2(path: string[], makerAssetAmounts: BigNumber[]): ContractTxFunctionObj<BigNumber[]> {
+    public sampleBuysFromUniswapV2(
+        router: string,
+        path: string[],
+        makerAssetAmounts: BigNumber[],
+    ): ContractTxFunctionObj<BigNumber[]> {
         return this._wrapCall(
             super.sampleBuysFromUniswapV2,
             this._handlers.sampleBuysFromUniswapV2,
+            router,
             path,
             makerAssetAmounts,
         );

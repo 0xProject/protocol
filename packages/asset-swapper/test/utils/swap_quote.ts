@@ -2,7 +2,7 @@ import { BigNumber } from '@0x/utils';
 
 import { ERC20BridgeSource } from '../../src';
 import { constants } from '../../src/constants';
-import { MarketOperation, SignedOrderWithFillableAmounts, SwapQuote } from '../../src/types';
+import { MarketOperation, OrderWithFillableAmounts, SwapQuote } from '../../src/types';
 
 /**
  * Creates a swap quote given orders.
@@ -10,7 +10,7 @@ import { MarketOperation, SignedOrderWithFillableAmounts, SwapQuote } from '../.
 export async function getFullyFillableSwapQuoteWithNoFeesAsync(
     makerAssetData: string,
     takerAssetData: string,
-    orders: SignedOrderWithFillableAmounts[],
+    orders: OrderWithFillableAmounts[],
     operation: MarketOperation,
     gasPrice: BigNumber,
 ): Promise<SwapQuote> {

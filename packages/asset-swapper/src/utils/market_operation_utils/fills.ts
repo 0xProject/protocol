@@ -1,4 +1,4 @@
-import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
 import { MarketOperation } from '../../types';
@@ -69,10 +69,6 @@ function hasLiquidity(fills: Fill[]): boolean {
         return false;
     }
     return true;
-}
-
-function isLimitOrder(o: LimitOrder | RfqOrder): o is LimitOrder {
-    return (o as LimitOrder).takerTokenFeeAmount !== undefined;
 }
 
 function nativeOrdersToFills(

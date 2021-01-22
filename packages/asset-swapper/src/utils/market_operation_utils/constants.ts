@@ -1,5 +1,4 @@
 import { ChainId } from '@0x/contract-addresses';
-import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { BridgeContractAddresses } from '../../types';
@@ -18,9 +17,6 @@ import {
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MultiHopFillData,
-    NativeFillData,
-    NativeLimitOrderFillData,
-    NativeRfqOrderFillData,
     SnowSwapFillData,
     SushiSwapFillData,
     UniswapV2FillData,

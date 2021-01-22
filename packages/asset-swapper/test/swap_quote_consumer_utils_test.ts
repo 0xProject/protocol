@@ -10,7 +10,7 @@ import 'mocha';
 
 import { SwapQuote, SwapQuoteConsumer } from '../src';
 import { constants } from '../src/constants';
-import { ExtensionContractType, MarketOperation, SignedOrderWithFillableAmounts } from '../src/types';
+import { ExtensionContractType, MarketOperation, OrderWithFillableAmounts } from '../src/types';
 
 import { chaiSetup } from './utils/chai_setup';
 import { getFullyFillableSwapQuoteWithNoFeesAsync } from './utils/swap_quote';
@@ -24,7 +24,7 @@ const ONE_ETH_IN_WEI = new BigNumber(1000000000000000000);
 const TESTRPC_CHAIN_ID = 1337;
 const GAS_PRICE = new BigNumber(devConstants.DEFAULT_GAS_PRICE);
 
-const PARTIAL_PRUNED_SIGNED_ORDERS: Array<Partial<SignedOrderWithFillableAmounts>> = [
+const PARTIAL_PRUNED_SIGNED_ORDERS: Array<Partial<OrderWithFillableAmounts>> = [
     {
         takerAssetAmount: new BigNumber(2).multipliedBy(ONE_ETH_IN_WEI),
         makerAssetAmount: new BigNumber(2).multipliedBy(ONE_ETH_IN_WEI),
@@ -45,7 +45,7 @@ const PARTIAL_PRUNED_SIGNED_ORDERS: Array<Partial<SignedOrderWithFillableAmounts
     },
 ];
 
-const PARTIAL_LARGE_PRUNED_SIGNED_ORDERS: Array<Partial<SignedOrderWithFillableAmounts>> = [
+const PARTIAL_LARGE_PRUNED_SIGNED_ORDERS: Array<Partial<OrderWithFillableAmounts>> = [
     {
         takerAssetAmount: new BigNumber(20).multipliedBy(ONE_ETH_IN_WEI),
         makerAssetAmount: new BigNumber(20).multipliedBy(ONE_ETH_IN_WEI),
@@ -135,9 +135,9 @@ describe('swapQuoteConsumerUtils', () => {
     });
 
     describe('getConsumerTypeForSwapQuoteAsync', () => {
-        let forwarderOrders: SignedOrderWithFillableAmounts[];
-        let exchangeOrders: SignedOrderWithFillableAmounts[];
-        let largeForwarderOrders: SignedOrderWithFillableAmounts[];
+        let forwarderOrders: OrderWithFillableAmounts[];
+        let exchangeOrders: OrderWithFillableAmounts[];
+        let largeForwarderOrders: OrderWithFillableAmounts[];
         let forwarderSwapQuote: SwapQuote;
         let exchangeSwapQuote: SwapQuote;
         let largeForwarderSwapQuote: SwapQuote;
@@ -150,7 +150,7 @@ describe('swapQuoteConsumerUtils', () => {
                     ...order,
                     ...partialOrder,
                 };
-                exchangeOrders.push(prunedOrder as SignedOrderWithFillableAmounts);
+                exchangeOrders.push(prunedOrder as OrderWithFillableAmounts);
             }
 
             forwarderOrders = [];
@@ -160,7 +160,7 @@ describe('swapQuoteConsumerUtils', () => {
                     ...order,
                     ...partialOrder,
                 };
-                forwarderOrders.push(prunedOrder as SignedOrderWithFillableAmounts);
+                forwarderOrders.push(prunedOrder as OrderWithFillableAmounts);
             }
 
             largeForwarderOrders = [];
@@ -170,7 +170,7 @@ describe('swapQuoteConsumerUtils', () => {
                     ...order,
                     ...partialOrder,
                 };
-                largeForwarderOrders.push(prunedOrder as SignedOrderWithFillableAmounts);
+                largeForwarderOrders.push(prunedOrder as OrderWithFillableAmounts);
             }
 
             forwarderSwapQuote = await getFullyFillableSwapQuoteWithNoFeesAsync(

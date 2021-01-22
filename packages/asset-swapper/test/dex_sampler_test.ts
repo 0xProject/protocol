@@ -1,6 +1,6 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { expect, getRandomFloat, getRandomInteger, randomAddress, toBaseUnitAmount } from '@0x/contracts-test-utils';
-import { generatePseudoRandomSalt, LimitOrder, LimitOrderFields } from '@0x/protocol-utils';
+import { LimitOrder, LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -10,6 +10,7 @@ import { ERC20BridgeSource, TokenAdjacencyGraph } from '../src/utils/market_oper
 
 import { MockBalancerPoolsCache } from './utils/mock_balancer_pools_cache';
 import { MockSamplerContract } from './utils/mock_sampler_contract';
+import { generatePseudoRandomSalt } from './utils/utils';
 
 class MockLimitOrder extends LimitOrder {
     public signature?: string;
@@ -422,7 +423,7 @@ describe('DexSampler tests', () => {
                     expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Eth2Dai]).integerValue());
                 },
-                sampleSellsFromUniswapV2: (path, fillAmounts) => {
+                sampleSellsFromUniswapV2: (router, path, fillAmounts) => {
                     if (path.length === 2) {
                         expect(path).to.deep.eq([expectedTakerToken, expectedMakerToken]);
                     } else if (path.length === 3) {
@@ -531,7 +532,7 @@ describe('DexSampler tests', () => {
                     expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Eth2Dai]).integerValue());
                 },
-                sampleBuysFromUniswapV2: (path, fillAmounts) => {
+                sampleBuysFromUniswapV2: (router, path, fillAmounts) => {
                     if (path.length === 2) {
                         expect(path).to.deep.eq([expectedTakerToken, expectedMakerToken]);
                     } else if (path.length === 3) {

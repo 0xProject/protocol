@@ -30,6 +30,7 @@ blockchainTests('erc20-bridge-sampler', env => {
     const ETH2DAI_SALT = '0xb713b61bb9bb2958a0f5d1534b21e94fc68c4c0c034b0902ed844f2f6cd1b4f7';
     const UNISWAP_BASE_SALT = '0x1d6a6a0506b0b4a554b907a4c29d9f4674e461989d9c1921feb17b26716385ab';
     const UNISWAP_V2_SALT = '0xadc7fcb33c735913b8635927e66896b356a53a912ab2ceff929e60a04b53b3c1';
+    let UNISWAP_V2_ROUTER = '';
     const ERC20_PROXY_ID = '0xf47261b0';
     const INVALID_TOKEN_PAIR_ERROR = 'ERC20BridgeSampler/INVALID_TOKEN_PAIR';
     const MAKER_TOKEN = randomAddress();
@@ -44,6 +45,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             env.txDefaults,
             {},
         );
+        UNISWAP_V2_ROUTER = await testContract.uniswapV2Router().callAsync();
     });
 
     function getPackedHash(...args: string[]): string {
@@ -858,7 +860,9 @@ blockchainTests('erc20-bridge-sampler', env => {
         }
 
         it('can return no quotes', async () => {
-            const quotes = await testContract.sampleSellsFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], []).callAsync();
+            const quotes = await testContract
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], [])
+                .callAsync();
             expect(quotes).to.deep.eq([]);
         });
 
@@ -866,7 +870,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = predictSellQuotes([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleSellsFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -876,7 +880,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
             const quotes = await testContract
-                .sampleSellsFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -886,7 +890,11 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = predictSellQuotes([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleSellsFromUniswapV2([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts)
+                .sampleSellsFromUniswapV2(
+                    UNISWAP_V2_ROUTER,
+                    [TAKER_TOKEN, intermediateToken, MAKER_TOKEN],
+                    sampleAmounts,
+                )
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -898,7 +906,9 @@ blockchainTests('erc20-bridge-sampler', env => {
         }
 
         it('can return no quotes', async () => {
-            const quotes = await testContract.sampleBuysFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], []).callAsync();
+            const quotes = await testContract
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], [])
+                .callAsync();
             expect(quotes).to.deep.eq([]);
         });
 
@@ -906,7 +916,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
             const expectedQuotes = predictBuyQuotes([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleBuysFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -916,7 +926,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
             const quotes = await testContract
-                .sampleBuysFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -926,7 +936,11 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
             const expectedQuotes = predictBuyQuotes([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleBuysFromUniswapV2([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts)
+                .sampleBuysFromUniswapV2(
+                    UNISWAP_V2_ROUTER,
+                    [TAKER_TOKEN, intermediateToken, MAKER_TOKEN],
+                    sampleAmounts,
+                )
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -1014,12 +1028,12 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sellAmount = _.last(getSampleAmounts(TAKER_TOKEN))!;
             const uniswapV2FirstHopPath = [TAKER_TOKEN, INTERMEDIATE_TOKEN];
             const uniswapV2FirstHop = testContract
-                .sampleSellsFromUniswapV2(uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const uniswapV2SecondHopPath = [INTERMEDIATE_TOKEN, randomAddress(), MAKER_TOKEN];
             const uniswapV2SecondHop = testContract
-                .sampleSellsFromUniswapV2(uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const eth2DaiFirstHop = testContract
@@ -1065,12 +1079,12 @@ blockchainTests('erc20-bridge-sampler', env => {
             const buyAmount = _.last(getSampleAmounts(MAKER_TOKEN))!;
             const uniswapV2FirstHopPath = [TAKER_TOKEN, INTERMEDIATE_TOKEN];
             const uniswapV2FirstHop = testContract
-                .sampleBuysFromUniswapV2(uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const uniswapV2SecondHopPath = [INTERMEDIATE_TOKEN, randomAddress(), MAKER_TOKEN];
             const uniswapV2SecondHop = testContract
-                .sampleBuysFromUniswapV2(uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const eth2DaiFirstHop = testContract

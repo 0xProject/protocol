@@ -1,10 +1,4 @@
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    LimitOrderFields,
-    RfqOrder,
-    RfqOrderFields,
-} from '@0x/protocol-utils';
+import { LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -20,7 +14,6 @@ import {
     NativeLimitOrderFillData,
     NativeOrderWithFillableAmounts,
     NativeRfqOrderFillData,
-    SignedNativeOrder,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
 

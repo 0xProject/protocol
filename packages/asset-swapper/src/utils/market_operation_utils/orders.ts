@@ -1,6 +1,5 @@
 import {
     BridgeSource,
-    CommonOrderFields,
     FillQuoteTransformerOrderType,
     LimitOrder,
     LimitOrderFields,
@@ -28,7 +27,6 @@ import {
     MultiHopFillData,
     NativeCollapsedFill,
     NativeLimitOrderFillData,
-    NativeOrderWithFillableAmounts,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
@@ -328,19 +326,6 @@ function createCurveBridgeData(
 function createUniswapV2BridgeData(tokenAddressPath: string[], router: string): string {
     const encoder = AbiEncoder.create('(address,address[])');
     return encoder.encode([router, tokenAddressPath]);
-}
-
-function getSlippedBridgeAssetAmounts(fill: CollapsedFill, opts: CreateOrderFromPathOpts): [BigNumber, BigNumber] {
-    return [
-        // Maker asset amount.
-        opts.side === MarketOperation.Sell
-            ? fill.output.times(1 - opts.bridgeSlippage).integerValue(BigNumber.ROUND_DOWN)
-            : fill.input,
-        // Taker asset amount.
-        opts.side === MarketOperation.Sell
-            ? fill.input
-            : BigNumber.min(fill.output.times(opts.bridgeSlippage + 1).integerValue(BigNumber.ROUND_UP), MAX_UINT256),
-    ];
 }
 
 function getBridgeTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
