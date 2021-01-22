@@ -1,6 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
-import { CommonOrderFields, LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import { CommonOrderFields, LimitOrderFields, RfqOrder, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
 import { APIOrder as APIOrderV3 } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -15,7 +15,8 @@ import {
 import { QuoteReport } from './utils/quote_report_generator';
 
 export interface APIOrder extends Omit<APIOrderV3, 'order'> {
-    order: LimitOrder;
+    order: LimitOrderFields;
+    signature: Signature;
 }
 
 /**
@@ -212,7 +213,7 @@ export interface SwapQuoteBase {
  * type: Specified MarketOperation the SwapQuote is provided for
  */
 export interface MarketSellSwapQuote extends SwapQuoteBase {
-    takerAssetFillAmount: BigNumber;
+    takerTokenFillAmount: BigNumber;
     type: MarketOperation.Sell;
 }
 
@@ -221,7 +222,7 @@ export interface MarketSellSwapQuote extends SwapQuoteBase {
  * type: Specified MarketOperation the SwapQuote is provided for
  */
 export interface MarketBuySwapQuote extends SwapQuoteBase {
-    makerAssetFillAmount: BigNumber;
+    makerTokenFillAmount: BigNumber;
     type: MarketOperation.Buy;
 }
 

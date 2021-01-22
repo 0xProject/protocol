@@ -48,7 +48,7 @@ const BRIDGE_ORDER_DEFAULT_VALUES = {
     takerTokenAmount: ZERO,
     makerTokenAmount: ZERO,
     bridgeData: '',
-}
+};
 
 export type CommonOrderFields = typeof COMMON_ORDER_DEFAULT_VALUES;
 export type LimitOrderFields = typeof LIMIT_ORDER_DEFAULT_VALUES;

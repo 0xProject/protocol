@@ -84,7 +84,7 @@ export enum FillQuoteTransformerSide {
  * Represents either `FillQuoteTransformer.LimitOrderInfo`
  * or `FillQuoteTransformer.RfqOrderInfo`
  */
-interface FillQouteTransformerNativeOrderInfo<T> {
+interface FillQuoteTransformerNativeOrderInfo<T> {
     order: T;
     signature: Signature;
     maxTakerTokenFillAmount: BigNumber;
@@ -107,8 +107,8 @@ export interface FillQuoteTransformerData {
     sellToken: string;
     buyToken: string;
     bridgeOrders: FillQuoteTransformerBridgeOrder[];
-    limitOrders: Array<FillQouteTransformerNativeOrderInfo<LimitOrderFields>>;
-    rfqOrders: Array<FillQouteTransformerNativeOrderInfo<RfqOrderFields>>;
+    limitOrders: FillQuoteTransformerLimitOrderInfo[];
+    rfqOrders: FillQuoteTransformerLimitOrderInfo[];
     fillSequence: FillQuoteTransformerOrderType[];
     fillAmount: BigNumber;
     refundReceiver: string;
@@ -152,12 +152,12 @@ export interface FillQuoteTransformerBridgeOrder {
 /**
  * `FillQuoteTransformer.LimitOrderInfo`
  */
-export type FillQuoteTransformerLimitOrderInfo = FillQouteTransformerNativeOrderInfo<LimitOrder>;
+export type FillQuoteTransformerLimitOrderInfo = FillQuoteTransformerNativeOrderInfo<LimitOrderFields>;
 
 /**
  * `FillQuoteTransformer.RfqOrderInfo`
  */
-export type FillQuoteTransformerRfqOrderInfo = FillQouteTransformerNativeOrderInfo<RfqOrder>;
+export type FillQuoteTransformerRfqOrderInfo = FillQuoteTransformerNativeOrderInfo<RfqOrderFields>;
 
 /**
  * ABI-encode a `FillQuoteTransformer.TransformData` type.

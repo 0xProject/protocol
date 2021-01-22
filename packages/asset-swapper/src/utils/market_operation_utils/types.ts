@@ -1,14 +1,16 @@
-import { FillQuoteTransformerOrderType, LimitOrderFields, RfqOrderFields, Signature } from '@0x/protocol-utils';
+import {
+    FillQuoteTransformerOrderType,
+    LimitOrderFields,
+    RfqOrderFields,
+    Signature,
+    FillQuoteTransformerLimitOrderInfo,
+    FillQuoteTransformerRfqOrderInfo,
+} from '@0x/protocol-utils';
 import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import {
-    NativeOrderFillableAmountFields,
-    OrderWithFillableAmounts,
-    RfqtFirmQuoteValidator,
-    RfqtRequestOpts,
-} from '../../types';
+import { NativeOrderFillableAmountFields, RfqtFirmQuoteValidator, RfqtRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
@@ -91,20 +93,10 @@ export interface SnowSwapInfo extends CurveInfo {}
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
 
-export interface SourceInfo<TFillData extends FillData = FillData> {
-    source: ERC20BridgeSource;
-    fillData?: TFillData;
-}
-
-interface OrderSignature {
-    signature: Signature;
-}
 // `FillData` for native fills.
-export type NativeRfqOrderFillData = RfqOrderFields & OrderSignature & OrderWithFillableAmounts & FillData;
-export type NativeLimitOrderFillData = NativeFillData;
-// TODO rename to NativeLimitOrderFillData
-export type NativeFillData = LimitOrderFields & OrderSignature & OrderWithFillableAmounts & FillData;
-
+export type NativeRfqOrderFillData = FillQuoteTransformerRfqOrderInfo;
+export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo;
+export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData;
 export interface CurveFillData extends FillData {
     fromTokenIdx: number;
     toTokenIdx: number;
@@ -181,7 +173,9 @@ export interface MultiHopFillData extends FillData {
 /**
  * Represents an individual DEX sample from the sampler contract.
  */
-export interface DexSample<TFillData extends FillData = FillData> extends SourceInfo<TFillData> {
+export interface DexSample<TFillData extends FillData = FillData> {
+    source: ERC20BridgeSource;
+    fillData: TFillData;
     input: BigNumber;
     output: BigNumber;
 }
@@ -189,7 +183,10 @@ export interface DexSample<TFillData extends FillData = FillData> extends Source
 /**
  * Represents a node on a fill path.
  */
-export interface Fill<TFillData extends FillData = FillData> extends SourceInfo<TFillData> {
+export interface Fill<TFillData extends FillData = FillData> {
+    // basic data for every fill
+    source: ERC20BridgeSource;
+    fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -211,7 +208,9 @@ export interface Fill<TFillData extends FillData = FillData> extends SourceInfo<
 /**
  * Represents continguous fills on a path that have been merged together.
  */
-export interface CollapsedFill<TFillData extends FillData = FillData> extends SourceInfo<TFillData> {
+export interface CollapsedFill<TFillData extends FillData = FillData> {
+    source: ERC20BridgeSource;
+    fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -249,8 +248,8 @@ export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFill
 
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
-    type: FillQuoteTransformerOrderType;
     fillData: TFillData;
+    type: FillQuoteTransformerOrderType; // should correspond with TFillData
     makerToken: string;
     takerToken: string;
     makerTokenAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
@@ -377,10 +376,9 @@ export interface BatchedOperation<TResult> {
     handleRevert(callResults: string): TResult;
 }
 
-export interface SourceQuoteOperation<TFillData extends FillData = FillData>
-    extends BatchedOperation<BigNumber[]>,
-        SourceInfo<TFillData> {
+export interface SourceQuoteOperation<TFillData extends FillData = FillData> extends BatchedOperation<BigNumber[]> {
     readonly source: ERC20BridgeSource;
+    fillData: TFillData;
 }
 
 export interface OptimizerResult {

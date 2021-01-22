@@ -157,7 +157,6 @@ export {
     OptimizedMarketOrder,
     SnowSwapFillData,
     SnowSwapInfo,
-    SourceInfo,
     SourceQuoteOperation,
     SushiSwapFillData,
     SwerveFillData,

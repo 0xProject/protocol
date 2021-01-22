@@ -6,7 +6,6 @@ import {
     encodePayTakerTransformerData,
     encodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
-    FillQuoteTransformerBridgeOrder,
     FillQuoteTransformerData,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
@@ -43,8 +42,6 @@ import {
     OptimizedMarketOrder,
     UniswapV2FillData,
 } from '../utils/market_operation_utils/types';
-
-import { getSwapMinBuyAmount } from './utils';
 
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
@@ -208,7 +205,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 }),
             });
         } else {
-            const fillAmount = isBuyQuote(quote) ? quote.makerAssetFillAmount : quote.takerAssetFillAmount;
+            const fillAmount = isBuyQuote(quote) ? quote.makerTokenFillAmount : quote.takerTokenFillAmount;
 
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,

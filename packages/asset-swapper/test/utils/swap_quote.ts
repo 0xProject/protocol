@@ -1,27 +1,27 @@
 import { BigNumber } from '@0x/utils';
 
-import { ERC20BridgeSource } from '../../src';
+import { ERC20BridgeSource, OptimizedMarketOrder } from '../../src';
 import { constants } from '../../src/constants';
-import { MarketOperation, OrderWithFillableAmounts, SwapQuote } from '../../src/types';
+import { MarketOperation, SwapQuote, SwapQuoteBase } from '../../src/types';
 
 /**
  * Creates a swap quote given orders.
  */
 export async function getFullyFillableSwapQuoteWithNoFeesAsync(
-    makerAssetData: string,
-    takerAssetData: string,
-    orders: OrderWithFillableAmounts[],
+    makerToken: string,
+    takerToken: string,
+    orders: OptimizedMarketOrder[],
     operation: MarketOperation,
     gasPrice: BigNumber,
 ): Promise<SwapQuote> {
-    const makerAssetFillAmount = BigNumber.sum(...[0, ...orders.map(o => o.makerAssetAmount)]);
-    const totalTakerAssetAmount = BigNumber.sum(...[0, ...orders.map(o => o.takerAssetAmount)]);
+    const makerAmount = BigNumber.sum(...[0, ...orders.map(o => o.makerAmount)]);
+    const takerAmount = BigNumber.sum(...[0, ...orders.map(o => o.takerAmount)]);
     const protocolFeePerOrder = constants.PROTOCOL_FEE_MULTIPLIER.times(gasPrice);
     const quoteInfo = {
-        makerAssetAmount: makerAssetFillAmount,
-        feeTakerAssetAmount: constants.ZERO_AMOUNT,
-        takerAssetAmount: totalTakerAssetAmount,
-        totalTakerAssetAmount,
+        makerAmount,
+        feeTakerTokenAmount: constants.ZERO_AMOUNT,
+        takerAmount,
+        totalTakerAmount: takerAmount,
         protocolFeeInWeiAmount: protocolFeePerOrder.times(orders.length),
         gas: 200e3,
     };
@@ -30,36 +30,32 @@ export async function getFullyFillableSwapQuoteWithNoFeesAsync(
         [ERC20BridgeSource.Native]: new BigNumber(1),
     };
 
-    const quoteBase = {
-        makerAssetData,
-        takerAssetData,
+    const quoteBase: SwapQuoteBase = {
+        makerToken,
+        takerToken,
         orders: orders.map(order => ({ ...order, fills: [] })),
         gasPrice,
         bestCaseQuoteInfo: quoteInfo,
         worstCaseQuoteInfo: quoteInfo,
-        unoptimizedQuoteInfo: quoteInfo,
-        unoptimizedOrders: orders.map(order => ({ ...order, fills: [] })),
         sourceBreakdown: breakdown,
         isTwoHop: false,
-        takerAssetToEthRate: constants.ZERO_AMOUNT,
-        makerAssetToEthRate: constants.ZERO_AMOUNT,
+        takerTokenToEthRate: constants.ZERO_AMOUNT,
+        makerTokenToEthRate: constants.ZERO_AMOUNT,
+        makerTokenDecimals: 18,
+        takerTokenDecimals: 18,
     };
 
     if (operation === MarketOperation.Buy) {
         return {
             ...quoteBase,
             type: MarketOperation.Buy,
-            makerAssetFillAmount,
-            makerTokenDecimals: 18,
-            takerTokenDecimals: 18,
+            makerTokenFillAmount: makerAmount,
         };
     } else {
         return {
             ...quoteBase,
             type: MarketOperation.Sell,
-            takerAssetFillAmount: totalTakerAssetAmount,
-            makerTokenDecimals: 18,
-            takerTokenDecimals: 18,
+            takerTokenFillAmount: takerAmount,
         };
     }
 }
