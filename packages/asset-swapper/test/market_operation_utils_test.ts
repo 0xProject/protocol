@@ -85,7 +85,7 @@ async function getMarketSellOrdersAsync(
     takerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
-    return utils.getMarketSideOrdersAsync(nativeOrders, takerAmount, MarketOperation.Sell, opts);
+    return utils.getOptimizerResultAsync(nativeOrders, takerAmount, MarketOperation.Sell, opts);
 }
 
 /**
@@ -102,7 +102,7 @@ async function getMarketBuyOrdersAsync(
     makerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
-    return utils.getMarketSideOrdersAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
+    return utils.getOptimizerResultAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
 }
 
 // tslint:disable: custom-no-magic-numbers promise-function-async
@@ -665,7 +665,7 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.once());
 
                 const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                await mockedMarketOpUtils.object.getOptimizerResultAsync(
                     ORDERS,
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -763,7 +763,7 @@ describe('MarketOperationUtils tests', () => {
                             },
                         };
                     });
-                const result = await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                const result = await mockedMarketOpUtils.object.getOptimizerResultAsync(
                     ORDERS,
                     Web3Wrapper.toBaseUnitAmount(1, 18),
                     MarketOperation.Sell,
@@ -808,7 +808,7 @@ describe('MarketOperationUtils tests', () => {
                 const requestor = getMockedQuoteRequestor('firm', [], TypeMoq.Times.once());
 
                 const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                await mockedMarketOpUtils.object.getOptimizerResultAsync(
                     ORDERS,
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -859,7 +859,7 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.exactly(2));
 
                 const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                await mockedMarketOpUtils.object.getOptimizerResultAsync(
                     ORDERS.slice(2, ORDERS.length),
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -917,7 +917,7 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.exactly(2));
 
                 const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                await mockedMarketOpUtils.object.getOptimizerResultAsync(
                     ORDERS.slice(1, ORDERS.length),
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -979,7 +979,7 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.exactly(2));
 
                 const totalAssetAmount = ORDERS.map(o => o.order.takerAmount).reduce((a, b) => a.plus(b));
-                await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                await mockedMarketOpUtils.object.getOptimizerResultAsync(
                     ORDERS.slice(2, ORDERS.length),
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -1022,7 +1022,7 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.exactly(1));
 
                 try {
-                    await mockedMarketOpUtils.object.getMarketSideOrdersAsync(
+                    await mockedMarketOpUtils.object.getOptimizerResultAsync(
                         ORDERS.slice(2, ORDERS.length),
                         ORDERS[0].order.takerAmount,
                         MarketOperation.Sell,
@@ -1259,7 +1259,7 @@ describe('MarketOperationUtils tests', () => {
                 });
 
                 const sampler = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
-                const ordersAndReport = await sampler.getMarketSideOrdersAsync(
+                const ordersAndReport = await sampler.getOptimizerResultAsync(
                     [
                         {
                             order: new LimitOrder({
@@ -1314,7 +1314,7 @@ describe('MarketOperationUtils tests', () => {
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);
-                const improvedOrdersResponse = await optimizer.getMarketSideOrdersAsync(
+                const improvedOrdersResponse = await optimizer.getOptimizerResultAsync(
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     MarketOperation.Sell,
@@ -1745,7 +1745,7 @@ describe('MarketOperationUtils tests', () => {
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);
-                const improvedOrdersResponse = await optimizer.getMarketSideOrdersAsync(
+                const improvedOrdersResponse = await optimizer.getOptimizerResultAsync(
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     MarketOperation.Buy,

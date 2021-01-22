@@ -291,15 +291,10 @@ export interface RfqtRequestOpts {
 /**
  * gasPrice: gas price to determine protocolFee amount, default to ethGasStation fast amount
  */
-export interface SwapQuoteRequestOpts extends CalculateSwapQuoteOpts {
+export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
     gasPrice?: BigNumber;
     rfqt?: RfqtRequestOpts;
 }
-
-/**
- * Opts required to generate a SwapQuote with SwapQuoteCalculator
- */
-export interface CalculateSwapQuoteOpts extends GetMarketOrdersOpts {}
 
 /**
  * A mapping from RFQ-T quote provider URLs to the trading pairs they support.

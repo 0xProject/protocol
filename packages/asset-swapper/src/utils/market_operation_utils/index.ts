@@ -575,7 +575,7 @@ export class MarketOperationUtils {
         };
     }
 
-    public async getMarketSideOrdersAsync(
+    public async getOptimizerResultAsync(
         nativeOrders: SignedNativeOrder[],
         amount: BigNumber,
         side: MarketOperation,

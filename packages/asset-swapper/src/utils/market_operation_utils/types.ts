@@ -252,8 +252,8 @@ export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData>
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
     makerToken: string;
     takerToken: string;
-    makerTokenAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
-    takerTokenAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
+    makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
+    takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
     fills: CollapsedFill[];
 }
 
