@@ -52,6 +52,7 @@ interface IZrxTreasury {
         bytes32[] operatedPoolIds,
         uint256 proposalId,
         ProposedAction[] actions,
+        uint256 executionEpoch,
         string description
     );
 
@@ -102,13 +103,13 @@ interface IZrxTreasury {
     ///      created, voting starts at the epoch after next (currentEpoch + 2).
     ///      If the vote passes, the proposal is executable during the
     ///      `executionEpoch`. See `hasProposalPassed` for the passing criteria.
-    /// @param actions The proposed ZRX actions. A action specifies an
-    ///        amount of ZRX to award to a specified recipient address.
+    /// @param actions The proposed ZRX actions. An action specifies a
+    ///        contract call.
     /// @param executionEpoch The epoch during which the proposal is to
     ///        be executed if it passes. Must be at least two epochs
     ///        from the current epoch.
     /// @param description A text description for the proposal.
-    /// @param operatedPoolIds The pools operated by `account`. The
+    /// @param operatedPoolIds The pools operated by `msg.sender`. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     /// @return proposalId The ID of the newly created proposal.
@@ -126,7 +127,7 @@ interface IZrxTreasury {
     ///      `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
-    /// @param operatedPoolIds The pools operated by `account`. The
+    /// @param operatedPoolIds The pools operated by `msg.sender`. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     function castVote(

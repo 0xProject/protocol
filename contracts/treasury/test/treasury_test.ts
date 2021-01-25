@@ -357,13 +357,23 @@ blockchainTests.resets('Treasury governance', env => {
                 .awaitTransactionSuccessAsync({ from: delegator });
             await fastForwardToNextEpochAsync();
             const currentEpoch = await staking.currentEpoch().callAsync();
+            const executionEpoch = currentEpoch.plus(2);
             const tx = await treasury
-                .propose(actions, currentEpoch.plus(2), PROPOSAL_DESCRIPTION, [])
+                .propose(actions, executionEpoch, PROPOSAL_DESCRIPTION, [])
                 .awaitTransactionSuccessAsync({ from: delegator });
             const proposalId = new BigNumber(0);
             verifyEventsFromLogs(
                 tx.logs,
-                [{ proposer: delegator, operatedPoolIds: [], proposalId, actions, description: PROPOSAL_DESCRIPTION }],
+                [
+                    {
+                        proposer: delegator,
+                        operatedPoolIds: [],
+                        proposalId,
+                        actions,
+                        executionEpoch,
+                        description: PROPOSAL_DESCRIPTION,
+                    },
+                ],
                 ZrxTreasuryEvents.ProposalCreated,
             );
             expect(await treasury.proposalCount().callAsync()).to.bignumber.equal(1);

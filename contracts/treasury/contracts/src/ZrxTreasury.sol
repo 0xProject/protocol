@@ -89,13 +89,13 @@ contract ZrxTreasury is
     ///      created, voting starts at the epoch after next (currentEpoch + 2).
     ///      If the vote passes, the proposal is executable during the
     ///      `executionEpoch`. See `hasProposalPassed` for the passing criteria.
-    /// @param actions The proposed ZRX actions. A action specifies an
-    ///        amount of ZRX to award to a specified recipient address.
+    /// @param actions The proposed ZRX actions. An action specifies a
+    ///        contract call.
     /// @param executionEpoch The epoch during which the proposal is to
     ///        be executed if it passes. Must be at least two epochs
     ///        from the current epoch.
     /// @param description A text description for the proposal.
-    /// @param operatedPoolIds The pools operated by `account`. The
+    /// @param operatedPoolIds The pools operated by `msg.sender`. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     /// @return proposalId The ID of the newly created proposal.
@@ -134,6 +134,7 @@ contract ZrxTreasury is
             operatedPoolIds,
             proposalId,
             actions,
+            executionEpoch,
             description
         );
     }
@@ -143,7 +144,7 @@ contract ZrxTreasury is
     ///      `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
-    /// @param operatedPoolIds The pools operated by `account`. The
+    /// @param operatedPoolIds The pools operated by `msg.sender`. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     function castVote(
@@ -220,28 +221,6 @@ contract ZrxTreasury is
         }
 
         emit ProposalExecuted(proposalId);
-    }
-
-    function castVoteBySig(
-        uint256 proposalId,
-        bool support,
-        bytes32[] memory operatedPoolIds,
-        LibSignature.Signature memory signature
-    )
-        public
-    {
-        revert("NOT_IMPLEMENTED");
-    }
-
-    function batchCastVoteBySig(
-        uint256[] memory proposalIdBatch,
-        bool[] memory supportBatch,
-        bytes32[][] memory operatedPoolIdsBatch,
-        LibSignature.Signature[] memory signatureBatch
-    )
-        public
-    {
-        revert("NOT_IMPLEMENTED");
     }
 
     /// @dev Returns the total number of proposals.
