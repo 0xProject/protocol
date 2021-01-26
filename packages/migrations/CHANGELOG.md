@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.5.11 - _January 26, 2021_
+
+    * Set BOTH networkId and chainId to 1337 in dockerfile (#118)
+
 ## v6.5.10 - _January 13, 2021_
 
     * Dependencies updated

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.8.1 - _January 26, 2021_
+
+    * Dependencies updated
+
 ## v5.8.0 - _January 13, 2021_
 
     * Automatically Discover Kyber reserves for tokens using `getTradingReserves` (#111)

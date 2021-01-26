@@ -6,7 +6,8 @@
                 "note": "Swallow reverts in `batchGetLimitOrderRelevantStates()` and `batchGetRfqOrderRelevantStates()`",
                 "pr": 117
             }
-        ]
+        ],
+        "timestamp": 1611648096
     },
     {
         "version": "0.18.0",

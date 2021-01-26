@@ -6,7 +6,8 @@
                 "note": "Use `Web3Wrapper.signTypedDataAsync()` instead of removed `Web3Wrapper.signTypedDataV4Async()`",
                 "pr": 124
             }
-        ]
+        ],
+        "timestamp": 1611648096
     },
     {
         "timestamp": 1610510890,

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.18.1 - _January 26, 2021_
+
+    * Swallow reverts in `batchGetLimitOrderRelevantStates()` and `batchGetRfqOrderRelevantStates()` (#117)
+
 ## v0.18.0 - _January 13, 2021_
 
     * Use consistent returndatasize checks in UniswapFeature (#96)
