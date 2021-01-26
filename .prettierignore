@@ -64,6 +64,10 @@ lib
 /contracts/zero-ex/test/generated-wrappers
 /contracts/zero-ex/generated-artifacts
 /contracts/zero-ex/test/generated-artifacts
+/contracts/treasury/generated-wrappers
+/contracts/treasury/test/generated-wrappers
+/contracts/treasury/generated-artifacts
+/contracts/treasury/test/generated-artifacts
 /contracts/staking/build/
 /contracts/coordinator/build/
 /contracts/exchange/build/
