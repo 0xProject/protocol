@@ -55,13 +55,13 @@
         "typescript": "3.0.1"
     },
     "dependencies": {
-        "@0x/assert": "^3.0.19",
-        "@0x/base-contract": "^6.2.14",
+        "@0x/assert": "^3.0.21",
+        "@0x/base-contract": "^6.2.17",
         "@0x/contract-addresses": "^5.9.0",
-        "@0x/json-schemas": "^5.3.4",
+        "@0x/json-schemas": "^5.4.1",
         "@0x/types": "^3.3.1",
-        "@0x/utils": "^6.1.1",
-        "@0x/web3-wrapper": "^7.3.0",
+        "@0x/utils": "^6.2.0",
+        "@0x/web3-wrapper": "^7.4.0",
         "ethereum-types": "^3.4.0",
         "ethers": "~4.0.4"
     },
