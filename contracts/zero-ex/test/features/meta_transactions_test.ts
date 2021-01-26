@@ -94,7 +94,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             value: getRandomInteger(1, '1e18'),
             feeToken: feeToken.address,
             feeAmount: getRandomInteger(1, MAX_FEE_AMOUNT),
-            chainId: 1, // Ganache's `chainid` opcode is hardcoded as 1
+            chainId: 1337,
             verifyingContract: zeroEx.address,
             ...fields,
         });
