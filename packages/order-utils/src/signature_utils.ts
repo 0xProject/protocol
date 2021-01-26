@@ -43,7 +43,6 @@ export const signatureUtils = {
             const signedOrder = await signatureUtils.ecSignTypedDataOrderAsync(supportedProvider, order, signerAddress);
             return signedOrder;
         } catch (err) {
-            console.log(err);
             // HACK: We are unable to handle specific errors thrown since provider is not an object
             //       under our control. It could be Metamask Web3, Ethers, or any general RPC provider.
             //       We check for a user denying the signature request in a way that supports Metamask and
@@ -83,7 +82,6 @@ export const signatureUtils = {
         const typedData = eip712Utils.createOrderTypedData(order);
         try {
             const signature = await web3Wrapper.signTypedDataAsync(normalizedSignerAddress, typedData);
-            console.log(signature);
             const ecSignatureRSV = parseSignatureHexAsRSV(signature);
             const signatureBuffer = Buffer.concat([
                 ethUtil.toBuffer(ecSignatureRSV.v),
