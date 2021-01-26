@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.1.5",
+        "changes": [
+            {
+                "note": "Use `Web3Wrapper.signTypedDataAsync()` instead of removed `Web3Wrapper.signTypedDataV4Async()`",
+                "pr": 124
+            }
+        ]
+    },
+    {
         "timestamp": 1610510890,
         "version": "1.1.4",
         "changes": [
