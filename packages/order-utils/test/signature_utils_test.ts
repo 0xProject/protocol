@@ -120,7 +120,7 @@ describe('Signature utils', () => {
 
             const fakeProvider = {
                 async sendAsync(payload: JSONRPCRequestPayload, callback: JSONRPCErrorCallback): Promise<void> {
-                    if (payload.method === 'eth_signTypedData') {
+                    if (payload.method.startsWith('eth_signTypedData')) {
                         callback(new Error('Internal RPC Error'));
                     } else if (payload.method === 'eth_sign') {
                         const [address, message] = payload.params;
@@ -141,7 +141,7 @@ describe('Signature utils', () => {
         it('should throw if the user denies the signing request', async () => {
             const fakeProvider = {
                 async sendAsync(payload: JSONRPCRequestPayload, callback: JSONRPCErrorCallback): Promise<void> {
-                    if (payload.method === 'eth_signTypedData') {
+                    if (payload.method.startsWith('eth_signTypedData')) {
                         callback(new Error('User denied message signature'));
                     } else if (payload.method === 'eth_sign') {
                         const [address, message] = payload.params;
@@ -165,7 +165,7 @@ describe('Signature utils', () => {
         it('should default to eth_sign if eth_signTypedData is unavailable', async () => {
             const fakeProvider = {
                 async sendAsync(payload: JSONRPCRequestPayload, callback: JSONRPCErrorCallback): Promise<void> {
-                    if (payload.method === 'eth_signTypedData') {
+                    if (payload.method.startsWith('eth_signTypedData')) {
                         callback(new Error('Internal RPC Error'));
                     } else if (payload.method === 'eth_sign') {
                         const [address, message] = payload.params;
@@ -190,7 +190,7 @@ describe('Signature utils', () => {
         it('should throw if the user denies the signing request', async () => {
             const fakeProvider = {
                 async sendAsync(payload: JSONRPCRequestPayload, callback: JSONRPCErrorCallback): Promise<void> {
-                    if (payload.method === 'eth_signTypedData') {
+                    if (payload.method.startsWith('eth_signTypedData')) {
                         callback(new Error('User denied message signature'));
                     } else if (payload.method === 'eth_sign') {
                         const [address, message] = payload.params;
@@ -304,9 +304,9 @@ describe('Signature utils', () => {
                 '0x1b65b7b6205a4511cc81ec8f1b3eb475b398d60985089a3041c74735109f207e99542c7f0f81b0a988317e89b8280ec72829c8532a04c376f1f1236589c911545002';
             const fakeProvider = {
                 async sendAsync(payload: JSONRPCRequestPayload, callback: JSONRPCErrorCallback): Promise<void> {
-                    if (payload.method === 'eth_signTypedData') {
+                    if (payload.method.startsWith('eth_signTypedData')) {
                         const [address, typedData] = payload.params;
-                        const signature = await web3Wrapper.signTypedDataAsync(address, typedData);
+                        const signature = await web3Wrapper.signTypedDataAsync(address, JSON.parse(typedData));
                         callback(null, {
                             id: 42,
                             jsonrpc: '2.0',
@@ -347,9 +347,9 @@ describe('Signature utils', () => {
         it('should return the correct Signature for signatureHex concatenated as R + S + V', async () => {
             const fakeProvider = {
                 async sendAsync(payload: JSONRPCRequestPayload, callback: JSONRPCErrorCallback): Promise<void> {
-                    if (payload.method === 'eth_signTypedData') {
+                    if (payload.method.startsWith('eth_signTypedData')) {
                         const [address, typedData] = payload.params;
-                        const signature = await web3Wrapper.signTypedDataAsync(address, typedData);
+                        const signature = await web3Wrapper.signTypedDataAsync(address, JSON.parse(typedData));
                         callback(null, {
                             id: 42,
                             jsonrpc: '2.0',

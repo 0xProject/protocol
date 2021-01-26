@@ -84,6 +84,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         return getRandomLimitOrder({
             maker,
             verifyingContract,
+            chainId: 1337,
             takerToken: takerToken.address,
             makerToken: makerToken.address,
             taker: NULL_ADDRESS,
@@ -96,6 +97,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         return getRandomRfqOrder({
             maker,
             verifyingContract,
+            chainId: 1337,
             takerToken: takerToken.address,
             makerToken: makerToken.address,
             txOrigin: taker,
