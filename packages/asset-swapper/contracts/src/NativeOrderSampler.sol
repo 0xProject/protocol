@@ -124,19 +124,6 @@ contract NativeOrderSampler {
     /// @dev Gas limit for calls to `getOrderFillableTakerAmount()`.
     uint256 constant internal DEFAULT_CALL_GAS = 200e3; // 200k
 
-    function getTokenDecimals(
-        address makerTokenAddress,
-        address takerTokenAddress
-    )
-        public
-        view
-        returns (uint256, uint256)
-    {
-        uint256 fromTokenDecimals = LibERC20TokenV06.compatDecimals(IERC20TokenV06(makerTokenAddress));
-        uint256 toTokenDecimals = LibERC20TokenV06.compatDecimals(IERC20TokenV06(takerTokenAddress));
-        return (fromTokenDecimals, toTokenDecimals);
-    }
-
     /// @dev Queries the fillable taker asset amounts of native orders.
     ///      Effectively ignores orders that have empty signatures or
     ///      maker/taker asset amounts (returning 0).
