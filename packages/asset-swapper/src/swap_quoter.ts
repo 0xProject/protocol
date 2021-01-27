@@ -12,6 +12,7 @@ import {
     MarketOperation,
     MarketSellSwapQuote,
     OrderPrunerPermittedFeeTypes,
+    SignedLimitOrder,
     SwapQuote,
     SwapQuoteInfo,
     SwapQuoteOrdersBreakdown,
@@ -43,25 +44,24 @@ import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './
 import { getPriceAwareRFQRolloutFlags } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
 
-export type OrderbookOrder = LimitOrderFields & { signature: string };
 export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,
         takerToken: string,
-        pruneFn?: (o: OrderbookOrder) => boolean,
-    ): Promise<OrderbookOrder[]>;
+        pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[]>;
     public abstract getBatchOrdersAsync(
         makerTokens: string[],
         takerToken: string,
-        pruneFn?: (o: OrderbookOrder) => boolean,
-    ): Promise<OrderbookOrder[][]>;
+        pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[][]>;
     // tslint:disable-next-line:prefer-function-over-method
     public async destroyAsync(): Promise<void> {
         return;
     }
 }
 
-function formatOrderbookOrder(order: OrderbookOrder): SignedNativeOrder {
+function formatSignedLimitOrder(order: SignedLimitOrder): SignedNativeOrder {
     return {
         type: FillQuoteTransformerOrderType.Limit,
         // tslint:disable-next-line
@@ -173,12 +173,12 @@ export class SwapQuoter {
             gasPrice = await this.getGasPriceEstimationOrThrowAsync();
         }
 
-        const apiOrders = await this.orderbook.getBatchOrdersAsync(
+        const batchLimitOrders = await this.orderbook.getBatchOrdersAsync(
             makerTokens,
             targetTakerToken,
             this._limitOrderPruningFn,
         );
-        const allOrders = apiOrders.map(orders => orders.map(o => formatOrderbookOrder(o)));
+        const allOrders = batchLimitOrders.map(orders => orders.map(o => formatSignedLimitOrder(o)));
 
         const opts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
         const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
@@ -298,8 +298,8 @@ export class SwapQuoter {
                   this.orderbook.getOrdersAsync(makerToken, takerToken),
                   this.orderbook.getOrdersAsync(takerToken, makerToken),
               ]);
-        let sellOrders = sellOrdersRaw.map(formatOrderbookOrder);
-        let buyOrders = buyOrdersRaw.map(formatOrderbookOrder);
+        let sellOrders = sellOrdersRaw.map(formatSignedLimitOrder);
+        let buyOrders = buyOrdersRaw.map(formatSignedLimitOrder);
         if (!sellOrders || sellOrders.length === 0) {
             sellOrders = [
                 {
@@ -493,7 +493,7 @@ export class SwapQuoter {
             ? Promise.resolve([])
             : this.orderbook
                   .getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn)
-                  .then(orders => orders.map(formatOrderbookOrder));
+                  .then(orders => orders.map(formatSignedLimitOrder));
 
         // Join the results together
         const nativeOrders: SignedNativeOrder[] = _.flatten(await Promise.all([limitOrdersPromise, rfqOrdersPromise]));

@@ -1,9 +1,9 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
-import { CommonOrderFields, LimitOrderFields, RfqOrder, Signature } from '@0x/protocol-utils';
+import { CommonOrderFields, LimitOrderFields, RfqOrder } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
-import { APIOrder as APIOrderV3 } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+import { Signature } from 'ethereumjs-util';
 
 import {
     ERC20BridgeSource,
@@ -14,10 +14,8 @@ import {
 } from './utils/market_operation_utils/types';
 import { QuoteReport } from './utils/quote_report_generator';
 
-export interface APIOrder extends Omit<APIOrderV3, 'order'> {
-    order: LimitOrderFields;
-    signature: Signature;
-}
+// TODO (Xianny): move to @0x/types
+export type SignedLimitOrder = LimitOrderFields & { signature: Signature };
 
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).

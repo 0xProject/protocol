@@ -7,15 +7,7 @@ export {
 export { ContractAddresses } from '@0x/contract-addresses';
 export { WSOpts } from '@0x/mesh-rpc-client';
 export { V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder, TakerRequestQueryParams } from '@0x/quote-server';
-export {
-    APIOrder,
-    Asset,
-    AssetPairsItem,
-    DecodedLogEvent,
-    EventCallback,
-    IndexedFilterValues,
-    SignedOrder,
-} from '@0x/types';
+export { Asset, AssetPairsItem, DecodedLogEvent, EventCallback, IndexedFilterValues, SignedOrder } from '@0x/types';
 export { BigNumber } from '@0x/utils';
 export { RfqOrderFields, LimitOrderFields, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 export { AxiosInstance } from 'axios';
@@ -74,7 +66,7 @@ export { artifacts } from './artifacts';
 export { InsufficientAssetLiquidityError } from './errors';
 export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { getSwapMinBuyAmount, getQuoteInfoMinBuyAmount } from './quote_consumers/utils';
-export { SwapQuoter, Orderbook, OrderbookOrder } from './swap_quoter';
+export { SwapQuoter, Orderbook } from './swap_quoter';
 export {
     AffiliateFee,
     AssetSwapperContractAddresses,
@@ -95,6 +87,7 @@ export {
     RfqtFirmQuoteValidator,
     RfqtRequestOpts,
     SamplerOverrides,
+    SignedLimitOrder,
     SwapQuote,
     SwapQuoteConsumerBase,
     SwapQuoteConsumerError,
