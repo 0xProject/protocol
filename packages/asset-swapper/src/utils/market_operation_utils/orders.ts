@@ -11,7 +11,14 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
-import { MAX_UINT256, ZERO_AMOUNT } from './constants';
+import {
+    MAINNET_DODO_HELPER,
+    MAINNET_KYBER_NETWORK_PROXY,
+    MAINNET_OASIS_ROUTER,
+    MAINNET_UNISWAP_V1_ROUTER,
+    MAX_UINT256,
+    ZERO_AMOUNT,
+} from './constants';
 import {
     AggregationError,
     BalancerFillData,
@@ -167,6 +174,18 @@ export function getERC20BridgeSourceToBridgeSource(source: ERC20BridgeSource): B
 
 export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder): string {
     let bridgeData: string;
+    if (
+        order.source === ERC20BridgeSource.MultiHop ||
+        order.source === ERC20BridgeSource.MultiBridge ||
+        order.source === ERC20BridgeSource.Native
+    ) {
+        throw new Error('Invalid order to encode for Bridge Data');
+    }
+    const encoder = BRIDGE_ENCODERS[order.source];
+
+    if (!encoder) {
+        throw new Error(AggregationError.NoBridgeForSource);
+    }
 
     switch (order.source) {
         case ERC20BridgeSource.Curve:
@@ -175,52 +194,54 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const curveFillData = (order as OptimizedMarketBridgeOrder<
                 CurveFillData | SwerveFillData | SnowSwapFillData
             >).fillData!; // tslint:disable-line:no-non-null-assertion
-            bridgeData = createCurveBridgeData(
+            bridgeData = encoder.encode([
                 curveFillData.pool.poolAddress,
                 curveFillData.pool.exchangeFunctionSelector,
                 curveFillData.fromTokenIdx,
                 curveFillData.toTokenIdx,
-            );
+            ]);
             break;
         case ERC20BridgeSource.Balancer:
         case ERC20BridgeSource.Cream:
             const balancerFillData = (order as OptimizedMarketBridgeOrder<BalancerFillData>).fillData;
-            bridgeData = createBalancerBridgeData(balancerFillData.poolAddress);
+            bridgeData = encoder.encode([balancerFillData.poolAddress]);
             break;
         case ERC20BridgeSource.Bancor:
             const bancorFillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
-            bridgeData = createBancorBridgeData(bancorFillData.path, bancorFillData.networkAddress);
+            bridgeData = encoder.encode([bancorFillData.networkAddress, bancorFillData.path]);
             break;
         case ERC20BridgeSource.UniswapV2:
         case ERC20BridgeSource.SushiSwap:
         case ERC20BridgeSource.CryptoCom:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData | SushiSwapFillData>)
                 .fillData;
-            bridgeData = createUniswapV2BridgeData(uniswapV2FillData.tokenAddressPath, uniswapV2FillData.router);
+            bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
         case ERC20BridgeSource.Kyber:
             const kyberFillData = (order as OptimizedMarketBridgeOrder<KyberFillData>).fillData;
-            bridgeData = createKyberBridgeData('0x9AAb3f75489902f3a48495025729a0AF77d4b11e', kyberFillData.hint);
+            bridgeData = encoder.encode([MAINNET_KYBER_NETWORK_PROXY, kyberFillData.hint]);
             break;
         case ERC20BridgeSource.Mooniswap:
             const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
-            bridgeData = createMooniswapBridgeData(mooniswapFillData.poolAddress);
+            bridgeData = encoder.encode([mooniswapFillData.poolAddress]);
             break;
         case ERC20BridgeSource.Dodo:
             const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
-            bridgeData = createDODOBridgeData(
-                '0x533dA777aeDCE766CEAe696bf90f8541A4bA80Eb',
-                dodoFillData.poolAddress,
-                dodoFillData.isSellBase,
-            );
+            bridgeData = encoder.encode([MAINNET_DODO_HELPER, dodoFillData.poolAddress, dodoFillData.isSellBase]);
             break;
         case ERC20BridgeSource.Shell:
             const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
-            bridgeData = createShellBridgeData(shellFillData.poolAddress);
+            bridgeData = encoder.encode([shellFillData.poolAddress]);
             break;
         case ERC20BridgeSource.LiquidityProvider:
             const lpFillData = (order as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
-            bridgeData = createLiquidityProviderBridgeData(lpFillData.poolAddress, createBridgeData(order.takerToken));
+            bridgeData = encoder.encode([lpFillData.poolAddress, tokenAddressEncoder.encode([order.takerToken])]);
+            break;
+        case ERC20BridgeSource.Uniswap:
+            bridgeData = encoder.encode([MAINNET_UNISWAP_V1_ROUTER]);
+            break;
+        case ERC20BridgeSource.Eth2Dai:
+            bridgeData = encoder.encode([MAINNET_OASIS_ROUTER]);
             break;
         default:
             // TODO PLP
@@ -258,75 +279,53 @@ export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, str
     return [makerToken, takerToken];
 }
 
-function createBridgeData(tokenAddress: string): string {
-    const encoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
-    return encoder.encode({ tokenAddress });
-}
+const poolEncoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
+const curveEncoder = AbiEncoder.create([
+    { name: 'curveAddress', type: 'address' },
+    { name: 'exchangeFunctionSelector', type: 'bytes4' },
+    { name: 'fromTokenIdx', type: 'int128' },
+    { name: 'toTokenIdx', type: 'int128' },
+]);
+const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
+const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
-function createLiquidityProviderBridgeData(provider: string, data: string): string {
-    const encoder = AbiEncoder.create([{ name: 'provider', type: 'address' }, { name: 'data', type: 'bytes' }]);
-    return encoder.encode({ provider, data });
-}
-
-function createBalancerBridgeData(poolAddress: string): string {
-    const encoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
-    return encoder.encode([poolAddress]);
-}
-
-function createShellBridgeData(poolAddress: string): string {
-    const encoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
-    return encoder.encode([poolAddress]);
-}
-
-function createBancorBridgeData(path: string[], networkAddress: string): string {
-    const encoder = AbiEncoder.create([
-        { name: 'path', type: 'address[]' },
-        { name: 'networkAddress', type: 'address' },
-    ]);
-    return encoder.encode([path, networkAddress]);
-}
-
-function createKyberBridgeData(kyberNetworkProxy: string, hint: string): string {
-    const encoder = AbiEncoder.create([
+export const BRIDGE_ENCODERS: {
+    [key in Exclude<
+        ERC20BridgeSource,
+        ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop | ERC20BridgeSource.MultiBridge
+    >]: AbiEncoder.DataType
+} = {
+    [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
+        { name: 'provider', type: 'address' },
+        { name: 'data', type: 'bytes' },
+    ]),
+    [ERC20BridgeSource.Kyber]: AbiEncoder.create([
         { name: 'kyberNetworkProxy', type: 'address' },
         { name: 'hint', type: 'bytes' },
-    ]);
-    return encoder.encode([kyberNetworkProxy, hint]);
-}
-
-function createMooniswapBridgeData(poolAddress: string): string {
-    const encoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
-    return encoder.encode([poolAddress]);
-}
-
-function createDODOBridgeData(helper: string, poolAddress: string, isSellBase: boolean): string {
-    const encoder = AbiEncoder.create([
+    ]),
+    [ERC20BridgeSource.Dodo]: AbiEncoder.create([
         { name: 'helper', type: 'address' },
         { name: 'poolAddress', type: 'address' },
         { name: 'isSellBase', type: 'bool' },
-    ]);
-    return encoder.encode([helper, poolAddress, isSellBase]);
-}
-
-function createCurveBridgeData(
-    curveAddress: string,
-    exchangeFunctionSelector: string,
-    fromTokenIdx: number,
-    toTokenIdx: number,
-): string {
-    const encoder = AbiEncoder.create([
-        { name: 'curveAddress', type: 'address' },
-        { name: 'exchangeFunctionSelector', type: 'bytes4' },
-        { name: 'fromTokenIdx', type: 'int128' },
-        { name: 'toTokenIdx', type: 'int128' },
-    ]);
-    return encoder.encode([curveAddress, exchangeFunctionSelector, fromTokenIdx, toTokenIdx]);
-}
-
-function createUniswapV2BridgeData(tokenAddressPath: string[], router: string): string {
-    const encoder = AbiEncoder.create('(address,address[])');
-    return encoder.encode([router, tokenAddressPath]);
-}
+    ]),
+    // Curve like
+    [ERC20BridgeSource.Curve]: curveEncoder,
+    [ERC20BridgeSource.Swerve]: curveEncoder,
+    [ERC20BridgeSource.SnowSwap]: curveEncoder,
+    // UniswapV2 like, (router, address[])
+    [ERC20BridgeSource.Bancor]: routerAddressPathEncoder,
+    [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
+    [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
+    // Generic pools
+    [ERC20BridgeSource.Shell]: poolEncoder,
+    [ERC20BridgeSource.Mooniswap]: poolEncoder,
+    [ERC20BridgeSource.Eth2Dai]: poolEncoder,
+    [ERC20BridgeSource.MStable]: poolEncoder,
+    [ERC20BridgeSource.Balancer]: poolEncoder,
+    [ERC20BridgeSource.Cream]: poolEncoder,
+    [ERC20BridgeSource.Uniswap]: poolEncoder,
+};
 
 function getBridgeTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
     return [
