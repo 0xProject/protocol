@@ -6,18 +6,6 @@ export {
 } from '@0x/base-contract';
 export { ContractAddresses } from '@0x/contract-addresses';
 export { WSOpts } from '@0x/mesh-rpc-client';
-export {
-    AcceptedRejectedOrders,
-    AddedRemovedOrders,
-    BaseOrderProvider,
-    MeshOrderProviderOpts,
-    Orderbook,
-    OrderSet,
-    OrderStore,
-    RejectedOrder,
-    SRAPollingOrderProviderOpts,
-    SRAWebsocketOrderProviderOpts,
-} from '@0x/orderbook';
 export { V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder, TakerRequestQueryParams } from '@0x/quote-server';
 export {
     APIOrder,
@@ -29,6 +17,7 @@ export {
     SignedOrder,
 } from '@0x/types';
 export { BigNumber } from '@0x/utils';
+export { RfqOrderFields, LimitOrderFields, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 export { AxiosInstance } from 'axios';
 export {
     AbiDefinition,
@@ -85,7 +74,7 @@ export { artifacts } from './artifacts';
 export { InsufficientAssetLiquidityError } from './errors';
 export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { getSwapMinBuyAmount, getQuoteInfoMinBuyAmount } from './quote_consumers/utils';
-export { SwapQuoter } from './swap_quoter';
+export { SwapQuoter, Orderbook, OrderbookOrder } from './swap_quoter';
 export {
     AffiliateFee,
     AssetSwapperContractAddresses,
@@ -153,6 +142,8 @@ export {
     MooniswapFillData,
     MultiHopFillData,
     NativeCollapsedFill,
+    NativeRfqOrderFillData,
+    NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
     SnowSwapFillData,

@@ -4,13 +4,7 @@ import { BigNumber } from '@0x/utils';
 import { constants } from '../constants';
 import { MarketOperation } from '../types';
 
-import {
-    CollapsedFill,
-    ERC20BridgeSource,
-    FeeSchedule,
-    NativeLimitOrderFillData,
-    OptimizedMarketOrder,
-} from './market_operation_utils/types';
+import { FeeSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;

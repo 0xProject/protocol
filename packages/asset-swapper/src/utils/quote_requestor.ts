@@ -1,5 +1,5 @@
 import { schemas, SchemaValidator } from '@0x/json-schemas';
-import { FillQuoteTransformerOrderType, RfqOrder, Signature } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';

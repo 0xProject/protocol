@@ -408,7 +408,6 @@ export class MarketOperationUtils {
                 }
                 const { makerToken, takerToken } = nativeOrders[0].order;
                 // const orderFillableAmounts = batchOrderFillableAmounts[i];
-                const orderFillableAmounts: BigNumber[] = [];
                 const ethToTakerAssetRate = batchEthToTakerAssetRate[i];
                 const dexQuotes = batchDexQuotes[i];
                 const makerAmount = makerAmounts[i];
