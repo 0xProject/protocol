@@ -199,6 +199,7 @@ export class SwapQuoter {
                         makerAssetBuyAmounts[i],
                         gasPrice,
                         opts.gasSchedule,
+                        opts.bridgeSlippage,
                     );
                 } else {
                     return undefined;
@@ -545,6 +546,7 @@ export class SwapQuoter {
             assetFillAmount,
             gasPrice,
             opts.gasSchedule,
+            opts.bridgeSlippage,
         );
 
         // Use the raw gas, not scaled by gas price
@@ -570,6 +572,7 @@ function createSwapQuote(
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
     gasSchedule: FeeSchedule,
+    slippage: number,
 ): SwapQuote {
     const { optimizedOrders, quoteReport, sourceFlags, takerTokenToEthRate, makerTokenToEthRate } = optimizerResult;
     const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
@@ -577,7 +580,7 @@ function createSwapQuote(
     // Calculate quote info
     const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
         ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule)
-        : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule);
+        : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
 
     // Put together the swap quote
     const { makerTokenDecimals, takerTokenDecimals } = optimizerResult.marketSideLiquidity;
@@ -618,6 +621,7 @@ function calculateQuoteInfo(
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
     gasSchedule: FeeSchedule,
+    slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const bestCaseFillResult = simulateBestCaseFill({
         gasPrice,
@@ -632,7 +636,7 @@ function calculateQuoteInfo(
         orders: optimizedOrders,
         side: operation,
         fillAmount: assetFillAmount,
-        opts: { gasSchedule },
+        opts: { gasSchedule, slippage },
     });
 
     return {

@@ -105,11 +105,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         const sellToken = quote.takerToken;
         const buyToken = quote.makerToken;
-        // const sellAmount = quote.worstCaseQuoteInfo.totalTakerAmount;
-        const sellAmount = quote.bestCaseQuoteInfo.totalTakerAmount;
-        // let minBuyAmount = getSwapMinBuyAmount(quote);
-        let minBuyAmount = new BigNumber(1);
+
+        // Take the bounds from the worst case
+        const sellAmount = quote.worstCaseQuoteInfo.totalTakerAmount;
+        let minBuyAmount = quote.worstCaseQuoteInfo.makerAmount;
         let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
+
         if (isFromETH) {
             ethAmount = ethAmount.plus(sellAmount);
         }

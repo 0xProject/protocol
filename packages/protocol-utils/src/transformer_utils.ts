@@ -98,7 +98,7 @@ export interface FillQuoteTransformerData {
     buyToken: string;
     bridgeOrders: FillQuoteTransformerBridgeOrder[];
     limitOrders: FillQuoteTransformerLimitOrderInfo[];
-    rfqOrders: FillQuoteTransformerLimitOrderInfo[];
+    rfqOrders: FillQuoteTransformerRfqOrderInfo[];
     fillSequence: FillQuoteTransformerOrderType[];
     fillAmount: BigNumber;
     refundReceiver: string;
@@ -138,7 +138,6 @@ export interface FillQuoteTransformerBridgeOrder {
     makerTokenAmount: BigNumber;
     bridgeData: string;
 }
-
 
 /**
  * Represents either `FillQuoteTransformer.LimitOrderInfo`
