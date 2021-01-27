@@ -93,13 +93,25 @@ export class SamplerOperations {
             .catch(/* do nothing */);
     }
 
-    public getTokenDecimals(makerTokenAddress: string, takerTokenAddress: string): BatchedOperation<BigNumber[]> {
+    public getTokenDecimals(tokens: string[]): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getTokenDecimals,
-            params: [makerTokenAddress, takerTokenAddress],
+            params: [tokens],
         });
+    }
+
+    public isAddressContract(address: string): BatchedOperation<boolean> {
+        return {
+            encodeCall: () => this._samplerContract.isContract(address).getABIEncodedTransactionData(),
+            handleCallResults: (callResults: string) =>
+                this._samplerContract.getABIDecodedReturnData<boolean>('isContract', callResults),
+            handleRevert: () => {
+                /* should never happen */
+                throw new Error('Invalid address for isAddressContract');
+            },
+        };
     }
 
     // public getOrderFillableTakerAmounts(

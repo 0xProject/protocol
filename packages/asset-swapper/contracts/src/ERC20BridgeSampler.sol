@@ -36,6 +36,7 @@ import "./SushiSwapSampler.sol";
 import "./TwoHopSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
+import "./UtilitySampler.sol";
 
 
 contract ERC20BridgeSampler is
@@ -54,7 +55,8 @@ contract ERC20BridgeSampler is
     SushiSwapSampler,
     TwoHopSampler,
     UniswapSampler,
-    UniswapV2Sampler
+    UniswapV2Sampler,
+    UtilitySampler
 {
 
     struct CallResults {

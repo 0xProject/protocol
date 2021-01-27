@@ -20,6 +20,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "../src/NativeOrderSampler.sol";
+import "../src/UtilitySampler.sol";
 
 
 contract TestNativeOrderSamplerToken {
@@ -40,7 +41,8 @@ contract TestNativeOrderSamplerToken {
 }
 
 contract TestNativeOrderSampler is
-    NativeOrderSampler
+    NativeOrderSampler,
+    UtilitySampler
 {
     uint8 private constant MAX_ORDER_STATUS = uint8(IExchange.OrderStatus.CANCELLED) + 1;
     bytes32 private constant VALID_SIGNATURE_HASH = keccak256(hex"01");

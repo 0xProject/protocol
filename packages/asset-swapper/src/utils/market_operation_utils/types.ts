@@ -357,6 +357,9 @@ export interface GetMarketOrdersOpts {
      * sources. Defaults to `true`.
      */
     allowFallback: boolean;
+    /**
+     * Options for RFQT such as takerAddress, intent on filling
+     */
     rfqt?: GetMarketOrdersRfqtOpts;
     /**
      * Whether to generate a quote report
@@ -417,6 +420,7 @@ export interface MarketSideLiquidity {
     makerTokenDecimals: number;
     takerTokenDecimals: number;
     quotes: RawQuotes;
+    isRfqSupported: boolean;
 }
 
 export interface RawQuotes {

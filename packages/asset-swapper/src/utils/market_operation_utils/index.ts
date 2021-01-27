@@ -1,5 +1,5 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
@@ -127,9 +127,12 @@ export class MarketOperationUtils {
             ...(!sampleBalancerOnChain ? [ERC20BridgeSource.Balancer] : []),
         ];
 
+        // Used to determine whether the taker is an EOA or a contract
+        const takerAddress = (_opts.rfqt && _opts.rfqt.takerAddress) || NULL_ADDRESS;
+
         // Call the sampler contract.
         const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals(makerToken, takerToken),
+            this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
             // this._sampler.getOrderFillableTakerAmounts(nativeOrders.map(o => o.order), this.contractAddresses.exchange),
             // Get ETH -> maker token price.
@@ -149,6 +152,7 @@ export class MarketOperationUtils {
                 takerToken,
                 takerAmount,
             ),
+            this._sampler.isAddressContract(takerAddress),
         );
 
         const isPriceAwareRfqEnabled =
@@ -185,6 +189,7 @@ export class MarketOperationUtils {
                 ethToTakerAssetRate,
                 dexQuotes,
                 twoHopQuotes,
+                isTakerContract,
             ],
             rfqtIndicativeQuotes,
             offChainBalancerQuotes,
@@ -192,6 +197,7 @@ export class MarketOperationUtils {
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
+        const isRfqSupported = !isTakerContract;
         return {
             side: MarketOperation.Sell,
             inputAmount: takerAmount,
@@ -208,10 +214,12 @@ export class MarketOperationUtils {
                 //    ...order,
                 //    orderFillableAmount: orderFillableAmounts[i],
                 // })),
-                rfqtIndicativeQuotes,
+                // If the taker is a contract then RFQ cannot be performed
+                rfqtIndicativeQuotes: isRfqSupported ? [] : rfqtIndicativeQuotes,
                 twoHopQuotes,
                 dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes]),
             },
+            isRfqSupported,
         };
     }
 
@@ -258,9 +266,12 @@ export class MarketOperationUtils {
             ...(!sampleBalancerOnChain ? [ERC20BridgeSource.Balancer] : []),
         ];
 
+        // Used to determine whether the taker is an EOA or a contract
+        const takerAddress = (_opts.rfqt && _opts.rfqt.takerAddress) || NULL_ADDRESS;
+
         // Call the sampler contract.
         const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals(makerToken, takerToken),
+            this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
             // this._sampler.getOrderFillableMakerAmounts(nativeOrders.map(o => o.order), this.contractAddresses.exchange),
             // Get ETH -> makerToken token price.
@@ -280,6 +291,7 @@ export class MarketOperationUtils {
                 takerToken,
                 makerAmount,
             ),
+            this._sampler.isAddressContract(takerAddress),
         );
         const isPriceAwareRfqEnabled =
             _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.priceAwareRFQFlag).isIndicativePriceAwareEnabled;
@@ -314,12 +326,14 @@ export class MarketOperationUtils {
                 ethToTakerAssetRate,
                 dexQuotes,
                 twoHopQuotes,
+                isTakerContract,
             ],
             rfqtIndicativeQuotes,
             offChainBalancerQuotes,
             offChainCreamQuotes,
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
+        const isRfqSupported = !isTakerContract;
         return {
             side: MarketOperation.Buy,
             inputAmount: makerAmount,
@@ -336,10 +350,11 @@ export class MarketOperationUtils {
                 //    orderFillableAmount: orderFillableAmounts[i],
                 // })),
                 nativeOrders: [],
-                rfqtIndicativeQuotes,
+                rfqtIndicativeQuotes: isRfqSupported ? [] : rfqtIndicativeQuotes,
                 twoHopQuotes,
                 dexQuotes: dexQuotes.concat(offChainBalancerQuotes, offChainCreamQuotes),
             },
+            isRfqSupported,
         };
     }
 
@@ -390,7 +405,7 @@ export class MarketOperationUtils {
                 ),
             ),
             ...batchNativeOrders.map(orders =>
-                this._sampler.getTokenDecimals(orders[0].order.makerToken, orders[0].order.takerToken),
+                this._sampler.getTokenDecimals([orders[0].order.makerToken, orders[0].order.takerToken]),
             ),
         ];
 
@@ -433,6 +448,7 @@ export class MarketOperationUtils {
                                 rfqtIndicativeQuotes: [],
                                 twoHopQuotes: [],
                             },
+                            isRfqSupported: false,
                         },
                         {
                             bridgeSlippage: _opts.bridgeSlippage,
@@ -626,7 +642,12 @@ export class MarketOperationUtils {
 
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity against the first optimizer result
         const { rfqt } = _opts;
-        if (rfqt && rfqt.quoteRequestor && marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)) {
+        if (
+            marketSideLiquidity.isRfqSupported &&
+            rfqt &&
+            rfqt.quoteRequestor &&
+            marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
+        ) {
             const { isFirmPriceAwareEnabled, isIndicativePriceAwareEnabled } = getPriceAwareRFQRolloutFlags(
                 rfqt.priceAwareRFQFlag,
             );

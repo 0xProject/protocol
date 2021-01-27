@@ -154,7 +154,7 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
                 constants.DUMMY_TOKEN_TOTAL_SUPPLY,
             );
             const [makerDecimals, takerDecimals] = await testContract
-                .getTokenDecimals(newMakerToken.address, newTakerToken.address)
+                .getTokenDecimals([newMakerToken.address, newTakerToken.address])
                 .callAsync();
             expect(makerDecimals.toString()).to.eql('18');
             expect(takerDecimals.toString()).to.eql('6');
