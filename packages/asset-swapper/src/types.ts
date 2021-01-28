@@ -270,12 +270,12 @@ export interface PriceAwareRFQFlags {
  */
 export interface RfqtRequestOpts {
     takerAddress: string;
+    txOrigin: string;
     apiKey: string;
     intentOnFilling: boolean;
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQT?: boolean;
-
     /**
      * This feature flag allows us to merge the price-aware RFQ pricing
      * project while still controlling when to activate the feature. We plan to do some

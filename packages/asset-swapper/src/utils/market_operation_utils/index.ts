@@ -1,4 +1,5 @@
-import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
+import { NULL_BYTES } from '@0x/order-utils';
+import { FillQuoteTransformerOrderType, RfqOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -127,8 +128,8 @@ export class MarketOperationUtils {
             ...(!sampleBalancerOnChain ? [ERC20BridgeSource.Balancer] : []),
         ];
 
-        // Used to determine whether the taker is an EOA or a contract
-        const takerAddress = (_opts.rfqt && _opts.rfqt.takerAddress) || NULL_ADDRESS;
+        // Used to determine whether the tx origin is an EOA or a contract
+        const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
         // Call the sampler contract.
         const samplerPromise = this._sampler.executeAsync(
@@ -152,7 +153,7 @@ export class MarketOperationUtils {
                 takerToken,
                 takerAmount,
             ),
-            this._sampler.isAddressContract(takerAddress),
+            this._sampler.isAddressContract(txOrigin),
         );
 
         const isPriceAwareRfqEnabled =
@@ -189,7 +190,7 @@ export class MarketOperationUtils {
                 ethToTakerAssetRate,
                 dexQuotes,
                 twoHopQuotes,
-                isTakerContract,
+                isTxOriginContract,
             ],
             rfqtIndicativeQuotes,
             offChainBalancerQuotes,
@@ -197,7 +198,7 @@ export class MarketOperationUtils {
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
-        const isRfqSupported = !isTakerContract;
+        const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
         return {
             side: MarketOperation.Sell,
             inputAmount: takerAmount,
@@ -266,8 +267,8 @@ export class MarketOperationUtils {
             ...(!sampleBalancerOnChain ? [ERC20BridgeSource.Balancer] : []),
         ];
 
-        // Used to determine whether the taker is an EOA or a contract
-        const takerAddress = (_opts.rfqt && _opts.rfqt.takerAddress) || NULL_ADDRESS;
+        // Used to determine whether the tx origin is an EOA or a contract
+        const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
         // Call the sampler contract.
         const samplerPromise = this._sampler.executeAsync(
@@ -291,7 +292,7 @@ export class MarketOperationUtils {
                 takerToken,
                 makerAmount,
             ),
-            this._sampler.isAddressContract(takerAddress),
+            this._sampler.isAddressContract(txOrigin),
         );
         const isPriceAwareRfqEnabled =
             _opts.rfqt && getPriceAwareRFQRolloutFlags(_opts.rfqt.priceAwareRFQFlag).isIndicativePriceAwareEnabled;
@@ -326,14 +327,14 @@ export class MarketOperationUtils {
                 ethToTakerAssetRate,
                 dexQuotes,
                 twoHopQuotes,
-                isTakerContract,
+                isTxOriginContract,
             ],
             rfqtIndicativeQuotes,
             offChainBalancerQuotes,
             offChainCreamQuotes,
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
-        const isRfqSupported = !isTakerContract;
+        const isRfqSupported = !isTxOriginContract;
         return {
             side: MarketOperation.Buy,
             inputAmount: makerAmount,
@@ -496,17 +497,17 @@ export class MarketOperationUtils {
         const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(q => ({
             order: {
                 ...q,
-                txOrigin: undefined as any,
-                pool: undefined as any,
-                maker: undefined as any,
-                taker: undefined as any,
-                salt: undefined as any,
-                chainId: undefined as any,
-                verifyingContract: undefined as any,
+                txOrigin: NULL_ADDRESS,
+                pool: NULL_BYTES,
+                maker: NULL_ADDRESS,
+                taker: NULL_ADDRESS,
+                salt: ZERO_AMOUNT,
+                chainId: 1,
+                verifyingContract: NULL_ADDRESS,
             },
-            signature: {} as any,
-            fillableMakerAmount: q.makerAmount,
-            fillableTakerAmount: q.takerAmount,
+            signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.Invalid },
+            fillableMakerAmount: new BigNumber(q.makerAmount),
+            fillableTakerAmount: new BigNumber(q.takerAmount),
             fillableTakerFeeAmount: ZERO_AMOUNT,
             type: FillQuoteTransformerOrderType.Rfq,
         }));
@@ -700,7 +701,10 @@ export class MarketOperationUtils {
                             fillableTakerFeeAmount: ZERO_AMOUNT,
                         }),
                     );
-                    marketSideLiquidity.quotes.nativeOrders.concat(quotesWithOrderFillableAmounts);
+                    marketSideLiquidity.quotes.nativeOrders = [
+                        ...quotesWithOrderFillableAmounts,
+                        ...marketSideLiquidity.quotes.nativeOrders,
+                    ];
 
                     // Re-run optimizer with the new firm quote. This is the second and last time
                     // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
@@ -719,12 +723,12 @@ export class MarketOperationUtils {
         // Compute Quote Report and return the results.
         let quoteReport: QuoteReport | undefined;
         if (_opts.shouldGenerateQuoteReport) {
-            quoteReport = MarketOperationUtils._computeQuoteReport(
-                _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
-                marketSideLiquidity,
-                optimizerResult,
-                wholeOrderPrice,
-            );
+            // quoteReport = MarketOperationUtils._computeQuoteReport(
+            //    _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+            //    marketSideLiquidity,
+            //    optimizerResult,
+            //    wholeOrderPrice,
+            // );
         }
         return { ...optimizerResult, quoteReport };
     }

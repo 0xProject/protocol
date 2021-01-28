@@ -1,7 +1,7 @@
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
@@ -34,7 +34,7 @@ interface RfqQuote<T> {
  * Request quotes from RFQ-T providers
  */
 
-function hasExpectedTokenAddresses(comparisons: Array<[string, string]>): boolean {
+function hasExpectedAddresses(comparisons: Array<[string, string]>): boolean {
     return comparisons.every(c => c[0].toLowerCase() === c[1].toLowerCase());
 }
 
@@ -72,6 +72,7 @@ export class QuoteRequestor {
     private readonly _orderSignatureToMakerUri: { [hash: string]: string } = {};
 
     public static makeQueryParameters(
+        txOrigin: string,
         takerAddress: string,
         marketOperation: MarketOperation,
         buyTokenAddress: string, // maker token
@@ -92,8 +93,9 @@ export class QuoteRequestor {
 
         const requestParamsWithBigNumbers: Pick<
             TakerRequestQueryParams,
-            'buyTokenAddress' | 'sellTokenAddress' | 'takerAddress' | 'comparisonPrice' | 'protocolVersion'
+            'buyTokenAddress' | 'sellTokenAddress' | 'txOrigin' | 'comparisonPrice' | 'protocolVersion' | 'takerAddress'
         > = {
+            txOrigin,
             takerAddress,
             comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
             buyTokenAddress,
@@ -136,14 +138,8 @@ export class QuoteRequestor {
         options: RfqtRequestOpts,
     ): Promise<SignedNativeOrder[]> {
         const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
-        if (
-            _opts.takerAddress === undefined ||
-            _opts.takerAddress === '' ||
-            _opts.takerAddress === '0x' ||
-            !_opts.takerAddress ||
-            _opts.takerAddress === constants.NULL_ADDRESS
-        ) {
-            throw new Error('RFQ-T firm quotes require the presence of a taker address');
+        if (!_opts.txOrigin || [undefined, '', '0x', NULL_ADDRESS].includes(_opts.txOrigin)) {
+            throw new Error('RFQ-T firm quotes require the presence of a tx origin');
         }
 
         const quotesRaw = await this._getQuotesAsync<V4RFQFirmQuote>(
@@ -158,7 +154,10 @@ export class QuoteRequestor {
         const quotes = quotesRaw.map(result => ({ ...result, response: result.response.signedOrder }));
 
         // validate
-        const validationFunction = (o: V4SignedRfqOrder) => this._schemaValidator.isValid(o, schemas.orderSchema); //  TODO (xianny): might not be the right schema, placeholde
+        // const validationFunction = (o: V4SignedRfqOrder) => this._schemaValidator.isValid(o, schemas.orderSchema);
+        //  TODO (xianny): might not be the right schema, placeholde
+        // TODO jacob
+        const validationFunction = (o: V4SignedRfqOrder) => true;
         const validQuotes = quotes.filter(result => {
             const order = result.response;
             if (!validationFunction(order)) {
@@ -166,13 +165,17 @@ export class QuoteRequestor {
                 return false;
             }
             if (
-                !hasExpectedTokenAddresses([
+                !hasExpectedAddresses([
                     [makerToken, order.makerToken],
                     [takerToken, order.takerToken],
                     [_opts.takerAddress, order.taker],
+                    [_opts.txOrigin, order.txOrigin],
                 ])
             ) {
-                this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
+                this._warningLogger(
+                    order,
+                    'Unexpected token, tx origin or taker address in RFQ-T order, filtering out',
+                );
                 return false;
             }
             if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
@@ -186,7 +189,12 @@ export class QuoteRequestor {
         // Save the maker URI for later and return just the order
         const rfqQuotes = validQuotes.map(result => {
             const order: SignedNativeOrder = {
-                order: result.response,
+                order: {
+                    ...result.response,
+                    makerAmount: new BigNumber(result.response.makerAmount),
+                    takerAmount: new BigNumber(result.response.takerAmount),
+                    expiry: new BigNumber(result.response.expiry),
+                },
                 type: FillQuoteTransformerOrderType.Rfq,
                 signature: result.response.signature,
             };
@@ -213,7 +221,7 @@ export class QuoteRequestor {
         if (!_opts.takerAddress) {
             _opts.takerAddress = constants.NULL_ADDRESS;
         }
-        const quotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
+        const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -225,13 +233,13 @@ export class QuoteRequestor {
 
         // validate
         const validationFunction = (o: V4RFQIndicativeQuote) => this._isValidRfqtIndicativeQuoteResponse(o); //  TODO (xianny): might not be the right schema, placeholde
-        const validQuotes = quotes.filter(result => {
+        const validQuotes = rawQuotes.filter(result => {
             const order = result.response;
             if (!validationFunction(order)) {
                 this._warningLogger(result, 'Invalid RFQ-T indicative quote received, filtering out');
                 return false;
             }
-            if (!hasExpectedTokenAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
+            if (!hasExpectedAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
                 return false;
             }
@@ -242,7 +250,13 @@ export class QuoteRequestor {
                 return true;
             }
         });
-        return validQuotes.map(r => r.response);
+        const quotes = validQuotes.map(r => r.response);
+        quotes.forEach(q => {
+            q.makerAmount = new BigNumber(q.makerAmount);
+            q.takerAmount = new BigNumber(q.takerAmount);
+            q.expiry = new BigNumber(q.expiry);
+        });
+        return quotes;
     }
 
     /**
@@ -305,6 +319,7 @@ export class QuoteRequestor {
         quoteType: 'firm' | 'indicative',
     ): Promise<Array<RfqQuote<ResponseT>>> {
         const requestParams = QuoteRequestor.makeQueryParameters(
+            options.txOrigin,
             options.takerAddress,
             marketOperation,
             makerToken,
@@ -354,6 +369,7 @@ export class QuoteRequestor {
                                 included: true,
                                 apiKey: options.apiKey,
                                 takerAddress: requestParams.takerAddress,
+                                txOrigin: requestParams.txOrigin,
                                 statusCode: response.status,
                                 latencyMs,
                             },
@@ -371,6 +387,7 @@ export class QuoteRequestor {
                                 included: false,
                                 apiKey: options.apiKey,
                                 takerAddress: requestParams.takerAddress,
+                                txOrigin: requestParams.txOrigin,
                                 statusCode: err.response ? err.response.status : undefined,
                                 latencyMs,
                             },
@@ -381,7 +398,7 @@ export class QuoteRequestor {
                         convertIfAxiosError(err),
                         `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${url} for API key ${
                             options.apiKey
-                        } for taker address ${options.takerAddress}`,
+                        } for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
                     );
                     return;
                 }

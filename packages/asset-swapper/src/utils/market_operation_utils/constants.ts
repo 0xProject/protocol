@@ -511,7 +511,7 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: _fillData => {
         // const nativeFillData = (_fillData as NativeRfqOrderFillData|NativeLimitOrderFillData)
-        return 150e3;
+        return 100e3;
     },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
