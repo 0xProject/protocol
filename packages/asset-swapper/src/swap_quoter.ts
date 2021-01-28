@@ -12,6 +12,7 @@ import {
     MarketOperation,
     MarketSellSwapQuote,
     OrderPrunerPermittedFeeTypes,
+    RfqtRequestOpts,
     SwapQuote,
     SwapQuoteInfo,
     SwapQuoteOrdersBreakdown,
@@ -60,19 +61,6 @@ export abstract class Orderbook {
 }
 
 const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: NULL_BYTES, s: NULL_BYTES };
-
-function createDummyOrder(makerToken: string, takerToken: string): SignedOrder<LimitOrderFields> {
-    return {
-        type: FillQuoteTransformerOrderType.Limit,
-        order: {
-            ...new LimitOrder({
-                makerToken,
-                takerToken,
-            }),
-        },
-        signature: INVALID_SIGNATURE,
-    };
-}
 
 function formatOrderbookOrder(order: SignedOrder<LimitOrderFields>): SignedOrder<LimitOrderFields> {
     return {
@@ -402,41 +390,7 @@ export class SwapQuoter {
 
         const sourceFilters = new SourceFilters([], opts.excludedSources, opts.includedSources);
 
-        // If RFQT is enabled and `nativeExclusivelyRFQT` is set, then `ERC20BridgeSource.Native` should
-        // never be excluded.
-        if (
-            opts.rfqt &&
-            opts.rfqt.nativeExclusivelyRFQT === true &&
-            !sourceFilters.isAllowed(ERC20BridgeSource.Native)
-        ) {
-            throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQT" is set');
-        }
-
-        // If an API key was provided, but the key is not whitelisted, raise a warning and disable RFQ
-        if (opts.rfqt && opts.rfqt.apiKey && !this._isApiKeyWhitelisted(opts.rfqt.apiKey)) {
-            if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
-                this._rfqtOptions.warningLogger(
-                    {
-                        apiKey: opts.rfqt.apiKey,
-                    },
-                    'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
-                );
-            }
-            opts.rfqt = undefined;
-        }
-
-        // Otherwise check other RFQ options
-        if (
-            opts.rfqt && // This is an RFQT-enabled API request
-            opts.rfqt.intentOnFilling && // The requestor is asking for a firm quote
-            opts.rfqt.apiKey &&
-            this._isApiKeyWhitelisted(opts.rfqt.apiKey) && // A valid API key was provided
-            sourceFilters.isAllowed(ERC20BridgeSource.Native) // Native liquidity is not excluded
-        ) {
-            if (!opts.rfqt.txOrigin || opts.rfqt.txOrigin === constants.NULL_ADDRESS) {
-                throw new Error('RFQ-T firm quote requests must specify a tx origin');
-            }
-        }
+        opts.rfqt = this._validateRfqtOpts(sourceFilters, opts.rfqt);
         const rfqtOptions = this._rfqtOptions;
 
         // Get SRA orders (limit orders)
@@ -499,9 +453,54 @@ export class SwapQuoter {
 
         return swapQuote;
     }
-    private _isApiKeyWhitelisted(apiKey: string): boolean {
+
+    private _isApiKeyWhitelisted(apiKey: string | undefined): boolean {
+        if (!apiKey) {
+            return false;
+        }
         const whitelistedApiKeys = this._rfqtOptions ? this._rfqtOptions.takerApiKeyWhitelist : [];
         return whitelistedApiKeys.includes(apiKey);
+    }
+
+    private _validateRfqtOpts(
+        sourceFilters: SourceFilters,
+        rfqt: RfqtRequestOpts | undefined,
+    ): RfqtRequestOpts | undefined {
+        if (!rfqt) {
+            return rfqt;
+        }
+        // tslint:disable-next-line: boolean-naming
+        const { apiKey, nativeExclusivelyRFQT, intentOnFilling, txOrigin } = rfqt;
+        // If RFQT is enabled and `nativeExclusivelyRFQT` is set, then `ERC20BridgeSource.Native` should
+        // never be excluded.
+        if (nativeExclusivelyRFQT === true && !sourceFilters.isAllowed(ERC20BridgeSource.Native)) {
+            throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQT" is set');
+        }
+
+        // If an API key was provided, but the key is not whitelisted, raise a warning and disable RFQ
+        if (!this._isApiKeyWhitelisted(apiKey)) {
+            if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
+                this._rfqtOptions.warningLogger(
+                    {
+                        apiKey,
+                    },
+                    'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
+                );
+            }
+        }
+
+        // Otherwise check other RFQ options
+        if (
+            intentOnFilling && // The requestor is asking for a firm quote
+            this._isApiKeyWhitelisted(apiKey) && // A valid API key was provided
+            sourceFilters.isAllowed(ERC20BridgeSource.Native) // Native liquidity is not excluded
+        ) {
+            if (!txOrigin || txOrigin === constants.NULL_ADDRESS) {
+                throw new Error('RFQ-T firm quote requests must specify a tx origin');
+            }
+        }
+
+        return rfqt;
     }
 }
 // tslint:disable-next-line: max-file-line-count
@@ -652,5 +651,18 @@ function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
         feeTakerTokenAmount: fr.takerFeeTakerAssetAmount,
         protocolFeeInWeiAmount: fr.protocolFeeAmount,
         gas: fr.gas,
+    };
+}
+
+function createDummyOrder(makerToken: string, takerToken: string): SignedOrder<LimitOrderFields> {
+    return {
+        type: FillQuoteTransformerOrderType.Limit,
+        order: {
+            ...new LimitOrder({
+                makerToken,
+                takerToken,
+            }),
+        },
+        signature: INVALID_SIGNATURE,
     };
 }
