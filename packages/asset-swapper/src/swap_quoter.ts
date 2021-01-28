@@ -1,12 +1,6 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    LimitOrderFields,
-    Signature,
-    SignatureType,
-} from '@0x/protocol-utils';
-import { BigNumber, providerUtils } from '@0x/utils';
+import { FillQuoteTransformerOrderType, LimitOrder, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
+import { BigNumber, NULL_BYTES, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
 
@@ -41,16 +35,13 @@ import {
     MarketSideLiquidity,
     OptimizedMarketOrder,
     OptimizerResultWithReport,
-    SignedNativeOrder,
     SignedOrder,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';
-import { getPriceAwareRFQRolloutFlags } from './utils/utils';
 import { ERC20BridgeSamplerContract } from './wrappers';
 
-export type OrderbookOrder = LimitOrderFields & { signature: string };
 export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,
@@ -68,11 +59,25 @@ export abstract class Orderbook {
     }
 }
 
+const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: NULL_BYTES, s: NULL_BYTES };
+
+function createDummyOrder(makerToken: string, takerToken: string): SignedOrder<LimitOrderFields> {
+    return {
+        type: FillQuoteTransformerOrderType.Limit,
+        order: {
+            ...new LimitOrder({
+                makerToken,
+                takerToken,
+            }),
+        },
+        signature: INVALID_SIGNATURE,
+    };
+}
+
 function formatOrderbookOrder(order: SignedOrder<LimitOrderFields>): SignedOrder<LimitOrderFields> {
     return {
         type: FillQuoteTransformerOrderType.Limit,
-        // tslint:disable-next-line
-        signature: (order.signature as any) as Signature, // todo (xianny): hack
+        signature: INVALID_SIGNATURE, // todo (xianny): hack
         order: order.order,
     };
 }
@@ -300,6 +305,7 @@ export class SwapQuoter {
         assert.isString('makerToken', makerToken);
         assert.isString('takerToken', takerToken);
         const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
+
         const [sellOrdersRaw, buyOrdersRaw] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
             ? [[], []]
             : await Promise.all([
@@ -309,31 +315,12 @@ export class SwapQuoter {
         let sellOrders = sellOrdersRaw.map(formatOrderbookOrder);
         let buyOrders = buyOrdersRaw.map(formatOrderbookOrder);
         if (!sellOrders || sellOrders.length === 0) {
-            sellOrders = [
-                {
-                    type: FillQuoteTransformerOrderType.Limit,
-                    order: new LimitOrder({
-                        makerToken,
-                        takerToken,
-                        maker: this._contractAddresses.uniswapBridge,
-                    }),
-                    signature: {} as any,
-                },
-            ];
+            sellOrders = [createDummyOrder(makerToken, takerToken)];
         }
         if (!buyOrders || buyOrders.length === 0) {
-            buyOrders = [
-                {
-                    type: FillQuoteTransformerOrderType.Limit,
-                    order: new LimitOrder({
-                        takerToken,
-                        makerToken,
-                        maker: this._contractAddresses.uniswapBridge,
-                    }),
-                    signature: {} as any,
-                },
-            ];
+            buyOrders = [createDummyOrder(takerToken, makerToken)];
         }
+
         const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
             const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
             const { side } = marketSideLiquidity;
@@ -464,19 +451,7 @@ export class SwapQuoter {
 
         // if no native orders, pass in a dummy order for the sampler to have required metadata for sampling
         if (nativeOrders.length === 0) {
-            nativeOrders.push({
-                // tslint:disable-next-line: no-object-literal-type-assertion
-                signature: {} as Signature,
-                order: {
-                    ...new LimitOrder({
-                        makerToken,
-                        takerToken,
-                        chainId: 1,
-                        maker: this._contractAddresses.uniswapBridge,
-                    }),
-                },
-                type: FillQuoteTransformerOrderType.Limit,
-            });
+            nativeOrders.push(createDummyOrder(makerToken, takerToken));
         }
 
         //  ** Prepare options for fetching market side liquidity **
