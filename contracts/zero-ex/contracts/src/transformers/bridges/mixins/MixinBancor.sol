@@ -64,14 +64,14 @@ contract MixinBancor {
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.
-        IERC20TokenV06[] memory path;
         IBancorNetwork bancorNetworkAddress;
+        IERC20TokenV06[] memory path;
         {
             address[] memory _path;
             (
-                _path,
-                bancorNetworkAddress
-            ) = abi.decode(bridgeData, (address[], IBancorNetwork));
+                bancorNetworkAddress,
+                _path
+            ) = abi.decode(bridgeData, (IBancorNetwork, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly { path := _path }
         }

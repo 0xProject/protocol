@@ -256,11 +256,6 @@ export type SwapQuoteOrdersBreakdown = Partial<
     }
 >;
 
-export interface PriceAwareRFQFlags {
-    isIndicativePriceAwareEnabled: boolean;
-    isFirmPriceAwareEnabled: boolean;
-}
-
 /**
  * nativeExclusivelyRFQT: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
  *                        If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
@@ -268,22 +263,12 @@ export interface PriceAwareRFQFlags {
  */
 export interface RfqtRequestOpts {
     takerAddress: string;
+    txOrigin: string;
     apiKey: string;
     intentOnFilling: boolean;
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQT?: boolean;
-
-    /**
-     * This feature flag allows us to merge the price-aware RFQ pricing
-     * project while still controlling when to activate the feature. We plan to do some
-     * data analysis work and address some of the issues with maker fillable amounts
-     * in later milestones. Once the feature is fully rolled out and is providing value
-     * and we have assessed that there is no user impact, we will proceed in cleaning up
-     * the feature flag.  When that time comes, follow this PR to "undo" the feature flag:
-     * https://github.com/0xProject/0x-monorepo/pull/2735
-     */
-    priceAwareRFQFlag?: PriceAwareRFQFlags;
 }
 
 /**

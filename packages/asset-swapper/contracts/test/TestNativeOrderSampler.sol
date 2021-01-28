@@ -20,6 +20,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "../src/NativeOrderSampler.sol";
+import "../src/UtilitySampler.sol";
 
 
 contract TestNativeOrderSamplerToken {
@@ -40,7 +41,8 @@ contract TestNativeOrderSamplerToken {
 }
 
 contract TestNativeOrderSampler is
-    NativeOrderSampler
+    NativeOrderSampler,
+    UtilitySampler
 {
     uint8 private constant MAX_ORDER_STATUS = uint8(IExchange.OrderStatus.CANCELLED) + 1;
     bytes32 private constant VALID_SIGNATURE_HASH = keccak256(hex"01");
@@ -67,42 +69,67 @@ contract TestNativeOrderSampler is
         token.setBalanceAndAllowance(owner, spender, balance, allowance);
     }
 
-    // IExchange.getAssetProxy()
-    function getAssetProxy(bytes4 proxyId)
-        public
-        pure
-        returns (address)
-    {
-        return address(uint160(uint256(keccak256(abi.encode(proxyId)))));
-    }
-
-    // IExchange.getOrderInfo()
-    function getOrderInfo(IExchange.Order calldata order)
+    // IExchange.getLimitOrderRelevantState()
+    function getLimitOrderRelevantState(
+        IExchange.LimitOrder memory order,
+        IExchange.Signature calldata signature
+    )
         external
-        pure
-        returns (IExchange.OrderInfo memory orderInfo)
+        view
+        returns (
+            IExchange.OrderInfo memory orderInfo,
+            uint128 actualFillableTakerTokenAmount,
+            bool isSignatureValid
+        )
     {
         // The order salt determines everything.
         orderInfo.orderHash = keccak256(abi.encode(order.salt));
         if (uint8(order.salt) == 0xFF) {
-            orderInfo.orderStatus = IExchange.OrderStatus.FULLY_FILLED;
+            orderInfo.status = IExchange.OrderStatus.FILLED;
         } else {
-            orderInfo.orderStatus = IExchange.OrderStatus.FILLABLE;
+            orderInfo.status = IExchange.OrderStatus.FILLABLE;
         }
+
+        isSignatureValid = signature.r == VALID_SIGNATURE_HASH;
+
         // The expiration time is the filled taker asset amount.
-        orderInfo.orderTakerAssetFilledAmount = order.expirationTimeSeconds;
+        orderInfo.takerTokenFilledAmount = uint128(order.expiry);
+
+        // Calculate how much is fillable in maker terms given the filled taker amount
+        uint256 fillableMakerTokenAmount = LibMathV06.getPartialAmountFloor(
+            uint256(
+                order.takerAmount
+                - orderInfo.takerTokenFilledAmount
+            ),
+            uint256(order.takerAmount),
+            uint256(order.makerAmount)
+        );
+
+        // Take the min of the balance/allowance and the fillable maker amount
+        fillableMakerTokenAmount = LibSafeMathV06.min256(
+            fillableMakerTokenAmount,
+            _getSpendableERC20BalanceOf(order.makerToken, order.maker)
+        );
+
+        // Conver to taker terms
+        actualFillableTakerTokenAmount = LibMathV06.getPartialAmountCeil(
+            fillableMakerTokenAmount,
+            uint256(order.makerAmount),
+            uint256(order.takerAmount)
+        ).safeDowncastToUint128();
     }
 
-    // IExchange.isValidSignature()
-    function isValidHashSignature(
-        bytes32,
-        address,
-        bytes calldata signature
+    function _getSpendableERC20BalanceOf(
+        IERC20TokenV06 token,
+        address owner
     )
-        external
-        pure
-        returns (bool isValid)
+        internal
+        view
+        returns (uint256)
     {
-        return keccak256(signature) == VALID_SIGNATURE_HASH;
+        return LibSafeMathV06.min256(
+            token.allowance(owner, address(this)),
+            token.balanceOf(owner)
+        );
     }
 }

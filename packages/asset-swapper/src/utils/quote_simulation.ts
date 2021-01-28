@@ -73,11 +73,13 @@ export interface QuoteFillInfo {
 export interface QuoteFillInfoOpts {
     gasSchedule: FeeSchedule;
     protocolFeeMultiplier: BigNumber;
+    slippage: number;
 }
 
 const DEFAULT_SIMULATED_FILL_QUOTE_INFO_OPTS: QuoteFillInfoOpts = {
     gasSchedule: {},
     protocolFeeMultiplier: PROTOCOL_FEE_MULTIPLIER,
+    slippage: 0,
 };
 
 export interface QuoteFillOrderCall {
@@ -117,17 +119,27 @@ export function simulateWorstCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult
         ...quoteInfo.opts,
     };
     const protocolFeePerFillOrder = quoteInfo.gasPrice.times(opts.protocolFeeMultiplier);
+    const bestCase = createBestCaseFillOrderCalls(quoteInfo);
     const result = {
         ...fillQuoteOrders(
-            createWorstCaseFillOrderCalls(quoteInfo),
+            // TODO jacob
+            // createWorstCaseFillOrderCalls(quoteInfo),
+            bestCase,
             quoteInfo.fillAmount,
             protocolFeePerFillOrder,
             opts.gasSchedule,
         ),
         // Worst case gas and protocol fee is hitting all orders.
         gas: getTotalGasUsedByFills(quoteInfo.orders, opts.gasSchedule),
-        protocolFee: protocolFeePerFillOrder.times(quoteInfo.orders.length),
+        protocolFee: protocolFeePerFillOrder.times(quoteInfo.orders.filter(o => hasProtocolFee(o)).length),
     };
+    // Adjust the output by 1-slippage for the worst case if it is a sell
+    // Adjust the output by 1+slippage for the worst case if it is a buy
+    const outputMultiplier =
+        quoteInfo.side === MarketOperation.Sell
+            ? new BigNumber(1).minus(opts.slippage)
+            : new BigNumber(1).plus(opts.slippage);
+    result.output = result.output.times(outputMultiplier).integerValue();
     return fromIntermediateQuoteFillResult(result, quoteInfo);
 }
 
@@ -151,8 +163,8 @@ export function fillQuoteOrders(
                 break;
             }
             const { source, fillData } = fill;
-            const fee = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
-            result.gas += new BigNumber(fee).toNumber();
+            const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
+            result.gas += new BigNumber(gas).toNumber();
             result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
 
             // Actual rates are rarely linear, so fill subfills individually to
@@ -179,13 +191,15 @@ export function fillQuoteOrders(
                 remainingInput = remainingInput.minus(filledInput.plus(filledInputFee));
             }
         }
-        // NOTE: V4 RFQ orders has no protocol fee
-        result.protocolFee =
-            fo.order.type === FillQuoteTransformerOrderType.Rfq
-                ? ZERO_AMOUNT
-                : result.protocolFee.plus(protocolFeePerFillOrder);
+        // NOTE: V4 Limit orders have Protocol fees
+        const protocolFee = hasProtocolFee(fo.order) ? protocolFeePerFillOrder : ZERO_AMOUNT;
+        result.protocolFee.plus(protocolFee);
     }
     return result;
+}
+
+function hasProtocolFee(o: OptimizedMarketOrder): boolean {
+    return o.type === FillQuoteTransformerOrderType.Limit;
 }
 
 function solveForInputFillAmount(
@@ -252,14 +266,14 @@ function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrder
         createBestCaseFillOrderCalls(quoteInfo)
             .map(fo => ({
                 ...fo,
-                order: {
-                    ...fo.order,
-                    fills: [],
-                    //// Apply slippage to order fills and reverse them.
-                    // fills: getSlippedOrderFills(fo.order, quoteInfo.side)
-                    //    .map(f => ({ ...f, subFills: f.subFills.slice().reverse() }))
-                    //    .reverse(),
-                },
+                // order: {
+                //    ...fo.order,
+                //    fills: [],
+                //    //// Apply slippage to order fills and reverse them.
+                //    // fills: getSlippedOrderFills(fo.order, quoteInfo.side)
+                //    //    .map(f => ({ ...f, subFills: f.subFills.slice().reverse() }))
+                //    //    .reverse(),
+                // },
             }))
             // Sort by ascending price.
             .sort((a, b) =>

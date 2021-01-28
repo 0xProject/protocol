@@ -31,7 +31,7 @@ export function createFills(opts: {
     // Create native fills.
     const nativeFills = nativeOrdersToFills(
         side,
-        orders,
+        orders.filter(o => o.fillableTakerAmount.isGreaterThan(0)),
         opts.targetInput,
         ethToOutputRate,
         ethToInputRate,
@@ -119,7 +119,7 @@ function nativeOrdersToFills(
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
             type: o.type,
-            fillData: { o },
+            fillData: { ...o },
         });
     }
     // Sort by descending adjusted rate.

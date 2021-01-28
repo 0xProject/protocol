@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -28,126 +28,118 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 interface IExchange {
 
-    /// @dev V3 Order structure.
-    struct Order {
-        // Address that created the order.
-        address makerAddress;
-        // Address that is allowed to fill the order.
-        // If set to 0, any address is allowed to fill the order.
-        address takerAddress;
-        // Address that will recieve fees when order is filled.
-        address feeRecipientAddress;
-        // Address that is allowed to call Exchange contract methods that affect this order.
-        // If set to 0, any address is allowed to call these methods.
-        address senderAddress;
-        // Amount of makerAsset being offered by maker. Must be greater than 0.
-        uint256 makerAssetAmount;
-        // Amount of takerAsset being bid on by maker. Must be greater than 0.
-        uint256 takerAssetAmount;
-        // Fee paid to feeRecipient by maker when order is filled.
-        uint256 makerFee;
-        // Fee paid to feeRecipient by taker when order is filled.
-        uint256 takerFee;
-        // Timestamp in seconds at which order expires.
-        uint256 expirationTimeSeconds;
-        // Arbitrary number to facilitate uniqueness of the order's hash.
-        uint256 salt;
-        // Encoded data that can be decoded by a specified proxy contract when transferring makerAsset.
-        // The leading bytes4 references the id of the asset proxy.
-        bytes makerAssetData;
-        // Encoded data that can be decoded by a specified proxy contract when transferring takerAsset.
-        // The leading bytes4 references the id of the asset proxy.
-        bytes takerAssetData;
-        // Encoded data that can be decoded by a specified proxy contract when transferring makerFeeAsset.
-        // The leading bytes4 references the id of the asset proxy.
-        bytes makerFeeAssetData;
-        // Encoded data that can be decoded by a specified proxy contract when transferring takerFeeAsset.
-        // The leading bytes4 references the id of the asset proxy.
-        bytes takerFeeAssetData;
-    }
-
-    // A valid order remains fillable until it is expired, fully filled, or cancelled.
-    // An order's status is unaffected by external factors, like account balances.
     enum OrderStatus {
-        INVALID,                     // Default value
-        INVALID_MAKER_ASSET_AMOUNT,  // Order does not have a valid maker asset amount
-        INVALID_TAKER_ASSET_AMOUNT,  // Order does not have a valid taker asset amount
-        FILLABLE,                    // Order is fillable
-        EXPIRED,                     // Order has already expired
-        FULLY_FILLED,                // Order is fully filled
-        CANCELLED                    // Order has been cancelled
+        INVALID,
+        FILLABLE,
+        FILLED,
+        CANCELLED,
+        EXPIRED
     }
 
-    /// @dev Order information returned by `getOrderInfo()`.
+    /// @dev A standard OTC or OO limit order.
+    struct LimitOrder {
+        IERC20TokenV06 makerToken;
+        IERC20TokenV06 takerToken;
+        uint128 makerAmount;
+        uint128 takerAmount;
+        uint128 takerTokenFeeAmount;
+        address maker;
+        address taker;
+        address sender;
+        address feeRecipient;
+        bytes32 pool;
+        uint64 expiry;
+        uint256 salt;
+    }
+
+    /// @dev An RFQ limit order.
+    struct RfqOrder {
+        IERC20TokenV06 makerToken;
+        IERC20TokenV06 takerToken;
+        uint128 makerAmount;
+        uint128 takerAmount;
+        address maker;
+        address taker;
+        address txOrigin;
+        bytes32 pool;
+        uint64 expiry;
+        uint256 salt;
+    }
+
+    /// @dev Info on a limit or RFQ order.
     struct OrderInfo {
-        OrderStatus orderStatus;              // Status that describes order's validity and fillability.
-        bytes32 orderHash;                    // EIP712 typed data hash of the order (see LibOrder.getTypedDataHash).
-        uint256 orderTakerAssetFilledAmount;  // Amount of order that has already been filled.
+        bytes32 orderHash;
+        OrderStatus status;
+        uint128 takerTokenFilledAmount;
     }
 
-    /// @dev Gets information about an order: status, hash, and amount filled.
-    /// @param order Order to gather information on.
-    /// @return orderInfo Information about the order and its state.
-    function getOrderInfo(IExchange.Order calldata order)
+    /// @dev Allowed signature types.
+    enum SignatureType {
+        ILLEGAL,
+        INVALID,
+        EIP712,
+        ETHSIGN
+    }
+
+    /// @dev Encoded EC signature.
+    struct Signature {
+        // How to validate the signature.
+        SignatureType signatureType;
+        // EC Signature data.
+        uint8 v;
+        // EC Signature data.
+        bytes32 r;
+        // EC Signature data.
+        bytes32 s;
+    }
+
+    /// @dev Get the order info for a limit order.
+    /// @param order The limit order.
+    /// @return orderInfo Info about the order.
+    function getLimitOrderInfo(LimitOrder memory order)
         external
         view
-        returns (IExchange.OrderInfo memory orderInfo);
+        returns (OrderInfo memory orderInfo);
 
-    /// @dev Verifies that a hash has been signed by the given signer.
-    /// @param hash Any 32-byte hash.
-    /// @param signature Proof that the hash has been signed by signer.
-    /// @return isValid `true` if the signature is valid for the given hash and signer.
-    function isValidHashSignature(
-        bytes32 hash,
-        address signerAddress,
-        bytes calldata signature
+    /// @dev Get order info, fillable amount, and signature validity for a limit order.
+    ///      Fillable amount is determined using balances and allowances of the maker.
+    /// @param order The limit order.
+    /// @param signature The order signature.
+    /// @return orderInfo Info about the order.
+    /// @return actualFillableTakerTokenAmount How much of the order is fillable
+    ///         based on maker funds, in taker tokens.
+    /// @return isSignatureValid Whether the signature is valid.
+    function getLimitOrderRelevantState(
+        LimitOrder memory order,
+        Signature calldata signature
     )
         external
         view
-        returns (bool isValid);
-
-    /// @dev Gets an asset proxy.
-    /// @param assetProxyId Id of the asset proxy.
-    /// @return The asset proxy registered to assetProxyId. Returns 0x0 if no proxy is registered.
-    function getAssetProxy(bytes4 assetProxyId)
-        external
-        view
-        returns (address);
+        returns (
+            OrderInfo memory orderInfo,
+            uint128 actualFillableTakerTokenAmount,
+            bool isSignatureValid
+        );
 }
 
 contract NativeOrderSampler {
     using LibSafeMathV06 for uint256;
     using LibBytesV06 for bytes;
 
-    /// @dev The Exchange ERC20Proxy ID.
-    bytes4 private constant ERC20_ASSET_PROXY_ID = 0xf47261b0;
     /// @dev Gas limit for calls to `getOrderFillableTakerAmount()`.
     uint256 constant internal DEFAULT_CALL_GAS = 200e3; // 200k
-
-    function getTokenDecimals(
-        address makerTokenAddress,
-        address takerTokenAddress
-    )
-        public
-        view
-        returns (uint256, uint256)
-    {
-        uint256 fromTokenDecimals = LibERC20TokenV06.compatDecimals(IERC20TokenV06(makerTokenAddress));
-        uint256 toTokenDecimals = LibERC20TokenV06.compatDecimals(IERC20TokenV06(takerTokenAddress));
-        return (fromTokenDecimals, toTokenDecimals);
-    }
 
     /// @dev Queries the fillable taker asset amounts of native orders.
     ///      Effectively ignores orders that have empty signatures or
     ///      maker/taker asset amounts (returning 0).
-    /// @param orders Native orders to query.
+    /// @param orders Native limit orders to query.
     /// @param orderSignatures Signatures for each respective order in `orders`.
-    /// @param exchange The V3 exchange.
+    /// @param exchange The V4 exchange.
     /// @return orderFillableTakerAssetAmounts How much taker asset can be filled
     ///         by each order in `orders`.
-    function getOrderFillableTakerAssetAmounts(
-        IExchange.Order[] memory orders,
-        bytes[] memory orderSignatures,
+    function getLimitOrderFillableTakerAssetAmounts(
+        IExchange.LimitOrder[] memory orders,
+        IExchange.Signature[] memory orderSignatures,
         IExchange exchange
     )
         public
@@ -157,7 +149,7 @@ contract NativeOrderSampler {
         orderFillableTakerAssetAmounts = new uint256[](orders.length);
         for (uint256 i = 0; i != orders.length; i++) {
             try
-                this.getOrderFillableTakerAmount
+                this.getLimitOrderFillableTakerAmount
                     {gas: DEFAULT_CALL_GAS}
                     (
                        orders[i],
@@ -178,19 +170,19 @@ contract NativeOrderSampler {
     ///      Effectively ignores orders that have empty signatures or
     /// @param orders Native orders to query.
     /// @param orderSignatures Signatures for each respective order in `orders`.
-    /// @param exchange The V3 exchange.
+    /// @param exchange The V4 exchange.
     /// @return orderFillableMakerAssetAmounts How much maker asset can be filled
     ///         by each order in `orders`.
-    function getOrderFillableMakerAssetAmounts(
-        IExchange.Order[] memory orders,
-        bytes[] memory orderSignatures,
+    function getLimitOrderFillableMakerAssetAmounts(
+        IExchange.LimitOrder[] memory orders,
+        IExchange.Signature[] memory orderSignatures,
         IExchange exchange
     )
         public
         view
         returns (uint256[] memory orderFillableMakerAssetAmounts)
     {
-        orderFillableMakerAssetAmounts = getOrderFillableTakerAssetAmounts(
+        orderFillableMakerAssetAmounts = getLimitOrderFillableTakerAssetAmounts(
             orders,
             orderSignatures,
             exchange
@@ -201,8 +193,8 @@ contract NativeOrderSampler {
             if (orderFillableMakerAssetAmounts[i] != 0) {
                 orderFillableMakerAssetAmounts[i] = LibMathV06.getPartialAmountCeil(
                     orderFillableMakerAssetAmounts[i],
-                    orders[i].takerAssetAmount,
-                    orders[i].makerAssetAmount
+                    orders[i].takerAmount,
+                    orders[i].makerAmount
                 );
             }
         }
@@ -210,9 +202,9 @@ contract NativeOrderSampler {
 
     /// @dev Get the fillable taker amount of an order, taking into account
     ///      order state, maker fees, and maker balances.
-    function getOrderFillableTakerAmount(
-        IExchange.Order memory order,
-        bytes memory signature,
+    function getLimitOrderFillableTakerAmount(
+        IExchange.LimitOrder memory order,
+        IExchange.Signature memory signature,
         IExchange exchange
     )
         virtual
@@ -220,88 +212,28 @@ contract NativeOrderSampler {
         view
         returns (uint256 fillableTakerAmount)
     {
-        if (signature.length == 0 ||
-            order.makerAssetAmount == 0 ||
-            order.takerAssetAmount == 0)
+        if (signature.signatureType == IExchange.SignatureType.ILLEGAL ||
+            signature.signatureType == IExchange.SignatureType.INVALID ||
+            order.makerAmount == 0 ||
+            order.takerAmount == 0)
         {
             return 0;
         }
 
-        IExchange.OrderInfo memory orderInfo = exchange.getOrderInfo(order);
-        if (orderInfo.orderStatus != IExchange.OrderStatus.FILLABLE) {
-            return 0;
-        }
-        if (!exchange.isValidHashSignature(orderInfo.orderHash, order.makerAddress, signature)) {
-            return 0;
-        }
-        address spender = exchange.getAssetProxy(ERC20_ASSET_PROXY_ID);
-        IERC20TokenV06 makerToken = _getTokenFromERC20AssetData(order.makerAssetData);
-        if (makerToken == IERC20TokenV06(0)) {
-            return 0;
-        }
-        IERC20TokenV06 makerFeeToken = order.makerFee > 0
-            ? _getTokenFromERC20AssetData(order.makerFeeAssetData)
-            : IERC20TokenV06(0);
-        uint256 remainingTakerAmount = order.takerAssetAmount
-            .safeSub(orderInfo.orderTakerAssetFilledAmount);
-        fillableTakerAmount = remainingTakerAmount;
-        // The total fillable maker amount is the remaining fillable maker amount
-        // PLUS maker fees, if maker fees are denominated in the maker token.
-        uint256 totalFillableMakerAmount = LibMathV06.safeGetPartialAmountFloor(
-            remainingTakerAmount,
-            order.takerAssetAmount,
-            makerFeeToken == makerToken
-                ? order.makerAssetAmount.safeAdd(order.makerFee)
-                : order.makerAssetAmount
-        );
-        // The spendable amount of maker tokens (by the maker) is the lesser of
-        // the maker's balance and the allowance they've granted to the ERC20Proxy.
-        uint256 spendableMakerAmount = LibSafeMathV06.min256(
-            makerToken.balanceOf(order.makerAddress),
-            makerToken.allowance(order.makerAddress, spender)
-        );
-        // Scale the fillable taker amount by the ratio of the maker's
-        // spendable maker amount over the total fillable maker amount.
-        if (spendableMakerAmount < totalFillableMakerAmount) {
-            fillableTakerAmount = LibMathV06.getPartialAmountCeil(
-                spendableMakerAmount,
-                totalFillableMakerAmount,
-                remainingTakerAmount
-            );
-        }
-        // If the maker fee is denominated in another token, constrain
-        // the fillable taker amount by how much the maker can pay of that token.
-        if (makerFeeToken != makerToken && makerFeeToken != IERC20TokenV06(0)) {
-            uint256 spendableExtraMakerFeeAmount = LibSafeMathV06.min256(
-                makerFeeToken.balanceOf(order.makerAddress),
-                makerFeeToken.allowance(order.makerAddress, spender)
-            );
-            if (spendableExtraMakerFeeAmount < order.makerFee) {
-                fillableTakerAmount = LibSafeMathV06.min256(
-                    fillableTakerAmount,
-                    LibMathV06.getPartialAmountCeil(
-                        spendableExtraMakerFeeAmount,
-                        order.makerFee,
-                        remainingTakerAmount
-                    )
-                );
-            }
-        }
-    }
+        (
+            IExchange.OrderInfo memory orderInfo,
+            uint128 remainingFillableTakerAmount,
+            bool isSignatureValid
+        ) = exchange.getLimitOrderRelevantState(order, signature);
 
-    function _getTokenFromERC20AssetData(bytes memory assetData)
-        private
-        pure
-        returns (IERC20TokenV06 token)
-    {
-        if (assetData.length == 0) {
-            return IERC20TokenV06(address(0));
+        if (
+              orderInfo.status != IExchange.OrderStatus.FILLABLE ||
+              !isSignatureValid ||
+              order.makerToken == IERC20TokenV06(0)
+            ) {
+            return 0;
         }
-        if (assetData.length != 36 ||
-            assetData.readBytes4(0) != ERC20_ASSET_PROXY_ID)
-        {
-            return IERC20TokenV06(address(0));
-        }
-        return IERC20TokenV06(assetData.readAddress(16));
+
+        fillableTakerAmount = uint256(remainingFillableTakerAmount);
     }
 }

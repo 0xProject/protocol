@@ -239,12 +239,13 @@ export interface CollapsedFill<TFillData extends FillData = FillData> {
  */
 export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 
-export interface NativeOrderWithType {
-    order: RfqOrderFields | LimitOrderFields;
-    type: FillQuoteTransformerOrderType;
+export interface SignedOrder<T> {
+    order: T;
+    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
+    signature: Signature;
 }
 
-export type SignedNativeOrder = NativeOrderWithType & { signature: Signature };
+export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
 
 export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
 
@@ -357,6 +358,9 @@ export interface GetMarketOrdersOpts {
      * sources. Defaults to `true`.
      */
     allowFallback: boolean;
+    /**
+     * Options for RFQT such as takerAddress, intent on filling
+     */
     rfqt?: GetMarketOrdersRfqtOpts;
     /**
      * Whether to generate a quote report
@@ -417,6 +421,7 @@ export interface MarketSideLiquidity {
     makerTokenDecimals: number;
     takerTokenDecimals: number;
     quotes: RawQuotes;
+    isRfqSupported: boolean;
 }
 
 export interface RawQuotes {
