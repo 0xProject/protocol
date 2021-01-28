@@ -119,7 +119,7 @@ function nativeOrdersToFills(
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
             type: o.type,
-            fillData: { o },
+            fillData: { ...o },
         });
     }
     // Sort by descending adjusted rate.

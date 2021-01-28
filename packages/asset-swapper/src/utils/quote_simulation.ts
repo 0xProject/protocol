@@ -192,7 +192,8 @@ export function fillQuoteOrders(
             }
         }
         // NOTE: V4 Limit orders have Protocol fees
-        result.protocolFee = hasProtocolFee(fo.order) ? result.protocolFee.plus(protocolFeePerFillOrder) : ZERO_AMOUNT;
+        const protocolFee = hasProtocolFee(fo.order) ? protocolFeePerFillOrder : ZERO_AMOUNT;
+        result.protocolFee.plus(protocolFee);
     }
     return result;
 }
