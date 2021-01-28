@@ -514,23 +514,26 @@ export class MarketOperationUtils {
             bridgeSlippage: opts.bridgeSlippage || 0,
         };
 
-        const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(q => ({
-            order: {
-                ...q,
-                txOrigin: NULL_ADDRESS,
-                pool: NULL_BYTES,
-                maker: NULL_ADDRESS,
-                taker: NULL_ADDRESS,
-                salt: ZERO_AMOUNT,
-                chainId: 1,
-                verifyingContract: NULL_ADDRESS,
-            },
-            signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.Invalid },
-            fillableMakerAmount: new BigNumber(q.makerAmount),
-            fillableTakerAmount: new BigNumber(q.takerAmount),
-            fillableTakerFeeAmount: ZERO_AMOUNT,
-            type: FillQuoteTransformerOrderType.Rfq,
-        } as NativeOrderWithFillableAmounts));
+        const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(
+            q =>
+                ({
+                    order: {
+                        ...q,
+                        txOrigin: NULL_ADDRESS,
+                        pool: NULL_BYTES,
+                        maker: NULL_ADDRESS,
+                        taker: NULL_ADDRESS,
+                        salt: ZERO_AMOUNT,
+                        chainId: 1,
+                        verifyingContract: NULL_ADDRESS,
+                    },
+                    signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.Invalid },
+                    fillableMakerAmount: new BigNumber(q.makerAmount),
+                    fillableTakerAmount: new BigNumber(q.takerAmount),
+                    fillableTakerFeeAmount: ZERO_AMOUNT,
+                    type: FillQuoteTransformerOrderType.Rfq,
+                } as NativeOrderWithFillableAmounts),
+        );
 
         // Convert native orders and dex quotes into `Fill` objects.
         const fills = createFills({
@@ -669,12 +672,9 @@ export class MarketOperationUtils {
             rfqt.quoteRequestor &&
             marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
         ) {
-            const { isFirmPriceAwareEnabled, isIndicativePriceAwareEnabled } = getPriceAwareRFQRolloutFlags(
-                rfqt.priceAwareRFQFlag,
-            );
             const { makerToken, takerToken } = nativeOrders[0].order;
 
-            if (rfqt.isIndicative && isIndicativePriceAwareEnabled) {
+            if (rfqt.isIndicative) {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.
                 const indicativeQuotes = await rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
@@ -690,7 +690,7 @@ export class MarketOperationUtils {
                     marketSideLiquidity.quotes.rfqtIndicativeQuotes = indicativeQuotes;
                     optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
                 }
-            } else if (!rfqt.isIndicative && isFirmPriceAwareEnabled && rfqt.intentOnFilling) {
+            } else {
                 // A firm quote is being requested, and firm quotes price-aware enabled.
                 // Ensure that `intentOnFilling` is enabled and make the request.
                 const firmQuotes = await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
