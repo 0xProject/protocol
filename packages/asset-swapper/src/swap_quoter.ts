@@ -5,7 +5,7 @@ import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-t
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { BRIDGE_ADDRESSES_BY_CHAIN, constants } from './constants';
+import { BRIDGE_ADDRESSES_BY_CHAIN, constants, INVALID_SIGNATURE } from './constants';
 import {
     AssetSwapperContractAddresses,
     MarketBuySwapQuote,
@@ -59,8 +59,6 @@ export abstract class Orderbook {
         return;
     }
 }
-
-const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: NULL_BYTES, s: NULL_BYTES };
 
 function formatOrderbookOrder(order: SignedOrder<LimitOrderFields>): SignedOrder<LimitOrderFields> {
     return {

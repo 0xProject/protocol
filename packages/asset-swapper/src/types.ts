@@ -258,11 +258,6 @@ export type SwapQuoteOrdersBreakdown = Partial<
     }
 >;
 
-export interface PriceAwareRFQFlags {
-    isIndicativePriceAwareEnabled: boolean;
-    isFirmPriceAwareEnabled: boolean;
-}
-
 /**
  * nativeExclusivelyRFQT: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
  *                        If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`

@@ -1,19 +1,15 @@
-import { NULL_BYTES } from '@0x/order-utils';
-
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrderFields,
-    RfqOrder,
-    RfqOrderFields,
-    SignatureType,
-} from '@0x/protocol-utils';
-
+import { FillQuoteTransformerOrderType, LimitOrderFields, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { INVALID_SIGNATURE } from '../../constants';
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
-import { getPriceAwareRFQRolloutFlags } from '../utils';
+import {
+    getNativeAdjustedFillableAmountsFromMakerAmount,
+    getNativeAdjustedFillableAmountsFromTakerAmount,
+    getNativeAdjustedMakerFillAmount,
+} from '../utils';
 
 import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
 import { getComparisonPrices } from './comparison_price';
@@ -44,7 +40,6 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
-    SignedNativeOrder,
     SignedOrder,
 } from './types';
 
@@ -193,7 +188,7 @@ export class MarketOperationUtils {
         const [
             [
                 tokenDecimals,
-                orderFillableAmounts,
+                orderFillableTakerAmounts,
                 ethToMakerAssetRate,
                 ethToTakerAssetRate,
                 dexQuotes,
@@ -210,10 +205,7 @@ export class MarketOperationUtils {
         const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
         const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
             ...order,
-            fillableMakerAmount: orderFillableAmounts[i],
-            // TODO Jacob
-            fillableTakerAmount: ZERO_AMOUNT,
-            fillableTakerFeeAmount: ZERO_AMOUNT,
+            ...getNativeAdjustedFillableAmountsFromTakerAmount(order, orderFillableTakerAmounts[i]),
         }));
 
         return {
@@ -331,7 +323,7 @@ export class MarketOperationUtils {
         const [
             [
                 tokenDecimals,
-                orderFillableAmounts,
+                orderFillableMakerAmounts,
                 ethToMakerAssetRate,
                 ethToTakerAssetRate,
                 dexQuotes,
@@ -347,10 +339,7 @@ export class MarketOperationUtils {
 
         const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
             ...order,
-            fillableMakerAmount: orderFillableAmounts[i],
-            // TODO Jacob
-            fillableTakerAmount: ZERO_AMOUNT,
-            fillableTakerFeeAmount: ZERO_AMOUNT,
+            ...getNativeAdjustedFillableAmountsFromMakerAmount(order, orderFillableMakerAmounts[i]),
         }));
 
         return {
@@ -429,7 +418,7 @@ export class MarketOperationUtils {
         ];
 
         const executeResults = await this._sampler.executeBatchAsync(ops);
-        const batchOrderFillableAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
+        const batchOrderFillableMakerAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
         const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
         const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
         const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
@@ -441,7 +430,7 @@ export class MarketOperationUtils {
                     throw new Error(AggregationError.EmptyOrders);
                 }
                 const { makerToken, takerToken } = nativeOrders[0].order;
-                const orderFillableAmounts = batchOrderFillableAmounts[i];
+                const orderFillableMakerAmounts = batchOrderFillableMakerAmounts[i];
                 const ethToTakerAssetRate = batchEthToTakerAssetRate[i];
                 const dexQuotes = batchDexQuotes[i];
                 const makerAmount = makerAmounts[i];
@@ -460,10 +449,7 @@ export class MarketOperationUtils {
                             quotes: {
                                 nativeOrders: nativeOrders.map((o, k) => ({
                                     ...o,
-                                    fillableMakerAmount: orderFillableAmounts[k],
-                                    // TODO Jacob
-                                    fillableTakerAmount: ZERO_AMOUNT,
-                                    fillableTakerFeeAmount: ZERO_AMOUNT,
+                                    ...getNativeAdjustedFillableAmountsFromMakerAmount(o, orderFillableMakerAmounts[k]),
                                 })),
                                 dexQuotes,
                                 rfqtIndicativeQuotes: [],
@@ -516,18 +502,10 @@ export class MarketOperationUtils {
 
         const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(
             q =>
+                // tslint:disable-next-line: no-object-literal-type-assertion
                 ({
-                    order: {
-                        ...q,
-                        txOrigin: NULL_ADDRESS,
-                        pool: NULL_BYTES,
-                        maker: NULL_ADDRESS,
-                        taker: NULL_ADDRESS,
-                        salt: ZERO_AMOUNT,
-                        chainId: 1,
-                        verifyingContract: NULL_ADDRESS,
-                    },
-                    signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.Invalid },
+                    order: { ...new RfqOrder({ ...q }) },
+                    signature: INVALID_SIGNATURE,
                     fillableMakerAmount: new BigNumber(q.makerAmount),
                     fillableTakerAmount: new BigNumber(q.takerAmount),
                     fillableTakerFeeAmount: ZERO_AMOUNT,
@@ -705,7 +683,7 @@ export class MarketOperationUtils {
                     // Compute the RFQ order fillable amounts. This is done by performing a "soft" order
                     // validation and by checking order balances that are monitored by our worker.
                     // If a firm quote validator does not exist, then we assume that all orders are valid.
-                    const rfqOrderFillableAmounts =
+                    const rfqTakerFillableAmounts =
                         rfqt.firmQuoteValidator === undefined
                             ? firmQuotes.map(signedOrder => signedOrder.order.takerAmount)
                             : await rfqt.firmQuoteValidator.getRfqtTakerFillableAmountsAsync(
@@ -715,9 +693,12 @@ export class MarketOperationUtils {
                     const quotesWithOrderFillableAmounts: NativeOrderWithFillableAmounts[] = firmQuotes.map(
                         (order, i) => ({
                             ...order,
-                            fillableTakerAmount: rfqOrderFillableAmounts[i],
-                            // TODO jacob adjust
-                            fillableMakerAmount: order.order.makerAmount,
+                            fillableTakerAmount: rfqTakerFillableAmounts[i],
+                            // Adjust the maker amount by the available taker fill amount
+                            fillableMakerAmount: getNativeAdjustedMakerFillAmount(
+                                order.order,
+                                rfqTakerFillableAmounts[i],
+                            ),
                             fillableTakerFeeAmount: ZERO_AMOUNT,
                         }),
                     );
