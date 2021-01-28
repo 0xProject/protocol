@@ -1,9 +1,8 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
-import { CommonOrderFields, LimitOrderFields, RfqOrder } from '@0x/protocol-utils';
+import { CommonOrderFields, LimitOrderFields, RfqOrder, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
-import { Signature } from 'ethereumjs-util';
 
 import {
     ERC20BridgeSource,

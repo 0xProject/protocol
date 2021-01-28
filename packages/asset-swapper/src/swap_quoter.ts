@@ -1,7 +1,6 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { ZERO_AMOUNT } from '@0x/order-utils';
-import { FillQuoteTransformerOrderType, LimitOrder, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
-import { BigNumber, NULL_BYTES, providerUtils } from '@0x/utils';
+import { FillQuoteTransformerOrderType, LimitOrder, LimitOrderFields } from '@0x/protocol-utils';
+import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
 
@@ -24,7 +23,7 @@ import {
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { SOURCE_FLAGS } from './utils/market_operation_utils/constants';
+import { SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
