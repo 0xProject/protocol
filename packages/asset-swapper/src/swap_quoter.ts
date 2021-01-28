@@ -487,6 +487,7 @@ export class SwapQuoter {
                     'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
                 );
             }
+            return undefined;
         }
 
         // Otherwise check other RFQ options
