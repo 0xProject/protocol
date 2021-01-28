@@ -14,7 +14,6 @@ export {
     DecodedLogEvent,
     EventCallback,
     IndexedFilterValues,
-    SignedOrder,
 } from '@0x/types';
 export { BigNumber } from '@0x/utils';
 export { RfqOrderFields, LimitOrderFields, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
@@ -74,7 +73,7 @@ export { artifacts } from './artifacts';
 export { InsufficientAssetLiquidityError } from './errors';
 export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { getSwapMinBuyAmount, getQuoteInfoMinBuyAmount } from './quote_consumers/utils';
-export { SwapQuoter, Orderbook, OrderbookOrder } from './swap_quoter';
+export { SwapQuoter, Orderbook } from './swap_quoter';
 export {
     AffiliateFee,
     AssetSwapperContractAddresses,
@@ -146,6 +145,7 @@ export {
     NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
+    SignedOrder,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,

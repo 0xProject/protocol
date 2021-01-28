@@ -530,7 +530,7 @@ export class MarketOperationUtils {
             fillableTakerAmount: new BigNumber(q.takerAmount),
             fillableTakerFeeAmount: ZERO_AMOUNT,
             type: FillQuoteTransformerOrderType.Rfq,
-        }));
+        } as NativeOrderWithFillableAmounts));
 
         // Convert native orders and dex quotes into `Fill` objects.
         const fills = createFills({
