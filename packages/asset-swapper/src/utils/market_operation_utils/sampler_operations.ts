@@ -1,3 +1,4 @@
+import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -41,6 +42,8 @@ import {
     MooniswapFillData,
     MultiHopFillData,
     ShellFillData,
+    SignedNativeOrder,
+    SignedOrder,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,
@@ -114,30 +117,29 @@ export class SamplerOperations {
         };
     }
 
-    // public getOrderFillableTakerAmounts(
-    //     orders: Array<LimitOrder | RfqOrder>,
-    //     signatures: Signature[],
-    //     exchangeAddress: string,
-    // ): BatchedOperation<BigNumber[]> {
-    //     return new SamplerContractOperation({
-    //         source: ERC20BridgeSource.Native,
-    //         contract: this._samplerContract,
-    //         function: this._samplerContract.getOrderFillableTakerAssetAmounts,
-    //         params: [orders, signatures, exchangeAddress],
-    //     });
-    // }
+    public getOrderFillableTakerAmounts(
+        orders: Array<SignedOrder<LimitOrderFields>>,
+        exchangeAddress: string,
+    ): BatchedOperation<BigNumber[]> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Native,
+            contract: this._samplerContract,
+            function: this._samplerContract.getLimitOrderFillableTakerAssetAmounts,
+            params: [orders.map(o => o.order), orders.map(o => o.signature), exchangeAddress],
+        });
+    }
 
-    // public getOrderFillableMakerAmounts(
-    //     orders: Array<LimitOrder | RfqOrder>,
-    //     exchangeAddress: string,
-    // ): BatchedOperation<BigNumber[]> {
-    //     return new SamplerContractOperation({
-    //         source: ERC20BridgeSource.Native,
-    //         contract: this._samplerContract,
-    //         function: this._samplerContract.getOrderFillableMakerAssetAmounts,
-    //         params: [orders, signatures, exchangeAddress],
-    //     });
-    // }
+    public getOrderFillableMakerAmounts(
+        orders: Array<SignedOrder<LimitOrderFields>>,
+        exchangeAddress: string,
+    ): BatchedOperation<BigNumber[]> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Native,
+            contract: this._samplerContract,
+            function: this._samplerContract.getLimitOrderFillableMakerAssetAmounts,
+            params: [orders.map(o => o.order), orders.map(o => o.signature), exchangeAddress],
+        });
+    }
 
     public getKyberSellQuotes(
         reserveOffset: BigNumber,

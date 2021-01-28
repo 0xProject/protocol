@@ -480,9 +480,9 @@ contract TestERC20BridgeSampler is
     }
 
     // Overridden to return deterministic states.
-    function getOrderFillableTakerAmount(
-        IExchange.Order memory order,
-        bytes memory,
+    function getLimitOrderFillableTakerAmount(
+        IExchange.LimitOrder memory order,
+        IExchange.Signature memory,
         IExchange
     )
         override
@@ -490,7 +490,7 @@ contract TestERC20BridgeSampler is
         view
         returns (uint256 fillableTakerAmount)
     {
-        return uint256(keccak256(abi.encode(order.salt))) % order.takerAssetAmount;
+        return uint256(keccak256(abi.encode(order.salt))) % order.takerAmount;
     }
 
     // Overriden to return deterministic decimals.

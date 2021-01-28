@@ -36,7 +36,9 @@ contract UtilitySampler {
     {
         decimals = new uint256[](tokens.length);
         for (uint256 i = 0; i != tokens.length; i++) {
-            decimals[i] = tokens[i] == UTILITY_ETH_ADDRESS ? 18 : tokens[i].compatDecimals();
+            decimals[i] = tokens[i] == UTILITY_ETH_ADDRESS
+                ? 18
+                : tokens[i].compatDecimals();
         }
     }
 
@@ -47,7 +49,9 @@ contract UtilitySampler {
     {
         balances = new uint256[](tokens.length);
         for (uint256 i = 0; i != tokens.length; i++) {
-            balances[i] = tokens[i].compatBalanceOf(account);
+            balances[i] = tokens[i] == UTILITY_ETH_ADDRESS
+                ? account.balance
+                : tokens[i].compatBalanceOf(account);
         }
     }
 
@@ -58,7 +62,9 @@ contract UtilitySampler {
     {
         allowances = new uint256[](tokens.length);
         for (uint256 i = 0; i != tokens.length; i++) {
-            allowances[i] = tokens[i].compatAllowance(account, spender);
+            allowances[i] = tokens[i] == UTILITY_ETH_ADDRESS
+                ? 0
+                : tokens[i].compatAllowance(account, spender);
         }
     }
 

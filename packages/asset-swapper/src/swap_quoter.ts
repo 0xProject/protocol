@@ -1,5 +1,11 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { FillQuoteTransformerOrderType, LimitOrder, LimitOrderFields, Signature } from '@0x/protocol-utils';
+import {
+    FillQuoteTransformerOrderType,
+    LimitOrder,
+    LimitOrderFields,
+    Signature,
+    SignatureType,
+} from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
@@ -36,6 +42,7 @@ import {
     OptimizedMarketOrder,
     OptimizerResultWithReport,
     SignedNativeOrder,
+    SignedOrder,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
@@ -48,25 +55,25 @@ export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,
         takerToken: string,
-        pruneFn?: (o: OrderbookOrder) => boolean,
-    ): Promise<OrderbookOrder[]>;
+        pruneFn?: (o: SignedOrder<LimitOrderFields>) => boolean,
+    ): Promise<Array<SignedOrder<LimitOrderFields>>>;
     public abstract getBatchOrdersAsync(
         makerTokens: string[],
         takerToken: string,
-        pruneFn?: (o: OrderbookOrder) => boolean,
-    ): Promise<OrderbookOrder[][]>;
+        pruneFn?: (o: SignedOrder<LimitOrderFields>) => boolean,
+    ): Promise<Array<Array<SignedOrder<LimitOrderFields>>>>;
     // tslint:disable-next-line:prefer-function-over-method
     public async destroyAsync(): Promise<void> {
         return;
     }
 }
 
-function formatOrderbookOrder(order: OrderbookOrder): SignedNativeOrder {
+function formatOrderbookOrder(order: SignedOrder<LimitOrderFields>): SignedOrder<LimitOrderFields> {
     return {
         type: FillQuoteTransformerOrderType.Limit,
         // tslint:disable-next-line
         signature: (order.signature as any) as Signature, // todo (xianny): hack
-        order: order as LimitOrderFields,
+        order: order.order,
     };
 }
 
@@ -344,28 +351,8 @@ export class SwapQuoter {
             ];
         };
         const [bids, asks] = await Promise.all([
-            this._marketOperationUtils.getMarketBuyLiquidityAsync(
-                (buyOrders || []).map(o => ({
-                    order: o.order,
-                    type: FillQuoteTransformerOrderType.Limit,
-                    // TODO jacob
-                    // tslint:disable-next-line: no-object-literal-type-assertion
-                    signature: {} as Signature,
-                })),
-                takerAssetAmount,
-                options,
-            ),
-            this._marketOperationUtils.getMarketSellLiquidityAsync(
-                (sellOrders || []).map(o => ({
-                    order: o.order,
-                    type: FillQuoteTransformerOrderType.Limit,
-                    // TODO jacob
-                    // tslint:disable-next-line: no-object-literal-type-assertion
-                    signature: {} as Signature,
-                })),
-                takerAssetAmount,
-                options,
-            ),
+            this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
+            this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
         ]);
         return {
             bids: getMarketDepthSide(bids),
@@ -397,8 +384,8 @@ export class SwapQuoter {
         return this._contractAddresses.etherToken;
     }
 
-    private readonly _limitOrderPruningFn = (limitOrder: LimitOrderFields) => {
-        const order = new LimitOrder(limitOrder);
+    private readonly _limitOrderPruningFn = (limitOrder: SignedOrder<LimitOrderFields>) => {
+        const order = new LimitOrder(limitOrder.order);
         const isOpenOrder = order.taker === constants.NULL_ADDRESS;
         const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS); // tslint:disable-line:boolean-naming
         const isFeeTypeAllowed =
@@ -452,52 +439,28 @@ export class SwapQuoter {
         }
 
         // Otherwise check other RFQ options
-        let shouldProceedWithRfq = false;
         if (
             opts.rfqt && // This is an RFQT-enabled API request
-            !getPriceAwareRFQRolloutFlags(opts.rfqt.priceAwareRFQFlag).isFirmPriceAwareEnabled && // If Price-aware RFQ is enabled, firm quotes are requested later on in the process.
             opts.rfqt.intentOnFilling && // The requestor is asking for a firm quote
             opts.rfqt.apiKey &&
             this._isApiKeyWhitelisted(opts.rfqt.apiKey) && // A valid API key was provided
             sourceFilters.isAllowed(ERC20BridgeSource.Native) // Native liquidity is not excluded
         ) {
-            if (!opts.rfqt.takerAddress || opts.rfqt.takerAddress === constants.NULL_ADDRESS) {
-                throw new Error('RFQ-T firm quote requests must specify a taker address');
+            if (!opts.rfqt.txOrigin || opts.rfqt.txOrigin === constants.NULL_ADDRESS) {
+                throw new Error('RFQ-T firm quote requests must specify a tx origin');
             }
-            shouldProceedWithRfq = true;
         }
         const rfqtOptions = this._rfqtOptions;
-        const quoteRequestor = new QuoteRequestor(
-            rfqtOptions ? rfqtOptions.makerAssetOfferings || {} : {},
-            rfqtOptions ? rfqtOptions.warningLogger : undefined,
-            rfqtOptions ? rfqtOptions.infoLogger : undefined,
-            this.expiryBufferMs,
-        );
-
-        // Get RFQ orders if valid
-        const rfqOrdersPromise = shouldProceedWithRfq
-            ? quoteRequestor.requestRfqtFirmQuotesAsync(
-                  makerToken,
-                  takerToken,
-                  assetFillAmount,
-                  marketOperation,
-                  undefined,
-                  opts.rfqt!,
-              )
-            : [];
 
         // Get SRA orders (limit orders)
-        const skipOpenOrderbook =
+        const shouldSkipOpenOrderbook =
             !sourceFilters.isAllowed(ERC20BridgeSource.Native) ||
             (opts.rfqt && opts.rfqt.nativeExclusivelyRFQT === true);
-        const limitOrdersPromise = skipOpenOrderbook
-            ? Promise.resolve([])
-            : this.orderbook
+        const nativeOrders = shouldSkipOpenOrderbook
+            ? await Promise.resolve([])
+            : await this.orderbook
                   .getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn)
                   .then(orders => orders.map(formatOrderbookOrder));
-
-        // Join the results together
-        const nativeOrders: SignedNativeOrder[] = _.flatten(await Promise.all([limitOrdersPromise, rfqOrdersPromise]));
 
         // if no native orders, pass in a dummy order for the sampler to have required metadata for sampling
         if (nativeOrders.length === 0) {
@@ -528,7 +491,12 @@ export class SwapQuoter {
         };
         // pass the QuoteRequestor on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
-            calcOpts.rfqt.quoteRequestor = quoteRequestor;
+            calcOpts.rfqt.quoteRequestor = new QuoteRequestor(
+                rfqtOptions ? rfqtOptions.makerAssetOfferings || {} : {},
+                rfqtOptions ? rfqtOptions.warningLogger : undefined,
+                rfqtOptions ? rfqtOptions.infoLogger : undefined,
+                this.expiryBufferMs,
+            );
         }
 
         const result: OptimizerResultWithReport = await this._marketOperationUtils.getOptimizerResultAsync(

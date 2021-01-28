@@ -239,12 +239,13 @@ export interface CollapsedFill<TFillData extends FillData = FillData> {
  */
 export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 
-export interface NativeOrderWithType {
-    order: RfqOrderFields | LimitOrderFields;
-    type: FillQuoteTransformerOrderType;
+export interface SignedOrder<T> {
+    order: T;
+    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
+    signature: Signature;
 }
 
-export type SignedNativeOrder = NativeOrderWithType & { signature: Signature };
+export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
 
 export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
 
