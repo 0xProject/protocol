@@ -154,10 +154,8 @@ export class QuoteRequestor {
         const quotes = quotesRaw.map(result => ({ ...result, response: result.response.signedOrder }));
 
         // validate
-        // const validationFunction = (o: V4SignedRfqOrder) => this._schemaValidator.isValid(o, schemas.orderSchema);
-        //  TODO (xianny): might not be the right schema, placeholde
-        // TODO jacob
-        const validationFunction = (o: V4SignedRfqOrder) => true;
+        const validationFunction = (o: V4SignedRfqOrder) =>
+            this._schemaValidator.isValid(o, schemas.v4RfqSignedOrderSchema);
         const validQuotes = quotes.filter(result => {
             const order = result.response;
             if (!validationFunction(order)) {

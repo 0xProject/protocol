@@ -390,11 +390,7 @@ export class MarketOperationUtils {
 
         const ops = [
             ...batchNativeOrders.map(orders =>
-                this._sampler.getOrderFillableMakerAmounts(
-                    // TODO jacob
-                    orders,
-                    this.contractAddresses.exchangeProxy,
-                ),
+                this._sampler.getOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
             ),
             ...batchNativeOrders.map(orders =>
                 this._sampler.getMedianSellRate(
