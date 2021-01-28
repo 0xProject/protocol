@@ -9,7 +9,7 @@ import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateF
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
-import * as BridgeSource from '../test/generated-artifacts/BridgeSource.json';
+import * as CurveLiquidityProvider from '../test/generated-artifacts/CurveLiquidityProvider.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../test/generated-artifacts/FillQuoteTransformer.json';
@@ -93,6 +93,7 @@ import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/
 import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
 import * as TestCallTarget from '../test/generated-artifacts/TestCallTarget.json';
+import * as TestCurve from '../test/generated-artifacts/TestCurve.json';
 import * as TestDelegateCaller from '../test/generated-artifacts/TestDelegateCaller.json';
 import * as TestFeeCollectorController from '../test/generated-artifacts/TestFeeCollectorController.json';
 import * as TestFillQuoteTransformerBridge from '../test/generated-artifacts/TestFillQuoteTransformerBridge.json';
@@ -186,6 +187,7 @@ export const artifacts = {
     FixinProtocolFees: FixinProtocolFees as ContractArtifact,
     FixinReentrancyGuard: FixinReentrancyGuard as ContractArtifact,
     FixinTokenSpender: FixinTokenSpender as ContractArtifact,
+    CurveLiquidityProvider: CurveLiquidityProvider as ContractArtifact,
     FullMigration: FullMigration as ContractArtifact,
     InitialMigration: InitialMigration as ContractArtifact,
     LibBootstrap: LibBootstrap as ContractArtifact,
@@ -231,6 +233,7 @@ export const artifacts = {
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
     TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,
+    TestCurve: TestCurve as ContractArtifact,
     TestDelegateCaller: TestDelegateCaller as ContractArtifact,
     TestFeeCollectorController: TestFeeCollectorController as ContractArtifact,
     TestFillQuoteTransformerBridge: TestFillQuoteTransformerBridge as ContractArtifact,

@@ -23,12 +23,14 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../errors/LibLiquidityProviderRichErrors.sol";
 import "../external/ILiquidityProviderSandbox.sol";
 import "../external/LiquidityProviderSandbox.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
+import "../transformers/LibERC20Transformer.sol";
 import "./IFeature.sol";
 import "./ILiquidityProviderFeature.sol";
 
@@ -45,22 +47,10 @@ contract LiquidityProviderFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LiquidityProviderFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 2);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 3);
 
-    /// @dev ETH pseudo-token address.
-    address constant internal ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox public immutable sandbox;
-
-    /// @dev Event for data pipeline.
-    event LiquidityProviderSwap(
-        address inputToken,
-        address outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount,
-        address provider,
-        address recipient
-    );
 
     constructor(LiquidityProviderSandbox sandbox_, bytes32 greedyTokensBloomFilter)
         public
@@ -95,9 +85,9 @@ contract LiquidityProviderFeature is
     /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellToLiquidityProvider(
-        address inputToken,
-        address outputToken,
-        address payable provider,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        ILiquidityProvider provider,
         address recipient,
         uint256 sellAmount,
         uint256 minBuyAmount,
@@ -114,21 +104,21 @@ contract LiquidityProviderFeature is
 
         // Forward all attached ETH to the provider.
         if (msg.value > 0) {
-            provider.transfer(msg.value);
+            payable(address(provider)).transfer(msg.value);
         }
 
-        if (inputToken != ETH_TOKEN_ADDRESS) {
+        if (!LibERC20Transformer.isTokenETH(inputToken)) {
             // Transfer input ERC20 tokens to the provider.
             _transferERC20Tokens(
-                IERC20TokenV06(inputToken),
+                inputToken,
                 msg.sender,
-                provider,
+                address(provider),
                 sellAmount
             );
         }
 
-        if (inputToken == ETH_TOKEN_ADDRESS) {
-            uint256 balanceBefore = IERC20TokenV06(outputToken).balanceOf(recipient);
+        if (LibERC20Transformer.isTokenETH(inputToken)) {
+            uint256 balanceBefore = outputToken.balanceOf(recipient);
             sandbox.executeSellEthForToken(
                 provider,
                 outputToken,
@@ -137,7 +127,7 @@ contract LiquidityProviderFeature is
                 auxiliaryData
             );
             boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
-        } else if (outputToken == ETH_TOKEN_ADDRESS) {
+        } else if (LibERC20Transformer.isTokenETH(outputToken)) {
             uint256 balanceBefore = recipient.balance;
             sandbox.executeSellTokenForEth(
                 provider,
@@ -148,7 +138,7 @@ contract LiquidityProviderFeature is
             );
             boughtAmount = recipient.balance.safeSub(balanceBefore);
         } else {
-            uint256 balanceBefore = IERC20TokenV06(outputToken).balanceOf(recipient);
+            uint256 balanceBefore = outputToken.balanceOf(recipient);
             sandbox.executeSellTokenForToken(
                 provider,
                 inputToken,
@@ -157,14 +147,14 @@ contract LiquidityProviderFeature is
                 minBuyAmount,
                 auxiliaryData
             );
-            boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
+            boughtAmount = outputToken.balanceOf(recipient).safeSub(balanceBefore);
         }
 
         if (boughtAmount < minBuyAmount) {
             LibLiquidityProviderRichErrors.LiquidityProviderIncompleteSellError(
-                provider,
-                outputToken,
-                inputToken,
+                address(provider),
+                address(outputToken),
+                address(inputToken),
                 sellAmount,
                 boughtAmount,
                 minBuyAmount
