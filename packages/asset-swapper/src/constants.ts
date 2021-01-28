@@ -12,7 +12,11 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from './types';
-import { DEFAULT_GET_MARKET_ORDERS_OPTS, TOKENS } from './utils/market_operation_utils/constants';
+import {
+    DEFAULT_GET_MARKET_ORDERS_OPTS,
+    DEFAULT_INTERMEDIATE_TOKENS,
+    DEFAULT_TOKEN_ADJACENCY_GRAPH,
+} from './utils/market_operation_utils/constants';
 
 const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
 const NULL_BYTES = '0x';
@@ -38,7 +42,6 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 // default 50% buffer for selecting native orders to be aggregated with other sources
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
 
-const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC];
 const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
@@ -49,6 +52,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
         takerApiKeyWhitelist: [],
         makerAssetOfferings: {},
     },
+    tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH,
 };
 
 const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts = {

@@ -5,6 +5,7 @@ import {
     encodeCurveLiquidityProviderData,
     encodeFillQuoteTransformerData,
     encodePayTakerTransformerData,
+    encodePositiveSlippageFeeTransformerData,
     encodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
     FillQuoteTransformerData,
@@ -16,8 +17,9 @@ import { BigNumber, providerUtils } from '@0x/utils';
 import { SupportedProvider, ZeroExProvider } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { constants } from '../constants';
+import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
 import {
+    AffiliateFeeType,
     CalldataInfo,
     ExchangeProxyContractOpts,
     MarketBuySwapQuote,
@@ -59,6 +61,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         payTakerTransformer: number;
         fillQuoteTransformer: number;
         affiliateFeeTransformer: number;
+        positiveSlippageFeeTransformer: number;
     };
 
     private readonly _exchangeProxy: IZeroExContract;
@@ -92,6 +95,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 contractAddresses.transformers.affiliateFeeTransformer,
                 contractAddresses.exchangeProxyTransformerDeployer,
             ),
+            positiveSlippageFeeTransformer: findTransformerNonce(
+                contractAddresses.transformers.positiveSlippageFeeTransformer,
+                contractAddresses.exchangeProxyTransformerDeployer,
+            ),
         };
     }
 
@@ -117,7 +124,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         if (isFromETH) {
             ethAmount = ethAmount.plus(sellAmount);
         }
-        const { buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
+        const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
 
         // VIP routes.
         if (
@@ -262,25 +269,44 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
-        // This transformer pays affiliate fees.
-        if (buyTokenFeeAmount.isGreaterThan(0) && feeRecipient !== NULL_ADDRESS) {
+        if (feeType === AffiliateFeeType.PositiveSlippageFee && feeRecipient !== NULL_ADDRESS) {
+            // bestCaseAmount is increased to cover gas cost of sending positive slipapge fee to fee recipient
+            const bestCaseAmount = quote.bestCaseQuoteInfo.makerAssetAmount
+                .plus(
+                    POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
+                        quote.ethToMakerAssetRate,
+                    ),
+                )
+                .decimalPlaces(0, BigNumber.ROUND_CEIL);
             transforms.push({
-                deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
-                data: encodeAffiliateFeeTransformerData({
-                    fees: [
-                        {
-                            token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                            amount: buyTokenFeeAmount,
-                            recipient: feeRecipient,
-                        },
-                    ],
+                deploymentNonce: this.transformerNonces.positiveSlippageFeeTransformer,
+                data: encodePositiveSlippageFeeTransformerData({
+                    token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                    bestCaseAmount,
+                    recipient: feeRecipient,
                 }),
             });
-            // Adjust the minimum buy amount by the fee.
-            minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
-        }
-        if (sellTokenFeeAmount.isGreaterThan(0) && feeRecipient !== NULL_ADDRESS) {
-            throw new Error('Affiliate fees denominated in sell token are not yet supported');
+        } else if (feeType === AffiliateFeeType.PercentageFee && feeRecipient !== NULL_ADDRESS) {
+            // This transformer pays affiliate fees.
+            if (buyTokenFeeAmount.isGreaterThan(0)) {
+                transforms.push({
+                    deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
+                    data: encodeAffiliateFeeTransformerData({
+                        fees: [
+                            {
+                                token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                                amount: buyTokenFeeAmount,
+                                recipient: feeRecipient,
+                            },
+                        ],
+                    }),
+                });
+                // Adjust the minimum buy amount by the fee.
+                minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
+            }
+            if (sellTokenFeeAmount.isGreaterThan(0)) {
+                throw new Error('Affiliate fees denominated in sell token are not yet supported');
+            }
         }
 
         // The final transformer will send all funds to the taker.
@@ -330,6 +356,10 @@ function isDirectSwapCompatible(
     }
     // Must not have an affiliate fee.
     if (!opts.affiliateFee.buyTokenFeeAmount.eq(0) || !opts.affiliateFee.sellTokenFeeAmount.eq(0)) {
+        return false;
+    }
+    // Must not have a positive slippage fee.
+    if (opts.affiliateFee.feeType === AffiliateFeeType.PositiveSlippageFee) {
         return false;
     }
     // Must be a single order.

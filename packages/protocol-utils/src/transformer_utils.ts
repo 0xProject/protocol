@@ -242,7 +242,7 @@ export function decodePayTakerTransformerData(encoded: string): PayTakerTransfor
 }
 
 /**
- * ABI encoder for `PayTakerTransformer.TransformData`
+ * ABI encoder for `affiliateFeetransformer.TransformData`
  */
 export const affiliateFeeTransformerDataEncoder = AbiEncoder.create({
     name: 'data',

@@ -77,6 +77,9 @@ export {
     AffiliateFeeTransformerData,
     encodeAffiliateFeeTransformerData,
     decodeAffiliateFeeTransformerData,
+    PositiveSlippageFeeTransformerData,
+    encodePositiveSlippageFeeTransformerData,
+    decodePositiveSlippageFeeTransformerData,
     findTransformerNonce,
     getTransformerAddress,
 } from './transformer_utils';

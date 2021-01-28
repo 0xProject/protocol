@@ -27,6 +27,7 @@ export * from '../generated-wrappers/meta_transactions_feature';
 export * from '../generated-wrappers/native_orders_feature';
 export * from '../generated-wrappers/ownable_feature';
 export * from '../generated-wrappers/pay_taker_transformer';
+export * from '../generated-wrappers/positive_slippage_fee_transformer';
 export * from '../generated-wrappers/simple_function_registry_feature';
 export * from '../generated-wrappers/token_spender_feature';
 export * from '../generated-wrappers/transform_erc20_feature';

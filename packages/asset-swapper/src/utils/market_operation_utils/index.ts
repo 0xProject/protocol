@@ -30,7 +30,7 @@ import {
 import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
-import { findOptimalPathAsync } from './path_optimizer';
+import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -503,8 +503,12 @@ export class MarketOperationUtils {
         };
 
         // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-        const takerTokenToEthRate = side === MarketOperation.Sell ? ethToInputRate : ethToOutputRate;
-        const makerTokenToEthRate = side === MarketOperation.Sell ? ethToOutputRate : ethToInputRate;
+        const ethToTakerAssetRate = side === MarketOperation.Sell ? ethToInputRate : ethToOutputRate;
+        const ethToMakerAssetRate = side === MarketOperation.Sell ? ethToOutputRate : ethToInputRate;
+
+        // Find the unoptimized best rate to calculate savings from optimizer
+        const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, optimizerOpts)[0];
+        const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
 
         // Find the optimal path
         const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, optimizerOpts);
@@ -523,8 +527,9 @@ export class MarketOperationUtils {
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
-                takerTokenToEthRate,
-                makerTokenToEthRate,
+                unoptimizedPath,
+                ethToTakerAssetRate,
+                ethToMakerAssetRate,
             };
         }
 
@@ -557,8 +562,9 @@ export class MarketOperationUtils {
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
-            takerTokenToEthRate,
-            makerTokenToEthRate,
+            unoptimizedPath,
+            ethToTakerAssetRate,
+            ethToMakerAssetRate,
         };
     }
 

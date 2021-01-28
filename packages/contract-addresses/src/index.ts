@@ -39,6 +39,7 @@ export interface ContractAddresses {
         payTakerTransformer: string;
         fillQuoteTransformer: string;
         affiliateFeeTransformer: string;
+        positiveSlippageFeeTransformer: string;
     };
 }
 

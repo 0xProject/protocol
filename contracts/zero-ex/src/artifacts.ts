@@ -29,6 +29,7 @@ import * as MetaTransactionsFeature from '../generated-artifacts/MetaTransaction
 import * as NativeOrdersFeature from '../generated-artifacts/NativeOrdersFeature.json';
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
+import * as PositiveSlippageFeeTransformer from '../generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TokenSpenderFeature from '../generated-artifacts/TokenSpenderFeature.json';
 import * as TransformERC20Feature from '../generated-artifacts/TransformERC20Feature.json';
@@ -64,4 +65,5 @@ export const artifacts = {
     FeeCollectorController: FeeCollectorController as ContractArtifact,
     FeeCollector: FeeCollector as ContractArtifact,
     CurveLiquidityProvider: CurveLiquidityProvider as ContractArtifact,
+    PositiveSlippageFeeTransformer: PositiveSlippageFeeTransformer as ContractArtifact,
 };

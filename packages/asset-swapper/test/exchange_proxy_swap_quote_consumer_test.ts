@@ -4,6 +4,7 @@ import {
     decodeAffiliateFeeTransformerData,
     decodeFillQuoteTransformerData,
     decodePayTakerTransformerData,
+    decodePositiveSlippageFeeTransformerData,
     decodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
     FillQuoteTransformerLimitOrderInfo,
@@ -17,9 +18,9 @@ import * as chai from 'chai';
 import * as _ from 'lodash';
 import 'mocha';
 
-import { constants } from '../src/constants';
+import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../src/constants';
 import { ExchangeProxySwapQuoteConsumer } from '../src/quote_consumers/exchange_proxy_swap_quote_consumer';
-import { MarketBuySwapQuote, MarketOperation, MarketSellSwapQuote } from '../src/types';
+import { AffiliateFeeType, MarketBuySwapQuote, MarketOperation, MarketSellSwapQuote } from '../src/types';
 import {
     ERC20BridgeSource,
     OptimizedLimitOrder,
@@ -53,6 +54,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             payTakerTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, 2),
             fillQuoteTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, 3),
             affiliateFeeTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, 4),
+            positiveSlippageFeeTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, 5),
         },
     };
     let consumer: ExchangeProxySwapQuoteConsumer;
@@ -137,11 +139,11 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 protocolFeeInWeiAmount: getRandomAmount(),
                 feeTakerTokenAmount: getRandomAmount(),
             },
+            takerAssetsPerEth: getRandomInteger(1, 1e9),
+            makerAssetsPerEth: getRandomInteger(1, 1e9),
             ...(side === MarketOperation.Buy
                 ? { type: MarketOperation.Buy, makerTokenFillAmount }
                 : { type: MarketOperation.Sell, takerTokenFillAmount }),
-            takerTokenToEthRate: getRandomAmount(),
-            makerTokenToEthRate: getRandomAmount(),
         };
     }
 
@@ -336,6 +338,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 recipient: randomAddress(),
                 buyTokenFeeAmount: getRandomAmount(),
                 sellTokenFeeAmount: ZERO_AMOUNT,
+                feeType: AffiliateFeeType.PercentageFee,
             };
             const callInfo = await consumer.getCalldataOrThrowAsync(quote, {
                 extensionContractOpts: { affiliateFee },
@@ -349,12 +352,42 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 { token: MAKER_TOKEN, amount: affiliateFee.buyTokenFeeAmount, recipient: affiliateFee.recipient },
             ]);
         });
+        it('Appends a positive slippage affiliate fee transformer after the fill if the positive slippage fee feeType is specified', async () => {
+            const quote = getRandomSellQuote();
+            const affiliateFee = {
+                recipient: randomAddress(),
+                buyTokenFeeAmount: ZERO_AMOUNT,
+                sellTokenFeeAmount: ZERO_AMOUNT,
+                feeType: AffiliateFeeType.PositiveSlippageFee,
+            };
+            const callInfo = await consumer.getCalldataOrThrowAsync(quote, {
+                extensionContractOpts: { affiliateFee },
+            });
+            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
+            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.eq(
+                consumer.transformerNonces.positiveSlippageFeeTransformer,
+            );
+            const positiveSlippageFeeTransformerData = decodePositiveSlippageFeeTransformerData(
+                callArgs.transformations[1].data,
+            );
+            const bestCaseAmount = quote.bestCaseQuoteInfo.makerAmount.plus(
+                POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
+                    quote.makerAssetsPerEth,
+                ),
+            );
+            expect(positiveSlippageFeeTransformerData).to.deep.equal({
+                token: MAKER_TOKEN,
+                bestCaseAmount,
+                recipient: affiliateFee.recipient,
+            });
+        });
         it('Throws if a sell token affiliate fee is provided', async () => {
             const quote = getRandomSellQuote();
             const affiliateFee = {
                 recipient: randomAddress(),
                 buyTokenFeeAmount: ZERO_AMOUNT,
                 sellTokenFeeAmount: getRandomAmount(),
+                feeType: AffiliateFeeType.PercentageFee,
             };
             expect(
                 consumer.getCalldataOrThrowAsync(quote, {

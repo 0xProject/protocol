@@ -32,6 +32,7 @@ import {
     FillQuoteTransformerContract,
     fullMigrateAsync as fullMigrateExchangeProxyAsync,
     PayTakerTransformerContract,
+    PositiveSlippageFeeTransformerContract,
     WethTransformerContract,
 } from '@0x/contracts-zero-ex';
 import { Web3ProviderEngine } from '@0x/subproviders';
@@ -345,7 +346,12 @@ export async function runMigrationsAsync(
         exchange.address,
         bridgeAdapter.address,
     );
-
+    const positiveSlippageFeeTransformer = await PositiveSlippageFeeTransformerContract.deployFrom0xArtifactAsync(
+        exchangeProxyArtifacts.PositiveSlippageFeeTransformer,
+        provider,
+        txDefaults,
+        allArtifacts,
+    );
     const contractAddresses = {
         erc20Proxy: erc20Proxy.address,
         erc721Proxy: erc721Proxy.address,
@@ -385,6 +391,7 @@ export async function runMigrationsAsync(
             payTakerTransformer: payTakerTransformer.address,
             fillQuoteTransformer: fillQuoteTransformer.address,
             affiliateFeeTransformer: affiliateFeeTransformer.address,
+            positiveSlippageFeeTransformer: positiveSlippageFeeTransformer.address,
         },
     };
     return contractAddresses;
