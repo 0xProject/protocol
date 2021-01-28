@@ -7,7 +7,7 @@ export {
 export { ContractAddresses } from '@0x/contract-addresses';
 export { WSOpts } from '@0x/mesh-rpc-client';
 export { V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder, TakerRequestQueryParams } from '@0x/quote-server';
-export { Asset, AssetPairsItem, DecodedLogEvent, EventCallback, IndexedFilterValues } from '@0x/types';
+export { APIOrder, Asset, AssetPairsItem, DecodedLogEvent, EventCallback, IndexedFilterValues } from '@0x/types';
 export { BigNumber } from '@0x/utils';
 export { RfqOrderFields, LimitOrderFields, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 export { AxiosInstance } from 'axios';
