@@ -643,7 +643,7 @@
     npmlog "^4.1.2"
     write-file-atomic "^2.3.0"
 
-"@0x/abi-gen@^5.4.19":
+"@0x/abi-gen@^5.4.13", "@0x/abi-gen@^5.4.19":
   version "5.4.19"
   resolved "https://registry.yarnpkg.com/@0x/abi-gen/-/abi-gen-5.4.19.tgz#d6c9dc9eee390ec191b557f57e2c369a09f6c771"
   integrity sha512-uMpaSZpVaqcK52BWuhTsmbIfCrZd1HoGtIlv2J3RIQP+wsuO+pPoQCKmV0DVaJWuklfjlhIF1x3IdYPxJdM+eA==
@@ -699,7 +699,7 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/base-contract@^6.2.18":
+"@0x/base-contract@^6.2.14", "@0x/base-contract@^6.2.18":
   version "6.2.18"
   resolved "https://registry.yarnpkg.com/@0x/base-contract/-/base-contract-6.2.18.tgz#d092de93d52d8cf8e5d4600d9ca852421322ab38"
   integrity sha512-Fg7KjZQqCwDqsAdSXZQv2CXC7ujlLYFaq/sJIOM76vOkv9yyWpC8KAh5ZJ1r4bOLYCo6L8zICYD4QELBSKy5wQ==
@@ -736,7 +736,7 @@
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-4.12.0.tgz#2adb0bcde763ad13437f782adf25c403107ff428"
 
-"@0x/contracts-gen@^2.0.30":
+"@0x/contracts-gen@^2.0.24", "@0x/contracts-gen@^2.0.30":
   version "2.0.30"
   resolved "https://registry.yarnpkg.com/@0x/contracts-gen/-/contracts-gen-2.0.30.tgz#e143660b6f2aadc675e56d7675061dbd370b4985"
   integrity sha512-HpGwQem6lN4n69MAINEN9sPOJ2SgQyA9w8Annr9eq7HY470kDLt8FWR7uSHqQFLBUa00fqsWXmYkluwFrL/riA==
@@ -906,7 +906,7 @@
     express-async-handler "^1.1.4"
     http-status-codes "^1.4.0"
 
-"@0x/sol-compiler@^4.5.2":
+"@0x/sol-compiler@^4.4.1", "@0x/sol-compiler@^4.5.2":
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/@0x/sol-compiler/-/sol-compiler-4.5.2.tgz#da47263dfe14045c735955d5a026e1b6af7e855c"
   integrity sha512-L5q4S5blMZusY7q5Unmv9GtBo0N0Sjp56F7iDl8bVzTU8F3H83WAaNkqWRzrPZKCHwAQcP3a0rNAprwCtavkeA==
@@ -1046,7 +1046,7 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/subproviders@^6.4.1":
+"@0x/subproviders@^6.2.3", "@0x/subproviders@^6.4.1":
   version "6.4.1"
   resolved "https://registry.yarnpkg.com/@0x/subproviders/-/subproviders-6.4.1.tgz#aaec18651f6ae6a1c545481efa6aaebb97525998"
   integrity sha512-DurwE7xQeeqfmPDU4FexmuMwK4aNfhfry/naPAYlz8aR7kKf1penZFR4h4bs2wgGhtcPnw3800qUlpFwueQRgw==
@@ -1219,7 +1219,7 @@
     js-sha3 "^0.7.0"
     lodash "^4.17.11"
 
-"@0x/utils@^6.2.0":
+"@0x/utils@^6.1.1", "@0x/utils@^6.2.0":
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/@0x/utils/-/utils-6.2.0.tgz#07708d87691ac260163c01713ffac7a7f8e4c795"
   integrity sha512-cVJYTHhXsaH8zgEpLxpuX9MnEEFsU8Kzpn9E6ACPlB1jsThOSTC0PPdlSkA6k7IrN5PHCaW879mkcBEcpFCWXQ==
@@ -1268,7 +1268,7 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/web3-wrapper@^7.4.1":
+"@0x/web3-wrapper@^7.3.0", "@0x/web3-wrapper@^7.4.1":
   version "7.4.1"
   resolved "https://registry.yarnpkg.com/@0x/web3-wrapper/-/web3-wrapper-7.4.1.tgz#196ed73eef6989ff953d5b2d610352b47748f73e"
   integrity sha512-RNr9j/FtPHuAn7BxoKq2UUb1OoOIhbqHxXRLpsBBM4CU78/WjNF7zd95WB4RRnhbEK9HkdhgKb1a/lclCp84cA==

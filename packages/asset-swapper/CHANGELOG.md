@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.8.2 - _January 28, 2021_
+
+    * Fix error when Multihop data is not present (#80)
+
 ## v5.8.1 - _January 26, 2021_
 
     * Dependencies updated
