@@ -58,7 +58,11 @@ contract LiquidityProviderSampler is
             try
                 ILiquidityProvider(providerAddress).getSellQuote
                     {gas: DEFAULT_CALL_GAS}
-                    (takerToken, makerToken, takerTokenAmounts[i])
+                    (
+                        IERC20TokenV06(takerToken),
+                        IERC20TokenV06(makerToken),
+                        takerTokenAmounts[i]
+                    )
                 returns (uint256 amount)
             {
                 makerTokenAmounts[i] = amount;

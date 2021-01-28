@@ -8,3 +8,4 @@ export * from './meta_transactions';
 export * from './signature_utils';
 export * from './transformer_utils';
 export * from './constants';
+export * from './vip_utils';

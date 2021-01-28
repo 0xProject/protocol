@@ -2,6 +2,7 @@ import { ContractAddresses } from '@0x/contract-addresses';
 import { IZeroExContract } from '@0x/contract-wrappers';
 import {
     encodeAffiliateFeeTransformerData,
+    encodeCurveLiquidityProviderData,
     encodeFillQuoteTransformerData,
     encodePayTakerTransformerData,
     encodeWethTransformerData,
@@ -34,6 +35,7 @@ import {
     getERC20BridgeSourceToBridgeSource,
 } from '../utils/market_operation_utils/orders';
 import {
+    CurveFillData,
     ERC20BridgeSource,
     LiquidityProviderFillData,
     NativeLimitOrderFillData,
@@ -158,6 +160,27 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         sellAmount,
                         minBuyAmount,
                         NULL_BYTES,
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+            };
+        }
+
+        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])) {
+            const fillData = quote.orders[0].fills[0].fillData as CurveFillData;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        '0xe3a207e4225d459095491ea75d30b31968dff887',
+                        // this.contractAddresses.curveLiquidityProvider,
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                        encodeCurveLiquidityProviderData(fillData),
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
@@ -372,4 +395,13 @@ function getFQTTransformerDataFromOptimizedOrders(
         fqtData.fillSequence.push(order.type);
     }
     return fqtData;
+}
+
+function encodeCurveLiquidityProviderData(fillData: CurveFillData): string {
+    return encodeCurveLiquidityProviderData({
+        curveAddress: fillData.pool.poolAddress,
+        exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
+        fromCoinIdx: fillData.fromTokenIdx,
+        toCoinIdx: fillData.toTokenIdx,
+    });
 }
