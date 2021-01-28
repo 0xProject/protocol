@@ -1,12 +1,4 @@
-import {
-    BridgeSource,
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    LimitOrderFields,
-    RfqOrder,
-    RfqOrderFields,
-    Signature,
-} from '@0x/protocol-utils';
+import { BridgeSource, FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
@@ -33,10 +25,11 @@ import {
     MooniswapFillData,
     MultiHopFillData,
     NativeCollapsedFill,
-    OptimizedLimitOrder,
+    NativeLimitOrderFillData,
+    NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
-    OptimizedRfqOrder,
+    OptimizedMarketOrderBase,
     OrderDomain,
     ShellFillData,
     SnowSwapFillData,
@@ -48,46 +41,6 @@ import {
 // tslint:disable completed-docs no-unnecessary-type-assertion
 export function getNativeOrderTokens(order: LimitOrder | RfqOrder): [string, string] {
     return [order.makerToken, order.takerToken];
-}
-
-export function convertNativeOrderToFullyFillableOptimizedOrders(
-    order: LimitOrderFields & { signature: Signature },
-    fill: NativeCollapsedFill,
-): OptimizedLimitOrder {
-    return {
-        type: FillQuoteTransformerOrderType.Limit,
-        makerToken: order.makerToken,
-        takerToken: order.takerToken,
-        fillData: {
-            order,
-            signature: order.signature,
-            maxTakerTokenFillAmount: order.takerAmount,
-        },
-        fills: [fill],
-        source: ERC20BridgeSource.Native,
-        takerAmount: order.takerAmount,
-        makerAmount: order.makerAmount,
-    };
-}
-
-export function convertNativeRFQOrderToFullyFillableOptimizedOrders(
-    order: RfqOrderFields & { signature: Signature },
-): OptimizedRfqOrder {
-    return {
-        type: FillQuoteTransformerOrderType.Rfq,
-        fillData: {
-            order,
-            signature: order.signature,
-            maxTakerTokenFillAmount: order.takerAmount,
-        },
-        makerToken: order.makerToken,
-        takerToken: order.takerToken,
-        source: ERC20BridgeSource.Native,
-        takerAmount: order.takerAmount,
-        makerAmount: order.makerAmount,
-        // TODO jacob
-        fills: [],
-    };
 }
 
 export interface CreateOrderFromPathOpts {
@@ -336,9 +289,25 @@ function getBridgeTokenAmounts(fill: CollapsedFill, side: MarketOperation): [Big
     ];
 }
 
-export function createNativeOrder(fill: NativeCollapsedFill): OptimizedMarketOrder {
-    return convertNativeOrderToFullyFillableOptimizedOrders(
-        (fill.fillData! as any) as LimitOrderFields & { signature: Signature },
-        fill,
-    ); // TODO (xianny): handle RFQ, fix fill data
+export function createNativeOrder(
+    fill: NativeCollapsedFill,
+): OptimizedMarketOrderBase<NativeLimitOrderFillData> | OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+    const fillData = fill.fillData!;
+    const base = {
+        type: fill.type,
+        source: ERC20BridgeSource.Native,
+        makerToken: fillData.order.makerToken,
+        takerToken: fillData.order.takerToken,
+        takerAmount: fillData.order.takerAmount,
+        makerAmount: fillData.order.makerAmount,
+        fills: [fill],
+        fillData,
+    };
+    return fill.type === FillQuoteTransformerOrderType.Rfq
+        ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
+        : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
+    // TODO ensure adjusted
+    // order,
+    // signature: order.signature,
+    // maxTakerTokenFillAmount: order.takerAmount,
 }
