@@ -31,7 +31,7 @@ export function createFills(opts: {
     // Create native fills.
     const nativeFills = nativeOrdersToFills(
         side,
-        orders,
+        orders.filter(o => o.fillableTakerAmount.isGreaterThan(0)),
         opts.targetInput,
         ethToOutputRate,
         ethToInputRate,
