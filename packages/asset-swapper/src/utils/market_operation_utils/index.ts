@@ -1,4 +1,5 @@
 import { NULL_BYTES } from '@0x/order-utils';
+
 import {
     FillQuoteTransformerOrderType,
     LimitOrderFields,
@@ -6,6 +7,7 @@ import {
     RfqOrderFields,
     SignatureType,
 } from '@0x/protocol-utils';
+
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -204,6 +206,7 @@ export class MarketOperationUtils {
         ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
+
         const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
         const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
             ...order,
