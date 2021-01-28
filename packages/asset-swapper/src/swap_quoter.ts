@@ -1,4 +1,5 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ZERO_AMOUNT } from '@0x/order-utils';
 import { FillQuoteTransformerOrderType, LimitOrder, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, NULL_BYTES, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
@@ -660,6 +661,9 @@ function createDummyOrder(makerToken: string, takerToken: string): SignedOrder<L
             ...new LimitOrder({
                 makerToken,
                 takerToken,
+                makerAmount: ZERO_AMOUNT,
+                takerAmount: ZERO_AMOUNT,
+                takerTokenFeeAmount: ZERO_AMOUNT,
             }),
         },
         signature: INVALID_SIGNATURE,

@@ -647,7 +647,6 @@ export class MarketOperationUtils {
             marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
         ) {
             const { makerToken, takerToken } = nativeOrders[0].order;
-
             if (rfqt.isIndicative) {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.

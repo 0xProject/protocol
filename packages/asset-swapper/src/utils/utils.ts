@@ -12,7 +12,7 @@ import { constants } from '../constants';
 import { NativeOrderFillableAmountFields } from '../types';
 
 import { ZERO_AMOUNT } from './market_operation_utils/constants';
-import { SignedOrder } from './market_operation_utils/types';
+import { NativeOrderWithFillableAmounts, SignedOrder } from './market_operation_utils/types';
 
 // tslint:disable: no-unnecessary-type-assertion completed-docs
 
@@ -65,10 +65,19 @@ export function getNativeAdjustedTakerFeeAmount(order: LimitOrderFields, takerFi
     return takerFeeAmount;
 }
 
+const EMPTY_FILLABLE_AMOUNTS: NativeOrderFillableAmountFields = {
+    fillableMakerAmount: ZERO_AMOUNT,
+    fillableTakerAmount: ZERO_AMOUNT,
+    fillableTakerFeeAmount: ZERO_AMOUNT,
+};
+
 export function getNativeAdjustedFillableAmountsFromTakerAmount(
     order: SignedOrder<LimitOrderFields | RfqOrderFields>,
     takerFillAmount: BigNumber,
 ): NativeOrderFillableAmountFields {
+    if (takerFillAmount.isZero()) {
+        return EMPTY_FILLABLE_AMOUNTS;
+    }
     return {
         fillableTakerAmount: takerFillAmount,
         fillableMakerAmount: getNativeAdjustedMakerFillAmount(order.order, takerFillAmount),
@@ -83,6 +92,9 @@ export function getNativeAdjustedFillableAmountsFromMakerAmount(
     order: SignedOrder<LimitOrderFields | RfqOrderFields>,
     makerFillAmount: BigNumber,
 ): NativeOrderFillableAmountFields {
+    if (makerFillAmount.isZero()) {
+        return EMPTY_FILLABLE_AMOUNTS;
+    }
     const fillableTakerAmount = getNativeAdjustedTakerFillAmount(order.order, makerFillAmount);
     return {
         fillableMakerAmount: makerFillAmount,
