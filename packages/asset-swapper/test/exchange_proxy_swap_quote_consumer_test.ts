@@ -6,9 +6,9 @@ import {
     decodePayTakerTransformerData,
     decodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
+    FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
     getTransformerAddress,
-    FillQuoteTransformerOrderType,
     LimitOrderFields,
 } from '@0x/protocol-utils';
 import { Order } from '@0x/types';
@@ -19,7 +19,6 @@ import 'mocha';
 
 import { constants } from '../src/constants';
 import { ExchangeProxySwapQuoteConsumer } from '../src/quote_consumers/exchange_proxy_swap_quote_consumer';
-import { getSwapMinBuyAmount } from '../src/quote_consumers/utils';
 import { MarketBuySwapQuote, MarketOperation, MarketSellSwapQuote } from '../src/types';
 import {
     ERC20BridgeSource,
@@ -224,7 +223,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
             expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.feeTakerTokenAmount);
-            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(getSwapMinBuyAmount(quote));
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
             expect(callArgs.transformations).to.be.length(2);
             expect(
                 callArgs.transformations[0].deploymentNonce.toNumber() ===
@@ -255,7 +254,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
             expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.feeTakerTokenAmount);
-            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(getSwapMinBuyAmount(quote));
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
             expect(callArgs.transformations).to.be.length(2);
             expect(
                 callArgs.transformations[0].deploymentNonce.toNumber() ===
@@ -355,7 +354,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
             expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.feeTakerTokenAmount);
-            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(getSwapMinBuyAmount(quote));
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
             expect(callArgs.transformations).to.be.length(3);
             expect(
                 callArgs.transformations[0].deploymentNonce.toNumber() ===
@@ -436,7 +435,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
             expect(callArgs.inputTokenAmount).to.bignumber.eq(MAX_UINT256);
-            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(getSwapMinBuyAmount(quote));
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
             expect(callArgs.transformations).to.be.length(2);
             expect(
                 callArgs.transformations[0].deploymentNonce.toNumber() ===

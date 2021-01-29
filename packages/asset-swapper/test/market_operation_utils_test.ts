@@ -8,14 +8,20 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { FillQuoteTransformerOrderType, LimitOrder, NativeOrder, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
-import { BigNumber, hexUtils } from '@0x/utils';
+import {
+    FillQuoteTransformerOrderType,
+    LimitOrder,
+    LimitOrderFields,
+    NativeOrder,
+    RfqOrder,
+    SignatureType,
+} from '@0x/protocol-utils';
+import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, RfqtRequestOpts } from '../src';
-import { PriceAwareRFQFlags } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
@@ -39,10 +45,11 @@ import {
     GetMarketOrdersOpts,
     MarketSideLiquidity,
     NativeFillData,
+    NativeOrderWithFillableAmounts,
     OptimizedLimitOrder,
-    OptimizedRfqOrder,
     OptimizerResultWithReport,
     SignedNativeOrder,
+    SignedOrder,
     TokenAdjacencyGraph,
 } from '../src/utils/market_operation_utils/types';
 
@@ -69,10 +76,8 @@ const DEFAULT_EXCLUDED = [
 const BUY_SOURCES = BUY_SOURCE_FILTER.sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
 const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = { default: [] };
-const PRICE_AWARE_RFQ_ENABLED: PriceAwareRFQFlags = {
-    isFirmPriceAwareEnabled: true,
-    isIndicativePriceAwareEnabled: true,
-};
+
+const SIGNATURE = { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign };
 
 /**
  * gets the orders required for a market sell operation by (potentially) merging native orders with
@@ -84,7 +89,7 @@ const PRICE_AWARE_RFQ_ENABLED: PriceAwareRFQFlags = {
  */
 async function getMarketSellOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: SignedNativeOrder[],
+    nativeOrders: Array<SignedOrder<LimitOrderFields>>,
     takerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -101,7 +106,7 @@ async function getMarketSellOrdersAsync(
  */
 async function getMarketBuyOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: SignedNativeOrder[],
+    nativeOrders: Array<SignedOrder<LimitOrderFields>>,
     makerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -144,26 +149,36 @@ describe('MarketOperationUtils tests', () => {
         return requestor;
     }
 
-    function createOrdersFromSellRates(takerAmount: BigNumber, rates: Numberish[]): SignedNativeOrder[] {
+    function createOrdersFromSellRates(
+        takerAmount: BigNumber,
+        rates: Numberish[],
+    ): Array<SignedOrder<LimitOrderFields>> {
         const singleTakerAmount = takerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map(r => ({
-            order: new RfqOrder({
-                makerAmount: singleTakerAmount.times(r).integerValue(),
-                takerAmount: singleTakerAmount,
-            }),
-            signature: {} as any,
-            type: FillQuoteTransformerOrderType.Rfq,
+            order: {
+                ...new LimitOrder({
+                    makerAmount: singleTakerAmount.times(r).integerValue(),
+                    takerAmount: singleTakerAmount,
+                }),
+            },
+            signature: SIGNATURE,
+            type: FillQuoteTransformerOrderType.Limit,
         }));
     }
 
-    function createOrdersFromBuyRates(makerAmount: BigNumber, rates: Numberish[]): SignedNativeOrder[] {
+    function createOrdersFromBuyRates(
+        makerAmount: BigNumber,
+        rates: Numberish[],
+    ): Array<SignedOrder<LimitOrderFields>> {
         const singleMakerAmount = makerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map(r => ({
-            order: new LimitOrder({
-                makerAmount: singleMakerAmount,
-                takerAmount: singleMakerAmount.div(r).integerValue(),
-            }),
-            signature: {} as any,
+            order: {
+                ...new LimitOrder({
+                    makerAmount: singleMakerAmount,
+                    takerAmount: singleMakerAmount.div(r).integerValue(),
+                }),
+            },
+            signature: SIGNATURE,
             type: FillQuoteTransformerOrderType.Limit,
         }));
     }
@@ -710,13 +725,15 @@ describe('MarketOperationUtils tests', () => {
                     .returns(async () => {
                         return [
                             {
-                                order: new RfqOrder({
-                                    makerToken: MAKER_TOKEN,
-                                    takerToken: TAKER_TOKEN,
-                                    makerAmount: Web3Wrapper.toBaseUnitAmount(321, 6),
-                                    takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                                }),
-                                signature: {} as any,
+                                order: {
+                                    ...new RfqOrder({
+                                        makerToken: MAKER_TOKEN,
+                                        takerToken: TAKER_TOKEN,
+                                        makerAmount: Web3Wrapper.toBaseUnitAmount(321, 6),
+                                        takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
+                                    }),
+                                },
+                                signature: SIGNATURE,
                                 type: FillQuoteTransformerOrderType.Rfq,
                             },
                         ];
@@ -767,6 +784,7 @@ describe('MarketOperationUtils tests', () => {
                                     },
                                 ],
                             },
+                            isRfqSupported: false,
                         };
                     });
                 const result = await mockedMarketOpUtils.object.getOptimizerResultAsync(
@@ -780,8 +798,8 @@ describe('MarketOperationUtils tests', () => {
                             isIndicative: false,
                             apiKey: 'foo',
                             takerAddress: randomAddress(),
+                            txOrigin: randomAddress(),
                             intentOnFilling: true,
-                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: mockedQuoteRequestor.object.requestRfqtFirmQuotesAsync,
                             } as any,
@@ -825,7 +843,7 @@ describe('MarketOperationUtils tests', () => {
                             apiKey: 'foo',
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
-                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
+                            txOrigin: randomAddress(),
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
                             } as any,
@@ -870,8 +888,8 @@ describe('MarketOperationUtils tests', () => {
                         rfqt: {
                             isIndicative: true,
                             apiKey: 'foo',
-                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
                             takerAddress: randomAddress(),
+                            txOrigin: randomAddress(),
                             intentOnFilling: true,
                             quoteRequestor: {
                                 requestRfqtIndicativeQuotesAsync: requestor.object.requestRfqtIndicativeQuotesAsync,
@@ -930,7 +948,7 @@ describe('MarketOperationUtils tests', () => {
                             apiKey: 'foo',
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
-                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
+                            txOrigin: randomAddress(),
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
                             } as any,
@@ -987,7 +1005,7 @@ describe('MarketOperationUtils tests', () => {
                             isIndicative: false,
                             apiKey: 'foo',
                             takerAddress: randomAddress(),
-                            priceAwareRFQFlag: PRICE_AWARE_RFQ_ENABLED,
+                            txOrigin: randomAddress(),
                             intentOnFilling: true,
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
@@ -1772,31 +1790,35 @@ describe('MarketOperationUtils tests', () => {
         const takerAmount = new BigNumber(5000000);
         const ethToOutputRate = new BigNumber(0.5);
         // tslint:disable-next-line:no-object-literal-type-assertion
-        const smallOrder = {
-            order: new LimitOrder({
-                chainId: 1,
-                maker: 'SMALL_ORDER',
-                takerAmount,
-                makerAmount: takerAmount.times(2),
-            }),
+        const smallOrder: NativeOrderWithFillableAmounts = {
+            order: {
+                ...new LimitOrder({
+                    chainId: 1,
+                    maker: 'SMALL_ORDER',
+                    takerAmount,
+                    makerAmount: takerAmount.times(2),
+                }),
+            },
             fillableMakerAmount: takerAmount.times(2),
             fillableTakerAmount: takerAmount,
             fillableTakerFeeAmount: new BigNumber(0),
             type: FillQuoteTransformerOrderType.Limit,
-            signature: {} as any,
+            signature: SIGNATURE,
         };
-        const largeOrder = {
-            order: new LimitOrder({
-                chainId: 1,
-                maker: 'LARGE_ORDER',
-                takerAmount: smallOrder.order.takerAmount.times(2),
-                makerAmount: smallOrder.order.makerAmount.times(2),
-            }),
+        const largeOrder: NativeOrderWithFillableAmounts = {
+            order: {
+                ...new LimitOrder({
+                    chainId: 1,
+                    maker: 'LARGE_ORDER',
+                    takerAmount: smallOrder.order.takerAmount.times(2),
+                    makerAmount: smallOrder.order.makerAmount.times(2),
+                }),
+            },
             fillableTakerAmount: smallOrder.fillableTakerAmount.times(2),
             fillableMakerAmount: smallOrder.fillableMakerAmount.times(2),
             fillableTakerFeeAmount: new BigNumber(0),
             type: FillQuoteTransformerOrderType.Limit,
-            signature: {} as any,
+            signature: SIGNATURE,
         };
         const orders = [smallOrder, largeOrder];
         const feeSchedule = {

@@ -1,6 +1,11 @@
 import { constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
-import { FillQuoteTransformerOrderType, NativeOrder } from '@0x/protocol-utils';
-import { BigNumber, hexUtils } from '@0x/utils';
+import {
+    FillQuoteTransformerLimitOrderInfo,
+    FillQuoteTransformerOrderType,
+    NativeOrder,
+    SignatureType,
+} from '@0x/protocol-utils';
+import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { MarketOperation } from '../src/types';
@@ -8,7 +13,9 @@ import {
     CollapsedFill,
     ERC20BridgeSource,
     NativeFillData,
+    NativeLimitOrderFillData,
     OptimizedMarketOrder,
+    OptimizedMarketOrderBase,
 } from '../src/utils/market_operation_utils/types';
 import {
     fillQuoteOrders,
@@ -107,7 +114,7 @@ describe('quote_simulation tests', async () => {
             takerOutputFee: BigNumber;
             type: FillQuoteTransformerOrderType;
         }> = {},
-    ): OptimizedMarketOrder {
+    ): OptimizedMarketOrderBase<NativeLimitOrderFillData> {
         const { filledInput, fillsCount, side, takerInputFee, takerOutputFee, type } = {
             side: MarketOperation.Sell,
             filledInput: ZERO,
@@ -138,31 +145,36 @@ describe('quote_simulation tests', async () => {
             .div(takerAmount)
             .times(takerFee)
             .integerValue(BigNumber.ROUND_DOWN);
-        return {
-            makerAmount,
-            takerAmount,
-            fillableTakerAmount,
-            fillableMakerAmount,
-            fillableTakerFeeAmount,
-            // takerFee,
-            // takerFeeAssetData,
-            fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
-            chainId: 1,
-            verifyingContract: NULL_ADDRESS, // exchange?
-            pool: '', // ?
-            expiry: ZERO,
-            // feeRecipientAddress: NULL_ADDRESS,
-            // senderAddress: NULL_ADDRESS,
-            maker: NULL_ADDRESS,
-            taker: NULL_ADDRESS,
+        const order: OptimizedMarketOrderBase<NativeLimitOrderFillData> = {
+            source: ERC20BridgeSource.Native,
             makerToken: MAKER_TOKEN,
             takerToken: TAKER_TOKEN,
-            // makerFeeAssetData: '0x',
-            salt: ZERO,
-            // makerFee: ZERO,
-            // signature: '0x',
+            makerAmount,
+            takerAmount,
+            fillData: {
+                order: {
+                    makerToken: MAKER_TOKEN,
+                    makerAmount,
+                    takerToken: TAKER_TOKEN,
+                    takerAmount,
+                    maker: NULL_ADDRESS,
+                    taker: NULL_ADDRESS,
+                    sender: NULL_ADDRESS,
+                    salt: ZERO,
+                    chainId: 1,
+                    pool: NULL_BYTES,
+                    verifyingContract: NULL_ADDRESS,
+                    expiry: ZERO,
+                    feeRecipient: NULL_ADDRESS,
+                    takerTokenFeeAmount: ZERO,
+                },
+                signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign },
+                maxTakerTokenFillAmount: fillableTakerAmount,
+            },
             type,
+            fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
         };
+        return order;
     }
     const nativeSourcePathId = hexUtils.random();
     function createOrderCollapsedFills(input: BigNumber, output: BigNumber, count: number): CollapsedFill[] {
@@ -172,6 +184,7 @@ describe('quote_simulation tests', async () => {
             const subFillInputs = subdivideAmount(inputs[i], count);
             const subFillOutputs = subdivideAmount(outputs[i], count);
             return {
+                type: FillQuoteTransformerOrderType.Bridge,
                 sourcePathId: nativeSourcePathId,
                 source: ERC20BridgeSource.Uniswap,
                 input: inputs[i],
@@ -697,21 +710,21 @@ describe('quote_simulation tests', async () => {
     });
 
     function slipOrder(
-        order: OptimizedMarketOrder,
+        order: OptimizedMarketOrderBase<NativeLimitOrderFillData>,
         orderSlippage: number,
         side: MarketOperation,
     ): OptimizedMarketOrder {
         const makerScaling = side === MarketOperation.Sell ? 1 - orderSlippage : 1;
         const takerScaling = side === MarketOperation.Sell ? 1 : orderSlippage + 1;
 
-        const nativeFillData = order.fillData as NativeFillData;
+        const nativeFillData = order.fillData!;
         const slippedFillData = {
             order: {
                 ...nativeFillData.order,
                 takerAmount: nativeFillData.order.takerAmount.times(takerScaling),
                 makerAmount: nativeFillData.order.makerAmount.times(makerScaling),
             },
-            signature: nativeFillData.order.signature,
+            signature: order.fillData!.signature,
             maxTakerTokenFillAmount: nativeFillData.maxTakerTokenFillAmount.times(takerScaling),
         };
         return {
@@ -728,11 +741,14 @@ describe('quote_simulation tests', async () => {
             const fillableInput = getRandomOrderSize();
             const fillableOutput = getRandomOrderSize();
             const orderSlippage = getRandomFeeRate();
-            const orders = createQuoteFillOrders({
+            const fillOrders = createQuoteFillOrders({
                 fillableInput,
                 fillableOutput,
                 side,
-            }).map(fo => slipOrder(fo.order, orderSlippage, side));
+            });
+            const orders = fillOrders.map(fo =>
+                slipOrder(fo.order as OptimizedMarketOrderBase<NativeLimitOrderFillData>, orderSlippage, side),
+            );
             const result = simulateBestCaseFill({
                 orders,
                 side,
@@ -971,7 +987,9 @@ describe('quote_simulation tests', async () => {
                 fillableInput,
                 fillableOutput,
                 side,
-            }).map(fo => slipOrder(fo.order, orderSlippage, side));
+            }).map(fo =>
+                slipOrder(fo.order as OptimizedMarketOrderBase<NativeLimitOrderFillData>, orderSlippage, side),
+            );
             const result = simulateWorstCaseFill({
                 orders,
                 side,
@@ -999,7 +1017,9 @@ describe('quote_simulation tests', async () => {
                 fillableInput,
                 fillableOutput,
                 side,
-            }).map(fo => slipOrder(fo.order, orderSlippage, side));
+            }).map(fo =>
+                slipOrder(fo.order as OptimizedMarketOrderBase<NativeLimitOrderFillData>, orderSlippage, side),
+            );
             orders = [...orders.slice(1), orders[0]];
             const bestCase = simulateBestCaseFill({
                 orders,

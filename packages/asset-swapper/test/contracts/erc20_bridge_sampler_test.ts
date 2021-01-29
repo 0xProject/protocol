@@ -6,10 +6,12 @@ import {
     getRandomPortion,
     randomAddress,
 } from '@0x/contracts-test-utils';
+import { SignatureType } from '@0x/protocol-utils';
 import { Order } from '@0x/types';
-import { BigNumber, hexUtils } from '@0x/utils';
+import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { FillQuoteTransformerOrderType, LimitOrderFields, SignedOrder } from '../../src';
 import { SamplerCallResult } from '../../src/types';
 import { artifacts } from '../artifacts';
 import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '../wrappers';
@@ -31,7 +33,6 @@ blockchainTests('erc20-bridge-sampler', env => {
     const UNISWAP_BASE_SALT = '0x1d6a6a0506b0b4a554b907a4c29d9f4674e461989d9c1921feb17b26716385ab';
     const UNISWAP_V2_SALT = '0xadc7fcb33c735913b8635927e66896b356a53a912ab2ceff929e60a04b53b3c1';
     let UNISWAP_V2_ROUTER = '';
-    const ERC20_PROXY_ID = '0xf47261b0';
     const INVALID_TOKEN_PAIR_ERROR = 'ERC20BridgeSampler/INVALID_TOKEN_PAIR';
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
@@ -209,21 +210,17 @@ blockchainTests('erc20-bridge-sampler', env => {
         return sold;
     }
 
-    function getDeterministicFillableTakerAssetAmount(order: Order): BigNumber {
-        const hash = getPackedHash(hexUtils.leftPad(order.salt));
-        return new BigNumber(hash).mod(order.takerAssetAmount);
+    function getDeterministicFillableTakerAssetAmount(order: SignedOrder<LimitOrderFields>): BigNumber {
+        const hash = getPackedHash(hexUtils.leftPad(order.order.salt));
+        return new BigNumber(hash).mod(order.order.takerAmount);
     }
 
-    function getDeterministicFillableMakerAssetAmount(order: Order): BigNumber {
+    function getDeterministicFillableMakerAssetAmount(order: SignedOrder<LimitOrderFields>): BigNumber {
         const takerAmount = getDeterministicFillableTakerAssetAmount(order);
-        return order.makerAssetAmount
+        return order.order.makerAmount
             .times(takerAmount)
-            .div(order.takerAssetAmount)
+            .div(order.order.takerAmount)
             .integerValue(BigNumber.ROUND_UP);
-    }
-
-    function getERC20AssetData(tokenAddress: string): string {
-        return hexUtils.concat(ERC20_PROXY_ID, hexUtils.leftPad(tokenAddress));
     }
 
     function getSampleAmounts(tokenAddress: string, count?: number): BigNumber[] {
@@ -234,28 +231,34 @@ blockchainTests('erc20-bridge-sampler', env => {
         return _.times(_count, i => d.times((i + 1) / _count).integerValue());
     }
 
-    function createOrder(makerToken: string, takerToken: string): Order {
+    function createOrder(makerToken: string, takerToken: string): SignedOrder<LimitOrderFields> {
         return {
-            chainId: 1337,
-            exchangeAddress: randomAddress(),
-            makerAddress: randomAddress(),
-            takerAddress: randomAddress(),
-            senderAddress: randomAddress(),
-            feeRecipientAddress: randomAddress(),
-            makerAssetAmount: getRandomInteger(1, 1e18),
-            takerAssetAmount: getRandomInteger(1, 1e18),
-            makerFee: getRandomInteger(1, 1e18),
-            takerFee: getRandomInteger(1, 1e18),
-            makerAssetData: getERC20AssetData(makerToken),
-            takerAssetData: getERC20AssetData(takerToken),
-            makerFeeAssetData: getERC20AssetData(randomAddress()),
-            takerFeeAssetData: getERC20AssetData(randomAddress()),
-            salt: new BigNumber(hexUtils.random()),
-            expirationTimeSeconds: getRandomInteger(0, 2 ** 32),
+            order: {
+                chainId: 1337,
+                verifyingContract: randomAddress(),
+                maker: randomAddress(),
+                taker: randomAddress(),
+                pool: NULL_BYTES,
+                sender: NULL_ADDRESS,
+                feeRecipient: randomAddress(),
+                makerAmount: getRandomInteger(1, 1e18),
+                takerAmount: getRandomInteger(1, 1e18),
+                takerTokenFeeAmount: getRandomInteger(1, 1e18),
+                makerToken,
+                takerToken,
+                salt: new BigNumber(hexUtils.random()),
+                expiry: getRandomInteger(0, 2 ** 32),
+            },
+            signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign },
+            type: FillQuoteTransformerOrderType.Limit,
         };
     }
 
-    function createOrders(makerToken: string, takerToken: string, count?: number): Order[] {
+    function createOrders(
+        makerToken: string,
+        takerToken: string,
+        count?: number,
+    ): Array<SignedOrder<LimitOrderFields>> {
         return _.times(count || _.random(1, 16), () => createOrder(makerToken, takerToken));
     }
 
@@ -293,16 +296,19 @@ blockchainTests('erc20-bridge-sampler', env => {
     describe('getOrderFillableTakerAssetAmounts()', () => {
         it('returns the expected amount for each order', async () => {
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN);
-            const signatures: string[] = _.times(orders.length, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableTakerAssetAmount);
             const actual = await testContract
-                .getOrderFillableTakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                .getLimitOrderFillableTakerAssetAmounts(
+                    orders.map(o => o.order),
+                    orders.map(o => o.signature),
+                    NULL_ADDRESS,
+                )
                 .callAsync();
             expect(actual).to.deep.eq(expected);
         });
 
         it('returns empty for no orders', async () => {
-            const actual = await testContract.getOrderFillableTakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
+            const actual = await testContract.getLimitOrderFillableTakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
             expect(actual).to.deep.eq([]);
         });
     });
@@ -310,16 +316,19 @@ blockchainTests('erc20-bridge-sampler', env => {
     describe('getOrderFillableMakerAssetAmounts()', () => {
         it('returns the expected amount for each order', async () => {
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN);
-            const signatures: string[] = _.times(orders.length, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableMakerAssetAmount);
             const actual = await testContract
-                .getOrderFillableMakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                .getLimitOrderFillableMakerAssetAmounts(
+                    orders.map(o => o.order),
+                    orders.map(o => o.signature),
+                    NULL_ADDRESS,
+                )
                 .callAsync();
             expect(actual).to.deep.eq(expected);
         });
 
         it('returns empty for no orders', async () => {
-            const actual = await testContract.getOrderFillableMakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
+            const actual = await testContract.getLimitOrderFillableMakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
             expect(actual).to.deep.eq([]);
         });
     });
@@ -949,11 +958,14 @@ blockchainTests('erc20-bridge-sampler', env => {
     describe('batchCall()', () => {
         it('can call one function', async () => {
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN);
-            const signatures: string[] = _.times(orders.length, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableTakerAssetAmount);
             const calls = [
                 testContract
-                    .getOrderFillableTakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                    .getLimitOrderFillableTakerAssetAmounts(
+                        orders.map(o => o.order),
+                        orders.map(o => o.signature),
+                        NULL_ADDRESS,
+                    )
                     .getABIEncodedTransactionData(),
             ];
             const r = await testContract.batchCall(calls).callAsync();
@@ -968,17 +980,24 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can call two functions', async () => {
             const numOrders = _.random(1, 10);
             const orders = _.times(2, () => createOrders(MAKER_TOKEN, TAKER_TOKEN, numOrders));
-            const signatures: string[] = _.times(numOrders, i => hexUtils.random());
             const expecteds = [
                 orders[0].map(getDeterministicFillableTakerAssetAmount),
                 orders[1].map(getDeterministicFillableMakerAssetAmount),
             ];
             const calls = [
                 testContract
-                    .getOrderFillableTakerAssetAmounts(orders[0], signatures, NULL_ADDRESS)
+                    .getLimitOrderFillableTakerAssetAmounts(
+                        orders[0].map(o => o.order),
+                        orders[0].map(o => o.signature),
+                        NULL_ADDRESS,
+                    )
                     .getABIEncodedTransactionData(),
                 testContract
-                    .getOrderFillableMakerAssetAmounts(orders[1], signatures, NULL_ADDRESS)
+                    .getLimitOrderFillableMakerAssetAmounts(
+                        orders[1].map(o => o.order),
+                        orders[1].map(o => o.signature),
+                        NULL_ADDRESS,
+                    )
                     .getABIEncodedTransactionData(),
             ];
             const r = await testContract.batchCall(calls).callAsync();
@@ -994,14 +1013,17 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can make recursive calls', async () => {
             const numOrders = _.random(1, 10);
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN, numOrders);
-            const signatures: string[] = _.times(numOrders, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableTakerAssetAmount);
             let r = await testContract
                 .batchCall([
                     testContract
                         .batchCall([
                             testContract
-                                .getOrderFillableTakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                                .getLimitOrderFillableTakerAssetAmounts(
+                                    orders.map(o => o.order),
+                                    orders.map(o => o.signature),
+                                    NULL_ADDRESS,
+                                )
                                 .getABIEncodedTransactionData(),
                         ])
                         .getABIEncodedTransactionData(),

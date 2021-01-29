@@ -1,5 +1,6 @@
 import { ContractTxFunctionObj } from '@0x/base-contract';
 import { constants } from '@0x/contracts-test-utils';
+import { LimitOrderFields, Signature } from '@0x/protocol-utils';
 import { Order } from '@0x/types';
 import { BigNumber, hexUtils } from '@0x/utils';
 
@@ -8,8 +9,8 @@ import { ERC20BridgeSamplerContract } from '../../src/wrappers';
 
 export type GetOrderFillableAssetAmountResult = BigNumber[];
 export type GetOrderFillableAssetAmountHandler = (
-    orders: Order[],
-    signatures: string[],
+    orders: LimitOrderFields[],
+    signatures: Signature[],
     devUtilsAddress: string,
 ) => GetOrderFillableAssetAmountResult;
 
@@ -53,8 +54,8 @@ const DUMMY_PROVIDER = {
 };
 
 interface Handlers {
-    getOrderFillableMakerAssetAmounts: GetOrderFillableAssetAmountHandler;
-    getOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
+    getLimitOrderFillableMakerAssetAmounts: GetOrderFillableAssetAmountHandler;
+    getLimitOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     sampleSellsFromKyberNetwork: SampleSellsKyberHandler;
     sampleSellsFromLiquidityProvider: SampleSellsLPHandler;
     sampleSellsFromEth2Dai: SampleSellsHandler;
@@ -84,26 +85,26 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         };
     }
 
-    public getOrderFillableMakerAssetAmounts(
-        orders: Order[],
-        signatures: string[],
+    public getLimitOrderFillableMakerAssetAmounts(
+        orders: LimitOrderFields[],
+        signatures: Signature[],
     ): ContractTxFunctionObj<GetOrderFillableAssetAmountResult> {
         return this._wrapCall(
-            super.getOrderFillableMakerAssetAmounts,
-            this._handlers.getOrderFillableMakerAssetAmounts,
+            super.getLimitOrderFillableMakerAssetAmounts,
+            this._handlers.getLimitOrderFillableMakerAssetAmounts,
             orders,
             signatures,
             constants.NULL_ADDRESS,
         );
     }
 
-    public getOrderFillableTakerAssetAmounts(
-        orders: Order[],
-        signatures: string[],
+    public getLimitOrderFillableTakerAssetAmounts(
+        orders: LimitOrderFields[],
+        signatures: Signature[],
     ): ContractTxFunctionObj<GetOrderFillableAssetAmountResult> {
         return this._wrapCall(
-            super.getOrderFillableTakerAssetAmounts,
-            this._handlers.getOrderFillableTakerAssetAmounts,
+            super.getLimitOrderFillableTakerAssetAmounts,
+            this._handlers.getLimitOrderFillableTakerAssetAmounts,
             orders,
             signatures,
             constants.NULL_ADDRESS,

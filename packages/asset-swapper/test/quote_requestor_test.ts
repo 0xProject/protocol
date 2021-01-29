@@ -177,6 +177,7 @@ describe('QuoteRequestor', async () => {
                         {
                             apiKey,
                             takerAddress,
+                            txOrigin: takerAddress,
                             intentOnFilling: true,
                         },
                     );
@@ -191,7 +192,8 @@ describe('QuoteRequestor', async () => {
     describe('requestRfqtIndicativeQuotesAsync for Indicative quotes', async () => {
         it('should optionally accept a "comparisonPrice" parameter', async () => {
             const response = QuoteRequestor.makeQueryParameters(
-                otherToken1,
+                otherToken1, // tx origin
+                otherToken1, // taker
                 MarketOperation.Sell,
                 makerToken,
                 takerToken,
@@ -219,8 +221,8 @@ describe('QuoteRequestor', async () => {
             const successfulQuote1 = {
                 makerToken,
                 takerToken,
-                makerAmount: new BigNumber(expectedParams.sellAmountBaseUnits!),
-                takerAmount: new BigNumber(expectedParams.sellAmountBaseUnits!),
+                makerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
+                takerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
                 expiry: makeThreeMinuteExpiry(),
             };
             mockedRequests.push({
@@ -292,6 +294,7 @@ describe('QuoteRequestor', async () => {
                         {
                             apiKey,
                             takerAddress,
+                            txOrigin: takerAddress,
                             intentOnFilling: true,
                         },
                     );
@@ -319,8 +322,8 @@ describe('QuoteRequestor', async () => {
             const successfulQuote1 = {
                 makerToken,
                 takerToken,
-                makerAmount: new BigNumber(expectedParams.buyAmountBaseUnits!),
-                takerAmount: new BigNumber(expectedParams.buyAmountBaseUnits!),
+                makerAmount: new BigNumber(expectedParams.buyAmountBaseUnits),
+                takerAmount: new BigNumber(expectedParams.buyAmountBaseUnits),
                 expiry: makeThreeMinuteExpiry(),
             };
             mockedRequests.push({
@@ -344,6 +347,7 @@ describe('QuoteRequestor', async () => {
                         {
                             apiKey,
                             takerAddress,
+                            txOrigin: takerAddress,
                             intentOnFilling: true,
                         },
                     );

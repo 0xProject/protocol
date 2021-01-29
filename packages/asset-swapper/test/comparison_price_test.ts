@@ -56,6 +56,7 @@ const buyMarketSideLiquidity: MarketSideLiquidity = {
         nativeOrders: [],
     },
     quoteSourceFilters: new SourceFilters(),
+    isRfqSupported: false,
 };
 
 const sellMarketSideLiquidity: MarketSideLiquidity = {
@@ -76,6 +77,7 @@ const sellMarketSideLiquidity: MarketSideLiquidity = {
         rfqtIndicativeQuotes: [],
     },
     quoteSourceFilters: new SourceFilters(),
+    isRfqSupported: false,
 };
 
 describe('getComparisonPrices', async () => {
