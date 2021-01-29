@@ -5,6 +5,7 @@ import { constants } from '../constants';
 import { MarketOperation } from '../types';
 
 import { FeeSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
+import { getNativeAdjustedTakerFeeAmount } from './utils';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;
@@ -193,7 +194,7 @@ export function fillQuoteOrders(
         }
         // NOTE: V4 Limit orders have Protocol fees
         const protocolFee = hasProtocolFee(fo.order) ? protocolFeePerFillOrder : ZERO_AMOUNT;
-        result.protocolFee.plus(protocolFee);
+        result.protocolFee = result.protocolFee.plus(protocolFee);
     }
     return result;
 }
@@ -243,80 +244,28 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
                   totalOrderOutput: o.makerAmount,
                   totalOrderInputFee:
                       o.type === FillQuoteTransformerOrderType.Limit
-                          ? (o.fillData as NativeLimitOrderFillData).order.takerTokenFeeAmount
+                          ? getNativeAdjustedTakerFeeAmount(
+                                (o.fillData as NativeLimitOrderFillData).order,
+                                o.takerAmount,
+                            )
                           : ZERO_AMOUNT,
-                  totalOrderOutputFee: ZERO_AMOUNT,
+                  totalOrderOutputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (sell output)
               }
             : // Buy
               {
                   totalOrderInput: o.makerAmount,
                   totalOrderOutput: o.takerAmount,
-                  totalOrderInputFee: ZERO_AMOUNT,
+                  totalOrderInputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (buy input)
                   totalOrderOutputFee:
                       o.type === FillQuoteTransformerOrderType.Limit
-                          ? (o.fillData as NativeLimitOrderFillData).order.takerTokenFeeAmount
+                          ? getNativeAdjustedTakerFeeAmount(
+                                (o.fillData as NativeLimitOrderFillData).order,
+                                o.takerAmount,
+                            )
                           : ZERO_AMOUNT,
               }),
     }));
 }
-
-function createWorstCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderCall[] {
-    // Reuse best case fill orders, but apply slippage.
-    return (
-        createBestCaseFillOrderCalls(quoteInfo)
-            .map(fo => ({
-                ...fo,
-                // order: {
-                //    ...fo.order,
-                //    fills: [],
-                //    //// Apply slippage to order fills and reverse them.
-                //    // fills: getSlippedOrderFills(fo.order, quoteInfo.side)
-                //    //    .map(f => ({ ...f, subFills: f.subFills.slice().reverse() }))
-                //    //    .reverse(),
-                // },
-            }))
-            // Sort by ascending price.
-            .sort((a, b) =>
-                a.order.makerAmount.div(a.order.takerAmount).comparedTo(b.order.makerAmount.div(b.order.takerAmount)),
-            )
-    );
-}
-
-//// Apply order slippage to its fill paths.
-// function getSlippedOrderFills(order: OptimizedMarketOrder, side: MarketOperation): CollapsedFill[] {
-//    // Infer the slippage from the order amounts vs fill amounts.
-//    let inputScaling: BigNumber;
-//    let outputScaling: BigNumber;
-//    console.log(order);
-//    const source = order.source;
-//    if (source === ERC20BridgeSource.Native) {
-//        // Native orders do not have slippage applied to them.
-//        inputScaling = new BigNumber(1);
-//        outputScaling = new BigNumber(1);
-//    } else {
-//        if (side === MarketOperation.Sell) {
-//            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-//            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-//            inputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
-//            outputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
-//        } else {
-//            const totalFillableTakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.output));
-//            const totalFillableMakerAssetAmount = BigNumber.sum(...order.fills.map(f => f.input));
-//            inputScaling = order.makerTokenAmount.div(totalFillableMakerAssetAmount);
-//            outputScaling = order.takerTokenAmount.div(totalFillableTakerAssetAmount);
-//        }
-//    }
-//    return order.fills.map(f => ({
-//        ...f,
-//        input: f.input.times(inputScaling),
-//        output: f.output.times(outputScaling),
-//        subFills: f.subFills.map(sf => ({
-//            ...sf,
-//            input: sf.input.times(inputScaling),
-//            output: sf.output.times(outputScaling),
-//        })),
-//    }));
-// }
 
 function roundInputAmount(amount: BigNumber, side: MarketOperation): BigNumber {
     return amount.integerValue(side === MarketOperation.Sell ? ROUND_UP : ROUND_DOWN);

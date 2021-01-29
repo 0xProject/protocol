@@ -5,6 +5,7 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import _ = require('lodash');
 
 import { constants } from '../constants';
 import { LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts } from '../types';
@@ -154,8 +155,14 @@ export class QuoteRequestor {
         const quotes = quotesRaw.map(result => ({ ...result, response: result.response.signedOrder }));
 
         // validate
-        const validationFunction = (o: V4SignedRfqOrder) =>
-            this._schemaValidator.isValid(o, schemas.v4RfqSignedOrderSchema);
+        const validationFunction = (o: V4SignedRfqOrder) => {
+            try {
+                // Handle the validate throwing, i.e if it isn't an object or json response
+                return this._schemaValidator.isValid(o, schemas.v4RfqSignedOrderSchema);
+            } catch (e) {
+                return false;
+            }
+        };
         const validQuotes = quotes.filter(result => {
             const order = result.response;
             if (!validationFunction(order)) {
@@ -186,15 +193,17 @@ export class QuoteRequestor {
 
         // Save the maker URI for later and return just the order
         const rfqQuotes = validQuotes.map(result => {
+            const { signature, ...rest } = result.response;
             const order: SignedNativeOrder = {
                 order: {
-                    ...result.response,
+                    ...rest,
                     makerAmount: new BigNumber(result.response.makerAmount),
                     takerAmount: new BigNumber(result.response.takerAmount),
                     expiry: new BigNumber(result.response.expiry),
+                    salt: new BigNumber(result.response.salt),
                 },
                 type: FillQuoteTransformerOrderType.Rfq,
-                signature: result.response.signature,
+                signature,
             };
             this._orderSignatureToMakerUri[result.response.signature.toString()] = result.makerUri; // todo (xianny): hack
             return order;

@@ -1,13 +1,15 @@
 import { tokenUtils } from '@0x/dev-utils';
-import { RfqOrder } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, RfqOrder, SignatureType } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as chai from 'chai';
+import _ = require('lodash');
 import 'mocha';
 
 import { constants } from '../src/constants';
 import { MarketOperation, MockedRfqtFirmQuoteResponse, MockedRfqtIndicativeQuoteResponse } from '../src/types';
+import { NULL_ADDRESS, ZERO_AMOUNT } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor, quoteRequestorHttpClient } from '../src/utils/quote_requestor';
 import { rfqtMocker } from '../src/utils/rfqt_mocker';
 
@@ -24,10 +26,12 @@ function makeThreeMinuteExpiry(): BigNumber {
 
 describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
+    const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
     describe('requestRfqtFirmQuotesAsync for firm quotes', async () => {
         it('should return successful RFQT requests', async () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
+            const txOrigin = takerAddress;
             const apiKey = 'my-ko0l-api-key';
 
             // Set up RFQT responses
@@ -39,118 +43,99 @@ describe('QuoteRequestor', async () => {
                 sellAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
                 takerAddress,
+                txOrigin,
                 protocolVersion: '4',
             };
-            // Successful response
-            const successfulOrder1 = new RfqOrder({
-                makerToken,
-                takerToken,
-                taker: takerAddress,
-                // feeRecipientAddress: '0x0000000000000000000000000000000000000001',
-                expiry: makeThreeMinuteExpiry(),
-            });
-            mockedRequests.push({
-                endpoint: 'https://1337.0.0.1',
+            const mockedDefaults = {
                 requestApiKey: apiKey,
                 requestParams: expectedParams,
-                responseData: { signedOrder: successfulOrder1 },
                 responseCode: StatusCodes.Success,
+            };
+            const validSignedOrder = {
+                makerToken,
+                takerToken,
+                makerAmount: new BigNumber('1000'),
+                takerAmount: new BigNumber('1000'),
+                maker: takerAddress,
+                taker: takerAddress,
+                pool: '0x',
+                salt: '0',
+                chainId: 1,
+                verifyingContract: takerAddress,
+                txOrigin,
+                expiry: makeThreeMinuteExpiry(),
+                signature: validSignature,
+            };
+
+            // Successful response
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://1337.0.0.1',
+                responseData: {
+                    signedOrder: validSignedOrder,
+                },
+            });
+            // Another Successful response
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://37.0.0.1',
+                responseData: { signedOrder: validSignedOrder },
             });
             // Test out a bad response code, ensure it doesnt cause throw
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://420.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: { error: 'bad request' },
                 responseCode: StatusCodes.InternalError,
             });
-            // Test out a successful response code but an invalid order
+            // Test out a successful response code but a partial order
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://421.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
-                responseData: { makerToken: '123' },
-                responseCode: StatusCodes.Success,
+                responseData: { signedOrder: { makerToken: '123' } },
             });
-            // ensure that a non-JSON response doesn't throw an error when trying to parse
+            // A successful response code and invalid response data (encoding)
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://421.1.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: 'this is not JSON!',
-                responseCode: StatusCodes.Success,
             });
             // A successful response code and valid order, but for wrong maker asset data
-            const wrongMakerTokenOrder = new RfqOrder({
-                makerToken: otherToken1,
-                expiry: makeThreeMinuteExpiry(),
-                takerToken,
-            });
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://422.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
-                responseData: { signedOrder: wrongMakerTokenOrder },
-                responseCode: StatusCodes.Success,
+                responseData: { signedOrder: { ...validSignedOrder, makerToken: '0x1234' } },
             });
             // A successful response code and valid order, but for wrong taker asset data
-            const wrongTakerTokenOrder = new RfqOrder({
-                makerToken,
-                expiry: makeThreeMinuteExpiry(),
-                takerToken: otherToken1,
-            });
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://423.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
-                responseData: { signedOrder: wrongTakerTokenOrder },
-                responseCode: StatusCodes.Success,
+                responseData: { signedOrder: { ...validSignedOrder, takerToken: '0x1234' } },
             });
             // A successful response code and good order but its unsigned
-            const unsignedOrder = new RfqOrder({
-                makerToken,
-                takerToken,
-                expiry: makeThreeMinuteExpiry(),
-                // feeRecipientAddress: '0x0000000000000000000000000000000000000002',
-            });
-            // delete unsignedOrder.signature;
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://424.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
-                responseData: { signedOrder: unsignedOrder },
-                responseCode: StatusCodes.Success,
+                responseData: { signedOrder: _.omit(validSignedOrder, ['signature']) },
             });
-            // A successful response code and good order but for the wrong takerAddress
-            const orderWithNullTaker = new RfqOrder({
-                makerToken,
-                takerToken,
-                expiry: makeThreeMinuteExpiry(),
-                taker: constants.NULL_ADDRESS,
-                // feeRecipientAddress: '0x0000000000000000000000000000000000000002',
-            });
+            // A successful response code and good order but for the wrong txOrigin
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://425.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
-                responseData: { signedOrder: orderWithNullTaker },
-                responseCode: StatusCodes.Success,
+                responseData: { signedOrder: { ...validSignedOrder, txOrigin: NULL_ADDRESS } },
             });
 
-            // Another Successful response
-            const successfulOrder2 = new RfqOrder({
-                makerToken,
-                takerToken,
-                taker: takerAddress,
-                expiry: makeThreeMinuteExpiry(),
-            });
-            mockedRequests.push({
-                endpoint: 'https://37.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
-                responseData: { signedOrder: successfulOrder2 },
-                responseCode: StatusCodes.Success,
-            });
+            const normalizedSuccessfulOrder = {
+                order: {
+                    ..._.omit(validSignedOrder, ['signature']),
+                    makerAmount: new BigNumber(validSignedOrder.makerAmount),
+                    takerAmount: new BigNumber(validSignedOrder.takerAmount),
+                    expiry: new BigNumber(validSignedOrder.expiry),
+                    salt: new BigNumber(validSignedOrder.salt),
+                },
+                signature: validSignedOrder.signature,
+                type: FillQuoteTransformerOrderType.Rfq,
+            };
 
             return rfqtMocker.withMockedRfqtFirmQuotes(
                 mockedRequests,
@@ -164,8 +149,7 @@ describe('QuoteRequestor', async () => {
                         'https://423.0.0.1': [[makerToken, takerToken]],
                         'https://424.0.0.1': [[makerToken, takerToken]],
                         'https://425.0.0.1': [[makerToken, takerToken]],
-                        'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T
-                    provider when they don't support the requested asset pair. */,
+                        'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T provider when they don't support the requested asset pair. */,
                         'https://37.0.0.1': [[makerToken, takerToken]],
                     });
                     const resp = await qr.requestRfqtFirmQuotesAsync(
@@ -181,9 +165,7 @@ describe('QuoteRequestor', async () => {
                             intentOnFilling: true,
                         },
                     );
-                    expect(resp.sort()).to.eql(
-                        [{ signedOrder: successfulOrder1 }, { signedOrder: successfulOrder2 }].sort(),
-                    );
+                    expect(resp).to.deep.eq([normalizedSuccessfulOrder, normalizedSuccessfulOrder]);
                 },
                 quoteRequestorHttpClient,
             );
@@ -215,8 +197,15 @@ describe('QuoteRequestor', async () => {
                 sellAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
                 takerAddress,
+                txOrigin: takerAddress,
                 protocolVersion: '4',
             };
+            const mockedDefaults = {
+                requestApiKey: apiKey,
+                requestParams: expectedParams,
+                responseCode: StatusCodes.Success,
+            };
+
             // Successful response
             const successfulQuote1 = {
                 makerToken,
@@ -225,52 +214,42 @@ describe('QuoteRequestor', async () => {
                 takerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
                 expiry: makeThreeMinuteExpiry(),
             };
+
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://1337.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: successfulQuote1,
-                responseCode: StatusCodes.Success,
             });
             // Test out a bad response code, ensure it doesnt cause throw
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://420.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: { error: 'bad request' },
                 responseCode: StatusCodes.InternalError,
             });
             // Test out a successful response code but an invalid order
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://421.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: { makerToken: '123' },
-                responseCode: StatusCodes.Success,
             });
             // A successful response code and valid response data, but for wrong maker asset data
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://422.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: { ...successfulQuote1, makerToken: otherToken1 },
-                responseCode: StatusCodes.Success,
             });
             // A successful response code and valid response data, but for wrong taker asset data
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://423.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: { ...successfulQuote1, takerToken: otherToken1 },
-                responseCode: StatusCodes.Success,
             });
             // Another Successful response
             mockedRequests.push({
+                ...mockedDefaults,
                 endpoint: 'https://37.0.0.1',
-                requestApiKey: apiKey,
-                requestParams: expectedParams,
                 responseData: successfulQuote1,
-                responseCode: StatusCodes.Success,
             });
 
             return rfqtMocker.withMockedRfqtIndicativeQuotes(
@@ -303,7 +282,7 @@ describe('QuoteRequestor', async () => {
                 quoteRequestorHttpClient,
             );
         });
-        it('should return successful RFQT indicative quote requests', async () => {
+        it('should return successful RFQT indicative quote requests (Buy)', async () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
             const apiKey = 'my-ko0l-api-key';
 
@@ -316,6 +295,7 @@ describe('QuoteRequestor', async () => {
                 buyAmountBaseUnits: '10000',
                 comparisonPrice: undefined,
                 takerAddress,
+                txOrigin: takerAddress,
                 protocolVersion: '4',
             };
             // Successful response

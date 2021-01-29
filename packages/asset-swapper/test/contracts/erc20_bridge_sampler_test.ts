@@ -971,7 +971,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const r = await testContract.batchCall(calls).callAsync();
             expect(r).to.be.length(1);
             const actual = testContract.getABIDecodedReturnData<BigNumber[]>(
-                'getOrderFillableTakerAssetAmounts',
+                'getLimitOrderFillableTakerAssetAmounts',
                 r[0].data,
             );
             expect(actual).to.deep.eq(expected);
@@ -1002,12 +1002,12 @@ blockchainTests('erc20-bridge-sampler', env => {
             ];
             const r = await testContract.batchCall(calls).callAsync();
             expect(r).to.be.length(2);
-            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0].data)).to.deep.eq(
-                expecteds[0],
-            );
-            expect(testContract.getABIDecodedReturnData('getOrderFillableMakerAssetAmounts', r[1].data)).to.deep.eq(
-                expecteds[1],
-            );
+            expect(
+                testContract.getABIDecodedReturnData('getLimitOrderFillableTakerAssetAmounts', r[0].data),
+            ).to.deep.eq(expecteds[0]);
+            expect(
+                testContract.getABIDecodedReturnData('getLimitOrderFillableMakerAssetAmounts', r[1].data),
+            ).to.deep.eq(expecteds[1]);
         });
 
         it('can make recursive calls', async () => {
@@ -1032,9 +1032,9 @@ blockchainTests('erc20-bridge-sampler', env => {
             expect(r).to.be.length(1);
             r = testContract.getABIDecodedReturnData<SamplerCallResult[]>('batchCall', r[0].data);
             expect(r).to.be.length(1);
-            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0].data)).to.deep.eq(
-                expected,
-            );
+            expect(
+                testContract.getABIDecodedReturnData('getLimitOrderFillableTakerAssetAmounts', r[0].data),
+            ).to.deep.eq(expected);
         });
     });
 

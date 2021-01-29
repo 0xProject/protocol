@@ -6,13 +6,14 @@ import {
     decodePayTakerTransformerData,
     decodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
+    FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
     getTransformerAddress,
     LimitOrderFields,
 } from '@0x/protocol-utils';
 import { Order } from '@0x/types';
-import { AbiEncoder, BigNumber } from '@0x/utils';
+import { AbiEncoder, BigNumber, hexUtils } from '@0x/utils';
 import * as chai from 'chai';
 import * as _ from 'lodash';
 import 'mocha';
@@ -73,7 +74,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expiry: getRandomInteger(1, 2e9),
             feeRecipient: randomAddress(),
             sender: randomAddress(),
-            pool: randomAddress(),
+            pool: hexUtils.random(32),
             maker: randomAddress(),
             makerAmount: getRandomAmount(),
             takerAmount: getRandomAmount(),
@@ -90,50 +91,59 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         optimizerFields?: Partial<OptimizedLimitOrder>,
         orderFields?: Partial<LimitOrderFields>,
     ): OptimizedLimitOrder {
+        const order = getRandomOrder(orderFields);
         return {
             source: ERC20BridgeSource.Native,
             fillData: {
-                order: getRandomOrder(orderFields),
+                order,
                 signature: getRandomSignature(),
-                maxTakerTokenFillAmount: getRandomAmount(),
+                maxTakerTokenFillAmount: order.takerAmount,
             },
             type: FillQuoteTransformerOrderType.Limit,
-            makerToken: MAKER_TOKEN,
-            takerToken: TAKER_TOKEN,
-            makerAmount: getRandomAmount(),
-            takerAmount: getRandomAmount(),
+            makerToken: order.makerToken,
+            takerToken: order.takerToken,
+            makerAmount: order.makerAmount,
+            takerAmount: order.takerAmount,
             fills: [],
             ...optimizerFields,
         };
     }
 
     function getRandomQuote(side: MarketOperation): MarketBuySwapQuote | MarketSellSwapQuote {
+        const order = getRandomOptimizedMarketOrder();
+        const makerTokenFillAmount = order.makerAmount;
+        const takerTokenFillAmount = order.takerAmount;
         return {
             gasPrice: getRandomInteger(1, 1e9),
-            type: side,
             makerToken: MAKER_TOKEN,
             takerToken: TAKER_TOKEN,
-            orders: [getRandomOptimizedMarketOrder()],
+            orders: [order],
+            makerTokenDecimals: 18,
+            takerTokenDecimals: 18,
+            sourceBreakdown: {} as any,
+            isTwoHop: false,
             bestCaseQuoteInfo: {
-                feeTakerAssetAmount: getRandomAmount(),
-                makerAssetAmount: getRandomAmount(),
+                makerAmount: makerTokenFillAmount,
+                takerAmount: takerTokenFillAmount,
+                totalTakerAmount: takerTokenFillAmount,
                 gas: Math.floor(Math.random() * 8e6),
                 protocolFeeInWeiAmount: getRandomAmount(),
-                takerAssetAmount: getRandomAmount(),
-                totalTakerAssetAmount: getRandomAmount(),
+                feeTakerTokenAmount: getRandomAmount(),
             },
             worstCaseQuoteInfo: {
-                feeTakerAssetAmount: getRandomAmount(),
-                makerAssetAmount: getRandomAmount(),
+                makerAmount: makerTokenFillAmount,
+                takerAmount: takerTokenFillAmount,
+                totalTakerAmount: takerTokenFillAmount,
                 gas: Math.floor(Math.random() * 8e6),
                 protocolFeeInWeiAmount: getRandomAmount(),
-                takerAssetAmount: getRandomAmount(),
-                totalTakerAssetAmount: getRandomAmount(),
+                feeTakerTokenAmount: getRandomAmount(),
             },
             ...(side === MarketOperation.Buy
-                ? { makerAssetFillAmount: getRandomAmount() }
-                : { takerAssetFillAmount: getRandomAmount() }),
-        } as any;
+                ? { type: MarketOperation.Buy, makerTokenFillAmount }
+                : { type: MarketOperation.Sell, takerTokenFillAmount }),
+            takerTokenToEthRate: getRandomAmount(),
+            makerTokenToEthRate: getRandomAmount(),
+        };
     }
 
     function getRandomTwoHopQuote(side: MarketOperation): MarketBuySwapQuote | MarketSellSwapQuote {
@@ -155,20 +165,28 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         return getRandomQuote(MarketOperation.Buy) as MarketBuySwapQuote;
     }
 
-    type PlainOrder = Exclude<Order, ['chainId', 'exchangeAddress']>;
+    type PlainOrder = Exclude<LimitOrderFields, ['chainId', 'exchangeAddress']>;
 
     function cleanOrders(orders: OptimizedMarketOrder[]): PlainOrder[] {
         return orders.map(
             o =>
-                _.omit(o, [
-                    'chainId',
-                    'exchangeAddress',
-                    'fillableMakerAssetAmount',
-                    'fillableTakerAssetAmount',
-                    'fillableTakerFeeAmount',
-                    'fills',
-                    'signature',
-                ]) as PlainOrder,
+                _.omit(
+                    {
+                        ...o.fillData,
+                        order: _.omit((o.fillData! as FillQuoteTransformerLimitOrderInfo).order, [
+                            'chainId',
+                            'verifyingContract',
+                        ]) as any,
+                    },
+                    [
+                        'fillableMakerAssetAmount',
+                        'fillableTakerAssetAmount',
+                        'fillableTakerFeeAmount',
+                        'fills',
+                        'chainId',
+                        'verifyingContract',
+                    ],
+                ) as PlainOrder,
         );
     }
 
@@ -222,7 +240,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
-            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.feeTakerTokenAmount);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
             expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
             expect(callArgs.transformations).to.be.length(2);
             expect(
@@ -253,7 +271,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
-            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.feeTakerTokenAmount);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
             expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
             expect(callArgs.transformations).to.be.length(2);
             expect(
@@ -296,7 +314,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 consumer.transformerNonces.wethTransformer,
             );
             const wethTransformerData = decodeWethTransformerData(callArgs.transformations[0].data);
-            expect(wethTransformerData.amount).to.bignumber.eq(quote.worstCaseQuoteInfo.feeTakerTokenAmount);
+            expect(wethTransformerData.amount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
             expect(wethTransformerData.token).to.eq(ETH_TOKEN_ADDRESS);
         });
 
@@ -353,7 +371,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
-            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.feeTakerTokenAmount);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
             expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
             expect(callArgs.transformations).to.be.length(3);
             expect(

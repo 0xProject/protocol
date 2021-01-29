@@ -22,9 +22,9 @@ export function getRandomAmount(maxAmount: Numberish = '1e18'): BigNumber {
 
 export function getRandomSignature(): Signature {
     return {
-        r: hexUtils.random(66),
-        v: getRandomAmount().toNumber(),
-        s: hexUtils.random(24),
+        v: 1,
+        r: hexUtils.random(32),
+        s: hexUtils.random(32),
         signatureType: SignatureType.Invalid,
     };
 }

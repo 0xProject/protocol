@@ -144,7 +144,7 @@ export class MarketOperationUtils {
         const samplerPromise = this._sampler.executeAsync(
             this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
-            this._sampler.getOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+            this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
             this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
             // Get ETH -> taker token price.
@@ -165,18 +165,6 @@ export class MarketOperationUtils {
             this._sampler.isAddressContract(txOrigin),
         );
 
-        const rfqtPromise =
-            shouldIncludeIndicativeRfqt(quoteSourceFilters, _opts) && _opts.rfqt && _opts.rfqt.quoteRequestor
-                ? _opts.rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
-                      makerToken,
-                      takerToken,
-                      takerAmount,
-                      MarketOperation.Sell,
-                      undefined,
-                      _opts.rfqt,
-                  )
-                : Promise.resolve([]);
-
         const offChainBalancerPromise = sampleBalancerOffChain
             ? this._sampler.getBalancerSellQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
             : Promise.resolve([]);
@@ -195,10 +183,9 @@ export class MarketOperationUtils {
                 twoHopQuotes,
                 isTxOriginContract,
             ],
-            rfqtIndicativeQuotes,
             offChainBalancerQuotes,
             offChainCreamQuotes,
-        ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
+        ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
 
@@ -220,8 +207,7 @@ export class MarketOperationUtils {
             takerTokenDecimals: takerTokenDecimals.toNumber(),
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
-                // If the taker is a contract then RFQ cannot be performed
-                rfqtIndicativeQuotes: isRfqSupported ? [] : rfqtIndicativeQuotes,
+                rfqtIndicativeQuotes: [],
                 twoHopQuotes,
                 dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes]),
             },
@@ -279,7 +265,7 @@ export class MarketOperationUtils {
         const samplerPromise = this._sampler.executeAsync(
             this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
-            this._sampler.getOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+            this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> makerToken token price.
             this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
             // Get ETH -> taker token price.
@@ -300,18 +286,6 @@ export class MarketOperationUtils {
             this._sampler.isAddressContract(txOrigin),
         );
 
-        const rfqtPromise =
-            shouldIncludeIndicativeRfqt(quoteSourceFilters, _opts) && _opts.rfqt && _opts.rfqt.quoteRequestor
-                ? _opts.rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
-                      makerToken,
-                      takerToken,
-                      makerAmount,
-                      MarketOperation.Buy,
-                      undefined,
-                      _opts.rfqt,
-                  )
-                : Promise.resolve([]);
-
         const offChainBalancerPromise = sampleBalancerOffChain
             ? this._sampler.getBalancerBuyQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
             : Promise.resolve([]);
@@ -330,10 +304,9 @@ export class MarketOperationUtils {
                 twoHopQuotes,
                 isTxOriginContract,
             ],
-            rfqtIndicativeQuotes,
             offChainBalancerQuotes,
             offChainCreamQuotes,
-        ] = await Promise.all([samplerPromise, rfqtPromise, offChainBalancerPromise, offChainCreamPromise]);
+        ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise]);
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         const isRfqSupported = !isTxOriginContract;
 
@@ -354,7 +327,7 @@ export class MarketOperationUtils {
             takerTokenDecimals: takerTokenDecimals.toNumber(),
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
-                rfqtIndicativeQuotes: isRfqSupported ? [] : rfqtIndicativeQuotes,
+                rfqtIndicativeQuotes: [],
                 twoHopQuotes,
                 dexQuotes: dexQuotes.concat(offChainBalancerQuotes, offChainCreamQuotes),
             },
@@ -390,7 +363,7 @@ export class MarketOperationUtils {
 
         const ops = [
             ...batchNativeOrders.map(orders =>
-                this._sampler.getOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
+                this._sampler.getLimitOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
             ),
             ...batchNativeOrders.map(orders =>
                 this._sampler.getMedianSellRate(

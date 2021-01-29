@@ -12,7 +12,6 @@ import {
     FillQuoteTransformerOrderType,
     LimitOrder,
     LimitOrderFields,
-    NativeOrder,
     RfqOrder,
     SignatureType,
 } from '@0x/protocol-utils';
@@ -43,10 +42,11 @@ import {
     FillData,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
+    LiquidityProviderFillData,
     MarketSideLiquidity,
     NativeFillData,
     NativeOrderWithFillableAmounts,
-    OptimizedLimitOrder,
+    OptimizedMarketBridgeOrder,
     OptimizerResultWithReport,
     SignedNativeOrder,
     SignedOrder,
@@ -373,11 +373,11 @@ describe('MarketOperationUtils tests', () => {
             const result = new BigNumber(18);
             return [result, result];
         },
-        getOrderFillableTakerAmounts(orders: NativeOrder[]): BigNumber[] {
-            return orders.map(o => o.takerAmount);
+        getLimitOrderFillableTakerAmounts(orders: Array<SignedOrder<LimitOrderFields>>): BigNumber[] {
+            return orders.map(o => o.order.takerAmount);
         },
-        getOrderFillableMakerAmounts(orders: NativeOrder[]): BigNumber[] {
-            return orders.map(o => o.makerAmount);
+        getLimitOrderFillableMakerAmounts(orders: Array<SignedOrder<LimitOrderFields>>): BigNumber[] {
+            return orders.map(o => o.order.makerAmount);
         },
         getSellQuotes: createGetMultipleSellQuotesOperationFromRates(DEFAULT_RATES),
         getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(DEFAULT_RATES),
@@ -431,6 +431,7 @@ describe('MarketOperationUtils tests', () => {
             ),
         getTwoHopSellQuotes: (..._params: any[]) => [],
         getTwoHopBuyQuotes: (..._params: any[]) => [],
+        isAddressContract: (..._params: any[]) => false,
     };
 
     const MOCK_SAMPLER = ({
@@ -714,8 +715,8 @@ describe('MarketOperationUtils tests', () => {
                     )
                     .callback(
                         (
-                            _makerAssetData: string,
-                            _takerAssetData: string,
+                            _makerToken: string,
+                            _takerToken: string,
                             _assetFillAmount: BigNumber,
                             _marketOperation: MarketOperation,
                             comparisonPrice: BigNumber | undefined,
@@ -782,11 +783,11 @@ describe('MarketOperationUtils tests', () => {
                                         fillableMakerAmount: Web3Wrapper.toBaseUnitAmount(320, 6),
                                         fillableTakerFeeAmount: new BigNumber(0),
                                         type: FillQuoteTransformerOrderType.Limit,
-                                        signature: {} as any,
+                                        signature: SIGNATURE,
                                     },
                                 ],
                             },
-                            isRfqSupported: false,
+                            isRfqSupported: true,
                         };
                     });
                 const result = await mockedMarketOpUtils.object.getOptimizerResultAsync(
@@ -1272,7 +1273,7 @@ describe('MarketOperationUtils tests', () => {
                     gasCost: 0,
                 };
                 replaceSamplerOps({
-                    getOrderFillableTakerAmounts: () => [constants.ZERO_AMOUNT],
+                    getLimitOrderFillableTakerAmounts: () => [constants.ZERO_AMOUNT],
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                 });
 
@@ -1299,7 +1300,9 @@ describe('MarketOperationUtils tests', () => {
                 );
                 const result = ordersAndReport.optimizedOrders;
                 expect(result.length).to.eql(1);
-                expect((result[0] as OptimizedLimitOrder).fillData.order.maker).to.eql(liquidityProviderAddress);
+                expect(
+                    (result[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData.poolAddress,
+                ).to.eql(liquidityProviderAddress);
 
                 // // TODO (xianny): decode bridge data in v4 format
                 // // tslint:disable-next-line:no-unnecessary-type-assertion

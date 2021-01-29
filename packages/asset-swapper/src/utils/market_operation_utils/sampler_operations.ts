@@ -117,7 +117,7 @@ export class SamplerOperations {
         };
     }
 
-    public getOrderFillableTakerAmounts(
+    public getLimitOrderFillableTakerAmounts(
         orders: Array<SignedOrder<LimitOrderFields>>,
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
@@ -129,7 +129,7 @@ export class SamplerOperations {
         });
     }
 
-    public getOrderFillableMakerAmounts(
+    public getLimitOrderFillableMakerAmounts(
         orders: Array<SignedOrder<LimitOrderFields>>,
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
