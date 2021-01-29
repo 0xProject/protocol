@@ -115,7 +115,7 @@ blockchainTests.resets.skip('NativeOrderSampler contract', env => {
     }
 
     describe('getTokenDecimals()', () => {
-        it('correctly returns the token balances', async () => {
+        it('correctly returns the token decimals', async () => {
             const newMakerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
                 erc20Artifacts.DummyERC20Token,
                 env.provider,
