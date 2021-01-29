@@ -1,5 +1,5 @@
 import { tokenUtils } from '@0x/dev-utils';
-import { FillQuoteTransformerOrderType, RfqOrder, SignatureType } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -9,7 +9,7 @@ import 'mocha';
 
 import { constants } from '../src/constants';
 import { MarketOperation, MockedRfqtFirmQuoteResponse, MockedRfqtIndicativeQuoteResponse } from '../src/types';
-import { NULL_ADDRESS, ZERO_AMOUNT } from '../src/utils/market_operation_utils/constants';
+import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor, quoteRequestorHttpClient } from '../src/utils/quote_requestor';
 import { rfqtMocker } from '../src/utils/rfqt_mocker';
 

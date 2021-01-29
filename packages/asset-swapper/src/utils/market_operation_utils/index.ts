@@ -45,19 +45,6 @@ import {
 
 // tslint:disable:boolean-naming
 
-function shouldIncludeIndicativeRfqt(filters: SourceFilters, opts: Partial<GetMarketOrdersOpts>): boolean {
-    if (
-        opts.rfqt &&
-        opts.rfqt.isIndicative === true &&
-        opts.rfqt.quoteRequestor &&
-        filters.isAllowed(ERC20BridgeSource.Native)
-    ) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 export class MarketOperationUtils {
     private readonly _wethAddress: string;
     private readonly _sellSources: SourceFilters;

@@ -133,11 +133,6 @@ describe('quote_simulation tests', async () => {
         const fillableTakerAmount = side === MarketOperation.Sell ? fillableInput : fillableOutput;
         const takerFee = BigNumber.max(takerInputFee, takerOutputFee);
 
-        const fillableTakerFeeAmount = fillableTakerAmount
-            .div(takerAmount)
-            .times(takerFee)
-            .integerValue(BigNumber.ROUND_DOWN);
-
         const order: OptimizedMarketOrderBase<NativeLimitOrderFillData> = {
             source: ERC20BridgeSource.Native,
             makerToken: MAKER_TOKEN,
@@ -710,6 +705,7 @@ describe('quote_simulation tests', async () => {
         const makerScaling = side === MarketOperation.Sell ? 1 - orderSlippage : 1;
         const takerScaling = side === MarketOperation.Sell ? 1 : orderSlippage + 1;
 
+        // tslint:disable:next-line no-unnecessary-type-assertion
         const nativeFillData = order.fillData!;
         const slippedFillData = {
             order: {
@@ -717,7 +713,7 @@ describe('quote_simulation tests', async () => {
                 takerAmount: nativeFillData.order.takerAmount.times(takerScaling),
                 makerAmount: nativeFillData.order.makerAmount.times(makerScaling),
             },
-            signature: order.fillData!.signature,
+            signature: nativeFillData.signature,
             maxTakerTokenFillAmount: nativeFillData.maxTakerTokenFillAmount.times(takerScaling),
         };
         return {

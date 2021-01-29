@@ -7,7 +7,6 @@ import {
     randomAddress,
 } from '@0x/contracts-test-utils';
 import { SignatureType } from '@0x/protocol-utils';
-import { Order } from '@0x/types';
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 

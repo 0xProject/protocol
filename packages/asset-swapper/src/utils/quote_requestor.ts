@@ -5,7 +5,6 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
-import _ = require('lodash');
 
 import { constants } from '../constants';
 import { LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts } from '../types';

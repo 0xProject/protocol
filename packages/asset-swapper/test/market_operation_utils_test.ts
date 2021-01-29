@@ -163,6 +163,7 @@ describe('MarketOperationUtils tests', () => {
             },
             signature: SIGNATURE,
             // Why is typescript making me do this
+            // tslint:disable:next-line no-unnecessary-type-assertion
             type: FillQuoteTransformerOrderType.Limit as FillQuoteTransformerOrderType.Limit,
         }));
     }
@@ -181,6 +182,7 @@ describe('MarketOperationUtils tests', () => {
             },
             signature: SIGNATURE,
             // Why is typescript making me do this
+            // tslint:disable:next-line no-unnecessary-type-assertion
             type: FillQuoteTransformerOrderType.Limit as FillQuoteTransformerOrderType.Limit,
         }));
     }

@@ -12,7 +12,7 @@ import { constants } from '../constants';
 import { NativeOrderFillableAmountFields } from '../types';
 
 import { ZERO_AMOUNT } from './market_operation_utils/constants';
-import { NativeOrderWithFillableAmounts, SignedOrder } from './market_operation_utils/types';
+import { SignedOrder } from './market_operation_utils/types';
 
 // tslint:disable: no-unnecessary-type-assertion completed-docs
 

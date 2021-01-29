@@ -1,7 +1,6 @@
 import { ContractTxFunctionObj } from '@0x/base-contract';
 import { constants } from '@0x/contracts-test-utils';
 import { LimitOrderFields, Signature } from '@0x/protocol-utils';
-import { Order } from '@0x/types';
 import { BigNumber, hexUtils } from '@0x/utils';
 
 import { SamplerCallResult } from '../../src/types';

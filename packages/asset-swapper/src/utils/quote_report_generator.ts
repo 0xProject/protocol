@@ -199,7 +199,7 @@ function _nativeOrderFromCollapsedFill(
     // if it really is a NativeCollapsedFill
     const possibleNativeCollapsedFill = cf as NativeCollapsedFill;
     if (possibleNativeCollapsedFill.fillData) {
-        return possibleNativeCollapsedFill.fillData as NativeLimitOrderFillData | NativeRfqOrderFillData;
+        return possibleNativeCollapsedFill.fillData;
     } else {
         return undefined;
     }

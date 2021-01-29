@@ -42,7 +42,6 @@ import {
     MooniswapFillData,
     MultiHopFillData,
     ShellFillData,
-    SignedNativeOrder,
     SignedOrder,
     SnowSwapFillData,
     SnowSwapInfo,

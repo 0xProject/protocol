@@ -12,7 +12,6 @@ import {
     getTransformerAddress,
     LimitOrderFields,
 } from '@0x/protocol-utils';
-import { Order } from '@0x/types';
 import { AbiEncoder, BigNumber, hexUtils } from '@0x/utils';
 import * as chai from 'chai';
 import * as _ from 'lodash';
@@ -173,7 +172,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 _.omit(
                     {
                         ...o.fillData,
-                        order: _.omit((o.fillData! as FillQuoteTransformerLimitOrderInfo).order, [
+                        order: _.omit((o.fillData as FillQuoteTransformerLimitOrderInfo).order, [
                             'chainId',
                             'verifyingContract',
                         ]) as any,
