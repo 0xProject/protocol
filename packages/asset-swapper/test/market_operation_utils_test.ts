@@ -162,7 +162,8 @@ describe('MarketOperationUtils tests', () => {
                 }),
             },
             signature: SIGNATURE,
-            type: FillQuoteTransformerOrderType.Limit,
+            // Why is typescript making me do this
+            type: FillQuoteTransformerOrderType.Limit as FillQuoteTransformerOrderType.Limit,
         }));
     }
 
@@ -179,7 +180,8 @@ describe('MarketOperationUtils tests', () => {
                 }),
             },
             signature: SIGNATURE,
-            type: FillQuoteTransformerOrderType.Limit,
+            // Why is typescript making me do this
+            type: FillQuoteTransformerOrderType.Limit as FillQuoteTransformerOrderType.Limit,
         }));
     }
 
