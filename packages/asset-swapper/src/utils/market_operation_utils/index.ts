@@ -51,7 +51,6 @@ export class MarketOperationUtils {
     private readonly _buySources: SourceFilters;
     private readonly _feeSources = new SourceFilters(FEE_QUOTE_SOURCES);
 
-    // tslint:disable:next-line no-unused-variable
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
@@ -678,15 +677,14 @@ export class MarketOperationUtils {
         }
 
         // Compute Quote Report and return the results.
-        // tslint:disable:next-line prefer-const
         let quoteReport: QuoteReport | undefined;
         if (_opts.shouldGenerateQuoteReport) {
-            // quoteReport = MarketOperationUtils._computeQuoteReport(
-            //    _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
-            //    marketSideLiquidity,
-            //    optimizerResult,
-            //    wholeOrderPrice,
-            // );
+            quoteReport = MarketOperationUtils._computeQuoteReport(
+                _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+                marketSideLiquidity,
+                optimizerResult,
+                wholeOrderPrice,
+            );
         }
         return { ...optimizerResult, quoteReport };
     }

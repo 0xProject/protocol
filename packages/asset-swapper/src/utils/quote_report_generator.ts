@@ -20,7 +20,6 @@ import {
     NativeLimitOrderFillData,
     NativeOrderWithFillableAmounts,
     NativeRfqOrderFillData,
-    SignedOrder,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
 
@@ -74,7 +73,6 @@ function isFillDataLimitOrder(fillData: NativeRfqOrderFillData | NativeLimitOrde
 function getOrder(fillData: NativeRfqOrderFillData | NativeLimitOrderFillData): RfqOrder | LimitOrder {
     return isFillDataLimitOrder(fillData) ? new LimitOrder(fillData.order) : new RfqOrder(fillData.order);
 }
-// tslint:disable
 
 /**
  * Generates a report of sources considered while computing the optimized
@@ -91,12 +89,7 @@ export function generateQuoteReport(
 ): QuoteReport {
     const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
     const nativeOrderSourcesConsidered = nativeOrders.map(order =>
-        _nativeOrderToReportEntry(
-            { order: order.order, signature: order.signature, type: order.type },
-            order.fillableTakerAmount,
-            comparisonPrice,
-            quoteRequestor,
-        ),
+        _nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
     );
     const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
         _multiHopSampleToReportSource(quote, marketOperation),
@@ -122,11 +115,12 @@ export function generateQuoteReport(
         );
         // map sources delivered
         sourcesDelivered = liquidityDelivered.map(collapsedFill => {
-            const foundNativeOrder = _nativeOrderFromCollapsedFill(collapsedFill);
-            if (foundNativeOrder) {
+            const foundNativeFill = _nativeOrderFromCollapsedFill(collapsedFill);
+            if (foundNativeFill) {
                 return _nativeOrderToReportEntry(
-                    foundNativeOrder,
-                    nativeOrderSignaturesToFillableAmounts[getOrder(foundNativeOrder).getHash()],
+                    foundNativeFill.type,
+                    foundNativeFill.fillData!,
+                    nativeOrderSignaturesToFillableAmounts[getOrder(foundNativeFill.fillData!).getHash()],
                     comparisonPrice,
                     quoteRequestor,
                 );
@@ -135,7 +129,10 @@ export function generateQuoteReport(
             }
         });
     } else {
-        sourcesDelivered = [_multiHopSampleToReportSource(liquidityDelivered, marketOperation)];
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        sourcesDelivered = [
+            _multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+        ];
     }
     return {
         sourcesConsidered,
@@ -199,49 +196,50 @@ function _multiHopSampleToReportSource(
     }
 }
 
-function _nativeOrderFromCollapsedFill(
-    cf: CollapsedFill,
-): NativeRfqOrderFillData | NativeLimitOrderFillData | undefined {
+function _nativeOrderFromCollapsedFill(cf: CollapsedFill): NativeCollapsedFill | undefined {
     // Cast as NativeCollapsedFill and then check
     // if it really is a NativeCollapsedFill
-    const possibleNativeCollapsedFill = cf as NativeCollapsedFill;
-    if (possibleNativeCollapsedFill.fillData) {
-        return possibleNativeCollapsedFill.fillData;
+    const { type } = cf;
+    if (type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq) {
+        return cf as NativeCollapsedFill;
     } else {
         return undefined;
     }
 }
 
 function _nativeOrderToReportEntry(
-    nativeOrder: SignedOrder<RfqOrderFields | LimitOrderFields>,
+    type: FillQuoteTransformerOrderType,
+    fillData: NativeLimitOrderFillData | NativeRfqOrderFillData,
     fillableAmount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): NativeRfqOrderQuoteReportEntry | NativeLimitOrderQuoteReportEntry {
     const nativeOrderBase = {
         liquiditySource: ERC20BridgeSource.Native,
-        makerAmount: nativeOrder.order.makerAmount,
-        takerAmount: nativeOrder.order.takerAmount,
+        makerAmount: fillData.order.makerAmount,
+        takerAmount: fillData.order.takerAmount,
         fillableTakerAmount: fillableAmount,
     };
 
     // if we find this is an rfqt order, label it as such and associate makerUri
-    const isRfqt = nativeOrder.type === FillQuoteTransformerOrderType.Rfq;
-    const rfqtMakerUri = isRfqt ? quoteRequestor!.getMakerUriForSignature(nativeOrder.signature) : undefined;
+    const isRfqt = type === FillQuoteTransformerOrderType.Rfq;
+    const rfqtMakerUri = isRfqt ? quoteRequestor!.getMakerUriForSignature(fillData.signature) : undefined;
 
     if (isRfqt) {
+        // tslint:disable-next-line: no-object-literal-type-assertion
         return {
             ...nativeOrderBase,
-            nativeOrder: nativeOrder.order as RfqOrderFields,
+            nativeOrder: fillData.order as RfqOrderFields,
             isRfqt: true,
             makerUri: rfqtMakerUri || '', // potentially undefined, do we want to return as limit order instead?
             comparisonPrice: comparisonPrice ? comparisonPrice.toNumber() : comparisonPrice,
         } as NativeRfqOrderQuoteReportEntry;
     } else {
+        // tslint:disable-next-line: no-object-literal-type-assertion
         return {
             ...nativeOrderBase,
             isRfqt: false,
-            nativeOrder: nativeOrder.order,
+            nativeOrder: fillData.order,
         } as NativeLimitOrderQuoteReportEntry;
     }
 }
