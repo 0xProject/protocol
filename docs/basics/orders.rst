@@ -123,19 +123,27 @@ In both cases, the ``@0x/protocol-utils`` package simplifies generating these si
        takerToken: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
        ... // Other fields
    });
-   // Generate an EIP712 signature
-   const signature = await order.eip712SignTypedDataWithProviderAsync(
+   // Generate an EthSign signature with a provider.
+   const signature = await order.getSignatureWithProviderAsync(
        web3.currentProvider,
-       makerAddress,
    );
-   // Generate an EthSign signature
-   const signature = await order.ethSignHashWithProviderAsync(
+   // Generate an EthSign signature with a private key.
+   const signature = await order.getSignatureWithKey(
+       '0x123456...', // Maker's 32-byte private key, in hex.
+   );
+   // Generate an EIP712 signature with a provider (e.g., metamask).
+   const signature = await order.getSignatureWithProviderAsync(
        web3.currentProvider,
-       makerAddress,
+       utils.SignatureType.EIP712,
+   );
+   // Generate an EIP712 signature with a private key.
+   const signature = await order.getSignatureWithKey(
+       '0x123456...', // Maker's 32-byte private key, in hex.
+       utils.SignatureType.EIP712,
    );
 
 
-The Orderbook 
+The Orderbook
 =======================
 Orders are shared through a decentralized and permissionless network, called `0x Mesh <https://0x.org/mesh>`_. The simplest way to post and discover orders is through `0x API <https://0x.org/api>`_. See `this guide <https://0x.org/docs/guides/market-making-on-0x>`_ tailored for Market Makers.
 
