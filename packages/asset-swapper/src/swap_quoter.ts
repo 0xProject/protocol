@@ -159,10 +159,10 @@ export class SwapQuoter {
     public async getBatchMarketBuySwapQuoteAsync(
         makerTokens: string[],
         targetTakerToken: string,
-        makerAssetBuyAmounts: BigNumber[],
+        makerTokenBuyAmounts: BigNumber[],
         options: Partial<SwapQuoteRequestOpts> = {},
     ): Promise<MarketBuySwapQuote[]> {
-        makerAssetBuyAmounts.map((a, i) => assert.isBigNumber(`makerAssetBuyAmounts[${i}]`, a));
+        makerTokenBuyAmounts.map((a, i) => assert.isBigNumber(`makerAssetBuyAmounts[${i}]`, a));
         let gasPrice: BigNumber;
         if (!!options.gasPrice) {
             gasPrice = options.gasPrice;
@@ -181,7 +181,7 @@ export class SwapQuoter {
         const opts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
         const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
             allOrders,
-            makerAssetBuyAmounts,
+            makerTokenBuyAmounts,
             opts as GetMarketOrdersOpts,
         );
 
@@ -194,7 +194,7 @@ export class SwapQuoter {
                         makerToken,
                         takerToken,
                         MarketOperation.Buy,
-                        makerAssetBuyAmounts[i],
+                        makerTokenBuyAmounts[i],
                         gasPrice,
                         opts.gasSchedule,
                         opts.bridgeSlippage,

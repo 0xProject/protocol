@@ -111,7 +111,7 @@ contract TestNativeOrderSampler is
             _getSpendableERC20BalanceOf(order.makerToken, order.maker)
         );
 
-        // Conver to taker terms
+        // Convert to taker terms
         actualFillableTakerTokenAmount = LibMathV06.getPartialAmountCeil(
             fillableMakerTokenAmount,
             uint256(order.makerAmount),
