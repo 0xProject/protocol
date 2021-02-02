@@ -94,12 +94,6 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
     }
 
     private async _getConsumerForSwapQuoteAsync(opts: Partial<SwapQuoteGetOutputOpts>): Promise<SwapQuoteConsumerBase> {
-        // ( akroeger)leaving this switch to use different contracts in the future
-        switch (opts.useExtensionContract) {
-            case ExtensionContractType.ExchangeProxy:
-                return this._exchangeProxyConsumer;
-            default:
-                return this._exchangeProxyConsumer;
-        }
+        return this._exchangeProxyConsumer;
     }
 }

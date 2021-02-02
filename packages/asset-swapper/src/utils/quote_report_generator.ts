@@ -105,6 +105,7 @@ export function generateQuoteReport(
         // create easy way to look up fillable amounts
         const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
             nativeOrders.map(o => {
+                // TODO jacob signatures instead of hash
                 return [
                     o.type === FillQuoteTransformerOrderType.Rfq
                         ? new RfqOrder(o.order).getHash()
@@ -119,8 +120,8 @@ export function generateQuoteReport(
             if (foundNativeFill) {
                 return _nativeOrderToReportEntry(
                     foundNativeFill.type,
-                    foundNativeFill.fillData!,
-                    nativeOrderSignaturesToFillableAmounts[getOrder(foundNativeFill.fillData!).getHash()],
+                    foundNativeFill.fillData,
+                    nativeOrderSignaturesToFillableAmounts[getOrder(foundNativeFill.fillData).getHash()],
                     comparisonPrice,
                     quoteRequestor,
                 );
@@ -172,7 +173,7 @@ function _multiHopSampleToReportSource(
     ds: DexSample<MultiHopFillData>,
     marketOperation: MarketOperation,
 ): MultiHopQuoteReportEntry {
-    const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData!;
+    const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData;
     // input and output map to different values
     // based on the market operation
     if (marketOperation === MarketOperation.Buy) {
@@ -180,7 +181,7 @@ function _multiHopSampleToReportSource(
             liquiditySource: ERC20BridgeSource.MultiHop,
             makerAmount: ds.input,
             takerAmount: ds.output,
-            fillData: ds.fillData!,
+            fillData: ds.fillData,
             hopSources: [firstHop.source, secondHop.source],
         };
     } else if (marketOperation === MarketOperation.Sell) {
@@ -188,7 +189,7 @@ function _multiHopSampleToReportSource(
             liquiditySource: ERC20BridgeSource.MultiHop,
             makerAmount: ds.output,
             takerAmount: ds.input,
-            fillData: ds.fillData!,
+            fillData: ds.fillData,
             hopSources: [firstHop.source, secondHop.source],
         };
     } else {
