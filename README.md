@@ -166,12 +166,12 @@ Running this image will run 0x API as a monolith, with all its dependencies. You
 
 When versioning the API, we freeze the old version in a separate branch so that we can deploy patches, and continue to support the old version until it's officially deprecated. Be aware when contributing fixes that you may want to apply the fix to an older version too.
 
-This is a list of endpoints supported by different versions of the API. If an endpoint is not on this list, it is by default pointed to the master branch. 
+This is a list of endpoints supported by different versions of the API. If an endpoint is not on this list, it is by default pointed to the master branch.
 
-| Endpoint(s)  | API version branch  |  @0x/asset-swapper branch  |
-|---|---|---|
-|  `/swap/v0/`, `/meta_transaction/v0` | https://github.com/0xProject/0x-api/tree/swap_v0 |  https://github.com/0xProject/0x-monorepo/tree/v0-asset-swapper |
-|   |   |   |
+| Endpoint(s)                         | API version branch                               | @0x/asset-swapper branch                                       |
+| ----------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
+| `/swap/v0/`, `/meta_transaction/v0` | https://github.com/0xProject/0x-api/tree/swap_v0 | https://github.com/0xProject/0x-monorepo/tree/v0-asset-swapper |
+|                                     |                                                  |                                                                |
 
 ## Release
 
