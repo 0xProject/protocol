@@ -156,7 +156,7 @@ export interface DODOFillData extends FillData {
 
 export interface Quote<TFillData = FillData> {
     amount: BigNumber;
-    fillData?: TFillData;
+    fillData: TFillData;
 }
 
 export interface HopInfo {
@@ -175,7 +175,7 @@ export interface MultiHopFillData extends FillData {
  */
 export interface DexSample<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
-    fillData?: TFillData;
+    fillData: TFillData;
     input: BigNumber;
     output: BigNumber;
 }
@@ -187,7 +187,7 @@ export interface Fill<TFillData extends FillData = FillData> {
     // basic data for every fill
     source: ERC20BridgeSource;
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    fillData?: TFillData;
+    fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -212,7 +212,7 @@ export interface Fill<TFillData extends FillData = FillData> {
 export interface CollapsedFill<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    fillData?: TFillData;
+    fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -251,7 +251,7 @@ export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFill
 
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
-    fillData?: TFillData;
+    fillData: TFillData;
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
     makerToken: string;
     takerToken: string;
@@ -290,7 +290,7 @@ export interface GetMarketOrdersRfqtOpts extends RfqtRequestOpts {
     firmQuoteValidator?: RfqtFirmQuoteValidator;
 }
 
-export type FeeEstimate = (fillData?: FillData) => number | BigNumber;
+export type FeeEstimate = (fillData: FillData) => number | BigNumber;
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
 export type ExchangeProxyOverhead = (sourceFlags: number) => BigNumber;
 

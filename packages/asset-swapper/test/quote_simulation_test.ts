@@ -175,6 +175,7 @@ describe('quote_simulation tests', async () => {
                 type: FillQuoteTransformerOrderType.Bridge,
                 sourcePathId: nativeSourcePathId,
                 source: ERC20BridgeSource.Uniswap,
+                fillData: {},
                 input: inputs[i],
                 output: outputs[i],
                 subFills: _.times(count, j => ({

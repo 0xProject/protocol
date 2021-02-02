@@ -88,7 +88,7 @@ function nativeOrdersToFills(
         const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
         const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
-        const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!();
+        const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o);
         const outputPenalty = !ethToOutputRate.isZero()
             ? ethToOutputRate.times(fee)
             : ethToInputRate.times(fee).times(output.dividedToIntegerBy(input));

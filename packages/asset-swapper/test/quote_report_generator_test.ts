@@ -6,7 +6,6 @@ import * as _ from 'lodash';
 import 'mocha';
 import * as TypeMoq from 'typemoq';
 
-import { LimitOrderFields, RfqOrderFields } from '../src';
 import { MarketOperation } from '../src/types';
 import {
     CollapsedFill,
