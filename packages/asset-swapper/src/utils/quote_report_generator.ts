@@ -103,7 +103,7 @@ export function generateQuoteReport(
     let sourcesDelivered;
     if (Array.isArray(liquidityDelivered)) {
         // create easy way to look up fillable amounts
-        const nativeOrderSignaturesToFillableAmounts = Object.fromEntries(
+        const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
             nativeOrders.map(o => {
                 return [
                     o.type === FillQuoteTransformerOrderType.Rfq
@@ -129,8 +129,8 @@ export function generateQuoteReport(
             }
         });
     } else {
-        // tslint:disable-next-line: no-unnecessary-type-assertion
         sourcesDelivered = [
+            // tslint:disable-next-line: no-unnecessary-type-assertion
             _multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
         ];
     }
@@ -232,7 +232,7 @@ function _nativeOrderToReportEntry(
             nativeOrder: fillData.order as RfqOrderFields,
             isRfqt: true,
             makerUri: rfqtMakerUri || '', // potentially undefined, do we want to return as limit order instead?
-            comparisonPrice: comparisonPrice ? comparisonPrice.toNumber() : comparisonPrice,
+            ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
         } as NativeRfqOrderQuoteReportEntry;
     } else {
         // tslint:disable-next-line: no-object-literal-type-assertion
