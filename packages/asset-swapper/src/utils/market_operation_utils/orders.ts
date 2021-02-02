@@ -1,4 +1,4 @@
-import { BridgeSource, FillQuoteTransformerOrderType, LimitOrder, RfqOrder } from '@0x/protocol-utils';
+import { BridgeSource, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
