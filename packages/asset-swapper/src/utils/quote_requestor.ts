@@ -67,6 +67,11 @@ function convertIfAxiosError(error: any): Error | object /* axios' .d.ts has Axi
     }
 }
 
+function nativeDataToId(data: { signature: Signature }): string {
+    const { v, r, s } = data.signature;
+    return `${v}${r}${s}`;
+}
+
 export class QuoteRequestor {
     private readonly _schemaValidator: SchemaValidator = new SchemaValidator();
     private readonly _orderSignatureToMakerUri: { [hash: string]: string } = {};
@@ -204,7 +209,7 @@ export class QuoteRequestor {
                 type: FillQuoteTransformerOrderType.Rfq,
                 signature,
             };
-            this._orderSignatureToMakerUri[result.response.signature.toString()] = result.makerUri; // todo (xianny): hack
+            this._orderSignatureToMakerUri[nativeDataToId(result.response)] = result.makerUri;
             return order;
         });
         return rfqQuotes;
@@ -227,6 +232,9 @@ export class QuoteRequestor {
         if (!_opts.takerAddress) {
             _opts.takerAddress = constants.NULL_ADDRESS;
         }
+        if (!_opts.txOrigin) {
+            _opts.txOrigin = constants.NULL_ADDRESS;
+        }
         const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
             makerToken,
             takerToken,
@@ -238,7 +246,7 @@ export class QuoteRequestor {
         );
 
         // validate
-        const validationFunction = (o: V4RFQIndicativeQuote) => this._isValidRfqtIndicativeQuoteResponse(o); //  TODO (xianny): might not be the right schema, placeholde
+        const validationFunction = (o: V4RFQIndicativeQuote) => this._isValidRfqtIndicativeQuoteResponse(o);
         const validQuotes = rawQuotes.filter(result => {
             const order = result.response;
             if (!validationFunction(order)) {
@@ -273,6 +281,7 @@ export class QuoteRequestor {
     }
 
     private _isValidRfqtIndicativeQuoteResponse(response: V4RFQIndicativeQuote): boolean {
+        // TODO (jacob): I have a feeling checking 5 schemas is slower then checking one
         const hasValidMakerAssetAmount =
             response.makerAmount !== undefined &&
             this._schemaValidator.isValid(response.makerAmount, schemas.wholeNumberSchema);

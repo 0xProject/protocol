@@ -13,9 +13,6 @@ import {
 } from './utils/market_operation_utils/types';
 import { QuoteReport } from './utils/quote_report_generator';
 
-// TODO (Xianny): move to @0x/types
-export type SignedLimitOrder = LimitOrderFields & { signature: Signature };
-
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).
  * permittedOrderFeeTypes: A set of all the takerFee types that OrderPruner will filter for

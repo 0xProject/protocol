@@ -167,6 +167,7 @@ describe('generateQuoteReport', async () => {
             fillableTakerAmount: rfqtOrder1.fillableTakerAmount,
             isRfqt: true,
             makerUri: 'https://rfqt1.provider.club',
+            fillData: {} as any,
         };
         const rfqtOrder2Source: NativeRfqOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
@@ -176,6 +177,7 @@ describe('generateQuoteReport', async () => {
             fillableTakerAmount: rfqtOrder2.fillableTakerAmount,
             isRfqt: true,
             makerUri: 'https://rfqt2.provider.club',
+            fillData: {} as any,
         };
         const orderbookOrder1Source: NativeLimitOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
@@ -184,6 +186,7 @@ describe('generateQuoteReport', async () => {
             nativeOrder: orderbookOrder1.order,
             fillableTakerAmount: orderbookOrder1.fillableTakerAmount,
             isRfqt: false,
+            fillData: orderbookOrder1 as any,
         };
         const orderbookOrder2Source: NativeLimitOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
@@ -192,6 +195,7 @@ describe('generateQuoteReport', async () => {
             nativeOrder: orderbookOrder2.order,
             fillableTakerAmount: orderbookOrder2.fillableTakerAmount,
             isRfqt: false,
+            fillData: orderbookOrder2 as any,
         };
         const uniswap1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.UniswapV2,
@@ -231,10 +235,10 @@ describe('generateQuoteReport', async () => {
 
         expect(orderReport.sourcesConsidered.length).to.eql(expectedSourcesConsidered.length);
 
-        orderReport.sourcesConsidered.forEach((actualSourcesConsidered, idx) => {
+        orderReport.sourcesConsidered.forEach((actualSourceConsidered, idx) => {
             const expectedSourceConsidered = expectedSourcesConsidered[idx];
-            expect(actualSourcesConsidered).to.eql(
-                expectedSourceConsidered,
+            expect(_.omit(actualSourceConsidered, 'fillData')).to.eql(
+                _.omit(expectedSourceConsidered, 'fillData'),
                 `sourceConsidered incorrect at index ${idx}`,
             );
         });
@@ -258,7 +262,10 @@ describe('generateQuoteReport', async () => {
                 ]) as any;
             }
 
-            expect(actualSourceDelivered).to.eql(expectedSourceDelivered, `sourceDelivered incorrect at index ${idx}`);
+            expect(_.omit(actualSourceDelivered, 'fillData')).to.eql(
+                _.omit(expectedSourceDelivered, 'fillData'),
+                `sourceDelivered incorrect at index ${idx}`,
+            );
         });
 
         quoteRequestor.verifyAll();
@@ -321,6 +328,7 @@ describe('generateQuoteReport', async () => {
             nativeOrder: orderbookOrder1.order,
             fillableTakerAmount: orderbookOrder1.fillableTakerAmount,
             isRfqt: false,
+            fillData: {} as any,
         };
         const orderbookOrder2Source: NativeLimitOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
@@ -329,6 +337,7 @@ describe('generateQuoteReport', async () => {
             nativeOrder: orderbookOrder2.order,
             fillableTakerAmount: orderbookOrder2.fillableTakerAmount,
             isRfqt: false,
+            fillData: {} as any,
         };
         const uniswap1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.UniswapV2,
@@ -352,8 +361,8 @@ describe('generateQuoteReport', async () => {
         expect(orderReport.sourcesConsidered.length).to.eql(expectedSourcesConsidered.length);
         orderReport.sourcesConsidered.forEach((actualSourcesConsidered, idx) => {
             const expectedSourceConsidered = expectedSourcesConsidered[idx];
-            expect(actualSourcesConsidered).to.eql(
-                expectedSourceConsidered,
+            expect(_.omit(actualSourcesConsidered, 'fillData')).to.eql(
+                _.omit(expectedSourceConsidered, 'fillData'),
                 `sourceConsidered incorrect at index ${idx}`,
             );
         });
@@ -372,7 +381,10 @@ describe('generateQuoteReport', async () => {
             //     ]) as NativeOrder;
             // }
 
-            expect(actualSourceDelivered).to.eql(expectedSourceDelivered, `sourceDelivered incorrect at index ${idx}`);
+            expect(_.omit(actualSourceDelivered, 'fillData')).to.eql(
+                _.omit(expectedSourceDelivered, 'fillData'),
+                `sourceDelivered incorrect at index ${idx}`,
+            );
         });
     });
     it('should correctly generate report for a two-hop quote', () => {
@@ -429,6 +441,7 @@ describe('generateQuoteReport', async () => {
             nativeOrder: orderbookOrder1.order,
             fillableTakerAmount: orderbookOrder1.fillableTakerAmount,
             isRfqt: false,
+            fillData: {} as any,
         };
         const kyber1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Kyber,
@@ -448,8 +461,8 @@ describe('generateQuoteReport', async () => {
         expect(orderReport.sourcesConsidered.length).to.eql(expectedSourcesConsidered.length);
         orderReport.sourcesConsidered.forEach((actualSourcesConsidered, idx) => {
             const expectedSourceConsidered = expectedSourcesConsidered[idx];
-            expect(actualSourcesConsidered).to.eql(
-                expectedSourceConsidered,
+            expect(_.omit(actualSourcesConsidered, 'fillData')).to.eql(
+                _.omit(expectedSourceConsidered, 'fillData'),
                 `sourceConsidered incorrect at index ${idx}`,
             );
         });

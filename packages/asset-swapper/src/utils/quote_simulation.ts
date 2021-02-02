@@ -122,14 +122,7 @@ export function simulateWorstCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult
     const protocolFeePerFillOrder = quoteInfo.gasPrice.times(opts.protocolFeeMultiplier);
     const bestCase = createBestCaseFillOrderCalls(quoteInfo);
     const result = {
-        ...fillQuoteOrders(
-            // TODO jacob
-            // createWorstCaseFillOrderCalls(quoteInfo),
-            bestCase,
-            quoteInfo.fillAmount,
-            protocolFeePerFillOrder,
-            opts.gasSchedule,
-        ),
+        ...fillQuoteOrders(bestCase, quoteInfo.fillAmount, protocolFeePerFillOrder, opts.gasSchedule),
         // Worst case gas and protocol fee is hitting all orders.
         gas: getTotalGasUsedByFills(quoteInfo.orders, opts.gasSchedule),
         protocolFee: protocolFeePerFillOrder.times(quoteInfo.orders.filter(o => hasProtocolFee(o)).length),

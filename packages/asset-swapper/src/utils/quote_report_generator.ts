@@ -11,6 +11,7 @@ import {
     FillData,
     MultiHopFillData,
     NativeCollapsedFill,
+    NativeFillData,
     NativeLimitOrderFillData,
     NativeOrderWithFillableAmounts,
     NativeRfqOrderFillData,
@@ -21,28 +22,29 @@ export interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;
     makerAmount: BigNumber;
     takerAmount: BigNumber;
+    fillData: FillData;
 }
 export interface BridgeQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
-    fillData?: FillData;
 }
 
 export interface MultiHopQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.MultiHop;
     hopSources: ERC20BridgeSource[];
-    fillData: FillData;
 }
 
 export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
-    nativeOrder: LimitOrderFields;
+    nativeOrder: LimitOrderFields; // remap nativeOrder to fillData
+    fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
     isRfqt: false;
 }
 
 export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
-    nativeOrder: RfqOrderFields;
+    nativeOrder: RfqOrderFields; // TODO remap nativeOrder to fillData
+    fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
     isRfqt: true;
     makerUri: string;
@@ -212,6 +214,7 @@ function _nativeOrderToReportEntry(
             isRfqt: true,
             makerUri: rfqtMakerUri || '', // potentially undefined, do we want to return as limit order instead?
             ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
+            fillData,
         } as NativeRfqOrderQuoteReportEntry;
     } else {
         // tslint:disable-next-line: no-object-literal-type-assertion
@@ -219,6 +222,7 @@ function _nativeOrderToReportEntry(
             ...nativeOrderBase,
             isRfqt: false,
             nativeOrder: fillData.order,
+            fillData,
         } as NativeLimitOrderQuoteReportEntry;
     }
 }

@@ -6,6 +6,7 @@ import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 import {
     MAINNET_DODO_HELPER,
     MAINNET_KYBER_NETWORK_PROXY,
+    MAINNET_MSTABLE_ROUTER,
     MAINNET_OASIS_ROUTER,
     MAINNET_UNISWAP_V1_ROUTER,
     MAX_UINT256,
@@ -38,10 +39,7 @@ import {
     UniswapV2FillData,
 } from './types';
 
-// tslint:disable completed-docs no-unnecessary-type-assertion
-export function getNativeOrderTokens(order: LimitOrder | RfqOrder): [string, string] {
-    return [order.makerToken, order.takerToken];
-}
+// tslint:disable completed-docs
 
 export interface CreateOrderFromPathOpts {
     side: MarketOperation;
@@ -57,7 +55,7 @@ export function createOrdersFromTwoHopSample(
     opts: CreateOrderFromPathOpts,
 ): OptimizedMarketOrder[] {
     const [makerToken, takerToken] = getMakerTakerTokens(opts);
-    const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData!;
+    const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
     const firstHopFill: CollapsedFill = {
         sourcePathId: '',
         source: firstHopSource.source,
@@ -146,7 +144,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.SnowSwap:
             const curveFillData = (order as OptimizedMarketBridgeOrder<
                 CurveFillData | SwerveFillData | SnowSwapFillData
-            >).fillData!; // tslint:disable-line:no-non-null-assertion
+            >).fillData;
             bridgeData = encoder.encode([
                 curveFillData.pool.poolAddress,
                 curveFillData.pool.exchangeFunctionSelector,
@@ -196,6 +194,9 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Eth2Dai:
             bridgeData = encoder.encode([MAINNET_OASIS_ROUTER]);
             break;
+        case ERC20BridgeSource.MStable:
+            bridgeData = encoder.encode([MAINNET_MSTABLE_ROUTER]);
+            break;
         default:
             // TODO PLP
             throw new Error(AggregationError.NoBridgeForSource);
@@ -209,20 +210,17 @@ export function createBridgeOrder(
     takerToken: string,
     side: MarketOperation,
 ): OptimizedMarketBridgeOrder {
-    const [makerAmount, takerAmount] = getBridgeTokenAmounts(fill, side);
+    const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
     return {
         makerToken,
         takerToken,
         makerAmount,
         takerAmount,
-        fillData: fill.fillData!,
+        fillData: fill.fillData,
         source: fill.source,
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
-        // TODO jacob
         fills: [fill],
-        // fillableMakerAssetAmount: slippedMakerAssetAmount,
-        // fillableTakerAssetAmount: slippedTakerAssetAmount,
     };
 }
 
@@ -280,7 +278,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Uniswap]: poolEncoder,
 };
 
-function getBridgeTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
+function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
     return [
         // Maker asset amount.
         side === MarketOperation.Sell ? fill.output : fill.input,
@@ -289,25 +287,23 @@ function getBridgeTokenAmounts(fill: CollapsedFill, side: MarketOperation): [Big
     ];
 }
 
-export function createNativeOrder(
+export function createNativeOptimizedOrder(
     fill: NativeCollapsedFill,
+    side: MarketOperation,
 ): OptimizedMarketOrderBase<NativeLimitOrderFillData> | OptimizedMarketOrderBase<NativeRfqOrderFillData> {
-    const fillData = fill.fillData!;
+    const fillData = fill.fillData;
+    const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
     const base = {
         type: fill.type,
         source: ERC20BridgeSource.Native,
         makerToken: fillData.order.makerToken,
         takerToken: fillData.order.takerToken,
-        takerAmount: fillData.order.takerAmount,
-        makerAmount: fillData.order.makerAmount,
+        makerAmount,
+        takerAmount,
         fills: [fill],
         fillData,
     };
     return fill.type === FillQuoteTransformerOrderType.Rfq
         ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
         : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
-    // TODO ensure adjusted
-    // order,
-    // signature: order.signature,
-    // maxTakerTokenFillAmount: order.takerAmount,
 }

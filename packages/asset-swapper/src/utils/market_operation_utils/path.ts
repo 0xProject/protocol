@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
-import { createBridgeOrder, createNativeOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
+import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
 import {
     CollapsedFill,
@@ -105,7 +105,7 @@ export class Path {
         this.orders = [];
         for (let i = 0; i < collapsedFills.length; ) {
             if (collapsedFills[i].source === ERC20BridgeSource.Native) {
-                this.orders.push(createNativeOrder(collapsedFills[i] as NativeCollapsedFill)); // TODO: RFQ orders handled differently
+                this.orders.push(createNativeOptimizedOrder(collapsedFills[i] as NativeCollapsedFill, opts.side));
                 ++i;
                 continue;
             }
