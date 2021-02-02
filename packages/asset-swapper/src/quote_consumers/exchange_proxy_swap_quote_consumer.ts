@@ -40,6 +40,7 @@ import {
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
+    OptimizedMarketOrderBase,
     UniswapV2FillData,
 } from '../utils/market_operation_utils/types';
 
@@ -289,10 +290,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     }
 }
 
-function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
-    return quote.type === MarketOperation.Buy;
-}
-
 function isDirectSwapCompatible(
     quote: SwapQuote,
     opts: ExchangeProxyContractOpts,
@@ -321,6 +318,22 @@ function isDirectSwapCompatible(
     return true;
 }
 
+function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
+    return quote.type === MarketOperation.Buy;
+}
+
+function isOptimizedBridgeOrder(x: OptimizedMarketOrder): x is OptimizedMarketBridgeOrder {
+    return x.type === FillQuoteTransformerOrderType.Bridge;
+}
+
+function isOptimizedLimitOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+    return x.type === FillQuoteTransformerOrderType.Limit;
+}
+
+function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+    return x.type === FillQuoteTransformerOrderType.Rfq;
+}
+
 function getFQTTransformerDataFromOptimizedOrders(
     orders: OptimizedMarketOrder[],
 ): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
@@ -332,36 +345,28 @@ function getFQTTransformerDataFromOptimizedOrders(
     };
 
     for (const order of orders) {
-        switch (order.type) {
-            case FillQuoteTransformerOrderType.Bridge:
-                // remap human readable sources into the ints required in FQT
-                // tslint:disable-next-line: no-object-literal-type-assertion
-                fqtData.bridgeOrders.push({
-                    bridgeData: createBridgeDataForBridgeOrder(order as OptimizedMarketBridgeOrder),
-                    makerTokenAmount: order.makerAmount,
-                    takerTokenAmount: order.takerAmount,
-                    source: getERC20BridgeSourceToBridgeSource(order.source),
-                });
-                break;
-            case FillQuoteTransformerOrderType.Rfq:
-                const rfqData = order.fillData as NativeRfqOrderFillData;
-                fqtData.rfqOrders.push({
-                    order: rfqData.order,
-                    signature: rfqData.signature,
-                    maxTakerTokenFillAmount: order.takerAmount,
-                });
-                break;
-            case FillQuoteTransformerOrderType.Limit:
-                const limitData = order.fillData as NativeLimitOrderFillData;
-                fqtData.limitOrders.push({
-                    order: limitData.order,
-                    signature: limitData.signature,
-                    maxTakerTokenFillAmount: order.takerAmount,
-                });
-                break;
-            default:
-                // Should never happen
-                throw new Error('Unknown Order type');
+        if (isOptimizedBridgeOrder(order)) {
+            fqtData.bridgeOrders.push({
+                bridgeData: createBridgeDataForBridgeOrder(order),
+                makerTokenAmount: order.makerAmount,
+                takerTokenAmount: order.takerAmount,
+                source: getERC20BridgeSourceToBridgeSource(order.source),
+            });
+        } else if (isOptimizedLimitOrder(order)) {
+            fqtData.limitOrders.push({
+                order: order.fillData.order,
+                signature: order.fillData.signature,
+                maxTakerTokenFillAmount: order.takerAmount,
+            });
+        } else if (isOptimizedRfqOrder(order)) {
+            fqtData.rfqOrders.push({
+                order: order.fillData.order,
+                signature: order.fillData.signature,
+                maxTakerTokenFillAmount: order.takerAmount,
+            });
+        } else {
+            // Should never happen
+            throw new Error('Unknown Order type');
         }
         fqtData.fillSequence.push(order.type);
     }

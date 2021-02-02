@@ -1,10 +1,4 @@
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    LimitOrderFields,
-    RfqOrder,
-    RfqOrderFields,
-} from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrderFields, RfqOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -66,14 +60,6 @@ export interface QuoteReport {
     sourcesDelivered: QuoteReportEntry[];
 }
 
-function isFillDataLimitOrder(fillData: NativeRfqOrderFillData | NativeLimitOrderFillData): boolean {
-    return (fillData as NativeRfqOrderFillData).order.txOrigin === undefined;
-}
-
-function getOrder(fillData: NativeRfqOrderFillData | NativeLimitOrderFillData): RfqOrder | LimitOrder {
-    return isFillDataLimitOrder(fillData) ? new LimitOrder(fillData.order) : new RfqOrder(fillData.order);
-}
-
 /**
  * Generates a report of sources considered while computing the optimized
  * swap quote, and the sources ultimately included in the computed quote.
@@ -105,23 +91,16 @@ export function generateQuoteReport(
         // create easy way to look up fillable amounts
         const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
             nativeOrders.map(o => {
-                // TODO jacob signatures instead of hash
-                return [
-                    o.type === FillQuoteTransformerOrderType.Rfq
-                        ? new RfqOrder(o.order).getHash()
-                        : new LimitOrder(o.order).getHash(),
-                    o.fillableTakerAmount,
-                ];
+                return [_nativeDataToId(o), o.fillableTakerAmount];
             }),
         );
         // map sources delivered
         sourcesDelivered = liquidityDelivered.map(collapsedFill => {
-            const foundNativeFill = _nativeOrderFromCollapsedFill(collapsedFill);
-            if (foundNativeFill) {
+            if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
                 return _nativeOrderToReportEntry(
-                    foundNativeFill.type,
-                    foundNativeFill.fillData,
-                    nativeOrderSignaturesToFillableAmounts[getOrder(foundNativeFill.fillData).getHash()],
+                    collapsedFill.type,
+                    collapsedFill.fillData,
+                    nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
                     comparisonPrice,
                     quoteRequestor,
                 );
@@ -139,6 +118,11 @@ export function generateQuoteReport(
         sourcesConsidered,
         sourcesDelivered,
     };
+}
+
+function _nativeDataToId(data: { signature: Signature }): string {
+    const { v, r, s } = data.signature;
+    return `${v}${r}${s}`;
 }
 
 function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
@@ -197,15 +181,9 @@ function _multiHopSampleToReportSource(
     }
 }
 
-function _nativeOrderFromCollapsedFill(cf: CollapsedFill): NativeCollapsedFill | undefined {
-    // Cast as NativeCollapsedFill and then check
-    // if it really is a NativeCollapsedFill
+function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollapsedFill {
     const { type } = cf;
-    if (type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq) {
-        return cf as NativeCollapsedFill;
-    } else {
-        return undefined;
-    }
+    return type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq;
 }
 
 function _nativeOrderToReportEntry(
