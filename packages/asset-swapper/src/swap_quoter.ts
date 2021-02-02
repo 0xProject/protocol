@@ -520,7 +520,7 @@ function createSwapQuote(
 
     // Calculate quote info
     const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
-        ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule)
+        ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule, slippage)
         : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
 
     // Put together the swap quote
@@ -591,6 +591,7 @@ function calculateTwoHopQuoteInfo(
     optimizedOrders: OptimizedMarketOrder[],
     operation: MarketOperation,
     gasSchedule: FeeSchedule,
+    slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const [firstHopOrder, secondHopOrder] = optimizedOrders;
     const [firstHopFill] = firstHopOrder.fills;
@@ -610,9 +611,15 @@ function calculateTwoHopQuoteInfo(
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
         },
+        // TODO jacob consolidate this with quote simulation worstCase
         worstCaseQuoteInfo: {
-            makerAmount: secondHopOrder.makerAmount,
-            takerAmount: firstHopOrder.takerAmount,
+            makerAmount: MarketOperation.Sell
+                ? secondHopOrder.makerAmount.times(1 - slippage).integerValue()
+                : secondHopOrder.makerAmount,
+            takerAmount: MarketOperation.Sell
+                ? firstHopOrder.takerAmount
+                : // tslint:disable-next-line: binary-expression-operand-order
+                  firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
             totalTakerAmount: firstHopOrder.takerAmount,
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
