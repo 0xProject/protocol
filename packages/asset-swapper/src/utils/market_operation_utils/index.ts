@@ -1,4 +1,4 @@
-import { FillQuoteTransformerOrderType, LimitOrderFields, RfqOrder } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -40,7 +40,7 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
-    SignedOrder,
+    SignedNativeOrder,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -83,13 +83,13 @@ export class MarketOperationUtils {
 
     /**
      * Gets the liquidity available for a market sell operation
-     * @param nativeOrders Native orders.
+     * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
      * @param takerAmount Amount of taker asset to sell.
      * @param opts Options object.
      * @return MarketSideLiquidity.
      */
     public async getMarketSellLiquidityAsync(
-        nativeOrders: Array<SignedOrder<LimitOrderFields>>,
+        nativeOrders: SignedNativeOrder[],
         takerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
@@ -204,13 +204,13 @@ export class MarketOperationUtils {
 
     /**
      * Gets the liquidity available for a market buy operation
-     * @param nativeOrders Native orders.
+     * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
      * @param makerAmount Amount of maker asset to buy.
      * @param opts Options object.
      * @return MarketSideLiquidity.
      */
     public async getMarketBuyLiquidityAsync(
-        nativeOrders: Array<SignedOrder<LimitOrderFields>>,
+        nativeOrders: SignedNativeOrder[],
         makerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
@@ -328,13 +328,13 @@ export class MarketOperationUtils {
      *
      * NOTE: Currently `getBatchMarketBuyOrdersAsync()` does not support external liquidity providers.
      *
-     * @param batchNativeOrders Batch of Native orders.
+     * @param batchNativeOrders Batch of Native orders. Assumes LimitOrders not RfqOrders
      * @param makerAmounts Array amount of maker asset to buy for each batch.
      * @param opts Options object.
      * @return orders.
      */
     public async getBatchMarketBuyOrdersAsync(
-        batchNativeOrders: Array<Array<SignedOrder<LimitOrderFields>>>,
+        batchNativeOrders: SignedNativeOrder[][],
         makerAmounts: BigNumber[],
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<Array<OptimizerResult | undefined>> {
@@ -548,8 +548,11 @@ export class MarketOperationUtils {
         };
     }
 
+    /**
+     * @param nativeOrders: Assumes LimitOrders not RfqOrders
+     */
     public async getOptimizerResultAsync(
-        nativeOrders: Array<SignedOrder<LimitOrderFields>>,
+        nativeOrders: SignedNativeOrder[],
         amount: BigNumber,
         side: MarketOperation,
         opts?: Partial<GetMarketOrdersOpts>,

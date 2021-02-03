@@ -10,8 +10,9 @@ import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { FillQuoteTransformerOrderType, LimitOrderFields, SignedOrder } from '../../src';
+import { FillQuoteTransformerOrderType, LimitOrderFields } from '../../src';
 import { SamplerCallResult } from '../../src/types';
+import { SignedNativeOrder } from '../../src/utils/market_operation_utils/types';
 import { artifacts } from '../artifacts';
 import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '../wrappers';
 
@@ -209,12 +210,12 @@ blockchainTests('erc20-bridge-sampler', env => {
         return sold;
     }
 
-    function getDeterministicFillableTakerAssetAmount(order: SignedOrder<LimitOrderFields>): BigNumber {
+    function getDeterministicFillableTakerAssetAmount(order: SignedNativeOrder): BigNumber {
         const hash = getPackedHash(hexUtils.leftPad(order.order.salt));
         return new BigNumber(hash).mod(order.order.takerAmount);
     }
 
-    function getDeterministicFillableMakerAssetAmount(order: SignedOrder<LimitOrderFields>): BigNumber {
+    function getDeterministicFillableMakerAssetAmount(order: SignedNativeOrder): BigNumber {
         const takerAmount = getDeterministicFillableTakerAssetAmount(order);
         return order.order.makerAmount
             .times(takerAmount)
@@ -230,7 +231,7 @@ blockchainTests('erc20-bridge-sampler', env => {
         return _.times(_count, i => d.times((i + 1) / _count).integerValue());
     }
 
-    function createOrder(makerToken: string, takerToken: string): SignedOrder<LimitOrderFields> {
+    function createOrder(makerToken: string, takerToken: string): SignedNativeOrder {
         return {
             order: {
                 chainId: 1337,
@@ -253,11 +254,7 @@ blockchainTests('erc20-bridge-sampler', env => {
         };
     }
 
-    function createOrders(
-        makerToken: string,
-        takerToken: string,
-        count?: number,
-    ): Array<SignedOrder<LimitOrderFields>> {
+    function createOrders(makerToken: string, takerToken: string, count?: number): SignedNativeOrder[] {
         return _.times(count || _.random(1, 16), () => createOrder(makerToken, takerToken));
     }
 
@@ -298,7 +295,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const expected = orders.map(getDeterministicFillableTakerAssetAmount);
             const actual = await testContract
                 .getLimitOrderFillableTakerAssetAmounts(
-                    orders.map(o => o.order),
+                    // tslint:disable-next-line:no-unnecessary-type-assertion
+                    orders.map(o => o.order as LimitOrderFields),
                     orders.map(o => o.signature),
                     NULL_ADDRESS,
                 )
@@ -318,7 +316,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const expected = orders.map(getDeterministicFillableMakerAssetAmount);
             const actual = await testContract
                 .getLimitOrderFillableMakerAssetAmounts(
-                    orders.map(o => o.order),
+                    // tslint:disable-next-line:no-unnecessary-type-assertion
+                    orders.map(o => o.order as LimitOrderFields),
                     orders.map(o => o.signature),
                     NULL_ADDRESS,
                 )
@@ -961,7 +960,8 @@ blockchainTests('erc20-bridge-sampler', env => {
             const calls = [
                 testContract
                     .getLimitOrderFillableTakerAssetAmounts(
-                        orders.map(o => o.order),
+                        // tslint:disable-next-line:no-unnecessary-type-assertion
+                        orders.map(o => o.order as LimitOrderFields),
                         orders.map(o => o.signature),
                         NULL_ADDRESS,
                     )
@@ -986,14 +986,16 @@ blockchainTests('erc20-bridge-sampler', env => {
             const calls = [
                 testContract
                     .getLimitOrderFillableTakerAssetAmounts(
-                        orders[0].map(o => o.order),
+                        // tslint:disable-next-line:no-unnecessary-type-assertion
+                        orders[0].map(o => o.order as LimitOrderFields),
                         orders[0].map(o => o.signature),
                         NULL_ADDRESS,
                     )
                     .getABIEncodedTransactionData(),
                 testContract
                     .getLimitOrderFillableMakerAssetAmounts(
-                        orders[1].map(o => o.order),
+                        // tslint:disable-next-line:no-unnecessary-type-assertion
+                        orders[1].map(o => o.order as LimitOrderFields),
                         orders[1].map(o => o.signature),
                         NULL_ADDRESS,
                     )
@@ -1019,7 +1021,8 @@ blockchainTests('erc20-bridge-sampler', env => {
                         .batchCall([
                             testContract
                                 .getLimitOrderFillableTakerAssetAmounts(
-                                    orders.map(o => o.order),
+                                    // tslint:disable-next-line:no-unnecessary-type-assertion
+                                    orders.map(o => o.order as LimitOrderFields),
                                     orders.map(o => o.signature),
                                     NULL_ADDRESS,
                                 )

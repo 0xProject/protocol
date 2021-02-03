@@ -74,7 +74,7 @@ function nativeDataToId(data: { signature: Signature }): string {
 
 export class QuoteRequestor {
     private readonly _schemaValidator: SchemaValidator = new SchemaValidator();
-    private readonly _orderSignatureToMakerUri: { [hash: string]: string } = {};
+    private readonly _orderSignatureToMakerUri: { [signature: string]: string } = {};
 
     public static makeQueryParameters(
         txOrigin: string,
@@ -277,33 +277,39 @@ export class QuoteRequestor {
      * Given an order signature, returns the makerUri that the order originated from
      */
     public getMakerUriForSignature(signature: Signature): string | undefined {
-        return this._orderSignatureToMakerUri[signature.toString()]; // todo (xianny): hack
+        return this._orderSignatureToMakerUri[nativeDataToId({ signature })];
     }
 
     private _isValidRfqtIndicativeQuoteResponse(response: V4RFQIndicativeQuote): boolean {
-        // TODO (jacob): I have a feeling checking 5 schemas is slower then checking one
-        const hasValidMakerAssetAmount =
-            response.makerAmount !== undefined &&
-            this._schemaValidator.isValid(response.makerAmount, schemas.wholeNumberSchema);
-        const hasValidTakerAssetAmount =
-            response.takerAmount !== undefined &&
-            this._schemaValidator.isValid(response.takerAmount, schemas.wholeNumberSchema);
-        const hasValidMakerToken =
-            response.makerToken !== undefined && this._schemaValidator.isValid(response.makerToken, schemas.hexSchema);
-        const hasValidTakerToken =
-            response.takerToken !== undefined && this._schemaValidator.isValid(response.takerToken, schemas.hexSchema);
-        const hasValidExpirationTimeSeconds =
-            response.expiry !== undefined && this._schemaValidator.isValid(response.expiry, schemas.wholeNumberSchema);
-        if (
-            hasValidMakerAssetAmount &&
-            hasValidTakerAssetAmount &&
-            hasValidMakerToken &&
-            hasValidTakerToken &&
-            hasValidExpirationTimeSeconds
-        ) {
-            return true;
+        const requiredKeys: Array<keyof V4RFQIndicativeQuote> = [
+            'makerAmount',
+            'takerAmount',
+            'makerToken',
+            'takerToken',
+            'expiry',
+        ];
+
+        for (const k of requiredKeys) {
+            if (response[k] === undefined) {
+                return false;
+            }
         }
-        return false;
+        // TODO (jacob): I have a feeling checking 5 schemas is slower then checking one
+        const hasValidMakerAssetAmount = this._schemaValidator.isValid(response.makerAmount, schemas.wholeNumberSchema);
+        const hasValidTakerAssetAmount = this._schemaValidator.isValid(response.takerAmount, schemas.wholeNumberSchema);
+        const hasValidMakerToken = this._schemaValidator.isValid(response.makerToken, schemas.hexSchema);
+        const hasValidTakerToken = this._schemaValidator.isValid(response.takerToken, schemas.hexSchema);
+        const hasValidExpirationTimeSeconds = this._schemaValidator.isValid(response.expiry, schemas.wholeNumberSchema);
+        if (
+            !hasValidMakerAssetAmount ||
+            !hasValidTakerAssetAmount ||
+            !hasValidMakerToken ||
+            !hasValidTakerToken ||
+            !hasValidExpirationTimeSeconds
+        ) {
+            return false;
+        }
+        return true;
     }
 
     private _makerSupportsPair(makerUrl: string, makerToken: string, takerToken: string): boolean {

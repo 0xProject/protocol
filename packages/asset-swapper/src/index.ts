@@ -145,7 +145,6 @@ export {
     NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
-    SignedOrder,
     SignedNativeOrder,
     SnowSwapFillData,
     SnowSwapInfo,

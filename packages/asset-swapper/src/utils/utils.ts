@@ -1,10 +1,4 @@
-import {
-    CommonOrderFields,
-    FillQuoteTransformerOrderType,
-    LimitOrderFields,
-    LimitOrderFields as Order,
-    RfqOrderFields,
-} from '@0x/protocol-utils';
+import { CommonOrderFields, FillQuoteTransformerOrderType, LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
@@ -12,7 +6,7 @@ import { constants } from '../constants';
 import { NativeOrderFillableAmountFields } from '../types';
 
 import { ZERO_AMOUNT } from './market_operation_utils/constants';
-import { SignedOrder } from './market_operation_utils/types';
+import { SignedNativeOrder } from './market_operation_utils/types';
 
 // tslint:disable: no-unnecessary-type-assertion completed-docs
 
@@ -20,7 +14,7 @@ export function numberPercentageToEtherTokenAmountPercentage(percentage: number)
     return Web3Wrapper.toBaseUnitAmount(constants.ONE_AMOUNT, constants.ETHER_TOKEN_DECIMALS).multipliedBy(percentage);
 }
 
-export function getAdjustedTakerAmountFromFees<T extends Order>(order: T): BigNumber {
+export function getAdjustedTakerAmountFromFees<T extends LimitOrderFields>(order: T): BigNumber {
     return order.takerAmount.plus(order.takerTokenFeeAmount);
 }
 
@@ -72,7 +66,7 @@ const EMPTY_FILLABLE_AMOUNTS: NativeOrderFillableAmountFields = {
 };
 
 export function getNativeAdjustedFillableAmountsFromTakerAmount(
-    order: SignedOrder<LimitOrderFields | RfqOrderFields>,
+    order: SignedNativeOrder,
     takerFillAmount: BigNumber,
 ): NativeOrderFillableAmountFields {
     if (takerFillAmount.isZero()) {
@@ -89,7 +83,7 @@ export function getNativeAdjustedFillableAmountsFromTakerAmount(
 }
 
 export function getNativeAdjustedFillableAmountsFromMakerAmount(
-    order: SignedOrder<LimitOrderFields | RfqOrderFields>,
+    order: SignedNativeOrder,
     makerFillAmount: BigNumber,
 ): NativeOrderFillableAmountFields {
     if (makerFillAmount.isZero()) {

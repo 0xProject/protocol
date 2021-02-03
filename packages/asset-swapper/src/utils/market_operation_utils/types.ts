@@ -239,7 +239,7 @@ export interface CollapsedFill<TFillData extends FillData = FillData> {
  */
 export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 
-export interface SignedOrder<T> {
+interface SignedOrder<T> {
     order: T;
     type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
     signature: Signature;

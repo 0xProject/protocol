@@ -8,13 +8,7 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    LimitOrderFields,
-    RfqOrder,
-    SignatureType,
-} from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
@@ -49,7 +43,6 @@ import {
     OptimizedMarketBridgeOrder,
     OptimizerResultWithReport,
     SignedNativeOrder,
-    SignedOrder,
     TokenAdjacencyGraph,
 } from '../src/utils/market_operation_utils/types';
 
@@ -82,14 +75,14 @@ const SIGNATURE = { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: Signature
 /**
  * gets the orders required for a market sell operation by (potentially) merging native orders with
  * generated bridge orders.
- * @param nativeOrders Native orders.
+ * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
  * @param takerAmount Amount of taker asset to sell.
  * @param opts Options object.
  * @return object with optimized orders and a QuoteReport
  */
 async function getMarketSellOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: Array<SignedOrder<LimitOrderFields>>,
+    nativeOrders: SignedNativeOrder[],
     takerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -99,14 +92,14 @@ async function getMarketSellOrdersAsync(
 /**
  * gets the orders required for a market buy operation by (potentially) merging native orders with
  * generated bridge orders.
- * @param nativeOrders Native orders.
+ * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
  * @param makerAmount Amount of maker asset to buy.
  * @param opts Options object.
  * @return object with optimized orders and a QuoteReport
  */
 async function getMarketBuyOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: Array<SignedOrder<LimitOrderFields>>,
+    nativeOrders: SignedNativeOrder[],
     makerAmount: BigNumber,
     opts?: Partial<GetMarketOrdersOpts>,
 ): Promise<OptimizerResultWithReport> {
@@ -149,42 +142,38 @@ describe('MarketOperationUtils tests', () => {
         return requestor;
     }
 
-    function createOrdersFromSellRates(
-        takerAmount: BigNumber,
-        rates: Numberish[],
-    ): Array<SignedOrder<LimitOrderFields>> {
+    function createOrdersFromSellRates(takerAmount: BigNumber, rates: Numberish[]): SignedNativeOrder[] {
         const singleTakerAmount = takerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
-        return rates.map(r => ({
-            order: {
-                ...new LimitOrder({
-                    makerAmount: singleTakerAmount.times(r).integerValue(),
-                    takerAmount: singleTakerAmount,
-                }),
-            },
-            signature: SIGNATURE,
-            // Why is typescript making me do this
-            // tslint:disable:next-line no-unnecessary-type-assertion
-            type: FillQuoteTransformerOrderType.Limit as FillQuoteTransformerOrderType.Limit,
-        }));
+        return rates.map(r => {
+            const o: SignedNativeOrder = {
+                order: {
+                    ...new LimitOrder({
+                        makerAmount: singleTakerAmount.times(r).integerValue(),
+                        takerAmount: singleTakerAmount,
+                    }),
+                },
+                signature: SIGNATURE,
+                type: FillQuoteTransformerOrderType.Limit,
+            };
+            return o;
+        });
     }
 
-    function createOrdersFromBuyRates(
-        makerAmount: BigNumber,
-        rates: Numberish[],
-    ): Array<SignedOrder<LimitOrderFields>> {
+    function createOrdersFromBuyRates(makerAmount: BigNumber, rates: Numberish[]): SignedNativeOrder[] {
         const singleMakerAmount = makerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
-        return rates.map(r => ({
-            order: {
-                ...new LimitOrder({
-                    makerAmount: singleMakerAmount,
-                    takerAmount: singleMakerAmount.div(r).integerValue(),
-                }),
-            },
-            signature: SIGNATURE,
-            // Why is typescript making me do this
-            // tslint:disable:next-line no-unnecessary-type-assertion
-            type: FillQuoteTransformerOrderType.Limit as FillQuoteTransformerOrderType.Limit,
-        }));
+        return rates.map(r => {
+            const o: SignedNativeOrder = {
+                order: {
+                    ...new LimitOrder({
+                        makerAmount: singleMakerAmount,
+                        takerAmount: singleMakerAmount.div(r).integerValue(),
+                    }),
+                },
+                signature: SIGNATURE,
+                type: FillQuoteTransformerOrderType.Limit,
+            };
+            return o;
+        });
     }
 
     const ORDER_DOMAIN = {
@@ -375,10 +364,10 @@ describe('MarketOperationUtils tests', () => {
             const result = new BigNumber(18);
             return [result, result];
         },
-        getLimitOrderFillableTakerAmounts(orders: Array<SignedOrder<LimitOrderFields>>): BigNumber[] {
+        getLimitOrderFillableTakerAmounts(orders: SignedNativeOrder[]): BigNumber[] {
             return orders.map(o => o.order.takerAmount);
         },
-        getLimitOrderFillableMakerAmounts(orders: Array<SignedOrder<LimitOrderFields>>): BigNumber[] {
+        getLimitOrderFillableMakerAmounts(orders: SignedNativeOrder[]): BigNumber[] {
             return orders.map(o => o.order.makerAmount);
         },
         getSellQuotes: createGetMultipleSellQuotesOperationFromRates(DEFAULT_RATES),

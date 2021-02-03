@@ -42,7 +42,7 @@ import {
     MooniswapFillData,
     MultiHopFillData,
     ShellFillData,
-    SignedOrder,
+    SignedNativeOrder,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,
@@ -117,26 +117,28 @@ export class SamplerOperations {
     }
 
     public getLimitOrderFillableTakerAmounts(
-        orders: Array<SignedOrder<LimitOrderFields>>,
+        orders: SignedNativeOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getLimitOrderFillableTakerAssetAmounts,
-            params: [orders.map(o => o.order), orders.map(o => o.signature), exchangeAddress],
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            params: [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), exchangeAddress],
         });
     }
 
     public getLimitOrderFillableMakerAmounts(
-        orders: Array<SignedOrder<LimitOrderFields>>,
+        orders: SignedNativeOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getLimitOrderFillableMakerAssetAmounts,
-            params: [orders.map(o => o.order), orders.map(o => o.signature), exchangeAddress],
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            params: [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), exchangeAddress],
         });
     }
 
