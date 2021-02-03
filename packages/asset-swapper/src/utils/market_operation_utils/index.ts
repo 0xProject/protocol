@@ -3,6 +3,7 @@ import { SignedOrder } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { DEFAULT_INFO_LOGGER } from '../../constants';
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
 import { getPriceAwareRFQRolloutFlags } from '../utils';
@@ -658,6 +659,7 @@ export class MarketOperationUtils {
 
             if (rfqt.isIndicative && isIndicativePriceAwareEnabled) {
                 // An indicative quote is beingh requested, and indicative quotes price-aware enabled. Make the RFQT request and then re-run the sampler if new orders come back.
+                const timeStart = new Date().getTime();
                 const indicativeQuotes = await getRfqtIndicativeQuotesAsync(
                     nativeOrders[0].makerAssetData,
                     nativeOrders[0].takerAssetData,
@@ -666,6 +668,11 @@ export class MarketOperationUtils {
                     wholeOrderPrice,
                     _opts,
                 );
+                const deltaTime = new Date().getTime() - timeStart;
+                DEFAULT_INFO_LOGGER({
+                    rfqQuoteType: 'indicative',
+                    deltaTime,
+                });
                 // Re-run optimizer with the new indicative quote
                 if (indicativeQuotes.length > 0) {
                     marketSideLiquidity = {
@@ -682,6 +689,7 @@ export class MarketOperationUtils {
                     if (!rfqt.takerAddress || rfqt.takerAddress === NULL_ADDRESS) {
                         throw new Error('RFQ-T requests must specify a taker address');
                     }
+                    const timeStart = new Date().getTime();
                     const firmQuotes = await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
                         nativeOrders[0].makerAssetData,
                         nativeOrders[0].takerAssetData,
@@ -690,6 +698,11 @@ export class MarketOperationUtils {
                         wholeOrderPrice,
                         rfqt,
                     );
+                    const deltaTime = new Date().getTime() - timeStart;
+                    DEFAULT_INFO_LOGGER({
+                        rfqQuoteType: 'firm',
+                        deltaTime,
+                    });
                     if (firmQuotes.length > 0) {
                         // Compute the RFQ order fillable amounts. This is done by performing a "soft" order
                         // validation and by checking order balances that are monitored by our worker.
