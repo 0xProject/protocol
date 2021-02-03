@@ -7,7 +7,7 @@ export {
 export { ContractAddresses } from '@0x/contract-addresses';
 export { WSOpts } from '@0x/mesh-rpc-client';
 export { V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder, TakerRequestQueryParams } from '@0x/quote-server';
-export { APIOrder, Asset, AssetPairsItem, DecodedLogEvent, EventCallback, IndexedFilterValues } from '@0x/types';
+export { Asset, AssetPairsItem, DecodedLogEvent, EventCallback, IndexedFilterValues } from '@0x/types';
 export { BigNumber } from '@0x/utils';
 export {
     RfqOrderFields,
@@ -94,6 +94,7 @@ export {
     RfqtFirmQuoteValidator,
     RfqtRequestOpts,
     SamplerOverrides,
+    SignedNativeOrder,
     SwapQuote,
     SwapQuoteConsumerBase,
     SwapQuoteConsumerError,
@@ -145,7 +146,6 @@ export {
     NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
-    SignedNativeOrder,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,

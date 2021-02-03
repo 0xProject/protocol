@@ -1,10 +1,10 @@
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
-import { MarketOperation } from '../../types';
+import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
 import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, NativeOrderWithFillableAmounts } from './types';
+import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 

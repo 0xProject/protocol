@@ -3,7 +3,12 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { INVALID_SIGNATURE } from '../../constants';
-import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
+import {
+    AssetSwapperContractAddresses,
+    MarketOperation,
+    NativeOrderWithFillableAmounts,
+    SignedNativeOrder,
+} from '../../types';
 import { QuoteRequestor } from '../quote_requestor';
 import {
     getNativeAdjustedFillableAmountsFromMakerAmount,
@@ -36,11 +41,9 @@ import {
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
-    NativeOrderWithFillableAmounts,
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
-    SignedNativeOrder,
 } from './types';
 
 // tslint:disable:boolean-naming

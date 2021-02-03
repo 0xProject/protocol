@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 import 'mocha';
 import * as TypeMoq from 'typemoq';
 
-import { MarketOperation } from '../src/types';
+import { MarketOperation, NativeOrderWithFillableAmounts } from '../src/types';
 import {
     CollapsedFill,
     DexSample,
@@ -16,7 +16,6 @@ import {
     NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
-    NativeOrderWithFillableAmounts,
     NativeRfqOrderFillData,
 } from '../src/utils/market_operation_utils/types';
 import { QuoteRequestor } from '../src/utils/quote_requestor';

@@ -2,7 +2,7 @@ import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { MarketOperation } from '../types';
+import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
 import {
     CollapsedFill,
@@ -13,7 +13,6 @@ import {
     NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
-    NativeOrderWithFillableAmounts,
     NativeRfqOrderFillData,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';

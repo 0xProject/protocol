@@ -7,10 +7,9 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
 import { constants } from '../constants';
-import { LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts } from '../types';
+import { LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts, SignedNativeOrder } from '../types';
 
 import { ONE_SECOND_MS } from './market_operation_utils/constants';
-import { SignedNativeOrder } from './market_operation_utils/types';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
 
 // tslint:disable-next-line: custom-no-magic-numbers

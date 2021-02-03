@@ -1,6 +1,13 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
-import { CommonOrderFields, RfqOrder } from '@0x/protocol-utils';
+import {
+    CommonOrderFields,
+    FillQuoteTransformerOrderType,
+    LimitOrderFields,
+    RfqOrder,
+    RfqOrderFields,
+    Signature,
+} from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 
@@ -22,24 +29,13 @@ export interface OrderPrunerOpts {
     permittedOrderFeeTypes: Set<OrderPrunerPermittedFeeTypes>;
 }
 
-/**
- * Represents the on-chain metadata of a signed order
- */
-export interface OrderPrunerOnChainMetadata {
-    orderStatus: number;
-    orderHash: string;
-    orderTakerAssetFilledAmount: BigNumber;
-    fillableTakerAssetAmount: BigNumber;
-    isValidSignature: boolean;
-}
-
-/**
- * makerAssetData: The assetData representing the desired makerAsset.
- * takerAssetData: The assetData representing the desired takerAsset.
- */
-export interface OrderProviderRequest {
-    makerAssetData: string;
-    takerAssetData: string;
+export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
+export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
+export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
+interface SignedOrder<T> {
+    order: T;
+    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
+    signature: Signature;
 }
 
 /**
@@ -52,8 +48,6 @@ export interface NativeOrderFillableAmountFields {
     fillableTakerAmount: BigNumber;
     fillableTakerFeeAmount: BigNumber;
 }
-
-export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
 
 /**
  * Represents the metadata to call a smart contract with calldata.
@@ -76,15 +70,6 @@ export enum ExtensionContractType {
     None = 'NONE',
     Forwarder = 'FORWARDER',
     ExchangeProxy = 'EXCHANGE_PROXY',
-}
-
-/**
- * feePercentage: Optional affiliate fee percentage used to calculate the eth amount paid to fee recipient.
- * feeRecipient: The address where affiliate fees are sent. Defaults to null address (0x000...000).
- */
-export interface ForwarderSmartContractParamsBase {
-    feePercentage: BigNumber;
-    feeRecipient: string;
 }
 
 /**

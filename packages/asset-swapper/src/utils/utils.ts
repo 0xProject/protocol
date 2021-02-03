@@ -3,10 +3,9 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { constants } from '../constants';
-import { NativeOrderFillableAmountFields } from '../types';
+import { NativeOrderFillableAmountFields, SignedNativeOrder } from '../types';
 
 import { ZERO_AMOUNT } from './market_operation_utils/constants';
-import { SignedNativeOrder } from './market_operation_utils/types';
 
 // tslint:disable: no-unnecessary-type-assertion completed-docs
 

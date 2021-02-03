@@ -14,7 +14,8 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
-import { MarketOperation, QuoteRequestor, RfqtRequestOpts } from '../src';
+import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedNativeOrder } from '../src';
+import { NativeOrderWithFillableAmounts } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
@@ -39,10 +40,8 @@ import {
     LiquidityProviderFillData,
     MarketSideLiquidity,
     NativeFillData,
-    NativeOrderWithFillableAmounts,
     OptimizedMarketBridgeOrder,
     OptimizerResultWithReport,
-    SignedNativeOrder,
     TokenAdjacencyGraph,
 } from '../src/utils/market_operation_utils/types';
 

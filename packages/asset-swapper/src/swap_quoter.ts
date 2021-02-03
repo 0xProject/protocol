@@ -12,6 +12,7 @@ import {
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
     RfqtRequestOpts,
+    SignedNativeOrder,
     SwapQuote,
     SwapQuoteInfo,
     SwapQuoteOrdersBreakdown,
@@ -35,7 +36,6 @@ import {
     MarketSideLiquidity,
     OptimizedMarketOrder,
     OptimizerResultWithReport,
-    SignedNativeOrder,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';

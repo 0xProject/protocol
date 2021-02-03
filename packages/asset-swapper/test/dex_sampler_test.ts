@@ -11,9 +11,10 @@ import { FillQuoteTransformerOrderType, LimitOrderFields, SignatureType } from '
 import { BigNumber, hexUtils, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { SignedNativeOrder } from '../src';
 import { BalancerPool } from '../src/utils/market_operation_utils/balancer_utils';
 import { DexOrderSampler, getSampleAmounts } from '../src/utils/market_operation_utils/sampler';
-import { ERC20BridgeSource, SignedNativeOrder, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
+import { ERC20BridgeSource, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
 
 import { MockBalancerPoolsCache } from './utils/mock_balancer_pools_cache';
 import { MockSamplerContract } from './utils/mock_sampler_contract';

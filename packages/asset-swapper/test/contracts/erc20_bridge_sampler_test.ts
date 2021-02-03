@@ -11,8 +11,7 @@ import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { FillQuoteTransformerOrderType, LimitOrderFields } from '../../src';
-import { SamplerCallResult } from '../../src/types';
-import { SignedNativeOrder } from '../../src/utils/market_operation_utils/types';
+import { SamplerCallResult, SignedNativeOrder } from '../../src/types';
 import { artifacts } from '../artifacts';
 import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '../wrappers';
 

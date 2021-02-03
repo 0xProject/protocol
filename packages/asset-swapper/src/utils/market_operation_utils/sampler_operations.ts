@@ -2,7 +2,7 @@ import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { SamplerCallResult } from '../../types';
+import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BalancerPoolsCache } from './balancer_utils';
@@ -42,7 +42,6 @@ import {
     MooniswapFillData,
     MultiHopFillData,
     ShellFillData,
-    SignedNativeOrder,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,
