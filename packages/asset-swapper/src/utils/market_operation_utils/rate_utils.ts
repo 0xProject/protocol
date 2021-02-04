@@ -13,7 +13,7 @@ export function getTwoHopAdjustedRate(
     side: MarketOperation,
     twoHopQuote: DexSample<MultiHopFillData>,
     targetInput: BigNumber,
-    ethToOutputRate: BigNumber,
+    outputTokensPerEth: BigNumber,
     fees: FeeSchedule = {},
     exchangeProxyOverhead: ExchangeProxyOverhead = () => ZERO_AMOUNT,
 ): BigNumber {
@@ -21,7 +21,7 @@ export function getTwoHopAdjustedRate(
     if (input.isLessThan(targetInput) || output.isZero()) {
         return ZERO_AMOUNT;
     }
-    const penalty = ethToOutputRate.times(
+    const penalty = outputTokensPerEth.times(
         exchangeProxyOverhead(SOURCE_FLAGS.MultiHop).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
     );
     const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);

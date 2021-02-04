@@ -60,10 +60,10 @@ export function getComparisonPrices(
     }
 
     // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)
-    const feePenalty = !marketSideLiquidity.ethToOutputRate.isZero()
-        ? marketSideLiquidity.ethToOutputRate.times(feeInEth)
+    const feePenalty = !marketSideLiquidity.outputTokensPerEth.isZero()
+        ? marketSideLiquidity.outputTokensPerEth.times(feeInEth)
         : // if it's a sell, the input token is the taker token
-          marketSideLiquidity.ethToInputRate
+          marketSideLiquidity.inputTokensPerEth
               .times(feeInEth)
               .times(marketSideLiquidity.side === MarketOperation.Sell ? adjustedRate : adjustedRate.pow(-1));
 

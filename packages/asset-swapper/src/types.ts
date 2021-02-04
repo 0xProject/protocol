@@ -177,8 +177,8 @@ export interface SwapQuoteBase {
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
-    makerAssetsPerEth: BigNumber;
     takerAssetsPerEth: BigNumber;
+    makerAssetsPerEth: BigNumber;
 }
 
 /**

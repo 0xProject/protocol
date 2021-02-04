@@ -139,8 +139,8 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 protocolFeeInWeiAmount: getRandomAmount(),
                 feeTakerTokenAmount: getRandomAmount(),
             },
-            takerAssetsPerEth: getRandomInteger(1, 1e9),
             makerAssetsPerEth: getRandomInteger(1, 1e9),
+            takerAssetsPerEth: getRandomInteger(1, 1e9),
             ...(side === MarketOperation.Buy
                 ? { type: MarketOperation.Buy, makerTokenFillAmount }
                 : { type: MarketOperation.Sell, takerTokenFillAmount }),

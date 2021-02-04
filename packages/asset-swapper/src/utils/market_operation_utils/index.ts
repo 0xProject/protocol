@@ -167,8 +167,8 @@ export class MarketOperationUtils {
             [
                 tokenDecimals,
                 orderFillableTakerAmounts,
-                ethToMakerAssetRate,
-                ethToTakerAssetRate,
+                outputTokensPerEth,
+                inputTokensPerEth,
                 dexQuotes,
                 rawTwoHopQuotes,
                 isTxOriginContract,
@@ -195,8 +195,8 @@ export class MarketOperationUtils {
             inputAmount: takerAmount,
             inputToken: takerToken,
             outputToken: makerToken,
-            ethToOutputRate: ethToMakerAssetRate,
-            ethToInputRate: ethToTakerAssetRate,
+            ethToOutputRate: outputTokensPerEth,
+            ethToInputRate: inputTokensPerEth,
             quoteSourceFilters,
             makerTokenDecimals: makerTokenDecimals.toNumber(),
             takerTokenDecimals: takerTokenDecimals.toNumber(),
@@ -392,7 +392,7 @@ export class MarketOperationUtils {
         const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
         const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
         const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
-        const ethToInputRate = ZERO_AMOUNT;
+        const inputTokensPerEth = ZERO_AMOUNT;
 
         return Promise.all(
             batchNativeOrders.map(async (nativeOrders, i) => {
@@ -489,8 +489,8 @@ export class MarketOperationUtils {
             orders: [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
             dexQuotes,
             targetInput: inputAmount,
-            ethToOutputRate,
-            ethToInputRate,
+            outputTokensPerEth: ethToOutputRate,
+            inputTokensPerEth: ethToInputRate,
             excludedSources: opts.excludedSources,
             feeSchedule: opts.feeSchedule,
         });
@@ -503,8 +503,8 @@ export class MarketOperationUtils {
         };
 
         // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-        const takerAssetPriceForOneEth = side === MarketOperation.Sell ? ethToInputRate : ethToOutputRate;
-        const makerAssetPriceForOneEth = side === MarketOperation.Sell ? ethToOutputRate : ethToInputRate;
+        const takerAssetsPerEth = side === MarketOperation.Sell ? ethToInputRate : ethToOutputRate;
+        const makerAssetsPerEth = side === MarketOperation.Sell ? ethToOutputRate : ethToInputRate;
 
         // Find the unoptimized best rate to calculate savings from optimizer
         const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, optimizerOpts)[0];
@@ -528,8 +528,8 @@ export class MarketOperationUtils {
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
                 unoptimizedPath,
-                takerAssetPriceForOneEth,
-                makerAssetPriceForOneEth,
+                takerAssetsPerEth,
+                makerAssetsPerEth,
             };
         }
 
@@ -563,8 +563,8 @@ export class MarketOperationUtils {
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
             unoptimizedPath,
-            takerAssetPriceForOneEth,
-            makerAssetPriceForOneEth,
+            takerAssetsPerEth,
+            makerAssetsPerEth,
         };
     }
 
