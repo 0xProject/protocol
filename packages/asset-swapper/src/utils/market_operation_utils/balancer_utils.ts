@@ -29,8 +29,11 @@ export class BalancerPoolsCache {
         private readonly _cache: { [key: string]: CacheValue } = {},
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly subgraphUrl: string = BALANCER_SUBGRAPH_URL,
+        private readonly topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
     ) {
         void this._loadTopPoolsAsync();
+        // Reload the top pools every 12 hours
+        setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
     }
 
     public async getPoolsForPairAsync(
@@ -117,11 +120,11 @@ export class BalancerPoolsCache {
     }
 
     protected async _loadTopPoolsAsync(): Promise<void> {
-        const pools = await this._fetchTopPoolsAsync();
         const fromToPools: {
             [from: string]: { [to: string]: Pool[] };
         } = {};
 
+        const pools = await this._fetchTopPoolsAsync();
         pools.forEach(pool => {
             const { tokensList } = pool;
             for (const from of tokensList) {
@@ -146,11 +149,12 @@ export class BalancerPoolsCache {
         });
     }
 
-    // tslint:disable-next-line: prefer-function-over-method
     protected async _fetchTopPoolsAsync(): Promise<BalancerPoolResponse[]> {
         const query = `
       query {
-          pools (first: ${BALANCER_TOP_POOLS_FETCHED}, where: {publicSwap: true, liquidity_gt: 0}, orderBy: swapsCount, orderDirection: desc) {
+          pools (first: ${
+              this.topPoolsFetched
+          }, where: {publicSwap: true, liquidity_gt: 0}, orderBy: swapsCount, orderDirection: desc) {
             id
             publicSwap
             swapFee
