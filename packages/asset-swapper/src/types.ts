@@ -29,14 +29,15 @@ export interface OrderPrunerOpts {
     permittedOrderFeeTypes: Set<OrderPrunerPermittedFeeTypes>;
 }
 
-export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
-export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
-export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
-interface SignedOrder<T> {
+export interface SignedOrder<T> {
     order: T;
     type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
     signature: Signature;
 }
+
+export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
+export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
+export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
 
 /**
  * fillableMakerAmount: Amount of makerAsset that is fillable

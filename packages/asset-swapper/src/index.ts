@@ -94,6 +94,7 @@ export {
     RfqtRequestOpts,
     SamplerOverrides,
     SignedNativeOrder,
+    SignedOrder,
     SwapQuote,
     SwapQuoteConsumerBase,
     SwapQuoteConsumerError,

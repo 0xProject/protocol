@@ -1,33 +1,33 @@
+import { Pool } from '@balancer-labs/sor/dist/types';
 import { getPoolsWithTokens, parsePoolData } from 'cream-sor';
 
-import { BalancerPool } from './balancer_utils';
+import { BALANCER_MAX_POOLS_FETCHED } from './constants';
 
 // tslint:disable:boolean-naming
 
 interface CacheValue {
     timestamp: number;
-    pools: BalancerPool[];
+    pools: Pool[];
 }
 
 // tslint:disable:custom-no-magic-numbers
 const FIVE_SECONDS_MS = 5 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_TIMEOUT_MS = 1000;
-const MAX_POOLS_FETCHED = 3;
 // tslint:enable:custom-no-magic-numbers
 
 export class CreamPoolsCache {
     constructor(
         private readonly _cache: { [key: string]: CacheValue } = {},
-        private readonly maxPoolsFetched: number = MAX_POOLS_FETCHED,
+        private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
     ) {}
 
     public async getPoolsForPairAsync(
         takerToken: string,
         makerToken: string,
         timeoutMs: number = DEFAULT_TIMEOUT_MS,
-    ): Promise<BalancerPool[]> {
-        const timeout = new Promise<BalancerPool[]>(resolve => setTimeout(resolve, timeoutMs, []));
+    ): Promise<Pool[]> {
+        const timeout = new Promise<Pool[]>(resolve => setTimeout(resolve, timeoutMs, []));
         return Promise.race([this._getPoolsForPairAsync(takerToken, makerToken), timeout]);
     }
 
@@ -73,7 +73,7 @@ export class CreamPoolsCache {
         takerToken: string,
         makerToken: string,
         cacheExpiryMs: number = FIVE_SECONDS_MS,
-    ): Promise<BalancerPool[]> {
+    ): Promise<Pool[]> {
         const key = JSON.stringify([takerToken, makerToken]);
         const value = this._cache[key];
         const minTimestamp = Date.now() - cacheExpiryMs;
@@ -88,8 +88,13 @@ export class CreamPoolsCache {
         return this._cache[key].pools;
     }
 
+    // tslint:disable-next-line: prefer-function-over-method
+    protected async _loadTopPoolsAsync(): Promise<void> {
+        // Do nothing
+    }
+
     // tslint:disable-next-line:prefer-function-over-method
-    protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<BalancerPool[]> {
+    protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         try {
             const poolData = (await getPoolsWithTokens(takerToken, makerToken)).pools;
             // Sort by maker token balance (descending)
