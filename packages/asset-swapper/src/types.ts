@@ -345,18 +345,7 @@ export enum OrderPrunerPermittedFeeTypes {
 /**
  * Represents a mocked RFQT maker responses.
  */
-export interface MockedRfqtFirmQuoteResponse {
-    endpoint: string;
-    requestApiKey: string;
-    requestParams: TakerRequestQueryParams;
-    responseData: any;
-    responseCode: number;
-}
-
-/**
- * Represents a mocked RFQT maker responses.
- */
-export interface MockedRfqtIndicativeQuoteResponse {
+export interface MockedRfqtQuoteResponse {
     endpoint: string;
     requestApiKey: string;
     requestParams: TakerRequestQueryParams;
