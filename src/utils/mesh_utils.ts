@@ -1,78 +1,100 @@
 import {
-    AcceptedOrderInfo,
     OrderEvent,
     OrderEventEndState,
-    OrderInfo,
-    RejectedCode,
-    RejectedOrderInfo,
-} from '@0x/mesh-rpc-client';
+    OrderWithMetadata,
+    RejectedOrderCode,
+    SignedOrder,
+} from '@0x/mesh-graphql-client';
+import * as _ from 'lodash';
 
 import { ZERO } from '../constants';
 import { ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { APIOrderWithMetaData, OrdersByLifecycleEvents } from '../types';
+import { AcceptedOrderResult, APIOrderWithMetaData, OrdersByLifecycleEvents, RejectedOrderResult } from '../types';
 
-import { orderUtils } from './order_utils';
+type OrderData = AcceptedOrderResult | RejectedOrderResult | OrderEvent | OrderWithMetadata;
+
+const isOrderEvent = (orderData: OrderData): orderData is OrderEvent => !!(orderData as OrderEvent).endState;
+const isRejectedOrderResult = (orderData: OrderData): orderData is RejectedOrderResult =>
+    !!(orderData as RejectedOrderResult).code;
+const isOrderWithMetadata = (orderData: OrderData): orderData is OrderWithMetadata =>
+    !!(orderData as OrderWithMetadata).fillableTakerAssetAmount;
 
 export const meshUtils = {
-    orderInfosToApiOrders: (
-        orderEvent: (OrderEvent | AcceptedOrderInfo | RejectedOrderInfo | OrderInfo)[],
-    ): APIOrderWithMetaData[] => {
-        return orderEvent.map(e => meshUtils.orderInfoToAPIOrder(e));
+    orderWithMetadataToSignedOrder(order: OrderWithMetadata): SignedOrder {
+        const cleanedOrder: SignedOrder = _.omit(order, ['hash', 'fillableTakerAssetAmount']);
+
+        return cleanedOrder;
     },
-    orderInfoToAPIOrder: (
-        orderEvent: OrderEvent | AcceptedOrderInfo | RejectedOrderInfo | OrderInfo,
-    ): APIOrderWithMetaData => {
-        const { orderHash, fillableTakerAssetAmount, signedOrder } = orderEvent as OrderEvent;
-        const apiOrder: APIOrderWithMetaData = {
-            // orderEvent.signedOrder comes from mesh with string fields, needs to be serialized into SignedOrder
-            order: orderUtils.deserializeOrder(signedOrder as any), // tslint:disable-line:no-unnecessary-type-assertion
+    orderInfosToApiOrders: (orders: OrderData[]): APIOrderWithMetaData[] => {
+        return orders.map(e => meshUtils.orderInfoToAPIOrder(e));
+    },
+    orderInfoToAPIOrder: (orderData: OrderData): APIOrderWithMetaData => {
+        let order: SignedOrder;
+        let remainingFillableTakerAssetAmount = ZERO;
+        let orderHash: string;
+        let state: OrderEventEndState | undefined;
+        if (isOrderWithMetadata(orderData)) {
+            order = meshUtils.orderWithMetadataToSignedOrder(orderData);
+            remainingFillableTakerAssetAmount = orderData.fillableTakerAssetAmount;
+            orderHash = orderData.hash;
+        } else if (isOrderEvent(orderData)) {
+            order = meshUtils.orderWithMetadataToSignedOrder(orderData.order);
+            remainingFillableTakerAssetAmount = orderData.order.fillableTakerAssetAmount;
+            orderHash = orderData.order.hash;
+
+            state = orderData.endState;
+        } else if (isRejectedOrderResult(orderData)) {
+            order = orderData.order;
+            // TODO(kimpers): sometimes this will not exist according to Mesh GQL spec. Is this a problem?
+            orderHash = orderData.hash!;
+
+            state = meshUtils.rejectedCodeToOrderState(orderData.code);
+        } else {
+            order = meshUtils.orderWithMetadataToSignedOrder(orderData.order);
+            remainingFillableTakerAssetAmount = orderData.order.fillableTakerAssetAmount;
+            orderHash = orderData.order.hash;
+        }
+
+        return {
+            order,
             metaData: {
                 orderHash,
-                remainingFillableTakerAssetAmount: fillableTakerAssetAmount || ZERO,
+                remainingFillableTakerAssetAmount,
+                state,
             },
         };
-        // populate order state
-        apiOrder.metaData.state = (orderEvent as OrderEvent).endState;
-        if (apiOrder.metaData.state === undefined) {
-            const r = orderEvent as RejectedOrderInfo;
-            apiOrder.metaData.state =
-                r.status && r.status.code
-                    ? meshUtils.rejectedCodeToOrderState(r.status.code)
-                    : OrderEventEndState.Invalid;
-        }
-        return apiOrder;
     },
-    rejectedCodeToOrderState: (code: RejectedCode): OrderEventEndState | undefined => {
+    rejectedCodeToOrderState: (code: RejectedOrderCode): OrderEventEndState | undefined => {
         switch (code) {
-            case RejectedCode.OrderCancelled:
+            case RejectedOrderCode.OrderCancelled:
                 return OrderEventEndState.Cancelled;
-            case RejectedCode.OrderExpired:
+            case RejectedOrderCode.OrderExpired:
                 return OrderEventEndState.Expired;
-            case RejectedCode.OrderUnfunded:
+            case RejectedOrderCode.OrderUnfunded:
                 return OrderEventEndState.Unfunded;
-            case RejectedCode.OrderFullyFilled:
+            case RejectedOrderCode.OrderFullyFilled:
                 return OrderEventEndState.FullyFilled;
             default:
                 return undefined;
         }
     },
-    rejectedCodeToSRACode: (code: RejectedCode): ValidationErrorCodes => {
+    rejectedCodeToSRACode: (code: RejectedOrderCode): ValidationErrorCodes => {
         switch (code) {
-            case RejectedCode.OrderCancelled:
-            case RejectedCode.OrderExpired:
-            case RejectedCode.OrderUnfunded:
-            case RejectedCode.OrderHasInvalidMakerAssetAmount:
-            case RejectedCode.OrderHasInvalidMakerAssetData:
-            case RejectedCode.OrderHasInvalidTakerAssetAmount:
-            case RejectedCode.OrderHasInvalidTakerAssetData:
-            case RejectedCode.OrderFullyFilled: {
+            case RejectedOrderCode.OrderCancelled:
+            case RejectedOrderCode.OrderExpired:
+            case RejectedOrderCode.OrderUnfunded:
+            case RejectedOrderCode.OrderHasInvalidMakerAssetAmount:
+            case RejectedOrderCode.OrderHasInvalidMakerAssetData:
+            case RejectedOrderCode.OrderHasInvalidTakerAssetAmount:
+            case RejectedOrderCode.OrderHasInvalidTakerAssetData:
+            case RejectedOrderCode.OrderFullyFilled: {
                 return ValidationErrorCodes.InvalidOrder;
             }
-            case RejectedCode.OrderHasInvalidSignature: {
+            case RejectedOrderCode.OrderHasInvalidSignature: {
                 return ValidationErrorCodes.InvalidSignatureOrHash;
             }
-            case RejectedCode.OrderForIncorrectChain: {
+            case RejectedOrderCode.OrderForIncorrectChain: {
                 return ValidationErrorCodes.InvalidAddress;
             }
             default:
@@ -89,7 +111,7 @@ export const meshUtils = {
                     added.push(order);
                     break;
                 }
-                case OrderEventEndState.Invalid:
+                // case OrderEventEndState.Invalid: TODO(kimpers): Invalid state is no longer available, is this an issue?
                 case OrderEventEndState.Cancelled:
                 case OrderEventEndState.Expired:
                 case OrderEventEndState.FullyFilled:

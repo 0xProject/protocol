@@ -12,7 +12,8 @@
         "sourceMap": true,
         "typeRoots": ["./node_modules/@0x/typescript-typings/types", "./node_modules/@types"],
         "noUnusedParameters": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true
     },
     "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts"],
     "files": ["./src/schemas/swap_quote_request_schema.json"]

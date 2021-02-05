@@ -2,7 +2,7 @@ import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/cont
 import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
 import { constants, expect, OrderFactory } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
-import { OrderEventEndState } from '@0x/mesh-rpc-client';
+import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { assetDataUtils, Order, orderHashUtils } from '@0x/order-utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -18,12 +18,8 @@ import { APIOrderWithMetaData } from '../src/types';
 import { MeshClient } from '../src/utils/mesh_client';
 import { orderUtils } from '../src/utils/order_utils';
 
-import {
-    setupDependenciesAsync,
-    setupMeshAsync,
-    teardownDependenciesAsync,
-    teardownMeshAsync,
-} from './utils/deployment';
+import { resetState } from './test_setup';
+import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { DEFAULT_MAKER_ASSET_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
 
 const SUITE_NAME = 'OrderBook Service tests';
@@ -130,6 +126,7 @@ describe(SUITE_NAME, () => {
         await blockchainLifecycle.startAsync();
     });
     after(async () => {
+        await resetState();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
@@ -187,23 +184,22 @@ describe(SUITE_NAME, () => {
     describe('addOrdersAsync, addPersistentOrdersAsync', () => {
         let meshUtils: MeshTestUtils;
         before(async () => {
+            await resetState();
             meshUtils = new MeshTestUtils(provider);
             await meshUtils.setupUtilsAsync();
         });
         beforeEach(async () => {
-            blockchainLifecycle.startAsync();
+            await blockchainLifecycle.startAsync();
         });
         afterEach(async () => {
-            await teardownMeshAsync(SUITE_NAME);
-            await setupMeshAsync(SUITE_NAME);
-            blockchainLifecycle.revertAsync();
+            await blockchainLifecycle.revertAsync();
         });
         it('should post orders to Mesh', async () => {
             const apiOrder = await newAPIOrderAsync(orderFactory, {});
             await orderBookService.addOrdersAsync([apiOrder.order], false);
 
             const meshOrders = await meshUtils.getOrdersAsync();
-            expect(meshOrders.ordersInfos.find(i => i.orderHash === apiOrder.metaData.orderHash)).to.not.be.undefined();
+            expect(meshOrders.ordersInfos.find(i => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
 
             // should not save to persistent orders table
             const result = await (await getDBConnectionAsync()).manager.find(PersistentSignedOrderEntity, {
@@ -216,7 +212,7 @@ describe(SUITE_NAME, () => {
             await orderBookService.addPersistentOrdersAsync([apiOrder.order], false);
 
             const meshOrders = await meshUtils.getOrdersAsync();
-            expect(meshOrders.ordersInfos.find(i => i.orderHash === apiOrder.metaData.orderHash)).to.not.be.undefined();
+            expect(meshOrders.ordersInfos.find(i => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
 
             const result = await (await getDBConnectionAsync()).manager.find(PersistentSignedOrderEntity, {
                 hash: apiOrder.metaData.orderHash,
