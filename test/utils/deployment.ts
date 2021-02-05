@@ -28,7 +28,7 @@ export interface LoggingConfig {
 }
 
 let didTearDown = false;
-const dockerComposeFilename = 'docker-compose-test.yml';
+const dockerComposeFilename = `${testRootDir}/docker-compose-test.yml`;
 
 /**
  * Sets up 0x-api's dependencies.
