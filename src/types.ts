@@ -5,7 +5,7 @@ import {
     RfqtRequestOpts,
     SupportedProvider,
 } from '@0x/asset-swapper';
-import { OrderEventEndState, OrderWithMetadata, RejectedOrderCode } from '@0x/mesh-graphql-client';
+import { AcceptedOrderInfo, OrderEventEndState, RejectedOrderInfo } from '@0x/mesh-rpc-client';
 import {
     APIOrder,
     ExchangeProxyMetaTransaction,
@@ -40,28 +40,6 @@ export enum OrderWatcherLifeCycleEvents {
     PersistentUpdated,
 }
 
-// TODO(kimpers): export from Mesh client
-export interface AcceptedOrderResult {
-    // The order that was accepted, including metadata.
-    order: OrderWithMetadata;
-    // Whether or not the order is new. Set to true if this is the first time this Mesh node has accepted the order
-    // and false otherwise.
-    isNew: boolean;
-}
-
-export interface RejectedOrderResult {
-    // The hash of the order. May be null if the hash could not be computed.
-    hash?: string;
-    // The order that was rejected.
-    order: SignedOrder;
-    // A machine-readable code indicating why the order was rejected. This code is designed to
-    // be used by programs and applications and will never change without breaking backwards-compatibility.
-    code: RejectedOrderCode;
-    // A human-readable message indicating why the order was rejected. This message may change
-    // in future releases and is not covered by backwards-compatibility guarantees.
-    message: string;
-}
-
 export interface OrdersByLifecycleEvents {
     added: APIOrderWithMetaData[];
     removed: APIOrderWithMetaData[];
@@ -69,6 +47,11 @@ export interface OrdersByLifecycleEvents {
 }
 
 export type onOrdersUpdateCallback = (orders: APIOrderWithMetaData[]) => void;
+
+export interface AcceptedRejectedResults {
+    accepted: AcceptedOrderInfo[];
+    rejected: RejectedOrderInfo[];
+}
 
 export interface APIOrderMetaData {
     orderHash: string;

@@ -115,8 +115,6 @@ export const PINNED_MM_ADDRESSES: string[] = _.isEmpty(process.env.PINNED_MM_ADD
     ? []
     : assertEnvVarType('PINNED_MM_ADDRESSES', process.env.PINNED_MM_ADDRESSES, EnvVarType.AddressList);
 
-export const DB_ORDERS_UPDATE_CHUNK_SIZE = 300;
-
 // Ethereum RPC Url
 export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.Url);
 
@@ -125,17 +123,8 @@ export const MESH_WEBSOCKET_URI = _.isEmpty(process.env.MESH_WEBSOCKET_URI)
     ? 'ws://localhost:60557'
     : assertEnvVarType('MESH_WEBSOCKET_URI', process.env.MESH_WEBSOCKET_URI, EnvVarType.Url);
 export const MESH_HTTP_URI = _.isEmpty(process.env.MESH_HTTP_URI)
-    ? 'http://localhost:60557'
+    ? undefined
     : assertEnvVarType('assertEnvVarType', process.env.MESH_HTTP_URI, EnvVarType.Url);
-
-export const MESH_GET_ORDERS_DEFAULT_PAGE_SIZE = _.isEmpty(process.env.MESH_GET_ORDERS_DEFAULT_PAGE_SIZE)
-    ? 200
-    : assertEnvVarType(
-          'MESH_GET_ORDERS_DEFAULT_PAGE_SIZE',
-          process.env.MESH_GET_ORDERS_DEFAULT_PAGE_SIZE,
-          EnvVarType.Integer,
-      );
-
 // The fee recipient for orders
 export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
     ? NULL_ADDRESS

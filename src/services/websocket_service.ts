@@ -56,7 +56,7 @@ export class WebsocketService {
         string,
         OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS
     > = new Map(); // requestId -> { base, quote }
-    private readonly _orderEventsSubscription?: ZenObservable.Subscription;
+    private _meshSubscriptionId?: string;
     private static _decodedContractAndAssetData(assetData: string): { assetProxyId: string; data: string[] } {
         let data: string[] = [assetData];
         const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
@@ -135,15 +135,11 @@ export class WebsocketService {
         this._server.on('error', WebsocketService._handleError.bind(this));
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
         this._meshClient = meshClient;
-
-        this._orderEventsSubscription = this._meshClient.onOrderEvents().subscribe({
-            next: events => this.orderUpdate(meshUtils.orderInfosToApiOrders(events.map(e => e.order))),
-            error: err => {
-                logger.error(new WebsocketServiceError(err));
-            },
-        });
+        // tslint:disable-next-line:no-floating-promises
+        this._meshClient
+            .subscribeToOrdersAsync(e => this.orderUpdate(meshUtils.orderInfosToApiOrders(e)))
+            .then(subscriptionId => (this._meshSubscriptionId = subscriptionId));
     }
-
     public async destroyAsync(): Promise<void> {
         clearInterval(this._pongIntervalId);
         for (const ws of this._server.clients) {
@@ -152,8 +148,12 @@ export class WebsocketService {
         this._requestIdToSocket.clear();
         this._requestIdToSubscriptionOpts.clear();
         this._server.close();
-        if (this._orderEventsSubscription) {
-            this._orderEventsSubscription.unsubscribe();
+        if (this._meshSubscriptionId) {
+            try {
+                await this._meshClient.unsubscribeAsync(this._meshSubscriptionId);
+            } finally {
+                delete this._meshSubscriptionId;
+            }
         }
     }
     public orderUpdate(apiOrders: APIOrder[]): void {

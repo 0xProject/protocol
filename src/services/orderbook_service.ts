@@ -1,19 +1,15 @@
 import { APIOrder, OrderbookResponse, PaginatedCollection } from '@0x/connect';
-import { OrderEventEndState } from '@0x/mesh-graphql-client';
+import { AcceptedOrderInfo, OrderEventEndState } from '@0x/mesh-rpc-client';
 import { AssetPairsItem, SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 import { Connection, In } from 'typeorm';
 
-import {
-    DB_ORDERS_UPDATE_CHUNK_SIZE,
-    SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
-    SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS,
-} from '../config';
+import { SRA_ORDER_EXPIRATION_BUFFER_SECONDS, SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS } from '../config';
 import { SignedOrderEntity } from '../entities';
 import { PersistentSignedOrderEntity } from '../entities/PersistentSignedOrderEntity';
 import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
 import { alertOnExpiredOrders } from '../logger';
-import { AcceptedOrderResult, APIOrderWithMetaData, PinResult, SRAGetOrdersRequestOpts } from '../types';
+import { APIOrderWithMetaData, PinResult, SRAGetOrdersRequestOpts } from '../types';
 import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
@@ -184,7 +180,7 @@ export class OrderBookService {
                 OrderEventEndState.Cancelled,
                 OrderEventEndState.Expired,
                 OrderEventEndState.FullyFilled,
-                // OrderEventEndState.Invalid,
+                OrderEventEndState.Invalid,
                 OrderEventEndState.StoppedWatching,
                 OrderEventEndState.Unfunded,
             ];
@@ -248,21 +244,19 @@ export class OrderBookService {
         // so we need to leave space for the attributes on the model represented
         // as SQL variables in the "AS" syntax. We leave 99 free for the
         // signedOrders model
-        await this._connection
-            .getRepository(PersistentSignedOrderEntity)
-            .save(persistentOrders, { chunk: DB_ORDERS_UPDATE_CHUNK_SIZE });
+        await this._connection.getRepository(PersistentSignedOrderEntity).save(persistentOrders);
     }
     public async splitOrdersByPinningAsync(signedOrders: SignedOrder[]): Promise<PinResult> {
         return orderUtils.splitOrdersByPinningAsync(this._connection, signedOrders);
     }
-    private async _addOrdersAsync(signedOrders: SignedOrder[], pinned: boolean): Promise<AcceptedOrderResult[]> {
+    private async _addOrdersAsync(signedOrders: SignedOrder[], pinned: boolean): Promise<AcceptedOrderInfo[]> {
         if (this._meshClient) {
             const { rejected, accepted } = await this._meshClient.addOrdersAsync(signedOrders, pinned);
             if (rejected.length !== 0) {
                 const validationErrors = rejected.map((r, i) => ({
                     field: `signedOrder[${i}]`,
-                    code: meshUtils.rejectedCodeToSRACode(r.code),
-                    reason: `${r.code}: ${r.message}`,
+                    code: meshUtils.rejectedCodeToSRACode(r.status.code),
+                    reason: `${r.status.code}: ${r.status.message}`,
                 }));
                 throw new ValidationError(validationErrors);
             }

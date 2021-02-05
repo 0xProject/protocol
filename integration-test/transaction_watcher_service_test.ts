@@ -6,8 +6,6 @@ import 'mocha';
 import * as request from 'supertest';
 import { Connection, Repository } from 'typeorm';
 
-// Force reload of the app avoid variables being polluted between test suites
-delete require.cache[require.resolve('../src/app')];
 import {
     createMetaTxnServiceFromSwapService,
     createSwapServiceFromOrderBookService,

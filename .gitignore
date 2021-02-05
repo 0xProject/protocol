@@ -90,7 +90,7 @@ TODOs.org
 .DS_Store
 
 # test docker file
-test/docker-compose*.yml
+test/docker-compose.yml
 
 TODO.txt
 

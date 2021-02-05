@@ -15,8 +15,6 @@ import * as HttpStatus from 'http-status-codes';
 import 'mocha';
 import * as request from 'supertest';
 
-// Force reload of the app avoid variables being polluted between test suites
-delete require.cache[require.resolve('../src/app')];
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import {
     defaultHttpServiceWithRateLimiterConfig,

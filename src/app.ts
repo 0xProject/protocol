@@ -130,11 +130,11 @@ export async function getDefaultAppDependenciesAsync(
     const stakingDataService = new StakingDataService(connection);
 
     let meshClient: MeshClient | undefined;
-    if (config.meshWebsocketUri !== undefined && config.meshHttpUri !== undefined) {
+    // hack (xianny): the Mesh client constructor has a fire-and-forget promise so we are unable
+    // to catch initialisation errors. Allow the calling function to skip Mesh initialization by
+    // not providing a websocket URI
+    if (config.meshWebsocketUri !== undefined) {
         meshClient = new MeshClient(config.meshWebsocketUri, config.meshHttpUri);
-        // HACK(kimpers): Need to wait for Mesh initialization to finish before we can subscribe to event updates
-        // When the stats request has resolved Mesh is ready to receive subscriptions
-        await meshClient.getStatsAsync();
     } else {
         logger.warn(`Skipping Mesh client creation because no URI provided`);
     }

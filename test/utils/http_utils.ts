@@ -27,12 +27,8 @@ export function constructRoute(protoRoute: ProtoRoute): string {
  * @param input Specifies the route and the base URL that should be used to make
  *        the HTTP GET request.
  */
-export async function httpGetAsync(input: {
-    route: string;
-    baseURL?: string;
-    app?: Express.Application;
-}): Promise<httpRequest.Response> {
-    return httpRequest(input.app || input.baseURL || API_HTTP_ADDRESS).get(input.route);
+export async function httpGetAsync(input: { route: string; baseURL?: string }): Promise<httpRequest.Response> {
+    return httpRequest(input.baseURL || API_HTTP_ADDRESS).get(input.route);
 }
 
 /**
@@ -43,11 +39,10 @@ export async function httpGetAsync(input: {
 export async function httpPostAsync(input: {
     route: string;
     baseURL?: string;
-    app?: Express.Application;
     body?: any;
     headers?: { [field: string]: string };
 }): Promise<httpRequest.Response> {
-    const request = httpRequest(input.app || input.baseURL || API_HTTP_ADDRESS)
+    const request = httpRequest(input.baseURL || API_HTTP_ADDRESS)
         .post(input.route)
         .send(input.body);
     if (input.headers) {

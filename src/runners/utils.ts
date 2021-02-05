@@ -43,10 +43,9 @@ export function createDefaultServer(
         logger.info(`received: ${sig}, shutting down server`);
         healthcheckService.setHealth(false);
         server.close(async err => {
-            // TODO(kimpers): do we need to handle anything here?
-            // if (dependencies.meshClient) {
-            // dependencies.meshClient.destroy();
-            // }
+            if (dependencies.meshClient) {
+                dependencies.meshClient.destroy();
+            }
             if (dependencies.connection) {
                 await dependencies.connection.close();
             }
