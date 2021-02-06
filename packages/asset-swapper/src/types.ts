@@ -8,7 +8,7 @@ import {
     RfqOrderFields,
     Signature,
 } from '@0x/protocol-utils';
-import { TakerRequestQueryParams } from '@0x/quote-server';
+import { TakerRequestQueryParams, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 
 import {
@@ -249,6 +249,7 @@ export interface RfqtRequestOpts {
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQT?: boolean;
+    altRfqtAssetOfferings?: AltRfqtMakerAssetOfferings;
 }
 
 /**
@@ -267,6 +268,23 @@ export interface RfqtMakerAssetOfferings {
     [endpoint: string]: Array<[string, string]>;
 }
 
+export interface AltOffering {
+    baseAsset: string;
+    quoteAsset: string;
+    baseSymbol: string;
+    quoteSymbol: string;
+    baseAssetDecimals: number;
+    quoteAssetDecimals: number;
+}
+export interface AltRfqtMakerAssetOfferings {
+    [endpoint: string]: AltOffering[];
+}
+export type RfqPairType = 'standard' | 'alt';
+export interface TypedMakerUrl {
+    url: string;
+    pairType: RfqPairType;
+}
+
 export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
 
 export interface RfqtFirmQuoteValidator {
@@ -276,6 +294,7 @@ export interface RfqtFirmQuoteValidator {
 export interface SwapQuoterRfqtOpts {
     takerApiKeyWhitelist: string[];
     makerAssetOfferings: RfqtMakerAssetOfferings;
+    altMakerAssetOfferings: AltRfqtMakerAssetOfferings;
     warningLogger?: LogFunction;
     infoLogger?: LogFunction;
 }
@@ -386,4 +405,56 @@ export interface BridgeContractAddresses {
     swerveBridge: string;
     snowswapBridge: string;
     cryptoComBridge: string;
+}
+
+export interface AltQuoteRequestData {
+    market: string;
+    model: 'firm' | 'indicative';
+    profile: string;
+    side: 'buy' | 'sell';
+    value?: string;
+    amount?: string;
+    meta: {
+        txOrigin: string;
+        taker: string;
+        client: string;
+        existingOrder?: {
+            price: string;
+            value?: string;
+            amount?: string;
+        };
+    };
+}
+
+export interface AltBaseRfqResponse {
+    id: string;
+    market: string;
+    profile: string;
+    side: 'buy' | 'sell';
+    amount?: string;
+    value?: string;
+    meta: {
+        client: string;
+        taker: string;
+        txOrigin: string;
+        existingOrder?: {
+            price: string;
+            value?: string;
+            amount?: string;
+        };
+    };
+    price?: string;
+}
+
+export interface AltIndicativeQuoteReponse extends AltBaseRfqResponse {
+    model: 'indicative';
+    status: 'live' | 'rejected';
+}
+
+export interface AltFirmQuoteReponse extends AltBaseRfqResponse {
+    model: 'firm';
+    data: {
+        '0xv4order': V4SignedRfqOrder;
+    };
+    status: 'active' | 'rejected';
 }

@@ -50,6 +50,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     rfqt: {
         takerApiKeyWhitelist: [],
         makerAssetOfferings: {},
+        altMakerAssetOfferings: {},
     },
 };
 
