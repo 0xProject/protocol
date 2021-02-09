@@ -1,5 +1,5 @@
 import { APIOrder, OrderConfigRequest, OrderConfigResponse } from '@0x/connect';
-import { OrderEventEndState } from '@0x/mesh-graphql-client';
+import { OrderEventEndState } from '@0x/mesh-rpc-client';
 import { assetDataUtils } from '@0x/order-utils';
 import {
     Asset,

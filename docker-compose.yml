@@ -18,17 +18,8 @@ services:
             - ./postgres:/var/lib/postgresql/data
         ports:
             - '5432:5432'
-    events-pipeline:
-        depends_on:
-            - postgres
-        image: 0xorg/event-pipeline@sha256:058e730018a8bdc31b1fdd68935eeb27bc728a0db579b41436c138cf73e830e1
-        restart: always
-        environment:
-            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
-            CHAIN_ID: '${CHAIN_ID}'
-            POSTGRES_URI: 'postgres://api:api@postgres/api'
     mesh:
-        image: 0xorg/mesh:10.2.0
+        image: 0xorg/mesh:9.3.0
         depends_on:
             - ganache
         restart: on-failure
@@ -38,15 +29,25 @@ services:
             USE_BOOTSTRAP_LIST: 'false'
             VERBOSITY: 4
             PRIVATE_KEY_PATH: ''
-            ENABLE_GRAPHQL_SERVER: 'true'
-            ENABLE_GRAPHQL_PLAYGROUND: 'true' # TODO(kimpers): remove this?
+            WS_RPC_ADDR: '0.0.0.0:60557'
+            HTTP_RPC_ADDR: '0.0.0.0:60556'
             BLOCK_POLLING_INTERVAL: '2s'
             ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
         volumes:
             - ./0x_mesh:/usr/mesh/0x_mesh
         ports:
+            - '60556:60556'
             - '60557:60557'
             - '60558:60558'
             - '60559:60559'
         command: |
             sh -c "waitForGanache () { until printf 'POST /\r\nContent-Length: 26\r\n\r\n{\"method\":\"net_listening\"}' | nc localhost 8545 | grep true; do continue; done }; waitForGanache && ./mesh"
+    events-pipeline:
+        depends_on:
+            - postgres
+        image: 0xorg/event-pipeline@sha256:058e730018a8bdc31b1fdd68935eeb27bc728a0db579b41436c138cf73e830e1
+        restart: 'no'
+        environment:
+            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
+            CHAIN_ID: '${CHAIN_ID}'
+            POSTGRES_URI: 'postgres://api:api@postgres/api'

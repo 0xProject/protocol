@@ -1,5 +1,3 @@
-// tslint:disable:max-file-line-count
-
 import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
@@ -8,14 +6,10 @@ import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-ut
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
-import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 import 'mocha';
 
-// Force reload of the app avoid variables being polluted between test suites
-delete require.cache[require.resolve('../src/app')];
-import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
 import { AFFILIATE_FEE_TRANSFORMER_GAS, GAS_LIMIT_BUFFER_MULTIPLIER, SWAP_PATH } from '../src/constants';
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
@@ -39,8 +33,7 @@ import {
     ZRX_ASSET_DATA,
     ZRX_TOKEN_ADDRESS,
 } from './constants';
-import { resetState } from './test_setup';
-import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
+import { setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync } from './utils/http_utils';
 import { MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
 import { liquiditySources0xOnly } from './utils/mocks';
@@ -56,9 +49,6 @@ const DEFAULT_QUERY_PARAMS = {
 const ONE_THOUSAND_IN_BASE = new BigNumber('1000000000000000000000');
 
 describe(SUITE_NAME, () => {
-    let app: Express.Application;
-    let server: Server;
-    let dependencies: AppDependencies;
     let meshUtils: MeshTestUtils;
     let accounts: string[];
     let takerAddress: string;
@@ -68,8 +58,7 @@ describe(SUITE_NAME, () => {
     let provider: Web3ProviderEngine;
 
     before(async () => {
-        await setupDependenciesAsync(SUITE_NAME);
-
+        await setupApiAsync(SUITE_NAME);
         // connect to ganache and run contract migrations
         const ganacheConfigs = {
             shouldUseInProcessGanache: false,
@@ -77,10 +66,6 @@ describe(SUITE_NAME, () => {
             rpcUrl: config.ETHEREUM_RPC_URL,
         };
         provider = web3Factory.getRpcProvider(ganacheConfigs);
-
-        // start the 0x-api app
-        dependencies = await getDefaultAppDependenciesAsync(provider, config.defaultHttpServiceConfig);
-        ({ app, server } = await getAppAsync({ ...dependencies }, config.defaultHttpServiceConfig));
 
         const web3Wrapper = new Web3Wrapper(provider);
         blockchainLifecycle = new BlockchainLifecycle(web3Wrapper);
@@ -90,6 +75,7 @@ describe(SUITE_NAME, () => {
 
         // Set up liquidity.
         await blockchainLifecycle.startAsync();
+        await setupMeshAsync(SUITE_NAME);
         meshUtils = new MeshTestUtils(provider);
         await meshUtils.setupUtilsAsync();
         await meshUtils.addPartialOrdersAsync([
@@ -138,25 +124,14 @@ describe(SUITE_NAME, () => {
             .approve(CONTRACT_ADDRESSES.exchangeProxyAllowanceTarget, MAX_INT)
             .awaitTransactionSuccessAsync({ from: takerAddress });
     });
-
     after(async () => {
         await blockchainLifecycle.revertAsync();
-        await new Promise<void>((resolve, reject) => {
-            server.close((err?: Error) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve();
-            });
-        });
-        await resetState();
-        await teardownDependenciesAsync(SUITE_NAME);
+        await teardownMeshAsync(SUITE_NAME);
+        await teardownApiAsync(SUITE_NAME);
     });
-
     describe('/quote', () => {
         it("with INSUFFICIENT_ASSET_LIQUIDITY when there's no liquidity (empty orderbook, sampling excluded, no RFQ)", async () => {
             await quoteAndExpectAsync(
-                app,
                 { buyAmount: '10000000000000000000000000000000' },
                 {
                     validationErrors: [
@@ -184,7 +159,7 @@ describe(SUITE_NAME, () => {
             ];
             for (const parameters of parameterPermutations) {
                 it(`should return a valid quote with ${JSON.stringify(parameters)}`, async () => {
-                    await quoteAndExpectAsync(app, parameters, {
+                    await quoteAndExpectAsync(parameters, {
                         buyAmount: new BigNumber(parameters.buyAmount),
                         sellTokenAddress: parameters.sellToken.startsWith('0x')
                             ? parameters.sellToken
@@ -201,14 +176,13 @@ describe(SUITE_NAME, () => {
         });
 
         it('should respect buyAmount', async () => {
-            await quoteAndExpectAsync(app, { buyAmount: '1234' }, { buyAmount: new BigNumber(1234) });
+            await quoteAndExpectAsync({ buyAmount: '1234' }, { buyAmount: new BigNumber(1234) });
         });
         it('should respect sellAmount', async () => {
-            await quoteAndExpectAsync(app, { sellAmount: '1234' }, { sellAmount: new BigNumber(1234) });
+            await quoteAndExpectAsync({ sellAmount: '1234' }, { sellAmount: new BigNumber(1234) });
         });
         it('should respect gasPrice', async () => {
             await quoteAndExpectAsync(
-                app,
                 { sellAmount: '1234', gasPrice: '150000000000' },
                 { gasPrice: new BigNumber('150000000000') },
             );
@@ -217,14 +191,12 @@ describe(SUITE_NAME, () => {
             const gasPrice = new BigNumber('150000000000');
             const protocolFee = gasPrice.times(config.PROTOCOL_FEE_MULTIPLIER);
             await quoteAndExpectAsync(
-                app,
                 { sellAmount: '1234', gasPrice: '150000000000' },
                 { gasPrice, protocolFee, value: protocolFee },
             );
         });
         it('should respect excludedSources', async () => {
             await quoteAndExpectAsync(
-                app,
                 {
                     sellAmount: '1234',
                     excludedSources: Object.values(ERC20BridgeSource).join(','),
@@ -242,7 +214,6 @@ describe(SUITE_NAME, () => {
         });
         it('should respect includedSources', async () => {
             await quoteAndExpectAsync(
-                app,
                 {
                     sellAmount: '1234',
                     excludedSources: '',
@@ -253,7 +224,6 @@ describe(SUITE_NAME, () => {
         });
         it('should return a ExchangeProxy transaction for sellToken=ETH', async () => {
             await quoteAndExpectAsync(
-                app,
                 {
                     sellToken: 'WETH',
                     sellAmount: '1234',
@@ -263,7 +233,6 @@ describe(SUITE_NAME, () => {
                 },
             );
             await quoteAndExpectAsync(
-                app,
                 {
                     sellToken: 'ETH',
                     sellAmount: '1234',
@@ -276,7 +245,6 @@ describe(SUITE_NAME, () => {
         it('should not throw a validation error if takerAddress can complete the quote', async () => {
             // The maker has an allowance
             await quoteAndExpectAsync(
-                app,
                 {
                     takerAddress,
                     sellToken: 'WETH',
@@ -291,7 +259,6 @@ describe(SUITE_NAME, () => {
         it('should throw a validation error if takerAddress cannot complete the quote', async () => {
             // The taker does not have an allowance
             await quoteAndExpectAsync(
-                app,
                 {
                     takerAddress: invalidTakerAddress,
                     sellToken: 'WETH',
@@ -335,7 +302,6 @@ describe(SUITE_NAME, () => {
                 const feeRecipient = randomAddress();
                 const buyTokenPercentageFee = new BigNumber(0.05);
                 await quoteAndExpectAsync(
-                    app,
                     {
                         ...sellQuoteParams,
                         feeRecipient,
@@ -366,7 +332,6 @@ describe(SUITE_NAME, () => {
                 const feeRecipient = randomAddress();
                 const buyTokenPercentageFee = new BigNumber(0.05);
                 await quoteAndExpectAsync(
-                    app,
                     {
                         ...buyQuoteParams,
                         feeRecipient,
@@ -393,7 +358,6 @@ describe(SUITE_NAME, () => {
             it('validation error if given a non-zero sell token fee', async () => {
                 const feeRecipient = randomAddress();
                 await quoteAndExpectAsync(
-                    app,
                     {
                         ...sellQuoteParams,
                         feeRecipient,
@@ -413,7 +377,6 @@ describe(SUITE_NAME, () => {
             it('validation error if given an invalid percentage', async () => {
                 const feeRecipient = randomAddress();
                 await quoteAndExpectAsync(
-                    app,
                     {
                         ...sellQuoteParams,
                         feeRecipient,
@@ -464,7 +427,6 @@ interface QuoteAssertion extends GetSwapQuoteResponse {
 }
 
 async function quoteAndExpectAsync(
-    app: Express.Application,
     queryParams: ObjectMap<string>,
     quoteAssertions: Partial<QuoteAssertion>,
 ): Promise<void> {
@@ -475,7 +437,7 @@ async function quoteAndExpectAsync(
             ...queryParams,
         },
     });
-    const response = await httpGetAsync({ app, route });
+    const response = await httpGetAsync({ route });
     expect(response.type).to.be.eq('application/json');
     if (quoteAssertions.revertErrorReason) {
         expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
