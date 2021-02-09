@@ -55,7 +55,7 @@ export const testHelpers = {
             // Mock out Alt RFQT responses
             for (const mockedResponse of altMockedResponses) {
                 const { endpoint, mmApiKey, requestData, responseData, responseCode } = mockedResponse;
-                const requestHeaders = { 'Authorization': `Bearer ${mmApiKey}` };
+                const requestHeaders = { Authorization: `Bearer ${mmApiKey}` };
                 mockedAxios
                     .onPost(`${endpoint}`, { data: requestData }, requestHeaders)
                     .replyOnce(responseCode, responseData);

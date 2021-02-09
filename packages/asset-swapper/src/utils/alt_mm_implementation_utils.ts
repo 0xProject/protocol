@@ -3,7 +3,15 @@ import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
-import { AltFirmQuoteReponse, AltIndicativeQuoteReponse, AltOffering, AltQuoteRequestData, AltRfqtMakerAssetOfferings } from '../types';
+import {
+    AltFirmQuoteResponse,
+    AltIndicativeQuoteReponse,
+    AltOffering,
+    AltQuoteModel,
+    AltQuoteRequestData,
+    AltQuoteSide,
+    AltRfqtMakerAssetOfferings,
+} from '../types';
 
 const IMPUTED_EXPIRY_SECONDS = 120;
 
@@ -23,7 +31,7 @@ function getAltMarketInfo(
     return undefined;
 }
 
-function parseFirmQuoteResponseFromAltMM(altFirmQuoteReponse: AltFirmQuoteReponse): V4RFQFirmQuote {
+function parseFirmQuoteResponseFromAltMM(altFirmQuoteReponse: AltFirmQuoteResponse): V4RFQFirmQuote {
     return {
         signedOrder: altFirmQuoteReponse.data['0xv4order'],
     };
@@ -34,7 +42,7 @@ function parseIndicativeQuoteResponseFromAltMM(
     altPair: AltOffering,
     makerToken: string,
     takerToken: string,
-    ): V4RFQIndicativeQuote {
+): V4RFQIndicativeQuote {
     let makerAmount: BigNumber;
     let takerAmount: BigNumber;
 
@@ -44,32 +52,56 @@ function parseIndicativeQuoteResponseFromAltMM(
         if (makerToken === altPair.baseAsset) {
             if (altIndicativeQuoteReponse.amount) {
                 // base asset = maker asset, quote asset = taker asset, amount specified
-                makerAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(altIndicativeQuoteReponse.amount), altPair.baseAssetDecimals);
+                makerAmount = Web3Wrapper.toBaseUnitAmount(
+                    new BigNumber(altIndicativeQuoteReponse.amount),
+                    altPair.baseAssetDecimals,
+                );
                 takerAmount = Web3Wrapper.toBaseUnitAmount(
-                    new BigNumber(altIndicativeQuoteReponse.amount).times(new BigNumber(altIndicativeQuoteReponse.price)).decimalPlaces(altPair.quoteAssetDecimals, BigNumber.ROUND_DOWN),
-                    altPair.quoteAssetDecimals);
+                    new BigNumber(altIndicativeQuoteReponse.amount)
+                        .times(new BigNumber(altIndicativeQuoteReponse.price))
+                        .decimalPlaces(altPair.quoteAssetDecimals, BigNumber.ROUND_DOWN),
+                    altPair.quoteAssetDecimals,
+                );
             } else if (altIndicativeQuoteReponse.value) {
                 // base asset = maker asset, quote asset = taker asset, value specified
-                takerAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(altIndicativeQuoteReponse.value), altPair.quoteAssetDecimals);
+                takerAmount = Web3Wrapper.toBaseUnitAmount(
+                    new BigNumber(altIndicativeQuoteReponse.value),
+                    altPair.quoteAssetDecimals,
+                );
                 makerAmount = Web3Wrapper.toBaseUnitAmount(
-                    new BigNumber(altIndicativeQuoteReponse.value).dividedBy(new BigNumber(altIndicativeQuoteReponse.price)).decimalPlaces(altPair.baseAssetDecimals, BigNumber.ROUND_DOWN),
-                    altPair.baseAssetDecimals);
+                    new BigNumber(altIndicativeQuoteReponse.value)
+                        .dividedBy(new BigNumber(altIndicativeQuoteReponse.price))
+                        .decimalPlaces(altPair.baseAssetDecimals, BigNumber.ROUND_DOWN),
+                    altPair.baseAssetDecimals,
+                );
             } else {
                 throw new Error('niether amount or value were specified');
             }
         } else if (makerToken === altPair.quoteAsset) {
             if (altIndicativeQuoteReponse.amount) {
                 // base asset = taker asset, quote asset = maker asset, amount specified
-                takerAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(altIndicativeQuoteReponse.amount), altPair.baseAssetDecimals);
+                takerAmount = Web3Wrapper.toBaseUnitAmount(
+                    new BigNumber(altIndicativeQuoteReponse.amount),
+                    altPair.baseAssetDecimals,
+                );
                 makerAmount = Web3Wrapper.toBaseUnitAmount(
-                    new BigNumber(altIndicativeQuoteReponse.amount).times(new BigNumber(altIndicativeQuoteReponse.price)).decimalPlaces(altPair.quoteAssetDecimals, BigNumber.ROUND_DOWN),
-                    altPair.quoteAssetDecimals);
+                    new BigNumber(altIndicativeQuoteReponse.amount)
+                        .times(new BigNumber(altIndicativeQuoteReponse.price))
+                        .decimalPlaces(altPair.quoteAssetDecimals, BigNumber.ROUND_DOWN),
+                    altPair.quoteAssetDecimals,
+                );
             } else if (altIndicativeQuoteReponse.value) {
                 // base asset = taker asset, quote asset = maker asset, value specified
-                makerAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(altIndicativeQuoteReponse.value), altPair.quoteAssetDecimals);
+                makerAmount = Web3Wrapper.toBaseUnitAmount(
+                    new BigNumber(altIndicativeQuoteReponse.value),
+                    altPair.quoteAssetDecimals,
+                );
                 takerAmount = Web3Wrapper.toBaseUnitAmount(
-                    new BigNumber(altIndicativeQuoteReponse.value).dividedBy(new BigNumber(altIndicativeQuoteReponse.price)).decimalPlaces(altPair.baseAssetDecimals, BigNumber.ROUND_DOWN),
-                    altPair.baseAssetDecimals).integerValue(BigNumber.ROUND_DOWN);
+                    new BigNumber(altIndicativeQuoteReponse.value)
+                        .dividedBy(new BigNumber(altIndicativeQuoteReponse.price))
+                        .decimalPlaces(altPair.baseAssetDecimals, BigNumber.ROUND_DOWN),
+                    altPair.baseAssetDecimals,
+                ).integerValue(BigNumber.ROUND_DOWN);
             } else {
                 throw new Error('neither amount or value were specified');
             }
@@ -86,7 +118,9 @@ function parseIndicativeQuoteResponseFromAltMM(
         // HACK: alt implementation does not return an expiration with indicative quotes
         // return now + { IMPUTED EXPIRY SECONDS } to have it included after order checks
         // tslint:disable-next-line:custom-no-magic-numbers
-        expiry: new BigNumber(new BigNumber(Date.now() / 1000).integerValue(BigNumber.ROUND_DOWN).plus(IMPUTED_EXPIRY_SECONDS)),
+        expiry: new BigNumber(
+            new BigNumber(Date.now() / 1000).integerValue(BigNumber.ROUND_DOWN).plus(IMPUTED_EXPIRY_SECONDS),
+        ),
     };
 }
 
@@ -95,30 +129,39 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     apiKey: string,
     profile: string,
     integratorKey: string,
-    quoteType: 'firm' | 'indicative',
+    quoteModel: AltQuoteModel,
     makerToken: string,
     takerToken: string,
     maxResponseTimeMs: number,
     altRfqtAssetOfferings: AltRfqtMakerAssetOfferings,
     takerRequestQueryParams: TakerRequestQueryParams,
     axiosInstance: AxiosInstance,
-    ): Promise<{ data: ResponseT; status: number}> {
-
-    const altPair = getAltMarketInfo(altRfqtAssetOfferings[url], takerRequestQueryParams.buyTokenAddress, takerRequestQueryParams.sellTokenAddress);
+): Promise<{ data: ResponseT; status: number }> {
+    const altPair = getAltMarketInfo(
+        altRfqtAssetOfferings[url],
+        takerRequestQueryParams.buyTokenAddress,
+        takerRequestQueryParams.sellTokenAddress,
+    );
 
     if (altPair) {
-        const side = altPair.baseAsset === takerRequestQueryParams.buyTokenAddress ? 'buy' : 'sell';
+        const side =
+            altPair.baseAsset === takerRequestQueryParams.buyTokenAddress ? AltQuoteSide.Buy : AltQuoteSide.Sell;
 
         // comparison price needs to be quote/base
         // in the standard implementation, it's maker/taker
-        const altComparisonPrice = altPair.quoteAsset === makerToken ?
-            takerRequestQueryParams.comparisonPrice ? takerRequestQueryParams.comparisonPrice : undefined :
-            takerRequestQueryParams.comparisonPrice ? new BigNumber(takerRequestQueryParams.comparisonPrice).pow(-1).toString() : undefined;
+        const altComparisonPrice =
+            altPair.quoteAsset === makerToken
+                ? takerRequestQueryParams.comparisonPrice
+                    ? takerRequestQueryParams.comparisonPrice
+                    : undefined
+                : takerRequestQueryParams.comparisonPrice
+                ? new BigNumber(takerRequestQueryParams.comparisonPrice).pow(-1).toString()
+                : undefined;
 
         let data: AltQuoteRequestData;
         data = {
             market: `${altPair.baseSymbol}-${altPair.quoteSymbol}`,
-            model: quoteType,
+            model: quoteModel,
             profile,
             side,
             meta: {
@@ -142,7 +185,9 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         if (takerRequestQueryParams.buyAmountBaseUnits) {
             requestSize = Web3Wrapper.toUnitAmount(
                 new BigNumber(takerRequestQueryParams.buyAmountBaseUnits),
-                takerRequestQueryParams.buyTokenAddress === altPair.baseAsset ? altPair.baseAssetDecimals : altPair.quoteAssetDecimals,
+                takerRequestQueryParams.buyTokenAddress === altPair.baseAsset
+                    ? altPair.baseAssetDecimals
+                    : altPair.quoteAssetDecimals,
             ).toString();
             if (takerRequestQueryParams.buyTokenAddress === altPair.baseAsset) {
                 data.amount = requestSize;
@@ -160,7 +205,9 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         } else if (takerRequestQueryParams.sellAmountBaseUnits) {
             requestSize = Web3Wrapper.toUnitAmount(
                 new BigNumber(takerRequestQueryParams.sellAmountBaseUnits),
-                takerRequestQueryParams.sellTokenAddress === altPair.baseAsset ? altPair.baseAssetDecimals : altPair.quoteAssetDecimals,
+                takerRequestQueryParams.sellTokenAddress === altPair.baseAsset
+                    ? altPair.baseAssetDecimals
+                    : altPair.quoteAssetDecimals,
             ).toString();
             if (takerRequestQueryParams.sellTokenAddress === altPair.baseAsset) {
                 data.amount = requestSize;
@@ -176,7 +223,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         }
 
         const response = await axiosInstance.post(`${url}/quotes`, {
-            headers: { 'Authorization': `Bearer ${apiKey}`},
+            headers: { Authorization: `Bearer ${apiKey}` },
             data,
             timeout: maxResponseTimeMs,
         });
@@ -185,13 +232,14 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             throw new Error('alt MM rejected quote');
         }
 
-        const parsedResponse = quoteType === 'firm' ?
-            parseFirmQuoteResponseFromAltMM(response.data) :
-            parseIndicativeQuoteResponseFromAltMM(response.data, altPair, makerToken, takerToken);
+        const parsedResponse =
+            quoteModel === 'firm'
+                ? parseFirmQuoteResponseFromAltMM(response.data)
+                : parseIndicativeQuoteResponseFromAltMM(response.data, altPair, makerToken, takerToken);
 
         return {
             // hack to appease type checking
-            data: parsedResponse as unknown as ResponseT,
+            data: (parsedResponse as unknown) as ResponseT,
             status: response.status,
         };
     } else {

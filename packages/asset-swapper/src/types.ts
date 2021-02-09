@@ -419,21 +419,21 @@ export interface BridgeContractAddresses {
     cryptoComBridge: string;
 }
 
-export enum QuoteType {
+export enum AltQuoteModel {
     Firm = 'firm',
     Indicative = 'indicative',
 }
 
-export enum QuoteSide {
+export enum AltQuoteSide {
     Buy = 'buy',
     Sell = 'sell',
 }
 
 export interface AltQuoteRequestData {
     market: string;
-    model: QuoteType;
+    model: AltQuoteModel;
     profile: string;
-    side: QuoteSide;
+    side: AltQuoteSide;
     value?: string;
     amount?: string;
     meta: {
