@@ -1,4 +1,4 @@
-import { OrderEventEndState } from '@0x/mesh-rpc-client';
+import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { SignedOrderEntity } from './SignedOrderEntity';

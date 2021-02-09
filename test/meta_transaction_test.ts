@@ -3,17 +3,22 @@ import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/cont
 import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
 import { constants, expect, signingUtils, transactionHashUtils } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
-import { ValidationResults } from '@0x/mesh-rpc-client';
+import { AddOrdersResults } from '@0x/mesh-graphql-client';
 import { SignatureType, SignedOrder, ZeroExTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
+import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
 
+// Force reload of the app avoid variables being polluted between test suites
+delete require.cache[require.resolve('../src/app')];
+import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
 import { META_TRANSACTION_PATH, ONE_SECOND_MS, TEN_MINUTES_MS } from '../src/constants';
 import { GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
 import { GetMetaTransactionQuoteResponse } from '../src/types';
+import { meshUtils } from '../src/utils/mesh_utils';
 
 import {
     ETH_TOKEN_ADDRESS,
@@ -23,7 +28,8 @@ import {
     ZRX_ASSET_DATA,
     ZRX_TOKEN_ADDRESS,
 } from './constants';
-import { setupApiAsync, setupMeshAsync, teardownApiAsync, teardownMeshAsync } from './utils/deployment';
+import { resetState } from './test_setup';
+import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync, httpPostAsync } from './utils/http_utils';
 import { DEFAULT_MAKER_ASSET_AMOUNT, MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
 import { liquiditySources0xOnly } from './utils/mocks';
@@ -32,6 +38,10 @@ const SUITE_NAME = 'meta transactions tests';
 const ONE_THOUSAND_IN_BASE = new BigNumber('1000000000000000000000');
 
 describe(SUITE_NAME, () => {
+    let app: Express.Application;
+    let server: Server;
+    let dependencies: AppDependencies;
+
     let accounts: string[];
     let chainId: number;
     let contractAddresses: ContractAddresses;
@@ -47,7 +57,7 @@ describe(SUITE_NAME, () => {
     let zrx: DummyERC20TokenContract;
 
     before(async () => {
-        await setupApiAsync(SUITE_NAME);
+        await setupDependenciesAsync(SUITE_NAME);
 
         // connect to ganache and run contract migrations
         const ganacheConfigs = {
@@ -57,6 +67,10 @@ describe(SUITE_NAME, () => {
         };
         provider = web3Factory.getRpcProvider(ganacheConfigs);
 
+        // start the 0x-api app
+        dependencies = await getDefaultAppDependenciesAsync(provider, config.defaultHttpServiceConfig);
+        ({ app, server } = await getAppAsync({ ...dependencies }, config.defaultHttpServiceConfig));
+
         const web3Wrapper = new Web3Wrapper(provider);
         blockchainLifecycle = new BlockchainLifecycle(web3Wrapper);
 
@@ -65,6 +79,7 @@ describe(SUITE_NAME, () => {
 
         chainId = await web3Wrapper.getChainIdAsync();
         contractAddresses = getContractAddressesForChainOrThrow(chainId);
+
         buyTokenAddress = contractAddresses.zrxToken;
         sellTokenAddress = contractAddresses.etherToken;
 
@@ -73,7 +88,20 @@ describe(SUITE_NAME, () => {
     });
 
     after(async () => {
-        await teardownApiAsync(SUITE_NAME);
+        await new Promise<void>((resolve, reject) => {
+            server.close((err?: Error) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve();
+            });
+        });
+        await resetState();
+        await teardownDependenciesAsync(SUITE_NAME);
+    });
+
+    beforeEach(async () => {
+        await resetState();
     });
 
     const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
@@ -89,7 +117,7 @@ describe(SUITE_NAME, () => {
             baseRoute,
             queryParams: testCase.takerAddress ? { ...testCase.queryParams, takerAddress } : testCase.queryParams,
         });
-        const response = await httpGetAsync({ route });
+        const response = await httpGetAsync({ app, route });
         expect(response.type).to.be.eq('application/json');
         expect(response.body).to.be.deep.eq(testCase.body);
         expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
@@ -223,24 +251,22 @@ describe(SUITE_NAME, () => {
         });
 
         context('success tests', () => {
-            let meshUtils: MeshTestUtils;
+            let meshTestUtils: MeshTestUtils;
             const price = '1';
             const sellAmount = calculateSellAmount(buyAmount, price);
 
             beforeEach(async () => {
                 await blockchainLifecycle.startAsync();
-                meshUtils = new MeshTestUtils(provider);
-                await meshUtils.setupUtilsAsync();
+                meshTestUtils = new MeshTestUtils(provider);
+                await meshTestUtils.setupUtilsAsync();
             });
 
             afterEach(async () => {
                 await blockchainLifecycle.revertAsync();
-                await teardownMeshAsync(SUITE_NAME);
-                await setupMeshAsync(SUITE_NAME);
             });
 
             it('should show the price of the only order in Mesh', async () => {
-                const validationResults = await meshUtils.addOrdersWithPricesAsync([1]);
+                const validationResults = await meshTestUtils.addOrdersWithPricesAsync([1]);
                 expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 const route = constructRoute({
                     baseRoute: `${META_TRANSACTION_PATH}/price`,
@@ -249,7 +275,7 @@ describe(SUITE_NAME, () => {
                         takerAddress,
                     },
                 });
-                const response = await httpGetAsync({ route });
+                const response = await httpGetAsync({ app, route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
                 expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
@@ -263,7 +289,7 @@ describe(SUITE_NAME, () => {
             });
 
             it('should show the price of the cheaper order in Mesh', async () => {
-                const validationResults = await meshUtils.addOrdersWithPricesAsync([1, 2]);
+                const validationResults = await meshTestUtils.addOrdersWithPricesAsync([1, 2]);
                 expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 const route = constructRoute({
                     baseRoute: `${META_TRANSACTION_PATH}/price`,
@@ -272,7 +298,7 @@ describe(SUITE_NAME, () => {
                         takerAddress,
                     },
                 });
-                const response = await httpGetAsync({ route });
+                const response = await httpGetAsync({ app, route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
                 expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
@@ -286,7 +312,7 @@ describe(SUITE_NAME, () => {
             });
 
             it('should show the price of the combination of the two orders in Mesh', async () => {
-                const validationResults = await meshUtils.addOrdersWithPricesAsync([1, 2]);
+                const validationResults = await meshTestUtils.addOrdersWithPricesAsync([1, 2]);
                 expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 const largeOrderPrice = '1.5';
                 const largeBuyAmount = DEFAULT_MAKER_ASSET_AMOUNT.times(2).toString();
@@ -299,7 +325,7 @@ describe(SUITE_NAME, () => {
                         takerAddress,
                     },
                 });
-                const response = await httpGetAsync({ route });
+                const response = await httpGetAsync({ app, route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
                 expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
@@ -402,28 +428,20 @@ describe(SUITE_NAME, () => {
         });
 
         context('success tests', () => {
-            let meshUtils: MeshTestUtils;
+            let meshTestUtils: MeshTestUtils;
 
             beforeEach(async () => {
                 await blockchainLifecycle.startAsync();
-                await setupMeshAsync(SUITE_NAME);
-                meshUtils = new MeshTestUtils(provider);
-                await meshUtils.setupUtilsAsync();
+                meshTestUtils = new MeshTestUtils(provider);
+                await meshTestUtils.setupUtilsAsync();
             });
 
             afterEach(async () => {
                 await blockchainLifecycle.revertAsync();
-                await teardownMeshAsync(SUITE_NAME);
-            });
-
-            // NOTE(jalextowle): Spin up a new Mesh instance so that it will
-            // be available for future test suites.
-            after(async () => {
-                await setupMeshAsync(SUITE_NAME);
             });
 
             it('should return a quote of the only order in Mesh', async () => {
-                const validationResults = await meshUtils.addOrdersWithPricesAsync([1]);
+                const validationResults = await meshTestUtils.addOrdersWithPricesAsync([1]);
                 expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 const route = constructRoute({
                     baseRoute: `${META_TRANSACTION_PATH}/quote`,
@@ -432,20 +450,20 @@ describe(SUITE_NAME, () => {
                         takerAddress,
                     },
                 });
-                const response = await httpGetAsync({ route });
+                const response = await httpGetAsync({ app, route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
                 assertCorrectMetaQuote({
                     quote: response.body,
                     expectedBuyAmount: buyAmount,
-                    expectedOrders: [validationResults.accepted[0].signedOrder],
+                    expectedOrders: [meshUtils.orderWithMetadataToSignedOrder(validationResults.accepted[0].order)],
                     expectedPrice: '1',
                 });
             });
 
             it('should support buying ETH by symbol and 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', async () => {
                 for (const buyToken of ['ETH', ETH_TOKEN_ADDRESS]) {
-                    await meshUtils.addPartialOrdersAsync([
+                    await meshTestUtils.addPartialOrdersAsync([
                         {
                             makerAssetData: ZRX_ASSET_DATA,
                             takerAssetData: WETH_ASSET_DATA,
@@ -470,7 +488,7 @@ describe(SUITE_NAME, () => {
                         },
                     };
                     const route = constructRoute(args);
-                    const response = await httpGetAsync({ route });
+                    const response = await httpGetAsync({ app, route });
                     expect(response.type).to.be.eq('application/json');
                     expect(response.status).to.be.eq(HttpStatus.OK);
                     expect(response.body).to.include({
@@ -482,7 +500,7 @@ describe(SUITE_NAME, () => {
             });
 
             it('should return a quote of the cheaper order in Mesh', async () => {
-                const validationResults = await meshUtils.addOrdersWithPricesAsync([1, 2]);
+                const validationResults = await meshTestUtils.addOrdersWithPricesAsync([1, 2]);
                 expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 const route = constructRoute({
                     baseRoute: `${META_TRANSACTION_PATH}/quote`,
@@ -492,19 +510,19 @@ describe(SUITE_NAME, () => {
                         takerAddress,
                     },
                 });
-                const response = await httpGetAsync({ route });
+                const response = await httpGetAsync({ app, route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
                 assertCorrectMetaQuote({
                     quote: response.body,
                     expectedBuyAmount: buyAmount,
-                    expectedOrders: [validationResults.accepted[0].signedOrder],
+                    expectedOrders: [meshUtils.orderWithMetadataToSignedOrder(validationResults.accepted[0].order)],
                     expectedPrice: '1',
                 });
             });
 
             it('should return a quote of the combination of the two orders in Mesh', async () => {
-                const validationResults = await meshUtils.addOrdersWithPricesAsync([1, 2]);
+                const validationResults = await meshTestUtils.addOrdersWithPricesAsync([1, 2]);
                 expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 const largeBuyAmount = DEFAULT_MAKER_ASSET_AMOUNT.times(2).toString();
                 const route = constructRoute({
@@ -515,19 +533,21 @@ describe(SUITE_NAME, () => {
                         takerAddress,
                     },
                 });
-                const response = await httpGetAsync({ route });
+                const response = await httpGetAsync({ app, route });
                 expect(response.type).to.be.eq('application/json');
                 expect(response.status).to.be.eq(HttpStatus.OK);
                 assertCorrectMetaQuote({
                     quote: response.body,
                     expectedBuyAmount: largeBuyAmount,
-                    expectedOrders: validationResults.accepted.map(accepted => accepted.signedOrder),
+                    expectedOrders: validationResults.accepted.map(accepted =>
+                        meshUtils.orderWithMetadataToSignedOrder(accepted.order),
+                    ),
                     expectedPrice: '1.5',
                 });
             });
 
             it('encodes affiliate address into mtx call data', async () => {
-                const validationResults = await meshUtils.addOrdersWithPricesAsync([1]);
+                const validationResults = await meshTestUtils.addOrdersWithPricesAsync([1]);
                 expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 const route = constructRoute({
                     baseRoute: `${META_TRANSACTION_PATH}/quote`,
@@ -550,7 +570,7 @@ describe(SUITE_NAME, () => {
 
         context('failure tests', () => {
             it('should return InvalidAPIKey error if invalid UUID supplied as API Key', async () => {
-                const response = await httpPostAsync({ route: requestBase, headers: { '0x-api-key': 'foobar' } });
+                const response = await httpPostAsync({ app, route: requestBase, headers: { '0x-api-key': 'foobar' } });
                 expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
                 expect(response.type).to.be.eq('application/json');
                 expect(response.body).to.be.deep.eq({
@@ -561,7 +581,7 @@ describe(SUITE_NAME, () => {
         });
 
         context('success tests', () => {
-            let meshUtils: MeshTestUtils;
+            let meshTestUtils: MeshTestUtils;
 
             function signZeroExTransaction(transaction: ZeroExTransaction, signingAddress: string): string {
                 const transactionHashBuffer = transactionHashUtils.getTransactionHashBuffer(transaction);
@@ -574,29 +594,21 @@ describe(SUITE_NAME, () => {
             }
 
             describe('single order submission', () => {
-                let validationResults: ValidationResults;
+                let validationResults: AddOrdersResults;
                 const price = '1';
                 const sellAmount = calculateSellAmount(buyAmount, price);
 
-                // NOTE(jalextowle): This must be a `before` hook because `beforeEach`
-                // hooks execute after all of the `before` hooks (even if they are nested).
-                before(async () => {
+                beforeEach(async () => {
                     await blockchainLifecycle.startAsync();
-                    meshUtils = new MeshTestUtils(provider);
-                    await meshUtils.setupUtilsAsync();
-                });
+                    meshTestUtils = new MeshTestUtils(provider);
+                    await meshTestUtils.setupUtilsAsync();
 
-                after(async () => {
-                    await blockchainLifecycle.revertAsync();
-                    await teardownMeshAsync(SUITE_NAME);
-                    // NOTE(jalextowle): Spin up a new Mesh instance so that it will
-                    // be available for future test suites.
-                    await setupMeshAsync(SUITE_NAME);
-                });
-
-                before(async () => {
-                    validationResults = await meshUtils.addOrdersWithPricesAsync([1]);
+                    validationResults = await meshTestUtils.addOrdersWithPricesAsync([1]);
                     expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
+                });
+
+                afterEach(async () => {
+                    await blockchainLifecycle.revertAsync();
                 });
 
                 it('price checking yields the correct market price', async () => {
@@ -607,7 +619,7 @@ describe(SUITE_NAME, () => {
                             takerAddress,
                         },
                     });
-                    const response = await httpGetAsync({ route });
+                    const response = await httpGetAsync({ app, route });
                     expect(response.type).to.be.eq('application/json');
                     expect(response.status).to.be.eq(HttpStatus.OK);
                     expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
@@ -630,20 +642,20 @@ describe(SUITE_NAME, () => {
                             takerAddress,
                         },
                     });
-                    const response = await httpGetAsync({ route });
+                    const response = await httpGetAsync({ app, route });
                     expect(response.type).to.be.eq('application/json');
                     expect(response.status).to.be.eq(HttpStatus.OK);
                     assertCorrectMetaQuote({
                         quote: response.body,
                         expectedBuyAmount: buyAmount,
-                        expectedOrders: [validationResults.accepted[0].signedOrder],
+                        expectedOrders: [meshUtils.orderWithMetadataToSignedOrder(validationResults.accepted[0].order)],
                         expectedPrice: price,
                     });
                     transaction = response.body.mtx;
                 });
 
                 it.skip('submitting the quote is successful and money changes hands correctly', async () => {
-                    const makerAddress = validationResults.accepted[0].signedOrder.makerAddress;
+                    const makerAddress = validationResults.accepted[0].order.makerAddress;
                     await weth.deposit().awaitTransactionSuccessAsync({ from: takerAddress, value: buyAmount });
                     await weth
                         .approve(contractAddresses.erc20Proxy, new BigNumber(buyAmount))
@@ -659,6 +671,7 @@ describe(SUITE_NAME, () => {
                         baseRoute: `${META_TRANSACTION_PATH}/submit`,
                     });
                     const response = await httpPostAsync({
+                        app,
                         route,
                         body: {
                             mtx: transaction,
@@ -684,29 +697,23 @@ describe(SUITE_NAME, () => {
 
             // TODO: There is a problem with this test case. It is currently throwing an `IncompleteFillError`
             describe.skip('two order submission', () => {
-                let validationResults: ValidationResults;
+                let validationResults: AddOrdersResults;
                 const largeBuyAmount = DEFAULT_MAKER_ASSET_AMOUNT.times(2).toString();
                 const price = '1.5';
                 const sellAmount = calculateSellAmount(largeBuyAmount, price);
 
-                // NOTE(jalextowle): This must be a `before` hook because `beforeEach`
-                // hooks execute after all of the `before` hooks (even if they are nested).
-                before(async () => {
+                beforeEach(async () => {
                     await blockchainLifecycle.startAsync();
-                    meshUtils = new MeshTestUtils(provider);
-                    await meshUtils.setupUtilsAsync();
+                    meshTestUtils = new MeshTestUtils(provider);
+                    await meshTestUtils.setupUtilsAsync();
                 });
 
-                after(async () => {
+                afterEach(async () => {
                     await blockchainLifecycle.revertAsync();
-                    await teardownMeshAsync(SUITE_NAME);
-                    // NOTE(jalextowle): Spin up a new Mesh instance so that it will
-                    // be available for future test suites.
-                    await setupMeshAsync(SUITE_NAME);
                 });
 
-                before(async () => {
-                    validationResults = await meshUtils.addOrdersWithPricesAsync([1, 2]);
+                beforeEach(async () => {
+                    validationResults = await meshTestUtils.addOrdersWithPricesAsync([1, 2]);
                     expect(validationResults.rejected.length, 'mesh should not reject any orders').to.be.eq(0);
                 });
 
@@ -719,7 +726,7 @@ describe(SUITE_NAME, () => {
                             takerAddress,
                         },
                     });
-                    const response = await httpGetAsync({ route });
+                    const response = await httpGetAsync({ app, route });
                     expect(response.type).to.be.eq('application/json');
                     expect(response.status).to.be.eq(HttpStatus.OK);
                     expect(response.body.sources).to.be.deep.eq(liquiditySources0xOnly);
@@ -742,20 +749,20 @@ describe(SUITE_NAME, () => {
                             takerAddress,
                         },
                     });
-                    const response = await httpGetAsync({ route });
+                    const response = await httpGetAsync({ app, route });
                     expect(response.type).to.be.eq('application/json');
                     expect(response.status).to.be.eq(HttpStatus.OK);
                     assertCorrectMetaQuote({
                         quote: response.body,
                         expectedBuyAmount: largeBuyAmount,
-                        expectedOrders: validationResults.accepted.map(accepted => accepted.signedOrder),
+                        expectedOrders: validationResults.accepted.map(accepted => accepted.order),
                         expectedPrice: price,
                     });
                     transaction = response.body.mtx;
                 });
 
                 it('submitting the quote is successful and money changes hands correctly', async () => {
-                    const makerAddress = validationResults.accepted[0].signedOrder.makerAddress;
+                    const makerAddress = validationResults.accepted[0].order.makerAddress;
                     await weth.deposit().awaitTransactionSuccessAsync({ from: takerAddress, value: largeBuyAmount });
                     await weth
                         .approve(contractAddresses.erc20Proxy, new BigNumber(largeBuyAmount))
@@ -771,6 +778,7 @@ describe(SUITE_NAME, () => {
                         baseRoute: `${META_TRANSACTION_PATH}/submit`,
                     });
                     const response = await httpPostAsync({
+                        app,
                         route,
                         body: {
                             mtx: transaction,

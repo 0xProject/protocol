@@ -2,7 +2,7 @@ import { SignedOrder } from '@0x/types';
 import * as _ from 'lodash';
 import { Connection, In, Not } from 'typeorm';
 
-import { MESH_IGNORED_ADDRESSES, SRA_ORDER_EXPIRATION_BUFFER_SECONDS } from '../config';
+import { DB_ORDERS_UPDATE_CHUNK_SIZE, MESH_IGNORED_ADDRESSES, SRA_ORDER_EXPIRATION_BUFFER_SECONDS } from '../config';
 import { SignedOrderEntity } from '../entities';
 import { PersistentSignedOrderEntity } from '../entities/PersistentSignedOrderEntity';
 import { OrderWatcherSyncError } from '../errors';
@@ -87,26 +87,47 @@ export class OrderWatcherService {
     constructor(connection: Connection, meshClient: MeshClient) {
         this._connection = connection;
         this._meshClient = meshClient;
-        void this._meshClient.subscribeToOrdersAsync(async orders => {
-            const apiOrders = meshUtils.orderInfosToApiOrders(orders);
-            const { added, removed, updated } = meshUtils.calculateOrderLifecycle(apiOrders);
-            await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Removed, removed);
-            await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Updated, updated);
-            await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Added, added);
-            await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.PersistentUpdated, [
-                ...removed,
-                ...updated,
-            ]);
-        });
-        this._meshClient.onReconnected(async () => {
-            logger.info('OrderWatcherService reconnecting to Mesh');
-            try {
-                await this.syncOrderbookAsync();
-            } catch (err) {
+        const subscribeToUpdates = () =>
+            this._meshClient.onOrderEvents().subscribe({
+                next: async orders => {
+                    const apiOrders = meshUtils.orderInfosToApiOrders(orders);
+                    const { added, removed, updated } = meshUtils.calculateOrderLifecycle(apiOrders);
+                    await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Removed, removed);
+                    await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Updated, updated);
+                    await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Added, added);
+                    await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.PersistentUpdated, [
+                        ...removed,
+                        ...updated,
+                    ]);
+                },
+                error: err => {
+                    const logError = new OrderWatcherSyncError(`Error with Mesh client connection: [${err.stack}]`);
+                    logger.error(logError);
+                },
+            });
+
+        subscribeToUpdates();
+
+        this._meshClient.onReconnected(() => {
+            logger.info('OrderWatcherService reconnected to Mesh. Re-syncing orders');
+            subscribeToUpdates();
+            this.syncOrderbookAsync().catch(err => {
                 const logError = new OrderWatcherSyncError(`Error on reconnecting Mesh client: [${err.stack}]`);
+                logger.error(logError);
                 throw logError;
-            }
+            });
         });
+    }
+    private async _removeOrdersByOrderHashAsync(orderHashes: string[]): Promise<void> {
+        // MAX SQL variable size is 999. This limit is imposed via Sqlite
+        // and other databases have higher limits (or no limits at all, eg postgresql)
+        // tslint:disable-next-line:custom-no-magic-numbers
+        const chunks = _.chunk(orderHashes, 999);
+
+        const signedOrderRepository = this._connection.getRepository(SignedOrderEntity);
+        for (const chunk of chunks) {
+            await signedOrderRepository.delete(chunk);
+        }
     }
     private async _onOrderLifeCycleEventAsync(
         lifecycleEvent: OrderWatcherLifeCycleEvents,
@@ -129,18 +150,14 @@ export class OrderWatcherService {
                 // so we need to leave space for the attributes on the model represented
                 // as SQL variables in the "AS" syntax. We leave 99 free for the
                 // signedOrders model
-                await this._connection.getRepository(SignedOrderEntity).save(signedOrdersModel, { chunk: 900 });
+                await this._connection
+                    .getRepository(SignedOrderEntity)
+                    .save(signedOrdersModel, { chunk: DB_ORDERS_UPDATE_CHUNK_SIZE });
                 break;
             }
             case OrderWatcherLifeCycleEvents.Removed: {
                 const orderHashes = orders.map(o => o.metaData.orderHash);
-                // MAX SQL variable size is 999. This limit is imposed via Sqlite
-                // and other databases have higher limits (or no limits at all, eg postgresql)
-                // tslint:disable-next-line:custom-no-magic-numbers
-                const chunks = _.chunk(orderHashes, 999);
-                for (const chunk of chunks) {
-                    await this._connection.getRepository(SignedOrderEntity).delete(chunk);
-                }
+                await this._removeOrdersByOrderHashAsync(orderHashes);
                 break;
             }
             case OrderWatcherLifeCycleEvents.PersistentUpdated: {
