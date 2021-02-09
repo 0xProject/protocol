@@ -1,8 +1,8 @@
-import { SignedOrder } from '@0x/types';
+import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { SamplerCallResult } from '../../types';
+import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BalancerPoolsCache } from './balancer_utils';
@@ -14,6 +14,7 @@ import {
     MAINNET_MOONISWAP_V2_1_REGISTRY,
     MAINNET_MOONISWAP_V2_REGISTRY,
     MAINNET_SUSHI_SWAP_ROUTER,
+    MAINNET_UNISWAP_V2_ROUTER,
     MAX_UINT256,
     ZERO_AMOUNT,
 } from './constants';
@@ -93,30 +94,50 @@ export class SamplerOperations {
             .catch(/* do nothing */);
     }
 
-    public getTokenDecimals(makerTokenAddress: string, takerTokenAddress: string): BatchedOperation<BigNumber[]> {
+    public getTokenDecimals(tokens: string[]): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getTokenDecimals,
-            params: [makerTokenAddress, takerTokenAddress],
+            params: [tokens],
         });
     }
 
-    public getOrderFillableTakerAmounts(orders: SignedOrder[], exchangeAddress: string): BatchedOperation<BigNumber[]> {
+    public isAddressContract(address: string): BatchedOperation<boolean> {
+        return {
+            encodeCall: () => this._samplerContract.isContract(address).getABIEncodedTransactionData(),
+            handleCallResults: (callResults: string) =>
+                this._samplerContract.getABIDecodedReturnData<boolean>('isContract', callResults),
+            handleRevert: () => {
+                /* should never happen */
+                throw new Error('Invalid address for isAddressContract');
+            },
+        };
+    }
+
+    public getLimitOrderFillableTakerAmounts(
+        orders: SignedNativeOrder[],
+        exchangeAddress: string,
+    ): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
-            function: this._samplerContract.getOrderFillableTakerAssetAmounts,
-            params: [orders, orders.map(o => o.signature), exchangeAddress],
+            function: this._samplerContract.getLimitOrderFillableTakerAssetAmounts,
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            params: [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), exchangeAddress],
         });
     }
 
-    public getOrderFillableMakerAmounts(orders: SignedOrder[], exchangeAddress: string): BatchedOperation<BigNumber[]> {
+    public getLimitOrderFillableMakerAmounts(
+        orders: SignedNativeOrder[],
+        exchangeAddress: string,
+    ): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
-            function: this._samplerContract.getOrderFillableMakerAssetAmounts,
-            params: [orders, orders.map(o => o.signature), exchangeAddress],
+            function: this._samplerContract.getLimitOrderFillableMakerAssetAmounts,
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            params: [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), exchangeAddress],
         });
     }
 
@@ -196,10 +217,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<UniswapV2FillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.UniswapV2,
-            fillData: { tokenAddressPath },
+            fillData: { tokenAddressPath, router: MAINNET_UNISWAP_V2_ROUTER },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromUniswapV2,
-            params: [tokenAddressPath, takerFillAmounts],
+            params: [MAINNET_UNISWAP_V2_ROUTER, tokenAddressPath, takerFillAmounts],
         });
     }
 
@@ -209,10 +230,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<UniswapV2FillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.UniswapV2,
-            fillData: { tokenAddressPath },
+            fillData: { tokenAddressPath, router: MAINNET_UNISWAP_V2_ROUTER },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromUniswapV2,
-            params: [tokenAddressPath, makerFillAmounts],
+            params: [MAINNET_UNISWAP_V2_ROUTER, tokenAddressPath, makerFillAmounts],
         });
     }
 

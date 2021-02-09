@@ -1,7 +1,5 @@
 import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
-import { assetDataUtils } from '@0x/order-utils';
-import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { SupportedProvider, Web3Wrapper } from '@0x/web3-wrapper';
 import { Provider } from 'ethereum-types';
@@ -17,7 +15,6 @@ import {
 } from '../types';
 
 import { assert } from './assert';
-import { isExactAssetData } from './utils';
 
 export const swapQuoteConsumerUtils = {
     async getTakerAddressOrThrowAsync(
@@ -59,14 +56,8 @@ export const swapQuoteConsumerUtils = {
         const wethBalance = await weth.balanceOf(takerAddress).callAsync();
         return [ethBalance, wethBalance];
     },
-    isValidForwarderSwapQuote(swapQuote: SwapQuote, wethAssetData: string): boolean {
-        return swapQuoteConsumerUtils.isValidForwarderSignedOrders(swapQuote.orders, wethAssetData);
-    },
-    isValidForwarderSignedOrders(orders: SignedOrder[], wethAssetData: string): boolean {
-        return _.every(orders, order => swapQuoteConsumerUtils.isValidForwarderSignedOrder(order, wethAssetData));
-    },
-    isValidForwarderSignedOrder(order: SignedOrder, wethAssetData: string): boolean {
-        return isExactAssetData(order.takerAssetData, wethAssetData);
+    isValidForwarderSwapQuote(swapQuote: SwapQuote, wethToken: string): boolean {
+        return swapQuote.orders.find(o => o.takerToken !== wethToken) === undefined;
     },
     async getExtensionContractTypeForSwapQuoteAsync(
         quote: SwapQuote,
@@ -74,14 +65,13 @@ export const swapQuoteConsumerUtils = {
         provider: Provider,
         opts: Partial<GetExtensionContractTypeOpts>,
     ): Promise<ExtensionContractType> {
-        const wethAssetData = assetDataUtils.encodeERC20AssetData(contractAddresses.etherToken);
-        if (swapQuoteConsumerUtils.isValidForwarderSwapQuote(quote, wethAssetData)) {
+        if (swapQuoteConsumerUtils.isValidForwarderSwapQuote(quote, contractAddresses.etherToken)) {
             if (opts.takerAddress !== undefined) {
                 assert.isETHAddressHex('takerAddress', opts.takerAddress);
             }
             const ethAmount =
                 opts.ethAmount ||
-                quote.worstCaseQuoteInfo.takerAssetAmount.plus(quote.worstCaseQuoteInfo.protocolFeeInWeiAmount);
+                quote.worstCaseQuoteInfo.takerAmount.plus(quote.worstCaseQuoteInfo.protocolFeeInWeiAmount);
             const takerAddress = await swapQuoteConsumerUtils.getTakerAddressAsync(provider, opts);
             const takerEthAndWethBalance =
                 takerAddress !== undefined

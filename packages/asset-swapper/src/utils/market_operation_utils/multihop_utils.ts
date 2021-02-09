@@ -39,7 +39,8 @@ export function getBestTwoHopQuote(
     feeSchedule?: FeeSchedule,
     exchangeProxyOverhead?: ExchangeProxyOverhead,
 ): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
-    const { side, inputAmount, ethToOutputRate, twoHopQuotes } = marketSideLiquidity;
+    const { side, inputAmount, ethToOutputRate, quotes } = marketSideLiquidity;
+    const { twoHopQuotes } = quotes;
     // Ensure the expected data we require exists. In the case where all hops reverted
     // or there were no sources included that allowed for multi hop,
     // we can end up with empty, but not undefined, fill data

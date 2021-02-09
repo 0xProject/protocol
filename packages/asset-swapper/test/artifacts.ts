@@ -40,6 +40,7 @@ import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeO
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
+import * as UtilitySampler from '../test/generated-artifacts/UtilitySampler.json';
 export const artifacts = {
     ApproximateBuys: ApproximateBuys as ContractArtifact,
     BalanceChecker: BalanceChecker as ContractArtifact,
@@ -62,6 +63,7 @@ export const artifacts = {
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
+    UtilitySampler: UtilitySampler as ContractArtifact,
     IBalancer: IBalancer as ContractArtifact,
     IBancor: IBancor as ContractArtifact,
     ICurve: ICurve as ContractArtifact,

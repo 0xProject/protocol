@@ -1,7 +1,14 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
+import {
+    CommonOrderFields,
+    FillQuoteTransformerOrderType,
+    LimitOrderFields,
+    RfqOrder,
+    RfqOrderFields,
+    Signature,
+} from '@0x/protocol-utils';
 import { TakerRequestQueryParams } from '@0x/quote-server';
-import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import {
@@ -22,34 +29,24 @@ export interface OrderPrunerOpts {
     permittedOrderFeeTypes: Set<OrderPrunerPermittedFeeTypes>;
 }
 
-/**
- * Represents the on-chain metadata of a signed order
- */
-export interface OrderPrunerOnChainMetadata {
-    orderStatus: number;
-    orderHash: string;
-    orderTakerAssetFilledAmount: BigNumber;
-    fillableTakerAssetAmount: BigNumber;
-    isValidSignature: boolean;
+export interface SignedOrder<T> {
+    order: T;
+    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
+    signature: Signature;
 }
 
-/**
- * makerAssetData: The assetData representing the desired makerAsset.
- * takerAssetData: The assetData representing the desired takerAsset.
- */
-export interface OrderProviderRequest {
-    makerAssetData: string;
-    takerAssetData: string;
-}
+export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
+export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
+export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
 
 /**
- * fillableMakerAssetAmount: Amount of makerAsset that is fillable
- * fillableTakerAssetAmount: Amount of takerAsset that is fillable
- * fillableTakerFeeAmount: Amount of takerFee paid to fill fillableTakerAssetAmount
+ * fillableMakerAmount: Amount of makerAsset that is fillable
+ * fillableTakerAmount: Amount of takerAsset that is fillable
+ * fillableTakerFeeAmount: Amount of takerFee paid to fill fillableTakerAmount
  */
-export interface SignedOrderWithFillableAmounts extends SignedOrder {
-    fillableMakerAssetAmount: BigNumber;
-    fillableTakerAssetAmount: BigNumber;
+export interface NativeOrderFillableAmountFields {
+    fillableMakerAmount: BigNumber;
+    fillableTakerAmount: BigNumber;
     fillableTakerFeeAmount: BigNumber;
 }
 
@@ -74,15 +71,6 @@ export enum ExtensionContractType {
     None = 'NONE',
     Forwarder = 'FORWARDER',
     ExchangeProxy = 'EXCHANGE_PROXY',
-}
-
-/**
- * feePercentage: Optional affiliate fee percentage used to calculate the eth amount paid to fee recipient.
- * feeRecipient: The address where affiliate fees are sent. Defaults to null address (0x000...000).
- */
-export interface ForwarderSmartContractParamsBase {
-    feePercentage: BigNumber;
-    feeRecipient: string;
 }
 
 /**
@@ -175,31 +163,27 @@ export interface GetExtensionContractTypeOpts {
 }
 
 /**
- * takerAssetData: String that represents a specific taker asset (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
- * makerAssetData: String that represents a specific maker asset (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
+ * takerToken: Address of the taker asset.
+ * makerToken: Address of the maker asset.
  * gasPrice: gas price used to determine protocolFee amount, default to ethGasStation fast amount.
  * orders: An array of objects conforming to OptimizedMarketOrder. These orders can be used to cover the requested assetBuyAmount plus slippage.
  * bestCaseQuoteInfo: Info about the best case price for the asset.
  * worstCaseQuoteInfo: Info about the worst case price for the asset.
- * unoptimizedQuoteInfo: Info about the unoptimized (best single source) price for the swap
- * unoptimizedOrders: Orders used in the unoptimized quote info
  */
 export interface SwapQuoteBase {
-    takerAssetData: string;
-    makerAssetData: string;
+    takerToken: string;
+    makerToken: string;
     gasPrice: BigNumber;
     orders: OptimizedMarketOrder[];
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
-    unoptimizedQuoteInfo: SwapQuoteInfo;
-    unoptimizedOrders: OptimizedMarketOrder[];
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
-    takerAssetToEthRate: BigNumber;
-    makerAssetToEthRate: BigNumber;
+    takerTokenToEthRate: BigNumber;
+    makerTokenToEthRate: BigNumber;
 }
 
 /**
@@ -207,7 +191,7 @@ export interface SwapQuoteBase {
  * type: Specified MarketOperation the SwapQuote is provided for
  */
 export interface MarketSellSwapQuote extends SwapQuoteBase {
-    takerAssetFillAmount: BigNumber;
+    takerTokenFillAmount: BigNumber;
     type: MarketOperation.Sell;
 }
 
@@ -216,25 +200,25 @@ export interface MarketSellSwapQuote extends SwapQuoteBase {
  * type: Specified MarketOperation the SwapQuote is provided for
  */
 export interface MarketBuySwapQuote extends SwapQuoteBase {
-    makerAssetFillAmount: BigNumber;
+    makerTokenFillAmount: BigNumber;
     type: MarketOperation.Buy;
 }
 
 export type SwapQuote = MarketBuySwapQuote | MarketSellSwapQuote;
 
 /**
- * feeTakerAssetAmount: The amount of takerAsset reserved for paying takerFees when swapping for desired assets.
- * takerAssetAmount: The amount of takerAsset swapped for desired makerAsset.
- * totalTakerAssetAmount: The total amount of takerAsset required to complete the swap (filling orders, and paying takerFees).
- * makerAssetAmount: The amount of makerAsset that will be acquired through the swap.
+ * feeTakerTokenAmount: The amount of takerAsset reserved for paying takerFees when swapping for desired assets.
+ * takerTokenAmount: The amount of takerAsset swapped for desired makerAsset.
+ * totalTakerTokenAmount: The total amount of takerAsset required to complete the swap (filling orders, and paying takerFees).
+ * makerTokenAmount: The amount of makerAsset that will be acquired through the swap.
  * protocolFeeInWeiAmount: The amount of ETH to pay (in WEI) as protocol fee to perform the swap for desired asset.
  * gas: Amount of estimated gas needed to fill the quote.
  */
 export interface SwapQuoteInfo {
-    feeTakerAssetAmount: BigNumber;
-    takerAssetAmount: BigNumber;
-    totalTakerAssetAmount: BigNumber;
-    makerAssetAmount: BigNumber;
+    feeTakerTokenAmount: BigNumber;
+    takerAmount: BigNumber;
+    totalTakerAmount: BigNumber;
+    makerAmount: BigNumber;
     protocolFeeInWeiAmount: BigNumber;
     gas: number;
 }
@@ -252,11 +236,6 @@ export type SwapQuoteOrdersBreakdown = Partial<
     }
 >;
 
-export interface PriceAwareRFQFlags {
-    isIndicativePriceAwareEnabled: boolean;
-    isFirmPriceAwareEnabled: boolean;
-}
-
 /**
  * nativeExclusivelyRFQT: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
  *                        If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
@@ -264,36 +243,21 @@ export interface PriceAwareRFQFlags {
  */
 export interface RfqtRequestOpts {
     takerAddress: string;
+    txOrigin: string;
     apiKey: string;
     intentOnFilling: boolean;
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQT?: boolean;
-
-    /**
-     * This feature flag allows us to merge the price-aware RFQ pricing
-     * project while still controlling when to activate the feature. We plan to do some
-     * data analysis work and address some of the issues with maker fillable amounts
-     * in later milestones. Once the feature is fully rolled out and is providing value
-     * and we have assessed that there is no user impact, we will proceed in cleaning up
-     * the feature flag.  When that time comes, follow this PR to "undo" the feature flag:
-     * https://github.com/0xProject/0x-monorepo/pull/2735
-     */
-    priceAwareRFQFlag?: PriceAwareRFQFlags;
 }
 
 /**
  * gasPrice: gas price to determine protocolFee amount, default to ethGasStation fast amount
  */
-export interface SwapQuoteRequestOpts extends CalculateSwapQuoteOpts {
+export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
     gasPrice?: BigNumber;
     rfqt?: RfqtRequestOpts;
 }
-
-/**
- * Opts required to generate a SwapQuote with SwapQuoteCalculator
- */
-export interface CalculateSwapQuoteOpts extends GetMarketOrdersOpts {}
 
 /**
  * A mapping from RFQ-T quote provider URLs to the trading pairs they support.
@@ -306,7 +270,7 @@ export interface RfqtMakerAssetOfferings {
 export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
 
 export interface RfqtFirmQuoteValidator {
-    getRfqtTakerFillableAmountsAsync(quotes: SignedOrder[]): Promise<BigNumber[]>;
+    getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
 }
 
 export interface SwapQuoterRfqtOpts {
@@ -364,14 +328,6 @@ export enum SwapQuoterError {
 }
 
 /**
- * Represents available liquidity for a given assetData.
- */
-export interface LiquidityForTakerMakerAssetDataPair {
-    makerAssetAvailableInBaseUnits: BigNumber;
-    takerAssetAvailableInBaseUnits: BigNumber;
-}
-
-/**
  * Represents two main market operations supported by asset-swapper.
  */
 export enum MarketOperation {
@@ -384,25 +340,13 @@ export enum MarketOperation {
  */
 export enum OrderPrunerPermittedFeeTypes {
     NoFees = 'NO_FEES',
-    MakerDenominatedTakerFee = 'MAKER_DENOMINATED_TAKER_FEE',
     TakerDenominatedTakerFee = 'TAKER_DENOMINATED_TAKER_FEE',
 }
 
 /**
  * Represents a mocked RFQT maker responses.
  */
-export interface MockedRfqtFirmQuoteResponse {
-    endpoint: string;
-    requestApiKey: string;
-    requestParams: TakerRequestQueryParams;
-    responseData: any;
-    responseCode: number;
-}
-
-/**
- * Represents a mocked RFQT maker responses.
- */
-export interface MockedRfqtIndicativeQuoteResponse {
+export interface MockedRfqtQuoteResponse {
     endpoint: string;
     requestApiKey: string;
     requestParams: TakerRequestQueryParams;

@@ -6,11 +6,12 @@ import {
     getRandomPortion,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { Order } from '@0x/types';
-import { BigNumber, hexUtils } from '@0x/utils';
+import { SignatureType } from '@0x/protocol-utils';
+import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { SamplerCallResult } from '../../src/types';
+import { FillQuoteTransformerOrderType, LimitOrderFields } from '../../src';
+import { SamplerCallResult, SignedNativeOrder } from '../../src/types';
 import { artifacts } from '../artifacts';
 import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '../wrappers';
 
@@ -30,7 +31,7 @@ blockchainTests('erc20-bridge-sampler', env => {
     const ETH2DAI_SALT = '0xb713b61bb9bb2958a0f5d1534b21e94fc68c4c0c034b0902ed844f2f6cd1b4f7';
     const UNISWAP_BASE_SALT = '0x1d6a6a0506b0b4a554b907a4c29d9f4674e461989d9c1921feb17b26716385ab';
     const UNISWAP_V2_SALT = '0xadc7fcb33c735913b8635927e66896b356a53a912ab2ceff929e60a04b53b3c1';
-    const ERC20_PROXY_ID = '0xf47261b0';
+    let UNISWAP_V2_ROUTER = '';
     const INVALID_TOKEN_PAIR_ERROR = 'ERC20BridgeSampler/INVALID_TOKEN_PAIR';
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
@@ -44,6 +45,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             env.txDefaults,
             {},
         );
+        UNISWAP_V2_ROUTER = await testContract.uniswapV2Router().callAsync();
     });
 
     function getPackedHash(...args: string[]): string {
@@ -207,21 +209,17 @@ blockchainTests('erc20-bridge-sampler', env => {
         return sold;
     }
 
-    function getDeterministicFillableTakerAssetAmount(order: Order): BigNumber {
-        const hash = getPackedHash(hexUtils.leftPad(order.salt));
-        return new BigNumber(hash).mod(order.takerAssetAmount);
+    function getDeterministicFillableTakerAssetAmount(order: SignedNativeOrder): BigNumber {
+        const hash = getPackedHash(hexUtils.leftPad(order.order.salt));
+        return new BigNumber(hash).mod(order.order.takerAmount);
     }
 
-    function getDeterministicFillableMakerAssetAmount(order: Order): BigNumber {
+    function getDeterministicFillableMakerAssetAmount(order: SignedNativeOrder): BigNumber {
         const takerAmount = getDeterministicFillableTakerAssetAmount(order);
-        return order.makerAssetAmount
+        return order.order.makerAmount
             .times(takerAmount)
-            .div(order.takerAssetAmount)
+            .div(order.order.takerAmount)
             .integerValue(BigNumber.ROUND_UP);
-    }
-
-    function getERC20AssetData(tokenAddress: string): string {
-        return hexUtils.concat(ERC20_PROXY_ID, hexUtils.leftPad(tokenAddress));
     }
 
     function getSampleAmounts(tokenAddress: string, count?: number): BigNumber[] {
@@ -232,28 +230,30 @@ blockchainTests('erc20-bridge-sampler', env => {
         return _.times(_count, i => d.times((i + 1) / _count).integerValue());
     }
 
-    function createOrder(makerToken: string, takerToken: string): Order {
+    function createOrder(makerToken: string, takerToken: string): SignedNativeOrder {
         return {
-            chainId: 1337,
-            exchangeAddress: randomAddress(),
-            makerAddress: randomAddress(),
-            takerAddress: randomAddress(),
-            senderAddress: randomAddress(),
-            feeRecipientAddress: randomAddress(),
-            makerAssetAmount: getRandomInteger(1, 1e18),
-            takerAssetAmount: getRandomInteger(1, 1e18),
-            makerFee: getRandomInteger(1, 1e18),
-            takerFee: getRandomInteger(1, 1e18),
-            makerAssetData: getERC20AssetData(makerToken),
-            takerAssetData: getERC20AssetData(takerToken),
-            makerFeeAssetData: getERC20AssetData(randomAddress()),
-            takerFeeAssetData: getERC20AssetData(randomAddress()),
-            salt: new BigNumber(hexUtils.random()),
-            expirationTimeSeconds: getRandomInteger(0, 2 ** 32),
+            order: {
+                chainId: 1337,
+                verifyingContract: randomAddress(),
+                maker: randomAddress(),
+                taker: randomAddress(),
+                pool: NULL_BYTES,
+                sender: NULL_ADDRESS,
+                feeRecipient: randomAddress(),
+                makerAmount: getRandomInteger(1, 1e18),
+                takerAmount: getRandomInteger(1, 1e18),
+                takerTokenFeeAmount: getRandomInteger(1, 1e18),
+                makerToken,
+                takerToken,
+                salt: new BigNumber(hexUtils.random()),
+                expiry: getRandomInteger(0, 2 ** 32),
+            },
+            signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign },
+            type: FillQuoteTransformerOrderType.Limit,
         };
     }
 
-    function createOrders(makerToken: string, takerToken: string, count?: number): Order[] {
+    function createOrders(makerToken: string, takerToken: string, count?: number): SignedNativeOrder[] {
         return _.times(count || _.random(1, 16), () => createOrder(makerToken, takerToken));
     }
 
@@ -291,16 +291,20 @@ blockchainTests('erc20-bridge-sampler', env => {
     describe('getOrderFillableTakerAssetAmounts()', () => {
         it('returns the expected amount for each order', async () => {
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN);
-            const signatures: string[] = _.times(orders.length, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableTakerAssetAmount);
             const actual = await testContract
-                .getOrderFillableTakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                .getLimitOrderFillableTakerAssetAmounts(
+                    // tslint:disable-next-line:no-unnecessary-type-assertion
+                    orders.map(o => o.order as LimitOrderFields),
+                    orders.map(o => o.signature),
+                    NULL_ADDRESS,
+                )
                 .callAsync();
             expect(actual).to.deep.eq(expected);
         });
 
         it('returns empty for no orders', async () => {
-            const actual = await testContract.getOrderFillableTakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
+            const actual = await testContract.getLimitOrderFillableTakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
             expect(actual).to.deep.eq([]);
         });
     });
@@ -308,16 +312,20 @@ blockchainTests('erc20-bridge-sampler', env => {
     describe('getOrderFillableMakerAssetAmounts()', () => {
         it('returns the expected amount for each order', async () => {
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN);
-            const signatures: string[] = _.times(orders.length, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableMakerAssetAmount);
             const actual = await testContract
-                .getOrderFillableMakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                .getLimitOrderFillableMakerAssetAmounts(
+                    // tslint:disable-next-line:no-unnecessary-type-assertion
+                    orders.map(o => o.order as LimitOrderFields),
+                    orders.map(o => o.signature),
+                    NULL_ADDRESS,
+                )
                 .callAsync();
             expect(actual).to.deep.eq(expected);
         });
 
         it('returns empty for no orders', async () => {
-            const actual = await testContract.getOrderFillableMakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
+            const actual = await testContract.getLimitOrderFillableMakerAssetAmounts([], [], NULL_ADDRESS).callAsync();
             expect(actual).to.deep.eq([]);
         });
     });
@@ -858,7 +866,9 @@ blockchainTests('erc20-bridge-sampler', env => {
         }
 
         it('can return no quotes', async () => {
-            const quotes = await testContract.sampleSellsFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], []).callAsync();
+            const quotes = await testContract
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], [])
+                .callAsync();
             expect(quotes).to.deep.eq([]);
         });
 
@@ -866,7 +876,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = predictSellQuotes([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleSellsFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -876,7 +886,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
             const quotes = await testContract
-                .sampleSellsFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -886,7 +896,11 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
             const expectedQuotes = predictSellQuotes([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleSellsFromUniswapV2([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts)
+                .sampleSellsFromUniswapV2(
+                    UNISWAP_V2_ROUTER,
+                    [TAKER_TOKEN, intermediateToken, MAKER_TOKEN],
+                    sampleAmounts,
+                )
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -898,7 +912,9 @@ blockchainTests('erc20-bridge-sampler', env => {
         }
 
         it('can return no quotes', async () => {
-            const quotes = await testContract.sampleBuysFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], []).callAsync();
+            const quotes = await testContract
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], [])
+                .callAsync();
             expect(quotes).to.deep.eq([]);
         });
 
@@ -906,7 +922,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
             const expectedQuotes = predictBuyQuotes([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleBuysFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -916,7 +932,7 @@ blockchainTests('erc20-bridge-sampler', env => {
             const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
             await enableFailTriggerAsync();
             const quotes = await testContract
-                .sampleBuysFromUniswapV2([TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, [TAKER_TOKEN, MAKER_TOKEN], sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -926,7 +942,11 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
             const expectedQuotes = predictBuyQuotes([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts);
             const quotes = await testContract
-                .sampleBuysFromUniswapV2([TAKER_TOKEN, intermediateToken, MAKER_TOKEN], sampleAmounts)
+                .sampleBuysFromUniswapV2(
+                    UNISWAP_V2_ROUTER,
+                    [TAKER_TOKEN, intermediateToken, MAKER_TOKEN],
+                    sampleAmounts,
+                )
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });
@@ -935,17 +955,21 @@ blockchainTests('erc20-bridge-sampler', env => {
     describe('batchCall()', () => {
         it('can call one function', async () => {
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN);
-            const signatures: string[] = _.times(orders.length, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableTakerAssetAmount);
             const calls = [
                 testContract
-                    .getOrderFillableTakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                    .getLimitOrderFillableTakerAssetAmounts(
+                        // tslint:disable-next-line:no-unnecessary-type-assertion
+                        orders.map(o => o.order as LimitOrderFields),
+                        orders.map(o => o.signature),
+                        NULL_ADDRESS,
+                    )
                     .getABIEncodedTransactionData(),
             ];
             const r = await testContract.batchCall(calls).callAsync();
             expect(r).to.be.length(1);
             const actual = testContract.getABIDecodedReturnData<BigNumber[]>(
-                'getOrderFillableTakerAssetAmounts',
+                'getLimitOrderFillableTakerAssetAmounts',
                 r[0].data,
             );
             expect(actual).to.deep.eq(expected);
@@ -954,40 +978,53 @@ blockchainTests('erc20-bridge-sampler', env => {
         it('can call two functions', async () => {
             const numOrders = _.random(1, 10);
             const orders = _.times(2, () => createOrders(MAKER_TOKEN, TAKER_TOKEN, numOrders));
-            const signatures: string[] = _.times(numOrders, i => hexUtils.random());
             const expecteds = [
                 orders[0].map(getDeterministicFillableTakerAssetAmount),
                 orders[1].map(getDeterministicFillableMakerAssetAmount),
             ];
             const calls = [
                 testContract
-                    .getOrderFillableTakerAssetAmounts(orders[0], signatures, NULL_ADDRESS)
+                    .getLimitOrderFillableTakerAssetAmounts(
+                        // tslint:disable-next-line:no-unnecessary-type-assertion
+                        orders[0].map(o => o.order as LimitOrderFields),
+                        orders[0].map(o => o.signature),
+                        NULL_ADDRESS,
+                    )
                     .getABIEncodedTransactionData(),
                 testContract
-                    .getOrderFillableMakerAssetAmounts(orders[1], signatures, NULL_ADDRESS)
+                    .getLimitOrderFillableMakerAssetAmounts(
+                        // tslint:disable-next-line:no-unnecessary-type-assertion
+                        orders[1].map(o => o.order as LimitOrderFields),
+                        orders[1].map(o => o.signature),
+                        NULL_ADDRESS,
+                    )
                     .getABIEncodedTransactionData(),
             ];
             const r = await testContract.batchCall(calls).callAsync();
             expect(r).to.be.length(2);
-            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0].data)).to.deep.eq(
-                expecteds[0],
-            );
-            expect(testContract.getABIDecodedReturnData('getOrderFillableMakerAssetAmounts', r[1].data)).to.deep.eq(
-                expecteds[1],
-            );
+            expect(
+                testContract.getABIDecodedReturnData('getLimitOrderFillableTakerAssetAmounts', r[0].data),
+            ).to.deep.eq(expecteds[0]);
+            expect(
+                testContract.getABIDecodedReturnData('getLimitOrderFillableMakerAssetAmounts', r[1].data),
+            ).to.deep.eq(expecteds[1]);
         });
 
         it('can make recursive calls', async () => {
             const numOrders = _.random(1, 10);
             const orders = createOrders(MAKER_TOKEN, TAKER_TOKEN, numOrders);
-            const signatures: string[] = _.times(numOrders, i => hexUtils.random());
             const expected = orders.map(getDeterministicFillableTakerAssetAmount);
             let r = await testContract
                 .batchCall([
                     testContract
                         .batchCall([
                             testContract
-                                .getOrderFillableTakerAssetAmounts(orders, signatures, NULL_ADDRESS)
+                                .getLimitOrderFillableTakerAssetAmounts(
+                                    // tslint:disable-next-line:no-unnecessary-type-assertion
+                                    orders.map(o => o.order as LimitOrderFields),
+                                    orders.map(o => o.signature),
+                                    NULL_ADDRESS,
+                                )
                                 .getABIEncodedTransactionData(),
                         ])
                         .getABIEncodedTransactionData(),
@@ -996,9 +1033,9 @@ blockchainTests('erc20-bridge-sampler', env => {
             expect(r).to.be.length(1);
             r = testContract.getABIDecodedReturnData<SamplerCallResult[]>('batchCall', r[0].data);
             expect(r).to.be.length(1);
-            expect(testContract.getABIDecodedReturnData('getOrderFillableTakerAssetAmounts', r[0].data)).to.deep.eq(
-                expected,
-            );
+            expect(
+                testContract.getABIDecodedReturnData('getLimitOrderFillableTakerAssetAmounts', r[0].data),
+            ).to.deep.eq(expected);
         });
     });
 
@@ -1014,12 +1051,12 @@ blockchainTests('erc20-bridge-sampler', env => {
             const sellAmount = _.last(getSampleAmounts(TAKER_TOKEN))!;
             const uniswapV2FirstHopPath = [TAKER_TOKEN, INTERMEDIATE_TOKEN];
             const uniswapV2FirstHop = testContract
-                .sampleSellsFromUniswapV2(uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const uniswapV2SecondHopPath = [INTERMEDIATE_TOKEN, randomAddress(), MAKER_TOKEN];
             const uniswapV2SecondHop = testContract
-                .sampleSellsFromUniswapV2(uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
+                .sampleSellsFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const eth2DaiFirstHop = testContract
@@ -1065,12 +1102,12 @@ blockchainTests('erc20-bridge-sampler', env => {
             const buyAmount = _.last(getSampleAmounts(MAKER_TOKEN))!;
             const uniswapV2FirstHopPath = [TAKER_TOKEN, INTERMEDIATE_TOKEN];
             const uniswapV2FirstHop = testContract
-                .sampleBuysFromUniswapV2(uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2FirstHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const uniswapV2SecondHopPath = [INTERMEDIATE_TOKEN, randomAddress(), MAKER_TOKEN];
             const uniswapV2SecondHop = testContract
-                .sampleBuysFromUniswapV2(uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
+                .sampleBuysFromUniswapV2(UNISWAP_V2_ROUTER, uniswapV2SecondHopPath, [constants.ZERO_AMOUNT])
                 .getABIEncodedTransactionData();
 
             const eth2DaiFirstHop = testContract

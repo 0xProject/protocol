@@ -1,48 +1,47 @@
-import { BigNumber } from '@0x/utils';
-import { bmath, getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
-import { Decimal } from 'decimal.js';
+import { getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
+import { Pool } from '@balancer-labs/sor/dist/types';
 
-import { ZERO_AMOUNT } from './constants';
+import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from './constants';
 
 // tslint:disable:boolean-naming
 
-export interface BalancerPool {
-    id: string;
-    balanceIn: BigNumber;
-    balanceOut: BigNumber;
-    weightIn: BigNumber;
-    weightOut: BigNumber;
-    swapFee: BigNumber;
-    spotPrice?: BigNumber;
-    slippage?: BigNumber;
-    limitAmount?: BigNumber;
-}
-
 interface CacheValue {
     timestamp: number;
-    pools: BalancerPool[];
+    pools: Pool[];
 }
 
 // tslint:disable:custom-no-magic-numbers
 const FIVE_SECONDS_MS = 5 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_TIMEOUT_MS = 1000;
-const MAX_POOLS_FETCHED = 3;
-const Decimal20 = Decimal.clone({ precision: 20 });
 // tslint:enable:custom-no-magic-numbers
+
+interface BalancerPoolResponse {
+    id: string;
+    swapFee: string;
+    tokens: Array<{ address: string; decimals: number; balance: string }>;
+    tokensList: string[];
+    totalWeight: string;
+}
 
 export class BalancerPoolsCache {
     constructor(
         private readonly _cache: { [key: string]: CacheValue } = {},
-        private readonly maxPoolsFetched: number = MAX_POOLS_FETCHED,
-    ) {}
+        private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
+        private readonly subgraphUrl: string = BALANCER_SUBGRAPH_URL,
+        private readonly topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
+    ) {
+        void this._loadTopPoolsAsync();
+        // Reload the top pools every 12 hours
+        setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
+    }
 
     public async getPoolsForPairAsync(
         takerToken: string,
         makerToken: string,
         timeoutMs: number = DEFAULT_TIMEOUT_MS,
-    ): Promise<BalancerPool[]> {
-        const timeout = new Promise<BalancerPool[]>(resolve => setTimeout(resolve, timeoutMs, []));
+    ): Promise<Pool[]> {
+        const timeout = new Promise<Pool[]>(resolve => setTimeout(resolve, timeoutMs, []));
         return Promise.race([this._getPoolsForPairAsync(takerToken, makerToken), timeout]);
     }
 
@@ -88,23 +87,26 @@ export class BalancerPoolsCache {
         takerToken: string,
         makerToken: string,
         cacheExpiryMs: number = FIVE_SECONDS_MS,
-    ): Promise<BalancerPool[]> {
+    ): Promise<Pool[]> {
         const key = JSON.stringify([takerToken, makerToken]);
         const value = this._cache[key];
         const minTimestamp = Date.now() - cacheExpiryMs;
         if (value === undefined || value.timestamp < minTimestamp) {
             const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
-            const timestamp = Date.now();
-            this._cache[key] = {
-                pools,
-                timestamp,
-            };
+            this._cachePoolsForPair(takerToken, makerToken, pools);
         }
         return this._cache[key].pools;
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
-    protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<BalancerPool[]> {
+    protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[]): void {
+        const key = JSON.stringify([takerToken, makerToken]);
+        this._cache[key] = {
+            pools,
+            timestamp: Date.now(),
+        };
+    }
+
+    protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         try {
             const poolData = (await getPoolsWithTokens(takerToken, makerToken)).pools;
             // Sort by maker token balance (descending)
@@ -116,36 +118,75 @@ export class BalancerPoolsCache {
             return [];
         }
     }
-}
 
-// tslint:disable completed-docs
-export function computeBalancerSellQuote(pool: BalancerPool, takerFillAmount: BigNumber): BigNumber {
-    if (takerFillAmount.isGreaterThan(bmath.bmul(pool.balanceIn, bmath.MAX_IN_RATIO))) {
-        return ZERO_AMOUNT;
-    }
-    const weightRatio = pool.weightIn.dividedBy(pool.weightOut);
-    const adjustedIn = bmath.BONE.minus(pool.swapFee)
-        .dividedBy(bmath.BONE)
-        .times(takerFillAmount);
-    const y = pool.balanceIn.dividedBy(pool.balanceIn.plus(adjustedIn));
-    const foo = Math.pow(y.toNumber(), weightRatio.toNumber());
-    const bar = new BigNumber(1).minus(foo);
-    const tokenAmountOut = pool.balanceOut.times(bar);
-    return tokenAmountOut.integerValue();
-}
+    protected async _loadTopPoolsAsync(): Promise<void> {
+        const fromToPools: {
+            [from: string]: { [to: string]: Pool[] };
+        } = {};
 
-export function computeBalancerBuyQuote(pool: BalancerPool, makerFillAmount: BigNumber): BigNumber {
-    if (makerFillAmount.isGreaterThan(bmath.bmul(pool.balanceOut, bmath.MAX_OUT_RATIO))) {
-        return ZERO_AMOUNT;
+        const pools = await this._fetchTopPoolsAsync();
+        pools.forEach(pool => {
+            const { tokensList } = pool;
+            for (const from of tokensList) {
+                for (const to of tokensList.filter(t => t.toLowerCase() !== from.toLowerCase())) {
+                    if (!fromToPools[from]) {
+                        fromToPools[from] = {};
+                    }
+                    if (!fromToPools[from][to]) {
+                        fromToPools[from][to] = [];
+                    }
+                    try {
+                        // The list of pools must be relevant to `from` and `to`  for `parsePoolData`
+                        const poolData = parsePoolData([pool], from, to);
+                        fromToPools[from][to].push(poolData[0]);
+                        // Cache this as we progress through
+                        this._cachePoolsForPair(from, to, fromToPools[from][to]);
+                    } catch {
+                        // soldier on
+                    }
+                }
+            }
+        });
     }
-    const weightRatio = pool.weightOut.dividedBy(pool.weightIn);
-    const diff = pool.balanceOut.minus(makerFillAmount);
-    const y = pool.balanceOut.dividedBy(diff);
-    let foo: number | Decimal = Math.pow(y.toNumber(), weightRatio.toNumber()) - 1;
-    if (!Number.isFinite(foo)) {
-        foo = new Decimal20(y.toString()).pow(weightRatio.toString()).minus(1);
+
+    protected async _fetchTopPoolsAsync(): Promise<BalancerPoolResponse[]> {
+        const query = `
+      query {
+          pools (first: ${
+              this.topPoolsFetched
+          }, where: {publicSwap: true, liquidity_gt: 0}, orderBy: swapsCount, orderDirection: desc) {
+            id
+            publicSwap
+            swapFee
+            totalWeight
+            tokensList
+            tokens {
+              id
+              address
+              balance
+              decimals
+              symbol
+              denormWeight
+            }
+          }
+        }
+    `;
+        try {
+            const response = await fetch(this.subgraphUrl, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query,
+                }),
+            });
+
+            const { data } = await response.json();
+            return data.pools;
+        } catch (err) {
+            return [];
+        }
     }
-    let tokenAmountIn = bmath.BONE.minus(pool.swapFee).dividedBy(bmath.BONE);
-    tokenAmountIn = pool.balanceIn.times(foo.toString()).dividedBy(tokenAmountIn);
-    return tokenAmountIn.integerValue();
 }

@@ -405,15 +405,22 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
  */
 export const KYBER_BRIDGED_LIQUIDITY_PREFIX = '0xbb';
 export const MAX_KYBER_RESERVES_QUERIED = 5;
+export const MAINNET_KYBER_NETWORK_PROXY = '0x9aab3f75489902f3a48495025729a0af77d4b11e';
 
 export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
 
-export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F';
-export const MAINNET_CRYPTO_COM_ROUTER = '0xCeB90E4C17d626BE0fACd78b79c9c87d7ca181b3';
+export const MAINNET_UNISWAP_V1_ROUTER = '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95';
+export const MAINNET_UNISWAP_V2_ROUTER = '0xf164fc0ec4e93095b804a4795bbe1e041497b92a';
+export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f';
+export const MAINNET_CRYPTO_COM_ROUTER = '0xceb90e4c17d626be0facd78b79c9c87d7ca181b3';
+export const MAINNET_MSTABLE_ROUTER = '0xe2f2a5c287993345a840db3b0845fbc70f5935a5';
+export const MAINNET_OASIS_ROUTER = '0x794e6e91555438afc3ccf1c5076a74f42133d08d';
 
 export const MAINNET_MOONISWAP_REGISTRY = '0x71CD6666064C3A1354a3B4dca5fA1E2D3ee7D303';
 export const MAINNET_MOONISWAP_V2_REGISTRY = '0xc4a8b7e29e3c8ec560cd4945c1cf3461a85a148d';
 export const MAINNET_MOONISWAP_V2_1_REGISTRY = '0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643';
+
+export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
 
 export const MAINNET_SHELL_POOLS = {
     StableCoins: {
@@ -425,6 +432,10 @@ export const MAINNET_SHELL_POOLS = {
         tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
     },
 };
+
+export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
+export const BALANCER_TOP_POOLS_FETCHED = 250;
+export const BALANCER_MAX_POOLS_FETCHED = 3;
 
 export const ERC20_PROXY_ID = '0xf47261b0';
 export const WALLET_SIGNATURE = '0x04';
@@ -502,7 +513,10 @@ export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAd
  */
 // tslint:disable:custom-no-magic-numbers
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
-    [ERC20BridgeSource.Native]: () => 150e3,
+    [ERC20BridgeSource.Native]: _fillData => {
+        // const nativeFillData = (_fillData as NativeRfqOrderFillData|NativeLimitOrderFillData)
+        return 100e3;
+    },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
         return (fillData as LiquidityProviderFillData).gasCost;

@@ -57,7 +57,6 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: SwapQuote,
         opts: Partial<SwapQuoteGetOutputOpts> = {},
     ): Promise<CalldataInfo> {
-        assert.isValidSwapQuote('quote', quote);
         const consumer = await this._getConsumerForSwapQuoteAsync(opts);
         return consumer.getCalldataOrThrowAsync(quote, opts);
     }
@@ -71,7 +70,6 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: SwapQuote,
         opts: Partial<SwapQuoteExecutionOpts> = {},
     ): Promise<string> {
-        assert.isValidSwapQuote('quote', quote);
         const consumer = await this._getConsumerForSwapQuoteAsync(opts);
         return consumer.executeSwapQuoteOrThrowAsync(quote, opts);
     }
@@ -94,12 +92,6 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
     }
 
     private async _getConsumerForSwapQuoteAsync(opts: Partial<SwapQuoteGetOutputOpts>): Promise<SwapQuoteConsumerBase> {
-        // ( akroeger)leaving this switch to use different contracts in the future
-        switch (opts.useExtensionContract) {
-            case ExtensionContractType.ExchangeProxy:
-                return this._exchangeProxyConsumer;
-            default:
-                return this._exchangeProxyConsumer;
-        }
+        return this._exchangeProxyConsumer;
     }
 }
