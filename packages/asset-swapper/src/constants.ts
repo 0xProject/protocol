@@ -48,9 +48,10 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     samplerGasLimit: 250e6,
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     rfqt: {
+        altRfqProfile: '',
+        altRfqApiKey: '',
         takerApiKeyWhitelist: [],
         makerAssetOfferings: {},
-        altMakerAssetOfferings: {},
     },
 };
 
