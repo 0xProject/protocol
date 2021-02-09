@@ -273,7 +273,8 @@ export interface RfqtFirmQuoteValidator {
 export interface SwapQuoterRfqtOpts {
     takerApiKeyWhitelist: string[];
     makerAssetOfferings: RfqtMakerAssetOfferings;
-    altMakerAssetOfferings: AltRfqtMakerAssetOfferings;
+    altRfqApiKey: string;
+    altRfqProfile: string;
     warningLogger?: LogFunction;
     infoLogger?: LogFunction;
 }
