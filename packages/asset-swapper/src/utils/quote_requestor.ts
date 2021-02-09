@@ -130,7 +130,7 @@ export class QuoteRequestor {
     constructor(
         private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
         private readonly _altRfqApiKey: string,
-        private readonly _altProfile: string,
+        private readonly _altRfqProfile: string,
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
@@ -423,7 +423,7 @@ export class QuoteRequestor {
                         const quote = await returnQuoteFromAltMMAsync<ResponseT>(
                             typedMakerUrl.url,
                             this._altRfqApiKey,
-                            this._altProfile,
+                            this._altRfqProfile,
                             options.apiKey,
                             quoteType,
                             makerToken,
