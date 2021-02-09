@@ -1,5 +1,6 @@
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import _ = require('lodash');
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
