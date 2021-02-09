@@ -8,7 +8,7 @@ import _ = require('lodash');
 import 'mocha';
 
 import { constants } from '../src/constants';
-import { MarketOperation, MockedRfqtQuoteResponse } from '../src/types';
+import { AltMockedRfqtQuoteResponse, AltRfqtMakerAssetOfferings, MarketOperation, MockedRfqtQuoteResponse, QuoteSide, QuoteType } from '../src/types';
 import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor, quoteRequestorHttpClient } from '../src/utils/quote_requestor';
 
@@ -17,6 +17,8 @@ import { RfqtQuoteEndpoint, testHelpers } from './utils/test_helpers';
 
 chaiSetup.configure();
 const expect = chai.expect;
+const ALT_MM_API_KEY = 'averysecurekey';
+const ALT_PROFILE = 'acoolprofile';
 
 function makeThreeMinuteExpiry(): BigNumber {
     const expiry = new Date(Date.now());
@@ -28,6 +30,19 @@ describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
+    const altRfqtAssetOfferings: AltRfqtMakerAssetOfferings = {
+        'https://coolmarketmaker1.com': [
+            {
+                baseAsset: makerToken,
+                quoteAsset: takerToken,
+                baseSymbol: 'XYZ',
+                quoteSymbol: '123',
+                baseAssetDecimals: 3,
+                quoteAssetDecimals: 4,
+            },
+        ],
+    };
+
     describe('requestRfqtFirmQuotesAsync for firm quotes', async () => {
         it('should return successful RFQT requests', async () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
@@ -37,6 +52,20 @@ describe('QuoteRequestor', async () => {
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+
+            const altRequestData = {
+                market: 'XYZ-123',
+                model: QuoteType.Indicative,
+                profile: 'zeroex',
+                side: QuoteSide.Buy,
+                value: '10',
+                meta: {
+                    taker: takerAddress,
+                    txOrigin,
+                    client: apiKey,
+                },
+            };
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -124,6 +153,14 @@ describe('QuoteRequestor', async () => {
                 endpoint: 'https://425.0.0.1',
                 responseData: { signedOrder: { ...validSignedOrder, txOrigin: NULL_ADDRESS } },
             });
+            // A successful response code and order from an alt RFQ implementation
+            altMockedRequests.push({
+                endpoint: 'https://coolmarketmaker1.com',
+                mmApiKey: ALT_MM_API_KEY,
+                responseCode: StatusCodes.Success,
+                requestData: altRequestData,
+                responseData: { signedOrder: { ...validSignedOrder, txOrigin: NULL_ADDRESS } },
+            });
 
             const normalizedSuccessfulOrder = {
                 order: {
@@ -139,6 +176,7 @@ describe('QuoteRequestor', async () => {
 
             return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                altMockedRequests,
                 RfqtQuoteEndpoint.Firm,
                 async () => {
                     const qr = new QuoteRequestor({
@@ -152,7 +190,7 @@ describe('QuoteRequestor', async () => {
                         'https://425.0.0.1': [[makerToken, takerToken]],
                         'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T provider when they don't support the requested asset pair. */,
                         'https://37.0.0.1': [[makerToken, takerToken]],
-                    });
+                    }, '', '');
                     const resp = await qr.requestRfqtFirmQuotesAsync(
                         makerToken,
                         takerToken,
@@ -164,9 +202,10 @@ describe('QuoteRequestor', async () => {
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
+                            altRfqtAssetOfferings,
                         },
                     );
-                    expect(resp).to.deep.eq([normalizedSuccessfulOrder, normalizedSuccessfulOrder]);
+                    expect(resp).to.deep.eq([normalizedSuccessfulOrder, normalizedSuccessfulOrder, normalizedSuccessfulOrder]);
                 },
                 quoteRequestorHttpClient,
             );
@@ -255,6 +294,7 @@ describe('QuoteRequestor', async () => {
 
             return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                [],
                 RfqtQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor({
@@ -265,7 +305,7 @@ describe('QuoteRequestor', async () => {
                         'https://423.0.0.1': [[makerToken, takerToken]],
                         'https://424.0.0.1': [[makerToken, takerToken]],
                         'https://37.0.0.1': [[makerToken, takerToken]],
-                    });
+                    }, '', '');
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
                         takerToken,
@@ -318,9 +358,10 @@ describe('QuoteRequestor', async () => {
 
             return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                [],
                 RfqtQuoteEndpoint.Indicative,
                 async () => {
-                    const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] });
+                    const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] }, '', '');
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
                         takerToken,

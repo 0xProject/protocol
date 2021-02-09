@@ -353,6 +353,17 @@ export interface MockedRfqtQuoteResponse {
     responseCode: number;
 }
 
+/**
+ * Represents a mocked RFQT maker responses.
+ */
+export interface AltMockedRfqtQuoteResponse {
+    endpoint: string;
+    mmApiKey: string;
+    requestData: AltQuoteRequestData;
+    responseData: any;
+    responseCode: number;
+}
+
 export interface SamplerOverrides {
     overrides: GethCallOverrides;
     block: BlockParam;
@@ -387,11 +398,21 @@ export interface BridgeContractAddresses {
     cryptoComBridge: string;
 }
 
+export enum QuoteType {
+    Firm = 'firm',
+    Indicative = 'indicative',
+}
+
+export enum QuoteSide {
+    Buy = 'buy',
+    Sell = 'sell',
+}
+
 export interface AltQuoteRequestData {
     market: string;
-    model: 'firm' | 'indicative';
+    model: QuoteType;
     profile: string;
-    side: 'buy' | 'sell';
+    side: QuoteSide;
     value?: string;
     amount?: string;
     meta: {
@@ -431,7 +452,7 @@ export interface AltIndicativeQuoteReponse extends AltBaseRfqResponse {
     status: 'live' | 'rejected';
 }
 
-export interface AltFirmQuoteReponse extends AltBaseRfqResponse {
+export interface AltFirmQuoteResponse extends AltBaseRfqResponse {
     model: 'firm';
     data: {
         '0xv4order': V4SignedRfqOrder;
