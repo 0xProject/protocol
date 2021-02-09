@@ -80,9 +80,17 @@ blockchainTests.resets('BalanceChecker contract', env => {
             await makerToken.approve(allowanceTarget, new BigNumber(150)).awaitTransactionSuccessAsync({ from: owner });
 
             await makerToken.mint(new BigNumber(150)).awaitTransactionSuccessAsync({ from: owner2 });
-            await makerToken.approve(allowanceTarget, new BigNumber(200)).awaitTransactionSuccessAsync({ from: owner2 });
+            await makerToken
+                .approve(allowanceTarget, new BigNumber(200))
+                .awaitTransactionSuccessAsync({ from: owner2 });
 
-            const testResults = await contract.getMinOfBalancesOrAllowances([owner, owner2], [makerToken.address, makerToken.address], allowanceTarget).callAsync();
+            const testResults = await contract
+                .getMinOfBalancesOrAllowances(
+                    [owner, owner2],
+                    [makerToken.address, makerToken.address],
+                    allowanceTarget,
+                )
+                .callAsync();
 
             expect(testResults).to.eql([new BigNumber(100), new BigNumber(150)]);
         });
@@ -110,7 +118,13 @@ blockchainTests.resets('BalanceChecker contract', env => {
             await makerToken.mint(new BigNumber(100)).awaitTransactionSuccessAsync({ from: owner2 });
             await makerToken.approve(allowanceTarget, new BigNumber(75)).awaitTransactionSuccessAsync({ from: owner2 });
 
-            const testResults = await contract.getMinOfBalancesOrAllowances([owner, owner2], [makerToken.address, makerToken.address], allowanceTarget).callAsync();
+            const testResults = await contract
+                .getMinOfBalancesOrAllowances(
+                    [owner, owner2],
+                    [makerToken.address, makerToken.address],
+                    allowanceTarget,
+                )
+                .callAsync();
 
             expect(testResults).to.eql([new BigNumber(50), new BigNumber(75)]);
         });
