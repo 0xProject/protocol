@@ -59,6 +59,39 @@ contract BalanceChecker {
     }
 
     /*
+      Check the token balances of wallet-token pairs with a spender contract for an allowance check.
+      Pass 0xeee... as a "token" address to get ETH balance.
+      Possible error throws:
+        - extremely large arrays for user and or tokens (gas cost too high)
+
+      Returns a one-dimensional that's user.length long. It is the lesser of balance and allowance
+    */
+    function getMinOfBalancesOrAllowances(address[] calldata users, address[] calldata tokens, address spender) external view returns (uint256[] memory) {
+        // make sure the users array and tokens array are of equal length
+        require(users.length == tokens.length, "users array is a different length than the tokens array");
+
+        uint256[] memory addrBalances = new uint256[](users.length);
+
+        for(uint i = 0; i < users.length; i++) {
+            if (tokens[i] != address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE)) {
+                uint256 balance;
+                uint256 allowance;
+                balance = IToken(tokens[i]).balanceOf(users[i]);
+                allowance = IToken(tokens[i]).allowance(users[i], spender);
+                if (allowance < balance) {
+                    addrBalances[i] = allowance;
+                } else {
+                    addrBalances[i] = balance;
+                }
+            } else {
+                addrBalances[i] = users[i].balance; // ETH balance
+            }
+        }
+
+        return addrBalances;
+    }
+
+    /*
       Check the allowances of an array of owner-spender-tokens
       
       Returns 0 for 0xeee... (ETH)
