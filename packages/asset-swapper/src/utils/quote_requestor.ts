@@ -8,7 +8,16 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
 import { constants } from '../constants';
-import { AltRfqtMakerAssetOfferings, LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts, SignedNativeOrder, TypedMakerUrl } from '../types';
+import {
+    AltQuoteModel,
+    AltRfqtMakerAssetOfferings,
+    LogFunction,
+    MarketOperation,
+    RfqtMakerAssetOfferings,
+    RfqtRequestOpts,
+    SignedNativeOrder,
+    TypedMakerUrl,
+} from '../types';
 
 import { returnQuoteFromAltMMAsync } from './alt_mm_implementation_utils';
 import { ONE_SECOND_MS } from './market_operation_utils/constants';
@@ -315,7 +324,12 @@ export class QuoteRequestor {
         return true;
     }
 
-    private _makerSupportsPair(typedMakerUrl: TypedMakerUrl, makerToken: string, takerToken: string, altMakerAssetOfferings: AltRfqtMakerAssetOfferings | undefined): boolean {
+    private _makerSupportsPair(
+        typedMakerUrl: TypedMakerUrl,
+        makerToken: string,
+        takerToken: string,
+        altMakerAssetOfferings: AltRfqtMakerAssetOfferings | undefined,
+    ): boolean {
         if (typedMakerUrl.pairType === 'standard') {
             for (const assetPair of this._rfqtAssetOfferings[typedMakerUrl.url]) {
                 if (
@@ -325,7 +339,7 @@ export class QuoteRequestor {
                     return true;
                 }
             }
-        } else if (typedMakerUrl.pairType === 'alt' &&  altMakerAssetOfferings) {
+        } else if (typedMakerUrl.pairType === 'alt' && altMakerAssetOfferings) {
             for (const altAssetPair of altMakerAssetOfferings[typedMakerUrl.url]) {
                 if (
                     (altAssetPair.baseAsset === makerToken && altAssetPair.quoteAsset === takerToken) ||
@@ -374,13 +388,17 @@ export class QuoteRequestor {
             }
         })();
 
-        const standardUrls = Object.keys(this._rfqtAssetOfferings).map((mm: string): TypedMakerUrl => {
-            return { pairType: 'standard', url: mm };
-        });
-        const altUrls = options.altRfqtAssetOfferings ?
-            Object.keys(options.altRfqtAssetOfferings).map((mm: string): TypedMakerUrl => {
-                return { pairType: 'alt', url: mm };
-            })
+        const standardUrls = Object.keys(this._rfqtAssetOfferings).map(
+            (mm: string): TypedMakerUrl => {
+                return { pairType: 'standard', url: mm };
+            },
+        );
+        const altUrls = options.altRfqtAssetOfferings
+            ? Object.keys(options.altRfqtAssetOfferings).map(
+                  (mm: string): TypedMakerUrl => {
+                      return { pairType: 'alt', url: mm };
+                  },
+              )
             : [];
 
         const typedMakerUrls = standardUrls.concat(altUrls);
@@ -430,7 +448,7 @@ export class QuoteRequestor {
                             this._altRfqApiKey,
                             this._altRfqProfile,
                             options.apiKey,
-                            quoteType,
+                            quoteType === 'firm' ? AltQuoteModel.Firm : AltQuoteModel.Indicative,
                             makerToken,
                             takerToken,
                             maxResponseTimeMs,
@@ -474,9 +492,11 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${
-                            options.apiKey
-                        } for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${
+                            typedMakerUrl.url
+                        } for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${
+                            options.txOrigin
+                        }`,
                     );
                     return;
                 }
