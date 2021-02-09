@@ -2,7 +2,7 @@ import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { SamplerCallResult } from '../../types';
+import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BalancerPoolsCache } from './balancer_utils';
@@ -42,7 +42,6 @@ import {
     MooniswapFillData,
     MultiHopFillData,
     ShellFillData,
-    SignedOrder,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,
@@ -117,26 +116,28 @@ export class SamplerOperations {
     }
 
     public getLimitOrderFillableTakerAmounts(
-        orders: Array<SignedOrder<LimitOrderFields>>,
+        orders: SignedNativeOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getLimitOrderFillableTakerAssetAmounts,
-            params: [orders.map(o => o.order), orders.map(o => o.signature), exchangeAddress],
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            params: [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), exchangeAddress],
         });
     }
 
     public getLimitOrderFillableMakerAmounts(
-        orders: Array<SignedOrder<LimitOrderFields>>,
+        orders: SignedNativeOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getLimitOrderFillableMakerAssetAmounts,
-            params: [orders.map(o => o.order), orders.map(o => o.signature), exchangeAddress],
+            // tslint:disable-next-line:no-unnecessary-type-assertion
+            params: [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), exchangeAddress],
         });
     }
 

@@ -1,13 +1,20 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { expect, getRandomFloat, getRandomInteger, randomAddress, toBaseUnitAmount } from '@0x/contracts-test-utils';
-import { ZERO_AMOUNT } from '@0x/order-utils';
+import {
+    constants,
+    expect,
+    getRandomFloat,
+    getRandomInteger,
+    randomAddress,
+    toBaseUnitAmount,
+} from '@0x/contracts-test-utils';
 import { FillQuoteTransformerOrderType, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
+import { Pool } from '@balancer-labs/sor/dist/types';
 import * as _ from 'lodash';
 
-import { BalancerPool } from '../src/utils/market_operation_utils/balancer_utils';
+import { SignedOrder } from '../src/types';
 import { DexOrderSampler, getSampleAmounts } from '../src/utils/market_operation_utils/sampler';
-import { ERC20BridgeSource, SignedOrder, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
+import { ERC20BridgeSource, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
 
 import { MockBalancerPoolsCache } from './utils/mock_balancer_pools_cache';
 import { MockSamplerContract } from './utils/mock_sampler_contract';
@@ -61,7 +68,7 @@ describe('DexSampler tests', () => {
     });
 
     function createOrder(overrides?: Partial<LimitOrderFields>): SignedOrder<LimitOrderFields> {
-        return {
+        const o: SignedOrder<LimitOrderFields> = {
             order: {
                 salt: generatePseudoRandomSalt(),
                 expiry: getRandomInteger(0, 2 ** 64),
@@ -69,7 +76,7 @@ describe('DexSampler tests', () => {
                 takerToken: TAKER_TOKEN,
                 makerAmount: getRandomInteger(1, 1e18),
                 takerAmount: getRandomInteger(1, 1e18),
-                takerTokenFeeAmount: ZERO_AMOUNT,
+                takerTokenFeeAmount: constants.ZERO_AMOUNT,
                 chainId: CHAIN_ID,
                 pool: NULL_BYTES,
                 feeRecipient: NULL_ADDRESS,
@@ -82,6 +89,7 @@ describe('DexSampler tests', () => {
             signature: { v: 1, r: hexUtils.random(), s: hexUtils.random(), signatureType: SignatureType.EthSign },
             type: FillQuoteTransformerOrderType.Limit,
         };
+        return o;
     }
     const ORDERS = _.times(4, () => createOrder());
     const SIMPLE_ORDERS = ORDERS.map(o => _.omit(o, ['signature', 'chainId']));
@@ -493,7 +501,7 @@ describe('DexSampler tests', () => {
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 3);
-            const pools: BalancerPool[] = [generateBalancerPool(), generateBalancerPool()];
+            const pools: Pool[] = [generateBalancerPool(), generateBalancerPool()];
             const balancerPoolsCache = new MockBalancerPoolsCache({
                 getPoolsForPairAsync: async (takerToken: string, makerToken: string) => {
                     expect(takerToken).equal(expectedTakerToken);
@@ -596,7 +604,7 @@ describe('DexSampler tests', () => {
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
             const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 3);
-            const pools: BalancerPool[] = [generateBalancerPool(), generateBalancerPool()];
+            const pools: Pool[] = [generateBalancerPool(), generateBalancerPool()];
             const balancerPoolsCache = new MockBalancerPoolsCache({
                 getPoolsForPairAsync: async (takerToken: string, makerToken: string) => {
                     expect(takerToken).equal(expectedTakerToken);
@@ -656,7 +664,7 @@ describe('DexSampler tests', () => {
         });
     });
 });
-function generateBalancerPool(): BalancerPool {
+function generateBalancerPool(): Pool {
     return {
         id: randomAddress(),
         balanceIn: getRandomInteger(1, 1e18),

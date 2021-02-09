@@ -433,6 +433,10 @@ export const MAINNET_SHELL_POOLS = {
     },
 };
 
+export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
+export const BALANCER_TOP_POOLS_FETCHED = 250;
+export const BALANCER_MAX_POOLS_FETCHED = 3;
+
 export const ERC20_PROXY_ID = '0xf47261b0';
 export const WALLET_SIGNATURE = '0x04';
 export const ONE_ETHER = new BigNumber(1e18);

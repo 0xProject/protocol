@@ -1,8 +1,8 @@
-import { FillQuoteTransformerOrderType, LimitOrderFields, RfqOrderFields, Signature } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { MarketOperation } from '../types';
+import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
 import {
     CollapsedFill,
@@ -13,7 +13,6 @@ import {
     NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
-    NativeOrderWithFillableAmounts,
     NativeRfqOrderFillData,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
@@ -35,7 +34,6 @@ export interface MultiHopQuoteReportEntry extends QuoteReportEntryBase {
 
 export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
-    nativeOrder: LimitOrderFields; // remap nativeOrder to fillData
     fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
     isRfqt: false;
@@ -43,7 +41,6 @@ export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
 
 export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
-    nativeOrder: RfqOrderFields; // TODO remap nativeOrder to fillData
     fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
     isRfqt: true;
@@ -210,9 +207,8 @@ function _nativeOrderToReportEntry(
         // tslint:disable-next-line: no-object-literal-type-assertion
         return {
             ...nativeOrderBase,
-            nativeOrder: fillData.order as RfqOrderFields,
             isRfqt: true,
-            makerUri: rfqtMakerUri || '', // potentially undefined, do we want to return as limit order instead?
+            makerUri: rfqtMakerUri || '',
             ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
             fillData,
         } as NativeRfqOrderQuoteReportEntry;
@@ -221,7 +217,6 @@ function _nativeOrderToReportEntry(
         return {
             ...nativeOrderBase,
             isRfqt: false,
-            nativeOrder: fillData.order,
             fillData,
         } as NativeLimitOrderQuoteReportEntry;
     }

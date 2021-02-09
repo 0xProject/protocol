@@ -3,7 +3,7 @@ import { schemas } from '@0x/json-schemas';
 import * as _ from 'lodash';
 
 import { Orderbook } from '../swap_quoter';
-import { MarketOperation, OrderProviderRequest, SwapQuote, SwapQuoteInfo } from '../types';
+import { MarketOperation, SwapQuote, SwapQuoteInfo } from '../types';
 
 import { OptimizedMarketOrder } from './market_operation_utils/types';
 
@@ -88,10 +88,6 @@ export const assert = {
             `${variableName}.getBatchOrdersAsync`,
             orderFetcher.getBatchOrdersAsync.bind(orderFetcher),
         );
-    },
-    isValidOrderProviderRequest(variableName: string, orderFetcherRequest: OrderProviderRequest): void {
-        sharedAssert.isHexString(`${variableName}.makerAssetData`, orderFetcherRequest.makerAssetData);
-        sharedAssert.isHexString(`${variableName}.takerAssetData`, orderFetcherRequest.takerAssetData);
     },
     isValidPercentage(variableName: string, percentage: number): void {
         assert.isNumber(variableName, percentage);

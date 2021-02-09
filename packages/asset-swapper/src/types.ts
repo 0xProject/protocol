@@ -1,6 +1,13 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
-import { CommonOrderFields, RfqOrder } from '@0x/protocol-utils';
+import {
+    CommonOrderFields,
+    FillQuoteTransformerOrderType,
+    LimitOrderFields,
+    RfqOrder,
+    RfqOrderFields,
+    Signature,
+} from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 
@@ -22,25 +29,15 @@ export interface OrderPrunerOpts {
     permittedOrderFeeTypes: Set<OrderPrunerPermittedFeeTypes>;
 }
 
-/**
- * Represents the on-chain metadata of a signed order
- */
-export interface OrderPrunerOnChainMetadata {
-    orderStatus: number;
-    orderHash: string;
-    orderTakerAssetFilledAmount: BigNumber;
-    fillableTakerAssetAmount: BigNumber;
-    isValidSignature: boolean;
+export interface SignedOrder<T> {
+    order: T;
+    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
+    signature: Signature;
 }
 
-/**
- * makerAssetData: The assetData representing the desired makerAsset.
- * takerAssetData: The assetData representing the desired takerAsset.
- */
-export interface OrderProviderRequest {
-    makerAssetData: string;
-    takerAssetData: string;
-}
+export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
+export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
+export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
 
 /**
  * fillableMakerAmount: Amount of makerAsset that is fillable
@@ -52,8 +49,6 @@ export interface NativeOrderFillableAmountFields {
     fillableTakerAmount: BigNumber;
     fillableTakerFeeAmount: BigNumber;
 }
-
-export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
 
 /**
  * Represents the metadata to call a smart contract with calldata.
@@ -76,15 +71,6 @@ export enum ExtensionContractType {
     None = 'NONE',
     Forwarder = 'FORWARDER',
     ExchangeProxy = 'EXCHANGE_PROXY',
-}
-
-/**
- * feePercentage: Optional affiliate fee percentage used to calculate the eth amount paid to fee recipient.
- * feeRecipient: The address where affiliate fees are sent. Defaults to null address (0x000...000).
- */
-export interface ForwarderSmartContractParamsBase {
-    feePercentage: BigNumber;
-    feeRecipient: string;
 }
 
 /**
@@ -177,8 +163,8 @@ export interface GetExtensionContractTypeOpts {
 }
 
 /**
- * takerAssetData: String that represents a specific taker asset (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
- * makerAssetData: String that represents a specific maker asset (for more info: https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
+ * takerToken: Address of the taker asset.
+ * makerToken: Address of the maker asset.
  * gasPrice: gas price used to determine protocolFee amount, default to ethGasStation fast amount.
  * orders: An array of objects conforming to OptimizedMarketOrder. These orders can be used to cover the requested assetBuyAmount plus slippage.
  * bestCaseQuoteInfo: Info about the best case price for the asset.
@@ -380,18 +366,7 @@ export enum OrderPrunerPermittedFeeTypes {
 /**
  * Represents a mocked RFQT maker responses.
  */
-export interface MockedRfqtFirmQuoteResponse {
-    endpoint: string;
-    requestApiKey: string;
-    requestParams: TakerRequestQueryParams;
-    responseData: any;
-    responseCode: number;
-}
-
-/**
- * Represents a mocked RFQT maker responses.
- */
-export interface MockedRfqtIndicativeQuoteResponse {
+export interface MockedRfqtQuoteResponse {
     endpoint: string;
     requestApiKey: string;
     requestParams: TakerRequestQueryParams;

@@ -5,9 +5,8 @@ export {
     SendTransactionOpts,
 } from '@0x/base-contract';
 export { ContractAddresses } from '@0x/contract-addresses';
-export { WSOpts } from '@0x/mesh-rpc-client';
 export { V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder, TakerRequestQueryParams } from '@0x/quote-server';
-export { APIOrder, Asset, AssetPairsItem, DecodedLogEvent, EventCallback, IndexedFilterValues } from '@0x/types';
+export { Asset, AssetPairsItem, DecodedLogEvent, EventCallback, IndexedFilterValues } from '@0x/types';
 export { BigNumber } from '@0x/utils';
 export {
     RfqOrderFields,
@@ -87,13 +86,15 @@ export {
     MarketBuySwapQuote,
     MarketOperation,
     MarketSellSwapQuote,
-    MockedRfqtFirmQuoteResponse,
+    MockedRfqtQuoteResponse,
     OrderPrunerPermittedFeeTypes,
     OrderWithFillableAmounts,
     RfqtMakerAssetOfferings,
     RfqtFirmQuoteValidator,
     RfqtRequestOpts,
     SamplerOverrides,
+    SignedNativeOrder,
+    SignedOrder,
     SwapQuote,
     SwapQuoteConsumerBase,
     SwapQuoteConsumerError,
@@ -145,8 +146,6 @@ export {
     NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
-    SignedOrder,
-    SignedNativeOrder,
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,
@@ -166,7 +165,7 @@ export {
     QuoteReportEntry,
 } from './utils/quote_report_generator';
 export { QuoteRequestor } from './utils/quote_requestor';
-export { rfqtMocker } from './utils/rfqt_mocker';
+export { testHelpers, RfqtQuoteEndpoint } from '../test/utils/test_helpers';
 export { ERC20BridgeSamplerContract, BalanceCheckerContract } from './wrappers';
 import { ERC20BridgeSource } from './utils/market_operation_utils/types';
 export type Native = ERC20BridgeSource.Native;

@@ -1,5 +1,5 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { FillQuoteTransformerOrderType, LimitOrder, LimitOrderFields } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
@@ -10,9 +10,9 @@ import {
     AssetSwapperContractAddresses,
     MarketBuySwapQuote,
     MarketOperation,
-    MarketSellSwapQuote,
     OrderPrunerPermittedFeeTypes,
     RfqtRequestOpts,
+    SignedNativeOrder,
     SwapQuote,
     SwapQuoteInfo,
     SwapQuoteOrdersBreakdown,
@@ -36,7 +36,6 @@ import {
     MarketSideLiquidity,
     OptimizedMarketOrder,
     OptimizerResultWithReport,
-    SignedOrder,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
@@ -47,25 +46,17 @@ export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,
         takerToken: string,
-        pruneFn?: (o: SignedOrder<LimitOrderFields>) => boolean,
-    ): Promise<Array<SignedOrder<LimitOrderFields>>>;
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[]>;
     public abstract getBatchOrdersAsync(
         makerTokens: string[],
         takerToken: string,
-        pruneFn?: (o: SignedOrder<LimitOrderFields>) => boolean,
-    ): Promise<Array<Array<SignedOrder<LimitOrderFields>>>>;
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[][]>;
     // tslint:disable-next-line:prefer-function-over-method
     public async destroyAsync(): Promise<void> {
         return;
     }
-}
-
-function formatSignedLimitOrder(order: SignedOrder<LimitOrderFields>): SignedOrder<LimitOrderFields> {
-    return {
-        type: FillQuoteTransformerOrderType.Limit,
-        signature: INVALID_SIGNATURE, // todo (xianny): hack
-        order: order.order,
-    };
 }
 
 // tslint:disable:max-classes-per-file
@@ -171,12 +162,11 @@ export class SwapQuoter {
             gasPrice = await this.getGasPriceEstimationOrThrowAsync();
         }
 
-        const batchLimitOrders = await this.orderbook.getBatchOrdersAsync(
+        const allOrders = await this.orderbook.getBatchOrdersAsync(
             makerTokens,
             targetTakerToken,
             this._limitOrderPruningFn,
         );
-        const allOrders = batchLimitOrders.map(orders => orders.map(o => formatSignedLimitOrder(o)));
 
         const opts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
         const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
@@ -206,71 +196,6 @@ export class SwapQuoter {
         );
         return batchSwapQuotes.filter(x => x !== undefined) as MarketBuySwapQuote[];
     }
-    /**
-     * Get a `SwapQuote` containing all information relevant to fulfilling a swap between a desired ERC20 token address and ERC20 owned by a provided address.
-     * You can then pass the `SwapQuote` to a `SwapQuoteConsumer` to execute a buy, or process SwapQuote for on-chain consumption.
-     * @param   makerTokenAddress       The address of the maker asset
-     * @param   takerTokenAddress       The address of the taker asset
-     * @param   makerAssetBuyAmount     The amount of maker asset to swap for.
-     * @param   options                 Options for the request. See type definition for more information.
-     *
-     * @return  An object that conforms to SwapQuote that satisfies the request. See type definition for more information.
-     */
-    public async getMarketBuySwapQuoteAsync(
-        makerToken: string,
-        takerToken: string,
-        makerAssetBuyAmount: BigNumber,
-        options: Partial<SwapQuoteRequestOpts> = {},
-    ): Promise<MarketBuySwapQuote> {
-        assert.isETHAddressHex('makerToken', makerToken);
-        assert.isETHAddressHex('takerToken', takerToken);
-        assert.isBigNumber('makerAssetBuyAmount', makerAssetBuyAmount);
-        return this._getSwapQuoteAsync(
-            makerToken,
-            takerToken,
-            makerAssetBuyAmount,
-            MarketOperation.Buy,
-            options,
-        ) as Promise<MarketBuySwapQuote>;
-    }
-
-    public async getSwapQuoteAsync(
-        makerToken: string,
-        takerToken: string,
-        amount: BigNumber,
-        side: MarketOperation,
-        options: Partial<SwapQuoteRequestOpts> = {},
-    ): Promise<SwapQuote> {
-        return this._getSwapQuoteAsync(makerToken, takerToken, amount, side, options);
-    }
-
-    /**
-     * Get a `SwapQuote` containing all information relevant to fulfilling a swap between a desired ERC20 token address and ERC20 owned by a provided address.
-     * You can then pass the `SwapQuote` to a `SwapQuoteConsumer` to execute a buy, or process SwapQuote for on-chain consumption.
-     * @param   makerTokenAddress       The address of the maker asset
-     * @param   takerTokenAddress       The address of the taker asset
-     * @param   takerAssetSellAmount     The amount of taker asset to sell.
-     * @param   options                  Options for the request. See type definition for more information.
-     *
-     * @return  An object that conforms to SwapQuote that satisfies the request. See type definition for more information.
-     */
-    public async getMarketSellSwapQuoteAsync(
-        makerToken: string,
-        takerToken: string,
-        takerAssetSellAmount: BigNumber,
-        options: Partial<SwapQuoteRequestOpts> = {},
-    ): Promise<MarketSellSwapQuote> {
-        assert.isETHAddressHex('makerToken', makerToken);
-        assert.isETHAddressHex('takerToken', takerToken);
-        assert.isBigNumber('takerAssetSellAmount', takerAssetSellAmount);
-        return this._getSwapQuoteAsync(
-            makerToken,
-            takerToken,
-            takerAssetSellAmount,
-            MarketOperation.Sell,
-            options,
-        ) as Promise<MarketSellSwapQuote>;
-    }
 
     /**
      * Returns the bids and asks liquidity for the entire market.
@@ -292,14 +217,12 @@ export class SwapQuoter {
         assert.isString('takerToken', takerToken);
         const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
 
-        const [sellOrdersRaw, buyOrdersRaw] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
+        let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
             ? [[], []]
             : await Promise.all([
                   this.orderbook.getOrdersAsync(makerToken, takerToken),
                   this.orderbook.getOrdersAsync(takerToken, makerToken),
               ]);
-        let sellOrders = sellOrdersRaw.map(formatSignedLimitOrder);
-        let buyOrders = buyOrdersRaw.map(formatSignedLimitOrder);
         if (!sellOrders || sellOrders.length === 0) {
             sellOrders = [createDummyOrder(makerToken, takerToken)];
         }
@@ -357,26 +280,27 @@ export class SwapQuoter {
         return this._contractAddresses.etherToken;
     }
 
-    private readonly _limitOrderPruningFn = (limitOrder: SignedOrder<LimitOrderFields>) => {
-        const order = new LimitOrder(limitOrder.order);
-        const isOpenOrder = order.taker === constants.NULL_ADDRESS;
-        const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS); // tslint:disable-line:boolean-naming
-        const isFeeTypeAllowed =
-            this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.NoFees) &&
-            order.takerTokenFeeAmount.eq(constants.ZERO_AMOUNT);
-        return isOpenOrder && !willOrderExpire && isFeeTypeAllowed;
-    }; // tslint:disable-line:semicolon
-
     /**
-     * General function for getting swap quote, conditionally uses different logic per specified marketOperation
+     * Get a `SwapQuote` containing all information relevant to fulfilling a swap between a desired ERC20 token address and ERC20 owned by a provided address.
+     * You can then pass the `SwapQuote` to a `SwapQuoteConsumer` to execute a buy, or process SwapQuote for on-chain consumption.
+     * @param   makerToken       The address of the maker asset
+     * @param   takerToken       The address of the taker asset
+     * @param   assetFillAmount  If a buy, the amount of maker asset to buy. If a sell, the amount of taker asset to sell.
+     * @param   marketOperation  Either a Buy or a Sell quote
+     * @param   options          Options for the request. See type definition for more information.
+     *
+     * @return  An object that conforms to SwapQuote that satisfies the request. See type definition for more information.
      */
-    private async _getSwapQuoteAsync(
+    public async getSwapQuoteAsync(
         makerToken: string,
         takerToken: string,
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         options: Partial<SwapQuoteRequestOpts>,
     ): Promise<SwapQuote> {
+        assert.isETHAddressHex('makerToken', makerToken);
+        assert.isETHAddressHex('takerToken', takerToken);
+        assert.isBigNumber('assetFillAmount', assetFillAmount);
         const opts = _.merge({}, constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, options);
         let gasPrice: BigNumber;
         if (!!opts.gasPrice) {
@@ -397,9 +321,7 @@ export class SwapQuoter {
             (opts.rfqt && opts.rfqt.nativeExclusivelyRFQT === true);
         const nativeOrders = shouldSkipOpenOrderbook
             ? await Promise.resolve([])
-            : await this.orderbook
-                  .getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn)
-                  .then(orders => orders.map(formatSignedLimitOrder));
+            : await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
 
         // if no native orders, pass in a dummy order for the sampler to have required metadata for sampling
         if (nativeOrders.length === 0) {
@@ -453,6 +375,16 @@ export class SwapQuoter {
 
         return swapQuote;
     }
+
+    private readonly _limitOrderPruningFn = (limitOrder: SignedNativeOrder) => {
+        const order = new LimitOrder(limitOrder.order);
+        const isOpenOrder = order.taker === constants.NULL_ADDRESS;
+        const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS); // tslint:disable-line:boolean-naming
+        const isFeeTypeAllowed =
+            this.permittedOrderFeeTypes.has(OrderPrunerPermittedFeeTypes.NoFees) &&
+            order.takerTokenFeeAmount.eq(constants.ZERO_AMOUNT);
+        return isOpenOrder && !willOrderExpire && isFeeTypeAllowed;
+    }; // tslint:disable-line:semicolon
 
     private _isApiKeyWhitelisted(apiKey: string | undefined): boolean {
         if (!apiKey) {
@@ -662,7 +594,7 @@ function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
     };
 }
 
-function createDummyOrder(makerToken: string, takerToken: string): SignedOrder<LimitOrderFields> {
+function createDummyOrder(makerToken: string, takerToken: string): SignedNativeOrder {
     return {
         type: FillQuoteTransformerOrderType.Limit,
         order: {

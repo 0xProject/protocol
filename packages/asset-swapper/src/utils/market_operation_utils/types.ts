@@ -2,15 +2,12 @@ import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerRfqOrderInfo,
-    LimitOrderFields,
-    RfqOrderFields,
-    Signature,
 } from '@0x/protocol-utils';
 import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { NativeOrderFillableAmountFields, RfqtFirmQuoteValidator, RfqtRequestOpts } from '../../types';
+import { NativeOrderWithFillableAmounts, RfqtFirmQuoteValidator, RfqtRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
@@ -93,10 +90,18 @@ export interface SnowSwapInfo extends CurveInfo {}
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
 
-// `FillData` for native fills.
+// `FillData` for native fills. Represents a single native order
 export type NativeRfqOrderFillData = FillQuoteTransformerRfqOrderInfo;
 export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo;
 export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData;
+
+// Represents an individual DEX sample from the sampler contract
+export interface DexSample<TFillData extends FillData = FillData> {
+    source: ERC20BridgeSource;
+    fillData: TFillData;
+    input: BigNumber;
+    output: BigNumber;
+}
 export interface CurveFillData extends FillData {
     fromTokenIdx: number;
     toTokenIdx: number;
@@ -153,31 +158,14 @@ export interface DODOFillData extends FillData {
     poolAddress: string;
     isSellBase: boolean;
 }
-
-export interface Quote<TFillData = FillData> {
-    amount: BigNumber;
-    fillData: TFillData;
-}
-
-export interface HopInfo {
-    sourceIndex: BigNumber;
-    returnData: string;
-}
-
 export interface MultiHopFillData extends FillData {
     firstHopSource: SourceQuoteOperation;
     secondHopSource: SourceQuoteOperation;
     intermediateToken: string;
 }
-
-/**
- * Represents an individual DEX sample from the sampler contract.
- */
-export interface DexSample<TFillData extends FillData = FillData> {
-    source: ERC20BridgeSource;
-    fillData: TFillData;
-    input: BigNumber;
-    output: BigNumber;
+export interface HopInfo {
+    sourceIndex: BigNumber;
+    returnData: string;
 }
 
 /**
@@ -238,16 +226,6 @@ export interface CollapsedFill<TFillData extends FillData = FillData> {
  * A `CollapsedFill` wrapping a native order.
  */
 export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
-
-export interface SignedOrder<T> {
-    order: T;
-    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
-    signature: Signature;
-}
-
-export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
-
-export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
 
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;

@@ -8,12 +8,12 @@ import _ = require('lodash');
 import 'mocha';
 
 import { constants } from '../src/constants';
-import { MarketOperation, MockedRfqtFirmQuoteResponse, MockedRfqtIndicativeQuoteResponse } from '../src/types';
+import { MarketOperation, MockedRfqtQuoteResponse } from '../src/types';
 import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor, quoteRequestorHttpClient } from '../src/utils/quote_requestor';
-import { rfqtMocker } from '../src/utils/rfqt_mocker';
 
 import { chaiSetup } from './utils/chai_setup';
+import { RfqtQuoteEndpoint, testHelpers } from './utils/test_helpers';
 
 chaiSetup.configure();
 const expect = chai.expect;
@@ -36,7 +36,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtFirmQuoteResponse[] = [];
+            const mockedRequests: MockedRfqtQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -137,8 +137,9 @@ describe('QuoteRequestor', async () => {
                 type: FillQuoteTransformerOrderType.Rfq,
             };
 
-            return rfqtMocker.withMockedRfqtFirmQuotes(
+            return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                RfqtQuoteEndpoint.Firm,
                 async () => {
                     const qr = new QuoteRequestor({
                         'https://1337.0.0.1': [[makerToken, takerToken]],
@@ -190,7 +191,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtIndicativeQuoteResponse[] = [];
+            const mockedRequests: MockedRfqtQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -252,8 +253,9 @@ describe('QuoteRequestor', async () => {
                 responseData: successfulQuote1,
             });
 
-            return rfqtMocker.withMockedRfqtIndicativeQuotes(
+            return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                RfqtQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor({
                         'https://1337.0.0.1': [[makerToken, takerToken]],
@@ -288,7 +290,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtIndicativeQuoteResponse[] = [];
+            const mockedRequests: MockedRfqtQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -314,8 +316,9 @@ describe('QuoteRequestor', async () => {
                 responseCode: StatusCodes.Success,
             });
 
-            return rfqtMocker.withMockedRfqtIndicativeQuotes(
+            return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                RfqtQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] });
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(

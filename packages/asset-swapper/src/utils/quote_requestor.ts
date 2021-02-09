@@ -3,16 +3,14 @@ import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
-import { profile } from 'console';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
 import { constants } from '../constants';
-import { AltRfqtMakerAssetOfferings, LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts, TypedMakerUrl } from '../types';
+import { AltRfqtMakerAssetOfferings, LogFunction, MarketOperation, RfqtMakerAssetOfferings, RfqtRequestOpts, SignedNativeOrder, TypedMakerUrl } from '../types';
 
 import { returnQuoteFromAltMMAsync } from './alt_mm_implementation_utils';
 import { ONE_SECOND_MS } from './market_operation_utils/constants';
-import { SignedNativeOrder } from './market_operation_utils/types';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
 
 // tslint:disable-next-line: custom-no-magic-numbers
@@ -76,7 +74,7 @@ function nativeDataToId(data: { signature: Signature }): string {
 
 export class QuoteRequestor {
     private readonly _schemaValidator: SchemaValidator = new SchemaValidator();
-    private readonly _orderSignatureToMakerUri: { [hash: string]: string } = {};
+    private readonly _orderSignatureToMakerUri: { [signature: string]: string } = {};
 
     public static makeQueryParameters(
         txOrigin: string,
@@ -281,33 +279,39 @@ export class QuoteRequestor {
      * Given an order signature, returns the makerUri that the order originated from
      */
     public getMakerUriForSignature(signature: Signature): string | undefined {
-        return this._orderSignatureToMakerUri[signature.toString()]; // todo (xianny): hack
+        return this._orderSignatureToMakerUri[nativeDataToId({ signature })];
     }
 
     private _isValidRfqtIndicativeQuoteResponse(response: V4RFQIndicativeQuote): boolean {
-        // TODO (jacob): I have a feeling checking 5 schemas is slower then checking one
-        const hasValidMakerAssetAmount =
-            response.makerAmount !== undefined &&
-            this._schemaValidator.isValid(response.makerAmount, schemas.wholeNumberSchema);
-        const hasValidTakerAssetAmount =
-            response.takerAmount !== undefined &&
-            this._schemaValidator.isValid(response.takerAmount, schemas.wholeNumberSchema);
-        const hasValidMakerToken =
-            response.makerToken !== undefined && this._schemaValidator.isValid(response.makerToken, schemas.hexSchema);
-        const hasValidTakerToken =
-            response.takerToken !== undefined && this._schemaValidator.isValid(response.takerToken, schemas.hexSchema);
-        const hasValidExpirationTimeSeconds =
-            response.expiry !== undefined && this._schemaValidator.isValid(response.expiry, schemas.wholeNumberSchema);
-        if (
-            hasValidMakerAssetAmount &&
-            hasValidTakerAssetAmount &&
-            hasValidMakerToken &&
-            hasValidTakerToken &&
-            hasValidExpirationTimeSeconds
-        ) {
-            return true;
+        const requiredKeys: Array<keyof V4RFQIndicativeQuote> = [
+            'makerAmount',
+            'takerAmount',
+            'makerToken',
+            'takerToken',
+            'expiry',
+        ];
+
+        for (const k of requiredKeys) {
+            if (response[k] === undefined) {
+                return false;
+            }
         }
-        return false;
+        // TODO (jacob): I have a feeling checking 5 schemas is slower then checking one
+        const hasValidMakerAssetAmount = this._schemaValidator.isValid(response.makerAmount, schemas.wholeNumberSchema);
+        const hasValidTakerAssetAmount = this._schemaValidator.isValid(response.takerAmount, schemas.wholeNumberSchema);
+        const hasValidMakerToken = this._schemaValidator.isValid(response.makerToken, schemas.hexSchema);
+        const hasValidTakerToken = this._schemaValidator.isValid(response.takerToken, schemas.hexSchema);
+        const hasValidExpirationTimeSeconds = this._schemaValidator.isValid(response.expiry, schemas.wholeNumberSchema);
+        if (
+            !hasValidMakerAssetAmount ||
+            !hasValidTakerAssetAmount ||
+            !hasValidMakerToken ||
+            !hasValidTakerToken ||
+            !hasValidExpirationTimeSeconds
+        ) {
+            return false;
+        }
+        return true;
     }
 
     private _makerSupportsPair(typedMakerUrl: TypedMakerUrl, makerToken: string, takerToken: string, altMakerAssetOfferings: AltRfqtMakerAssetOfferings | undefined): boolean {
