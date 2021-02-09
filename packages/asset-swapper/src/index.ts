@@ -78,6 +78,7 @@ export {
     AltOffering,
     AltRfqtMakerAssetOfferings,
     AffiliateFeeAmount,
+    AffiliateFeeType,
     AssetSwapperContractAddresses,
     CalldataInfo,
     ExchangeProxyContractOpts,
