@@ -96,7 +96,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: MarketBuySwapQuote | MarketSellSwapQuote,
         opts: Partial<SwapQuoteGetOutputOpts> = {},
     ): Promise<CalldataInfo> {
-        // assert.isValidSwapQuote('quote', quote);
         const optsWithDefaults: ExchangeProxyContractOpts = {
             ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
             ...opts.extensionContractOpts,

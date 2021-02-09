@@ -198,7 +198,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([MAINNET_MSTABLE_ROUTER]);
             break;
         default:
-            // TODO PLP
             throw new Error(AggregationError.NoBridgeForSource);
     }
     return bridgeData;
