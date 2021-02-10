@@ -6,7 +6,8 @@
                 "note": "Deploy new FQT",
                 "pr": 129
             }
-        ]
+        ],
+        "timestamp": 1612950500
     },
     {
         "version": "5.9.0",

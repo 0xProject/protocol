@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.2.0 - _February 10, 2021_
+
+    * Update transformer utils for V4 FQT (#104)
+
 ## v1.1.5 - _January 26, 2021_
 
     * Use `Web3Wrapper.signTypedDataAsync()` instead of removed `Web3Wrapper.signTypedDataV4Async()` (#124)

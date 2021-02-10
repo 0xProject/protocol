@@ -6,7 +6,8 @@
                 "note": "Update FQT for v4 native orders",
                 "pr": 104
             }
-        ]
+        ],
+        "timestamp": 1612950500
     },
     {
         "version": "0.18.1",

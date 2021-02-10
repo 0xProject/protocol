@@ -22,7 +22,8 @@
                 "note": "Support `tx.origin` in RFQT quote requestor",
                 "pr": 113
             }
-        ]
+        ],
+        "timestamp": 1612950500
     },
     {
         "version": "5.8.2",

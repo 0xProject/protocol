@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.18.2 - _February 10, 2021_
+
+    * Update FQT for v4 native orders (#104)
+
 ## v0.18.1 - _January 26, 2021_
 
     * Swallow reverts in `batchGetLimitOrderRelevantStates()` and `batchGetRfqOrderRelevantStates()` (#117)

@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.0.0 - _February 10, 2021_
+
+    * Pull top 250 Balancer pairs on initialization (#113)
+    * Support v4 `RFQ` and `Limit` orders (#113)
+    * Refactor to consume latest `FillQuoteTransformer` (#113)
+    * Enable `fillData` for all sources, no longer optional (#113)
+    * Support `tx.origin` in RFQT quote requestor (#113)
+
 ## v5.8.2 - _January 28, 2021_
 
     * Fix error when Multihop data is not present (#80)

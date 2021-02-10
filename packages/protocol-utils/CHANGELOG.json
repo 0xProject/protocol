@@ -6,7 +6,8 @@
                 "note": "Update transformer utils for V4 FQT",
                 "pr": 104
             }
-        ]
+        ],
+        "timestamp": 1612950500
     },
     {
         "version": "1.1.5",

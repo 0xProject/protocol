@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.6.0 - _February 10, 2021_
+
+    * Update `BridgeAdapter` deployment (#104)
+
 ## v6.5.11 - _January 26, 2021_
 
     * Set BOTH networkId and chainId to 1337 in dockerfile (#118)

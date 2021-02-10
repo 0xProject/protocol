@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.10.0 - _February 10, 2021_
+
+    * Deploy new FQT (#129)
+
 ## v5.9.0 - _January 13, 2021_
 
     * Redeploy LiquidityProviderSandbox (#107)
