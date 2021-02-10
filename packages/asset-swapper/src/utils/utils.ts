@@ -66,35 +66,35 @@ const EMPTY_FILLABLE_AMOUNTS: NativeOrderFillableAmountFields = {
 
 export function getNativeAdjustedFillableAmountsFromTakerAmount(
     order: SignedNativeOrder,
-    takerFillAmount: BigNumber,
+    takerFillableAmount: BigNumber,
 ): NativeOrderFillableAmountFields {
-    if (takerFillAmount.isZero()) {
+    if (takerFillableAmount.isZero()) {
         return EMPTY_FILLABLE_AMOUNTS;
     }
     return {
-        fillableTakerAmount: takerFillAmount,
-        fillableMakerAmount: getNativeAdjustedMakerFillAmount(order.order, takerFillAmount),
+        fillableTakerAmount: takerFillableAmount,
+        fillableMakerAmount: getNativeAdjustedMakerFillAmount(order.order, takerFillableAmount),
         fillableTakerFeeAmount:
             order.type === FillQuoteTransformerOrderType.Limit
-                ? getNativeAdjustedTakerFeeAmount(order.order as LimitOrderFields, takerFillAmount)
+                ? getNativeAdjustedTakerFeeAmount(order.order as LimitOrderFields, takerFillableAmount)
                 : ZERO_AMOUNT,
     };
 }
 
 export function getNativeAdjustedFillableAmountsFromMakerAmount(
     order: SignedNativeOrder,
-    makerFillAmount: BigNumber,
+    makerFillableAmount: BigNumber,
 ): NativeOrderFillableAmountFields {
-    if (makerFillAmount.isZero()) {
+    if (makerFillableAmount.isZero()) {
         return EMPTY_FILLABLE_AMOUNTS;
     }
-    const fillableTakerAmount = getNativeAdjustedTakerFillAmount(order.order, makerFillAmount);
+    const takerFillableAmount = getNativeAdjustedTakerFillAmount(order.order, makerFillableAmount);
     return {
-        fillableMakerAmount: makerFillAmount,
-        fillableTakerAmount,
+        fillableMakerAmount: makerFillableAmount,
+        fillableTakerAmount: takerFillableAmount,
         fillableTakerFeeAmount:
             order.type === FillQuoteTransformerOrderType.Limit
-                ? getNativeAdjustedTakerFeeAmount(order.order as LimitOrderFields, fillableTakerAmount)
+                ? getNativeAdjustedTakerFeeAmount(order.order as LimitOrderFields, takerFillableAmount)
                 : ZERO_AMOUNT,
     };
 }

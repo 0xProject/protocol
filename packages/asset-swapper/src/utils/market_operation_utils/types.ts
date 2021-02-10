@@ -174,6 +174,7 @@ export interface HopInfo {
 export interface Fill<TFillData extends FillData = FillData> {
     // basic data for every fill
     source: ERC20BridgeSource;
+    // TODO jacob people seem to agree  that orderType here is more readable
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
     fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.

@@ -37,7 +37,6 @@ export interface SignedOrder<T> {
 
 export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
 export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
-export type OrderWithFillableAmounts = CommonOrderFields & NativeOrderFillableAmountFields;
 
 /**
  * fillableMakerAmount: Amount of makerAsset that is fillable

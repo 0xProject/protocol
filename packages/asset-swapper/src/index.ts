@@ -88,7 +88,6 @@ export {
     MarketSellSwapQuote,
     MockedRfqtQuoteResponse,
     OrderPrunerPermittedFeeTypes,
-    OrderWithFillableAmounts,
     RfqtMakerAssetOfferings,
     RfqtFirmQuoteValidator,
     RfqtRequestOpts,
