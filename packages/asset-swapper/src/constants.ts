@@ -4,13 +4,10 @@ import { BigNumber, logUtils } from '@0x/utils';
 
 import {
     ExchangeProxyContractOpts,
-    ExtensionContractType,
-    ForwarderExtensionContractOpts,
     LogFunction,
     OrderPrunerOpts,
     OrderPrunerPermittedFeeTypes,
     RfqtRequestOpts,
-    SwapQuoteExecutionOpts,
     SwapQuoteGetOutputOpts,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -53,16 +50,6 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     },
 };
 
-const DEFAULT_FORWARDER_EXTENSION_CONTRACT_OPTS: ForwarderExtensionContractOpts = {
-    feePercentage: 0,
-    feeRecipient: NULL_ADDRESS,
-};
-
-const DEFAULT_FORWARDER_SWAP_QUOTE_GET_OPTS: SwapQuoteGetOutputOpts = {
-    useExtensionContract: ExtensionContractType.Forwarder,
-    extensionContractOpts: DEFAULT_FORWARDER_EXTENSION_CONTRACT_OPTS,
-};
-
 const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts = {
     isFromETH: false,
     isToETH: false,
@@ -76,10 +63,7 @@ const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts 
     shouldSellEntireBalance: false,
 };
 
-const DEFAULT_FORWARDER_SWAP_QUOTE_EXECUTE_OPTS: SwapQuoteExecutionOpts = DEFAULT_FORWARDER_SWAP_QUOTE_GET_OPTS;
-
 const DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS: SwapQuoteGetOutputOpts = {
-    useExtensionContract: ExtensionContractType.ExchangeProxy,
     extensionContractOpts: DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
 };
 
@@ -118,8 +102,6 @@ export const constants = {
     ONE_MINUTE_MS,
     DEFAULT_SWAP_QUOTER_OPTS,
     DEFAULT_INTERMEDIATE_TOKENS,
-    DEFAULT_FORWARDER_SWAP_QUOTE_GET_OPTS,
-    DEFAULT_FORWARDER_SWAP_QUOTE_EXECUTE_OPTS,
     DEFAULT_SWAP_QUOTE_REQUEST_OPTS,
     DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS,
     DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,

@@ -79,8 +79,6 @@ export {
     CalldataInfo,
     ExchangeProxyContractOpts,
     ExchangeProxyRefundReceiver,
-    ExtensionContractType,
-    ForwarderExtensionContractOpts,
     GetExtensionContractTypeOpts,
     LogFunction,
     MarketBuySwapQuote,
@@ -168,3 +166,5 @@ export { ERC20BridgeSamplerContract, BalanceCheckerContract } from './wrappers';
 import { ERC20BridgeSource } from './utils/market_operation_utils/types';
 export type Native = ERC20BridgeSource.Native;
 export type MultiHop = ERC20BridgeSource.MultiHop;
+
+export { rfqtMocker, RfqtQuoteEndpoint } from './utils/rfqt_mocker';

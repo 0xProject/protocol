@@ -63,15 +63,6 @@ export interface CalldataInfo {
 }
 
 /**
- * Represents the varying smart contracts that can consume a valid swap quote
- */
-export enum ExtensionContractType {
-    None = 'NONE',
-    Forwarder = 'FORWARDER',
-    ExchangeProxy = 'EXCHANGE_PROXY',
-}
-
-/**
  * Interface that varying SwapQuoteConsumers adhere to (exchange consumer, router consumer, forwarder consumer, coordinator consumer)
  * getCalldataOrThrow: Get CalldataInfo to swap for tokens with provided SwapQuote. Throws if invalid SwapQuote is provided.
  * executeSwapQuoteOrThrowAsync: Executes a web3 transaction to swap for tokens with provided SwapQuote. Throws if invalid SwapQuote is provided.
@@ -93,8 +84,7 @@ export interface SwapQuoteConsumerOpts {
  * Represents the options provided to a generic SwapQuoteConsumer
  */
 export interface SwapQuoteGetOutputOpts {
-    useExtensionContract: ExtensionContractType;
-    extensionContractOpts?: ForwarderExtensionContractOpts | ExchangeProxyContractOpts | any;
+    extensionContractOpts?: ExchangeProxyContractOpts | any;
 }
 
 /**
@@ -106,15 +96,6 @@ export interface SwapQuoteExecutionOpts extends SwapQuoteGetOutputOpts {
     ethAmount?: BigNumber;
     takerAddress?: string;
     gasLimit?: number;
-}
-
-/**
- * feePercentage: percentage (up to 5%) of the taker asset paid to feeRecipient
- * feeRecipient: address of the receiver of the feePercentage of taker asset
- */
-export interface ForwarderExtensionContractOpts {
-    feePercentage: number;
-    feeRecipient: string;
 }
 
 export interface AffiliateFee {
