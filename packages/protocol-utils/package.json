@@ -1,6 +1,6 @@
 {
     "name": "@0x/protocol-utils",
-    "version": "1.1.5",
+    "version": "1.2.0",
     "engines": {
         "node": ">=6.12"
     },
@@ -62,8 +62,8 @@
     },
     "dependencies": {
         "@0x/assert": "^3.0.21",
-        "@0x/contract-addresses": "^5.9.0",
-        "@0x/contract-wrappers": "^13.12.2",
+        "@0x/contract-addresses": "^5.10.0",
+        "@0x/contract-wrappers": "^13.12.3",
         "@0x/json-schemas": "^5.4.1",
         "@0x/subproviders": "^6.4.1",
         "@0x/utils": "^6.2.0",
