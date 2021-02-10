@@ -1,7 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
 import {
-    CommonOrderFields,
     FillQuoteTransformerOrderType,
     LimitOrderFields,
     RfqOrder,
