@@ -42,7 +42,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
     ...DEFAULT_ORDER_PRUNER_OPTS,
-    samplerGasLimit: 250e6,
+    samplerGasLimit: 500e6,
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     rfqt: {
         takerApiKeyWhitelist: [],

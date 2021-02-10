@@ -178,7 +178,9 @@ export class MarketOperationUtils {
         ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
-        const twoHopQuotes = rawTwoHopQuotes.filter(q => q && q.fillData && q.fillData.firstHopSource);
+        const twoHopQuotes = rawTwoHopQuotes.filter(
+            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+        );
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
 
@@ -302,7 +304,9 @@ export class MarketOperationUtils {
         ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
-        const twoHopQuotes = rawTwoHopQuotes.filter(q => q && q.fillData && q.fillData.firstHopSource);
+        const twoHopQuotes = rawTwoHopQuotes.filter(
+            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+        );
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         const isRfqSupported = !isTxOriginContract;
