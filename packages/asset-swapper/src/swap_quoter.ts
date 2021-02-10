@@ -88,7 +88,7 @@ export class SwapQuoter {
             rfqt,
             tokenAdjacencyGraph,
             liquidityProviderRegistry,
-        } = { ...constants.DEFAULT_SWAP_QUOTER_OPTS, ...options };
+        } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
         assert.isNumber('chainId', chainId);

@@ -80,7 +80,8 @@ export const DEFAULT_INFO_LOGGER: LogFunction = (obj, msg) =>
 export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
     logUtils.warn(`${msg ? `${msg}: ` : ''}${JSON.stringify(obj)}`);
 
-export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: NULL_BYTES, s: NULL_BYTES };
+const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: EMPTY_BYTES32, s: EMPTY_BYTES32 };
 
 export {
     BRIDGE_ADDRESSES_BY_CHAIN,
@@ -113,4 +114,5 @@ export const constants = {
     BRIDGE_ASSET_DATA_PREFIX: '0xdc1600f3',
     DEFAULT_INFO_LOGGER,
     DEFAULT_WARNING_LOGGER,
+    EMPTY_BYTES32,
 };

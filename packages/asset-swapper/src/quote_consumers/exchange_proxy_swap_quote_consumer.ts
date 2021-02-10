@@ -179,6 +179,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
+        // If it's two hop we have an intermediate token this is needed to encode the individual FQT
+        // and we also want to ensure no dust amount is left in the flash wallet
         const intermediateToken = quote.isTwoHop ? quote.orders[0].makerToken : NULL_ADDRESS;
         // This transformer will fill the quote.
         if (quote.isTwoHop) {
