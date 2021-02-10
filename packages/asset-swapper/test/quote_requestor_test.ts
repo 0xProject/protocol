@@ -38,7 +38,7 @@ describe.only('QuoteRequestor', async () => {
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
     const altRfqtAssetOfferings: AltRfqtMakerAssetOfferings = {
-        'https://coolmarketmaker1.com': [
+        'https://132.0.0.1': [
             {
                 baseAsset: makerToken,
                 quoteAsset: takerToken,
@@ -94,15 +94,15 @@ describe.only('QuoteRequestor', async () => {
             // 10 units at 3 decimals
             const altRequestData = {
                 market: 'XYZ-123',
-                model: AltQuoteModel.Indicative,
-                profile: 'zeroex',
+                model: AltQuoteModel.Firm,
+                profile: ALT_PROFILE,
                 side: AltQuoteSide.Buy,
-                value: '10',
                 meta: {
-                    taker: takerAddress,
                     txOrigin,
+                    taker: takerAddress,
                     client: apiKey,
                 },
+                value: '10',
             };
             const altFirmResponse = {
                 ...altRequestData,
@@ -174,7 +174,7 @@ describe.only('QuoteRequestor', async () => {
             });
             // A successful response code and order from an alt RFQ implementation
             altMockedRequests.push({
-                endpoint: 'https://coolmarketmaker1.com',
+                endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
                 responseCode: StatusCodes.Success,
                 requestData: altRequestData,

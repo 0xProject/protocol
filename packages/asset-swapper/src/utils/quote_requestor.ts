@@ -3,7 +3,6 @@ import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
-import { profile } from 'console';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
