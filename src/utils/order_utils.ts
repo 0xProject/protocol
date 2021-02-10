@@ -1,7 +1,7 @@
-import { APIOrder, OrderConfigRequest, OrderConfigResponse } from '@0x/connect';
-import { OrderEventEndState } from '@0x/mesh-rpc-client';
+import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { assetDataUtils } from '@0x/order-utils';
 import {
+    APIOrder,
     Asset,
     AssetData,
     AssetPairsItem,
@@ -11,6 +11,8 @@ import {
     ERC20BridgeAssetData,
     ERC721AssetData,
     MultiAssetData,
+    OrderConfigRequest,
+    OrderConfigResponse,
     SignedOrder,
     StaticCallAssetData,
 } from '@0x/types';

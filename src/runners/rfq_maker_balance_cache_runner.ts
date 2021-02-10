@@ -9,7 +9,7 @@ import { Gauge, Summary } from 'prom-client';
 import { Connection } from 'typeorm';
 
 import * as defaultConfig from '../config';
-import { METRICS_PATH, ONE_SECOND_MS, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from '../constants';
+import { METRICS_PATH, ONE_SECOND_MS, RFQ_ALLOWANCE_TARGET, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { MakerBalanceChainCacheEntity } from '../entities';
 import { logger } from '../logger';
@@ -217,7 +217,7 @@ async function getErc20BalancesAsync(
                 : {};
 
             return balanceCheckerContractInterface
-                .balances(addressesChunk!, tokensChunk!)
+                .getMinOfBalancesOrAllowances(addressesChunk!, tokensChunk!, RFQ_ALLOWANCE_TARGET)
                 .callAsync(txOpts, BlockParamLiteral.Latest);
         }),
     );

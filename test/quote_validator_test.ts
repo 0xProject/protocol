@@ -1,49 +1,42 @@
 // tslint:disable:custom-no-magic-numbers
-import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
-import { SignedOrder } from '@0x/connect';
+import { RfqOrderFields } from '@0x/asset-swapper';
 import { expect, randomAddress } from '@0x/contracts-test-utils';
 import { Web3Wrapper } from '@0x/dev-utils';
-import { assetDataUtils } from '@0x/order-utils';
-import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
 import 'mocha';
 import { Connection, Repository } from 'typeorm';
 
-import { ONE_MINUTE_MS } from '../src/constants';
+import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../src/constants';
 import { MakerBalanceChainCacheEntity } from '../src/entities/MakerBalanceChainCacheEntity';
 import { PostgresRfqtFirmQuoteValidator } from '../src/services/postgres_rfqt_firm_quote_validator';
 
 import { getTestDBConnectionAsync } from './utils/db_connection';
 import { setupDependenciesAsync } from './utils/deployment';
 
-const SUITE_NAME = 'QuoteValidatorTest';
+const SUITE_NAME = 'PostgresRfqtFirmQuoteValidator';
 let connection: Connection;
 let chainCacheRepository: Repository<MakerBalanceChainCacheEntity>;
 
-const createOrder = (
-    makerAddress: string,
+const createRfqOrder = (
+    maker: string,
     makerToken: string,
     takerToken: string,
-    makerAssetAmount: BigNumber,
-    takerAssetAmount: BigNumber,
-): SignedOrder => {
+    makerAmount: BigNumber,
+    takerAmount: BigNumber,
+): RfqOrderFields => {
     return {
+        makerToken,
+        takerToken,
         chainId: 1337,
-        exchangeAddress: randomAddress(),
-        makerAddress,
-        takerAddress: randomAddress(),
-        senderAddress: randomAddress(),
-        feeRecipientAddress: randomAddress(),
-        makerAssetAmount,
-        takerAssetAmount,
-        makerFee: new BigNumber(0),
-        takerFee: new BigNumber(0),
-        makerAssetData: assetDataUtils.encodeERC20AssetData(makerToken),
-        takerAssetData: assetDataUtils.encodeERC20AssetData(takerToken),
-        makerFeeAssetData: NULL_ADDRESS,
-        takerFeeAssetData: NULL_ADDRESS,
+        verifyingContract: randomAddress(),
+        maker,
+        taker: NULL_ADDRESS,
+        txOrigin: NULL_ADDRESS,
+        pool: NULL_BYTES,
+        makerAmount,
+        takerAmount,
         salt: new BigNumber(100),
-        expirationTimeSeconds: new BigNumber(100),
-        signature: '',
+        expiry: new BigNumber(100),
     };
 };
 
@@ -73,7 +66,7 @@ describe(SUITE_NAME, () => {
             const beforefilter = await chainCacheRepository.count();
             expect(beforefilter).to.eql(0);
             const orders = [800, 801, 802].map(takerAmount => {
-                return createOrder(
+                return createRfqOrder(
                     MAKER1_ADDRESS,
                     DAI_TOKEN,
                     USDC_TOKEN,
@@ -98,7 +91,7 @@ describe(SUITE_NAME, () => {
                 timeOfSample: 'NOW()',
             });
 
-            const orderToValidate = createOrder(
+            const orderToValidate = createRfqOrder(
                 MAKER1_ADDRESS,
                 DAI_TOKEN,
                 USDC_TOKEN,
@@ -133,7 +126,7 @@ describe(SUITE_NAME, () => {
             });
 
             const orders = [MAKER1_ADDRESS, MAKER2_ADDRESS, MAKER3_ADDRESS].map(makerAddress => {
-                return createOrder(
+                return createRfqOrder(
                     makerAddress,
                     DAI_TOKEN,
                     USDC_TOKEN,
@@ -180,7 +173,7 @@ describe(SUITE_NAME, () => {
             });
 
             const orders = [MAKER1_ADDRESS, MAKER2_ADDRESS, MAKER3_ADDRESS, MAKER4_ADDRESS].map(address => {
-                return createOrder(
+                return createRfqOrder(
                     address,
                     DAI_TOKEN,
                     USDC_TOKEN,

@@ -19,7 +19,7 @@ import { MetaTransactionRollingValueLimiter } from '../src/utils/rate-limiters/m
 import { getTestDBConnectionAsync } from './utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
-const SUITE_NAME = 'rate limiter tests';
+const SUITE_NAME = 'Rate Limiter Tests';
 const TEST_API_KEY = 'test-key';
 const TEST_FIRST_TAKER_ADDRESS = 'one';
 const TEST_SECOND_TAKER_ADDRESS = 'two';

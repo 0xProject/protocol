@@ -1,4 +1,4 @@
-import { ERC20BridgeSource, getSwapMinBuyAmount } from '@0x/asset-swapper';
+import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 // tslint:disable-next-line:no-implicit-dependencies
@@ -10,7 +10,7 @@ import { serviceUtils } from '../src/utils/service_utils';
 import { AFFILIATE_DATA_SELECTOR } from './constants';
 import { randomSellQuote } from './utils/mocks';
 
-const SUITE_NAME = 'serviceUtils test';
+const SUITE_NAME = 'serviceUtils';
 
 // tslint:disable:custom-no-magic-numbers
 describe(SUITE_NAME, () => {
@@ -95,7 +95,7 @@ describe(SUITE_NAME, () => {
             };
             const costInfo = serviceUtils.getAffiliateFeeAmounts(randomSellQuote, affiliateFee);
             expect(costInfo).to.deep.equal({
-                buyTokenFeeAmount: getSwapMinBuyAmount(randomSellQuote)
+                buyTokenFeeAmount: randomSellQuote.worstCaseQuoteInfo.makerAmount
                     .times(affiliateFee.buyTokenPercentageFee)
                     .dividedBy(affiliateFee.buyTokenPercentageFee + 1)
                     .integerValue(BigNumber.ROUND_DOWN),

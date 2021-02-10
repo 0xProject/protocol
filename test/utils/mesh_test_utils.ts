@@ -1,13 +1,14 @@
 import { ContractAddresses } from '@0x/contract-addresses';
 import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
 import { constants, OrderFactory } from '@0x/contracts-test-utils';
-import { GetOrdersResponse, ValidationResults, WSClient } from '@0x/mesh-rpc-client';
+import { AddOrdersResults, OrderWithMetadata } from '@0x/mesh-graphql-client';
 import { assetDataUtils } from '@0x/order-utils';
 import { Web3ProviderEngine } from '@0x/subproviders';
 import { Order } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
+import { MeshClient } from '../../src/utils/mesh_client';
 import { CHAIN_ID, CONTRACT_ADDRESSES, MAX_INT, MAX_MINT_AMOUNT } from '../constants';
 
 type Numberish = BigNumber | number | string;
@@ -20,7 +21,7 @@ export class MeshTestUtils {
     protected _makerAddress!: string;
     protected _contractAddresses: ContractAddresses = CONTRACT_ADDRESSES;
     protected _orderFactory!: OrderFactory;
-    protected _meshClient!: WSClient;
+    protected _meshClient!: MeshClient;
     protected _zrxToken!: DummyERC20TokenContract;
     protected _wethToken!: WETH9Contract;
     protected _web3Wrapper: Web3Wrapper;
@@ -28,7 +29,7 @@ export class MeshTestUtils {
     // TODO: This can be extended to allow more types of orders to be created. Some changes
     // that might be desirable are to allow different makers to be used, different assets to
     // be used, etc.
-    public async addOrdersWithPricesAsync(prices: Numberish[]): Promise<ValidationResults> {
+    public async addOrdersWithPricesAsync(prices: Numberish[]): Promise<AddOrdersResults> {
         if (!prices.length) {
             throw new Error('[mesh-utils] Must provide at least one price to `addOrdersAsync`');
         }
@@ -48,19 +49,19 @@ export class MeshTestUtils {
         return validationResults;
     }
 
-    public async addPartialOrdersAsync(orders: Partial<Order>[]): Promise<ValidationResults> {
+    public async addPartialOrdersAsync(orders: Partial<Order>[]): Promise<AddOrdersResults> {
         const signedOrders = await Promise.all(orders.map(order => this._orderFactory.newSignedOrderAsync(order)));
         const validationResults = await this._meshClient.addOrdersAsync(signedOrders);
         await sleepAsync(2);
         return validationResults;
     }
 
-    public async getOrdersAsync(): Promise<GetOrdersResponse> {
+    public async getOrdersAsync(): Promise<{ ordersInfos: OrderWithMetadata[] }> {
         return this._meshClient.getOrdersAsync();
     }
 
     public async setupUtilsAsync(): Promise<void> {
-        this._meshClient = new WSClient('ws://localhost:60557');
+        this._meshClient = new MeshClient('ws://localhost:60557', 'http://localhost:60557');
 
         this._zrxToken = new DummyERC20TokenContract(this._contractAddresses.zrxToken, this._provider);
         this._wethToken = new WETH9Contract(this._contractAddresses.etherToken, this._provider);

@@ -116,6 +116,7 @@ export const marketDepthUtils = {
                 input,
                 output,
                 source: ERC20BridgeSource.Native,
+                fillData: {},
             };
         });
         const normalizedDepth = [

@@ -1,5 +1,5 @@
 import { assert } from '@0x/assert';
-import { ERC20BridgeSource, SwapQuoterError } from '@0x/asset-swapper';
+import { ERC20BridgeSource, Signature, SwapQuoterError } from '@0x/asset-swapper';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
@@ -432,7 +432,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
 
 interface PostTransactionRequestBody {
     mtx: ExchangeProxyMetaTransactionWithoutDomain;
-    signature: string;
+    signature: Signature;
 }
 
 const parsePostTransactionRequestBody = (req: any): PostTransactionRequestBody => {

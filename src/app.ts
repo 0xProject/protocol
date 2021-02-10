@@ -7,8 +7,6 @@ import {
     BRIDGE_ADDRESSES_BY_CHAIN,
     ContractAddresses,
     ERC20BridgeSamplerContract,
-    Orderbook,
-    RfqtFirmQuoteValidator,
     SupportedProvider,
 } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
@@ -22,7 +20,6 @@ import { RFQ_FIRM_QUOTE_CACHE_EXPIRY, SRA_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
 import { MakerBalanceChainCacheEntity } from './entities/MakerBalanceChainCacheEntity';
 import { logger } from './logger';
-import { OrderBookServiceOrderProvider } from './order_book_service_order_provider';
 import { runHttpServiceAsync } from './runners/http_service_runner';
 import { runOrderWatcherServiceAsync } from './runners/order_watcher_service_runner';
 import { MetaTransactionService } from './services/meta_transaction_service';
@@ -39,8 +36,8 @@ import {
     MetaTransactionRollingLimiterConfig,
     WebsocketSRAOpts,
 } from './types';
+import { AssetSwapperOrderbook } from './utils/asset_swapper_orderbook';
 import { MeshClient } from './utils/mesh_client';
-import { OrderStoreDbAdapter } from './utils/order_store_db_adapter';
 import {
     AvailableRateLimiter,
     DatabaseKeysUsedForRateLimiter,
@@ -130,11 +127,11 @@ export async function getDefaultAppDependenciesAsync(
     const stakingDataService = new StakingDataService(connection);
 
     let meshClient: MeshClient | undefined;
-    // hack (xianny): the Mesh client constructor has a fire-and-forget promise so we are unable
-    // to catch initialisation errors. Allow the calling function to skip Mesh initialization by
-    // not providing a websocket URI
-    if (config.meshWebsocketUri !== undefined) {
+    if (config.meshWebsocketUri !== undefined && config.meshHttpUri !== undefined) {
         meshClient = new MeshClient(config.meshWebsocketUri, config.meshHttpUri);
+        // HACK(kimpers): Need to wait for Mesh initialization to finish before we can subscribe to event updates
+        // When the stats request has resolved Mesh is ready to receive subscriptions
+        await meshClient.getStatsAsync();
     } else {
         logger.warn(`Skipping Mesh client creation because no URI provided`);
     }
@@ -158,11 +155,11 @@ export async function getDefaultAppDependenciesAsync(
     let swapService: SwapService | undefined;
     let metaTransactionService: MetaTransactionService | undefined;
     try {
-        swapService = createSwapServiceFromOrderBookService(
-            orderBookService,
-            rfqtFirmQuoteValidator,
+        swapService = new SwapService(
+            new AssetSwapperOrderbook(orderBookService),
             provider,
             contractAddresses,
+            rfqtFirmQuoteValidator,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(
             provider,
@@ -260,21 +257,6 @@ function createMetaTransactionRateLimiterFromConfig(
             return prev.concat(...cur);
         }, []);
     return new MetaTransactionComposableLimiter(configuredRateLimiters);
-}
-
-/**
- * Instantiates SwapService using the provided OrderBookService and ethereum RPC provider.
- */
-export function createSwapServiceFromOrderBookService(
-    orderBookService: OrderBookService,
-    rfqFirmQuoteValidator: RfqtFirmQuoteValidator,
-    provider: SupportedProvider,
-    contractAddresses: AssetSwapperContractAddresses,
-): SwapService {
-    const orderStore = new OrderStoreDbAdapter(orderBookService);
-    const orderProvider = new OrderBookServiceOrderProvider(orderStore, orderBookService);
-    const orderBook = new Orderbook(orderProvider, orderStore);
-    return new SwapService(orderBook, provider, contractAddresses, rfqFirmQuoteValidator);
 }
 
 /**

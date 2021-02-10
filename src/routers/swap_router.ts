@@ -8,12 +8,13 @@ import { SwapService } from '../services/swap_service';
 export function createSwapRouter(swapService: SwapService): express.Router {
     const router = express.Router();
     const handlers = new SwapHandlers(swapService);
-    router.get('', asyncHandler(SwapHandlers.rootAsync.bind(SwapHandlers)));
-    router.get('/tokens', asyncHandler(handlers.getSwapTokensAsync.bind(handlers)));
+    router.get('', asyncHandler(SwapHandlers.root.bind(SwapHandlers)));
+    router.get('/tokens', asyncHandler(SwapHandlers.getTokens.bind(handlers)));
+    router.get('/rfq/registry', asyncHandler(SwapHandlers.getRfqRegistry.bind(handlers)));
     router.get('/prices', asyncHandler(handlers.getTokenPricesAsync.bind(handlers)));
-    router.get('/quote', asyncHandler(handlers.getSwapQuoteAsync.bind(handlers)));
-    router.get('/price', asyncHandler(handlers.getSwapPriceAsync.bind(handlers)));
+    router.get('/quote', asyncHandler(handlers.getQuoteAsync.bind(handlers)));
+    router.get('/price', asyncHandler(handlers.getQuotePriceAsync.bind(handlers)));
     router.get('/depth', asyncHandler(handlers.getMarketDepthAsync.bind(handlers)));
-    router.get('/rfq/registry', asyncHandler(SwapHandlers.getRfqRegistryAsync.bind(handlers)));
+
     return router;
 }

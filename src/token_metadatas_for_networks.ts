@@ -1,4 +1,4 @@
-import { ETH_TOKEN_ADDRESS } from '@0x/order-utils';
+import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
 
 import { NULL_ADDRESS } from './constants';
 import { ChainId } from './types';
@@ -19,26 +19,6 @@ export interface TokenMetadataAndChainAddresses {
 // And https://developer.kyber.network/docs/Environments-Kovan/
 // tslint:disable:max-file-line-count
 export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
-    {
-        symbol: 'DAI',
-        name: 'Dai Stablecoin',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x6b175474e89094c44da98b954eedeac495271d0f',
-            [ChainId.Kovan]: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
-            [ChainId.Ganache]: '0x34d402f14d58e001d8efbe6585051bf9706aa064',
-        },
-    },
-    {
-        symbol: 'REP',
-        name: 'Augur Reputation',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x1985365e9f78359a9B6AD760e32412f4a445E862',
-            [ChainId.Kovan]: '0x4e5cb5a0caca30d1ad27d8cd8200a907854fb518',
-            [ChainId.Ganache]: '0x34d402f14d58e001d8efbe6585051bf9706aa064',
-        },
-    },
     {
         symbol: 'ETH',
         name: 'Ether',
@@ -70,6 +50,16 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
+        symbol: 'DAI',
+        name: 'Dai Stablecoin',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x6b175474e89094c44da98b954eedeac495271d0f',
+            [ChainId.Kovan]: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
+            [ChainId.Ganache]: '0x34d402f14d58e001d8efbe6585051bf9706aa064',
+        },
+    },
+    {
         symbol: 'USDC',
         name: 'USD Coin',
         decimals: 6,
@@ -80,22 +70,12 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
-        symbol: 'BAT',
-        name: 'Basic Attention Token',
-        decimals: 18,
+        decimals: 6,
+        symbol: 'USDT',
+        name: 'Tether USD',
         tokenAddresses: {
-            [ChainId.Mainnet]: '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
-            [ChainId.Kovan]: '0x9f8cfb61d3b2af62864408dd703f9c3beb55dff7',
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
-        symbol: 'MKR',
-        name: 'Maker',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
-            [ChainId.Kovan]: '0xaaf64bfcc32d0f15873a02163e7e500671a4ffcd',
+            [ChainId.Mainnet]: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -106,6 +86,26 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         tokenAddresses: {
             [ChainId.Mainnet]: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
             [ChainId.Kovan]: '0xa0a5ad2296b38bd3e3eb59aaeaf1589e8d9a29a9',
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'UNI',
+        name: 'Uniswap Protocol Governance Token',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'MKR',
+        name: 'Maker',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
+            [ChainId.Kovan]: '0xaaf64bfcc32d0f15873a02163e7e500671a4ffcd',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -121,11 +121,71 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
     },
     {
         decimals: 18,
+        symbol: 'LINK',
+        name: 'Chainlink Token',
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x514910771af9ca656af840dff83e8264ecf986ca',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        decimals: 18,
         symbol: 'SUSD',
         name: 'sUSD',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x57ab1ec28d129707052df4df418d58a2d46d5f51',
             [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        decimals: 18,
+        symbol: 'TUSD',
+        name: 'TrueUSD',
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x0000000000085d4780b73119b644ae5ecd22b376',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'SUSHI',
+        name: 'Sushi',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x6b3595068778dd592e39a122f4f5a5cf09c90fe2',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'AAVE',
+        name: 'Aave',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'YFI',
+        name: 'yearn.finance',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'BAT',
+        name: 'Basic Attention Token',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
+            [ChainId.Kovan]: '0x9f8cfb61d3b2af62864408dd703f9c3beb55dff7',
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
@@ -150,21 +210,31 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
+        symbol: 'BAL',
+        name: 'Balancer',
         decimals: 18,
-        symbol: 'GNO',
-        name: 'Gnosis Token',
         tokenAddresses: {
-            [ChainId.Mainnet]: '0x6810e776880c02933d47db1b9fc05908e5386b96',
+            [ChainId.Mainnet]: '0xba100000625a3754423978a60c9317c58a424e3d',
+            [ChainId.Kovan]: NULL_ADDRESS,
+            [ChainId.Ganache]: NULL_ADDRESS,
+        },
+    },
+    {
+        symbol: 'COMP',
+        name: 'Compound',
+        decimals: 18,
+        tokenAddresses: {
+            [ChainId.Mainnet]: '0xc00e94cb662c3520282e6f5717214004a7f26888',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
     {
         decimals: 18,
-        symbol: 'LINK',
-        name: 'Chainlink Token',
+        symbol: 'GNO',
+        name: 'Gnosis Token',
         tokenAddresses: {
-            [ChainId.Mainnet]: '0x514910771af9ca656af840dff83e8264ecf986ca',
+            [ChainId.Mainnet]: '0x6810e776880c02933d47db1b9fc05908e5386b96',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
@@ -501,16 +571,6 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
     },
     {
         decimals: 18,
-        symbol: 'ICX',
-        name: 'ICON',
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0xb5a5f22694352c15b00323844ad545abb2b11028',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
-        decimals: 18,
         symbol: 'NMR',
         name: 'Numeraire',
         tokenAddresses: {
@@ -545,16 +605,6 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         name: 'PAX Stablecoin',
         tokenAddresses: {
             [ChainId.Mainnet]: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
-        decimals: 18,
-        symbol: 'TUSD',
-        name: 'TrueUSD',
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x0000000000085d4780b73119b644ae5ecd22b376',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
@@ -640,16 +690,6 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
-        decimals: 6,
-        symbol: 'USDT',
-        name: 'Tether USD',
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
         symbol: 'ZWETH',
         name: 'Custom Kovan Wrapped Ether',
         decimals: 18,
@@ -677,16 +717,6 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
             [ChainId.Mainnet]: '0x0000000000b3f879cb30fe243b4dfee438691c04',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: '0xbe0037eaf2d64fe5529bca93c18c9702d3930376',
-        },
-    },
-    {
-        symbol: 'COMP',
-        name: 'Compound',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0xc00e94cb662c3520282e6f5717214004a7f26888',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
         },
     },
     {
@@ -720,41 +750,11 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
-        symbol: 'BAL',
-        name: 'Balancer',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0xba100000625a3754423978a60c9317c58a424e3d',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
         symbol: 'LEND',
         name: 'Aave',
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0x80fb784b7ed66730e8b1dbd9820afd29931aab03',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
-        symbol: 'AAVE',
-        name: 'Aave',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
-        symbol: 'YFI',
-        name: 'yearn.finance',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },
@@ -810,16 +810,6 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         },
     },
     {
-        symbol: 'SUSHI',
-        name: 'Sushi',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x6b3595068778dd592e39a122f4f5a5cf09c90fe2',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
         symbol: 'swUSD',
         name: 'Swerve.fi swUSD',
         decimals: 18,
@@ -845,16 +835,6 @@ export const TokenMetadatasForChains: TokenMetadataAndChainAddresses[] = [
         decimals: 18,
         tokenAddresses: {
             [ChainId.Mainnet]: '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
-            [ChainId.Kovan]: NULL_ADDRESS,
-            [ChainId.Ganache]: NULL_ADDRESS,
-        },
-    },
-    {
-        symbol: 'UNI',
-        name: 'Uniswap Protocol Governance Token',
-        decimals: 18,
-        tokenAddresses: {
-            [ChainId.Mainnet]: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
             [ChainId.Kovan]: NULL_ADDRESS,
             [ChainId.Ganache]: NULL_ADDRESS,
         },

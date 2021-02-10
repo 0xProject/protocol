@@ -11,8 +11,10 @@ const B = (v: number | string) => new BigNumber(v);
 
 // tslint:disable:custom-no-magic-numbers
 
-const SUITE_NAME = 'market depth utils';
+const SUITE_NAME = 'marketDepthUtils';
 describe(SUITE_NAME, () => {
+    const defaultSample = { output: B(10), source: ERC20BridgeSource.Uniswap, fillData: {} as any };
+    const nativeSample = { output: B(10), source: ERC20BridgeSource.Native, fillData: {} as any };
     describe('getBucketPrices', () => {
         it('returns a range from start to end', async () => {
             const start = B('1');
@@ -35,7 +37,6 @@ describe(SUITE_NAME, () => {
     });
     describe('getSampleAmountsFromDepthSide', () => {
         it('plucks out the input sample amounts', async () => {
-            const defaultSample = { output: B(10), source: ERC20BridgeSource.Uniswap };
             const sampleAmounts = marketDepthUtils.getSampleAmountsFromDepthSide([
                 [
                     { ...defaultSample, input: B(1) },
@@ -46,8 +47,6 @@ describe(SUITE_NAME, () => {
             expect(sampleAmounts).to.deep.include(B(2));
         });
         it('ignores Native results if they are present', async () => {
-            const defaultSample = { output: B(10), source: ERC20BridgeSource.Uniswap };
-            const nativeSample = { output: B(10), source: ERC20BridgeSource.Native };
             const sampleAmounts = marketDepthUtils.getSampleAmountsFromDepthSide([
                 [{ ...defaultSample, input: B(1) }],
                 [
@@ -59,7 +58,6 @@ describe(SUITE_NAME, () => {
             expect(sampleAmounts).to.not.deep.include(B(2));
         });
         it('plucks Native results if it has to', async () => {
-            const nativeSample = { output: B(10), source: ERC20BridgeSource.Native };
             const sampleAmounts = marketDepthUtils.getSampleAmountsFromDepthSide([
                 [
                     { ...nativeSample, input: B(1) },
@@ -72,19 +70,19 @@ describe(SUITE_NAME, () => {
     });
     describe('sampleNativeOrders', () => {
         it('can partially fill a sample amount', async () => {
-            const nativePath = [{ input: B(100), output: B(200), source: ERC20BridgeSource.Native }];
+            const nativePath = [{ ...nativeSample, input: B(100), output: B(200) }];
             const output = marketDepthUtils.sampleNativeOrders(nativePath, B(10), MarketOperation.Sell);
             expect(output).to.be.bignumber.eq(B(20));
         });
         it('returns zero if it cannot fully fill the amount', async () => {
-            const nativePath = [{ input: B(100), output: B(200), source: ERC20BridgeSource.Native }];
+            const nativePath = [{ ...nativeSample, input: B(100), output: B(200) }];
             const output = marketDepthUtils.sampleNativeOrders(nativePath, B(101), MarketOperation.Sell);
             expect(output).to.be.bignumber.eq(ZERO);
         });
         it('runs across multiple orders', async () => {
             const nativePath = [
-                { input: B(50), output: B(200), source: ERC20BridgeSource.Native },
-                { input: B(50), output: B(50), source: ERC20BridgeSource.Native },
+                { ...nativeSample, input: B(50), output: B(200) },
+                { ...nativeSample, input: B(50), output: B(50) },
             ];
             const output = marketDepthUtils.sampleNativeOrders(nativePath, B(100), MarketOperation.Sell);
             expect(output).to.be.bignumber.eq(B(250));
@@ -93,12 +91,12 @@ describe(SUITE_NAME, () => {
     describe('normalizeMarketDepthToSampleOutput', () => {
         it('converts raw orders into samples for Native', async () => {
             const nativePath = [
-                { input: B(50), output: B(200), source: ERC20BridgeSource.Native },
-                { input: B(50), output: B(50), source: ERC20BridgeSource.Native },
+                { ...nativeSample, input: B(50), output: B(200) },
+                { ...nativeSample, input: B(50), output: B(50) },
             ];
             const uniPath = [
-                { input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
-                { input: B(2), output: B(20), source: ERC20BridgeSource.Uniswap },
+                { ...defaultSample, input: B(1), output: B(10) },
+                { ...defaultSample, input: B(2), output: B(20) },
             ];
             const results = marketDepthUtils.normalizeMarketDepthToSampleOutput(
                 [uniPath, nativePath],
@@ -106,19 +104,19 @@ describe(SUITE_NAME, () => {
             );
             expect(results).to.deep.include(uniPath);
             expect(results).to.deep.include([
-                { input: B(1), output: B(4), source: ERC20BridgeSource.Native },
-                { input: B(2), output: B(8), source: ERC20BridgeSource.Native },
+                { input: B(1), output: B(4), source: ERC20BridgeSource.Native, fillData: {} },
+                { input: B(2), output: B(8), source: ERC20BridgeSource.Native, fillData: {} },
             ]);
         });
     });
     describe('calculateStartEndBucketPrice', () => {
         const nativePath = [
-            { input: B(1), output: B(4), source: ERC20BridgeSource.Native },
-            { input: B(2), output: B(8), source: ERC20BridgeSource.Native },
+            { ...nativeSample, input: B(1), output: B(4) },
+            { ...nativeSample, input: B(2), output: B(8) },
         ];
         const uniPath = [
-            { input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
-            { input: B(2), output: B(20), source: ERC20BridgeSource.Uniswap },
+            { ...defaultSample, input: B(1), output: B(10) },
+            { ...defaultSample, input: B(2), output: B(20) },
         ];
         describe('sell', () => {
             it('starts at the best (highest) price and ends perc lower', async () => {
@@ -147,12 +145,12 @@ describe(SUITE_NAME, () => {
     });
     describe('distributeSamplesToBuckets', () => {
         const nativePath = [
-            { input: B(1), output: B(4), source: ERC20BridgeSource.Native },
-            { input: B(2), output: B(8), source: ERC20BridgeSource.Native },
+            { ...nativeSample, input: B(1), output: B(4) },
+            { ...nativeSample, input: B(2), output: B(8) },
         ];
         const uniPath = [
-            { input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
-            { input: B(2), output: B(20), source: ERC20BridgeSource.Uniswap },
+            { ...defaultSample, input: B(1), output: B(10) },
+            { ...defaultSample, input: B(2), output: B(20) },
         ];
         describe('sell', () => {
             it('allocates the samples to the right bucket by price', async () => {
@@ -191,7 +189,7 @@ describe(SUITE_NAME, () => {
             });
             it('does not allocate to a bucket if there is none available', async () => {
                 const buckets = [B(10)];
-                const badSource = [{ input: B(1), output: B(5), source: ERC20BridgeSource.Uniswap }];
+                const badSource = [{ ...defaultSample, input: B(1), output: B(5) }];
                 const allocated = marketDepthUtils.distributeSamplesToBuckets(
                     [badSource],
                     buckets,
@@ -236,16 +234,30 @@ describe(SUITE_NAME, () => {
     });
     describe('calculateDepthForSide', () => {
         // Essentially orders not samples
-        const nativePath = [{ input: B(10), output: B(80), source: ERC20BridgeSource.Native }];
+        const nativePath = [{ ...nativeSample, input: B(10), output: B(80) }];
+        // fake Curve pool address because it's used in calculations to assign a unique source
+        const curveFillData = { pool: { poolAddress: '123' } };
         it('calculates prices and allocates into buckets. Partial 0x', async () => {
             const dexPaths = [
                 [
-                    { input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
-                    { input: B(2), output: B(11), source: ERC20BridgeSource.Uniswap },
+                    { ...defaultSample, input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
+                    { ...defaultSample, input: B(2), output: B(11), source: ERC20BridgeSource.Uniswap },
                 ],
                 [
-                    { input: B(1), output: B(0), source: ERC20BridgeSource.Curve },
-                    { input: B(2), output: B(0), source: ERC20BridgeSource.Curve },
+                    {
+                        ...defaultSample,
+                        input: B(1),
+                        output: B(0),
+                        source: ERC20BridgeSource.Curve,
+                        fillData: curveFillData,
+                    },
+                    {
+                        ...defaultSample,
+                        input: B(2),
+                        output: B(0),
+                        source: ERC20BridgeSource.Curve,
+                        fillData: curveFillData,
+                    },
                 ],
             ];
             const result = marketDepthUtils.calculateDepthForSide(
@@ -301,14 +313,32 @@ describe(SUITE_NAME, () => {
         it('calculates prices and allocates into buckets. Partial Uni', async () => {
             const dexPaths = [
                 [
-                    { input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
-                    { input: B(2), output: B(11), source: ERC20BridgeSource.Uniswap },
-                    { input: B(10), output: B(0), source: ERC20BridgeSource.Uniswap },
+                    { ...defaultSample, input: B(1), output: B(10), source: ERC20BridgeSource.Uniswap },
+                    { ...defaultSample, input: B(2), output: B(11), source: ERC20BridgeSource.Uniswap },
+                    { ...defaultSample, input: B(10), output: B(0), source: ERC20BridgeSource.Uniswap },
                 ],
                 [
-                    { input: B(1), output: B(0), source: ERC20BridgeSource.Curve },
-                    { input: B(2), output: B(0), source: ERC20BridgeSource.Curve },
-                    { input: B(10), output: B(0), source: ERC20BridgeSource.Curve },
+                    {
+                        ...defaultSample,
+                        input: B(1),
+                        output: B(0),
+                        source: ERC20BridgeSource.Curve,
+                        fillData: curveFillData,
+                    },
+                    {
+                        ...defaultSample,
+                        input: B(2),
+                        output: B(0),
+                        source: ERC20BridgeSource.Curve,
+                        fillData: curveFillData,
+                    },
+                    {
+                        ...defaultSample,
+                        input: B(10),
+                        output: B(0),
+                        source: ERC20BridgeSource.Curve,
+                        fillData: curveFillData,
+                    },
                 ],
             ];
             const result = marketDepthUtils.calculateDepthForSide(

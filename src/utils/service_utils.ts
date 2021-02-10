@@ -1,51 +1,14 @@
-import {
-    ERC20BridgeSource,
-    getSwapMinBuyAmount,
-    OptimizedMarketOrder,
-    SignedOrder,
-    SwapQuote,
-    SwapQuoteOrdersBreakdown,
-} from '@0x/asset-swapper';
-import { assetDataUtils } from '@0x/order-utils';
+import { ERC20BridgeSource, SwapQuote, SwapQuoteOrdersBreakdown } from '@0x/asset-swapper';
 import { AbiEncoder, BigNumber } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
-import {
-    AFFILIATE_FEE_TRANSFORMER_GAS,
-    DEFAULT_TOKEN_DECIMALS,
-    HEX_BASE,
-    ONE_SECOND_MS,
-    PERCENTAGE_SIG_DIGITS,
-    ZERO,
-} from '../constants';
-import { logger } from '../logger';
+import { FEE_RECIPIENT_ADDRESS } from '../config';
+import { AFFILIATE_FEE_TRANSFORMER_GAS, HEX_BASE, ONE_SECOND_MS, PERCENTAGE_SIG_DIGITS, ZERO } from '../constants';
 import { AffiliateFeeAmounts, GetSwapQuoteResponseLiquiditySource, PercentageFee } from '../types';
-import { orderUtils } from '../utils/order_utils';
-import { findTokenDecimalsIfExists } from '../utils/token_metadata_utils';
 
 import { numberUtils } from './number_utils';
 
 export const serviceUtils = {
-    attributeSwapQuoteOrders(orders: OptimizedMarketOrder[]): OptimizedMarketOrder[] {
-        // Where possible, attribute any fills of these orders to the Fee Recipient Address
-        return orders.map(o => {
-            try {
-                const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData);
-                if (orderUtils.isBridgeAssetData(decodedAssetData)) {
-                    return {
-                        ...o,
-                        feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
-                    };
-                }
-                // tslint:disable-next-line:no-empty
-            } catch (err) {}
-            // Default to unmodified order
-            return o;
-        });
-    },
-
     attributeCallData(
         data: string,
         affiliateAddress?: string,
@@ -82,56 +45,6 @@ export const serviceUtils = {
         const encodedAffiliateData = affiliateCallDataEncoder.encode([affiliateAddressOrDefault, uniqueIdentifier]);
         const affiliatedData = `${data}${encodedAffiliateData.slice(2)}`;
         return { affiliatedData, decodedUniqueId: `${randomNumber}-${timestampInSeconds}` };
-    },
-
-    // tslint:disable-next-line:prefer-function-over-method
-    cleanSignedOrderFields(orders: SignedOrder[]): SignedOrder[] {
-        return orders.map(o => ({
-            chainId: o.chainId,
-            exchangeAddress: o.exchangeAddress,
-            makerAddress: o.makerAddress,
-            takerAddress: o.takerAddress,
-            feeRecipientAddress: o.feeRecipientAddress,
-            senderAddress: o.senderAddress,
-            makerAssetAmount: o.makerAssetAmount,
-            takerAssetAmount: o.takerAssetAmount,
-            makerFee: o.makerFee,
-            takerFee: o.takerFee,
-            expirationTimeSeconds: o.expirationTimeSeconds,
-            salt: o.salt,
-            makerAssetData: o.makerAssetData,
-            takerAssetData: o.takerAssetData,
-            makerFeeAssetData: o.makerFeeAssetData,
-            takerFeeAssetData: o.takerFeeAssetData,
-            signature: o.signature,
-        }));
-    },
-
-    async fetchTokenDecimalsIfRequiredAsync(tokenAddress: string, web3Wrapper: Web3Wrapper): Promise<number> {
-        // HACK(dekz): Our ERC20Wrapper does not have decimals as it is optional
-        // so we must encode this ourselves
-        let decimals = findTokenDecimalsIfExists(tokenAddress, CHAIN_ID);
-        if (!decimals) {
-            const decimalsEncoder = new AbiEncoder.Method({
-                constant: true,
-                inputs: [],
-                name: 'decimals',
-                outputs: [{ name: '', type: 'uint8' }],
-                payable: false,
-                stateMutability: 'view',
-                type: 'function',
-            });
-            const encodedCallData = decimalsEncoder.encode(tokenAddress);
-            try {
-                const result = await web3Wrapper.callAsync({ data: encodedCallData, to: tokenAddress });
-                decimals = decimalsEncoder.strictDecodeReturnValue<number>(result);
-                logger.info(`Unmapped token decimals ${tokenAddress} ${decimals}`);
-            } catch (err) {
-                logger.warn(`Error fetching token decimals ${tokenAddress}`);
-                decimals = DEFAULT_TOKEN_DECIMALS;
-            }
-        }
-        return decimals;
     },
     /**
      * Returns a new list of excluded sources that may contain additional excluded sources that were determined to be excluded.
@@ -178,7 +91,7 @@ export const serviceUtils = {
         }, []);
     },
     getAffiliateFeeAmounts(quote: SwapQuote, fee: PercentageFee): AffiliateFeeAmounts {
-        const minBuyAmount = getSwapMinBuyAmount(quote);
+        const minBuyAmount = quote.worstCaseQuoteInfo.makerAmount;
         const buyTokenFeeAmount = minBuyAmount
             .times(fee.buyTokenPercentageFee)
             .dividedBy(fee.buyTokenPercentageFee + 1)

@@ -34,8 +34,14 @@ process.on('unhandledRejection', err => {
 if (require.main === module) {
     (async () => {
         const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
-        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
-        await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
+        const config: HttpServiceConfig = {
+            ...defaultHttpServiceWithRateLimiterConfig,
+            // Mesh is not required for Swap Service
+            meshWebsocketUri: undefined,
+            meshHttpUri: undefined,
+        };
+        const dependencies = await getDefaultAppDependenciesAsync(provider, config);
+        await runHttpServiceAsync(dependencies, config);
     })().catch(error => logger.error(error.stack));
 }
 

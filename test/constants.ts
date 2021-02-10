@@ -1,8 +1,10 @@
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
 import { assetDataUtils, ETH_TOKEN_ADDRESS } from '@0x/order-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
+export const ETHEREUM_RPC_URL = 'http://localhost:8545';
 export const CHAIN_ID = 1337;
 // tslint:disable-next-line:custom-no-magic-numbers
 export const MAX_INT = new BigNumber(2).pow(256).minus(1);
@@ -27,3 +29,13 @@ export const AFFILIATE_DATA_SELECTOR = '869584cd';
 export const MATCHA_AFFILIATE_ADDRESS = '0x86003b044f70dac0abc80ac8957305b6370893ed';
 export const MATCHA_AFFILIATE_ENCODED_PARTIAL_ORDER_DATA =
     '869584cd00000000000000000000000086003b044f70dac0abc80ac8957305b6370893ed0000000000000000000000000000000000000000000000';
+
+const ganacheConfigs = {
+    shouldUseInProcessGanache: false,
+    shouldAllowUnlimitedContractSize: true,
+    rpcUrl: ETHEREUM_RPC_URL, // set in docker-compose-test.yml
+};
+
+export const getProvider = (): Web3ProviderEngine => {
+    return web3Factory.getRpcProvider(ganacheConfigs);
+};

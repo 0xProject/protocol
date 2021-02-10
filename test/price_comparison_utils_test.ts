@@ -23,6 +23,16 @@ const gasPrice = new BigNumber(100000000000); // 100 GWEI
 const estimatedGas = new BigNumber(136000);
 
 const SUITE_NAME = 'priceComparisonUtils';
+const daiWethQuoteBase = {
+    buyTokenAddress: DAI.tokenAddress,
+    sellTokenAddress: WETH.tokenAddress,
+    buyAmount,
+    sellAmount,
+    sellTokenToEthRate: ethToWethRate,
+    buyTokenToEthRate: ethToDaiRate,
+    gasPrice,
+    estimatedGas,
+};
 
 describe(SUITE_NAME, () => {
     describe('getPriceComparisonFromQuote', () => {
@@ -33,14 +43,7 @@ describe(SUITE_NAME, () => {
                 ChainId.Mainnet,
                 MarketOperation.Sell,
                 {
-                    buyTokenAddress: DAI.tokenAddress,
-                    sellTokenAddress: WETH.tokenAddress,
-                    buyAmount,
-                    sellAmount,
-                    sellTokenToEthRate: ethToWethRate,
-                    buyTokenToEthRate: ethToDaiRate,
-                    gasPrice,
-                    estimatedGas,
+                    ...daiWethQuoteBase,
                     quoteReport: {
                         sourcesDelivered: [],
                         sourcesConsidered: [
@@ -77,14 +80,7 @@ describe(SUITE_NAME, () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                buyTokenAddress: DAI.tokenAddress,
-                sellTokenAddress: WETH.tokenAddress,
-                buyAmount,
-                sellAmount,
-                sellTokenToEthRate: ethToWethRate,
-                buyTokenToEthRate: ethToDaiRate,
-                gasPrice,
-                estimatedGas,
+                ...daiWethQuoteBase,
                 quoteReport: {
                     sourcesDelivered: [],
                     sourcesConsidered: [
@@ -123,14 +119,7 @@ describe(SUITE_NAME, () => {
                 ChainId.Mainnet,
                 MarketOperation.Sell,
                 {
-                    buyTokenAddress: DAI.tokenAddress,
-                    sellTokenAddress: WETH.tokenAddress,
-                    buyAmount,
-                    sellAmount,
-                    sellTokenToEthRate: ethToWethRate,
-                    buyTokenToEthRate: ethToDaiRate,
-                    gasPrice,
-                    estimatedGas,
+                    ...daiWethQuoteBase,
                     quoteReport: {
                         sourcesDelivered: [],
                         sourcesConsidered: [
@@ -173,14 +162,7 @@ describe(SUITE_NAME, () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                buyTokenAddress: DAI.tokenAddress,
-                sellTokenAddress: WETH.tokenAddress,
-                buyAmount,
-                sellAmount,
-                sellTokenToEthRate: ethToWethRate,
-                buyTokenToEthRate: ethToDaiRate,
-                gasPrice,
-                estimatedGas,
+                ...daiWethQuoteBase,
                 quoteReport: {
                     sourcesDelivered: [],
                     sourcesConsidered: [
@@ -226,14 +208,8 @@ describe(SUITE_NAME, () => {
                 ChainId.Mainnet,
                 MarketOperation.Sell,
                 {
-                    buyTokenAddress: DAI.tokenAddress,
-                    sellTokenAddress: WETH.tokenAddress,
+                    ...daiWethQuoteBase,
                     buyAmount: higherBuyAmount,
-                    sellTokenToEthRate: ethToWethRate,
-                    buyTokenToEthRate: ethToDaiRate,
-                    sellAmount,
-                    gasPrice,
-                    estimatedGas,
                     quoteReport: {
                         sourcesDelivered: [],
                         sourcesConsidered: [
@@ -269,14 +245,8 @@ describe(SUITE_NAME, () => {
             const lowerSellPrice = lowerSellAmount.div(buyAmount).decimalPlaces(18);
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                buyTokenAddress: DAI.tokenAddress,
-                sellTokenAddress: WETH.tokenAddress,
-                buyAmount,
+                ...daiWethQuoteBase,
                 sellAmount: lowerSellAmount,
-                sellTokenToEthRate: ethToWethRate,
-                buyTokenToEthRate: ethToDaiRate,
-                gasPrice,
-                estimatedGas,
                 quoteReport: {
                     sourcesDelivered: [],
                     sourcesConsidered: [
@@ -439,14 +409,7 @@ describe(SUITE_NAME, () => {
         it('returns the sample with lowest gas usage for the same output amounts when quoting buyAmount', () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                buyTokenAddress: DAI.tokenAddress,
-                sellTokenAddress: WETH.tokenAddress,
-                buyAmount,
-                sellAmount,
-                sellTokenToEthRate: ethToWethRate,
-                buyTokenToEthRate: ethToDaiRate,
-                gasPrice,
-                estimatedGas,
+                ...daiWethQuoteBase,
                 quoteReport: {
                     sourcesDelivered: [],
                     sourcesConsidered: [
@@ -497,14 +460,7 @@ describe(SUITE_NAME, () => {
                 ChainId.Mainnet,
                 MarketOperation.Sell,
                 {
-                    buyTokenAddress: DAI.tokenAddress,
-                    sellTokenAddress: WETH.tokenAddress,
-                    buyAmount,
-                    sellAmount,
-                    sellTokenToEthRate: ethToWethRate,
-                    buyTokenToEthRate: ethToDaiRate,
-                    gasPrice,
-                    estimatedGas,
+                    ...daiWethQuoteBase,
                     quoteReport: {
                         sourcesDelivered: [],
                         sourcesConsidered: [
@@ -555,14 +511,7 @@ describe(SUITE_NAME, () => {
                 ChainId.Mainnet,
                 MarketOperation.Sell,
                 {
-                    buyTokenAddress: DAI.tokenAddress,
-                    sellTokenAddress: WETH.tokenAddress,
-                    buyAmount,
-                    sellAmount,
-                    sellTokenToEthRate: ethToWethRate,
-                    buyTokenToEthRate: ethToDaiRate,
-                    gasPrice,
-                    estimatedGas,
+                    ...daiWethQuoteBase,
                     quoteReport: {
                         sourcesDelivered: [],
                         sourcesConsidered: [
@@ -601,14 +550,7 @@ describe(SUITE_NAME, () => {
         it('returns the overall cheapest sample taking gas into account for buyAmount quotes', () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                buyTokenAddress: DAI.tokenAddress,
-                sellTokenAddress: WETH.tokenAddress,
-                buyAmount,
-                sellAmount,
-                sellTokenToEthRate: ethToWethRate,
-                buyTokenToEthRate: ethToDaiRate,
-                gasPrice,
-                estimatedGas,
+                ...daiWethQuoteBase,
                 quoteReport: {
                     sourcesDelivered: [],
                     sourcesConsidered: [
@@ -652,14 +594,8 @@ describe(SUITE_NAME, () => {
                 ChainId.Mainnet,
                 MarketOperation.Sell,
                 {
-                    buyTokenAddress: DAI.tokenAddress,
-                    sellTokenAddress: WETH.tokenAddress,
-                    buyAmount,
-                    sellAmount,
-                    sellTokenToEthRate: ethToWethRate,
+                    ...daiWethQuoteBase,
                     buyTokenToEthRate: ZERO,
-                    gasPrice,
-                    estimatedGas,
                     quoteReport: {
                         sourcesDelivered: [],
                         sourcesConsidered: [
@@ -701,14 +637,8 @@ describe(SUITE_NAME, () => {
                 .div(buyAmount)
                 .decimalPlaces(18, BigNumber.ROUND_CEIL);
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                buyTokenAddress: DAI.tokenAddress,
-                sellTokenAddress: WETH.tokenAddress,
-                buyAmount,
-                sellAmount,
+                ...daiWethQuoteBase,
                 sellTokenToEthRate: ZERO,
-                buyTokenToEthRate: ethToDaiRate,
-                gasPrice,
-                estimatedGas,
                 quoteReport: {
                     sourcesDelivered: [],
                     sourcesConsidered: [

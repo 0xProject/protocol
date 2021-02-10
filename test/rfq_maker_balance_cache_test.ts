@@ -2,20 +2,21 @@ import { BalanceCheckerContract } from '@0x/asset-swapper';
 import { artifacts } from '@0x/asset-swapper/lib/src/artifacts';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
-import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
+import { Web3ProviderEngine } from '@0x/dev-utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import 'mocha';
 import { Connection, Repository } from 'typeorm';
 
-import * as config from '../src/config';
+import { RFQ_ALLOWANCE_TARGET } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { MakerBalanceChainCacheEntity } from '../src/entities';
 import { cacheRfqBalancesAsync } from '../src/runners/rfq_maker_balance_cache_runner';
 
+import { getProvider } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
-const SUITE_NAME = 'RFQ Maker Balance Cache Test';
+const SUITE_NAME = 'RFQ Maker Balance Cache Tests';
 
 describe(SUITE_NAME, () => {
     let provider: Web3ProviderEngine;
@@ -29,16 +30,7 @@ describe(SUITE_NAME, () => {
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-
-        // connect to ganache
-        const ganacheConfigs = {
-            shouldUseInProcessGanache: false,
-            shouldAllowUnlimitedContractSize: true,
-            rpcUrl: config.ETHEREUM_RPC_URL,
-        };
-
-        provider = web3Factory.getRpcProvider(ganacheConfigs);
-
+        provider = getProvider();
         web3Wrapper = new Web3Wrapper(provider);
 
         const accounts = await web3Wrapper.getAvailableAddressesAsync();
@@ -58,7 +50,13 @@ describe(SUITE_NAME, () => {
         );
 
         await zrx.mint(new BigNumber(100)).awaitTransactionSuccessAsync({ from: makerAddress1 });
+        await zrx
+            .approve(RFQ_ALLOWANCE_TARGET, new BigNumber(100))
+            .awaitTransactionSuccessAsync({ from: makerAddress1 });
         await zrx.mint(new BigNumber(150)).awaitTransactionSuccessAsync({ from: makerAddress2 });
+        await zrx
+            .approve(RFQ_ALLOWANCE_TARGET, new BigNumber(125))
+            .awaitTransactionSuccessAsync({ from: makerAddress2 });
 
         balanceCheckerContract = await BalanceCheckerContract.deployFrom0xArtifactAsync(
             artifacts.BalanceChecker,
@@ -114,7 +112,7 @@ describe(SUITE_NAME, () => {
                 .getOne();
 
             expect(maker1!.balance).to.be.deep.equal(new BigNumber(100));
-            expect(maker2!.balance).to.be.deep.equal(new BigNumber(150));
+            expect(maker2!.balance).to.be.deep.equal(new BigNumber(125));
         });
     });
 });

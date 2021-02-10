@@ -5,7 +5,7 @@ import {
     RfqtRequestOpts,
     SupportedProvider,
 } from '@0x/asset-swapper';
-import { AcceptedOrderInfo, OrderEventEndState, RejectedOrderInfo } from '@0x/mesh-rpc-client';
+import { OrderEventEndState, OrderWithMetadata, RejectedOrderCode } from '@0x/mesh-graphql-client';
 import {
     APIOrder,
     ExchangeProxyMetaTransaction,
@@ -40,6 +40,28 @@ export enum OrderWatcherLifeCycleEvents {
     PersistentUpdated,
 }
 
+// TODO(kimpers): export from Mesh client
+export interface AcceptedOrderResult {
+    // The order that was accepted, including metadata.
+    order: OrderWithMetadata;
+    // Whether or not the order is new. Set to true if this is the first time this Mesh node has accepted the order
+    // and false otherwise.
+    isNew: boolean;
+}
+
+export interface RejectedOrderResult {
+    // The hash of the order. May be null if the hash could not be computed.
+    hash?: string;
+    // The order that was rejected.
+    order: SignedOrder;
+    // A machine-readable code indicating why the order was rejected. This code is designed to
+    // be used by programs and applications and will never change without breaking backwards-compatibility.
+    code: RejectedOrderCode;
+    // A human-readable message indicating why the order was rejected. This message may change
+    // in future releases and is not covered by backwards-compatibility guarantees.
+    message: string;
+}
+
 export interface OrdersByLifecycleEvents {
     added: APIOrderWithMetaData[];
     removed: APIOrderWithMetaData[];
@@ -47,11 +69,6 @@ export interface OrdersByLifecycleEvents {
 }
 
 export type onOrdersUpdateCallback = (orders: APIOrderWithMetaData[]) => void;
-
-export interface AcceptedRejectedResults {
-    accepted: AcceptedOrderInfo[];
-    rejected: RejectedOrderInfo[];
-}
 
 export interface APIOrderMetaData {
     orderHash: string;
@@ -444,7 +461,8 @@ interface SwapQuoteParamsBase {
 // GET /swap/quote
 export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransaction, BasePriceResponse {
     guaranteedPrice: BigNumber;
-    orders: SignedOrder[];
+    // orders: SignedOrder[];
+    orders?: any;
     from?: string;
     quoteReport?: QuoteReport;
 }
@@ -457,7 +475,7 @@ export interface SwapQuoteResponsePartialTransaction {
 }
 
 // Request params
-export interface GetSwapQuoteRequestParams extends SwapQuoteParamsBase {
+export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     sellToken: string;
     buyToken: string;
     takerAddress?: string;
@@ -466,13 +484,17 @@ export interface GetSwapQuoteRequestParams extends SwapQuoteParamsBase {
     rfqt?: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'>;
     skipValidation: boolean;
     shouldSellEntireBalance: boolean;
+    isWrap: boolean;
+    isUnwrap: boolean;
+    isETHSell: boolean;
+    isETHBuy: boolean;
+    isMetaTransaction: boolean;
 }
 
 // GET /swap/price
 export interface GetSwapPriceResponse extends BasePriceResponse {}
 
 // GET /swap/prices
-export type GetTokenPricesResponse = Price[];
 export interface Price {
     symbol: string;
     price: BigNumber;
@@ -482,7 +504,8 @@ export interface Price {
 export interface GetMetaTransactionQuoteResponse extends BasePriceResponse {
     mtxHash: string;
     mtx: ExchangeProxyMetaTransaction;
-    orders: SignedOrder[];
+    // orders: SignedOrder[]
+    orders?: any;
 }
 
 // GET /meta_transaction/price
@@ -518,26 +541,12 @@ export type ZeroExTransactionWithoutDomain = Omit<ZeroExTransaction, 'domain'>;
 
 export type ExchangeProxyMetaTransactionWithoutDomain = Omit<ExchangeProxyMetaTransaction, 'domain'>;
 
-export interface CalculateSwapQuoteParams extends SwapQuoteParamsBase {
-    buyTokenAddress: string;
-    sellTokenAddress: string;
-    from: string | undefined;
-    isETHSell: boolean;
-    isETHBuy: boolean;
-    apiKey?: string;
-    isMetaTransaction: boolean;
-    gasPrice?: BigNumber;
-    rfqt?: Partial<RfqtRequestOpts>;
-    skipValidation: boolean;
-    shouldSellEntireBalance: boolean;
-}
-
 export interface CalculateMetaTransactionQuoteResponse extends QuoteBase {
     sellTokenAddress: string;
     buyTokenAddress: string;
-    takerAddress: string;
+    taker: string;
     quoteReport?: QuoteReport;
-    orders: SignedOrder[];
+    // orders: SignedOrder[];
     callData: string;
 }
 

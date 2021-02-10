@@ -1,4 +1,4 @@
-import { ETH_TOKEN_ADDRESS } from '@0x/order-utils';
+import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
 
 import { ADDRESS_HEX_LENGTH, ETH_SYMBOL, WETH_SYMBOL } from '../constants';
 import { ValidationError, ValidationErrorCodes } from '../errors';
