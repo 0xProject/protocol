@@ -39,6 +39,7 @@ export * from '../test/generated-wrappers/i_test_simple_function_registry_featur
 export * from '../test/generated-wrappers/i_token_spender_feature';
 export * from '../test/generated-wrappers/i_transform_erc20_feature';
 export * from '../test/generated-wrappers/i_uniswap_feature';
+export * from '../test/generated-wrappers/i_uniswap_v2_pair';
 export * from '../test/generated-wrappers/i_zero_ex';
 export * from '../test/generated-wrappers/initial_migration';
 export * from '../test/generated-wrappers/lib_bootstrap';
@@ -137,5 +138,6 @@ export * from '../test/generated-wrappers/transformer';
 export * from '../test/generated-wrappers/transformer_deployer';
 export * from '../test/generated-wrappers/uniswap_feature';
 export * from '../test/generated-wrappers/weth_transformer';
+export * from '../test/generated-wrappers/wrapper_fill_feature';
 export * from '../test/generated-wrappers/zero_ex';
 export * from '../test/generated-wrappers/zero_ex_optimized';

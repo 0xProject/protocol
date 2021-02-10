@@ -313,7 +313,7 @@ contract TransformERC20Feature is
             to.transfer(msg.value);
         }
         // Transfer input tokens.
-        if (!LibERC20Transformer.isTokenETH(inputToken)) {
+        if (!LibERC20Transformer.isTokenETH(inputToken) && amount != 0) {
             // Token is not ETH, so pull ERC20 tokens.
             _transferERC20Tokens(
                 inputToken,

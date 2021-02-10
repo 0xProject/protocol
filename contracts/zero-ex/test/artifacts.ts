@@ -42,6 +42,7 @@ import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts
 import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpenderFeature.json';
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
 import * as IUniswapFeature from '../test/generated-artifacts/IUniswapFeature.json';
+import * as IUniswapV2Pair from '../test/generated-artifacts/IUniswapV2Pair.json';
 import * as IZeroEx from '../test/generated-artifacts/IZeroEx.json';
 import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
@@ -139,6 +140,7 @@ import * as TransformERC20Feature from '../test/generated-artifacts/TransformERC
 import * as TransformerDeployer from '../test/generated-artifacts/TransformerDeployer.json';
 import * as UniswapFeature from '../test/generated-artifacts/UniswapFeature.json';
 import * as WethTransformer from '../test/generated-artifacts/WethTransformer.json';
+import * as WrapperFillFeature from '../test/generated-artifacts/WrapperFillFeature.json';
 import * as ZeroEx from '../test/generated-artifacts/ZeroEx.json';
 import * as ZeroExOptimized from '../test/generated-artifacts/ZeroExOptimized.json';
 export const artifacts = {
@@ -186,6 +188,7 @@ export const artifacts = {
     TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
+    WrapperFillFeature: WrapperFillFeature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
@@ -238,6 +241,7 @@ export const artifacts = {
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IMooniswapPool: IMooniswapPool as ContractArtifact,
+    IUniswapV2Pair: IUniswapV2Pair as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,

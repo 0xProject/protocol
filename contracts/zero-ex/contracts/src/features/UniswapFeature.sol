@@ -380,7 +380,7 @@ contract UniswapFeature is
                 // will eat all our gas.
                 if isTokenPossiblyGreedy(token) {
                     // Check if we have enough direct allowance by calling
-                    // `token.allowance()``
+                    // `token.allowance()`
                     mstore(0xB00, ALLOWANCE_CALL_SELECTOR_32)
                     mstore(0xB04, caller())
                     mstore(0xB24, address())
