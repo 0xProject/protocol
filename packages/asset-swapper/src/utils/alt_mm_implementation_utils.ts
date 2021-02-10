@@ -1,6 +1,6 @@
 import { Web3Wrapper } from '@0x/dev-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@0x/quote-server';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, logUtils } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import {
@@ -117,13 +117,17 @@ function parseIndicativeQuoteResponseFromAltMM(
         takerAmount,
         // HACK: alt implementation does not return an expiration with indicative quotes
         // return now + { IMPUTED EXPIRY SECONDS } to have it included after order checks
-        // tslint:disable-next-line:custom-no-magic-numbers
         expiry: new BigNumber(
+            // tslint:disable-next-line:custom-no-magic-numbers
             new BigNumber(Date.now() / 1000).integerValue(BigNumber.ROUND_DOWN).plus(IMPUTED_EXPIRY_SECONDS),
         ),
     };
 }
 
+/**
+ * Turn a standard quote request into an alt quote request
+ * and return the appropriate standard quote response
+ */
 export async function returnQuoteFromAltMMAsync<ResponseT>(
     url: string,
     apiKey: string,

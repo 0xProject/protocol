@@ -57,7 +57,7 @@ export const testHelpers = {
                 const { endpoint, mmApiKey, requestData, responseData, responseCode } = mockedResponse;
                 const requestHeaders = { Authorization: `Bearer ${mmApiKey}` };
                 mockedAxios
-                    .onPost(`${endpoint}`, { data: requestData }, requestHeaders)
+                    .onPost(`${endpoint}/quotes`, requestData, requestHeaders)
                     .replyOnce(responseCode, responseData);
             }
             // Perform the callback function, e.g. a test validation
