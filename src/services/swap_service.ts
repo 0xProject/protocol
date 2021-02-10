@@ -14,9 +14,9 @@ import {
 } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
-import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
+import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
 import { MarketOperation, PaginatedCollection } from '@0x/types';
-import { BigNumber, decodeThrownErrorAsRevertError, RevertError } from '@0x/utils';
+import { BigNumber, decodeThrownErrorAsRevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import { SupportedProvider } from 'ethereum-types';
 import * as _ from 'lodash';
@@ -530,7 +530,10 @@ export class SwapService {
 
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
         const gas = await this._web3Wrapper.estimateGasAsync(txData).catch(_e => DEFAULT_VALIDATION_GAS_LIMIT);
-        await this._throwIfCallIsRevertErrorAsync({ ...txData, gas });
+        await this._throwIfCallIsRevertErrorAsync({
+            ...txData,
+            gas: new BigNumber(gas).times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue(),
+        });
         return new BigNumber(gas);
     }
 
