@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.18.2",
+        "changes": [
+            {
+                "note": "Update FQT for v4 native orders",
+                "pr": 104
+            }
+        ]
+    },
+    {
         "version": "0.18.1",
         "changes": [
             {

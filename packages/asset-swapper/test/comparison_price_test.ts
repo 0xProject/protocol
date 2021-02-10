@@ -49,12 +49,14 @@ const buyMarketSideLiquidity: MarketSideLiquidity = {
     inputAmount: new BigNumber(0),
     inputToken: ETH_TOKEN,
     outputToken: DAI_TOKEN,
-    dexQuotes: [dexQuotes],
-    nativeOrders: [],
-    orderFillableAmounts: [],
-    twoHopQuotes: [],
-    rfqtIndicativeQuotes: [],
+    quotes: {
+        twoHopQuotes: [],
+        rfqtIndicativeQuotes: [],
+        dexQuotes: [dexQuotes],
+        nativeOrders: [],
+    },
     quoteSourceFilters: new SourceFilters(),
+    isRfqSupported: false,
 };
 
 const sellMarketSideLiquidity: MarketSideLiquidity = {
@@ -68,12 +70,14 @@ const sellMarketSideLiquidity: MarketSideLiquidity = {
     inputAmount: new BigNumber(0),
     inputToken: ETH_TOKEN,
     outputToken: DAI_TOKEN,
-    dexQuotes: [dexQuotes],
-    nativeOrders: [],
-    orderFillableAmounts: [],
-    twoHopQuotes: [],
-    rfqtIndicativeQuotes: [],
+    quotes: {
+        dexQuotes: [dexQuotes],
+        nativeOrders: [],
+        twoHopQuotes: [],
+        rfqtIndicativeQuotes: [],
+    },
     quoteSourceFilters: new SourceFilters(),
+    isRfqSupported: false,
 };
 
 describe('getComparisonPrices', async () => {

@@ -1,15 +1,13 @@
 import { ChainId } from '@0x/contract-addresses';
+import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 
 import {
     ExchangeProxyContractOpts,
-    ExtensionContractType,
-    ForwarderExtensionContractOpts,
     LogFunction,
     OrderPrunerOpts,
     OrderPrunerPermittedFeeTypes,
     RfqtRequestOpts,
-    SwapQuoteExecutionOpts,
     SwapQuoteGetOutputOpts,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -29,10 +27,7 @@ const ZERO_AMOUNT = new BigNumber(0);
 
 const DEFAULT_ORDER_PRUNER_OPTS: OrderPrunerOpts = {
     expiryBufferMs: 120000, // 2 minutes
-    permittedOrderFeeTypes: new Set<OrderPrunerPermittedFeeTypes>([
-        OrderPrunerPermittedFeeTypes.NoFees,
-        OrderPrunerPermittedFeeTypes.MakerDenominatedTakerFee,
-    ]), // Default asset-swapper for CFL oriented fee types
+    permittedOrderFeeTypes: new Set<OrderPrunerPermittedFeeTypes>([OrderPrunerPermittedFeeTypes.NoFees]), // Default asset-swapper for CFL oriented fee types
 };
 
 // 6 seconds polling interval
@@ -55,16 +50,6 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     },
 };
 
-const DEFAULT_FORWARDER_EXTENSION_CONTRACT_OPTS: ForwarderExtensionContractOpts = {
-    feePercentage: 0,
-    feeRecipient: NULL_ADDRESS,
-};
-
-const DEFAULT_FORWARDER_SWAP_QUOTE_GET_OPTS: SwapQuoteGetOutputOpts = {
-    useExtensionContract: ExtensionContractType.Forwarder,
-    extensionContractOpts: DEFAULT_FORWARDER_EXTENSION_CONTRACT_OPTS,
-};
-
 const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts = {
     isFromETH: false,
     isToETH: false,
@@ -78,10 +63,7 @@ const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts 
     shouldSellEntireBalance: false,
 };
 
-const DEFAULT_FORWARDER_SWAP_QUOTE_EXECUTE_OPTS: SwapQuoteExecutionOpts = DEFAULT_FORWARDER_SWAP_QUOTE_GET_OPTS;
-
 const DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS: SwapQuoteGetOutputOpts = {
-    useExtensionContract: ExtensionContractType.ExchangeProxy,
     extensionContractOpts: DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
 };
 
@@ -91,10 +73,6 @@ const DEFAULT_SWAP_QUOTE_REQUEST_OPTS: SwapQuoteRequestOpts = {
 
 const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqtRequestOpts> = {
     makerEndpointMaxResponseTimeMs: 1000,
-    priceAwareRFQFlag: {
-        isFirmPriceAwareEnabled: false,
-        isIndicativePriceAwareEnabled: false,
-    },
 };
 
 export const DEFAULT_INFO_LOGGER: LogFunction = (obj, msg) =>
@@ -102,14 +80,8 @@ export const DEFAULT_INFO_LOGGER: LogFunction = (obj, msg) =>
 export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
     logUtils.warn(`${msg ? `${msg}: ` : ''}${JSON.stringify(obj)}`);
 
-// This feature flag allows us to merge the price-aware RFQ pricing
-// project while still controlling when to activate the feature. We plan to do some
-// data analysis work and address some of the issues with maker fillable amounts
-// in later milestones. Once the feature is fully rolled out and is providing value
-// and we have assessed that there is no user impact, we will proceed in cleaning up
-// the feature flag.  When that time comes, follow this PR to "undo" the feature flag:
-// https://github.com/0xProject/0x-monorepo/pull/2735
-export const IS_PRICE_AWARE_RFQ_ENABLED: boolean = false;
+const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: EMPTY_BYTES32, s: EMPTY_BYTES32 };
 
 export {
     BRIDGE_ADDRESSES_BY_CHAIN,
@@ -131,8 +103,6 @@ export const constants = {
     ONE_MINUTE_MS,
     DEFAULT_SWAP_QUOTER_OPTS,
     DEFAULT_INTERMEDIATE_TOKENS,
-    DEFAULT_FORWARDER_SWAP_QUOTE_GET_OPTS,
-    DEFAULT_FORWARDER_SWAP_QUOTE_EXECUTE_OPTS,
     DEFAULT_SWAP_QUOTE_REQUEST_OPTS,
     DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS,
     DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
@@ -144,4 +114,5 @@ export const constants = {
     BRIDGE_ASSET_DATA_PREFIX: '0xdc1600f3',
     DEFAULT_INFO_LOGGER,
     DEFAULT_WARNING_LOGGER,
+    EMPTY_BYTES32,
 };

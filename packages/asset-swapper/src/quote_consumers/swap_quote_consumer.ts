@@ -6,8 +6,6 @@ import * as _ from 'lodash';
 import { constants } from '../constants';
 import {
     CalldataInfo,
-    ExtensionContractType,
-    GetExtensionContractTypeOpts,
     SwapQuote,
     SwapQuoteConsumerBase,
     SwapQuoteConsumerOpts,
@@ -15,7 +13,6 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
-import { swapQuoteConsumerUtils } from '../utils/swap_quote_consumer_utils';
 
 import { ExchangeProxySwapQuoteConsumer } from './exchange_proxy_swap_quote_consumer';
 
@@ -57,7 +54,6 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: SwapQuote,
         opts: Partial<SwapQuoteGetOutputOpts> = {},
     ): Promise<CalldataInfo> {
-        assert.isValidSwapQuote('quote', quote);
         const consumer = await this._getConsumerForSwapQuoteAsync(opts);
         return consumer.getCalldataOrThrowAsync(quote, opts);
     }
@@ -71,35 +67,11 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         quote: SwapQuote,
         opts: Partial<SwapQuoteExecutionOpts> = {},
     ): Promise<string> {
-        assert.isValidSwapQuote('quote', quote);
         const consumer = await this._getConsumerForSwapQuoteAsync(opts);
         return consumer.executeSwapQuoteOrThrowAsync(quote, opts);
     }
 
-    /**
-     * Given a SwapQuote, returns optimal 0x protocol interface (extension or no extension) to perform the swap.
-     * @param quote An object that conforms to SwapQuote. See type definition for more information.
-     * @param opts  Options for getting optimal exteion contract to fill quote. See type definition for more information.
-     */
-    public async getOptimalExtensionContractTypeAsync(
-        quote: SwapQuote,
-        opts: Partial<GetExtensionContractTypeOpts> = {},
-    ): Promise<ExtensionContractType> {
-        return swapQuoteConsumerUtils.getExtensionContractTypeForSwapQuoteAsync(
-            quote,
-            this._contractAddresses,
-            this.provider,
-            opts,
-        );
-    }
-
     private async _getConsumerForSwapQuoteAsync(opts: Partial<SwapQuoteGetOutputOpts>): Promise<SwapQuoteConsumerBase> {
-        // ( akroeger)leaving this switch to use different contracts in the future
-        switch (opts.useExtensionContract) {
-            case ExtensionContractType.ExchangeProxy:
-                return this._exchangeProxyConsumer;
-            default:
-                return this._exchangeProxyConsumer;
-        }
+        return this._exchangeProxyConsumer;
     }
 }

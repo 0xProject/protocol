@@ -7,10 +7,12 @@ import {
     getRandomInteger,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { Order } from '@0x/types';
+import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { LimitOrderFields } from '../../src';
+import { NULL_ADDRESS } from '../../src/utils/market_operation_utils/constants';
 import { artifacts } from '../artifacts';
 import { TestNativeOrderSamplerContract } from '../wrappers';
 
@@ -18,15 +20,12 @@ const { NULL_BYTES, ZERO_AMOUNT } = constants;
 
 // tslint:disable: custom-no-magic-numbers
 
-blockchainTests.resets('NativeOrderSampler contract', env => {
+// TODO jacob
+blockchainTests.resets.skip('NativeOrderSampler contract', env => {
     let testContract: TestNativeOrderSamplerContract;
     let makerToken: string;
     let takerToken: string;
-    let feeToken: string;
-    let erc20Proxy: string;
-    const ERC20_PROXY_ID = '0xf47261b0';
-    const VALID_SIGNATURE = '0x01';
-    const INVALID_SIGNATURE = '0x00';
+    const VALID_SIGNATURE = { v: 1, r: '0x01', s: '0x01', signatureType: SignatureType.EthSign };
 
     before(async () => {
         testContract = await TestNativeOrderSamplerContract.deployFrom0xArtifactAsync(
@@ -35,9 +34,8 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
             env.txDefaults,
             {},
         );
-        erc20Proxy = await testContract.getAssetProxy(ERC20_PROXY_ID).callAsync();
         const NUM_TOKENS = new BigNumber(3);
-        [makerToken, takerToken, feeToken] = await testContract.createTokens(NUM_TOKENS).callAsync();
+        [makerToken, takerToken] = await testContract.createTokens(NUM_TOKENS).callAsync();
         await testContract.createTokens(NUM_TOKENS).awaitTransactionSuccessAsync();
     });
 
@@ -51,10 +49,10 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
         orderTakerAssetFilledAmount: BigNumber;
     }
 
-    function getOrderInfo(order: Order): OrderInfo {
+    function getOrderInfo(order: LimitOrderFields): OrderInfo {
         const hash = getPackedHash(hexUtils.leftPad(order.salt));
         const orderStatus = order.salt.mod(255).eq(0) ? 3 : 5;
-        const filledAmount = order.expirationTimeSeconds;
+        const filledAmount = order.expiry;
         return {
             orderStatus,
             orderHash: hash,
@@ -70,61 +68,46 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
         return new BigNumber(hexUtils.concat(hexUtils.slice(hexUtils.random(), 0, -1), '0xff'));
     }
 
-    function getOrderFillableTakerAmount(order: Order): BigNumber {
-        return order.takerAssetAmount.minus(getOrderInfo(order).orderTakerAssetFilledAmount);
+    function getLimitOrderFillableTakerAmount(order: LimitOrderFields): BigNumber {
+        return order.takerAmount.minus(getOrderInfo(order).orderTakerAssetFilledAmount);
     }
 
-    function getERC20AssetData(tokenAddress: string): string {
-        return hexUtils.concat(ERC20_PROXY_ID, hexUtils.leftPad(tokenAddress));
-    }
-
-    function createOrder(fields: Partial<Order> = {}, filledTakerAssetAmount: BigNumber = ZERO_AMOUNT): Order {
+    function createOrder(
+        fields: Partial<LimitOrderFields> = {},
+        filledTakerAssetAmount: BigNumber = ZERO_AMOUNT,
+    ): LimitOrderFields {
         return {
             chainId: 1337,
-            exchangeAddress: randomAddress(),
-            makerAddress: randomAddress(),
-            takerAddress: randomAddress(),
-            senderAddress: randomAddress(),
-            feeRecipientAddress: randomAddress(),
-            makerAssetAmount: getRandomInteger(1e18, 10e18),
-            takerAssetAmount: getRandomInteger(1e18, 10e18),
-            makerFee: getRandomInteger(1e18, 10e18),
-            takerFee: getRandomInteger(1e18, 10e18),
-            makerAssetData: getERC20AssetData(makerToken),
-            takerAssetData: getERC20AssetData(takerToken),
-            makerFeeAssetData: getERC20AssetData(feeToken),
-            takerFeeAssetData: getERC20AssetData(randomAddress()),
+            verifyingContract: randomAddress(),
+            maker: randomAddress(),
+            taker: randomAddress(),
+            pool: NULL_BYTES,
+            sender: NULL_ADDRESS,
+            feeRecipient: randomAddress(),
+            makerAmount: getRandomInteger(1, 1e18),
+            takerAmount: getRandomInteger(1, 1e18),
+            takerTokenFeeAmount: getRandomInteger(1, 1e18),
+            makerToken,
+            takerToken,
             salt: createFillableOrderSalt(),
-            // Expiration time will be used to determine filled amount.
-            expirationTimeSeconds: filledTakerAssetAmount,
+            expiry: filledTakerAssetAmount,
             ...fields,
         };
     }
 
     async function fundMakerAsync(
-        order: Order,
-        assetData: string,
+        order: LimitOrderFields,
         balanceScaling: number = 1,
         allowanceScaling: number = 1,
     ): Promise<void> {
-        let token;
-        let amount;
-        if (assetData === order.makerAssetData) {
-            token = makerToken;
-            amount =
-                order.makerAssetData === order.makerFeeAssetData
-                    ? order.makerAssetAmount.plus(order.makerFee)
-                    : order.makerAssetAmount;
-        } else {
-            token = feeToken;
-            amount = order.makerFee;
-        }
-        amount = amount.times(getOrderFillableTakerAmount(order).div(BigNumber.max(1, order.takerAssetAmount)));
+        const token = makerToken;
+        let amount = order.makerAmount;
+        amount = amount.times(getLimitOrderFillableTakerAmount(order).div(BigNumber.max(1, order.takerAmount)));
         await testContract
             .setTokenBalanceAndAllowance(
                 token,
-                order.makerAddress,
-                erc20Proxy,
+                order.maker,
+                testContract.address,
                 amount.times(balanceScaling).integerValue(),
                 amount.times(allowanceScaling).integerValue(),
             )
@@ -132,7 +115,7 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
     }
 
     describe('getTokenDecimals()', () => {
-        it('correctly returns the token balances', async () => {
+        it('correctly returns the token decimals', async () => {
             const newMakerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
                 erc20Artifacts.DummyERC20Token,
                 env.provider,
@@ -154,130 +137,44 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
                 constants.DUMMY_TOKEN_TOTAL_SUPPLY,
             );
             const [makerDecimals, takerDecimals] = await testContract
-                .getTokenDecimals(newMakerToken.address, newTakerToken.address)
+                .getTokenDecimals([newMakerToken.address, newTakerToken.address])
                 .callAsync();
             expect(makerDecimals.toString()).to.eql('18');
             expect(takerDecimals.toString()).to.eql('6');
         });
     });
 
-    describe('getOrderFillableTakerAmount()', () => {
+    describe('getLimitOrderFillableTakerAmount()', () => {
         it('returns the full amount for a fully funded order', async () => {
             const order = createOrder();
-            const expected = getOrderFillableTakerAmount(order);
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
+            const expected = getLimitOrderFillableTakerAmount(order);
+            await fundMakerAsync(order);
             const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
-                .callAsync();
-            expect(actual).to.bignumber.eq(expected);
-        });
-
-        it('returns the full amount for a fully funded order without maker fees', async () => {
-            const order = createOrder({ makerFee: ZERO_AMOUNT });
-            const expected = getOrderFillableTakerAmount(order);
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
-            const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
-                .callAsync();
-            expect(actual).to.bignumber.eq(expected);
-        });
-
-        it('returns the full amount for a fully funded order without maker fee asset data', async () => {
-            const order = createOrder({ makerFeeAssetData: NULL_BYTES });
-            const expected = getOrderFillableTakerAmount(order);
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
-            const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
-                .callAsync();
-            expect(actual).to.bignumber.eq(expected);
-        });
-
-        it('returns the full amount for a fully funded order with maker fees denominated in the maker asset', async () => {
-            const order = createOrder({ makerFeeAssetData: getERC20AssetData(makerToken) });
-            const expected = getOrderFillableTakerAmount(order);
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
-            const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
+                .getLimitOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
                 .callAsync();
             expect(actual).to.bignumber.eq(expected);
         });
 
         it('returns partial amount with insufficient maker asset balance', async () => {
             const order = createOrder();
-            const expected = getOrderFillableTakerAmount(order)
+            const expected = getLimitOrderFillableTakerAmount(order)
                 .times(0.5)
                 .integerValue(BigNumber.ROUND_DOWN);
-            await fundMakerAsync(order, order.makerAssetData, 0.5);
-            await fundMakerAsync(order, order.makerFeeAssetData);
+            await fundMakerAsync(order, 0.5);
             const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
+                .getLimitOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
                 .callAsync();
             assertIntegerRoughlyEquals(actual, expected, 100);
         });
 
         it('returns partial amount with insufficient maker asset allowance', async () => {
             const order = createOrder();
-            const expected = getOrderFillableTakerAmount(order)
+            const expected = getLimitOrderFillableTakerAmount(order)
                 .times(0.5)
                 .integerValue(BigNumber.ROUND_DOWN);
-            await fundMakerAsync(order, order.makerAssetData, 1, 0.5);
-            await fundMakerAsync(order, order.makerFeeAssetData);
+            await fundMakerAsync(order, 1, 0.5);
             const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
-                .callAsync();
-            assertIntegerRoughlyEquals(actual, expected, 100);
-        });
-
-        it('returns partial amount with insufficient maker fee asset balance', async () => {
-            const order = createOrder();
-            const expected = getOrderFillableTakerAmount(order)
-                .times(0.5)
-                .integerValue(BigNumber.ROUND_DOWN);
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData, 0.5);
-            const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
-                .callAsync();
-            assertIntegerRoughlyEquals(actual, expected, 100);
-        });
-
-        it('returns partial amount with insufficient maker fee asset allowance', async () => {
-            const order = createOrder();
-            const expected = getOrderFillableTakerAmount(order)
-                .times(0.5)
-                .integerValue(BigNumber.ROUND_DOWN);
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData, 1, 0.5);
-            const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
-                .callAsync();
-            assertIntegerRoughlyEquals(actual, expected, 100);
-        });
-
-        it('returns partial amount with insufficient maker asset balance (maker asset fees)', async () => {
-            const order = createOrder({ makerFeeAssetData: getERC20AssetData(makerToken) });
-            const expected = getOrderFillableTakerAmount(order)
-                .times(0.5)
-                .integerValue(BigNumber.ROUND_DOWN);
-            await fundMakerAsync(order, order.makerAssetData, 0.5);
-            const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
-                .callAsync();
-            assertIntegerRoughlyEquals(actual, expected, 100);
-        });
-
-        it('returns partial amount with insufficient maker asset allowance (maker asset fees)', async () => {
-            const order = createOrder({ makerFeeAssetData: getERC20AssetData(makerToken) });
-            const expected = getOrderFillableTakerAmount(order)
-                .times(0.5)
-                .integerValue(BigNumber.ROUND_DOWN);
-            await fundMakerAsync(order, order.makerAssetData, 1, 0.5);
-            const actual = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
+                .getLimitOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
                 .callAsync();
             assertIntegerRoughlyEquals(actual, expected, 100);
         });
@@ -287,10 +184,9 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
                 ...createOrder(),
                 salt: createUnfillableOrderSalt(),
             };
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
+            await fundMakerAsync(order);
             const fillableTakerAmount = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
+                .getLimitOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
                 .callAsync();
             expect(fillableTakerAmount).to.bignumber.eq(ZERO_AMOUNT);
         });
@@ -298,12 +194,11 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
         it('returns zero for an order with zero maker asset amount', async () => {
             const order = {
                 ...createOrder(),
-                makerAssetAmount: ZERO_AMOUNT,
+                makerAmount: ZERO_AMOUNT,
             };
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
+            await fundMakerAsync(order);
             const fillableTakerAmount = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
+                .getLimitOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
                 .callAsync();
             expect(fillableTakerAmount).to.bignumber.eq(ZERO_AMOUNT);
         });
@@ -311,32 +206,24 @@ blockchainTests.resets('NativeOrderSampler contract', env => {
         it('returns zero for an order with zero taker asset amount', async () => {
             const order = {
                 ...createOrder(),
-                takerAssetAmount: ZERO_AMOUNT,
+                takerAmount: ZERO_AMOUNT,
             };
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
+            await fundMakerAsync(order);
             const fillableTakerAmount = await testContract
-                .getOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
+                .getLimitOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
                 .callAsync();
             expect(fillableTakerAmount).to.bignumber.eq(ZERO_AMOUNT);
         });
 
         it('returns zero for an order with an empty signature', async () => {
             const order = createOrder();
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
+            await fundMakerAsync(order);
             const fillableTakerAmount = await testContract
-                .getOrderFillableTakerAmount(order, NULL_BYTES, testContract.address)
-                .callAsync();
-            expect(fillableTakerAmount).to.bignumber.eq(ZERO_AMOUNT);
-        });
-
-        it('returns zero for an order with an invalid signature', async () => {
-            const order = createOrder();
-            await fundMakerAsync(order, order.makerAssetData);
-            await fundMakerAsync(order, order.makerFeeAssetData);
-            const fillableTakerAmount = await testContract
-                .getOrderFillableTakerAmount(order, INVALID_SIGNATURE, testContract.address)
+                .getLimitOrderFillableTakerAmount(
+                    order,
+                    { ...VALID_SIGNATURE, r: NULL_BYTES, s: NULL_BYTES },
+                    testContract.address,
+                )
                 .callAsync();
             expect(fillableTakerAmount).to.bignumber.eq(ZERO_AMOUNT);
         });

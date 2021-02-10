@@ -1,5 +1,30 @@
 [
     {
+        "version": "6.0.0",
+        "changes": [
+            {
+                "note": "Pull top 250 Balancer pairs on initialization",
+                "pr": 113
+            },
+            {
+                "note": "Support v4 `RFQ` and `Limit` orders",
+                "pr": 113
+            },
+            {
+                "note": "Refactor to consume latest `FillQuoteTransformer`",
+                "pr": 113
+            },
+            {
+                "note": "Enable `fillData` for all sources, no longer optional",
+                "pr": 113
+            },
+            {
+                "note": "Support `tx.origin` in RFQT quote requestor",
+                "pr": 113
+            }
+        ]
+    },
+    {
         "version": "5.8.2",
         "changes": [
             {

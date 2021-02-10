@@ -1,18 +1,15 @@
-import { assetDataUtils, ERC20AssetData, generatePseudoRandomSalt, orderCalculationUtils } from '@0x/order-utils';
-import { V3RFQIndicativeQuote } from '@0x/quote-server';
-import { SignedOrder } from '@0x/types';
+import { BridgeSource, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
-import { AssetSwapperContractAddresses, MarketOperation, SignedOrderWithFillableAmounts } from '../../types';
+import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
 import {
-    ERC20_PROXY_ID,
+    MAINNET_DODO_HELPER,
+    MAINNET_KYBER_NETWORK_PROXY,
+    MAINNET_MSTABLE_ROUTER,
+    MAINNET_OASIS_ROUTER,
+    MAINNET_UNISWAP_V1_ROUTER,
     MAX_UINT256,
-    NULL_ADDRESS,
-    NULL_BYTES,
-    ONE_HOUR_IN_SECONDS,
-    ONE_SECOND_MS,
-    WALLET_SIGNATURE,
     ZERO_AMOUNT,
 } from './constants';
 import {
@@ -29,7 +26,11 @@ import {
     MooniswapFillData,
     MultiHopFillData,
     NativeCollapsedFill,
+    NativeLimitOrderFillData,
+    NativeRfqOrderFillData,
+    OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
+    OptimizedMarketOrderBase,
     OrderDomain,
     ShellFillData,
     SnowSwapFillData,
@@ -38,95 +39,7 @@ import {
     UniswapV2FillData,
 } from './types';
 
-// tslint:disable completed-docs no-unnecessary-type-assertion
-
-export function createDummyOrderForSampler(
-    makerAssetData: string,
-    takerAssetData: string,
-    makerAddress: string,
-): SignedOrder {
-    return {
-        makerAddress,
-        takerAddress: NULL_ADDRESS,
-        senderAddress: NULL_ADDRESS,
-        feeRecipientAddress: NULL_ADDRESS,
-        salt: ZERO_AMOUNT,
-        expirationTimeSeconds: ZERO_AMOUNT,
-        makerAssetData,
-        takerAssetData,
-        makerFeeAssetData: NULL_BYTES,
-        takerFeeAssetData: NULL_BYTES,
-        makerFee: ZERO_AMOUNT,
-        takerFee: ZERO_AMOUNT,
-        makerAssetAmount: ZERO_AMOUNT,
-        takerAssetAmount: ZERO_AMOUNT,
-        signature: NULL_BYTES,
-        chainId: 1,
-        exchangeAddress: NULL_ADDRESS,
-    };
-}
-
-export function getNativeOrderTokens(order: SignedOrder): [string, string] {
-    const assets = [order.makerAssetData, order.takerAssetData].map(a => assetDataUtils.decodeAssetDataOrThrow(a)) as [
-        ERC20AssetData,
-        ERC20AssetData
-    ];
-    if (assets.some(a => a.assetProxyId !== ERC20_PROXY_ID)) {
-        throw new Error(AggregationError.NotERC20AssetData);
-    }
-    return assets.map(a => a.tokenAddress.toLowerCase()) as [string, string];
-}
-
-export function convertNativeOrderToFullyFillableOptimizedOrders(order: SignedOrder): OptimizedMarketOrder {
-    return {
-        ...order,
-        fillableMakerAssetAmount: order.makerAssetAmount,
-        fillableTakerAssetAmount: order.takerAssetAmount,
-        fillableTakerFeeAmount: order.takerFee,
-        fills: [],
-    };
-}
-
-/**
- * Augments native orders with fillable amounts and filters out unfillable orders.
- */
-export function createSignedOrdersWithFillableAmounts(
-    side: MarketOperation,
-    orders: SignedOrder[],
-    fillableAmounts: BigNumber[],
-): SignedOrderWithFillableAmounts[] {
-    // Quick safety check: ensures that orders maps perfectly to fillable amounts.
-    if (orders.length !== fillableAmounts.length) {
-        throw new Error(
-            `Number of orders was ${orders.length} but fillable amounts was ${
-                fillableAmounts.length
-            }. This should never happen`,
-        );
-    }
-
-    return orders
-        .map((order: SignedOrder, i: number) => {
-            const fillableAmount = fillableAmounts[i];
-            const fillableMakerAssetAmount =
-                side === MarketOperation.Buy
-                    ? fillableAmount
-                    : orderCalculationUtils.getMakerFillAmount(order, fillableAmount);
-            const fillableTakerAssetAmount =
-                side === MarketOperation.Sell
-                    ? fillableAmount
-                    : orderCalculationUtils.getTakerFillAmount(order, fillableAmount);
-            const fillableTakerFeeAmount = orderCalculationUtils.getTakerFeeAmount(order, fillableTakerAssetAmount);
-            return {
-                ...order,
-                fillableMakerAssetAmount,
-                fillableTakerAssetAmount,
-                fillableTakerFeeAmount,
-            };
-        })
-        .filter(order => {
-            return !order.fillableMakerAssetAmount.isZero() && !order.fillableTakerAssetAmount.isZero();
-        });
-}
+// tslint:disable completed-docs
 
 export interface CreateOrderFromPathOpts {
     side: MarketOperation;
@@ -142,10 +55,11 @@ export function createOrdersFromTwoHopSample(
     opts: CreateOrderFromPathOpts,
 ): OptimizedMarketOrder[] {
     const [makerToken, takerToken] = getMakerTakerTokens(opts);
-    const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData!;
+    const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
     const firstHopFill: CollapsedFill = {
         sourcePathId: '',
         source: firstHopSource.source,
+        type: FillQuoteTransformerOrderType.Bridge,
         input: opts.side === MarketOperation.Sell ? sample.input : ZERO_AMOUNT,
         output: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
         subFills: [],
@@ -154,209 +68,158 @@ export function createOrdersFromTwoHopSample(
     const secondHopFill: CollapsedFill = {
         sourcePathId: '',
         source: secondHopSource.source,
+        type: FillQuoteTransformerOrderType.Bridge,
         input: opts.side === MarketOperation.Sell ? MAX_UINT256 : sample.input,
         output: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
         subFills: [],
         fillData: secondHopSource.fillData,
     };
     return [
-        createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts),
-        createBridgeOrder(secondHopFill, makerToken, intermediateToken, opts),
+        createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
+        createBridgeOrder(secondHopFill, makerToken, intermediateToken, opts.side),
     ];
 }
 
-function getBridgeAddressFromFill(fill: CollapsedFill, opts: CreateOrderFromPathOpts): string {
-    switch (fill.source) {
-        case ERC20BridgeSource.Eth2Dai:
-            return opts.contractAddresses.eth2DaiBridge;
-        case ERC20BridgeSource.Kyber:
-            return opts.contractAddresses.kyberBridge;
-        case ERC20BridgeSource.Uniswap:
-            return opts.contractAddresses.uniswapBridge;
-        case ERC20BridgeSource.UniswapV2:
-            return opts.contractAddresses.uniswapV2Bridge;
-        case ERC20BridgeSource.SushiSwap:
-            return opts.contractAddresses.sushiswapBridge;
-        case ERC20BridgeSource.Curve:
-            return opts.contractAddresses.curveBridge;
-        case ERC20BridgeSource.Swerve:
-            return opts.contractAddresses.swerveBridge;
-        case ERC20BridgeSource.SnowSwap:
-            return opts.contractAddresses.snowswapBridge;
-        case ERC20BridgeSource.Bancor:
-            return opts.contractAddresses.bancorBridge;
+export function getERC20BridgeSourceToBridgeSource(source: ERC20BridgeSource): BridgeSource {
+    switch (source) {
         case ERC20BridgeSource.Balancer:
-            return opts.contractAddresses.balancerBridge;
+            return BridgeSource.Balancer;
+        case ERC20BridgeSource.Bancor:
+            return BridgeSource.Bancor;
+        // case ERC20BridgeSource.CoFiX:
+        //    return BridgeSource.CoFiX;
+        case ERC20BridgeSource.Curve:
+            return BridgeSource.Curve;
         case ERC20BridgeSource.Cream:
-            return opts.contractAddresses.creamBridge;
-        case ERC20BridgeSource.LiquidityProvider:
-            return (fill.fillData as LiquidityProviderFillData).poolAddress;
-        case ERC20BridgeSource.MStable:
-            return opts.contractAddresses.mStableBridge;
-        case ERC20BridgeSource.Mooniswap:
-            return opts.contractAddresses.mooniswapBridge;
-        case ERC20BridgeSource.Shell:
-            return opts.contractAddresses.shellBridge;
-        case ERC20BridgeSource.Dodo:
-            return opts.contractAddresses.dodoBridge;
+            return BridgeSource.Cream;
         case ERC20BridgeSource.CryptoCom:
-            return opts.contractAddresses.cryptoComBridge;
+            return BridgeSource.CryptoCom;
+        case ERC20BridgeSource.Dodo:
+            return BridgeSource.Dodo;
+        case ERC20BridgeSource.Kyber:
+            return BridgeSource.Kyber;
+        case ERC20BridgeSource.LiquidityProvider:
+            return BridgeSource.LiquidityProvider;
+        case ERC20BridgeSource.Mooniswap:
+            return BridgeSource.Mooniswap;
+        case ERC20BridgeSource.MStable:
+            return BridgeSource.MStable;
+        case ERC20BridgeSource.Eth2Dai:
+            return BridgeSource.Oasis;
+        case ERC20BridgeSource.Shell:
+            return BridgeSource.Shell;
+        case ERC20BridgeSource.SnowSwap:
+            return BridgeSource.Snowswap;
+        case ERC20BridgeSource.SushiSwap:
+            return BridgeSource.Sushiswap;
+        case ERC20BridgeSource.Swerve:
+            return BridgeSource.Swerve;
+        case ERC20BridgeSource.Uniswap:
+            return BridgeSource.Uniswap;
+        case ERC20BridgeSource.UniswapV2:
+            return BridgeSource.UniswapV2;
         default:
-            break;
+            throw new Error(AggregationError.NoBridgeForSource);
     }
-    throw new Error(AggregationError.NoBridgeForSource);
+}
+
+export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder): string {
+    let bridgeData: string;
+    if (
+        order.source === ERC20BridgeSource.MultiHop ||
+        order.source === ERC20BridgeSource.MultiBridge ||
+        order.source === ERC20BridgeSource.Native
+    ) {
+        throw new Error('Invalid order to encode for Bridge Data');
+    }
+    const encoder = BRIDGE_ENCODERS[order.source];
+
+    if (!encoder) {
+        throw new Error(AggregationError.NoBridgeForSource);
+    }
+
+    switch (order.source) {
+        case ERC20BridgeSource.Curve:
+        case ERC20BridgeSource.Swerve:
+        case ERC20BridgeSource.SnowSwap:
+            const curveFillData = (order as OptimizedMarketBridgeOrder<
+                CurveFillData | SwerveFillData | SnowSwapFillData
+            >).fillData;
+            bridgeData = encoder.encode([
+                curveFillData.pool.poolAddress,
+                curveFillData.pool.exchangeFunctionSelector,
+                curveFillData.fromTokenIdx,
+                curveFillData.toTokenIdx,
+            ]);
+            break;
+        case ERC20BridgeSource.Balancer:
+        case ERC20BridgeSource.Cream:
+            const balancerFillData = (order as OptimizedMarketBridgeOrder<BalancerFillData>).fillData;
+            bridgeData = encoder.encode([balancerFillData.poolAddress]);
+            break;
+        case ERC20BridgeSource.Bancor:
+            const bancorFillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
+            bridgeData = encoder.encode([bancorFillData.networkAddress, bancorFillData.path]);
+            break;
+        case ERC20BridgeSource.UniswapV2:
+        case ERC20BridgeSource.SushiSwap:
+        case ERC20BridgeSource.CryptoCom:
+            const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData | SushiSwapFillData>)
+                .fillData;
+            bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
+            break;
+        case ERC20BridgeSource.Kyber:
+            const kyberFillData = (order as OptimizedMarketBridgeOrder<KyberFillData>).fillData;
+            bridgeData = encoder.encode([MAINNET_KYBER_NETWORK_PROXY, kyberFillData.hint]);
+            break;
+        case ERC20BridgeSource.Mooniswap:
+            const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
+            bridgeData = encoder.encode([mooniswapFillData.poolAddress]);
+            break;
+        case ERC20BridgeSource.Dodo:
+            const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
+            bridgeData = encoder.encode([MAINNET_DODO_HELPER, dodoFillData.poolAddress, dodoFillData.isSellBase]);
+            break;
+        case ERC20BridgeSource.Shell:
+            const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
+            bridgeData = encoder.encode([shellFillData.poolAddress]);
+            break;
+        case ERC20BridgeSource.LiquidityProvider:
+            const lpFillData = (order as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
+            bridgeData = encoder.encode([lpFillData.poolAddress, tokenAddressEncoder.encode([order.takerToken])]);
+            break;
+        case ERC20BridgeSource.Uniswap:
+            bridgeData = encoder.encode([MAINNET_UNISWAP_V1_ROUTER]);
+            break;
+        case ERC20BridgeSource.Eth2Dai:
+            bridgeData = encoder.encode([MAINNET_OASIS_ROUTER]);
+            break;
+        case ERC20BridgeSource.MStable:
+            bridgeData = encoder.encode([MAINNET_MSTABLE_ROUTER]);
+            break;
+        default:
+            throw new Error(AggregationError.NoBridgeForSource);
+    }
+    return bridgeData;
 }
 
 export function createBridgeOrder(
     fill: CollapsedFill,
     makerToken: string,
     takerToken: string,
-    opts: CreateOrderFromPathOpts,
-): OptimizedMarketOrder {
-    const bridgeAddress = getBridgeAddressFromFill(fill, opts);
-
-    let makerAssetData;
-    switch (fill.source) {
-        case ERC20BridgeSource.Curve:
-            const curveFillData = (fill as CollapsedFill<CurveFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createCurveBridgeData(
-                    curveFillData.pool.poolAddress,
-                    curveFillData.pool.exchangeFunctionSelector,
-                    takerToken,
-                    curveFillData.fromTokenIdx,
-                    curveFillData.toTokenIdx,
-                ),
-            );
-            break;
-        case ERC20BridgeSource.Swerve:
-            const swerveFillData = (fill as CollapsedFill<SwerveFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createCurveBridgeData(
-                    swerveFillData.pool.poolAddress,
-                    swerveFillData.pool.exchangeFunctionSelector,
-                    takerToken,
-                    swerveFillData.fromTokenIdx,
-                    swerveFillData.toTokenIdx,
-                ),
-            );
-            break;
-        case ERC20BridgeSource.SnowSwap:
-            const snowSwapFillData = (fill as CollapsedFill<SnowSwapFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createCurveBridgeData(
-                    snowSwapFillData.pool.poolAddress,
-                    snowSwapFillData.pool.exchangeFunctionSelector,
-                    takerToken,
-                    snowSwapFillData.fromTokenIdx,
-                    snowSwapFillData.toTokenIdx,
-                ),
-            );
-            break;
-        case ERC20BridgeSource.Balancer:
-            const balancerFillData = (fill as CollapsedFill<BalancerFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createBalancerBridgeData(takerToken, balancerFillData.poolAddress),
-            );
-            break;
-        case ERC20BridgeSource.Cream:
-            const creamFillData = (fill as CollapsedFill<BalancerFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createBalancerBridgeData(takerToken, creamFillData.poolAddress),
-            );
-            break;
-        case ERC20BridgeSource.Bancor:
-            const bancorFillData = (fill as CollapsedFill<BancorFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createBancorBridgeData(bancorFillData.path, bancorFillData.networkAddress),
-            );
-            break;
-        case ERC20BridgeSource.UniswapV2:
-            const uniswapV2FillData = (fill as CollapsedFill<UniswapV2FillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createUniswapV2BridgeData(uniswapV2FillData.tokenAddressPath),
-            );
-            break;
-        case ERC20BridgeSource.SushiSwap:
-            const sushiSwapFillData = (fill as CollapsedFill<SushiSwapFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createSushiSwapBridgeData(sushiSwapFillData.tokenAddressPath, sushiSwapFillData.router),
-            );
-            break;
-        case ERC20BridgeSource.CryptoCom:
-            const cryptoComFillData = (fill as CollapsedFill<SushiSwapFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createSushiSwapBridgeData(cryptoComFillData.tokenAddressPath, cryptoComFillData.router),
-            );
-            break;
-        case ERC20BridgeSource.Kyber:
-            const kyberFillData = (fill as CollapsedFill<KyberFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createKyberBridgeData(takerToken, kyberFillData.hint),
-            );
-            break;
-        case ERC20BridgeSource.Mooniswap:
-            const mooniswapFillData = (fill as CollapsedFill<MooniswapFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createMooniswapBridgeData(takerToken, mooniswapFillData.poolAddress),
-            );
-            break;
-        case ERC20BridgeSource.Dodo:
-            const dodoFillData = (fill as CollapsedFill<DODOFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createDODOBridgeData(takerToken, dodoFillData.poolAddress, dodoFillData.isSellBase),
-            );
-            break;
-        case ERC20BridgeSource.Shell:
-            const shellFillData = (fill as CollapsedFill<ShellFillData>).fillData!; // tslint:disable-line:no-non-null-assertion
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createShellBridgeData(takerToken, shellFillData.poolAddress),
-            );
-            break;
-        default:
-            makerAssetData = assetDataUtils.encodeERC20BridgeAssetData(
-                makerToken,
-                bridgeAddress,
-                createBridgeData(takerToken),
-            );
-    }
-    const [slippedMakerAssetAmount, slippedTakerAssetAmount] = getSlippedBridgeAssetAmounts(fill, opts);
+    side: MarketOperation,
+): OptimizedMarketBridgeOrder {
+    const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
     return {
+        makerToken,
+        takerToken,
+        makerAmount,
+        takerAmount,
+        fillData: fill.fillData,
+        source: fill.source,
+        sourcePathId: fill.sourcePathId,
+        type: FillQuoteTransformerOrderType.Bridge,
         fills: [fill],
-        makerAssetData,
-        takerAssetData: assetDataUtils.encodeERC20AssetData(takerToken),
-        makerAddress: bridgeAddress,
-        makerAssetAmount: slippedMakerAssetAmount,
-        takerAssetAmount: slippedTakerAssetAmount,
-        fillableMakerAssetAmount: slippedMakerAssetAmount,
-        fillableTakerAssetAmount: slippedTakerAssetAmount,
-        ...createCommonBridgeOrderFields(opts.orderDomain),
     };
 }
 
@@ -366,162 +229,80 @@ export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, str
     return [makerToken, takerToken];
 }
 
-function createBridgeData(tokenAddress: string): string {
-    const encoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
-    return encoder.encode({ tokenAddress });
-}
+const poolEncoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
+const curveEncoder = AbiEncoder.create([
+    { name: 'curveAddress', type: 'address' },
+    { name: 'exchangeFunctionSelector', type: 'bytes4' },
+    { name: 'fromTokenIdx', type: 'int128' },
+    { name: 'toTokenIdx', type: 'int128' },
+]);
+const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
+const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
-function createBalancerBridgeData(takerToken: string, poolAddress: string): string {
-    const encoder = AbiEncoder.create([
-        { name: 'takerToken', type: 'address' },
-        { name: 'poolAddress', type: 'address' },
-    ]);
-    return encoder.encode({ takerToken, poolAddress });
-}
-
-function createShellBridgeData(takerToken: string, poolAddress: string): string {
-    const encoder = AbiEncoder.create([
-        { name: 'takerToken', type: 'address' },
-        { name: 'poolAddress', type: 'address' },
-    ]);
-    return encoder.encode({ takerToken, poolAddress });
-}
-
-function createBancorBridgeData(path: string[], networkAddress: string): string {
-    const encoder = AbiEncoder.create([
-        { name: 'path', type: 'address[]' },
-        { name: 'networkAddress', type: 'address' },
-    ]);
-    return encoder.encode({ path, networkAddress });
-}
-
-function createKyberBridgeData(fromTokenAddress: string, hint: string): string {
-    const encoder = AbiEncoder.create([{ name: 'fromTokenAddress', type: 'address' }, { name: 'hint', type: 'bytes' }]);
-    return encoder.encode({ fromTokenAddress, hint });
-}
-
-function createMooniswapBridgeData(takerToken: string, poolAddress: string): string {
-    const encoder = AbiEncoder.create([
-        { name: 'takerToken', type: 'address' },
-        { name: 'poolAddress', type: 'address' },
-    ]);
-    return encoder.encode({ takerToken, poolAddress });
-}
-
-function createDODOBridgeData(takerToken: string, poolAddress: string, isSellBase: boolean): string {
-    const encoder = AbiEncoder.create([
-        { name: 'takerToken', type: 'address' },
+export const BRIDGE_ENCODERS: {
+    [key in Exclude<
+        ERC20BridgeSource,
+        ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop | ERC20BridgeSource.MultiBridge
+    >]: AbiEncoder.DataType
+} = {
+    [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
+        { name: 'provider', type: 'address' },
+        { name: 'data', type: 'bytes' },
+    ]),
+    [ERC20BridgeSource.Kyber]: AbiEncoder.create([
+        { name: 'kyberNetworkProxy', type: 'address' },
+        { name: 'hint', type: 'bytes' },
+    ]),
+    [ERC20BridgeSource.Dodo]: AbiEncoder.create([
+        { name: 'helper', type: 'address' },
         { name: 'poolAddress', type: 'address' },
         { name: 'isSellBase', type: 'bool' },
-    ]);
-    return encoder.encode({ takerToken, poolAddress, isSellBase });
-}
+    ]),
+    // Curve like
+    [ERC20BridgeSource.Curve]: curveEncoder,
+    [ERC20BridgeSource.Swerve]: curveEncoder,
+    [ERC20BridgeSource.SnowSwap]: curveEncoder,
+    // UniswapV2 like, (router, address[])
+    [ERC20BridgeSource.Bancor]: routerAddressPathEncoder,
+    [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
+    [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
+    // Generic pools
+    [ERC20BridgeSource.Shell]: poolEncoder,
+    [ERC20BridgeSource.Mooniswap]: poolEncoder,
+    [ERC20BridgeSource.Eth2Dai]: poolEncoder,
+    [ERC20BridgeSource.MStable]: poolEncoder,
+    [ERC20BridgeSource.Balancer]: poolEncoder,
+    [ERC20BridgeSource.Cream]: poolEncoder,
+    [ERC20BridgeSource.Uniswap]: poolEncoder,
+};
 
-function createCurveBridgeData(
-    curveAddress: string,
-    exchangeFunctionSelector: string,
-    takerToken: string,
-    fromTokenIdx: number,
-    toTokenIdx: number,
-): string {
-    const encoder = AbiEncoder.create([
-        { name: 'curveAddress', type: 'address' },
-        { name: 'exchangeFunctionSelector', type: 'bytes4' },
-        { name: 'fromTokenAddress', type: 'address' },
-        { name: 'fromTokenIdx', type: 'int128' },
-        { name: 'toTokenIdx', type: 'int128' },
-    ]);
-    return encoder.encode([curveAddress, exchangeFunctionSelector, takerToken, fromTokenIdx, toTokenIdx]);
-}
-
-function createUniswapV2BridgeData(tokenAddressPath: string[]): string {
-    const encoder = AbiEncoder.create('(address[])');
-    return encoder.encode([tokenAddressPath]);
-}
-
-function createSushiSwapBridgeData(tokenAddressPath: string[], router: string): string {
-    const encoder = AbiEncoder.create('(address[],address)');
-    return encoder.encode([tokenAddressPath, router]);
-}
-
-function getSlippedBridgeAssetAmounts(fill: CollapsedFill, opts: CreateOrderFromPathOpts): [BigNumber, BigNumber] {
+function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
     return [
         // Maker asset amount.
-        opts.side === MarketOperation.Sell
-            ? fill.output.times(1 - opts.bridgeSlippage).integerValue(BigNumber.ROUND_DOWN)
-            : fill.input,
+        side === MarketOperation.Sell ? fill.output : fill.input,
         // Taker asset amount.
-        opts.side === MarketOperation.Sell
-            ? fill.input
-            : BigNumber.min(fill.output.times(opts.bridgeSlippage + 1).integerValue(BigNumber.ROUND_UP), MAX_UINT256),
+        side === MarketOperation.Sell ? fill.input : fill.output,
     ];
 }
 
-type CommonBridgeOrderFields = Pick<
-    OptimizedMarketOrder,
-    Exclude<
-        keyof OptimizedMarketOrder,
-        | 'fills'
-        | 'makerAddress'
-        | 'makerAssetData'
-        | 'takerAssetData'
-        | 'makerAssetAmount'
-        | 'takerAssetAmount'
-        | 'fillableMakerAssetAmount'
-        | 'fillableTakerAssetAmount'
-    >
->;
-
-function createCommonBridgeOrderFields(orderDomain: OrderDomain): CommonBridgeOrderFields {
-    return {
-        takerAddress: NULL_ADDRESS,
-        senderAddress: NULL_ADDRESS,
-        feeRecipientAddress: NULL_ADDRESS,
-        salt: generatePseudoRandomSalt(),
-        // 2 hours from now
-        expirationTimeSeconds: new BigNumber(Math.floor(Date.now() / ONE_SECOND_MS) + ONE_HOUR_IN_SECONDS * 2),
-        makerFeeAssetData: NULL_BYTES,
-        takerFeeAssetData: NULL_BYTES,
-        makerFee: ZERO_AMOUNT,
-        takerFee: ZERO_AMOUNT,
-        fillableTakerFeeAmount: ZERO_AMOUNT,
-        signature: WALLET_SIGNATURE,
-        ...orderDomain,
-    };
-}
-
-export function createNativeOrder(fill: NativeCollapsedFill): OptimizedMarketOrder {
-    return {
+export function createNativeOptimizedOrder(
+    fill: NativeCollapsedFill,
+    side: MarketOperation,
+): OptimizedMarketOrderBase<NativeLimitOrderFillData> | OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+    const fillData = fill.fillData;
+    const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
+    const base = {
+        type: fill.type,
+        source: ERC20BridgeSource.Native,
+        makerToken: fillData.order.makerToken,
+        takerToken: fillData.order.takerToken,
+        makerAmount,
+        takerAmount,
         fills: [fill],
-        ...fill.fillData!.order, // tslint:disable-line:no-non-null-assertion
+        fillData,
     };
-}
-
-export function createSignedOrdersFromRfqtIndicativeQuotes(
-    quotes: V3RFQIndicativeQuote[],
-): SignedOrderWithFillableAmounts[] {
-    return quotes.map(quote => {
-        return {
-            fillableMakerAssetAmount: quote.makerAssetAmount,
-            fillableTakerAssetAmount: quote.takerAssetAmount,
-            makerAssetAmount: quote.makerAssetAmount,
-            takerAssetAmount: quote.takerAssetAmount,
-            makerAssetData: quote.makerAssetData,
-            takerAssetData: quote.takerAssetData,
-            takerAddress: NULL_ADDRESS,
-            makerAddress: NULL_ADDRESS,
-            senderAddress: NULL_ADDRESS,
-            feeRecipientAddress: NULL_ADDRESS,
-            salt: ZERO_AMOUNT,
-            expirationTimeSeconds: quote.expirationTimeSeconds,
-            makerFeeAssetData: NULL_BYTES,
-            takerFeeAssetData: NULL_BYTES,
-            makerFee: ZERO_AMOUNT,
-            takerFee: ZERO_AMOUNT,
-            fillableTakerFeeAmount: ZERO_AMOUNT,
-            signature: WALLET_SIGNATURE,
-            chainId: 0,
-            exchangeAddress: NULL_ADDRESS,
-        };
-    });
+    return fill.type === FillQuoteTransformerOrderType.Rfq
+        ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
+        : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
 }

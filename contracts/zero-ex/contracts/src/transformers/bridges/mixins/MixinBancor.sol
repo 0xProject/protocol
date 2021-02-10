@@ -24,12 +24,12 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 
 
 interface IBancorNetwork {
     function convertByPath(
-        address[] calldata _path,
+        IERC20TokenV06[] calldata _path,
         uint256 _amount,
         uint256 _minReturn,
         address _beneficiary,
@@ -42,17 +42,17 @@ interface IBancorNetwork {
 }
 
 
-contract MixinBancor is
-    MixinAdapterAddresses
-{
+contract MixinBancor {
+
     /// @dev Bancor ETH pseudo-address.
-    address constant public BANCOR_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    IERC20TokenV06 constant public BANCOR_ETH_ADDRESS =
+        IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     IEtherTokenV06 private immutable WETH;
 
-    constructor(AdapterAddresses memory addresses)
+    constructor(IEtherTokenV06 weth)
         public
     {
-        WETH = IEtherTokenV06(addresses.weth);
+        WETH = weth;
     }
 
     function _tradeBancor(
@@ -64,17 +64,22 @@ contract MixinBancor is
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.
-        (
-            address[] memory path,
-            address bancorNetworkAddress
-        // solhint-disable indent
-        ) = abi.decode(bridgeData, (address[], address));
-        // solhint-enable indent
+        IBancorNetwork bancorNetworkAddress;
+        IERC20TokenV06[] memory path;
+        {
+            address[] memory _path;
+            (
+                bancorNetworkAddress,
+                _path
+            ) = abi.decode(bridgeData, (IBancorNetwork, address[]));
+            // To get around `abi.decode()` not supporting interface array types.
+            assembly { path := _path }
+        }
 
         require(path.length >= 2, "MixinBancor/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
-            path[path.length - 1] == address(buyToken) ||
-            (path[path.length - 1] == BANCOR_ETH_ADDRESS && address(buyToken) == address(WETH)),
+            path[path.length - 1] == buyToken ||
+            (path[path.length - 1] == BANCOR_ETH_ADDRESS && buyToken == WETH),
             "MixinBancor/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
 
@@ -88,14 +93,14 @@ contract MixinBancor is
         } else {
             // Grant an allowance to the Bancor Network.
             LibERC20TokenV06.approveIfBelow(
-                IERC20TokenV06(path[0]),
-                bancorNetworkAddress,
+                path[0],
+                address(bancorNetworkAddress),
                 sellAmount
             );
         }
 
         // Convert the tokens
-        boughtAmount = IBancorNetwork(bancorNetworkAddress).convertByPath{value: payableAmount}(
+        boughtAmount = bancorNetworkAddress.convertByPath{value: payableAmount}(
             path, // path originating with source token and terminating in destination token
             sellAmount, // amount of source token to trade
             1, // minimum amount of destination token expected to receive

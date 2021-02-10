@@ -1,12 +1,16 @@
-import { V3RFQIndicativeQuote } from '@0x/quote-server';
-import { MarketOperation, SignedOrder } from '@0x/types';
+import {
+    FillQuoteTransformerLimitOrderInfo,
+    FillQuoteTransformerOrderType,
+    FillQuoteTransformerRfqOrderInfo,
+} from '@0x/protocol-utils';
+import { V4RFQIndicativeQuote } from '@0x/quote-server';
+import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { RfqtFirmQuoteValidator, RfqtRequestOpts, SignedOrderWithFillableAmounts } from '../../types';
+import { NativeOrderWithFillableAmounts, RfqtFirmQuoteValidator, RfqtRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
-import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
 
 /**
@@ -86,16 +90,18 @@ export interface SnowSwapInfo extends CurveInfo {}
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
 
-export interface SourceInfo<TFillData extends FillData = FillData> {
+// `FillData` for native fills. Represents a single native order
+export type NativeRfqOrderFillData = FillQuoteTransformerRfqOrderInfo;
+export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo;
+export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData;
+
+// Represents an individual DEX sample from the sampler contract
+export interface DexSample<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
-    fillData?: TFillData;
+    fillData: TFillData;
+    input: BigNumber;
+    output: BigNumber;
 }
-
-// `FillData` for native fills.
-export interface NativeFillData extends FillData {
-    order: SignedOrderWithFillableAmounts;
-}
-
 export interface CurveFillData extends FillData {
     fromTokenIdx: number;
     toTokenIdx: number;
@@ -120,11 +126,10 @@ export interface BalancerFillData extends FillData {
 
 export interface UniswapV2FillData extends FillData {
     tokenAddressPath: string[];
-}
-
-export interface SushiSwapFillData extends UniswapV2FillData {
     router: string;
 }
+
+export interface SushiSwapFillData extends UniswapV2FillData {}
 
 export interface ShellFillData extends FillData {
     poolAddress: string;
@@ -153,35 +158,25 @@ export interface DODOFillData extends FillData {
     poolAddress: string;
     isSellBase: boolean;
 }
-
-export interface Quote<TFillData = FillData> {
-    amount: BigNumber;
-    fillData?: TFillData;
-}
-
-export interface HopInfo {
-    sourceIndex: BigNumber;
-    returnData: string;
-}
-
 export interface MultiHopFillData extends FillData {
     firstHopSource: SourceQuoteOperation;
     secondHopSource: SourceQuoteOperation;
     intermediateToken: string;
 }
-
-/**
- * Represents an individual DEX sample from the sampler contract.
- */
-export interface DexSample<TFillData extends FillData = FillData> extends SourceInfo<TFillData> {
-    input: BigNumber;
-    output: BigNumber;
+export interface HopInfo {
+    sourceIndex: BigNumber;
+    returnData: string;
 }
 
 /**
  * Represents a node on a fill path.
  */
-export interface Fill<TFillData extends FillData = FillData> extends SourceInfo<TFillData> {
+export interface Fill<TFillData extends FillData = FillData> {
+    // basic data for every fill
+    source: ERC20BridgeSource;
+    // TODO jacob people seem to agree  that orderType here is more readable
+    type: FillQuoteTransformerOrderType; // should correspond with TFillData
+    fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -203,7 +198,10 @@ export interface Fill<TFillData extends FillData = FillData> extends SourceInfo<
 /**
  * Represents continguous fills on a path that have been merged together.
  */
-export interface CollapsedFill<TFillData extends FillData = FillData> extends SourceInfo<TFillData> {
+export interface CollapsedFill<TFillData extends FillData = FillData> {
+    source: ERC20BridgeSource;
+    type: FillQuoteTransformerOrderType; // should correspond with TFillData
+    fillData: TFillData;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -230,22 +228,48 @@ export interface CollapsedFill<TFillData extends FillData = FillData> extends So
  */
 export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 
+export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
+    source: ERC20BridgeSource;
+    fillData: TFillData;
+    type: FillQuoteTransformerOrderType; // should correspond with TFillData
+    makerToken: string;
+    takerToken: string;
+    makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
+    takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
+    fills: CollapsedFill[];
+}
+
+export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
+    extends OptimizedMarketOrderBase<TFillData> {
+    type: FillQuoteTransformerOrderType.Bridge;
+    fillData: TFillData;
+    sourcePathId: string;
+}
+
+export interface OptimizedLimitOrder extends OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+    type: FillQuoteTransformerOrderType.Limit;
+    fillData: NativeLimitOrderFillData;
+}
+
+export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+    type: FillQuoteTransformerOrderType.Rfq;
+    fillData: NativeRfqOrderFillData;
+}
+
 /**
  * Optimized orders to fill.
  */
-export interface OptimizedMarketOrder extends SignedOrderWithFillableAmounts {
-    /**
-     * The optimized fills that generated this order.
-     */
-    fills: CollapsedFill[];
-}
+export type OptimizedMarketOrder =
+    | OptimizedMarketBridgeOrder<FillData>
+    | OptimizedMarketOrderBase<NativeLimitOrderFillData>
+    | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
 
 export interface GetMarketOrdersRfqtOpts extends RfqtRequestOpts {
     quoteRequestor?: QuoteRequestor;
     firmQuoteValidator?: RfqtFirmQuoteValidator;
 }
 
-export type FeeEstimate = (fillData?: FillData) => number | BigNumber;
+export type FeeEstimate = (fillData: FillData) => number | BigNumber;
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
 export type ExchangeProxyOverhead = (sourceFlags: number) => BigNumber;
 
@@ -313,6 +337,9 @@ export interface GetMarketOrdersOpts {
      * sources. Defaults to `true`.
      */
     allowFallback: boolean;
+    /**
+     * Options for RFQT such as takerAddress, intent on filling
+     */
     rfqt?: GetMarketOrdersRfqtOpts;
     /**
      * Whether to generate a quote report
@@ -334,10 +361,9 @@ export interface BatchedOperation<TResult> {
     handleRevert(callResults: string): TResult;
 }
 
-export interface SourceQuoteOperation<TFillData extends FillData = FillData>
-    extends BatchedOperation<BigNumber[]>,
-        SourceInfo<TFillData> {
+export interface SourceQuoteOperation<TFillData extends FillData = FillData> extends BatchedOperation<BigNumber[]> {
     readonly source: ERC20BridgeSource;
+    fillData: TFillData;
 }
 
 export interface OptimizerResult {
@@ -346,9 +372,8 @@ export interface OptimizerResult {
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
-    unoptimizedPath?: CollapsedPath;
-    takerAssetToEthRate: BigNumber;
-    makerAssetToEthRate: BigNumber;
+    takerTokenToEthRate: BigNumber;
+    makerTokenToEthRate: BigNumber;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
@@ -369,16 +394,20 @@ export interface MarketSideLiquidity {
     inputAmount: BigNumber;
     inputToken: string;
     outputToken: string;
-    dexQuotes: Array<Array<DexSample<FillData>>>;
-    nativeOrders: SignedOrder[];
-    orderFillableAmounts: BigNumber[];
     ethToOutputRate: BigNumber;
     ethToInputRate: BigNumber;
-    rfqtIndicativeQuotes: V3RFQIndicativeQuote[];
-    twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     quoteSourceFilters: SourceFilters;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
+    quotes: RawQuotes;
+    isRfqSupported: boolean;
+}
+
+export interface RawQuotes {
+    nativeOrders: NativeOrderWithFillableAmounts[];
+    rfqtIndicativeQuotes: V4RFQIndicativeQuote[];
+    twoHopQuotes: Array<DexSample<MultiHopFillData>>;
+    dexQuotes: Array<Array<DexSample<FillData>>>;
 }
 
 export interface TokenAdjacencyGraph {

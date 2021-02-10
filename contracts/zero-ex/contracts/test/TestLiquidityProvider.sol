@@ -65,14 +65,13 @@ contract TestLiquidityProvider {
     /// @param outputToken The token being bought.
     /// @param recipient The recipient of the bought tokens.
     /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
-    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellTokenForToken(
         address inputToken,
         address outputToken,
         address recipient,
         uint256 minBuyAmount,
-        bytes calldata auxiliaryData
+        bytes calldata // auxiliaryData
     )
         external
         returns (uint256 boughtAmount)
@@ -91,13 +90,12 @@ contract TestLiquidityProvider {
     /// @param outputToken The token being bought.
     /// @param recipient The recipient of the bought tokens.
     /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
-    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellEthForToken(
         address outputToken,
         address recipient,
         uint256 minBuyAmount,
-        bytes calldata auxiliaryData
+        bytes calldata // auxiliaryData
     )
         external
         returns (uint256 boughtAmount)
@@ -115,13 +113,12 @@ contract TestLiquidityProvider {
     /// @param inputToken The token being sold.
     /// @param recipient The recipient of the bought tokens.
     /// @param minBuyAmount The minimum acceptable amount of ETH to buy.
-    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of ETH bought.
     function sellTokenForEth(
         address inputToken,
         address payable recipient,
         uint256 minBuyAmount,
-        bytes calldata auxiliaryData
+        bytes calldata // auxiliaryData
     )
         external
         returns (uint256 boughtAmount)

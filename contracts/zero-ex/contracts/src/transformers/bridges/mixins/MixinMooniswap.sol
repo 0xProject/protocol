@@ -24,7 +24,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "./MixinAdapterAddresses.sol";
+import "../IBridgeAdapter.sol";
 
 
 /// @dev Moooniswap pool interface.
@@ -43,22 +43,22 @@ interface IMooniswapPool {
 }
 
 /// @dev BridgeAdapter mixin for mooniswap.
-contract MixinMooniswap is
-    MixinAdapterAddresses
-{
+contract MixinMooniswap {
+
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibERC20TokenV06 for IEtherTokenV06;
 
     /// @dev WETH token.
     IEtherTokenV06 private immutable WETH;
 
-    constructor(AdapterAddresses memory addresses)
+    constructor(IEtherTokenV06 weth)
         public
     {
-        WETH = IEtherTokenV06(addresses.weth);
+        WETH = weth;
     }
 
     function _tradeMooniswap(
+        IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
@@ -66,8 +66,7 @@ contract MixinMooniswap is
         internal
         returns (uint256 boughtAmount)
     {
-        (IERC20TokenV06 sellToken, IMooniswapPool pool) =
-            abi.decode(bridgeData, (IERC20TokenV06, IMooniswapPool));
+        (IMooniswapPool pool) = abi.decode(bridgeData, (IMooniswapPool));
 
         // Convert WETH to ETH.
         uint256 ethValue = 0;

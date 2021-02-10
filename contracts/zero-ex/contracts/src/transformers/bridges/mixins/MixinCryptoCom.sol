@@ -37,21 +37,24 @@ contract MixinCryptoCom
         internal
         returns (uint256 boughtAmount)
     {
-        // solhint-disable indent
-        address[] memory path;
-        address router;
-        (path, router) = abi.decode(bridgeData, (address[], address));
-        // solhint-enable indent
+        IUniswapV2Router02 router;
+        IERC20TokenV06[] memory path;
+        {
+            address[] memory _path;
+            (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));
+            // To get around `abi.decode()` not supporting interface array types.
+            assembly { path := _path }
+        }
 
-        require(path.length >= 2, "CryptoComBridge/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path.length >= 2, "MixinCryptoCom/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
-            path[path.length - 1] == address(buyToken),
-            "CryptoComBridge/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+            path[path.length - 1] == buyToken,
+            "MixinCryptoCom/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
         // Grant the CryptoCom router an allowance to sell the first token.
-        IERC20TokenV06(path[0]).approveIfBelow(router, sellAmount);
+        path[0].approveIfBelow(address(router), sellAmount);
 
-        uint[] memory amounts = IUniswapV2Router02(router).swapExactTokensForTokens(
+        uint[] memory amounts = router.swapExactTokensForTokens(
              // Sell all tokens we hold.
             sellAmount,
              // Minimum buy amount.

@@ -1,22 +1,42 @@
-import { Order } from '@0x/types';
 import { AbiEncoder, BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 
-const ORDER_ABI_COMPONENTS = [
-    { name: 'makerAddress', type: 'address' },
-    { name: 'takerAddress', type: 'address' },
-    { name: 'feeRecipientAddress', type: 'address' },
-    { name: 'senderAddress', type: 'address' },
-    { name: 'makerAssetAmount', type: 'uint256' },
-    { name: 'takerAssetAmount', type: 'uint256' },
-    { name: 'makerFee', type: 'uint256' },
-    { name: 'takerFee', type: 'uint256' },
-    { name: 'expirationTimeSeconds', type: 'uint256' },
-    { name: 'salt', type: 'uint256' },
-    { name: 'makerAssetData', type: 'bytes' },
-    { name: 'takerAssetData', type: 'bytes' },
-    { name: 'makerFeeAssetData', type: 'bytes' },
-    { name: 'takerFeeAssetData', type: 'bytes' },
+import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from './orders';
+import { Signature, SIGNATURE_ABI } from './signature_utils';
+
+const BRIDGE_ORDER_ABI_COMPONENTS = [
+    { name: 'source', type: 'uint256' },
+    { name: 'takerTokenAmount', type: 'uint256' },
+    { name: 'makerTokenAmount', type: 'uint256' },
+    { name: 'bridgeData', type: 'bytes' },
+];
+
+const LIMIT_ORDER_INFO_ABI_COMPONENTS = [
+    {
+        name: 'order',
+        type: 'tuple',
+        components: LimitOrder.STRUCT_ABI,
+    },
+    {
+        name: 'signature',
+        type: 'tuple',
+        components: SIGNATURE_ABI,
+    },
+    { name: 'maxTakerTokenFillAmount', type: 'uint256' },
+];
+
+const RFQ_ORDER_INFO_ABI_COMPONENTS = [
+    {
+        name: 'order',
+        type: 'tuple',
+        components: RfqOrder.STRUCT_ABI,
+    },
+    {
+        name: 'signature',
+        type: 'tuple',
+        components: SIGNATURE_ABI,
+    },
+    { name: 'maxTakerTokenFillAmount', type: 'uint256' },
 ];
 
 /**
@@ -31,15 +51,23 @@ export const fillQuoteTransformerDataEncoder = AbiEncoder.create([
             { name: 'sellToken', type: 'address' },
             { name: 'buyToken', type: 'address' },
             {
-                name: 'orders',
+                name: 'bridgeOrders',
                 type: 'tuple[]',
-                components: ORDER_ABI_COMPONENTS,
+                components: BRIDGE_ORDER_ABI_COMPONENTS,
             },
-            { name: 'signatures', type: 'bytes[]' },
-            { name: 'maxOrderFillAmounts', type: 'uint256[]' },
+            {
+                name: 'limitOrders',
+                type: 'tuple[]',
+                components: LIMIT_ORDER_INFO_ABI_COMPONENTS,
+            },
+            {
+                name: 'rfqOrders',
+                type: 'tuple[]',
+                components: RFQ_ORDER_INFO_ABI_COMPONENTS,
+            },
+            { name: 'fillSequence', type: 'uint8[]' },
             { name: 'fillAmount', type: 'uint256' },
             { name: 'refundReceiver', type: 'address' },
-            { name: 'rfqtTakerAddress', type: 'address' },
         ],
     },
 ]);
@@ -53,19 +81,83 @@ export enum FillQuoteTransformerSide {
 }
 
 /**
+ * `FillQuoteTransformer.OrderType`
+ */
+export enum FillQuoteTransformerOrderType {
+    Bridge,
+    Limit,
+    Rfq,
+}
+
+/**
  * `FillQuoteTransformer.TransformData`
  */
 export interface FillQuoteTransformerData {
     side: FillQuoteTransformerSide;
     sellToken: string;
     buyToken: string;
-    orders: Array<Exclude<Order, ['signature', 'exchangeAddress', 'chainId']>>;
-    signatures: string[];
-    maxOrderFillAmounts: BigNumber[];
+    bridgeOrders: FillQuoteTransformerBridgeOrder[];
+    limitOrders: FillQuoteTransformerLimitOrderInfo[];
+    rfqOrders: FillQuoteTransformerRfqOrderInfo[];
+    fillSequence: FillQuoteTransformerOrderType[];
     fillAmount: BigNumber;
     refundReceiver: string;
-    rfqtTakerAddress: string;
 }
+
+/**
+ * Identifies the DEX type of a bridge order.
+ */
+export enum BridgeSource {
+    Balancer,
+    Bancor,
+    // tslint:disable-next-line: enum-naming
+    CoFiX,
+    Curve,
+    Cream,
+    CryptoCom,
+    Dodo,
+    Kyber,
+    LiquidityProvider,
+    Mooniswap,
+    MStable,
+    Oasis,
+    Shell,
+    Snowswap,
+    Sushiswap,
+    Swerve,
+    Uniswap,
+    UniswapV2,
+}
+
+/**
+ * `FillQuoteTransformer.BridgeOrder`
+ */
+export interface FillQuoteTransformerBridgeOrder {
+    source: BridgeSource;
+    takerTokenAmount: BigNumber;
+    makerTokenAmount: BigNumber;
+    bridgeData: string;
+}
+
+/**
+ * Represents either `FillQuoteTransformer.LimitOrderInfo`
+ * or `FillQuoteTransformer.RfqOrderInfo`
+ */
+interface FillQuoteTransformerNativeOrderInfo<T> {
+    order: T;
+    signature: Signature;
+    maxTakerTokenFillAmount: BigNumber;
+}
+
+/**
+ * `FillQuoteTransformer.LimitOrderInfo`
+ */
+export type FillQuoteTransformerLimitOrderInfo = FillQuoteTransformerNativeOrderInfo<LimitOrderFields>;
+
+/**
+ * `FillQuoteTransformer.RfqOrderInfo`
+ */
+export type FillQuoteTransformerRfqOrderInfo = FillQuoteTransformerNativeOrderInfo<RfqOrderFields>;
 
 /**
  * ABI-encode a `FillQuoteTransformer.TransformData` type.

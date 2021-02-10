@@ -18,12 +18,38 @@
 */
 
 pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
+
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+
 
 interface IBridgeAdapter {
 
+    struct BridgeOrder {
+        uint256 source;
+        uint256 takerTokenAmount;
+        uint256 makerTokenAmount;
+        bytes bridgeData;
+    }
+
+    /// @dev Emitted when tokens are swapped with an external source.
+    /// @param source The unique ID for the source. See `BridgeSource.sol`
+    /// @param inputToken The token the bridge is converting from.
+    /// @param outputToken The token the bridge is converting to.
+    /// @param inputTokenAmount Amount of input token sold.
+    /// @param outputTokenAmount Amount of output token bought.
+    event BridgeFill(
+        uint256 source,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount
+    );
+
     function trade(
-        bytes calldata makerAssetData,
-        address fromTokenAddress,
+        BridgeOrder calldata order,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
         uint256 sellAmount
     )
         external

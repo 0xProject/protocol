@@ -31,6 +31,16 @@ export interface Signature extends ECSignature {
 }
 
 /**
+ * ABI definition for the `Signature` struct.
+ */
+export const SIGNATURE_ABI = [
+    { name: 'signatureType', type: 'uint8' },
+    { name: 'v', type: 'uint8' },
+    { name: 'r', type: 'bytes32' },
+    { name: 's', type: 'bytes32' },
+];
+
+/**
  * Sign a hash with the EthSign signature type on a provider.
  */
 export async function ethSignHashWithProviderAsync(

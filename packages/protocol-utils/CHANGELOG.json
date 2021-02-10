@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.2.0",
+        "changes": [
+            {
+                "note": "Update transformer utils for V4 FQT",
+                "pr": 104
+            }
+        ]
+    },
+    {
         "version": "1.1.5",
         "changes": [
             {

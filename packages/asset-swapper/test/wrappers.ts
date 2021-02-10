@@ -38,3 +38,4 @@ export * from '../test/generated-wrappers/test_native_order_sampler';
 export * from '../test/generated-wrappers/two_hop_sampler';
 export * from '../test/generated-wrappers/uniswap_sampler';
 export * from '../test/generated-wrappers/uniswap_v2_sampler';
+export * from '../test/generated-wrappers/utility_sampler';

@@ -23,106 +23,109 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "../src/vendor/v3/IExchange.sol";
 import "./TestMintableERC20Token.sol";
+import "../src/features/libs/LibNativeOrder.sol";
+import "../src/features/libs/LibSignature.sol";
 
 
 contract TestFillQuoteTransformerExchange {
 
-    struct FillBehavior {
-        // How much of the order is filled, in taker asset amount.
-        uint256 filledTakerAssetAmount;
-        // Scaling for maker assets minted, in 1e18.
-        uint256 makerAssetMintRatio;
-    }
-
     bytes32 public constant EIP712_EXCHANGE_DOMAIN_HASH = 0xaa81d881b1adbbf115e15b849cb9cdc643cad3c6a90f30eb505954af943247e6;
-
+    uint256 private constant REVERT_AMOUNT = 0xdeadbeef;
     uint256 private constant PROTOCOL_FEE_MULTIPLIER = 1337;
 
     using LibSafeMathV06 for uint256;
 
-    function fillOrder(
-        IExchange.Order calldata order,
-        uint256 takerAssetFillAmount,
-        bytes calldata signature
+    function fillLimitOrder(
+        LibNativeOrder.LimitOrder calldata order,
+        LibSignature.Signature calldata signature,
+        uint128 takerTokenFillAmount
     )
         external
         payable
-        returns (IExchange.FillResults memory fillResults)
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        require(
-            signature.length != 0,
-            "TestFillQuoteTransformerExchange/INVALID_SIGNATURE"
-        );
-        // The signature is the ABI-encoded FillBehavior data.
-        FillBehavior memory behavior = abi.decode(signature, (FillBehavior));
-
+        // The r field of the signature is the pre-filled amount.
+        uint128 takerTokenPreFilledAmount = uint128(uint256(signature.r));
+        if (REVERT_AMOUNT == takerTokenPreFilledAmount) {
+            revert("REVERT_AMOUNT");
+        }
+        if (takerTokenPreFilledAmount >= order.takerAmount) {
+            revert('FILLED');
+        }
         uint256 protocolFee = PROTOCOL_FEE_MULTIPLIER * tx.gasprice;
-        require(
-            msg.value == protocolFee,
-            "TestFillQuoteTransformerExchange/INSUFFICIENT_PROTOCOL_FEE"
-        );
         // Return excess protocol fee.
         msg.sender.transfer(msg.value - protocolFee);
+        takerTokenFilledAmount = LibSafeMathV06.min128(
+            order.takerAmount - takerTokenPreFilledAmount,
+            takerTokenFillAmount
+        );
 
         // Take taker tokens.
-        TestMintableERC20Token takerToken = _getTokenFromAssetData(order.takerAssetData);
-        takerAssetFillAmount = LibSafeMathV06.min256(
-            order.takerAssetAmount.safeSub(behavior.filledTakerAssetAmount),
-            takerAssetFillAmount
+        order.takerToken.transferFrom(
+            msg.sender,
+            order.maker,
+            takerTokenFilledAmount
         );
-        require(
-            takerToken.getSpendableAmount(msg.sender, address(this)) >= takerAssetFillAmount,
-            "TestFillQuoteTransformerExchange/INSUFFICIENT_TAKER_FUNDS"
-        );
-        takerToken.transferFrom(msg.sender, order.makerAddress, takerAssetFillAmount);
 
         // Mint maker tokens.
-        uint256 makerAssetFilledAmount = LibMathV06.getPartialAmountFloor(
-            takerAssetFillAmount,
-            order.takerAssetAmount,
-            order.makerAssetAmount
+        makerTokenFilledAmount = LibSafeMathV06.safeDowncastToUint128(
+            uint256(takerTokenFilledAmount)
+            * uint256(order.makerAmount)
+            / uint256(order.takerAmount)
         );
-        TestMintableERC20Token makerToken = _getTokenFromAssetData(order.makerAssetData);
-        makerToken.mint(
-            msg.sender,
-            LibMathV06.getPartialAmountFloor(
-                behavior.makerAssetMintRatio,
-                1e18,
-                makerAssetFilledAmount
-            )
-        );
+        TestMintableERC20Token(address(order.makerToken))
+            .mint(msg.sender, makerTokenFilledAmount);
 
-        // Take taker fee.
-        TestMintableERC20Token takerFeeToken = _getTokenFromAssetData(order.takerFeeAssetData);
-        uint256 takerFee = LibMathV06.getPartialAmountFloor(
-            takerAssetFillAmount,
-            order.takerAssetAmount,
-            order.takerFee
+        // Take taker token fee.
+        uint128 takerFee = LibSafeMathV06.safeDowncastToUint128(
+            uint256(takerTokenFilledAmount)
+            * uint256(order.takerTokenFeeAmount)
+            / uint256(order.takerAmount)
         );
-        require(
-            takerFeeToken.getSpendableAmount(msg.sender, address(this)) >= takerFee,
-            "TestFillQuoteTransformerExchange/INSUFFICIENT_TAKER_FEE_FUNDS"
-        );
-        takerFeeToken.transferFrom(msg.sender, order.feeRecipientAddress, takerFee);
-
-        fillResults.makerAssetFilledAmount = makerAssetFilledAmount;
-        fillResults.takerAssetFilledAmount = takerAssetFillAmount;
-        fillResults.makerFeePaid = uint256(-1);
-        fillResults.takerFeePaid = takerFee;
-        fillResults.protocolFeePaid = protocolFee;
+        order.takerToken.transferFrom(msg.sender, order.feeRecipient, takerFee);
     }
 
-    function encodeBehaviorData(FillBehavior calldata behavior)
+    function fillRfqOrder(
+        LibNativeOrder.RfqOrder calldata order,
+        LibSignature.Signature calldata signature,
+        uint128 takerTokenFillAmount
+    )
         external
-        pure
-        returns (bytes memory encoded)
+        payable
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        return abi.encode(behavior);
+        // The r field of the signature is the pre-filled amount.
+        uint128 takerTokenPreFilledAmount = uint128(uint256(signature.r));
+        if (REVERT_AMOUNT == takerTokenPreFilledAmount) {
+            revert("REVERT_AMOUNT");
+        }
+        if (takerTokenPreFilledAmount >= order.takerAmount) {
+            revert('FILLED');
+        }
+        takerTokenFilledAmount = LibSafeMathV06.min128(
+            order.takerAmount - takerTokenPreFilledAmount,
+            takerTokenFillAmount
+        );
+
+        // Take taker tokens.
+        order.takerToken.transferFrom(
+            msg.sender,
+            order.maker,
+            takerTokenFilledAmount
+        );
+
+        // Mint maker tokens.
+        makerTokenFilledAmount = LibSafeMathV06.safeDowncastToUint128(
+            uint256(takerTokenFilledAmount)
+            * uint256(order.makerAmount)
+            / uint256(order.takerAmount)
+        );
+        TestMintableERC20Token(address(order.makerToken))
+            .mint(msg.sender, makerTokenFilledAmount);
     }
 
-    function protocolFeeMultiplier()
+    function getProtocolFeeMultiplier()
         external
         pure
         returns (uint256)
@@ -130,19 +133,11 @@ contract TestFillQuoteTransformerExchange {
         return PROTOCOL_FEE_MULTIPLIER;
     }
 
-    function getAssetProxy(bytes4)
+    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order)
         external
-        view
-        returns (address)
-    {
-        return address(this);
-    }
-
-    function _getTokenFromAssetData(bytes memory assetData)
-        private
         pure
-        returns (TestMintableERC20Token token)
+        returns (bytes32)
     {
-        return TestMintableERC20Token(LibBytesV06.readAddress(assetData, 16));
+        return bytes32(order.salt);
     }
 }

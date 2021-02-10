@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
-import { createBridgeOrder, createNativeOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
+import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
 import {
     CollapsedFill,
@@ -105,11 +105,12 @@ export class Path {
         this.orders = [];
         for (let i = 0; i < collapsedFills.length; ) {
             if (collapsedFills[i].source === ERC20BridgeSource.Native) {
-                this.orders.push(createNativeOrder(collapsedFills[i] as NativeCollapsedFill));
+                this.orders.push(createNativeOptimizedOrder(collapsedFills[i] as NativeCollapsedFill, opts.side));
                 ++i;
                 continue;
             }
             // If there are contiguous bridge orders, we can batch them together.
+            // TODO jacob pretty sure this is from DFB and we can remove
             const contiguousBridgeFills = [collapsedFills[i]];
             for (let j = i + 1; j < collapsedFills.length; ++j) {
                 if (collapsedFills[j].source === ERC20BridgeSource.Native) {
@@ -118,7 +119,7 @@ export class Path {
                 contiguousBridgeFills.push(collapsedFills[j]);
             }
 
-            this.orders.push(createBridgeOrder(contiguousBridgeFills[0], makerToken, takerToken, opts));
+            this.orders.push(createBridgeOrder(contiguousBridgeFills[0], makerToken, takerToken, opts.side));
             i += 1;
         }
         return this as CollapsedPath;
@@ -236,6 +237,7 @@ export class Path {
             (this.collapsedFills as CollapsedFill[]).push({
                 sourcePathId: fill.sourcePathId,
                 source: fill.source,
+                type: fill.type,
                 fillData: fill.fillData,
                 input: fill.input,
                 output: fill.output,

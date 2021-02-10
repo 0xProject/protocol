@@ -1,10 +1,16 @@
 import { constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
-import { assetDataUtils } from '@0x/order-utils';
-import { BigNumber, hexUtils } from '@0x/utils';
+import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
+import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { MarketOperation } from '../src/types';
-import { CollapsedFill, ERC20BridgeSource, OptimizedMarketOrder } from '../src/utils/market_operation_utils/types';
+import {
+    CollapsedFill,
+    ERC20BridgeSource,
+    NativeLimitOrderFillData,
+    OptimizedMarketOrder,
+    OptimizedMarketOrderBase,
+} from '../src/utils/market_operation_utils/types';
 import {
     fillQuoteOrders,
     QuoteFillOrderCall,
@@ -20,9 +26,7 @@ describe('quote_simulation tests', async () => {
     const ONE = new BigNumber(1);
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
-    const DEFAULT_MAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(MAKER_TOKEN);
-    const DEFAULT_TAKER_ASSET_DATA = assetDataUtils.encodeERC20AssetData(TAKER_TOKEN);
-    const GAS_SCHEDULE = { [ERC20BridgeSource.Uniswap]: _.constant(1) };
+    const GAS_SCHEDULE = { [ERC20BridgeSource.Uniswap]: _.constant(1), [ERC20BridgeSource.Native]: _.constant(1) };
 
     // Check if two numbers are within `maxError` error rate within each other.
     function assertRoughlyEquals(n1: BigNumber, n2: BigNumber, maxError: BigNumber | number = 1e-10): void {
@@ -43,9 +47,10 @@ describe('quote_simulation tests', async () => {
             count: number;
             fillsCount: number;
             side: MarketOperation;
+            type?: FillQuoteTransformerOrderType;
         }> = {},
     ): QuoteFillOrderCall[] {
-        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, fillsCount, side } = {
+        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, fillsCount, side, type } = {
             fillableInput: getRandomOrderSize(),
             fillableOutput: getRandomOrderSize(),
             inputFeeRate: 0,
@@ -82,6 +87,7 @@ describe('quote_simulation tests', async () => {
                     filledInput: filledInputs[i],
                     takerInputFee: inputFees[i].abs(),
                     takerOutputFee: outputFees[i].abs(),
+                    type,
                 }),
                 totalOrderInput: totalInputs[i],
                 totalOrderOutput: totalOutputs[i],
@@ -100,60 +106,63 @@ describe('quote_simulation tests', async () => {
             side: MarketOperation;
             takerInputFee: BigNumber;
             takerOutputFee: BigNumber;
+            type: FillQuoteTransformerOrderType;
         }> = {},
-    ): OptimizedMarketOrder {
-        const { filledInput, fillsCount, side, takerInputFee, takerOutputFee } = {
-            side: MarketOperation.Sell,
-            filledInput: ZERO,
-            fillsCount: 3,
-            takerInputFee: ZERO,
-            takerOutputFee: ZERO,
-            ...opts,
-        };
+    ): OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+        const { filledInput, fillsCount, side, takerInputFee, takerOutputFee, type } = _.merge(
+            {},
+            {
+                side: MarketOperation.Sell,
+                filledInput: ZERO,
+                fillsCount: 3,
+                takerInputFee: ZERO,
+                takerOutputFee: ZERO,
+                type: FillQuoteTransformerOrderType.Limit,
+            },
+            opts,
+        );
         const filledOutput = filledInput
             .div(input)
             .times(output)
             .integerValue(BigNumber.ROUND_DOWN);
         const fillableInput = input.minus(filledInput);
         const fillableOutput = output.minus(filledOutput);
-        const makerAssetAmount = side === MarketOperation.Sell ? output : input;
-        const takerAssetAmount = side === MarketOperation.Sell ? input : output;
-        const fillableMakerAssetAmount = side === MarketOperation.Sell ? fillableOutput : fillableInput;
-        const fillableTakerAssetAmount = side === MarketOperation.Sell ? fillableInput : fillableOutput;
+        const makerAmount = side === MarketOperation.Sell ? output : input;
+        const takerAmount = side === MarketOperation.Sell ? input : output;
+        const fillableMakerAmount = side === MarketOperation.Sell ? fillableOutput : fillableInput;
+        const fillableTakerAmount = side === MarketOperation.Sell ? fillableInput : fillableOutput;
         const takerFee = BigNumber.max(takerInputFee, takerOutputFee);
-        let takerFeeAssetData = '0x';
-        if (!takerInputFee.eq(0)) {
-            takerFeeAssetData = side === MarketOperation.Sell ? DEFAULT_TAKER_ASSET_DATA : DEFAULT_MAKER_ASSET_DATA;
-        } else if (!takerOutputFee.eq(0)) {
-            takerFeeAssetData = side === MarketOperation.Sell ? DEFAULT_MAKER_ASSET_DATA : DEFAULT_TAKER_ASSET_DATA;
-        }
-        const fillableTakerFeeAmount = fillableTakerAssetAmount
-            .div(takerAssetAmount)
-            .times(takerFee)
-            .integerValue(BigNumber.ROUND_DOWN);
-        return {
-            makerAssetAmount,
-            takerAssetAmount,
-            fillableTakerAssetAmount,
-            fillableMakerAssetAmount,
-            fillableTakerFeeAmount,
-            takerFee,
-            takerFeeAssetData,
+
+        const order: OptimizedMarketOrderBase<NativeLimitOrderFillData> = {
+            source: ERC20BridgeSource.Native,
+            makerToken: MAKER_TOKEN,
+            takerToken: TAKER_TOKEN,
+            makerAmount: fillableMakerAmount,
+            takerAmount: fillableTakerAmount,
+            fillData: {
+                order: {
+                    makerToken: MAKER_TOKEN,
+                    makerAmount,
+                    takerToken: TAKER_TOKEN,
+                    takerAmount,
+                    maker: NULL_ADDRESS,
+                    taker: NULL_ADDRESS,
+                    sender: NULL_ADDRESS,
+                    salt: ZERO,
+                    chainId: 1,
+                    pool: NULL_BYTES,
+                    verifyingContract: NULL_ADDRESS,
+                    expiry: ZERO,
+                    feeRecipient: NULL_ADDRESS,
+                    takerTokenFeeAmount: takerFee,
+                },
+                signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign },
+                maxTakerTokenFillAmount: fillableTakerAmount,
+            },
+            type,
             fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
-            chainId: 1,
-            exchangeAddress: NULL_ADDRESS,
-            expirationTimeSeconds: ZERO,
-            feeRecipientAddress: NULL_ADDRESS,
-            senderAddress: NULL_ADDRESS,
-            makerAddress: NULL_ADDRESS,
-            takerAddress: NULL_ADDRESS,
-            makerAssetData: DEFAULT_MAKER_ASSET_DATA,
-            takerAssetData: DEFAULT_TAKER_ASSET_DATA,
-            makerFeeAssetData: '0x',
-            salt: ZERO,
-            makerFee: ZERO,
-            signature: '0x',
         };
+        return order;
     }
     const nativeSourcePathId = hexUtils.random();
     function createOrderCollapsedFills(input: BigNumber, output: BigNumber, count: number): CollapsedFill[] {
@@ -163,8 +172,10 @@ describe('quote_simulation tests', async () => {
             const subFillInputs = subdivideAmount(inputs[i], count);
             const subFillOutputs = subdivideAmount(outputs[i], count);
             return {
+                type: FillQuoteTransformerOrderType.Bridge,
                 sourcePathId: nativeSourcePathId,
                 source: ERC20BridgeSource.Uniswap,
+                fillData: {},
                 input: inputs[i],
                 output: outputs[i],
                 subFills: _.times(count, j => ({
@@ -475,6 +486,28 @@ describe('quote_simulation tests', async () => {
                 expect(result.protocolFee).to.bignumber.eq(1);
                 expect(result.gas).to.eq(fillsCount);
             });
+
+            it('does not charge a protocol fee for rfq orders', () => {
+                const side = randomSide();
+                const fillsCount = _.random(1, 3);
+                const fillableInput = getRandomOrderSize();
+                const fillableOutput = getRandomOrderSize();
+                const fillOrders = createQuoteFillOrders({
+                    fillableInput,
+                    fillableOutput,
+                    side,
+                    fillsCount,
+                    count: 1,
+                    type: FillQuoteTransformerOrderType.Rfq,
+                });
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const totalFilledInput = result.input.plus(result.inputFee);
+                const totalFilledOutput = result.output.plus(result.outputFee);
+                expect(totalFilledInput).to.bignumber.eq(fillableInput);
+                assertRoughlyEquals(totalFilledOutput, fillableOutput);
+                expect(result.protocolFee).to.bignumber.eq(0);
+                expect(result.gas).to.eq(fillsCount);
+            });
         });
 
         describe('multiple orders', () => {
@@ -666,18 +699,29 @@ describe('quote_simulation tests', async () => {
     });
 
     function slipOrder(
-        order: OptimizedMarketOrder,
+        order: OptimizedMarketOrderBase<NativeLimitOrderFillData>,
         orderSlippage: number,
         side: MarketOperation,
     ): OptimizedMarketOrder {
         const makerScaling = side === MarketOperation.Sell ? 1 - orderSlippage : 1;
         const takerScaling = side === MarketOperation.Sell ? 1 : orderSlippage + 1;
+
+        // tslint:disable:next-line no-unnecessary-type-assertion
+        const nativeFillData = order.fillData!;
+        const slippedFillData = {
+            order: {
+                ...nativeFillData.order,
+                takerAmount: nativeFillData.order.takerAmount.times(takerScaling),
+                makerAmount: nativeFillData.order.makerAmount.times(makerScaling),
+            },
+            signature: nativeFillData.signature,
+            maxTakerTokenFillAmount: nativeFillData.maxTakerTokenFillAmount.times(takerScaling),
+        };
         return {
             ...order,
-            makerAssetAmount: order.makerAssetAmount.times(makerScaling),
-            fillableMakerAssetAmount: order.fillableMakerAssetAmount.times(makerScaling),
-            takerAssetAmount: order.takerAssetAmount.times(takerScaling),
-            fillableTakerAssetAmount: order.fillableTakerAssetAmount.times(takerScaling),
+            makerAmount: order.makerAmount.times(makerScaling),
+            takerAmount: order.takerAmount.times(takerScaling),
+            fillData: slippedFillData,
         };
     }
 
@@ -687,11 +731,14 @@ describe('quote_simulation tests', async () => {
             const fillableInput = getRandomOrderSize();
             const fillableOutput = getRandomOrderSize();
             const orderSlippage = getRandomFeeRate();
-            const orders = createQuoteFillOrders({
+            const fillOrders = createQuoteFillOrders({
                 fillableInput,
                 fillableOutput,
                 side,
-            }).map(fo => slipOrder(fo.order, orderSlippage, side));
+            });
+            const orders = fillOrders.map(fo =>
+                slipOrder(fo.order as OptimizedMarketOrderBase<NativeLimitOrderFillData>, orderSlippage, side),
+            );
             const result = simulateBestCaseFill({
                 orders,
                 side,
@@ -771,8 +818,8 @@ describe('quote_simulation tests', async () => {
             }
         });
 
-        it('can fully fill orders with input fees', async () => {
-            const side = randomSide();
+        it('can fully fill sell orders with "input" fees', async () => {
+            const side = MarketOperation.Sell;
             const fillableInput = getRandomOrderSize();
             const fillableOutput = getRandomOrderSize();
             const inputFeeRate = getRandomFeeRate();
@@ -780,9 +827,8 @@ describe('quote_simulation tests', async () => {
                 fillableInput,
                 fillableOutput,
                 inputFeeRate,
-                side,
             }).map(fo => fo.order);
-            const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
+            const signedInputFeeRate = inputFeeRate;
             const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
             const result = simulateBestCaseFill({
                 orders,
@@ -791,27 +837,17 @@ describe('quote_simulation tests', async () => {
                 gasPrice: ONE,
                 opts: { gasSchedule: GAS_SCHEDULE },
             });
-            expect(result.gas).to.eq(countCollapsedFills(orders));
-            expect(result.protocolFeeAmount).to.bignumber.gt(orders.length);
-            if (side === MarketOperation.Sell) {
-                assertRoughlyEquals(result.takerAssetAmount, fillableInput);
-                assertRoughlyEquals(result.totalTakerAssetAmount, totalFillableInput);
-                assertRoughlyEquals(result.makerAssetAmount, fillableOutput);
-                assertRoughlyEquals(result.totalMakerAssetAmount, fillableOutput);
-                expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
-                expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
-            } else {
-                assertRoughlyEquals(result.makerAssetAmount, fillableInput);
-                assertRoughlyEquals(result.totalMakerAssetAmount, totalFillableInput);
-                assertRoughlyEquals(result.takerAssetAmount, fillableOutput);
-                assertRoughlyEquals(result.totalTakerAssetAmount, fillableOutput);
-                expect(result.takerAssetAmount).to.bignumber.eq(result.totalTakerAssetAmount);
-                expect(result.takerFeeTakerAssetAmount).to.bignumber.eq(0);
-            }
+
+            assertRoughlyEquals(result.takerAssetAmount, fillableInput);
+            assertRoughlyEquals(result.totalTakerAssetAmount, totalFillableInput);
+            assertRoughlyEquals(result.makerAssetAmount, fillableOutput);
+            assertRoughlyEquals(result.totalMakerAssetAmount, fillableOutput);
+            expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
+            expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
         });
 
-        it('can partially fill orders with input fees', async () => {
-            const side = randomSide();
+        it('can partially fill sell orders with "input" fees', async () => {
+            const side = MarketOperation.Sell;
             const fillableInput = getRandomOrderSize();
             const fillableOutput = getRandomOrderSize();
             const inputFeeRate = getRandomFeeRate();
@@ -821,7 +857,7 @@ describe('quote_simulation tests', async () => {
                 inputFeeRate,
                 side,
             }).map(fo => fo.order);
-            const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
+            const signedInputFeeRate = inputFeeRate;
             const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
             const inputFillAmount = totalFillableInput.times(2 / 3).integerValue();
             const result = simulateBestCaseFill({
@@ -833,21 +869,14 @@ describe('quote_simulation tests', async () => {
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
-            if (side === MarketOperation.Sell) {
-                assertRoughlyEquals(result.totalTakerAssetAmount, inputFillAmount);
-                expect(result.makerAssetAmount).to.bignumber.lt(fillableOutput);
-                expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
-                expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
-            } else {
-                assertRoughlyEquals(result.totalMakerAssetAmount, inputFillAmount);
-                expect(result.takerAssetAmount).to.bignumber.lt(fillableOutput);
-                expect(result.takerAssetAmount).to.bignumber.eq(result.totalTakerAssetAmount);
-                expect(result.takerFeeTakerAssetAmount).to.bignumber.eq(0);
-            }
+            assertRoughlyEquals(result.totalTakerAssetAmount, inputFillAmount);
+            expect(result.makerAssetAmount).to.bignumber.lt(fillableOutput);
+            expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
+            expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
         });
 
-        it('can fully fill orders with output fees', async () => {
-            const side = randomSide();
+        it('can fully fill buy orders with "output" fees', async () => {
+            const side = MarketOperation.Buy;
             const fillableInput = getRandomOrderSize();
             const fillableOutput = getRandomOrderSize();
             const outputFeeRate = getRandomFeeRate();
@@ -857,7 +886,7 @@ describe('quote_simulation tests', async () => {
                 outputFeeRate,
                 side,
             }).map(fo => fo.order);
-            const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
+            const signedOutputFeeRate = outputFeeRate;
             const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
             const result = simulateBestCaseFill({
                 orders,
@@ -868,25 +897,17 @@ describe('quote_simulation tests', async () => {
             });
             expect(result.gas).to.eq(countCollapsedFills(orders));
             expect(result.protocolFeeAmount).to.bignumber.gt(orders.length);
-            if (side === MarketOperation.Sell) {
-                assertRoughlyEquals(result.takerAssetAmount, fillableInput);
-                assertRoughlyEquals(result.totalTakerAssetAmount, fillableInput);
-                assertRoughlyEquals(result.makerAssetAmount, fillableOutput);
-                assertRoughlyEquals(result.totalMakerAssetAmount, totalFillableOutput);
-                expect(result.takerAssetAmount).to.bignumber.eq(result.totalTakerAssetAmount);
-                expect(result.takerFeeTakerAssetAmount).to.bignumber.eq(0);
-            } else {
-                assertRoughlyEquals(result.makerAssetAmount, fillableInput);
-                assertRoughlyEquals(result.totalMakerAssetAmount, fillableInput);
-                assertRoughlyEquals(result.takerAssetAmount, fillableOutput);
-                assertRoughlyEquals(result.totalTakerAssetAmount, totalFillableOutput);
-                expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
-                expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
-            }
+
+            assertRoughlyEquals(result.makerAssetAmount, fillableInput);
+            assertRoughlyEquals(result.totalMakerAssetAmount, fillableInput);
+            assertRoughlyEquals(result.takerAssetAmount, fillableOutput);
+            assertRoughlyEquals(result.totalTakerAssetAmount, totalFillableOutput);
+            expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
+            expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
         });
 
-        it('can partially fill orders with output fees', async () => {
-            const side = randomSide();
+        it('can partially fill buy orders with "output" fees', async () => {
+            const side = MarketOperation.Buy;
             const fillableInput = getRandomOrderSize();
             const fillableOutput = getRandomOrderSize();
             const outputFeeRate = getRandomFeeRate();
@@ -906,17 +927,10 @@ describe('quote_simulation tests', async () => {
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
-            if (side === MarketOperation.Sell) {
-                assertRoughlyEquals(result.totalTakerAssetAmount, inputFillAmount);
-                expect(result.makerAssetAmount).to.bignumber.lt(fillableOutput);
-                expect(result.takerAssetAmount).to.bignumber.eq(result.totalTakerAssetAmount);
-                expect(result.takerFeeTakerAssetAmount).to.bignumber.eq(0);
-            } else {
-                assertRoughlyEquals(result.totalMakerAssetAmount, inputFillAmount);
-                expect(result.takerAssetAmount).to.bignumber.lt(fillableOutput);
-                expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
-                expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
-            }
+            assertRoughlyEquals(result.totalMakerAssetAmount, inputFillAmount);
+            expect(result.takerAssetAmount).to.bignumber.lt(fillableOutput);
+            expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
+            expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
         });
     });
 
@@ -925,25 +939,26 @@ describe('quote_simulation tests', async () => {
             const side = randomSide();
             const fillableInput = getRandomOrderSize();
             const fillableOutput = getRandomOrderSize();
-            const orderSlippage = getRandomFeeRate();
+            const slippage = getRandomFeeRate();
             const orders = createQuoteFillOrders({
                 fillableInput,
                 fillableOutput,
                 side,
-            }).map(fo => slipOrder(fo.order, orderSlippage, side));
+            }).map(fo => fo.order);
+
             const result = simulateWorstCaseFill({
                 orders,
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, slippage },
             });
             if (side === MarketOperation.Sell) {
-                const slippedOutput = fillableOutput.times(1 - orderSlippage).integerValue();
+                const slippedOutput = fillableOutput.times(1 - slippage).integerValue();
                 assertRoughlyEquals(result.totalMakerAssetAmount, slippedOutput);
                 assertRoughlyEquals(result.totalTakerAssetAmount, fillableInput);
             } else {
-                const slippedOutput = fillableOutput.times(orderSlippage + 1).integerValue();
+                const slippedOutput = fillableOutput.times(slippage + 1).integerValue();
                 assertRoughlyEquals(result.totalMakerAssetAmount, fillableInput);
                 assertRoughlyEquals(result.totalTakerAssetAmount, slippedOutput);
             }
@@ -958,7 +973,9 @@ describe('quote_simulation tests', async () => {
                 fillableInput,
                 fillableOutput,
                 side,
-            }).map(fo => slipOrder(fo.order, orderSlippage, side));
+            }).map(fo =>
+                slipOrder(fo.order as OptimizedMarketOrderBase<NativeLimitOrderFillData>, orderSlippage, side),
+            );
             orders = [...orders.slice(1), orders[0]];
             const bestCase = simulateBestCaseFill({
                 orders,
@@ -972,7 +989,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, slippage: orderSlippage },
             });
             const bestPrice = bestCase.makerAssetAmount.div(bestCase.totalTakerAssetAmount);
             const worstPrice = worstCase.makerAssetAmount.div(worstCase.totalTakerAssetAmount);

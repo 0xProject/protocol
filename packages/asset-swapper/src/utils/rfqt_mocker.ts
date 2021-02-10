@@ -1,7 +1,12 @@
 import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 
-import { MockedRfqtFirmQuoteResponse } from '../types';
+import { MockedRfqtQuoteResponse } from '../types';
+
+export enum RfqtQuoteEndpoint {
+    Indicative = 'price',
+    Firm = 'quote',
+}
 
 /**
  * A helper utility for testing which mocks out
@@ -9,15 +14,15 @@ import { MockedRfqtFirmQuoteResponse } from '../types';
  */
 export const rfqtMocker = {
     /**
-     * Stubs out responses from RFQ-T providers by mocking out
-     * HTTP calls via axios. Always restores the mock adapter
-     * after executing the `performFn`.
+     * A helper utility for testing which mocks out
+     * requests to RFQ-t providers
      */
-    withMockedRfqtFirmQuotes: async (
-        mockedResponses: MockedRfqtFirmQuoteResponse[],
-        performFn: () => Promise<void>,
+    withMockedRfqtQuotes: async (
+        mockedResponses: MockedRfqtQuoteResponse[],
+        quoteType: RfqtQuoteEndpoint,
+        afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,
-    ) => {
+    ): Promise<void> => {
         const mockedAxios = new AxiosMockAdapter(axiosClient);
         try {
             // Mock out RFQT responses
@@ -25,33 +30,11 @@ export const rfqtMocker = {
                 const { endpoint, requestApiKey, requestParams, responseData, responseCode } = mockedResponse;
                 const requestHeaders = { Accept: 'application/json, text/plain, */*', '0x-api-key': requestApiKey };
                 mockedAxios
-                    .onGet(`${endpoint}/quote`, { params: requestParams }, requestHeaders)
+                    .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
                     .replyOnce(responseCode, responseData);
             }
-
-            await performFn();
-        } finally {
-            // Ensure we always restore axios afterwards
-            mockedAxios.restore();
-        }
-    },
-    withMockedRfqtIndicativeQuotes: async (
-        mockedResponses: MockedRfqtFirmQuoteResponse[],
-        performFn: () => Promise<void>,
-        axiosClient: AxiosInstance = axios,
-    ) => {
-        const mockedAxios = new AxiosMockAdapter(axiosClient);
-        try {
-            // Mock out RFQT responses
-            for (const mockedResponse of mockedResponses) {
-                const { endpoint, requestApiKey, requestParams, responseData, responseCode } = mockedResponse;
-                const requestHeaders = { Accept: 'application/json, text/plain, */*', '0x-api-key': requestApiKey };
-                mockedAxios
-                    .onGet(`${endpoint}/price`, { params: requestParams }, requestHeaders)
-                    .replyOnce(responseCode, responseData);
-            }
-
-            await performFn();
+            // Perform the callback function, e.g. a test validation
+            await afterResponseCallback();
         } finally {
             // Ensure we always restore axios afterwards
             mockedAxios.restore();

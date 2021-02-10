@@ -1,4 +1,5 @@
 import { Web3Wrapper } from '@0x/dev-utils';
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -38,7 +39,9 @@ export function getComparisonPrices(
         return { wholeOrder };
     } else {
         try {
-            feeInEth = new BigNumber((feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)(undefined));
+            feeInEth = new BigNumber(
+                (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }),
+            );
         } catch {
             logUtils.warn('Native order fee schedule requires fill data');
 
