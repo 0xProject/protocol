@@ -168,6 +168,13 @@ export class SwapQuoter {
             this._limitOrderPruningFn,
         );
 
+        // Orders could be missing from the orderbook, so we create a dummy one as a placeholder
+        allOrders.forEach((orders: SignedNativeOrder[], i: number) => {
+            if (!orders || orders.length === 0) {
+                allOrders[i] = [createDummyOrder(makerTokens[i], targetTakerToken)];
+            }
+        });
+
         const opts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
         const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
             allOrders,
