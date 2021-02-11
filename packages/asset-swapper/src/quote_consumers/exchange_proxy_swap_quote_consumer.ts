@@ -442,12 +442,3 @@ function getFQTTransformerDataFromOptimizedOrders(
     }
     return fqtData;
 }
-
-function encodeCurveLiquidityProviderData(fillData: CurveFillData): string {
-    return encodeCurveLiquidityProviderData({
-        curveAddress: fillData.pool.poolAddress,
-        exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
-        fromCoinIdx: fillData.fromTokenIdx,
-        toCoinIdx: fillData.toTokenIdx,
-    });
-}
