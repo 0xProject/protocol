@@ -1,7 +1,6 @@
-import { BigNumber, logUtils } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { expect } from 'chai';
 import * as _ from 'lodash';
 
 import { InsufficientAssetLiquidityError } from '../../src/errors';
