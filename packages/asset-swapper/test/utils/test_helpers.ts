@@ -1,6 +1,8 @@
-import { BigNumber } from '@0x/utils';
+import { BigNumber, logUtils } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { expect } from 'chai';
+import * as _ from 'lodash';
 
 import { InsufficientAssetLiquidityError } from '../../src/errors';
 import { AltMockedRfqtQuoteResponse, MockedRfqtQuoteResponse } from '../../src/types';
@@ -42,7 +44,7 @@ export const testHelpers = {
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,
     ): Promise<void> => {
-        const mockedAxios = new AxiosMockAdapter(axiosClient);
+        const mockedAxios = new AxiosMockAdapter(axiosClient, { onNoMatch: 'throwException' });
         try {
             // Mock out Standard RFQT responses
             for (const mockedResponse of standardMockedResponses) {
@@ -55,9 +57,23 @@ export const testHelpers = {
             // Mock out Alt RFQT responses
             for (const mockedResponse of altMockedResponses) {
                 const { endpoint, mmApiKey, requestData, responseData, responseCode } = mockedResponse;
-                const requestHeaders = { Authorization: `Bearer ${mmApiKey}` };
+                const requestHeaders = {
+                    Accept: 'application/json, text/plain, */*',
+                    'Content-Type': 'application/json;charset=utf-8',
+                    Authorization: `Bearer ${mmApiKey}`,
+                };
                 mockedAxios
-                    .onPost(`${endpoint}/quotes`, requestData, requestHeaders)
+                    .onPost(
+                        `${endpoint}/quotes`,
+                        // hack to get AxiosMockAdapter to recognize the match
+                        // b/t the mock data and the request data
+                        {
+                            asymmetricMatch: (x: any) => {
+                                return _.isEqual(requestData, x);
+                            },
+                        },
+                        requestHeaders,
+                    )
                     .replyOnce(responseCode, responseData);
             }
             // Perform the callback function, e.g. a test validation

@@ -4,6 +4,7 @@ import { TakerRequestQueryParams } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as chai from 'chai';
+import { take } from 'lodash';
 import _ = require('lodash');
 import 'mocha';
 
@@ -33,7 +34,7 @@ function makeThreeMinuteExpiry(): BigNumber {
     return new BigNumber(Math.round(expiry.valueOf() / constants.ONE_SECOND_MS));
 }
 
-describe.only('QuoteRequestor', async () => {
+describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
@@ -92,7 +93,7 @@ describe.only('QuoteRequestor', async () => {
             };
             // request is to sell 10000 units of the base token
             // 10 units at 3 decimals
-            const altRequestData = {
+            const altFirmRequestData = {
                 market: 'XYZ-123',
                 model: AltQuoteModel.Firm,
                 profile: ALT_PROFILE,
@@ -105,13 +106,13 @@ describe.only('QuoteRequestor', async () => {
                 value: '10',
             };
             const altFirmResponse = {
-                ...altRequestData,
+                ...altFirmRequestData,
                 id: 'random_id',
                 // tslint:disable-next-line:custom-no-magic-numbers
                 price: new BigNumber(10 / 100).toString(),
                 status: 'active',
                 data: {
-                    '0xv4Order': validSignedOrder,
+                    '0xv4order': validSignedOrder,
                 },
             };
 
@@ -177,7 +178,7 @@ describe.only('QuoteRequestor', async () => {
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
                 responseCode: StatusCodes.Success,
-                requestData: altRequestData,
+                requestData: altFirmRequestData,
                 responseData: altFirmResponse,
             });
 
@@ -334,8 +335,8 @@ describe.only('QuoteRequestor', async () => {
                             'https://424.0.0.1': [[makerToken, takerToken]],
                             'https://37.0.0.1': [[makerToken, takerToken]],
                         },
-                        '',
-                        '',
+                        ALT_MM_API_KEY,
+                        ALT_PROFILE,
                     );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
