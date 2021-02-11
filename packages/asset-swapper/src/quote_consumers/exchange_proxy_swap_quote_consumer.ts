@@ -30,6 +30,7 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
+import { CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID } from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
     getERC20BridgeSourceToBridgeSource,
@@ -175,12 +176,16 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .sellToLiquidityProvider(
                         isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                         isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        '0xe3a207e4225d459095491ea75d30b31968dff887',
-                        // this.contractAddresses.curveLiquidityProvider,
+                        CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
                         NULL_ADDRESS,
                         sellAmount,
                         minBuyAmount,
-                        encodeCurveLiquidityProviderData(fillData),
+                        encodeCurveLiquidityProviderData({
+                            curveAddress: fillData.pool.poolAddress,
+                            exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
+                            fromCoinIdx: new BigNumber(fillData.fromTokenIdx),
+                            toCoinIdx: new BigNumber(fillData.toTokenIdx),
+                        }),
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
@@ -395,13 +400,4 @@ function getFQTTransformerDataFromOptimizedOrders(
         fqtData.fillSequence.push(order.type);
     }
     return fqtData;
-}
-
-function encodeCurveLiquidityProviderData(fillData: CurveFillData): string {
-    return encodeCurveLiquidityProviderData({
-        curveAddress: fillData.pool.poolAddress,
-        exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
-        fromCoinIdx: fillData.fromTokenIdx,
-        toCoinIdx: fillData.toTokenIdx,
-    });
 }
