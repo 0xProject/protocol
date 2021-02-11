@@ -14,6 +14,9 @@ export const curveLiquidityProviderDataEncoder = AbiEncoder.create([
     { name: 'toCoinIdx', type: 'int128' },
 ]);
 
+/**
+ * Encode data for the curve liquidity provider contract.
+ */
 export function encodeCurveLiquidityProviderData(data: CurveLiquidityProviderData): string {
     return curveLiquidityProviderDataEncoder.encode([
         data.curveAddress,
