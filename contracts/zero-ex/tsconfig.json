@@ -35,6 +35,7 @@
         "test/generated-artifacts/AllowanceTarget.json",
         "test/generated-artifacts/BootstrapFeature.json",
         "test/generated-artifacts/BridgeAdapter.json",
+        "test/generated-artifacts/BridgeSource.json",
         "test/generated-artifacts/CurveLiquidityProvider.json",
         "test/generated-artifacts/FeeCollector.json",
         "test/generated-artifacts/FeeCollectorController.json",

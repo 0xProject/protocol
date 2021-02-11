@@ -7,6 +7,7 @@ export * from '../test/generated-wrappers/affiliate_fee_transformer';
 export * from '../test/generated-wrappers/allowance_target';
 export * from '../test/generated-wrappers/bootstrap_feature';
 export * from '../test/generated-wrappers/bridge_adapter';
+export * from '../test/generated-wrappers/bridge_source';
 export * from '../test/generated-wrappers/curve_liquidity_provider';
 export * from '../test/generated-wrappers/fee_collector';
 export * from '../test/generated-wrappers/fee_collector_controller';
