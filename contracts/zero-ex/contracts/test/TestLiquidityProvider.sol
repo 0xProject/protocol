@@ -74,7 +74,7 @@ contract TestLiquidityProvider {
         bytes calldata // auxiliaryData
     )
         external
-        returns (uint256 boughtAmount)
+        returns (uint256)
     {
         emit SellTokenForToken(
             inputToken,
@@ -98,7 +98,7 @@ contract TestLiquidityProvider {
         bytes calldata // auxiliaryData
     )
         external
-        returns (uint256 boughtAmount)
+        returns (uint256)
     {
         emit SellEthForToken(
             outputToken,
@@ -121,7 +121,7 @@ contract TestLiquidityProvider {
         bytes calldata // auxiliaryData
     )
         external
-        returns (uint256 boughtAmount)
+        returns (uint256)
     {
         emit SellTokenForEth(
             inputToken,

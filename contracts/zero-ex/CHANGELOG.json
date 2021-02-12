@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.19.0",
+        "changes": [
+            {
+                "note": "Add `CurveLiquidityProvider` and misc refactors",
+                "pr": 127
+            }
+        ]
+    },
+    {
         "version": "0.18.2",
         "changes": [
             {

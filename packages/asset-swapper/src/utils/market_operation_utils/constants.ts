@@ -422,6 +422,12 @@ export const MAINNET_MOONISWAP_V2_1_REGISTRY = '0xbaf9a5d4b0052359326a6cdab54bab
 
 export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
 
+export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
+    '1': '0xe3a207e4225d459095491ea75d30b31968dff887',
+    '3': '0xe3a207e4225d459095491ea75d30b31968dff887',
+    '1337': '0xe3a207e4225d459095491ea75d30b31968dff887',
+};
+
 export const MAINNET_SHELL_POOLS = {
     StableCoins: {
         poolAddress: '0x8f26d7bab7a73309141a291525c965ecdea7bf42',

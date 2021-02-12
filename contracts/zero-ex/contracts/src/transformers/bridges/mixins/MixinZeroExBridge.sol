@@ -47,8 +47,8 @@ contract MixinZeroExBridge {
             sellAmount
         );
         boughtAmount = provider.sellTokenForToken(
-            address(sellToken),
-            address(buyToken),
+            sellToken,
+            buyToken,
             address(this), // recipient
             1, // minBuyAmount
             lpData

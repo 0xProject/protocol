@@ -5,6 +5,14 @@
             {
                 "note": "Filter MultiHop where second source is not present",
                 "pr": 138
+            },
+            {
+                "note": "Add CurveLiquidityProvider \"direct\" route to EP consumer.",
+                "pr": 127
+            },
+            {
+                "note": "Fix compiler error on `ILiquidityProvider` call",
+                "pr": 127
             }
         ]
     },
