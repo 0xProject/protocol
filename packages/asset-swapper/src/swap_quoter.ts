@@ -5,7 +5,7 @@ import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-t
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { BRIDGE_ADDRESSES_BY_CHAIN, constants, INVALID_SIGNATURE } from './constants';
+import { constants, INVALID_SIGNATURE } from './constants';
 import {
     AssetSwapperContractAddresses,
     MarketBuySwapQuote,
@@ -102,7 +102,6 @@ export class SwapQuoter {
         this._rfqtOptions = rfqt;
         this._contractAddresses = options.contractAddresses || {
             ...getContractAddressesForChainOrThrow(chainId),
-            ...BRIDGE_ADDRESSES_BY_CHAIN[chainId],
         };
         this._protocolFeeUtils = ProtocolFeeUtils.getInstance(
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,

@@ -107,7 +107,7 @@ export {
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
-    BRIDGE_ADDRESSES_BY_CHAIN,
+    DEFAULT_TOKEN_ADJACENCY_GRAPH,
     DEFAULT_GAS_SCHEDULE,
     SOURCE_FLAGS,
 } from './utils/market_operation_utils/constants';
