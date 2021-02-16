@@ -13,6 +13,10 @@
             {
                 "note": "Fix compiler error on `ILiquidityProvider` call",
                 "pr": 127
+            },
+            {
+                "note": "Add deployed `CurveLiquidityProvider` addresses",
+                "pr": 144
             }
         ]
     },
