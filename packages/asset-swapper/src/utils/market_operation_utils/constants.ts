@@ -24,6 +24,19 @@ import {
 
 // tslint:disable: custom-no-magic-numbers no-bitwise
 
+export const ERC20_PROXY_ID = '0xf47261b0';
+export const WALLET_SIGNATURE = '0x04';
+export const ONE_ETHER = new BigNumber(1e18);
+export const NEGATIVE_INF = new BigNumber('-Infinity');
+export const POSITIVE_INF = new BigNumber('Infinity');
+export const ZERO_AMOUNT = new BigNumber(0);
+export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
+export const ONE_HOUR_IN_SECONDS = 60 * 60;
+export const ONE_SECOND_MS = 1000;
+export const NULL_BYTES = '0x';
+export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const COMPARISON_PRICE_DECIMALS = 10;
+
 /**
  * Valid sources for market sell.
  */
@@ -423,9 +436,9 @@ export const MAINNET_MOONISWAP_V2_1_REGISTRY = '0xbaf9a5d4b0052359326a6cdab54bab
 export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
 
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
-    '1': '0xe3a207e4225d459095491ea75d30b31968dff887',
-    '3': '0xe3a207e4225d459095491ea75d30b31968dff887',
-    '1337': '0xe3a207e4225d459095491ea75d30b31968dff887',
+    '1': '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
+    '3': '0xAa213dcDFbF104e08cbAeC3d1628eD197553AfCc',
+    '1337': NULL_ADDRESS,
 };
 
 export const MAINNET_SHELL_POOLS = {
@@ -442,19 +455,6 @@ export const MAINNET_SHELL_POOLS = {
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
-
-export const ERC20_PROXY_ID = '0xf47261b0';
-export const WALLET_SIGNATURE = '0x04';
-export const ONE_ETHER = new BigNumber(1e18);
-export const NEGATIVE_INF = new BigNumber('-Infinity');
-export const POSITIVE_INF = new BigNumber('Infinity');
-export const ZERO_AMOUNT = new BigNumber(0);
-export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
-export const ONE_HOUR_IN_SECONDS = 60 * 60;
-export const ONE_SECOND_MS = 1000;
-export const NULL_BYTES = '0x';
-export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
-export const COMPARISON_PRICE_DECIMALS = 10;
 
 const EMPTY_BRIDGE_ADDRESSES: BridgeContractAddresses = {
     uniswapBridge: NULL_ADDRESS,

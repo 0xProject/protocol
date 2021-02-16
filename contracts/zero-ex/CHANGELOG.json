@@ -5,6 +5,10 @@
             {
                 "note": "Add `CurveLiquidityProvider` and misc refactors",
                 "pr": 127
+            },
+            {
+                "note": "Export `CurveLiquidityProviderContract`",
+                "pr": 144
             }
         ]
     },
