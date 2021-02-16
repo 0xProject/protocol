@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "../features/ITokenSpenderFeature.sol";
+import "../features/interfaces/ITokenSpenderFeature.sol";
 import "../errors/LibSpenderRichErrors.sol";
 import "../external/FeeCollector.sol";
 import "../vendor/v3/IStaking.sol";

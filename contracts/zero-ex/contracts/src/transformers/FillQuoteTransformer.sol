@@ -26,7 +26,7 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
-import "../features/INativeOrdersFeature.sol";
+import "../features/interfaces/INativeOrdersFeature.sol";
 import "../features/libs/LibNativeOrder.sol";
 import "./bridges/IBridgeAdapter.sol";
 import "./Transformer.sol";

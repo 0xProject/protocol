@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../migrations/LibBootstrap.sol";
 import "../storage/LibProxyStorage.sol";
-import "./IBootstrapFeature.sol";
+import "./interfaces/IBootstrapFeature.sol";
 
 
 /// @dev Detachable `bootstrap()` feature.

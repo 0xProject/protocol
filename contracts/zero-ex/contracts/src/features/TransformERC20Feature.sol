@@ -33,8 +33,8 @@ import "../external/FlashWallet.sol";
 import "../storage/LibTransformERC20Storage.sol";
 import "../transformers/IERC20Transformer.sol";
 import "../transformers/LibERC20Transformer.sol";
-import "./ITransformERC20Feature.sol";
-import "./IFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/ITransformERC20Feature.sol";
 
 
 /// @dev Feature to composably transform between ERC20 tokens.

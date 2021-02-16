@@ -30,9 +30,9 @@ import "../fixins/FixinCommon.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
 import "../vendor/IUniswapV2Pair.sol";
-import "./IFeature.sol";
-import "./INativeOrdersFeature.sol";
-import "./ITransformERC20Feature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/INativeOrdersFeature.sol";
+import "./interfaces/ITransformERC20Feature.sol";
 import "./libs/LibNativeOrder.sol";
 
 

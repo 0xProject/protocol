@@ -20,14 +20,14 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./features/IOwnableFeature.sol";
-import "./features/ISimpleFunctionRegistryFeature.sol";
-import "./features/ITokenSpenderFeature.sol";
-import "./features/ITransformERC20Feature.sol";
-import "./features/IMetaTransactionsFeature.sol";
-import "./features/IUniswapFeature.sol";
-import "./features/ILiquidityProviderFeature.sol";
-import "./features/INativeOrdersFeature.sol";
+import "./features/interfaces/IOwnableFeature.sol";
+import "./features/interfaces/ISimpleFunctionRegistryFeature.sol";
+import "./features/interfaces/ITokenSpenderFeature.sol";
+import "./features/interfaces/ITransformERC20Feature.sol";
+import "./features/interfaces/IMetaTransactionsFeature.sol";
+import "./features/interfaces/IUniswapFeature.sol";
+import "./features/interfaces/ILiquidityProviderFeature.sol";
+import "./features/interfaces/INativeOrdersFeature.sol";
 
 
 /// @dev Interface for a fully featured Exchange Proxy.

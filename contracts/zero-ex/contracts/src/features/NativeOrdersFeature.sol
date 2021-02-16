@@ -34,10 +34,10 @@ import "../errors/LibNativeOrdersRichErrors.sol";
 import "../migrations/LibMigrate.sol";
 import "../storage/LibNativeOrdersStorage.sol";
 import "../vendor/v3/IStaking.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/INativeOrdersFeature.sol";
 import "./libs/LibSignature.sol";
 import "./libs/LibNativeOrder.sol";
-import "./INativeOrdersFeature.sol";
-import "./IFeature.sol";
 
 
 /// @dev Feature for interacting with limit orders.
@@ -111,7 +111,7 @@ contract NativeOrdersFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LimitOrders";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
     /// @dev Highest bit of a uint256, used to flag cancelled orders.
     uint256 private constant HIGH_BIT = 1 << 255;
 

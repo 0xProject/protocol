@@ -29,8 +29,8 @@ import "../fixins/FixinCommon.sol";
 import "../migrations/LibMigrate.sol";
 import "../external/IAllowanceTarget.sol";
 import "../storage/LibTokenSpenderStorage.sol";
-import "./ITokenSpenderFeature.sol";
-import "./IFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/ITokenSpenderFeature.sol";
 
 
 /// @dev Feature that allows spending token allowances.

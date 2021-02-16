@@ -26,8 +26,8 @@ import "../errors/LibOwnableRichErrors.sol";
 import "../storage/LibOwnableStorage.sol";
 import "../migrations/LibBootstrap.sol";
 import "../migrations/LibMigrate.sol";
-import "./IFeature.sol";
-import "./IOwnableFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/IOwnableFeature.sol";
 import "./SimpleFunctionRegistryFeature.sol";
 
 

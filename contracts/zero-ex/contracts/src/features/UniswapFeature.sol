@@ -25,8 +25,8 @@ import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../migrations/LibMigrate.sol";
 import "../external/IAllowanceTarget.sol";
 import "../fixins/FixinCommon.sol";
-import "./IFeature.sol";
-import "./IUniswapFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/IUniswapFeature.sol";
 
 
 /// @dev VIP uniswap fill functions.

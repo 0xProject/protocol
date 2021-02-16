@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "../ZeroEx.sol";
-import "../features/IBootstrapFeature.sol";
+import "../features/interfaces/IBootstrapFeature.sol";
 import "../features/SimpleFunctionRegistryFeature.sol";
 import "../features/OwnableFeature.sol";
 import "./LibBootstrap.sol";
