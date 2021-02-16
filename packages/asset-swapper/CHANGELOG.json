@@ -17,6 +17,10 @@
             {
                 "note": "Add deployed `CurveLiquidityProvider` addresses",
                 "pr": 144
+            },
+            {
+                "note": "Support `Mirror Protocol` with hops to `UST`",
+                "pr": 142
             }
         ]
     },

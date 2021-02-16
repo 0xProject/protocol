@@ -1,5 +1,6 @@
 import { BigNumber } from '@0x/utils';
-import _ = require('lodash');
+
+import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
 import { SourceFilters } from './source_filters';
 import {
@@ -190,14 +191,19 @@ export const POOLS = {
 
 export const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC];
 
-export const DEFAULT_TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = {
+export const DEFAULT_TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = new TokenAdjacencyGraphBuilder({
     default: DEFAULT_INTERMEDIATE_TOKENS,
+})
     // Mirror Protocol
-    [TOKENS.MIR]: [TOKENS.UST, ...DEFAULT_INTERMEDIATE_TOKENS],
-    [TOKENS.UST]: [TOKENS.MIR, ...Object.values(MIRROR_WRAPPED_TOKENS), ...DEFAULT_INTERMEDIATE_TOKENS],
-    [TOKENS.USDT]: [TOKENS.UST, ...DEFAULT_INTERMEDIATE_TOKENS],
-    ..._.fromPairs(Object.values(MIRROR_WRAPPED_TOKENS).map(t => [t, [TOKENS.UST, ...DEFAULT_INTERMEDIATE_TOKENS]])),
-};
+    .tap(builder => {
+        builder
+            .add(TOKENS.MIR, TOKENS.UST)
+            .add(TOKENS.UST, [TOKENS.MIR, ...Object.values(MIRROR_WRAPPED_TOKENS)])
+            .add(TOKENS.USDT, TOKENS.UST);
+        Object.values(MIRROR_WRAPPED_TOKENS).forEach(t => builder.add(t, TOKENS.UST));
+    })
+    // Build
+    .build();
 
 /**
  * Mainnet Curve configuration
