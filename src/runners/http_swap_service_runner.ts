@@ -14,11 +14,15 @@ import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
+import { createMetricsRouter } from '../routers/metrics_router';
 import { createSwapRouter } from '../routers/swap_router';
+import { MetricsService } from '../services/metrics_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
 import { createDefaultServer } from './utils';
+
+export const METRICS_PATH = '/metrics';
 
 process.on('uncaughtException', err => {
     logger.error(err);
@@ -63,6 +67,20 @@ async function runHttpServiceAsync(
         process.exit(1);
     }
     app.use(errorHandler);
+
+    if (config.enablePrometheusMetrics) {
+        const prometheusApp = express();
+        const metricsRouter = createMetricsRouter(
+            dependencies.metricsService !== undefined ? dependencies.metricsService : new MetricsService(),
+        );
+        prometheusApp.use(METRICS_PATH, metricsRouter);
+        const prometheusServer = prometheusApp.listen(config.prometheusPort, () => {
+            logger.info(`Metrics (HTTP) listening on port ${config.prometheusPort}`);
+        });
+        prometheusServer.on('error', err => {
+            logger.error(err);
+        });
+    }
 
     server.listen(config.httpPort);
     return server;
