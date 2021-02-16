@@ -32,6 +32,7 @@ import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvi
 import * as ILiquidityProviderFeature from '../test/generated-artifacts/ILiquidityProviderFeature.json';
 import * as ILiquidityProviderSandbox from '../test/generated-artifacts/ILiquidityProviderSandbox.json';
 import * as IMetaTransactionsFeature from '../test/generated-artifacts/IMetaTransactionsFeature.json';
+import * as IMooniswapPool from '../test/generated-artifacts/IMooniswapPool.json';
 import * as INativeOrdersFeature from '../test/generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../test/generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../test/generated-artifacts/IOwnableFeature.json';
@@ -88,6 +89,7 @@ import * as MixinSushiswap from '../test/generated-artifacts/MixinSushiswap.json
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
 import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridge.json';
+import * as MooniswapLiquidityProvider from '../test/generated-artifacts/MooniswapLiquidityProvider.json';
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
@@ -191,6 +193,7 @@ export const artifacts = {
     FixinReentrancyGuard: FixinReentrancyGuard as ContractArtifact,
     FixinTokenSpender: FixinTokenSpender as ContractArtifact,
     CurveLiquidityProvider: CurveLiquidityProvider as ContractArtifact,
+    MooniswapLiquidityProvider: MooniswapLiquidityProvider as ContractArtifact,
     FullMigration: FullMigration as ContractArtifact,
     InitialMigration: InitialMigration as ContractArtifact,
     LibBootstrap: LibBootstrap as ContractArtifact,
@@ -233,6 +236,7 @@ export const artifacts = {
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
+    IMooniswapPool: IMooniswapPool as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
