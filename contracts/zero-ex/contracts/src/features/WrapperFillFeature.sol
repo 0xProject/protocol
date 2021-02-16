@@ -108,11 +108,6 @@ contract WrapperFillFeature is
         WrappedMultiHopCall[] calls;
     }
 
-    /// @dev Emitted when a trade is skipped due to a lack of funds
-    ///      to pay the 0x Protocol fee.
-    /// @param orderHash The hash of the order that was skipped.
-    event ProtocolFeeUnfunded(bytes32 orderHash);
-
     constructor(
         IEtherTokenV06 weth_,
         ILiquidityProviderSandbox sandbox_,
@@ -241,13 +236,16 @@ contract WrapperFillFeature is
         remainingEth = totalEth;
         // Track the amount of input token sold.
         uint256 soldAmount;
-        // This variable is used to cache the protocol fee amount
-        // if one or more limit orders are encoutered.
-        uint256 protocolFee;
         for (uint256 i = 0; i != fillData.calls.length; i++) {
             // Check if we've hit our target.
             if (soldAmount >= fillData.sellAmount) { break; }
             WrappedBatchCall memory wrappedCall = fillData.calls[i];
+            // Compute the fill amount.
+            uint256 inputTokenAmount = _normalizeAmount(
+                wrappedCall.sellAmount,
+                fillData.sellAmount,
+                fillData.sellAmount.safeSub(soldAmount)
+            );
             if (wrappedCall.selector == INativeOrdersFeature._fillRfqOrder.selector) {
                 // Decode the RFQ order and signature.
                 (
@@ -257,21 +255,16 @@ contract WrapperFillFeature is
                     wrappedCall.data,
                     (LibNativeOrder.RfqOrder, LibSignature.Signature)
                 );
-                // Compute the fill amount.
-                uint128 takerTokenFillAmount = _computeNativeOrderFillAmount(
-                    wrappedCall.sellAmount,
-                    fillData.sellAmount,
-                    fillData.sellAmount.safeSub(soldAmount),
-                    order.takerAmount,
-                    0 // RFQ orders do not have a taker token fee.
-                );
+                if (order.expiry <= uint64(block.timestamp)) {
+                    continue;
+                }
                 // Try filling the RFQ order. Swallows reverts.
                 try
                     INativeOrdersFeature(address(this))._fillRfqOrder
                         (
                             order,
                             signature,
-                            takerTokenFillAmount,
+                            inputTokenAmount.safeDowncastToUint128(),
                             msg.sender
                         )
                     returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
@@ -280,74 +273,10 @@ contract WrapperFillFeature is
                     soldAmount = soldAmount.safeAdd(takerTokenFilledAmount);
                     outputTokenAmount = outputTokenAmount.safeAdd(makerTokenFilledAmount);
                 } catch {}
-            } else if (wrappedCall.selector == INativeOrdersFeature._fillLimitOrder.selector) {
-                // Decode the limit order and signature.
-                (
-                    LibNativeOrder.LimitOrder memory order,
-                    LibSignature.Signature memory signature
-                ) = abi.decode(
-                    wrappedCall.data,
-                    (LibNativeOrder.LimitOrder, LibSignature.Signature)
-                );
-
-                // Compute the protocol fee amount if it hasn't already been computed.
-                if (protocolFee == 0) {
-                    protocolFee = uint256(INativeOrdersFeature(address(this)).getProtocolFeeMultiplier())
-                       .safeMul(tx.gasprice);
-                }
-                // Insufficient ETH remainining for the limit order protocol fee.
-                // Emit an event for data, then continue along.
-                if (protocolFee > remainingEth) {
-                    bytes32 orderHash = INativeOrdersFeature(address(this)).getLimitOrderHash(order);
-                    emit ProtocolFeeUnfunded(orderHash);
-                    continue;
-                }
-                // Compute the fill amount.
-                uint128 takerTokenFillAmount = _computeNativeOrderFillAmount(
-                    wrappedCall.sellAmount,
-                    fillData.sellAmount,
-                    fillData.sellAmount.safeSub(soldAmount),
-                    order.takerAmount,
-                    order.takerTokenFeeAmount
-                );
-                // Try filling the limit order. Swallows reverts.
-                try
-                    INativeOrdersFeature(address(this))._fillLimitOrder(
-                        order,
-                        signature,
-                        takerTokenFillAmount,
-                        msg.sender,
-                        msg.sender
-                    )
-                    returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-                {
-                    // `protocolFee` of ETH was spent. No need for SafeMath because
-                    // we already checked that `protocolFee <= remainingEth`.
-                    remainingEth -= protocolFee;
-                    if (order.takerTokenFeeAmount > 0) {
-                        // Account for taker token fee.
-                        takerTokenFilledAmount = takerTokenFilledAmount.safeAdd128(
-                            LibMathV06.getPartialAmountFloor(
-                                takerTokenFilledAmount,
-                                order.takerAmount,
-                                order.takerTokenFeeAmount
-                            ).safeDowncastToUint128()
-                        );
-                    }
-                    // Increment the sold and bought amounts.
-                    soldAmount = soldAmount.safeAdd(takerTokenFilledAmount);
-                    outputTokenAmount = outputTokenAmount.safeAdd(makerTokenFilledAmount);
-                } catch {}
             } else if (wrappedCall.selector == this._sellToUniswap.selector) {
                 (address[] memory tokens, bool isSushi) = abi.decode(
                     wrappedCall.data,
                     (address[], bool)
-                );
-                // Normalize the sell amount.
-                uint256 inputTokenAmount = _normalizeAmount(
-                    wrappedCall.sellAmount,
-                    fillData.sellAmount,
-                    fillData.sellAmount.safeSub(soldAmount)
                 );
                 // Perform the Uniswap/Sushiswap trade.
                 uint256 outputTokenAmount_  = _sellToUniswap(
@@ -365,17 +294,15 @@ contract WrapperFillFeature is
                     wrappedCall.data,
                     (address, bytes)
                 );
-                // Normalize the sell amount.
-                uint256 inputTokenAmount = _normalizeAmount(
-                    wrappedCall.sellAmount,
-                    fillData.sellAmount,
-                    fillData.sellAmount.safeSub(soldAmount)
-                );
                 if (address(fillData.inputToken) == ETH_TOKEN_ADDRESS) {
+                    inputTokenAmount = LibSafeMathV06.min256(
+                        inputTokenAmount,
+                        remainingEth
+                    );
                     // Transfer the input ETH to the provider.
                     payable(provider).transfer(inputTokenAmount);
                     // Count that ETH as spent.
-                    remainingEth = remainingEth.safeSub(inputTokenAmount);
+                    remainingEth = remainingEth -= inputTokenAmount;
                 } else {
                     // Transfer input ERC20 tokens to the provider.
                     _transferERC20Tokens(
@@ -413,11 +340,6 @@ contract WrapperFillFeature is
                     totalEth,
                     remainingEth
                 );
-                uint256 inputTokenAmount = _normalizeAmount(
-                    wrappedCall.sellAmount,
-                    fillData.sellAmount,
-                    fillData.sellAmount.safeSub(soldAmount)
-                );
                 // RFC: I don't think we need to try-catch here; pretty sure we'd only be
                 // using `_transformERC20` for external sources that are not VIP-compatible,
                 // so the batch fill would be brittle to failures anyway.
@@ -447,11 +369,6 @@ contract WrapperFillFeature is
                     totalEth,
                     remainingEth
                 );
-                uint256 inputTokenAmount = _normalizeAmount(
-                    wrappedCall.sellAmount,
-                    fillData.sellAmount,
-                    fillData.sellAmount.safeSub(soldAmount)
-                );
                 // Subtract the ethValue allocated to the nested multi-hop fill.
                 remainingEth -= ethValue;
                 (uint256 outputTokenAmount_, uint256 leftoverEth) =
@@ -477,81 +394,12 @@ contract WrapperFillFeature is
         // each hop. After the final hop, this will contain the output
         // amount of the multi-hop fill.
          outputTokenAmount = fillData.sellAmount;
-        // This variable is used to cache the protocol fee amount
-        // if one or more limit orders are encoutered.
-        uint256 protocolFee;
         // This variable is used to cache the address to target in the
         // next hop. See `_computeHopRecipient` for details.
         address nextTarget;
         for (uint256 i = 0; i != fillData.calls.length; i++) {
             WrappedMultiHopCall memory wrappedCall = fillData.calls[i];
-            if (wrappedCall.selector == INativeOrdersFeature._fillRfqOrder.selector) {
-                // Decode the RFQ order and signature.
-                (
-                    LibNativeOrder.RfqOrder memory order,
-                    LibSignature.Signature memory signature
-                ) = abi.decode(
-                    wrappedCall.data,
-                    (LibNativeOrder.RfqOrder, LibSignature.Signature)
-                );
-                // Note that unlike in `_batchFill`, we do not try-catch here
-                // because if one leg of the multi-hop fill fails, we're
-                // basically screwed.
-                (, outputTokenAmount) = INativeOrdersFeature(address(this))._fillRfqOrder(
-                    order,
-                    signature,
-                    outputTokenAmount.safeDowncastToUint128(),
-                    msg.sender
-                );
-            } else if (wrappedCall.selector == INativeOrdersFeature._fillLimitOrder.selector) {
-                // Compute the protocol fee amount if it hasn't already been computed.
-                // Note that we don't preemptively check for insufficient ETH because
-                // in a multi-hop fill we do _not_ swallow native order reverts, since
-                // if a single leg of the fill fails, we're screwed.
-                if (protocolFee == 0) {
-                    protocolFee = uint256(INativeOrdersFeature(address(this)).getProtocolFeeMultiplier())
-                       .safeMul(tx.gasprice);
-                }
-                // Decode the RFQ order and signature.
-                (
-                    LibNativeOrder.LimitOrder memory order,
-                    LibSignature.Signature memory signature
-                ) = abi.decode(
-                    wrappedCall.data,
-                    (LibNativeOrder.LimitOrder, LibSignature.Signature)
-                );
-                // Note that unlike in `_batchFill`, we do not try-catch here
-                // because if one leg of the multi-hop fill fails, we're
-                // basically screwed.
-                (, outputTokenAmount) = INativeOrdersFeature(address(this))._fillLimitOrder(
-                    order,
-                    signature,
-                    outputTokenAmount.safeDowncastToUint128(),
-                    msg.sender,
-                    msg.sender
-                );
-                // Decrement the remaining ETH for the protocol fee.
-                remainingEth -= protocolFee;
-            } else if (wrappedCall.selector == ITransformERC20Feature._transformERC20.selector) {
-                ITransformERC20Feature.TransformERC20Args memory args;
-                args.taker = msg.sender;
-                args.inputToken = IERC20TokenV06(fillData.tokens[i]);
-                args.outputToken = IERC20TokenV06(fillData.tokens[i + 1]);
-                args.inputTokenAmount = outputTokenAmount;
-                args.minOutputTokenAmount = 0;
-                uint256 ethValue;
-                (args.transformations, ethValue) = abi.decode(
-                    wrappedCall.data,
-                    (ITransformERC20Feature.Transformation[], uint256)
-                );
-                // Do not spend more than the remaining ETH.
-                ethValue = LibSafeMathV06.min256(ethValue, remainingEth);
-                // Call `_transformERC20`.
-                outputTokenAmount = ITransformERC20Feature(address(this))
-                    ._transformERC20{value: ethValue}(args);
-                // Decrement the remaining ETH.
-                remainingEth -= ethValue;
-            } else if (wrappedCall.selector == this._sellToUniswap.selector) {
+            if (wrappedCall.selector == this._sellToUniswap.selector) {
                 // If the next hop supports a "transfer then execute" pattern,
                 // the recipient will not be `msg.sender`. See `_computeHopRecipient`
                 // for details.
@@ -570,9 +418,7 @@ contract WrapperFillFeature is
                 );
                 // If the recipient was not `msg.sender`, it must be the target
                 // contract for the next hop.
-                if (recipient != msg.sender) {
-                    nextTarget = recipient;
-                }
+                nextTarget = recipient == msg.sender ? address(0) : recipient;
             } else if (wrappedCall.selector == this._sellToLiquidityProvider.selector) {
                 // If the next hop supports a "transfer then execute" pattern,
                 // the recipient will not be `msg.sender`. See `_computeHopRecipient`
@@ -589,7 +435,12 @@ contract WrapperFillFeature is
                     // Transfer input ETH or ERC20 tokens to the liquidity
                     // provider contract.
                     if (fillData.tokens[i] == ETH_TOKEN_ADDRESS) {
+                        outputTokenAmount = LibSafeMathV06.min256(
+                            outputTokenAmount,
+                            remainingEth
+                        );
                         payable(provider).transfer(outputTokenAmount);
+                        remainingEth -= outputTokenAmount;
                     } else {
                         _transferERC20Tokens(
                             IERC20TokenV06(fillData.tokens[i]),
@@ -622,14 +473,68 @@ contract WrapperFillFeature is
                 }
                 // If the recipient was not `msg.sender`, it must be the target
                 // contract for the next hop.
-                if (recipient != msg.sender) {
-                    nextTarget = recipient;
+                nextTarget = recipient == msg.sender ? address(0) : recipient;
+            } else if (wrappedCall.selector == ITransformERC20Feature._transformERC20.selector) {
+                ITransformERC20Feature.TransformERC20Args memory args;
+                args.inputToken = IERC20TokenV06(fillData.tokens[i]);
+                args.outputToken = IERC20TokenV06(fillData.tokens[i + 1]);
+                args.minOutputTokenAmount = 0;
+                args.taker = payable(_computeHopRecipient(fillData.calls, i));
+                if (nextTarget != address(0)) {
+                    // If `nextTarget` was set in the previous hop, then the input
+                    // token was already sent to the FlashWallet. Setting
+                    // `inputTokenAmount` to 0 indicates that no tokens need to
+                    // be pulled into the FlashWallet before executing the
+                    // transformations.
+                    args.inputTokenAmount = 0;
+                } else if (
+                    args.taker != msg.sender &&
+                    address(args.inputToken) != ETH_TOKEN_ADDRESS
+                ) {
+                    address flashWallet = address(
+                        ITransformERC20Feature(address(this)).getTransformWallet()
+                    );
+                    // The input token has _not_ already been sent to the
+                    // FlashWallet. We also want PayTakerTransformer to
+                    // send the output token to some address other than
+                    // msg.sender, so we must transfer the input token
+                    // to the FlashWallet here.
+                    _transferERC20Tokens(
+                        args.inputToken,
+                        msg.sender,
+                        flashWallet,
+                        outputTokenAmount
+                    );
+                    args.inputTokenAmount = 0;
+                } else {
+                    // Otherwise, either:
+                    // (1) args.taker == msg.sender, in which case
+                    //     `_transformERC20` will pull the input token
+                    //     into the FlashWallet, or
+                    // (2) args.inputToken == ETH_TOKEN_ADDRESS, in which
+                    //     case ETH is attached to the call and no token
+                    //     transfer occurs.
+                    args.inputTokenAmount = outputTokenAmount;
                 }
+                uint256 ethValue;
+                (args.transformations, ethValue) = abi.decode(
+                    wrappedCall.data,
+                    (ITransformERC20Feature.Transformation[], uint256)
+                );
+                // Do not spend more than the remaining ETH.
+                ethValue = LibSafeMathV06.min256(ethValue, remainingEth);
+                // Call `_transformERC20`.
+                outputTokenAmount = ITransformERC20Feature(address(this))
+                    ._transformERC20{value: ethValue}(args);
+                // Decrement the remaining ETH.
+                remainingEth -= ethValue;
+                // If the recipient was not `msg.sender`, it must be the target
+                // contract for the next hop.
+                nextTarget = args.taker == msg.sender ? address(0) : args.taker;
             } else if (wrappedCall.selector == this._batchFill.selector) {
                 BatchFillData memory batchFillData;
                 batchFillData.inputToken = IERC20TokenV06(fillData.tokens[i]);
                 batchFillData.outputToken = IERC20TokenV06(fillData.tokens[i + 1]);
-                batchFillData.sellAmount = outputTokenAmount;
                 uint256 ethValue;
                 (ethValue, batchFillData.calls) = abi.decode(
                     wrappedCall.data,
@@ -637,21 +542,35 @@ contract WrapperFillFeature is
                 );
                 // Do not spend more than the remaining ETH.
                 ethValue = LibSafeMathV06.min256(ethValue, remainingEth);
+                if (fillData.tokens[i] == ETH_TOKEN_ADDRESS) {
+                    batchFillData.sellAmount = LibSafeMathV06.min256(
+                        outputTokenAmount,
+                        ethValue
+                    );
+                } else {
+                    batchFillData.sellAmount = outputTokenAmount;
+                }
                 // Decrement the remaining ETH.
                 remainingEth -= ethValue;
                 uint256 leftoverEth;
                 (outputTokenAmount, leftoverEth) = _batchFill(batchFillData, ethValue);
                 // Add back any ETH that was unused by the `_batchFill`.
                 remainingEth += leftoverEth;
+                nextTarget = address(0);
             } else if (wrappedCall.selector == IEtherTokenV06.deposit.selector) {
+                uint256 ethValue = LibSafeMathV06.min256(outputTokenAmount, remainingEth);
                 // Wrap ETH.
-                weth.deposit{value: outputTokenAmount}();
+                weth.deposit{value: ethValue}();
+                nextTarget = _computeHopRecipient(fillData.calls, i);
+                weth.transfer(nextTarget, ethValue);
+                remainingEth -= ethValue;
             } else if (wrappedCall.selector == IEtherTokenV06.withdraw.selector) {
                 // Unwrap WETH and send to `msg.sender`.
                 // There may be some cases where we want to keep the WETH
                 // here, but that's a conundrum for future me.
                 weth.withdraw(outputTokenAmount);
                 msg.sender.transfer(outputTokenAmount);
+                nextTarget = address(0);
             } else {
                 revert("multiHopFill/UNRECOGNIZED_SELECTOR");
             }
@@ -795,6 +714,10 @@ contract WrapperFillFeature is
                 );
             } else if (nextCall.selector == IEtherTokenV06.withdraw.selector) {
                 recipient = address(this);
+            } else if (nextCall.selector == ITransformERC20Feature._transformERC20.selector) {
+                recipient = address(
+                    ITransformERC20Feature(address(this)).getTransformWallet()
+                );
             }
         }
     }
@@ -807,35 +730,6 @@ contract WrapperFillFeature is
         senderBalance = address(token) == ETH_TOKEN_ADDRESS
             ? msg.sender.balance
             : token.balanceOf(msg.sender);
-    }
-
-    function _computeUniswapPairAddress(
-        address tokenA,
-        address tokenB,
-        bool isSushi
-    )
-        private
-        pure
-        returns (address pairAddress)
-    {
-        (address token0, address token1) = tokenA < tokenB
-            ? (tokenA, tokenB)
-            : (tokenB, tokenA);
-        if (isSushi) {
-            return address(uint256(keccak256(abi.encodePacked(
-                hex'ff',
-                SUSHISWAP_FACTORY,
-                keccak256(abi.encodePacked(token0, token1)),
-                SUSHISWAP_PAIR_INIT_CODE_HASH
-            ))));
-        } else {
-            return address(uint256(keccak256(abi.encodePacked(
-                hex'ff',
-                UNISWAP_FACTORY,
-                keccak256(abi.encodePacked(token0, token1)),
-                UNISWAP_PAIR_INIT_CODE_HASH
-            ))));
-        }
     }
 
     function _computeUniswapOutputAmount(
@@ -866,33 +760,33 @@ contract WrapperFillFeature is
         return numerator / denominator;
     }
 
-    // Compute the taker token fill amount for a 0x order,
-    // used in `_batchFill`.
-    function _computeNativeOrderFillAmount(
-        uint256 rawAmount,
-        uint256 totalBalance,
-        uint256 remainingBalance,
-        uint128 orderTakerAmount,
-        uint128 orderTakerTokenFeeAmount
+    function _computeUniswapPairAddress(
+        address tokenA,
+        address tokenB,
+        bool isSushi
     )
         private
         pure
-        returns (uint128 fillAmount)
+        returns (address pairAddress)
     {
-        uint256 normalizedAmount = _normalizeAmount(
-            rawAmount,
-            totalBalance,
-            remainingBalance
-        );
-        fillAmount = normalizedAmount.safeDowncastToUint128();
-        if (orderTakerTokenFeeAmount != 0) {
-            fillAmount = LibMathV06.getPartialAmountCeil(
-                fillAmount,
-                orderTakerAmount.safeAdd128(orderTakerTokenFeeAmount),
-                orderTakerAmount
-            ).safeDowncastToUint128();
+        (address token0, address token1) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
+        if (isSushi) {
+            return address(uint256(keccak256(abi.encodePacked(
+                hex'ff',
+                SUSHISWAP_FACTORY,
+                keccak256(abi.encodePacked(token0, token1)),
+                SUSHISWAP_PAIR_INIT_CODE_HASH
+            ))));
+        } else {
+            return address(uint256(keccak256(abi.encodePacked(
+                hex'ff',
+                UNISWAP_FACTORY,
+                keccak256(abi.encodePacked(token0, token1)),
+                UNISWAP_PAIR_INIT_CODE_HASH
+            ))));
         }
-        return LibSafeMathV06.min128(fillAmount, orderTakerAmount);
     }
 
     // Convert possible proportional values to absolute quantities.
