@@ -168,10 +168,10 @@ When versioning the API, we freeze the old version in a separate branch so that 
 
 This is a list of endpoints supported by different versions of the API. If an endpoint is not on this list, it is by default pointed to the master branch.
 
-| Endpoint(s)                         | API version branch                               | @0x/asset-swapper branch                                       |
-| ----------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
-| `/swap/v0/`, `/meta_transaction/v0` | https://github.com/0xProject/0x-api/tree/freeze/swap-v0 | https://github.com/0xProject/0x-monorepo/tree/v0-asset-swapper|
-| `/sra/v3`                           | https://github.com/0xProject/0x-api/tree/freeze/sra-v3  | N/A                                                           |
+| Endpoint(s)                         | API version branch                                      | @0x/asset-swapper branch                                       |
+| ----------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------- |
+| `/swap/v0/`, `/meta_transaction/v0` | https://github.com/0xProject/0x-api/tree/freeze/swap-v0 | https://github.com/0xProject/0x-monorepo/tree/v0-asset-swapper |
+| `/sra/v3`                           | https://github.com/0xProject/0x-api/tree/freeze/sra-v3  | N/A                                                            |
 
 ## Release
 
