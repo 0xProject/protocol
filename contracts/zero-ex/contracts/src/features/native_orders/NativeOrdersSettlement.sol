@@ -32,15 +32,15 @@ import "../../vendor/v3/IStaking.sol";
 import "../interfaces/INativeOrdersEvents.sol";
 import "../libs/LibSignature.sol";
 import "../libs/LibNativeOrder.sol";
-import "./MixinCancellation.sol";
-import "./MixinProtocolFees.sol";
+import "./NativeOrdersCancellation.sol";
+import "./NativeOrdersProtocolFees.sol";
 
 
 /// @dev Mixin for settling limit and RFQ orders.
-abstract contract MixinSettlement is
+abstract contract NativeOrdersSettlement is
     INativeOrdersEvents,
-    MixinCancellation,
-    MixinProtocolFees,
+    NativeOrdersCancellation,
+    NativeOrdersProtocolFees,
     FixinCommon
 {
     using LibSafeMathV06 for uint128;
@@ -100,8 +100,8 @@ abstract contract MixinSettlement is
         bytes32 greedyTokensBloomFilter
     )
         public
-        MixinCancellation(zeroExAddress, greedyTokensBloomFilter)
-        MixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
+        NativeOrdersCancellation(zeroExAddress, greedyTokensBloomFilter)
+        NativeOrdersProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
     {
         // solhint-disable no-empty-blocks
     }

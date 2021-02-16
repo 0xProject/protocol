@@ -31,7 +31,7 @@ import "../libs/LibNativeOrder.sol";
 
 
 /// @dev Feature for getting info about limit and RFQ orders.
-abstract contract MixinOrderInfo is
+abstract contract NativeOrdersInfo is
     FixinEIP712,
     FixinTokenSpender
 {

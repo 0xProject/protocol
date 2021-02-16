@@ -23,13 +23,13 @@ pragma experimental ABIEncoderV2;
 import "../../migrations/LibMigrate.sol";
 import "../interfaces/IFeature.sol";
 import "../interfaces/INativeOrdersFeature.sol";
-import "./MixinSettlement.sol";
+import "./NativeOrdersSettlement.sol";
 
 
 /// @dev Feature for interacting with limit and RFQ orders.
 contract NativeOrdersFeature is
     IFeature,
-    MixinSettlement
+    NativeOrdersSettlement
 {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LimitOrders";
@@ -45,7 +45,7 @@ contract NativeOrdersFeature is
         bytes32 greedyTokensBloomFilter
     )
         public
-        MixinSettlement(
+        NativeOrdersSettlement(
             zeroExAddress,
             weth,
             staking,

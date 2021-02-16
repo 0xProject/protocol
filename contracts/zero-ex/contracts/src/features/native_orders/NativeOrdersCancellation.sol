@@ -27,12 +27,12 @@ import "../../storage/LibNativeOrdersStorage.sol";
 import "../interfaces/INativeOrdersEvents.sol";
 import "../libs/LibSignature.sol";
 import "../libs/LibNativeOrder.sol";
-import "./MixinOrderInfo.sol";
+import "./NativeOrdersInfo.sol";
 
 /// @dev Feature for cancelling limit and RFQ orders.
-abstract contract MixinCancellation is
+abstract contract NativeOrdersCancellation is
     INativeOrdersEvents,
-    MixinOrderInfo
+    NativeOrdersInfo
 {
     using LibRichErrorsV06 for bytes;
 
@@ -44,7 +44,7 @@ abstract contract MixinCancellation is
         bytes32 greedyTokensBloomFilter
     )
         internal
-        MixinOrderInfo(zeroExAddress, greedyTokensBloomFilter)
+        NativeOrdersInfo(zeroExAddress, greedyTokensBloomFilter)
     {
         // solhint-disable no-empty-blocks
     }

@@ -77,7 +77,6 @@ import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadata
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
-import * as MixinCancellation from '../test/generated-artifacts/MixinCancellation.json';
 import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
 import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
@@ -87,16 +86,17 @@ import * as MixinKyber from '../test/generated-artifacts/MixinKyber.json';
 import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json';
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
 import * as MixinOasis from '../test/generated-artifacts/MixinOasis.json';
-import * as MixinOrderInfo from '../test/generated-artifacts/MixinOrderInfo.json';
-import * as MixinProtocolFees from '../test/generated-artifacts/MixinProtocolFees.json';
-import * as MixinSettlement from '../test/generated-artifacts/MixinSettlement.json';
 import * as MixinShell from '../test/generated-artifacts/MixinShell.json';
 import * as MixinSushiswap from '../test/generated-artifacts/MixinSushiswap.json';
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
 import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridge.json';
 import * as MooniswapLiquidityProvider from '../test/generated-artifacts/MooniswapLiquidityProvider.json';
+import * as NativeOrdersCancellation from '../test/generated-artifacts/NativeOrdersCancellation.json';
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
+import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.json';
+import * as NativeOrdersProtocolFees from '../test/generated-artifacts/NativeOrdersProtocolFees.json';
+import * as NativeOrdersSettlement from '../test/generated-artifacts/NativeOrdersSettlement.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
@@ -196,11 +196,11 @@ export const artifacts = {
     IUniswapFeature: IUniswapFeature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
-    MixinCancellation: MixinCancellation as ContractArtifact,
-    MixinOrderInfo: MixinOrderInfo as ContractArtifact,
-    MixinProtocolFees: MixinProtocolFees as ContractArtifact,
-    MixinSettlement: MixinSettlement as ContractArtifact,
+    NativeOrdersCancellation: NativeOrdersCancellation as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
+    NativeOrdersInfo: NativeOrdersInfo as ContractArtifact,
+    NativeOrdersProtocolFees: NativeOrdersProtocolFees as ContractArtifact,
+    NativeOrdersSettlement: NativeOrdersSettlement as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
     FixinEIP712: FixinEIP712 as ContractArtifact,
     FixinProtocolFees: FixinProtocolFees as ContractArtifact,

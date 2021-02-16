@@ -29,7 +29,7 @@ import "../../vendor/v3/IStaking.sol";
 
 
 /// @dev Mixin for protocol fee utility functions.
-abstract contract MixinProtocolFees is
+abstract contract NativeOrdersProtocolFees is
     FixinProtocolFees
 {
     using LibSafeMathV06 for uint256;
@@ -44,7 +44,7 @@ abstract contract MixinProtocolFees is
         internal
         FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
     {
-        // solhint-disable no-empty-blocks        
+        // solhint-disable no-empty-blocks
     }
 
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
