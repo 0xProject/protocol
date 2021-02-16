@@ -164,14 +164,14 @@ Tip: Test suites set up and teardown sandboxed environments, so using `.only` on
 A Docker image is built and hosted by [Dockerhub](https://hub.docker.com/r/0xorg/0x-api) every time a change to the `master` branch occurs. A Docker image is built, pushed and [tagged](https://hub.docker.com/r/0xorg/0x-api/tags) when a new version is [released](https://github.com/0xProject/0x-api/releases) as well.
 Running this image will run 0x API as a monolith, with all its dependencies. You can run any of the [services](#services) separately by [overriding the Docker command](https://docs.docker.com/engine/reference/run/#cmd-default-command-or-options) with the service-specific command when running the container.
 
-When versioning the API, we freeze the old version in a separate branch so that we can deploy patches, and continue to support the old version until it's officially deprecated. Be aware when contributing fixes that you may want to apply the fix to an older version too.
+When versioning the API, we freeze the old version in a separate branch so that we can deploy patches, and continue to support the old version until it's officially deprecated. **Be aware when contributing fixes that you may want to apply the fix to an older version too.**
 
 This is a list of endpoints supported by different versions of the API. If an endpoint is not on this list, it is by default pointed to the master branch.
 
 | Endpoint(s)                         | API version branch                               | @0x/asset-swapper branch                                       |
 | ----------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
-| `/swap/v0/`, `/meta_transaction/v0` | https://github.com/0xProject/0x-api/tree/swap_v0 | https://github.com/0xProject/0x-monorepo/tree/v0-asset-swapper |
-|                                     |                                                  |                                                                |
+| `/swap/v0/`, `/meta_transaction/v0` | https://github.com/0xProject/0x-api/tree/freeze/swap-v0 | https://github.com/0xProject/0x-monorepo/tree/v0-asset-swapper|
+| `/sra/v3`                           | https://github.com/0xProject/0x-api/tree/freeze/sra-v3  | N/A                                                           |
 
 ## Release
 
