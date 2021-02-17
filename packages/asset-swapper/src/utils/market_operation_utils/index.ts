@@ -30,6 +30,7 @@ import {
 import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
+import { PathPenaltyOpts } from './path';
 import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
@@ -195,8 +196,8 @@ export class MarketOperationUtils {
             inputAmount: takerAmount,
             inputToken: takerToken,
             outputToken: makerToken,
-            ethToOutputRate: outputTokensPerEth,
-            ethToInputRate: inputTokensPerEth,
+            outputTokensPerEth,
+            inputTokensPerEth,
             quoteSourceFilters,
             makerTokenDecimals: makerTokenDecimals.toNumber(),
             takerTokenDecimals: takerTokenDecimals.toNumber(),
@@ -321,8 +322,8 @@ export class MarketOperationUtils {
             inputAmount: makerAmount,
             inputToken: makerToken,
             outputToken: takerToken,
-            ethToOutputRate: ethToTakerAssetRate,
-            ethToInputRate: ethToMakerAssetRate,
+            outputTokensPerEth: ethToTakerAssetRate,
+            inputTokensPerEth: ethToMakerAssetRate,
             quoteSourceFilters,
             makerTokenDecimals: makerTokenDecimals.toNumber(),
             takerTokenDecimals: takerTokenDecimals.toNumber(),
@@ -411,8 +412,8 @@ export class MarketOperationUtils {
                             inputToken: makerToken,
                             outputToken: takerToken,
                             inputAmount: makerAmount,
-                            ethToOutputRate: ethToTakerAssetRate,
-                            ethToInputRate,
+                            outputTokensPerEth: ethToTakerAssetRate,
+                            inputTokensPerEth,
                             quoteSourceFilters,
                             makerTokenDecimals: batchTokenDecimals[i][0],
                             takerTokenDecimals: batchTokenDecimals[i][1],
@@ -455,8 +456,8 @@ export class MarketOperationUtils {
             side,
             inputAmount,
             quotes,
-            ethToOutputRate,
-            ethToInputRate,
+            outputTokensPerEth,
+            inputTokensPerEth,
         } = marketSideLiquidity;
         const { nativeOrders, rfqtIndicativeQuotes, dexQuotes } = quotes;
         const maxFallbackSlippage = opts.maxFallbackSlippage || 0;
@@ -489,29 +490,29 @@ export class MarketOperationUtils {
             orders: [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
             dexQuotes,
             targetInput: inputAmount,
-            outputTokensPerEth: ethToOutputRate,
-            inputTokensPerEth: ethToInputRate,
+            outputTokensPerEth,
+            inputTokensPerEth,
             excludedSources: opts.excludedSources,
             feeSchedule: opts.feeSchedule,
         });
 
         // Find the optimal path.
-        const optimizerOpts = {
-            ethToOutputRate,
-            ethToInputRate,
+        const penaltyOpts: PathPenaltyOpts = {
+            outputTokensPerEth,
+            inputTokensPerEth,
             exchangeProxyOverhead: opts.exchangeProxyOverhead || (() => ZERO_AMOUNT),
         };
 
         // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-        const takerAssetsPerEth = side === MarketOperation.Sell ? ethToInputRate : ethToOutputRate;
-        const makerAssetsPerEth = side === MarketOperation.Sell ? ethToOutputRate : ethToInputRate;
+        const takerAmountPerEth = side === MarketOperation.Sell ? inputTokensPerEth : outputTokensPerEth;
+        const makerAmountPerEth = side === MarketOperation.Sell ? outputTokensPerEth : inputTokensPerEth;
 
         // Find the unoptimized best rate to calculate savings from optimizer
-        const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, optimizerOpts)[0];
+        const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, penaltyOpts)[0];
         const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
 
         // Find the optimal path
-        const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, optimizerOpts);
+        const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, penaltyOpts);
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
         const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
@@ -528,8 +529,8 @@ export class MarketOperationUtils {
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
                 unoptimizedPath,
-                takerAssetsPerEth,
-                makerAssetsPerEth,
+                takerAmountPerEth,
+                makerAmountPerEth,
             };
         }
 
@@ -563,8 +564,8 @@ export class MarketOperationUtils {
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
             unoptimizedPath,
-            takerAssetsPerEth,
-            makerAssetsPerEth,
+            takerAmountPerEth,
+            makerAmountPerEth,
         };
     }
 

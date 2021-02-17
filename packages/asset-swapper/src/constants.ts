@@ -3,6 +3,7 @@ import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 
 import {
+    AffiliateFeeType,
     ExchangeProxyContractOpts,
     LogFunction,
     OrderPrunerOpts,
@@ -59,6 +60,7 @@ const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts 
     isFromETH: false,
     isToETH: false,
     affiliateFee: {
+        feeType: AffiliateFeeType.None,
         recipient: NULL_ADDRESS,
         buyTokenFeeAmount: ZERO_AMOUNT,
         sellTokenFeeAmount: ZERO_AMOUNT,
@@ -90,9 +92,12 @@ export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r
 
 export { DEFAULT_FEE_SCHEDULE, DEFAULT_GAS_SCHEDULE } from './utils/market_operation_utils/constants';
 
+export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
+
 export const constants = {
     ETH_GAS_STATION_API_URL,
     PROTOCOL_FEE_MULTIPLIER,
+    POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS,
     NULL_BYTES,
     ZERO_AMOUNT,
     NULL_ADDRESS,

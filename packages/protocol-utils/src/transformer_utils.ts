@@ -317,3 +317,39 @@ export function getTransformerAddress(deployer: string, nonce: number): string {
         ethjs.rlphash([deployer, nonce] as any).slice(12),
     );
 }
+
+/**
+ * ABI encoder for `PositiveSlippageFeeTransformer.TransformData`
+ */
+export const positiveSlippageFeeTransformerDataEncoder = AbiEncoder.create({
+    name: 'data',
+    type: 'tuple',
+    components: [
+        { name: 'token', type: 'address' },
+        { name: 'bestCaseAmount', type: 'uint256' },
+        { name: 'recipient', type: 'address' },
+    ],
+});
+
+/**
+ * `PositiveSlippageFeeTransformer.TransformData`
+ */
+export interface PositiveSlippageFeeTransformerData {
+    token: string;
+    bestCaseAmount: BigNumber;
+    recipient: string;
+}
+
+/**
+ * ABI-encode a `PositiveSlippageFeeTransformer.TransformData` type.
+ */
+export function encodePositiveSlippageFeeTransformerData(data: PositiveSlippageFeeTransformerData): string {
+    return positiveSlippageFeeTransformerDataEncoder.encode(data);
+}
+
+/**
+ * ABI-decode a `PositiveSlippageFeeTransformer.TransformData` type.
+ */
+export function decodePositiveSlippageFeeTransformerData(encoded: string): PositiveSlippageFeeTransformerData {
+    return positiveSlippageFeeTransformerDataEncoder.decode(encoded);
+}

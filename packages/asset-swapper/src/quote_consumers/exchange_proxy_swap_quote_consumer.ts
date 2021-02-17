@@ -271,7 +271,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (feeType === AffiliateFeeType.PositiveSlippageFee && feeRecipient !== NULL_ADDRESS) {
             // bestCaseAmount is increased to cover gas cost of sending positive slipapge fee to fee recipient
-            const bestCaseAmount = quote.bestCaseQuoteInfo.makerAssetAmount
+            const bestCaseAmount = quote.bestCaseQuoteInfo.makerAmount
                 .plus(
                     POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
                         quote.makerAssetsPerEth,
