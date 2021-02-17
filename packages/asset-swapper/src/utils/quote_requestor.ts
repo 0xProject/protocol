@@ -1,7 +1,7 @@
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
-import { BigNumber, logUtils, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
@@ -136,8 +136,7 @@ export class QuoteRequestor {
 
     constructor(
         private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
-        private readonly _altRfqApiKey?: string,
-        private readonly _altRfqProfile?: string,
+        private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
@@ -442,13 +441,13 @@ export class QuoteRequestor {
                         rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
                         return { response: response.data, makerUri: typedMakerUrl.url };
                     } else {
-                        if (this._altRfqApiKey === undefined || this._altRfqProfile === undefined) {
+                        if (this._altRfqCreds === undefined) {
                             throw new Error(`don't have credentials for alt MM`);
                         }
                         const quote = await returnQuoteFromAltMMAsync<ResponseT>(
                             typedMakerUrl.url,
-                            this._altRfqApiKey,
-                            this._altRfqProfile,
+                            this._altRfqCreds.altRfqApiKey,
+                            this._altRfqCreds.altRfqProfile,
                             options.apiKey,
                             quoteType === 'firm' ? AltQuoteModel.Firm : AltQuoteModel.Indicative,
                             makerToken,
@@ -459,8 +458,6 @@ export class QuoteRequestor {
                             quoteRequestorHttpClient,
                         );
 
-                        logUtils.log(`alt quote`);
-                        logUtils.log(quote);
                         const latencyMs = Date.now() - timeBeforeAwait;
                         this._infoLogger({
                             rfqtMakerInteraction: {

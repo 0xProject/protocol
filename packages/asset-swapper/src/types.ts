@@ -449,7 +449,7 @@ export interface AltBaseRfqResponse {
     price?: string;
 }
 
-export interface AltIndicativeQuoteReponse extends AltBaseRfqResponse {
+export interface AltIndicativeQuoteResponse extends AltBaseRfqResponse {
     model: 'indicative';
     status: 'live' | 'rejected';
 }

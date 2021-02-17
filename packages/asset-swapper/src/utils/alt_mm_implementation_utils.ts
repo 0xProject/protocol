@@ -1,19 +1,18 @@
 import { Web3Wrapper } from '@0x/dev-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@0x/quote-server';
-import { BigNumber, logUtils } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
+import { constants } from '../constants';
 import {
     AltFirmQuoteResponse,
-    AltIndicativeQuoteReponse,
+    AltIndicativeQuoteResponse,
     AltOffering,
     AltQuoteModel,
     AltQuoteRequestData,
     AltQuoteSide,
     AltRfqtMakerAssetOfferings,
 } from '../types';
-
-const IMPUTED_EXPIRY_SECONDS = 120;
 
 function getAltMarketInfo(
     offerings: AltOffering[],
@@ -40,7 +39,7 @@ function parseFirmQuoteResponseFromAltMM(altFirmQuoteReponse: AltFirmQuoteRespon
 }
 
 function parseIndicativeQuoteResponseFromAltMM(
-    altIndicativeQuoteReponse: AltIndicativeQuoteReponse,
+    altIndicativeQuoteResponse: AltIndicativeQuoteResponse,
     altPair: AltOffering,
     makerToken: string,
     takerToken: string,
@@ -50,28 +49,32 @@ function parseIndicativeQuoteResponseFromAltMM(
     let quoteAmount: BigNumber;
     let baseAmount: BigNumber;
 
-    if (!altIndicativeQuoteReponse.price) {
+    if (!altIndicativeQuoteResponse.price) {
         throw new Error('Price not returned by alt MM');
     }
-    if (altIndicativeQuoteReponse.amount) {
+    if (altIndicativeQuoteResponse.amount) {
+        // if amount is specified, amount is the base token amount
         baseAmount = Web3Wrapper.toBaseUnitAmount(
-            new BigNumber(altIndicativeQuoteReponse.amount),
+            new BigNumber(altIndicativeQuoteResponse.amount),
             altPair.baseAssetDecimals,
         );
+        // if amount is specified, use the price (quote/base) to get the quote amount
         quoteAmount = Web3Wrapper.toBaseUnitAmount(
-            new BigNumber(altIndicativeQuoteReponse.amount)
-                .times(new BigNumber(altIndicativeQuoteReponse.price))
+            new BigNumber(altIndicativeQuoteResponse.amount)
+                .times(new BigNumber(altIndicativeQuoteResponse.price))
                 .decimalPlaces(altPair.quoteAssetDecimals, BigNumber.ROUND_DOWN),
             altPair.quoteAssetDecimals,
         );
-    } else if (altIndicativeQuoteReponse.value) {
+    } else if (altIndicativeQuoteResponse.value) {
+        // if value is specified, value is the quote token amount
         quoteAmount = Web3Wrapper.toBaseUnitAmount(
-            new BigNumber(altIndicativeQuoteReponse.value),
-            altPair.baseAssetDecimals,
+            new BigNumber(altIndicativeQuoteResponse.value),
+            altPair.quoteAssetDecimals,
         );
+        // if value is specified, use the price (quote/base) to get the base amount
         baseAmount = Web3Wrapper.toBaseUnitAmount(
-            new BigNumber(altIndicativeQuoteReponse.value)
-                .dividedBy(new BigNumber(altIndicativeQuoteReponse.price))
+            new BigNumber(altIndicativeQuoteResponse.value)
+                .dividedBy(new BigNumber(altIndicativeQuoteResponse.price))
                 .decimalPlaces(altPair.baseAssetDecimals, BigNumber.ROUND_DOWN),
             altPair.baseAssetDecimals,
         );
@@ -97,7 +100,9 @@ function parseIndicativeQuoteResponseFromAltMM(
         // return now + { IMPUTED EXPIRY SECONDS } to have it included after order checks
         expiry: new BigNumber(
             // tslint:disable-next-line:custom-no-magic-numbers
-            new BigNumber(Date.now() / 1000).integerValue(BigNumber.ROUND_DOWN).plus(IMPUTED_EXPIRY_SECONDS),
+            new BigNumber(Date.now() / 1000)
+                .integerValue(BigNumber.ROUND_DOWN)
+                .plus(constants.ALT_MM_IMPUTED_INDICATIVE_EXPIRY_SECONDS),
         ),
     };
 }
@@ -210,9 +215,6 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             headers: { Authorization: `Bearer ${apiKey}` },
             timeout: maxResponseTimeMs,
         });
-
-        logUtils.log('mocked response:');
-        logUtils.log(JSON.stringify(response.data));
 
         if (response.data.status === 'rejected') {
             throw new Error('alt MM rejected quote');
