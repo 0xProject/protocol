@@ -1,5 +1,14 @@
 [
     {
+        "version": "3.12.0",
+        "changes": [
+            {
+                "note": "Update artifacts",
+                "pr": 145
+            }
+        ]
+    },
+    {
         "timestamp": 1611648096,
         "version": "3.11.1",
         "changes": [
