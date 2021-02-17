@@ -49,6 +49,10 @@
             {
                 "note": "Add an alternative RFQ market making implementation",
                 "pr": 139
+            },
+            {
+                "note": "Added an opt-in `PositiveSlippageAffiliateFee`",
+                "pr": 101
             }
         ]
     },

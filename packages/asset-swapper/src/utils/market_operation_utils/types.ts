@@ -398,8 +398,8 @@ export interface MarketSideLiquidity {
     inputAmount: BigNumber;
     inputToken: string;
     outputToken: string;
-    outputTokensPerEth: BigNumber;
-    inputTokensPerEth: BigNumber;
+    outputAmountPerEth: BigNumber;
+    inputAmountPerEth: BigNumber;
     quoteSourceFilters: SourceFilters;
     makerTokenDecimals: number;
     takerTokenDecimals: number;

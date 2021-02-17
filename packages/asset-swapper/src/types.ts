@@ -101,15 +101,6 @@ export interface SwapQuoteExecutionOpts extends SwapQuoteGetOutputOpts {
     gasLimit?: number;
 }
 
-/**
- * feePercentage: percentage (up to 5%) of the taker asset paid to feeRecipient
- * feeRecipient: address of the receiver of the feePercentage of taker asset
- */
-export interface ForwarderExtensionContractOpts {
-    feePercentage: number;
-    feeRecipient: string;
-}
-
 export enum AffiliateFeeType {
     None,
     PercentageFee,
