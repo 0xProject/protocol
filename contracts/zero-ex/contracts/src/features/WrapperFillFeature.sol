@@ -196,7 +196,6 @@ contract WrapperFillFeature is
 
         _multiHopFill(fillData, msg.value);
 
-
         // RFC: I think these balance checks are arguably unnecessary,
         // see reasoning above.
 
@@ -577,12 +576,14 @@ contract WrapperFillFeature is
         }
     }
 
-    // Same as the LiquidityProviderFeature, but without the transfer in
-    // (which is potentially done in the previous hop of a multi-hop fill)
-    // and without the minBuyAmount check (which is performed at the top, i.e.
-    // in either `batchFill` or `multiHopFill`). Also takes a `recipient`
-    // address parameter, so the output of the final `swap` call can be
-    // sent to an address other than `msg.sender`.
+    // Similar to the UniswapFeature, but with a couple of differences:
+    // - Does not perform the transfer in if `pairAddress` is given,
+    //   which indicates that the transfer in was already performed
+    //   in the previous hop of a multi-hop fill.
+    // - Does not include a minBuyAmount check (which is performed in
+    //   either `batchFill` or `multiHopFill`).
+    // - Takes a `recipient` address parameter, so the output of the
+    //   final `swap` call can be sent to an address other than `msg.sender`.
     function _sellToUniswap(
         address[] memory tokens,
         uint256 sellAmount,

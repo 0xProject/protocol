@@ -24,6 +24,13 @@ library LibNativeOrdersRichErrors {
 
     // solhint-disable func-name-mixedcase
 
+    enum IncompleteMarketFillErrorCode {
+        MARKET_SELL_LIMIT_ORDERS,
+        MARKET_SELL_RFQ_ORDERS,
+        MARKET_BUY_LIMIT_ORDERS,
+        MARKET_BUY_RFQ_ORDERS
+    }
+
     function ProtocolFeeRefundFailed(
         address receiver,
         uint256 refundAmount
@@ -168,6 +175,23 @@ library LibNativeOrdersRichErrors {
             orderHash,
             sender,
             maker
+        );
+    }
+
+    function IncompleteMarketFillError(
+        IncompleteMarketFillErrorCode errorCode,
+        uint128 expectedAssetFillAmount,
+        uint128 actualAssetFillAmount
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("IncompleteMarketFillError(uint8,uint128,uint128)")),
+            errorCode,
+            expectedAssetFillAmount,
+            actualAssetFillAmount
         );
     }
 }

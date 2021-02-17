@@ -7,6 +7,7 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
+import * as BatchFillNativeOrdersFeature from '../test/generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
 import * as BridgeSource from '../test/generated-artifacts/BridgeSource.json';
@@ -22,6 +23,7 @@ import * as FixinTokenSpender from '../test/generated-artifacts/FixinTokenSpende
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
 import * as IAllowanceTarget from '../test/generated-artifacts/IAllowanceTarget.json';
+import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
@@ -174,6 +176,7 @@ export const artifacts = {
     LiquidityProviderSandbox: LiquidityProviderSandbox as ContractArtifact,
     PermissionlessTransformerDeployer: PermissionlessTransformerDeployer as ContractArtifact,
     TransformerDeployer: TransformerDeployer as ContractArtifact,
+    BatchFillNativeOrdersFeature: BatchFillNativeOrdersFeature as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
@@ -183,6 +186,7 @@ export const artifacts = {
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
     WrapperFillFeature: WrapperFillFeature as ContractArtifact,
+    IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
     IFeature: IFeature as ContractArtifact,
     ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,

@@ -5,6 +5,7 @@
  */
 export * from '../test/generated-wrappers/affiliate_fee_transformer';
 export * from '../test/generated-wrappers/allowance_target';
+export * from '../test/generated-wrappers/batch_fill_native_orders_feature';
 export * from '../test/generated-wrappers/bootstrap_feature';
 export * from '../test/generated-wrappers/bridge_adapter';
 export * from '../test/generated-wrappers/bridge_source';
@@ -20,6 +21,7 @@ export * from '../test/generated-wrappers/fixin_token_spender';
 export * from '../test/generated-wrappers/flash_wallet';
 export * from '../test/generated-wrappers/full_migration';
 export * from '../test/generated-wrappers/i_allowance_target';
+export * from '../test/generated-wrappers/i_batch_fill_native_orders_feature';
 export * from '../test/generated-wrappers/i_bootstrap_feature';
 export * from '../test/generated-wrappers/i_bridge_adapter';
 export * from '../test/generated-wrappers/i_erc20_bridge';
