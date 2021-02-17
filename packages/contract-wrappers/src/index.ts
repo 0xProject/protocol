@@ -125,6 +125,7 @@ export {
     IZeroExContract,
     IZeroExEventArgs,
     IZeroExEvents,
+    IZeroExLiquidityProviderSwapEventArgs,
     IZeroExMetaTransactionExecutedEventArgs,
     IZeroExMigratedEventArgs,
     IZeroExOwnershipTransferredEventArgs,
