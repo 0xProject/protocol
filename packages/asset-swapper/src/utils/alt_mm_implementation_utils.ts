@@ -149,7 +149,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
 
         let data: AltQuoteRequestData;
         data = {
-            market: `${altPair.baseSymbol}-${altPair.quoteSymbol}`,
+            market: `${altPair.id}`,
             model: quoteModel,
             profile,
             side,

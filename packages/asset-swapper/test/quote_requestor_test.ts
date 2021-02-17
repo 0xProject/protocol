@@ -45,10 +45,9 @@ describe('QuoteRequestor', async () => {
     const altRfqtAssetOfferings: AltRfqtMakerAssetOfferings = {
         'https://132.0.0.1': [
             {
+                id: 'XYZ-123',
                 baseAsset: makerToken,
                 quoteAsset: takerToken,
-                baseSymbol: 'XYZ',
-                quoteSymbol: '123',
                 baseAssetDecimals: 2,
                 quoteAssetDecimals: 3,
             },

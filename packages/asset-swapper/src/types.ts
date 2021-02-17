@@ -248,10 +248,9 @@ export interface RfqtMakerAssetOfferings {
 }
 
 export interface AltOffering {
+    id: string;
     baseAsset: string;
     quoteAsset: string;
-    baseSymbol: string;
-    quoteSymbol: string;
     baseAssetDecimals: number;
     quoteAssetDecimals: number;
 }
