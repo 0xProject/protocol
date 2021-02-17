@@ -175,17 +175,17 @@ contract MooniswapLiquidityProvider is
         uint256 ethValue = 0;
         if (inputToken == WETH) {
             // Selling WETH. Unwrap to ETH.
+            require(!_isTokenEthLike(outputToken), 'niswapLiquidityProvider/ETH_TO_ETH');
             WETH.withdraw(sellAmount);
             ethValue = sellAmount;
-            require(!_isTokenEthLike(outputToken), 'MooniswapLiquidityProvider/ETH_TO_ETH');
         } else if (LibERC20Transformer.isTokenETH(inputToken)) {
             // Selling ETH directly.
             ethValue = sellAmount;
             require(!_isTokenEthLike(outputToken), 'MooniswapLiquidityProvider/ETH_TO_ETH');
         } else {
             // Selling a regular ERC20.
-            inputToken.approveIfBelow(address(pool), sellAmount);
             require(inputToken != outputToken, 'MooniswapLiquidityProvider/SAME_TOKEN');
+            inputToken.approveIfBelow(address(pool), sellAmount);
         }
 
         boughtAmount = pool.swap{value: ethValue}(
