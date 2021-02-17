@@ -24,6 +24,7 @@
         "generated-artifacts/LiquidityProviderFeature.json",
         "generated-artifacts/LogMetadataTransformer.json",
         "generated-artifacts/MetaTransactionsFeature.json",
+        "generated-artifacts/MooniswapLiquidityProvider.json",
         "generated-artifacts/NativeOrdersFeature.json",
         "generated-artifacts/OwnableFeature.json",
         "generated-artifacts/PayTakerTransformer.json",

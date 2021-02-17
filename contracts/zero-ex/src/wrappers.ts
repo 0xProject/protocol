@@ -24,6 +24,7 @@ export * from '../generated-wrappers/initial_migration';
 export * from '../generated-wrappers/liquidity_provider_feature';
 export * from '../generated-wrappers/log_metadata_transformer';
 export * from '../generated-wrappers/meta_transactions_feature';
+export * from '../generated-wrappers/mooniswap_liquidity_provider';
 export * from '../generated-wrappers/native_orders_feature';
 export * from '../generated-wrappers/ownable_feature';
 export * from '../generated-wrappers/pay_taker_transformer';

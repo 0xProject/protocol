@@ -32,7 +32,10 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
-import { CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID, MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID } from '../utils/market_operation_utils/constants';
+import {
+    CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+    MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+} from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
     getERC20BridgeSourceToBridgeSource,
