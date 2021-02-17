@@ -1,5 +1,5 @@
 import { blockchainTests, constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
-import { encodePositiveSlippageFeeTransformerData } from '@0x/order-utils';
+import { encodePositiveSlippageFeeTransformerData } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { artifacts } from '../artifacts';

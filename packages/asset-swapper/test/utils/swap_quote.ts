@@ -39,8 +39,8 @@ export async function getFullyFillableSwapQuoteWithNoFeesAsync(
         worstCaseQuoteInfo: quoteInfo,
         sourceBreakdown: breakdown,
         isTwoHop: false,
-        takerAssetsPerEth: constants.ZERO_AMOUNT,
-        makerAssetsPerEth: constants.ZERO_AMOUNT,
+        takerAmountPerEth: constants.ZERO_AMOUNT,
+        makerAmountPerEth: constants.ZERO_AMOUNT,
         makerTokenDecimals: 18,
         takerTokenDecimals: 18,
     };

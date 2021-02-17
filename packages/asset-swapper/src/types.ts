@@ -54,12 +54,15 @@ export interface NativeOrderFillableAmountFields {
  * toAddress: The contract address to call.
  * ethAmount: The eth amount in wei to send with the smart contract call.
  * allowanceTarget: The address the taker should grant an allowance to.
+ * gasOverhead: The gas overhead needed to be added to the gas limit to allow for optional
+ * operations which may not visible at eth_estimateGas time
  */
 export interface CalldataInfo {
     calldataHexString: string;
     toAddress: string;
     ethAmount: BigNumber;
     allowanceTarget: string;
+    gasOverhead: BigNumber;
 }
 
 /**
@@ -177,8 +180,8 @@ export interface SwapQuoteBase {
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
-    takerAssetsPerEth: BigNumber;
-    makerAssetsPerEth: BigNumber;
+    takerAmountPerEth: BigNumber;
+    makerAmountPerEth: BigNumber;
 }
 
 /**

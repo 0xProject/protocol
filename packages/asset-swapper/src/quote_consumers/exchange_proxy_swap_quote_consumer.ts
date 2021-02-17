@@ -124,7 +124,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         if (isFromETH) {
             ethAmount = ethAmount.plus(sellAmount);
         }
-        const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
 
         // VIP routes.
         if (
@@ -151,7 +150,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
-                allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
             };
         }
 
@@ -172,7 +172,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
-                allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
             };
         }
 
@@ -197,7 +198,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
-                allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
             };
         }
 
@@ -269,23 +271,31 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
+        const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
+        let gasOverhead = ZERO_AMOUNT;
         if (feeType === AffiliateFeeType.PositiveSlippageFee && feeRecipient !== NULL_ADDRESS) {
-            // bestCaseAmount is increased to cover gas cost of sending positive slipapge fee to fee recipient
-            const bestCaseAmount = quote.bestCaseQuoteInfo.makerAmount
+            // bestCaseAmountWithSurplus is used to cover gas cost of sending positive slipapge fee to fee recipient
+            // this helps avoid sending dust amounts which are not worth the gas cost to transfer
+            let bestCaseAmountWithSurplus = quote.bestCaseQuoteInfo.makerAmount
                 .plus(
                     POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
-                        quote.makerAssetsPerEth,
+                        quote.makerAmountPerEth,
                     ),
                 )
-                .decimalPlaces(0, BigNumber.ROUND_CEIL);
+                .integerValue();
+            // In the event makerAmountPerEth is unknown, we only allow for positive slippage which is greater than
+            // the best case amount
+            bestCaseAmountWithSurplus = BigNumber.max(bestCaseAmountWithSurplus, quote.bestCaseQuoteInfo.makerAmount);
             transforms.push({
                 deploymentNonce: this.transformerNonces.positiveSlippageFeeTransformer,
                 data: encodePositiveSlippageFeeTransformerData({
                     token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                    bestCaseAmount,
+                    bestCaseAmount: BigNumber.max(bestCaseAmountWithSurplus, quote.bestCaseQuoteInfo.makerAmount),
                     recipient: feeRecipient,
                 }),
             });
+            // This may not be visible at eth_estimateGas time, so we explicitly add overhead
+            gasOverhead = POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS;
         } else if (feeType === AffiliateFeeType.PercentageFee && feeRecipient !== NULL_ADDRESS) {
             // This transformer pays affiliate fees.
             if (buyTokenFeeAmount.isGreaterThan(0)) {
@@ -332,7 +342,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             calldataHexString,
             ethAmount,
             toAddress: this._exchangeProxy.address,
-            allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+            allowanceTarget: this._exchangeProxy.address,
+            gasOverhead,
         };
     }
 

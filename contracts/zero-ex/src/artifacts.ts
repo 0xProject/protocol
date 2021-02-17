@@ -49,6 +49,7 @@ export const artifacts = {
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     FillQuoteTransformer: FillQuoteTransformer as ContractArtifact,
     PayTakerTransformer: PayTakerTransformer as ContractArtifact,
+    PositiveSlippageFeeTransformer: PositiveSlippageFeeTransformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
@@ -65,5 +66,4 @@ export const artifacts = {
     FeeCollectorController: FeeCollectorController as ContractArtifact,
     FeeCollector: FeeCollector as ContractArtifact,
     CurveLiquidityProvider: CurveLiquidityProvider as ContractArtifact,
-    PositiveSlippageFeeTransformer: PositiveSlippageFeeTransformer as ContractArtifact,
 };
