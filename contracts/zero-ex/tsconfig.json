@@ -5,6 +5,7 @@
     "files": [
         "generated-artifacts/AffiliateFeeTransformer.json",
         "generated-artifacts/BridgeAdapter.json",
+        "generated-artifacts/CurveLiquidityProvider.json",
         "generated-artifacts/FeeCollector.json",
         "generated-artifacts/FeeCollectorController.json",
         "generated-artifacts/FillQuoteTransformer.json",
@@ -36,6 +37,7 @@
         "test/generated-artifacts/BootstrapFeature.json",
         "test/generated-artifacts/BridgeAdapter.json",
         "test/generated-artifacts/BridgeSource.json",
+        "test/generated-artifacts/CurveLiquidityProvider.json",
         "test/generated-artifacts/FeeCollector.json",
         "test/generated-artifacts/FeeCollectorController.json",
         "test/generated-artifacts/FillQuoteTransformer.json",
@@ -119,6 +121,7 @@
         "test/generated-artifacts/SimpleFunctionRegistryFeature.json",
         "test/generated-artifacts/TestBridge.json",
         "test/generated-artifacts/TestCallTarget.json",
+        "test/generated-artifacts/TestCurve.json",
         "test/generated-artifacts/TestDelegateCaller.json",
         "test/generated-artifacts/TestFeeCollectorController.json",
         "test/generated-artifacts/TestFillQuoteTransformerBridge.json",

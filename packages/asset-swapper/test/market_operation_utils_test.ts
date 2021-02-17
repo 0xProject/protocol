@@ -19,7 +19,6 @@ import { NativeOrderWithFillableAmounts } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
-    BRIDGE_ADDRESSES_BY_CHAIN,
     BUY_SOURCE_FILTER,
     POSITIVE_INF,
     SELL_SOURCE_FILTER,
@@ -110,7 +109,6 @@ describe('MarketOperationUtils tests', () => {
     const CHAIN_ID = ChainId.Mainnet;
     const contractAddresses = {
         ...getContractAddressesForChainOrThrow(CHAIN_ID),
-        ...BRIDGE_ADDRESSES_BY_CHAIN[CHAIN_ID],
     };
 
     function getMockedQuoteRequestor(

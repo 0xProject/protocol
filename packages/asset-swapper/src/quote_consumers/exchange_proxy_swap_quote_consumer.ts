@@ -2,6 +2,7 @@ import { ContractAddresses } from '@0x/contract-addresses';
 import { IZeroExContract } from '@0x/contract-wrappers';
 import {
     encodeAffiliateFeeTransformerData,
+    encodeCurveLiquidityProviderData,
     encodeFillQuoteTransformerData,
     encodePayTakerTransformerData,
     encodeWethTransformerData,
@@ -29,11 +30,13 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
+import { CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID } from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
     getERC20BridgeSourceToBridgeSource,
 } from '../utils/market_operation_utils/orders';
 import {
+    CurveFillData,
     ERC20BridgeSource,
     LiquidityProviderFillData,
     NativeLimitOrderFillData,
@@ -158,6 +161,31 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         sellAmount,
                         minBuyAmount,
                         NULL_BYTES,
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this.contractAddresses.exchangeProxyAllowanceTarget,
+            };
+        }
+
+        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])) {
+            const fillData = quote.orders[0].fills[0].fillData as CurveFillData;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                        encodeCurveLiquidityProviderData({
+                            curveAddress: fillData.pool.poolAddress,
+                            exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
+                            fromCoinIdx: new BigNumber(fillData.fromTokenIdx),
+                            toCoinIdx: new BigNumber(fillData.toTokenIdx),
+                        }),
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,

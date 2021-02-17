@@ -1,5 +1,18 @@
 [
     {
+        "version": "0.19.0",
+        "changes": [
+            {
+                "note": "Add `CurveLiquidityProvider` and misc refactors",
+                "pr": 127
+            },
+            {
+                "note": "Export `CurveLiquidityProviderContract`",
+                "pr": 144
+            }
+        ]
+    },
+    {
         "version": "0.18.2",
         "changes": [
             {

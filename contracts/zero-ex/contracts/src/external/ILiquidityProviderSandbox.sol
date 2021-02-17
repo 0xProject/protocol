@@ -20,6 +20,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "../vendor/ILiquidityProvider.sol";
+
 
 interface ILiquidityProviderSandbox {
 
@@ -32,9 +35,9 @@ interface ILiquidityProviderSandbox {
     /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
     /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     function executeSellTokenForToken(
-        address provider,
-        address inputToken,
-        address outputToken,
+        ILiquidityProvider provider,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -49,8 +52,8 @@ interface ILiquidityProviderSandbox {
     /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.
     /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     function executeSellEthForToken(
-        address provider,
-        address outputToken,
+        ILiquidityProvider provider,
+        IERC20TokenV06 outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -65,8 +68,8 @@ interface ILiquidityProviderSandbox {
     /// @param minBuyAmount The minimum acceptable amount of ETH to buy.
     /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     function executeSellTokenForEth(
-        address provider,
-        address inputToken,
+        ILiquidityProvider provider,
+        IERC20TokenV06 inputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData

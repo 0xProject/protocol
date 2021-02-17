@@ -281,7 +281,7 @@ export interface SwapQuoterRfqtOpts {
     infoLogger?: LogFunction;
 }
 
-export type AssetSwapperContractAddresses = ContractAddresses & BridgeContractAddresses;
+export type AssetSwapperContractAddresses = ContractAddresses;
 
 /**
  * chainId: The ethereum chain id. Defaults to 1 (mainnet).
@@ -377,28 +377,6 @@ export interface SamplerCallResult {
 }
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-/**
- * The Contract addresses of the deployed Bridges
- */
-export interface BridgeContractAddresses {
-    uniswapBridge: string;
-    uniswapV2Bridge: string;
-    eth2DaiBridge: string;
-    kyberBridge: string;
-    curveBridge: string;
-    multiBridge: string;
-    balancerBridge: string;
-    bancorBridge: string;
-    mStableBridge: string;
-    mooniswapBridge: string;
-    sushiswapBridge: string;
-    shellBridge: string;
-    dodoBridge: string;
-    creamBridge: string;
-    swerveBridge: string;
-    snowswapBridge: string;
-    cryptoComBridge: string;
-}
 
 export enum AltQuoteModel {
     Firm = 'firm',

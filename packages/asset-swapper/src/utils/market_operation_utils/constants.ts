@@ -1,7 +1,6 @@
-import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 
-import { BridgeContractAddresses } from '../../types';
+import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
 import { SourceFilters } from './source_filters';
 import {
@@ -19,10 +18,24 @@ import {
     MultiHopFillData,
     SnowSwapFillData,
     SushiSwapFillData,
+    TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './types';
 
 // tslint:disable: custom-no-magic-numbers no-bitwise
+
+export const ERC20_PROXY_ID = '0xf47261b0';
+export const WALLET_SIGNATURE = '0x04';
+export const ONE_ETHER = new BigNumber(1e18);
+export const NEGATIVE_INF = new BigNumber('-Infinity');
+export const POSITIVE_INF = new BigNumber('Infinity');
+export const ZERO_AMOUNT = new BigNumber(0);
+export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
+export const ONE_HOUR_IN_SECONDS = 60 * 60;
+export const ONE_SECOND_MS = 1000;
+export const NULL_BYTES = '0x';
+export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const COMPARISON_PRICE_DECIMALS = 10;
 
 /**
  * Valid sources for market sell.
@@ -89,6 +102,23 @@ export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } = Object.as
     ...Object.values(ERC20BridgeSource).map((source: ERC20BridgeSource, index) => ({ [source]: 1 << index })),
 );
 
+const MIRROR_WRAPPED_TOKENS = {
+    mAAPL: '0xd36932143f6ebdedd872d5fb0651f4b72fd15a84',
+    mSLV: '0x9d1555d8cb3c846bb4f7d5b1b1080872c3166676',
+    mIAU: '0x1d350417d9787e000cc1b95d70e9536dcd91f373',
+    mAMZN: '0x0cae9e4d663793c2a2a0b211c1cf4bbca2b9caa7',
+    mGOOGL: '0x4b70ccd1cf9905be1faed025eadbd3ab124efe9a',
+    mTSLA: '0x21ca39943e91d704678f5d00b6616650f066fd63',
+    mQQQ: '0x13b02c8de71680e71f0820c996e4be43c2f57d15',
+    mTWTR: '0xedb0414627e6f1e3f082de65cd4f9c693d78cca9',
+    mMSFT: '0x41bbedd7286daab5910a1f15d12cbda839852bd7',
+    mNFLX: '0xc8d674114bac90148d11d3c1d33c61835a0f9dcd',
+    mBABA: '0x676ce85f66adb8d7b8323aeefe17087a3b8cb363',
+    mUSO: '0x31c63146a635eb7465e5853020b39713ac356991',
+    mVIXY: '0xf72fcd9dcf0190923fadd44811e240ef4533fc86',
+    mLUNA: '0xd2877702675e6ceb975b4a1dff9fb7baf4c91ea9',
+};
+
 // Mainnet tokens
 // Not an exhaustive list, just enough so we don't repeat ourselves
 export const TOKENS = {
@@ -106,7 +136,6 @@ export const TOKENS = {
     mUSD: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
     USDN: '0x674c6ad92fd080e4004b2312b45f796a192d27a0',
     dUSD: '0x5bc25f649fc4e26069ddf4cf4010f9f706c23831',
-    UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     // Bitcoins
     WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
     RenBTC: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
@@ -125,6 +154,10 @@ export const TOKENS = {
     EURS: '0xdb25f211ab05b1c97d595516f45794528a807ad8',
     sEUR: '0xd71ecff9342a5ced620049e616c5035f1db98620',
     sETH: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
+    // Mirror Protocol
+    UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
+    MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
+    ...MIRROR_WRAPPED_TOKENS,
 };
 
 export const POOLS = {
@@ -155,6 +188,22 @@ export const POOLS = {
     // curve_seth: '0xc5424b857f758e906013f3555dad202e4bdb4567', // 24.seth
     curve_aave: '0xdebf20617708857ebe4f679508e7b7863a8a8eee', // 25.aave
 };
+
+export const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC];
+
+export const DEFAULT_TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = new TokenAdjacencyGraphBuilder({
+    default: DEFAULT_INTERMEDIATE_TOKENS,
+})
+    // Mirror Protocol
+    .tap(builder => {
+        builder
+            .add(TOKENS.MIR, TOKENS.UST)
+            .add(TOKENS.UST, [TOKENS.MIR, ...Object.values(MIRROR_WRAPPED_TOKENS)])
+            .add(TOKENS.USDT, TOKENS.UST);
+        Object.values(MIRROR_WRAPPED_TOKENS).forEach(t => builder.add(t, TOKENS.UST));
+    })
+    // Build
+    .build();
 
 /**
  * Mainnet Curve configuration
@@ -422,6 +471,12 @@ export const MAINNET_MOONISWAP_V2_1_REGISTRY = '0xbaf9a5d4b0052359326a6cdab54bab
 
 export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
 
+export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
+    '1': '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
+    '3': '0xAa213dcDFbF104e08cbAeC3d1628eD197553AfCc',
+    '1337': NULL_ADDRESS,
+};
+
 export const MAINNET_SHELL_POOLS = {
     StableCoins: {
         poolAddress: '0x8f26d7bab7a73309141a291525c965ecdea7bf42',
@@ -436,73 +491,6 @@ export const MAINNET_SHELL_POOLS = {
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
-
-export const ERC20_PROXY_ID = '0xf47261b0';
-export const WALLET_SIGNATURE = '0x04';
-export const ONE_ETHER = new BigNumber(1e18);
-export const NEGATIVE_INF = new BigNumber('-Infinity');
-export const POSITIVE_INF = new BigNumber('Infinity');
-export const ZERO_AMOUNT = new BigNumber(0);
-export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
-export const ONE_HOUR_IN_SECONDS = 60 * 60;
-export const ONE_SECOND_MS = 1000;
-export const NULL_BYTES = '0x';
-export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
-export const COMPARISON_PRICE_DECIMALS = 10;
-
-const EMPTY_BRIDGE_ADDRESSES: BridgeContractAddresses = {
-    uniswapBridge: NULL_ADDRESS,
-    uniswapV2Bridge: NULL_ADDRESS,
-    eth2DaiBridge: NULL_ADDRESS,
-    kyberBridge: NULL_ADDRESS,
-    curveBridge: NULL_ADDRESS,
-    multiBridge: NULL_ADDRESS,
-    balancerBridge: NULL_ADDRESS,
-    bancorBridge: NULL_ADDRESS,
-    mStableBridge: NULL_ADDRESS,
-    mooniswapBridge: NULL_ADDRESS,
-    sushiswapBridge: NULL_ADDRESS,
-    shellBridge: NULL_ADDRESS,
-    dodoBridge: NULL_ADDRESS,
-    creamBridge: NULL_ADDRESS,
-    snowswapBridge: NULL_ADDRESS,
-    swerveBridge: NULL_ADDRESS,
-    cryptoComBridge: NULL_ADDRESS,
-};
-
-export const BRIDGE_ADDRESSES_BY_CHAIN: { [chainId in ChainId]: BridgeContractAddresses } = {
-    [ChainId.Mainnet]: {
-        uniswapBridge: '0x36691c4f426eb8f42f150ebde43069a31cb080ad',
-        uniswapV2Bridge: '0xdcd6011f4c6b80e470d9487f5871a0cba7c93f48',
-        kyberBridge: '0xadd97271402590564ddd8ad23cb5317b1fb0fffb',
-        eth2DaiBridge: '0x991c745401d5b5e469b8c3e2cb02c748f08754f1',
-        curveBridge: '0x1796cd592d19e3bcd744fbb025bb61a6d8cb2c09',
-        multiBridge: '0xc03117a8c9bde203f70aa911cb64a7a0df5ba1e1',
-        balancerBridge: '0xfe01821ca163844203220cd08e4f2b2fb43ae4e4',
-        bancorBridge: '0xc880c252db7c51f74161633338a3bdafa8e65276',
-        mStableBridge: '0x2bf04fcea05f0989a14d9afa37aa376baca6b2b3',
-        mooniswapBridge: '0x02b7eca484ad960fca3f7709e0b2ac81eec3069c',
-        sushiswapBridge: '0x47ed0262a0b688dcb836d254c6a2e96b6c48a9f5',
-        shellBridge: '0xf1c0811e3788caae7dbfae43da9d9131b1a8a148',
-        dodoBridge: '0xe9da66965a9344aab2167e6813c03f043cc7a6ca',
-        creamBridge: '0xb9d4bf2c8dab828f4ffb656acdb6c2b497d44f25',
-        swerveBridge: '0xf9786d5eb1de47fa56a8f7bb387653c6d410bfee',
-        snowswapBridge: '0xb1dbe83d15236ec10fdb214c6b89774b454754fd',
-        cryptoComBridge: '0x015850307f6aab4ac6631923ceefe71b57492c9b',
-    },
-    [ChainId.Kovan]: {
-        ...EMPTY_BRIDGE_ADDRESSES,
-        uniswapBridge: '0x0e85f89f29998df65402391478e5924700c0079d',
-        uniswapV2Bridge: '0x7b3530a635d099de0534dc27e46cd7c57578c3c8',
-        eth2DaiBridge: '0x2d47147429b474d2e4f83e658015858a1312ed5b',
-        kyberBridge: '0xaecfa25920f892b6eb496e1f6e84037f59da7f44',
-        curveBridge: '0x81c0ab53a7352d2e97f682a37cba44e54647eefb',
-        balancerBridge: '0x407b4128e9ecad8769b2332312a9f655cb9f5f3a',
-    },
-    [ChainId.Rinkeby]: EMPTY_BRIDGE_ADDRESSES,
-    [ChainId.Ropsten]: EMPTY_BRIDGE_ADDRESSES,
-    [ChainId.Ganache]: EMPTY_BRIDGE_ADDRESSES,
-};
 
 /**
  * Calculated gross gas cost of the underlying exchange.

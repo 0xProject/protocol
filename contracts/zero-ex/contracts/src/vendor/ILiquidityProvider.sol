@@ -19,6 +19,9 @@
 
 pragma solidity ^0.6.5;
 
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+
+
 interface ILiquidityProvider {
 
     /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`
@@ -31,8 +34,8 @@ interface ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellTokenForToken(
-        address inputToken,
-        address outputToken,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -49,7 +52,7 @@ interface ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellEthForToken(
-        address outputToken,
+        IERC20TokenV06 outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -66,7 +69,7 @@ interface ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of ETH bought.
     function sellTokenForEth(
-        address inputToken,
+        IERC20TokenV06 inputToken,
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -83,8 +86,8 @@ interface ILiquidityProvider {
     /// @param sellAmount Amount of `inputToken` to sell.
     /// @return outputTokenAmount Amount of `outputToken` that would be obtained.
     function getSellQuote(
-        address inputToken,
-        address outputToken,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
         uint256 sellAmount
     )
         external
