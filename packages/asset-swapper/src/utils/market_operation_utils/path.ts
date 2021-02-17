@@ -22,14 +22,14 @@ export interface PathSize {
 }
 
 export interface PathPenaltyOpts {
-    outputTokensPerEth: BigNumber;
-    inputTokensPerEth: BigNumber;
+    outputAmountPerEth: BigNumber;
+    inputAmountPerEth: BigNumber;
     exchangeProxyOverhead: ExchangeProxyOverhead;
 }
 
 export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
-    outputTokensPerEth: ZERO_AMOUNT,
-    inputTokensPerEth: ZERO_AMOUNT,
+    outputAmountPerEth: ZERO_AMOUNT,
+    inputAmountPerEth: ZERO_AMOUNT,
     exchangeProxyOverhead: () => ZERO_AMOUNT,
 };
 
@@ -131,11 +131,11 @@ export class Path {
 
     public adjustedSize(): PathSize {
         const { input, output } = this._adjustedSize;
-        const { exchangeProxyOverhead, outputTokensPerEth, inputTokensPerEth } = this.pathPenaltyOpts;
+        const { exchangeProxyOverhead, outputAmountPerEth, inputAmountPerEth } = this.pathPenaltyOpts;
         const gasOverhead = exchangeProxyOverhead(this.sourceFlags);
-        const pathPenalty = !outputTokensPerEth.isZero()
-            ? outputTokensPerEth.times(gasOverhead)
-            : inputTokensPerEth.times(gasOverhead).times(output.dividedToIntegerBy(input));
+        const pathPenalty = !outputAmountPerEth.isZero()
+            ? outputAmountPerEth.times(gasOverhead)
+            : inputAmountPerEth.times(gasOverhead).times(output.dividedToIntegerBy(input));
         return {
             input,
             output: this.side === MarketOperation.Sell ? output.minus(pathPenalty) : output.plus(pathPenalty),

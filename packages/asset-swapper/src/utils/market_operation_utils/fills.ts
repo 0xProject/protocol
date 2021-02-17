@@ -16,8 +16,8 @@ export function createFills(opts: {
     orders?: NativeOrderWithFillableAmounts[];
     dexQuotes?: DexSample[][];
     targetInput?: BigNumber;
-    outputTokensPerEth?: BigNumber;
-    inputTokensPerEth?: BigNumber;
+    outputAmountPerEth?: BigNumber;
+    inputAmountPerEth?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
     feeSchedule?: FeeSchedule;
 }): Fill[][] {
@@ -26,20 +26,20 @@ export function createFills(opts: {
     const feeSchedule = opts.feeSchedule || {};
     const orders = opts.orders || [];
     const dexQuotes = opts.dexQuotes || [];
-    const outputTokensPerEth = opts.outputTokensPerEth || ZERO_AMOUNT;
-    const inputTokensPerEth = opts.inputTokensPerEth || ZERO_AMOUNT;
+    const outputAmountPerEth = opts.outputAmountPerEth || ZERO_AMOUNT;
+    const inputAmountPerEth = opts.inputAmountPerEth || ZERO_AMOUNT;
     // Create native fills.
     const nativeFills = nativeOrdersToFills(
         side,
         orders.filter(o => o.fillableTakerAmount.isGreaterThan(0)),
         opts.targetInput,
-        outputTokensPerEth,
-        inputTokensPerEth,
+        outputAmountPerEth,
+        inputAmountPerEth,
         feeSchedule,
     );
     // Create DEX fills.
     const dexFills = dexQuotes.map(singleSourceSamples =>
-        dexSamplesToFills(side, singleSourceSamples, outputTokensPerEth, inputTokensPerEth, feeSchedule),
+        dexSamplesToFills(side, singleSourceSamples, outputAmountPerEth, inputAmountPerEth, feeSchedule),
     );
     return [...dexFills, nativeFills]
         .map(p => clipFillsToInput(p, opts.targetInput))
@@ -75,8 +75,8 @@ function nativeOrdersToFills(
     side: MarketOperation,
     orders: NativeOrderWithFillableAmounts[],
     targetInput: BigNumber = POSITIVE_INF,
-    outputTokensPerEth: BigNumber,
-    inputTokensPerEth: BigNumber,
+    outputAmountPerEth: BigNumber,
+    inputAmountPerEth: BigNumber,
     fees: FeeSchedule,
 ): Fill[] {
     const sourcePathId = hexUtils.random();
@@ -89,9 +89,9 @@ function nativeOrdersToFills(
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
         const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
         const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o);
-        const outputPenalty = !outputTokensPerEth.isZero()
-            ? outputTokensPerEth.times(fee)
-            : inputTokensPerEth.times(fee).times(output.dividedToIntegerBy(input));
+        const outputPenalty = !outputAmountPerEth.isZero()
+            ? outputAmountPerEth.times(fee)
+            : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
         // targetInput can be less than the order size
         // whilst the penalty is constant, it affects the adjusted output
         // only up until the target has been exhausted.
@@ -135,8 +135,8 @@ function nativeOrdersToFills(
 function dexSamplesToFills(
     side: MarketOperation,
     samples: DexSample[],
-    outputTokensPerEth: BigNumber,
-    inputTokensPerEth: BigNumber,
+    outputAmountPerEth: BigNumber,
+    inputAmountPerEth: BigNumber,
     fees: FeeSchedule,
 ): Fill[] {
     const sourcePathId = hexUtils.random();
@@ -156,9 +156,9 @@ function dexSamplesToFills(
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
             // Only the first fill in a DEX path incurs a penalty.
-            penalty = !outputTokensPerEth.isZero()
-                ? outputTokensPerEth.times(fee)
-                : inputTokensPerEth.times(fee).times(output.dividedToIntegerBy(input));
+            penalty = !outputAmountPerEth.isZero()
+                ? outputAmountPerEth.times(fee)
+                : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
         }
         const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
 

@@ -1787,7 +1787,7 @@ describe('MarketOperationUtils tests', () => {
 
     describe('createFills', () => {
         const takerAmount = new BigNumber(5000000);
-        const outputTokensPerEth = new BigNumber(0.5);
+        const outputAmountPerEth = new BigNumber(0.5);
         // tslint:disable-next-line:no-object-literal-type-assertion
         const smallOrder: NativeOrderWithFillableAmounts = {
             order: {
@@ -1830,7 +1830,7 @@ describe('MarketOperationUtils tests', () => {
                 orders,
                 dexQuotes: [],
                 targetInput: takerAmount.minus(1),
-                outputTokensPerEth,
+                outputAmountPerEth,
                 feeSchedule,
             });
             expect((path[0][0].fillData as NativeFillData).order.maker).to.eq(smallOrder.order.maker);
@@ -1843,7 +1843,7 @@ describe('MarketOperationUtils tests', () => {
                 orders,
                 dexQuotes: [],
                 targetInput: POSITIVE_INF,
-                outputTokensPerEth,
+                outputAmountPerEth,
                 feeSchedule,
             });
             expect((path[0][0].fillData as NativeFillData).order.maker).to.eq(largeOrder.order.maker);
