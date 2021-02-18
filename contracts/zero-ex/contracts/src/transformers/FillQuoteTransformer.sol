@@ -132,8 +132,6 @@ contract FillQuoteTransformer is
     /// @param orderHash The hash of the order that was skipped.
     event ProtocolFeeUnfunded(bytes32 orderHash);
 
-    /// @dev Maximum uint256 value.
-    uint256 private constant MAX_UINT256 = uint256(-1);
     /// @dev The highest bit of a uint256 value.
     uint256 private constant HIGH_BIT = 2 ** 255;
     /// @dev Mask of the lower 255 bits of a uint256 value.

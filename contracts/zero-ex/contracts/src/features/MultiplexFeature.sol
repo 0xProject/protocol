@@ -312,6 +312,7 @@ contract MultiplexFeature is
                 args.taker = msg.sender;
                 args.inputToken = fillData.inputToken;
                 args.outputToken = fillData.outputToken;
+                args.inputTokenAmount = inputTokenAmount;
                 args.minOutputTokenAmount = 0;
                 uint256 ethValue;
                 (args.transformations, ethValue) = abi.decode(
@@ -344,6 +345,7 @@ contract MultiplexFeature is
                     wrappedCall.data,
                     (address[], WrappedMultiHopCall[], uint256)
                 );
+                multiHopFillData.sellAmount = inputTokenAmount;
                 // Normalize the ETH and input token amounts.
                 ethValue = _normalizeAmount(
                     ethValue,
@@ -519,9 +521,9 @@ contract MultiplexFeature is
                 batchFillData.inputToken = IERC20TokenV06(fillData.tokens[i]);
                 batchFillData.outputToken = IERC20TokenV06(fillData.tokens[i + 1]);
                 uint256 ethValue;
-                (ethValue, batchFillData.calls) = abi.decode(
+                (batchFillData.calls, ethValue) = abi.decode(
                     wrappedCall.data,
-                    (uint256, WrappedBatchCall[])
+                    (WrappedBatchCall[], uint256)
                 );
                 // Do not spend more than the remaining ETH.
                 ethValue = LibSafeMathV06.min256(ethValue, remainingEth);
@@ -549,8 +551,6 @@ contract MultiplexFeature is
                 remainingEth -= ethValue;
             } else if (wrappedCall.selector == IEtherTokenV06.withdraw.selector) {
                 // Unwrap WETH and send to `msg.sender`.
-                // There may be some cases where we want to keep the WETH
-                // here, but that's a conundrum for future me.
                 weth.withdraw(outputTokenAmount);
                 msg.sender.transfer(outputTokenAmount);
                 nextTarget = address(0);
