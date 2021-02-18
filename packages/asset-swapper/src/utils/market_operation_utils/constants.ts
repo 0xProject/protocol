@@ -1,3 +1,4 @@
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
@@ -501,9 +502,13 @@ export const BALANCER_MAX_POOLS_FETCHED = 3;
  */
 // tslint:disable:custom-no-magic-numbers
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
-    [ERC20BridgeSource.Native]: _fillData => {
-        // const nativeFillData = (_fillData as NativeRfqOrderFillData|NativeLimitOrderFillData)
-        return 100e3;
+    [ERC20BridgeSource.Native]: fillData => {
+        // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
+        const nativeFillData = fillData as ({ type: FillQuoteTransformerOrderType });
+        return nativeFillData && nativeFillData.type === FillQuoteTransformerOrderType.Limit
+            ? PROTOCOL_FEE_MULTIPLIER.plus(100e3).toNumber()
+            : // TODO jacob revisit wth v4 LimitOrders
+              100e3;
     },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
@@ -618,15 +623,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
 };
 
-export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.assign(
-    {},
-    ...(Object.keys(DEFAULT_GAS_SCHEDULE) as ERC20BridgeSource[]).map(k => ({
-        [k]:
-            k === ERC20BridgeSource.Native
-                ? (fillData: FillData) => PROTOCOL_FEE_MULTIPLIER.plus(DEFAULT_GAS_SCHEDULE[k](fillData))
-                : (fillData: FillData) => DEFAULT_GAS_SCHEDULE[k](fillData),
-    })),
-);
+export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };
 
 // tslint:enable:custom-no-magic-numbers
 

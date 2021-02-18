@@ -21,6 +21,10 @@
             {
                 "note": "Support `Mirror Protocol` with hops to `UST`",
                 "pr": 142
+            },
+            {
+                "note": "Fix protocol fee in fee schedule for `RfqOrder`",
+                "pr": 146
             }
         ]
     },
