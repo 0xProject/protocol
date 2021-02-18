@@ -68,6 +68,15 @@ interface IMultiplexFeature {
         bytes data;
     }
 
+    event LiquidityProviderSwap(
+        address inputToken,
+        address outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount,
+        address provider,
+        address recipient
+    );
+
     /// @dev Executes a batch of fills selling `fillData.inputToken`
     ///      for `fillData.outputToken` in sequence. Refer to the
     ///      internal variant `_batchFill` for the allowed nested

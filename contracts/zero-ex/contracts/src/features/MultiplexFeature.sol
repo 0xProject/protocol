@@ -296,6 +296,7 @@ contract MultiplexFeature is
                 uint256 outputTokenAmount_ = _sellToLiquidityProvider(
                     address(fillData.inputToken),
                     address(fillData.outputToken),
+                    inputTokenAmount,
                     provider,
                     msg.sender,
                     auxiliaryData
@@ -429,6 +430,7 @@ contract MultiplexFeature is
                     outputTokenAmount = _sellToLiquidityProvider(
                         fillData.tokens[i],
                         fillData.tokens[i + 1],
+                        outputTokenAmount,
                         provider,
                         recipient,
                         auxiliaryData
@@ -443,6 +445,7 @@ contract MultiplexFeature is
                     outputTokenAmount = _sellToLiquidityProvider(
                         fillData.tokens[i],
                         fillData.tokens[i + 1],
+                        outputTokenAmount,
                         nextTarget,
                         recipient,
                         auxiliaryData
@@ -616,6 +619,7 @@ contract MultiplexFeature is
     function _sellToLiquidityProvider(
         address inputToken,
         address outputToken,
+        uint256 inputTokenAmount,
         address provider,
         address recipient,
         bytes memory auxiliaryData
@@ -650,8 +654,17 @@ contract MultiplexFeature is
                 auxiliaryData
             );
         }
-        return _balanceOf(IERC20TokenV06(outputToken), recipient)
+        outputTokenAmount = _balanceOf(IERC20TokenV06(outputToken), recipient)
             .safeSub(balanceBefore);
+        emit LiquidityProviderSwap(
+            inputToken,
+            outputToken,
+            inputTokenAmount,
+            outputTokenAmount,
+            provider,
+            recipient
+        );
+        return outputTokenAmount;    
     }
 
     // Some liquidity sources (e.g. Uniswap, Sushiswap, and PLP) can be passed
