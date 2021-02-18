@@ -2,6 +2,7 @@
 import { assert } from '@0x/assert';
 import {
     BlockParamLiteral,
+    DEFAULT_TOKEN_ADJACENCY_GRAPH,
     ERC20BridgeSource,
     LiquidityProviderRegistry,
     OrderPrunerPermittedFeeTypes,
@@ -378,7 +379,9 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
-    tokenAdjacencyGraph: { default: DEFAULT_INTERMEDIATE_TOKENS },
+    tokenAdjacencyGraph:
+        // Override for testnets, use the default for Mainnet
+        CHAIN_ID === ChainId.Mainnet ? DEFAULT_TOKEN_ADJACENCY_GRAPH : { default: DEFAULT_INTERMEDIATE_TOKENS },
     liquidityProviderRegistry: LIQUIDITY_PROVIDER_REGISTRY,
 };
 
