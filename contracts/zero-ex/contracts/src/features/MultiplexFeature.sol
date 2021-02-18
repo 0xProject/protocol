@@ -28,6 +28,8 @@ import "../external/ILiquidityProviderSandbox.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
+import "../transformers/LibERC20Transformer.sol";
+import "../vendor/ILiquidityProvider.sol";
 import "../vendor/IUniswapV2Pair.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IMultiplexFeature.sol";
@@ -36,12 +38,15 @@ import "./interfaces/ITransformERC20Feature.sol";
 import "./libs/LibNativeOrder.sol";
 
 
+/// @dev This feature enables efficient batch and multi-hop trades
+///      using different liquidity sources.
 contract MultiplexFeature is
     IFeature,
     IMultiplexFeature,
     FixinCommon,
     FixinTokenSpender
 {
+    using LibERC20Transformer for IERC20TokenV06;
     using LibSafeMathV06 for uint128;
     using LibSafeMathV06 for uint256;
 
@@ -54,8 +59,6 @@ contract MultiplexFeature is
     IEtherTokenV06 private immutable weth;
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox public immutable sandbox;
-    /// @dev ETH pseudo-token address.
-    address private constant ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     // address of the UniswapV2Factory contract.
     address private constant UNISWAP_FACTORY = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
     // address of the (Sushiswap) UniswapV2Factory contract.
@@ -112,7 +115,7 @@ contract MultiplexFeature is
         returns (uint256 outputTokenAmount)
     {
         // Cache the sender's balance of the output token.
-        uint256 senderBalanceBefore = _balanceOf(fillData.outputToken, msg.sender);
+        uint256 senderBalanceBefore = fillData.outputToken.getTokenBalanceOf(msg.sender);
         // Cache the contract's ETH balance prior to this call.
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
@@ -131,17 +134,17 @@ contract MultiplexFeature is
         // The `outputTokenAmount` returned by `_batchFill` may not
         // be fully accurate (e.g. due to some janky token and/or
         // reentrancy situation).
-        outputTokenAmount = _balanceOf(fillData.outputToken, msg.sender)
+        outputTokenAmount = fillData.outputToken.getTokenBalanceOf(msg.sender)
             .safeSub(senderBalanceBefore);
         require(
             outputTokenAmount >= minBuyAmount,
-            "batchFill/UNDERBOUGHT"
+            "MultiplexFeature::batchFill/UNDERBOUGHT"
         );
 
         uint256 ethBalanceAfter = address(this).balance;
         require(
             ethBalanceAfter >= ethBalanceBefore,
-            "batchFill/OVERSPENT_ETH"
+            "MultiplexFeature::batchFill/OVERSPENT_ETH"
         );
         // Refund ETH
         if (ethBalanceAfter > ethBalanceBefore) {
@@ -169,10 +172,10 @@ contract MultiplexFeature is
     {
         require(
             fillData.tokens.length == fillData.calls.length + 1,
-            "multiHopFill/MISMATCHED_ARRAY_LENGTHS"
+            "MultiplexFeature::multiHopFill/MISMATCHED_ARRAY_LENGTHS"
         );
         IERC20TokenV06 outputToken = IERC20TokenV06(fillData.tokens[fillData.tokens.length - 1]);
-        uint256 senderBalanceBefore = _balanceOf(outputToken, msg.sender);
+        uint256 senderBalanceBefore = outputToken.getTokenBalanceOf(msg.sender);
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
         _multiHopFill(fillData, msg.value);
@@ -183,17 +186,17 @@ contract MultiplexFeature is
         // The `outputTokenAmount` returned by `_multiHopFill` may not
         // be fully accurate (e.g. due to some janky token and/or
         // reentrancy situation).
-        outputTokenAmount = _balanceOf(outputToken, msg.sender)
+        outputTokenAmount = outputToken.getTokenBalanceOf(msg.sender)
             .safeSub(senderBalanceBefore);
         require(
             outputTokenAmount >= minBuyAmount,
-            "multiHopFill/UNDERBOUGHT"
+            "MultiplexFeature::multiHopFill/UNDERBOUGHT"
         );
 
         uint256 ethBalanceAfter = address(this).balance;
         require(
             ethBalanceAfter >= ethBalanceBefore,
-            "batchFill/OVERSPENT_ETH"
+            "MultiplexFeature::multiHopFill/OVERSPENT_ETH"
         );
         // Refund ETH
         if (ethBalanceAfter > ethBalanceBefore) {
@@ -274,7 +277,7 @@ contract MultiplexFeature is
                     wrappedCall.data,
                     (address, bytes)
                 );
-                if (address(fillData.inputToken) == ETH_TOKEN_ADDRESS) {
+                if (fillData.inputToken.isTokenETH()) {
                     inputTokenAmount = LibSafeMathV06.min256(
                         inputTokenAmount,
                         remainingEth
@@ -294,10 +297,10 @@ contract MultiplexFeature is
                 }
                 // Perform the PLP trade.
                 uint256 outputTokenAmount_ = _sellToLiquidityProvider(
-                    address(fillData.inputToken),
-                    address(fillData.outputToken),
+                    fillData.inputToken,
+                    fillData.outputToken,
                     inputTokenAmount,
-                    provider,
+                    ILiquidityProvider(provider),
                     msg.sender,
                     auxiliaryData
                 );
@@ -357,7 +360,7 @@ contract MultiplexFeature is
                 // Add back any ETH that wasn't used by the nested multi-hop fill.
                 remainingEth += leftoverEth;
             } else {
-                revert("batchFill/UNRECOGNIZED_SELECTOR");
+                revert("MultiplexFeature::_batchFill/UNRECOGNIZED_SELECTOR");
             }
         }
     }
@@ -412,7 +415,7 @@ contract MultiplexFeature is
                     );
                     // Transfer input ETH or ERC20 tokens to the liquidity
                     // provider contract.
-                    if (fillData.tokens[i] == ETH_TOKEN_ADDRESS) {
+                    if (IERC20TokenV06(fillData.tokens[i]).isTokenETH()) {
                         outputTokenAmount = LibSafeMathV06.min256(
                             outputTokenAmount,
                             remainingEth
@@ -428,10 +431,10 @@ contract MultiplexFeature is
                         );
                     }
                     outputTokenAmount = _sellToLiquidityProvider(
-                        fillData.tokens[i],
-                        fillData.tokens[i + 1],
+                        IERC20TokenV06(fillData.tokens[i]),
+                        IERC20TokenV06(fillData.tokens[i + 1]),
                         outputTokenAmount,
-                        provider,
+                        ILiquidityProvider(provider),
                         recipient,
                         auxiliaryData
                     );
@@ -443,10 +446,10 @@ contract MultiplexFeature is
                     // Tokens and ETH have already been transferred to
                     // the liquidity provider contract in the previous hop.
                     outputTokenAmount = _sellToLiquidityProvider(
-                        fillData.tokens[i],
-                        fillData.tokens[i + 1],
+                        IERC20TokenV06(fillData.tokens[i]),
+                        IERC20TokenV06(fillData.tokens[i + 1]),
                         outputTokenAmount,
-                        nextTarget,
+                        ILiquidityProvider(nextTarget),
                         recipient,
                         auxiliaryData
                     );
@@ -469,7 +472,7 @@ contract MultiplexFeature is
                     args.inputTokenAmount = 0;
                 } else if (
                     args.taker != msg.sender &&
-                    address(args.inputToken) != ETH_TOKEN_ADDRESS
+                    !args.inputToken.isTokenETH()
                 ) {
                     address flashWallet = address(
                         ITransformERC20Feature(address(this)).getTransformWallet()
@@ -522,7 +525,7 @@ contract MultiplexFeature is
                 );
                 // Do not spend more than the remaining ETH.
                 ethValue = LibSafeMathV06.min256(ethValue, remainingEth);
-                if (fillData.tokens[i] == ETH_TOKEN_ADDRESS) {
+                if (IERC20TokenV06(fillData.tokens[i]).isTokenETH()) {
                     batchFillData.sellAmount = LibSafeMathV06.min256(
                         outputTokenAmount,
                         ethValue
@@ -552,7 +555,7 @@ contract MultiplexFeature is
                 msg.sender.transfer(outputTokenAmount);
                 nextTarget = address(0);
             } else {
-                revert("multiHopFill/UNRECOGNIZED_SELECTOR");
+                revert("MultiplexFeature::_multiHopFill/UNRECOGNIZED_SELECTOR");
             }
         }
     }
@@ -575,7 +578,7 @@ contract MultiplexFeature is
         public
         returns (uint256 outputTokenAmount)
     {
-        require(tokens.length > 1, "_sellToUniswap/InvalidTokensLength");
+        require(tokens.length > 1, "MultiplexFeature::_sellToUniswap/InvalidTokensLength");
 
         if (pairAddress == address(0)) {
             pairAddress = _computeUniswapPairAddress(tokens[0], tokens[1], isSushi);
@@ -617,18 +620,18 @@ contract MultiplexFeature is
     // and without the minBuyAmount check (which is performed at the top, i.e.
     // in either `batchFill` or `multiHopFill`).
     function _sellToLiquidityProvider(
-        address inputToken,
-        address outputToken,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
         uint256 inputTokenAmount,
-        address provider,
+        ILiquidityProvider provider,
         address recipient,
         bytes memory auxiliaryData
     )
         public
         returns (uint256 outputTokenAmount)
     {
-        uint256 balanceBefore = _balanceOf(IERC20TokenV06(outputToken), recipient);
-        if (inputToken == ETH_TOKEN_ADDRESS) {
+        uint256 balanceBefore = IERC20TokenV06(outputToken).getTokenBalanceOf(recipient);
+        if (IERC20TokenV06(inputToken).isTokenETH()) {
             sandbox.executeSellEthForToken(
                 provider,
                 outputToken,
@@ -636,7 +639,7 @@ contract MultiplexFeature is
                 0,
                 auxiliaryData
             );
-        } else if (outputToken == ETH_TOKEN_ADDRESS) {
+        } else if (IERC20TokenV06(outputToken).isTokenETH()) {
             sandbox.executeSellTokenForEth(
                 provider,
                 inputToken,
@@ -654,17 +657,17 @@ contract MultiplexFeature is
                 auxiliaryData
             );
         }
-        outputTokenAmount = _balanceOf(IERC20TokenV06(outputToken), recipient)
+        outputTokenAmount = IERC20TokenV06(outputToken).getTokenBalanceOf(recipient)
             .safeSub(balanceBefore);
         emit LiquidityProviderSwap(
-            inputToken,
-            outputToken,
+            address(inputToken),
+            address(outputToken),
             inputTokenAmount,
             outputTokenAmount,
-            provider,
+            address(provider),
             recipient
         );
-        return outputTokenAmount;    
+        return outputTokenAmount;
     }
 
     // Some liquidity sources (e.g. Uniswap, Sushiswap, and PLP) can be passed
@@ -710,17 +713,6 @@ contract MultiplexFeature is
         }
     }
 
-    // Returns the ETH/token balance of `addr`.
-    function _balanceOf(IERC20TokenV06 token, address addr)
-        private
-        view
-        returns (uint256 bal)
-    {
-        return address(token) == ETH_TOKEN_ADDRESS
-            ? addr.balance
-            : token.balanceOf(addr);
-    }
-
     // Computes the the amount of output token that would be bought
     // from Uniswap/Sushiswap given the input amount.
     function _computeUniswapOutputAmount(
@@ -735,12 +727,12 @@ contract MultiplexFeature is
     {
         require(
             inputAmount > 0,
-            "_computeUniswapOutputAmount/INSUFFICIENT_INPUT_AMOUNT"
+            "MultiplexFeature::_computeUniswapOutputAmount/INSUFFICIENT_INPUT_AMOUNT"
         );
         (uint256 reserve0, uint256 reserve1,) = IUniswapV2Pair(pairAddress).getReserves();
         require(
             reserve0 > 0 && reserve1 > 0,
-            '_computeUniswapOutputAmount/INSUFFICIENT_LIQUIDITY'
+            'MultiplexFeature::_computeUniswapOutputAmount/INSUFFICIENT_LIQUIDITY'
         );
         (uint256 inputReserve, uint256 outputReserve) = inputToken < outputToken
             ? (reserve0, reserve1)
