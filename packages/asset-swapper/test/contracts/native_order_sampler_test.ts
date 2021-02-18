@@ -7,6 +7,7 @@ import {
     getRandomInteger,
     randomAddress,
 } from '@0x/contracts-test-utils';
+import { Web3Wrapper } from '@0x/dev-utils';
 import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
@@ -20,11 +21,11 @@ const { NULL_BYTES, ZERO_AMOUNT } = constants;
 
 // tslint:disable: custom-no-magic-numbers
 
-// TODO jacob
-blockchainTests.resets.skip('NativeOrderSampler contract', env => {
+blockchainTests.resets('NativeOrderSampler contract', env => {
     let testContract: TestNativeOrderSamplerContract;
     let makerToken: string;
     let takerToken: string;
+    let makerAddress: string;
     const VALID_SIGNATURE = { v: 1, r: '0x01', s: '0x01', signatureType: SignatureType.EthSign };
 
     before(async () => {
@@ -36,6 +37,7 @@ blockchainTests.resets.skip('NativeOrderSampler contract', env => {
         );
         const NUM_TOKENS = new BigNumber(3);
         [makerToken, takerToken] = await testContract.createTokens(NUM_TOKENS).callAsync();
+        [makerAddress] = await new Web3Wrapper(env.provider).getAvailableAddressesAsync();
         await testContract.createTokens(NUM_TOKENS).awaitTransactionSuccessAsync();
     });
 
@@ -79,8 +81,8 @@ blockchainTests.resets.skip('NativeOrderSampler contract', env => {
         return {
             chainId: 1337,
             verifyingContract: randomAddress(),
-            maker: randomAddress(),
-            taker: randomAddress(),
+            maker: makerAddress,
+            taker: NULL_ADDRESS,
             pool: NULL_BYTES,
             sender: NULL_ADDRESS,
             feeRecipient: randomAddress(),
@@ -147,8 +149,8 @@ blockchainTests.resets.skip('NativeOrderSampler contract', env => {
     describe('getLimitOrderFillableTakerAmount()', () => {
         it('returns the full amount for a fully funded order', async () => {
             const order = createOrder();
-            const expected = getLimitOrderFillableTakerAmount(order);
             await fundMakerAsync(order);
+            const expected = getLimitOrderFillableTakerAmount(order);
             const actual = await testContract
                 .getLimitOrderFillableTakerAmount(order, VALID_SIGNATURE, testContract.address)
                 .callAsync();
