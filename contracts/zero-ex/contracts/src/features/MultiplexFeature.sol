@@ -24,21 +24,21 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "../external/IAllowanceTarget.sol";
 import "../external/ILiquidityProviderSandbox.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
 import "../vendor/IUniswapV2Pair.sol";
 import "./interfaces/IFeature.sol";
+import "./interfaces/IMultiplexFeature.sol";
 import "./interfaces/INativeOrdersFeature.sol";
 import "./interfaces/ITransformERC20Feature.sol";
 import "./libs/LibNativeOrder.sol";
 
 
-// RFC: Should we just roll this into TransformERC20Feature?
-contract WrapperFillFeature is
+contract MultiplexFeature is
     IFeature,
+    IMultiplexFeature,
     FixinCommon,
     FixinTokenSpender
 {
@@ -46,7 +46,7 @@ contract WrapperFillFeature is
     using LibSafeMathV06 for uint256;
 
     /// @dev Name of this feature.
-    string public constant override FEATURE_NAME = "WrapperFillFeature";
+    string public constant override FEATURE_NAME = "MultiplexFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
 
@@ -68,45 +68,6 @@ contract WrapperFillFeature is
     uint256 private constant HIGH_BIT = 2 ** 255;
     /// @dev Mask of the lower 255 bits of a uint256 value.
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
-
-    struct WrappedBatchCall {
-        // The selector of the function to call.
-        bytes4 selector;
-        // Amount of `inputToken` to sell.
-        // Setting the high-bit indicates that `sellAmount & LOW_BITS`
-        // should be treated as a `1e18` fraction of the current balance
-        // of `sellToken`, where `1e18+ == 100%` and `0.5e18 == 50%`, etc.
-        uint256 sellAmount;
-        // ABI-encoded parameters needed to perform the call.
-        bytes data;
-    }
-
-    struct BatchFillData {
-        // The token being sold.
-        IERC20TokenV06 inputToken;
-        // The token being bought.
-        IERC20TokenV06 outputToken;
-        // The amount of `inputToken` to sell.
-        uint256 sellAmount;
-        // The nested calls to perform.
-        WrappedBatchCall[] calls;
-    }
-
-    struct WrappedMultiHopCall {
-        // The selector of the function to call.
-        bytes4 selector;
-        // ABI-encoded parameters needed to perform the call.
-        bytes data;
-    }
-
-    struct MultiHopFillData {
-        // The sell path.
-        address[] tokens;
-        // The amount of `tokens[0]` to sell.
-        uint256 sellAmount;
-        // The nested calls to perform.
-        WrappedMultiHopCall[] calls;
-    }
 
     constructor(
         IEtherTokenV06 weth_,
@@ -132,16 +93,26 @@ contract WrapperFillFeature is
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
+    /// @dev Executes a batch of fills selling `fillData.inputToken`
+    ///      for `fillData.outputToken` in sequence. Refer to the
+    ///      internal variant `_batchFill` for the allowed nested
+    ///      operations.
+    /// @param fillData Encodes the input/output tokens, the sell
+    ///        amount, and the nested operations for this batch fill.
+    /// @param minBuyAmount The minimum amount of `fillData.outputToken`
+    ///        to buy. Reverts if this amount is not met.
+    /// @return outputTokenAmount The amount of the output token bought.
     function batchFill(
         BatchFillData memory fillData,
         uint256 minBuyAmount
     )
         public
         payable
+        override
         returns (uint256 outputTokenAmount)
     {
         // Cache the sender's balance of the output token.
-        uint256 senderBalanceBefore = _senderBalance(fillData.outputToken);
+        uint256 senderBalanceBefore = _balanceOf(fillData.outputToken, msg.sender);
         // Cache the contract's ETH balance prior to this call.
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
@@ -160,7 +131,7 @@ contract WrapperFillFeature is
         // The `outputTokenAmount` returned by `_batchFill` may not
         // be fully accurate (e.g. due to some janky token and/or
         // reentrancy situation).
-        outputTokenAmount = _senderBalance(fillData.outputToken)
+        outputTokenAmount = _balanceOf(fillData.outputToken, msg.sender)
             .safeSub(senderBalanceBefore);
         require(
             outputTokenAmount >= minBuyAmount,
@@ -178,12 +149,22 @@ contract WrapperFillFeature is
         }
     }
 
+    /// @dev Executes a sequence of fills "hopping" through the
+    ///      path of tokens given by `fillData.tokens`. Refer to the
+    ///      internal variant `_multiHopFill` for the allowed nested
+    ///      operations.
+    /// @param fillData Encodes the path of tokens, the sell amount,
+    ///        and the nested operations for this multi-hop fill.
+    /// @param minBuyAmount The minimum amount of the output token
+    ///        to buy. Reverts if this amount is not met.
+    /// @return outputTokenAmount The amount of the output token bought.
     function multiHopFill(
         MultiHopFillData memory fillData,
         uint256 minBuyAmount
     )
         public
         payable
+        override
         returns (uint256 outputTokenAmount)
     {
         require(
@@ -191,7 +172,7 @@ contract WrapperFillFeature is
             "multiHopFill/MISMATCHED_ARRAY_LENGTHS"
         );
         IERC20TokenV06 outputToken = IERC20TokenV06(fillData.tokens[fillData.tokens.length - 1]);
-        uint256 senderBalanceBefore = _senderBalance(outputToken);
+        uint256 senderBalanceBefore = _balanceOf(outputToken, msg.sender);
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
         _multiHopFill(fillData, msg.value);
@@ -202,7 +183,7 @@ contract WrapperFillFeature is
         // The `outputTokenAmount` returned by `_multiHopFill` may not
         // be fully accurate (e.g. due to some janky token and/or
         // reentrancy situation).
-        outputTokenAmount = _senderBalance(outputToken)
+        outputTokenAmount = _balanceOf(outputToken, msg.sender)
             .safeSub(senderBalanceBefore);
         require(
             outputTokenAmount >= minBuyAmount,
@@ -224,7 +205,7 @@ contract WrapperFillFeature is
     // this is effectively a batch fill. Otherwise it can be set to perform a
     // market sell of some amount. In the case of a market sell, the `sellAmount`
     // values of the constituent wrapped calls can encode percentages of the
-    // full `fillData.sellAmount`. This is useful if e,g, the `_batchFill` call
+    // full `fillData.sellAmount`. This is useful if e.g. the `_batchFill` call
     // the second leg of a multi-hop fill, where the sell amount is not known
     // ahead of time.
     function _batchFill(BatchFillData memory fillData, uint256 totalEth)
@@ -339,9 +320,6 @@ contract WrapperFillFeature is
                     totalEth,
                     remainingEth
                 );
-                // RFC: I don't think we need to try-catch here; pretty sure we'd only be
-                // using `_transformERC20` for external sources that are not VIP-compatible,
-                // so the batch fill would be brittle to failures anyway.
                 try ITransformERC20Feature(address(this))._transformERC20
                     {value: ethValue}
                     (args)
@@ -595,7 +573,6 @@ contract WrapperFillFeature is
         returns (uint256 outputTokenAmount)
     {
         require(tokens.length > 1, "_sellToUniswap/InvalidTokensLength");
-        // Check tokens != ETH_TOKEN_ADDRESS ?
 
         if (pairAddress == address(0)) {
             pairAddress = _computeUniswapPairAddress(tokens[0], tokens[1], isSushi);
@@ -646,8 +623,8 @@ contract WrapperFillFeature is
         public
         returns (uint256 outputTokenAmount)
     {
+        uint256 balanceBefore = _balanceOf(IERC20TokenV06(outputToken), recipient);
         if (inputToken == ETH_TOKEN_ADDRESS) {
-            uint256 balanceBefore = IERC20TokenV06(outputToken).balanceOf(recipient);
             sandbox.executeSellEthForToken(
                 provider,
                 outputToken,
@@ -655,9 +632,7 @@ contract WrapperFillFeature is
                 0,
                 auxiliaryData
             );
-            outputTokenAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
         } else if (outputToken == ETH_TOKEN_ADDRESS) {
-            uint256 balanceBefore = recipient.balance;
             sandbox.executeSellTokenForEth(
                 provider,
                 inputToken,
@@ -665,9 +640,7 @@ contract WrapperFillFeature is
                 0,
                 auxiliaryData
             );
-            outputTokenAmount = recipient.balance.safeSub(balanceBefore);
         } else {
-            uint256 balanceBefore = IERC20TokenV06(outputToken).balanceOf(recipient);
             sandbox.executeSellTokenForToken(
                 provider,
                 inputToken,
@@ -676,8 +649,9 @@ contract WrapperFillFeature is
                 0,
                 auxiliaryData
             );
-            outputTokenAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
         }
+        return _balanceOf(IERC20TokenV06(outputToken), recipient)
+            .safeSub(balanceBefore);
     }
 
     // Some liquidity sources (e.g. Uniswap, Sushiswap, and PLP) can be passed
@@ -723,16 +697,19 @@ contract WrapperFillFeature is
         }
     }
 
-    function _senderBalance(IERC20TokenV06 token)
+    // Returns the ETH/token balance of `addr`.
+    function _balanceOf(IERC20TokenV06 token, address addr)
         private
         view
-        returns (uint256 senderBalance)
+        returns (uint256 bal)
     {
-        senderBalance = address(token) == ETH_TOKEN_ADDRESS
-            ? msg.sender.balance
-            : token.balanceOf(msg.sender);
+        return address(token) == ETH_TOKEN_ADDRESS
+            ? addr.balance
+            : token.balanceOf(addr);
     }
 
+    // Computes the the amount of output token that would be bought
+    // from Uniswap/Sushiswap given the input amount.
     function _computeUniswapOutputAmount(
         address pairAddress,
         address inputToken,
@@ -761,6 +738,8 @@ contract WrapperFillFeature is
         return numerator / denominator;
     }
 
+    // Computes the Uniswap/Sushiswap pair contract address for the
+    // given tokens.
     function _computeUniswapPairAddress(
         address tokenA,
         address tokenB,
