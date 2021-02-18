@@ -23,7 +23,8 @@
                 "pr": 142
             },
             {
-                "note": "Fix protocol fee in fee schedule for `RfqOrder`"
+                "note": "Fix protocol fee in fee schedule for `RfqOrder`",
+                "pr": 146
             }
         ]
     },

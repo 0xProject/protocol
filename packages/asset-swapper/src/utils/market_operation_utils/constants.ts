@@ -1,7 +1,6 @@
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
-import { SignedNativeOrder } from '../../types';
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
 import { SourceFilters } from './source_filters';
@@ -504,10 +503,12 @@ export const BALANCER_MAX_POOLS_FETCHED = 3;
 // tslint:disable:custom-no-magic-numbers
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: fillData => {
-        const nativeFillData = fillData as SignedNativeOrder;
+        // HACK jacob there is circular imports occuring need to revisit types and market utils types
+        const nativeFillData = fillData as ({ type: FillQuoteTransformerOrderType });
         return nativeFillData && nativeFillData.type === FillQuoteTransformerOrderType.Limit
             ? PROTOCOL_FEE_MULTIPLIER.plus(100e3).toNumber()
-            : 100e3;
+            : // TODO jacob revisit wth v4 LimitOrders
+              100e3;
     },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
