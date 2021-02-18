@@ -2,9 +2,8 @@ import {
     artifacts as erc20Artifacts,
     ERC20TokenContract,
     WETH9Contract,
-    WETH9Events,
     WETH9DepositEventArgs,
-    WETH9TransferEventArgs,
+    WETH9Events,
     WETH9WithdrawalEventArgs,
 } from '@0x/contracts-erc20';
 import { blockchainTests, constants, expect, filterLogsToArguments, toBaseUnitAmount } from '@0x/contracts-test-utils';
@@ -18,15 +17,15 @@ import {
     RfqOrder,
     SIGNATURE_ABI,
 } from '@0x/protocol-utils';
-import { AbiEncoder, BigNumber } from '@0x/utils';
+import { AbiEncoder, BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
 import { getRandomRfqOrder } from '../utils/orders';
 import {
-    BridgeAdapterEvents,
     BridgeAdapterBridgeFillEventArgs,
+    BridgeAdapterEvents,
     IUniswapV2PairEvents,
     IUniswapV2PairSwapEventArgs,
     IZeroExContract,
@@ -59,11 +58,6 @@ interface WrappedBatchCall {
     data: string;
 }
 
-interface WrappedMultiHopCall {
-    selector: string;
-    data: string;
-}
-
 blockchainTests.fork.skip('Multiplex feature', env => {
     const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
     const dai = new ERC20TokenContract(DAI_ADDRESS, env.provider, env.txDefaults);
@@ -71,11 +65,9 @@ blockchainTests.fork.skip('Multiplex feature', env => {
     const WETH_ADDRESS = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
     const weth = new WETH9Contract(WETH_ADDRESS, env.provider, env.txDefaults);
     const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-    const usdc = new ERC20TokenContract(USDC_ADDRESS, env.provider, env.txDefaults);
     const USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
     const usdt = new ERC20TokenContract(USDT_ADDRESS, env.provider, env.txDefaults);
     const LON_ADDRESS = '0x0000000000095413afc295d19edeb1ad7b71c952';
-    const lon = new ERC20TokenContract(LON_ADDRESS, env.provider, env.txDefaults);
     const PLP_SANDBOX_ADDRESS = '0x407b4128e9ecad8769b2332312a9f655cb9f5f3a';
     const WETH_DAI_PLP_ADDRESS = '0x1db681925786441ba82adefac7bf492089665ca0';
     const WETH_USDC_PLP_ADDRESS = '0x8463c03c0c57ff19fa8b431e0d3a34e2df89888e';
@@ -204,7 +196,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             const tx = await multiplex
                 .batchFill(batchFillData, constants.ZERO_AMOUNT)
                 .awaitTransactionSuccessAsync({ from: DAI_WALLET, gasPrice: 0 }, { shouldValidate: false });
-            console.log(`${tx.gasUsed} gas used`);
+            logUtils.log(`${tx.gasUsed} gas used`);
 
             const [rfqEvent] = filterLogsToArguments<IZeroExRfqOrderFilledEventArgs>(
                 tx.logs,
@@ -247,7 +239,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             const tx = await multiplex
                 .batchFill(batchFillData, constants.ZERO_AMOUNT)
                 .awaitTransactionSuccessAsync({ from: DAI_WALLET, gasPrice: 0 }, { shouldValidate: false });
-            console.log(`${tx.gasUsed} gas used`);
+            logUtils.log(`${tx.gasUsed} gas used`);
             const [uniswapEvent] = filterLogsToArguments<IUniswapV2PairSwapEventArgs>(
                 tx.logs,
                 IUniswapV2PairEvents.Swap,
@@ -341,7 +333,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             const tx = await multiplex
                 .batchFill(batchFillData, constants.ZERO_AMOUNT)
                 .awaitTransactionSuccessAsync({ from: DAI_WALLET, gasPrice: 0 }, { shouldValidate: false });
-            console.log(`${tx.gasUsed} gas used`);
+            logUtils.log(`${tx.gasUsed} gas used`);
             const [bridgeFillEvent] = filterLogsToArguments<BridgeAdapterBridgeFillEventArgs>(
                 tx.logs,
                 BridgeAdapterEvents.BridgeFill,
@@ -367,7 +359,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             const tx = await multiplex
                 .batchFill(batchFillData, constants.ZERO_AMOUNT)
                 .awaitTransactionSuccessAsync({ from: DAI_WALLET, gasPrice: 0 }, { shouldValidate: false });
-            console.log(`${tx.gasUsed} gas used`);
+            logUtils.log(`${tx.gasUsed} gas used`);
             const [sushiswapEvent, uniswapEvent] = filterLogsToArguments<IUniswapV2PairSwapEventArgs>(
                 tx.logs,
                 IUniswapV2PairEvents.Swap,
@@ -502,7 +494,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             });
             const curveFqtCall = {
                 selector: zeroEx.getSelector('_transformERC20'),
-                sellAmount: sellAmount,
+                sellAmount,
                 data: transformERC20Encoder.encode({
                     transformations: [
                         {
@@ -533,7 +525,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             const tx = await multiplex
                 .multiHopFill(multiHopFillData, constants.ZERO_AMOUNT)
                 .awaitTransactionSuccessAsync({ from: DAI_WALLET, gasPrice: 0 }, { shouldValidate: false });
-            console.log(`${tx.gasUsed} gas used`);
+            logUtils.log(`${tx.gasUsed} gas used`);
             const [bridgeFillEvent] = filterLogsToArguments<BridgeAdapterBridgeFillEventArgs>(
                 tx.logs,
                 BridgeAdapterEvents.BridgeFill,
@@ -626,7 +618,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                     { from: rfqMaker, gasPrice: 0, value: sellAmount },
                     { shouldValidate: false },
                 );
-            console.log(`${tx.gasUsed} gas used`);
+            logUtils.log(`${tx.gasUsed} gas used`);
 
             const [wethDepositEvent] = filterLogsToArguments<WETH9DepositEventArgs>(tx.logs, WETH9Events.Deposit);
             expect(wethDepositEvent._owner, 'WETH Deposit event _owner').to.equal(zeroEx.address);
@@ -756,7 +748,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             };
             const multiHopFillData = {
                 tokens: [ETH_TOKEN_ADDRESS, WETH_ADDRESS, LON_ADDRESS],
-                sellAmount: sellAmount,
+                sellAmount,
                 calls: [wrapEthCall, wethLonBatchFillCall],
             };
             const tx = await multiplex
@@ -765,7 +757,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                     { from: rfqMaker, gasPrice: 0, value: sellAmount },
                     { shouldValidate: false },
                 );
-            console.log(`${tx.gasUsed} gas used`);
+            logUtils.log(`${tx.gasUsed} gas used`);
         });
     });
 });
