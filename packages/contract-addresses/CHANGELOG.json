@@ -5,6 +5,10 @@
             {
                 "note": "Deploy new FQT",
                 "pr": 155
+            },
+            {
+                "note": "Deploy new `PositiveSlippageFeeTransformer`",
+                "pr": 101
             }
         ]
     },

@@ -80,7 +80,7 @@
             "payTakerTransformer": "0x6d0ebf2bcd9cc93ec553b60ad201943dcca4e291",
             "affiliateFeeTransformer": "0x6588256778ca4432fa43983ac685c45efb2379e2",
             "fillQuoteTransformer": "0x2088a820787ebbe937a0612ef024f1e1d65f9784",
-            "positiveSlippageFeeTransformer": "0xa9416ce1dbde8d331210c07b5c253d94ee4cc3fd"
+            "positiveSlippageFeeTransformer": "0x8b332f700fd37e71c5c5b26c4d78b5ca63dd33b2"
         }
     },
     "4": {
