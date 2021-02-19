@@ -42,6 +42,8 @@ contract UniswapSampler is
 {
     /// @dev Gas limit for Uniswap calls.
     uint256 constant private UNISWAP_CALL_GAS = 150e3; // 150k
+    // @dev The BNB token is poisoned on uniswap v1.
+    address constant private BAD_MAKER_TOKEN = 0xB8c77482e45F1F44dE1745F52C74426C631bDD52;
 
     /// @dev Sample sell quotes from Uniswap.
     /// @param takerToken Address of the taker token (what to sell).
@@ -61,6 +63,10 @@ contract UniswapSampler is
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
+        if (makerToken == BAD_MAKER_TOKEN) {
+            // BNB is poisoned on v1. You can only sell to it.
+            return makerTokenAmounts;
+        }
         IUniswapExchangeQuotes takerTokenExchange = takerToken == _getWethAddress() ?
             IUniswapExchangeQuotes(0) : _getUniswapExchange(takerToken);
         IUniswapExchangeQuotes makerTokenExchange = makerToken == _getWethAddress() ?
@@ -120,6 +126,10 @@ contract UniswapSampler is
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
+        if (makerToken == BAD_MAKER_TOKEN) {
+            // BNB is poisoned on v1. You can only sell to it.
+            return takerTokenAmounts;
+        }
         IUniswapExchangeQuotes takerTokenExchange = takerToken == _getWethAddress() ?
             IUniswapExchangeQuotes(0) : _getUniswapExchange(takerToken);
         IUniswapExchangeQuotes makerTokenExchange = makerToken == _getWethAddress() ?

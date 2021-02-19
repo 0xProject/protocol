@@ -25,6 +25,10 @@
             {
                 "note": "Fix protocol fee in fee schedule for `RfqOrder`",
                 "pr": 146
+            },
+            {
+                "note": "Special case BNB in uni v1 sampler",
+                "pr": 147
             }
         ]
     },
