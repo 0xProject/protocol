@@ -31,17 +31,25 @@ import { BATCH_SOURCE_FILTERS } from '../src/utils/market_operation_utils/sample
 import { SourceFilters } from '../src/utils/market_operation_utils/source_filters';
 import {
     AggregationError,
+    BalancerFillData,
+    BancorFillData,
+    CurveFillData,
     DexSample,
+    DODOFillData,
     ERC20BridgeSource,
     FillData,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
+    KyberFillData,
     LiquidityProviderFillData,
     MarketSideLiquidity,
+    MooniswapFillData,
     NativeFillData,
     OptimizedMarketBridgeOrder,
     OptimizerResultWithReport,
+    ShellFillData,
     TokenAdjacencyGraph,
+    UniswapV2FillData,
 } from '../src/utils/market_operation_utils/types';
 
 const MAKER_TOKEN = randomAddress();
@@ -307,12 +315,19 @@ describe('MarketOperationUtils tests', () => {
         [source: string]: FillData;
     }
 
+    const BASE_FILL_DATA: FillData = { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN };
     const DEFAULT_FILL_DATA: FillDataBySource = {
-        [ERC20BridgeSource.UniswapV2]: { tokenAddressPath: [] },
-        [ERC20BridgeSource.Balancer]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.Bancor]: { path: [], networkAddress: randomAddress() },
-        [ERC20BridgeSource.Kyber]: { hint: '0x', reserveId: '0x' },
+        // tslint:disable: no-object-literal-type-assertion
+        [ERC20BridgeSource.UniswapV2]: {
+            ...BASE_FILL_DATA,
+            tokenAddressPath: [],
+            router: randomAddress(),
+        } as UniswapV2FillData,
+        [ERC20BridgeSource.Balancer]: { ...BASE_FILL_DATA, poolAddress: randomAddress() } as BalancerFillData,
+        [ERC20BridgeSource.Bancor]: { ...BASE_FILL_DATA, path: [], networkAddress: randomAddress() } as BancorFillData,
+        [ERC20BridgeSource.Kyber]: { ...BASE_FILL_DATA, hint: '0x', reserveId: '0x' } as KyberFillData,
         [ERC20BridgeSource.Curve]: {
+            ...BASE_FILL_DATA,
             pool: {
                 poolAddress: randomAddress(),
                 tokens: [TAKER_TOKEN, MAKER_TOKEN],
@@ -322,8 +337,9 @@ describe('MarketOperationUtils tests', () => {
             },
             fromTokenIdx: 0,
             toTokenIdx: 1,
-        },
+        } as CurveFillData,
         [ERC20BridgeSource.Swerve]: {
+            ...BASE_FILL_DATA,
             pool: {
                 poolAddress: randomAddress(),
                 tokens: [TAKER_TOKEN, MAKER_TOKEN],
@@ -333,8 +349,9 @@ describe('MarketOperationUtils tests', () => {
             },
             fromTokenIdx: 0,
             toTokenIdx: 1,
-        },
+        } as CurveFillData,
         [ERC20BridgeSource.SnowSwap]: {
+            ...BASE_FILL_DATA,
             pool: {
                 poolAddress: randomAddress(),
                 tokens: [TAKER_TOKEN, MAKER_TOKEN],
@@ -344,16 +361,27 @@ describe('MarketOperationUtils tests', () => {
             },
             fromTokenIdx: 0,
             toTokenIdx: 1,
-        },
-        [ERC20BridgeSource.LiquidityProvider]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.SushiSwap]: { tokenAddressPath: [] },
-        [ERC20BridgeSource.Mooniswap]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.Native]: { order: new LimitOrder() },
-        [ERC20BridgeSource.MultiHop]: {},
-        [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.Dodo]: {},
-        [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
+        } as CurveFillData,
+        [ERC20BridgeSource.LiquidityProvider]: {
+            ...BASE_FILL_DATA,
+            poolAddress: randomAddress(),
+        } as LiquidityProviderFillData,
+        [ERC20BridgeSource.SushiSwap]: {
+            ...BASE_FILL_DATA,
+            tokenAddressPath: [],
+            router: randomAddress(),
+        } as UniswapV2FillData,
+        [ERC20BridgeSource.Mooniswap]: { ...BASE_FILL_DATA, poolAddress: randomAddress() } as MooniswapFillData,
+        [ERC20BridgeSource.Native]: { ...BASE_FILL_DATA, order: new LimitOrder() } as any,
+        [ERC20BridgeSource.MultiHop]: {} as any,
+        [ERC20BridgeSource.Shell]: { ...BASE_FILL_DATA, poolAddress: randomAddress() } as ShellFillData,
+        [ERC20BridgeSource.Cream]: { ...BASE_FILL_DATA, poolAddress: randomAddress() } as BalancerFillData,
+        [ERC20BridgeSource.Dodo]: { ...BASE_FILL_DATA } as DODOFillData,
+        [ERC20BridgeSource.CryptoCom]: {
+            ...BASE_FILL_DATA,
+            tokenAddressPath: [],
+            router: randomAddress(),
+        } as UniswapV2FillData,
     };
 
     const DEFAULT_OPS = {

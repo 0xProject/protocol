@@ -97,6 +97,8 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 order,
                 signature: getRandomSignature(),
                 maxTakerTokenFillAmount: order.takerAmount,
+                makerToken: order.makerToken,
+                takerToken: order.takerToken,
             },
             type: FillQuoteTransformerOrderType.Limit,
             makerToken: order.makerToken,

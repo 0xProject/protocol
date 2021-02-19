@@ -40,7 +40,9 @@ export function getComparisonPrices(
     } else {
         try {
             feeInEth = new BigNumber(
-                (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }),
+                (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({
+                    type: FillQuoteTransformerOrderType.Rfq,
+                } as any),
             );
         } catch {
             logUtils.warn('Native order fee schedule requires fill data');

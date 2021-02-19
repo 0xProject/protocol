@@ -26,6 +26,7 @@
         "test/generated-artifacts/IShell.json",
         "test/generated-artifacts/IUniswapExchangeQuotes.json",
         "test/generated-artifacts/IUniswapV2Router01.json",
+        "test/generated-artifacts/IntermediateSampler.json",
         "test/generated-artifacts/KyberSampler.json",
         "test/generated-artifacts/LiquidityProviderSampler.json",
         "test/generated-artifacts/MStableSampler.json",

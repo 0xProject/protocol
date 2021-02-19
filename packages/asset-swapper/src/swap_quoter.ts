@@ -34,6 +34,7 @@ import {
     MarketDepth,
     MarketDepthSide,
     MarketSideLiquidity,
+    MultiHopFillData,
     OptimizedMarketOrder,
     OptimizerResultWithReport,
 } from './utils/market_operation_utils/types';
@@ -246,7 +247,7 @@ export class SwapQuoter {
                     return {
                         input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
                         output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
-                        fillData: o,
+                        fillData: { ...o, makerToken: o.order.makerToken, takerToken: o.order.takerToken },
                         source: ERC20BridgeSource.Native,
                     };
                 }),
@@ -453,7 +454,14 @@ function createSwapQuote(
     gasSchedule: FeeSchedule,
     slippage: number,
 ): SwapQuote {
-    const { optimizedOrders, quoteReport, sourceFlags, takerTokenToEthRate, makerTokenToEthRate } = optimizerResult;
+    const {
+        optimizedOrders,
+        quoteReport,
+        sourceFlags,
+        takerTokenToEthRate,
+        makerTokenToEthRate,
+        marketSideLiquidity,
+    } = optimizerResult;
     const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
 
     // Calculate quote info
@@ -477,6 +485,7 @@ function createSwapQuote(
         makerTokenToEthRate,
         quoteReport,
         isTwoHop,
+        marketSideLiquidity,
     };
 
     if (operation === MarketOperation.Buy) {
@@ -535,10 +544,11 @@ function calculateTwoHopQuoteInfo(
     const [firstHopFill] = firstHopOrder.fills;
     const [secondHopFill] = secondHopOrder.fills;
     const gas = new BigNumber(
+        // tslint:disable-next-line: no-object-literal-type-assertion
         gasSchedule[ERC20BridgeSource.MultiHop]!({
             firstHopSource: _.pick(firstHopFill, 'source', 'fillData'),
             secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
-        }),
+        } as MultiHopFillData),
     ).toNumber();
     return {
         bestCaseQuoteInfo: {

@@ -15,6 +15,8 @@ export interface SamplerContractCall<
     function: TFunc;
     params: Parameters<TFunc>;
     callback?: (callResults: string, fillData: TFillData) => BigNumber[];
+    encodeCallback?: (...params: Parameters<TFunc>) => string;
+    inputAmountOverride?: () => BigNumber[];
 }
 
 export class SamplerContractOperation<
@@ -23,10 +25,12 @@ export class SamplerContractOperation<
 > implements SourceQuoteOperation<TFillData> {
     public readonly source: ERC20BridgeSource;
     public fillData: TFillData;
+    public inputAmountOverride?: () => BigNumber[];
     private readonly _samplerContract: ERC20BridgeSamplerContract;
     private readonly _samplerFunction: TFunc;
     private readonly _params: Parameters<TFunc>;
     private readonly _callback?: (callResults: string, fillData: TFillData) => BigNumber[];
+    private readonly _encodeCallback?: (...params: Parameters<TFunc>) => string;
 
     constructor(opts: { source: ERC20BridgeSource; fillData?: TFillData } & SamplerContractCall<TFunc, TFillData>) {
         this.source = opts.source;
@@ -35,9 +39,14 @@ export class SamplerContractOperation<
         this._samplerFunction = opts.function;
         this._params = opts.params;
         this._callback = opts.callback;
+        this._encodeCallback = opts.encodeCallback;
+        this.inputAmountOverride = opts.inputAmountOverride;
     }
 
     public encodeCall(): string {
+        if (this._encodeCallback !== undefined) {
+            return this._encodeCallback(...this._params);
+        }
         return this._samplerFunction
             .bind(this._samplerContract)(...this._params)
             .getABIEncodedTransactionData();
@@ -56,7 +65,12 @@ export class SamplerContractOperation<
         } catch (e) {
             // do nothing
         }
-        logUtils.warn(`SamplerContractOperation: ${this.source}.${this._samplerFunction.name} reverted ${msg}`);
+        logUtils.warn(
+            `SamplerContractOperation: ${this.source}.${this._samplerFunction.name} reverted ${msg} ${
+                this.fillData.takerToken
+            }->${this.fillData.makerToken}`,
+        );
+        // logUtils.warn(`\t${JSON.stringify((this.fillData as any).pool, null, 2)}`);
         return [];
     }
 }

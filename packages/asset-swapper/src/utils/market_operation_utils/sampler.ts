@@ -35,9 +35,9 @@ export class DexOrderSampler extends SamplerOperations {
     constructor(
         _samplerContract: ERC20BridgeSamplerContract,
         private readonly _samplerOverrides?: SamplerOverrides,
-        balancerPoolsCache?: BalancerPoolsCache,
-        creamPoolsCache?: CreamPoolsCache,
-        tokenAdjacencyGraph?: TokenAdjacencyGraph,
+        public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
+        public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
+        public readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         liquidityProviderRegistry?: LiquidityProviderRegistry,
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {

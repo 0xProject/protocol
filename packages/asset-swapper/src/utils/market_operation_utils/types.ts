@@ -88,11 +88,16 @@ export interface SwerveInfo extends CurveInfo {}
 export interface SnowSwapInfo extends CurveInfo {}
 
 // Internal `fillData` field for `Fill` objects.
-export interface FillData {}
+export interface FillData {
+    // TODO jacob temporarily ignore additional samples that are passed through
+    shouldIgnore?: boolean;
+    makerToken: string;
+    takerToken: string;
+}
 
 // `FillData` for native fills. Represents a single native order
-export type NativeRfqOrderFillData = FillQuoteTransformerRfqOrderInfo;
-export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo;
+export type NativeRfqOrderFillData = FillQuoteTransformerRfqOrderInfo & FillData;
+export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo & FillData;
 export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData;
 
 // Represents an individual DEX sample from the sampler contract
@@ -356,9 +361,20 @@ export interface GetMarketOrdersOpts {
  * A composable operation the be run in `DexOrderSampler.executeAsync()`.
  */
 export interface BatchedOperation<TResult> {
+    inputAmountOverride?: () => BigNumber[];
     encodeCall(): string;
     handleCallResults(callResults: string): TResult;
     handleRevert(callResults: string): TResult;
+}
+
+export interface IntermediaryInfo {
+    returnData: string;
+    makerTokenAmounts: BigNumber[];
+}
+
+export interface RelevantTokenInfo {
+    decimals: number;
+    ethRateInTokenBaseUnits: BigNumber;
 }
 
 export interface SourceQuoteOperation<TFillData extends FillData = FillData> extends BatchedOperation<BigNumber[]> {
@@ -401,6 +417,7 @@ export interface MarketSideLiquidity {
     takerTokenDecimals: number;
     quotes: RawQuotes;
     isRfqSupported: boolean;
+    relevantTokensInfos?: { [tokenAddress: string]: RelevantTokenInfo };
 }
 
 export interface RawQuotes {

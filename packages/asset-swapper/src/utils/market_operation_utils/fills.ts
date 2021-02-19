@@ -38,9 +38,12 @@ export function createFills(opts: {
         feeSchedule,
     );
     // Create DEX fills.
-    const dexFills = dexQuotes.map(singleSourceSamples =>
-        dexSamplesToFills(side, singleSourceSamples, ethToOutputRate, ethToInputRate, feeSchedule),
-    );
+    const dexFills = dexQuotes
+        // TODO jacob temporarily ignore additional samples that are passed through
+        .filter(q => q[0] && !q[0].fillData.shouldIgnore)
+        .map(singleSourceSamples =>
+            dexSamplesToFills(side, singleSourceSamples, ethToOutputRate, ethToInputRate, feeSchedule),
+        );
     return [...dexFills, nativeFills]
         .map(p => clipFillsToInput(p, opts.targetInput))
         .filter(fills => hasLiquidity(fills) && !excludedSources.includes(fills[0].source));
@@ -88,7 +91,7 @@ function nativeOrdersToFills(
         const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
         const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
-        const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o);
+        const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o.order);
         const outputPenalty = !ethToOutputRate.isZero()
             ? ethToOutputRate.times(fee)
             : ethToInputRate.times(fee).times(output.dividedToIntegerBy(input));
@@ -119,7 +122,7 @@ function nativeOrdersToFills(
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
             type: o.type,
-            fillData: { ...o },
+            fillData: { ...o, makerToken: o.order.makerToken, takerToken: o.order.takerToken } as any,
         });
     }
     // Sort by descending adjusted rate.

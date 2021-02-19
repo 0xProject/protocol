@@ -158,6 +158,8 @@ describe('quote_simulation tests', async () => {
                 },
                 signature: { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign },
                 maxTakerTokenFillAmount: fillableTakerAmount,
+                makerToken: MAKER_TOKEN,
+                takerToken: TAKER_TOKEN,
             },
             type,
             fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
@@ -175,7 +177,7 @@ describe('quote_simulation tests', async () => {
                 type: FillQuoteTransformerOrderType.Bridge,
                 sourcePathId: nativeSourcePathId,
                 source: ERC20BridgeSource.Uniswap,
-                fillData: {},
+                fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
                 input: inputs[i],
                 output: outputs[i],
                 subFills: _.times(count, j => ({
@@ -716,6 +718,8 @@ describe('quote_simulation tests', async () => {
             },
             signature: nativeFillData.signature,
             maxTakerTokenFillAmount: nativeFillData.maxTakerTokenFillAmount.times(takerScaling),
+            makerToken: nativeFillData.makerToken,
+            takerToken: nativeFillData.takerToken,
         };
         return {
             ...order,

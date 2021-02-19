@@ -1,5 +1,6 @@
 // tslint:disable:custom-no-magic-numbers
 // tslint:disable:no-object-literal-type-assertion
+import { randomAddress } from '@0x/contracts-test-utils';
 import { FillQuoteTransformerOrderType, LimitOrder, LimitOrderFields, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as chai from 'chai';
@@ -34,6 +35,9 @@ import { getRandomAmount, getRandomSignature } from './utils/utils';
 chaiSetup.configure();
 const expect = chai.expect;
 
+const MAKER_TOKEN = randomAddress();
+const TAKER_TOKEN = randomAddress();
+
 function collapsedFillFromNativeOrder(order: NativeOrderWithFillableAmounts): NativeCollapsedFill {
     const fillData = {
         order: order.order,
@@ -62,25 +66,25 @@ describe('generateQuoteReport', async () => {
             source: ERC20BridgeSource.Kyber,
             input: new BigNumber(10000),
             output: new BigNumber(10001),
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const kyberSample2: DexSample = {
             source: ERC20BridgeSource.Kyber,
             input: new BigNumber(10003),
             output: new BigNumber(10004),
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const uniswapSample1: DexSample = {
             source: ERC20BridgeSource.UniswapV2,
             input: new BigNumber(10003),
             output: new BigNumber(10004),
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const uniswapSample2: DexSample = {
             source: ERC20BridgeSource.UniswapV2,
             input: new BigNumber(10005),
             output: new BigNumber(10006),
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const dexQuotes: DexSample[] = [kyberSample1, kyberSample2, uniswapSample1, uniswapSample2];
 
@@ -212,25 +216,25 @@ describe('generateQuoteReport', async () => {
             liquiditySource: ERC20BridgeSource.UniswapV2,
             makerAmount: uniswapSample1.output,
             takerAmount: uniswapSample1.input,
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const uniswap2Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.UniswapV2,
             makerAmount: uniswapSample2.output,
             takerAmount: uniswapSample2.input,
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const kyber1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Kyber,
             makerAmount: kyberSample1.output,
             takerAmount: kyberSample1.input,
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const kyber2Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Kyber,
             makerAmount: kyberSample2.output,
             takerAmount: kyberSample2.input,
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
 
         const expectedSourcesConsidered: QuoteReportEntry[] = [
@@ -259,13 +263,13 @@ describe('generateQuoteReport', async () => {
             source: ERC20BridgeSource.Kyber,
             input: new BigNumber(10000),
             output: new BigNumber(10001),
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const uniswapSample1: DexSample = {
             source: ERC20BridgeSource.UniswapV2,
             input: new BigNumber(10003),
             output: new BigNumber(10004),
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
         const orderbookOrder1: NativeOrderWithFillableAmounts = {
@@ -328,13 +332,13 @@ describe('generateQuoteReport', async () => {
             liquiditySource: ERC20BridgeSource.UniswapV2,
             makerAmount: uniswapSample1.input,
             takerAmount: uniswapSample1.output,
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const kyber1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Kyber,
             makerAmount: kyberSample1.input,
             takerAmount: kyberSample1.output,
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
 
         const expectedSourcesConsidered: QuoteReportEntry[] = [
@@ -353,7 +357,7 @@ describe('generateQuoteReport', async () => {
             source: ERC20BridgeSource.Kyber,
             input: new BigNumber(10000),
             output: new BigNumber(10001),
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const orderbookOrder1: NativeOrderWithFillableAmounts = {
             order: new LimitOrder({ takerAmount: new BigNumber(1101) }),
@@ -367,18 +371,20 @@ describe('generateQuoteReport', async () => {
             intermediateToken: hexUtils.random(20),
             firstHopSource: {
                 source: ERC20BridgeSource.Balancer,
-                fillData: {},
+                fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
                 encodeCall: () => '',
                 handleCallResults: _callResults => [new BigNumber(1337)],
                 handleRevert: _c => [],
             },
             secondHopSource: {
                 source: ERC20BridgeSource.Curve,
-                fillData: {},
+                fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
                 encodeCall: () => '',
                 handleCallResults: _callResults => [new BigNumber(1337)],
                 handleRevert: _c => [],
             },
+            makerToken: MAKER_TOKEN,
+            takerToken: TAKER_TOKEN,
         };
         const twoHopSample: DexSample<MultiHopFillData> = {
             source: ERC20BridgeSource.MultiHop,
@@ -408,7 +414,7 @@ describe('generateQuoteReport', async () => {
             liquiditySource: ERC20BridgeSource.Kyber,
             makerAmount: kyberSample1.output,
             takerAmount: kyberSample1.input,
-            fillData: {},
+            fillData: { makerToken: MAKER_TOKEN, takerToken: TAKER_TOKEN },
         };
         const twoHopSource: MultiHopQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.MultiHop,

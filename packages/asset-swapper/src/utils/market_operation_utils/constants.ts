@@ -504,7 +504,7 @@ export const BALANCER_MAX_POOLS_FETCHED = 3;
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: fillData => {
         // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
-        const nativeFillData = fillData as ({ type: FillQuoteTransformerOrderType });
+        const nativeFillData = fillData as any;
         return nativeFillData && nativeFillData.type === FillQuoteTransformerOrderType.Limit
             ? PROTOCOL_FEE_MULTIPLIER.plus(100e3).toNumber()
             : // TODO jacob revisit wth v4 LimitOrders

@@ -28,7 +28,7 @@ import {
     ZERO_AMOUNT,
 } from './constants';
 import { createFills } from './fills';
-import { getBestTwoHopQuote } from './multihop_utils';
+import { getBestTwoHopQuote, getIntermediateTokens } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { findOptimalPathAsync } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
@@ -44,6 +44,7 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
+    RelevantTokenInfo,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -163,6 +164,25 @@ export class MarketOperationUtils {
             ? this._sampler.getCreamSellQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
             : Promise.resolve([]);
 
+        // Temporarily fetch additional token hops
+        // All tokens used in route finding
+        const relevantTokens = [
+            takerToken,
+            makerToken,
+            ...getIntermediateTokens(makerToken, takerToken, this._sampler.tokenAdjacencyGraph),
+        ];
+        const extraSamplesPromise = this._sampler.executeAsync(
+            this._sampler.getTokenDecimals(relevantTokens),
+            this._sampler.getMedianSellRates(feeSourceFilters.sources, relevantTokens, this._wethAddress, ONE_ETHER),
+            // Get sell quotes for taker -> maker.
+            this._sampler.getSellQuotesExtra(
+                quoteSourceFilters.exclude(offChainSources).sources,
+                makerToken,
+                takerToken,
+                this._wethAddress,
+                sampleAmounts,
+            ),
+        );
         const [
             [
                 tokenDecimals,
@@ -175,7 +195,12 @@ export class MarketOperationUtils {
             ],
             offChainBalancerQuotes,
             offChainCreamQuotes,
-        ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise]);
+            [relevantTokenDecimals, relevantSellRates, rawExtraSamples],
+        ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise, extraSamplesPromise]);
+        const extraSamples = rawExtraSamples
+            .map(samples => samples.filter(s => !s.output.isZero()))
+            .filter(samples => samples.length > 0);
+        console.log({ extraSamples: _.flatten(extraSamples).length, dexQuotes: _.flatten(dexQuotes).length });
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
@@ -189,6 +214,15 @@ export class MarketOperationUtils {
             ...order,
             ...getNativeAdjustedFillableAmountsFromTakerAmount(order, orderFillableTakerAmounts[i]),
         }));
+
+        const relevantTokensInfos: { [tokenAddress: string]: RelevantTokenInfo } = {};
+        relevantTokens.forEach((tokenAddress, i) => {
+            relevantTokensInfos[tokenAddress] = {
+                decimals: relevantTokenDecimals[i].toNumber(),
+                ethRateInTokenBaseUnits: relevantSellRates[i],
+            };
+        });
+        console.log({ relevantTokenDecimals, relevantTokens, relevantSellRates, relevantTokensInfos });
 
         return {
             side: MarketOperation.Sell,
@@ -204,9 +238,10 @@ export class MarketOperationUtils {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
                 twoHopQuotes,
-                dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes]),
+                dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes, ...extraSamples]),
             },
             isRfqSupported,
+            relevantTokensInfos,
         };
     }
 

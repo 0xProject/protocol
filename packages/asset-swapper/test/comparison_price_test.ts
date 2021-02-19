@@ -24,13 +24,13 @@ const kyberSample1: DexSample = {
     source: ERC20BridgeSource.Kyber,
     input: new BigNumber(10000),
     output: new BigNumber(10001),
-    fillData: {},
+    fillData: { makerToken: DAI_TOKEN, takerToken: ETH_TOKEN },
 };
 const uniswapSample1: DexSample = {
     source: ERC20BridgeSource.UniswapV2,
     input: new BigNumber(10003),
     output: new BigNumber(10004),
-    fillData: {},
+    fillData: { makerToken: DAI_TOKEN, takerToken: ETH_TOKEN },
 };
 const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
 

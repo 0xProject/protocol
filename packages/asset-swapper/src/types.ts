@@ -14,6 +14,7 @@ import {
     ERC20BridgeSource,
     GetMarketOrdersOpts,
     LiquidityProviderRegistry,
+    MarketSideLiquidity,
     OptimizedMarketOrder,
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
@@ -163,6 +164,7 @@ export interface SwapQuoteBase {
     takerTokenDecimals: number;
     takerTokenToEthRate: BigNumber;
     makerTokenToEthRate: BigNumber;
+    marketSideLiquidity?: MarketSideLiquidity;
 }
 
 /**
