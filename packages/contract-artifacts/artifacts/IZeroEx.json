@@ -39,6 +39,34 @@
             {
                 "anonymous": false,
                 "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    { "indexed": false, "internalType": "uint256", "name": "inputTokenAmount", "type": "uint256" },
+                    { "indexed": false, "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" },
+                    {
+                        "indexed": false,
+                        "internalType": "contract ILiquidityProvider",
+                        "name": "provider",
+                        "type": "address"
+                    },
+                    { "indexed": false, "internalType": "address", "name": "recipient", "type": "address" }
+                ],
+                "name": "LiquidityProviderSwap",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
                     { "indexed": false, "internalType": "bytes32", "name": "hash", "type": "bytes32" },
                     { "indexed": true, "internalType": "bytes4", "name": "selector", "type": "bytes4" },
                     { "indexed": false, "internalType": "address", "name": "signer", "type": "address" },
@@ -167,47 +195,6 @@
                 ],
                 "name": "TransformerDeployerUpdated",
                 "type": "event"
-            },
-            {
-                "inputs": [
-                    { "internalType": "address", "name": "sender", "type": "address" },
-                    {
-                        "components": [
-                            { "internalType": "address payable", "name": "signer", "type": "address" },
-                            { "internalType": "address", "name": "sender", "type": "address" },
-                            { "internalType": "uint256", "name": "minGasPrice", "type": "uint256" },
-                            { "internalType": "uint256", "name": "maxGasPrice", "type": "uint256" },
-                            { "internalType": "uint256", "name": "expirationTimeSeconds", "type": "uint256" },
-                            { "internalType": "uint256", "name": "salt", "type": "uint256" },
-                            { "internalType": "bytes", "name": "callData", "type": "bytes" },
-                            { "internalType": "uint256", "name": "value", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "feeToken", "type": "address" },
-                            { "internalType": "uint256", "name": "feeAmount", "type": "uint256" }
-                        ],
-                        "internalType": "struct IMetaTransactionsFeature.MetaTransactionData",
-                        "name": "mtx",
-                        "type": "tuple"
-                    },
-                    {
-                        "components": [
-                            {
-                                "internalType": "enum LibSignature.SignatureType",
-                                "name": "signatureType",
-                                "type": "uint8"
-                            },
-                            { "internalType": "uint8", "name": "v", "type": "uint8" },
-                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
-                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
-                        ],
-                        "internalType": "struct LibSignature.Signature",
-                        "name": "signature",
-                        "type": "tuple"
-                    }
-                ],
-                "name": "_executeMetaTransaction",
-                "outputs": [{ "internalType": "bytes", "name": "returnResult", "type": "bytes" }],
-                "stateMutability": "payable",
-                "type": "function"
             },
             {
                 "inputs": [
@@ -1225,17 +1212,6 @@
             },
             {
                 "inputs": [
-                    { "internalType": "bytes32", "name": "hash", "type": "bytes32" },
-                    { "internalType": "address", "name": "signer", "type": "address" },
-                    { "internalType": "bytes", "name": "signature", "type": "bytes" }
-                ],
-                "name": "isValidHashSignature",
-                "outputs": [{ "internalType": "bool", "name": "isValid", "type": "bool" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
                     { "internalType": "address", "name": "target", "type": "address" },
                     { "internalType": "bytes", "name": "data", "type": "bytes" },
                     { "internalType": "address", "name": "newOwner", "type": "address" }
@@ -1274,9 +1250,9 @@
             },
             {
                 "inputs": [
-                    { "internalType": "address", "name": "inputToken", "type": "address" },
-                    { "internalType": "address", "name": "outputToken", "type": "address" },
-                    { "internalType": "address payable", "name": "provider", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                    { "internalType": "contract ILiquidityProvider", "name": "provider", "type": "address" },
                     { "internalType": "address", "name": "recipient", "type": "address" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
                     { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
@@ -1347,32 +1323,12 @@
                 "outputs": [{ "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" }],
                 "stateMutability": "payable",
                 "type": "function"
-            },
-            {
-                "inputs": [
-                    { "internalType": "bytes32", "name": "hash", "type": "bytes32" },
-                    { "internalType": "address", "name": "signer", "type": "address" },
-                    { "internalType": "bytes", "name": "signature", "type": "bytes" }
-                ],
-                "name": "validateHashSignature",
-                "outputs": [],
-                "stateMutability": "view",
-                "type": "function"
             }
         ],
         "devdoc": {
             "details": "Interface for a fully featured Exchange Proxy.",
             "kind": "dev",
             "methods": {
-                "_executeMetaTransaction(address,(address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),(uint8,uint8,bytes32,bytes32))": {
-                    "details": "Execute a meta-transaction via `sender`. Privileged variant.      Only callable from within.",
-                    "params": {
-                        "mtx": "The meta-transaction.",
-                        "sender": "Who is executing the meta-transaction.",
-                        "signature": "The signature by `mtx.signer`."
-                    },
-                    "returns": { "returnResult": "The ABI-encoded result of the underlying call." }
-                },
                 "_fillLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128,address,address)": {
                     "details": "Fill a limit order. Internal variant. ETH protocol fees can be      attached to this call. Any unspent ETH will be refunded to      `msg.sender` (not `sender`).",
                     "params": {
@@ -1447,7 +1403,7 @@
                     "returns": { "returnResults": "The ABI-encoded results of the underlying calls." }
                 },
                 "batchGetLimitOrderRelevantStates((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
-                    "details": "Batch version of `getLimitOrderRelevantState()`.",
+                    "details": "Batch version of `getLimitOrderRelevantState()`, without reverting.      Orders that would normally cause `getLimitOrderRelevantState()`      to revert will have empty results.",
                     "params": { "orders": "The limit orders.", "signatures": "The order signatures." },
                     "returns": {
                         "actualFillableTakerTokenAmounts": "How much of each order is fillable         based on maker funds, in taker tokens.",
@@ -1456,7 +1412,7 @@
                     }
                 },
                 "batchGetRfqOrderRelevantStates((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
-                    "details": "Batch version of `getRfqOrderRelevantState()`.",
+                    "details": "Batch version of `getRfqOrderRelevantState()`, without reverting.      Orders that would normally cause `getRfqOrderRelevantState()`      to revert will have empty results.",
                     "params": { "orders": "The RFQ orders.", "signatures": "The order signatures." },
                     "returns": {
                         "actualFillableTakerTokenAmounts": "How much of each order is fillable         based on maker funds, in taker tokens.",
@@ -1636,15 +1592,6 @@
                     "details": "Return the allowed deployer for transformers.",
                     "returns": { "deployer": "The transform deployer address." }
                 },
-                "isValidHashSignature(bytes32,address,bytes)": {
-                    "details": "Check that `hash` was signed by `signer` given `signature`.",
-                    "params": {
-                        "hash": "The hash that was signed.",
-                        "signature": "The signature. The last byte of this signature should        be a member of the `SignatureType` enum.",
-                        "signer": "The signer of the hash."
-                    },
-                    "returns": { "isValid": "`true` on success." }
-                },
                 "migrate(address,bytes,address)": {
                     "details": "Execute a migration function in the context of the ZeroEx contract.      The result of the function being called should be the magic bytes      0x2c64c5ef (`keccack('MIGRATE_SUCCESS')`). Only callable by the owner.      The owner will be temporarily set to `address(this)` inside the call.      Before returning, the owner will be set to `newOwner`.",
                     "params": {
@@ -1722,14 +1669,6 @@
                         "transformations": "The transformations to execute on the token balance(s)        in sequence."
                     },
                     "returns": { "outputTokenAmount": "The amount of `outputToken` received by the sender." }
-                },
-                "validateHashSignature(bytes32,address,bytes)": {
-                    "details": "Validate that `hash` was signed by `signer` given `signature`.      Reverts otherwise.",
-                    "params": {
-                        "hash": "The hash that was signed.",
-                        "signature": "The signature. The last byte of this signature should        be a member of the `SignatureType` enum.",
-                        "signer": "The signer of the hash."
-                    }
                 }
             },
             "version": 1

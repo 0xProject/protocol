@@ -8,7 +8,7 @@ import {
     toBaseUnitAmount,
 } from '@0x/contracts-test-utils';
 import { FillQuoteTransformerOrderType, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
-import { BigNumber, hexUtils, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
+import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import { Pool } from '@balancer-labs/sor/dist/types';
 import * as _ from 'lodash';
 
@@ -21,13 +21,13 @@ import { MockSamplerContract } from './utils/mock_sampler_contract';
 import { generatePseudoRandomSalt } from './utils/utils';
 
 const CHAIN_ID = 1;
+const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 // tslint:disable: custom-no-magic-numbers
 describe('DexSampler tests', () => {
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
 
     const wethAddress = getContractAddressesForChainOrThrow(CHAIN_ID).etherToken;
-    const exchangeAddress = getContractAddressesForChainOrThrow(CHAIN_ID).exchange;
     const exchangeProxyAddress = getContractAddressesForChainOrThrow(CHAIN_ID).exchangeProxy;
 
     const tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [wethAddress] };
@@ -78,7 +78,7 @@ describe('DexSampler tests', () => {
                 takerAmount: getRandomInteger(1, 1e18),
                 takerTokenFeeAmount: constants.ZERO_AMOUNT,
                 chainId: CHAIN_ID,
-                pool: NULL_BYTES,
+                pool: EMPTY_BYTES32,
                 feeRecipient: NULL_ADDRESS,
                 sender: NULL_ADDRESS,
                 maker: NULL_ADDRESS,
@@ -92,11 +92,10 @@ describe('DexSampler tests', () => {
         return o;
     }
     const ORDERS = _.times(4, () => createOrder());
-    const SIMPLE_ORDERS = ORDERS.map(o => _.omit(o, ['signature', 'chainId']));
+    const SIMPLE_ORDERS = ORDERS.map(o => _.omit(o.order, ['chainId', 'verifyingContract']));
 
     describe('operations', () => {
-        // TODO jacob
-        it.skip('getLimitOrderFillableMakerAssetAmounts()', async () => {
+        it('getLimitOrderFillableMakerAssetAmounts()', async () => {
             const expectedFillableAmounts = ORDERS.map(() => getRandomInteger(0, 100e18));
             const sampler = new MockSamplerContract({
                 getLimitOrderFillableMakerAssetAmounts: (orders, signatures) => {
@@ -115,13 +114,12 @@ describe('DexSampler tests', () => {
                 async () => undefined,
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getLimitOrderFillableMakerAmounts(ORDERS, exchangeAddress),
+                dexOrderSampler.getLimitOrderFillableMakerAmounts(ORDERS, exchangeProxyAddress),
             );
             expect(fillableAmounts).to.deep.eq(expectedFillableAmounts);
         });
 
-        // TODO jacob
-        it.skip('getLimitOrderFillableTakerAssetAmounts()', async () => {
+        it('getLimitOrderFillableTakerAssetAmounts()', async () => {
             const expectedFillableAmounts = ORDERS.map(() => getRandomInteger(0, 100e18));
             const sampler = new MockSamplerContract({
                 getLimitOrderFillableTakerAssetAmounts: (orders, signatures) => {
@@ -140,7 +138,7 @@ describe('DexSampler tests', () => {
                 async () => undefined,
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getLimitOrderFillableTakerAmounts(ORDERS, exchangeAddress),
+                dexOrderSampler.getLimitOrderFillableTakerAmounts(ORDERS, exchangeProxyAddress),
             );
             expect(fillableAmounts).to.deep.eq(expectedFillableAmounts);
         });
@@ -631,7 +629,7 @@ describe('DexSampler tests', () => {
     });
 
     describe('batched operations', () => {
-        it.skip('getLimitOrderFillableMakerAssetAmounts(), getLimitOrderFillableTakerAssetAmounts()', async () => {
+        it('getLimitOrderFillableMakerAssetAmounts(), getLimitOrderFillableTakerAssetAmounts()', async () => {
             const expectedFillableTakerAmounts = ORDERS.map(() => getRandomInteger(0, 100e18));
             const expectedFillableMakerAmounts = ORDERS.map(() => getRandomInteger(0, 100e18));
             const sampler = new MockSamplerContract({
@@ -656,8 +654,8 @@ describe('DexSampler tests', () => {
                 async () => undefined,
             );
             const [fillableMakerAmounts, fillableTakerAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getLimitOrderFillableMakerAmounts(ORDERS, exchangeAddress),
-                dexOrderSampler.getLimitOrderFillableTakerAmounts(ORDERS, exchangeAddress),
+                dexOrderSampler.getLimitOrderFillableMakerAmounts(ORDERS, exchangeProxyAddress),
+                dexOrderSampler.getLimitOrderFillableTakerAmounts(ORDERS, exchangeProxyAddress),
             );
             expect(fillableMakerAmounts).to.deep.eq(expectedFillableMakerAmounts);
             expect(fillableTakerAmounts).to.deep.eq(expectedFillableTakerAmounts);
