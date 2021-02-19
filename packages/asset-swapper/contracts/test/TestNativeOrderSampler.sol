@@ -45,7 +45,7 @@ contract TestNativeOrderSampler is
     UtilitySampler
 {
     uint8 private constant MAX_ORDER_STATUS = uint8(IExchange.OrderStatus.CANCELLED) + 1;
-    bytes32 private constant VALID_SIGNATURE_HASH = keccak256(hex"01");
+    bytes32 private constant VALID_SIGNATURE_HASH = bytes32(hex"01");
 
     function createTokens(uint256 count)
         external
