@@ -98,12 +98,11 @@ function parseIndicativeQuoteResponseFromAltMM(
         takerAmount,
         // HACK: alt implementation does not return an expiration with indicative quotes
         // return now + { IMPUTED EXPIRY SECONDS } to have it included after order checks
-        expiry: new BigNumber(
+        expiry:
             // tslint:disable-next-line:custom-no-magic-numbers
             new BigNumber(Date.now() / 1000)
                 .integerValue(BigNumber.ROUND_DOWN)
                 .plus(constants.ALT_MM_IMPUTED_INDICATIVE_EXPIRY_SECONDS),
-        ),
     };
 }
 

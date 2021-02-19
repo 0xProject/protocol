@@ -12,6 +12,7 @@ import {
     AltRfqtMakerAssetOfferings,
     LogFunction,
     MarketOperation,
+    RfqPairType,
     RfqtMakerAssetOfferings,
     RfqtRequestOpts,
     SignedNativeOrder,
@@ -328,7 +329,7 @@ export class QuoteRequestor {
         takerToken: string,
         altMakerAssetOfferings: AltRfqtMakerAssetOfferings | undefined,
     ): boolean {
-        if (typedMakerUrl.pairType === 'standard') {
+        if (typedMakerUrl.pairType === RfqPairType.Standard) {
             for (const assetPair of this._rfqtAssetOfferings[typedMakerUrl.url]) {
                 if (
                     (assetPair[0] === makerToken && assetPair[1] === takerToken) ||
@@ -337,7 +338,7 @@ export class QuoteRequestor {
                     return true;
                 }
             }
-        } else if (typedMakerUrl.pairType === 'alt' && altMakerAssetOfferings) {
+        } else if (typedMakerUrl.pairType === RfqPairType.Alt && altMakerAssetOfferings) {
             for (const altAssetPair of altMakerAssetOfferings[typedMakerUrl.url]) {
                 if (
                     (altAssetPair.baseAsset === makerToken && altAssetPair.quoteAsset === takerToken) ||
@@ -388,13 +389,13 @@ export class QuoteRequestor {
 
         const standardUrls = Object.keys(this._rfqtAssetOfferings).map(
             (mm: string): TypedMakerUrl => {
-                return { pairType: 'standard', url: mm };
+                return { pairType: RfqPairType.Standard, url: mm };
             },
         );
         const altUrls = options.altRfqtAssetOfferings
             ? Object.keys(options.altRfqtAssetOfferings).map(
                   (mm: string): TypedMakerUrl => {
-                      return { pairType: 'alt', url: mm };
+                      return { pairType: RfqPairType.Alt, url: mm };
                   },
               )
             : [];
@@ -418,7 +419,7 @@ export class QuoteRequestor {
                         ? constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!
                         : options.makerEndpointMaxResponseTimeMs;
                 try {
-                    if (typedMakerUrl.pairType === 'standard') {
+                    if (typedMakerUrl.pairType === RfqPairType.Standard) {
                         const response = await quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
                             headers: { '0x-api-key': options.apiKey },
                             params: requestParams,

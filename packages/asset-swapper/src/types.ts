@@ -257,7 +257,10 @@ export interface AltOffering {
 export interface AltRfqtMakerAssetOfferings {
     [endpoint: string]: AltOffering[];
 }
-export type RfqPairType = 'standard' | 'alt';
+export enum RfqPairType {
+    Standard = 'standard',
+    Alt = 'alt',
+}
 export interface TypedMakerUrl {
     url: string;
     pairType: RfqPairType;
@@ -406,33 +409,18 @@ export interface AltQuoteRequestData {
     };
 }
 
-export interface AltBaseRfqResponse {
+export interface AltBaseRfqResponse extends AltQuoteRequestData {
     id: string;
-    market: string;
-    profile: string;
-    side: 'buy' | 'sell';
-    amount?: string;
-    value?: string;
-    meta: {
-        client: string;
-        taker: string;
-        txOrigin: string;
-        existingOrder?: {
-            price: string;
-            value?: string;
-            amount?: string;
-        };
-    };
     price?: string;
 }
 
 export interface AltIndicativeQuoteResponse extends AltBaseRfqResponse {
-    model: 'indicative';
+    model: AltQuoteModel.Indicative;
     status: 'live' | 'rejected';
 }
 
 export interface AltFirmQuoteResponse extends AltBaseRfqResponse {
-    model: 'firm';
+    model: AltQuoteModel.Firm;
     data: {
         '0xv4order': V4SignedRfqOrder;
     };
