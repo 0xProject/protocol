@@ -29,6 +29,10 @@
             {
                 "note": "Special case BNB in uni v1 sampler",
                 "pr": 147
+            },
+            {
+                "note": "Add an alternative RFQ market making implementation",
+                "pr": 139
             }
         ]
     },
