@@ -12,6 +12,7 @@ import { SRA_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
+import { cacheControl } from '../middleware/cache_control';
 import { errorHandler } from '../middleware/error_handling';
 import { createSRARouter } from '../routers/sra_router';
 import { WebsocketService } from '../services/websocket_service';
@@ -46,6 +47,7 @@ async function runHttpServiceAsync(
 ): Promise<Server> {
     const app = _app || express();
     app.use(addressNormalizer);
+    app.use(cacheControl);
     const server = createDefaultServer(dependencies, config, app);
 
     app.get('/', rootHandler);
