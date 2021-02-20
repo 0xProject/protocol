@@ -129,107 +129,105 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         takerRequestQueryParams.sellTokenAddress,
     );
 
-    if (altPair) {
-        const side =
-            altPair.baseAsset === takerRequestQueryParams.buyTokenAddress ? AltQuoteSide.Buy : AltQuoteSide.Sell;
-
-        // comparison price needs to be quote/base
-        // in the standard implementation, it's maker/taker
-        let altComparisonPrice: string | undefined;
-        if (altPair.quoteAsset === makerToken) {
-            altComparisonPrice = takerRequestQueryParams.comparisonPrice
-                ? takerRequestQueryParams.comparisonPrice
-                : undefined;
-        } else {
-            altComparisonPrice = takerRequestQueryParams.comparisonPrice
-                ? new BigNumber(takerRequestQueryParams.comparisonPrice).pow(-1).toString()
-                : undefined;
-        }
-
-        let data: AltQuoteRequestData;
-        data = {
-            market: `${altPair.id}`,
-            model: quoteModel,
-            profile,
-            side,
-            meta: {
-                txOrigin: takerRequestQueryParams.txOrigin!,
-                taker: takerRequestQueryParams.takerAddress,
-                client: integratorKey,
-            },
-        };
-
-        // specify a comparison price if it exists
-        if (altComparisonPrice) {
-            data.meta.existingOrder = {
-                price: altComparisonPrice,
-            };
-        }
-
-        // need to specify amount or value
-        // amount is units of the base asset
-        // value is units of the quote asset
-        let requestSize: string;
-        if (takerRequestQueryParams.buyAmountBaseUnits) {
-            requestSize = Web3Wrapper.toUnitAmount(
-                new BigNumber(takerRequestQueryParams.buyAmountBaseUnits),
-                takerRequestQueryParams.buyTokenAddress === altPair.baseAsset
-                    ? altPair.baseAssetDecimals
-                    : altPair.quoteAssetDecimals,
-            ).toString();
-            if (takerRequestQueryParams.buyTokenAddress === altPair.baseAsset) {
-                data.amount = requestSize;
-                // add to 'existing order' if there is a comparison price
-                if (data.meta.existingOrder) {
-                    data.meta.existingOrder.value = requestSize;
-                }
-            } else {
-                data.value = requestSize;
-                // add to 'existing order' if there is a comparison price
-                if (data.meta.existingOrder) {
-                    data.meta.existingOrder.amount = requestSize;
-                }
-            }
-        } else if (takerRequestQueryParams.sellAmountBaseUnits) {
-            requestSize = Web3Wrapper.toUnitAmount(
-                new BigNumber(takerRequestQueryParams.sellAmountBaseUnits),
-                takerRequestQueryParams.sellTokenAddress === altPair.baseAsset
-                    ? altPair.baseAssetDecimals
-                    : altPair.quoteAssetDecimals,
-            ).toString();
-            if (takerRequestQueryParams.sellTokenAddress === altPair.baseAsset) {
-                data.amount = requestSize;
-                if (data.meta.existingOrder) {
-                    data.meta.existingOrder.value = requestSize;
-                }
-            } else {
-                data.value = requestSize;
-                if (data.meta.existingOrder) {
-                    data.meta.existingOrder.amount = requestSize;
-                }
-            }
-        }
-
-        const response = await axiosInstance.post(`${url}/quotes`, data, {
-            headers: { Authorization: `Bearer ${apiKey}` },
-            timeout: maxResponseTimeMs,
-        });
-
-        if (response.data.status === 'rejected') {
-            throw new Error('alt MM rejected quote');
-        }
-
-        const parsedResponse =
-            quoteModel === 'firm'
-                ? parseFirmQuoteResponseFromAltMM(response.data)
-                : parseIndicativeQuoteResponseFromAltMM(response.data, altPair, makerToken, takerToken);
-
-        return {
-            // hack to appease type checking
-            data: (parsedResponse as unknown) as ResponseT,
-            status: response.status,
-        };
-    } else {
-        throw new Error(`Couldn't find asset pair info`);
+    if (!altPair) {
+        throw new Error(`Alt pair not found`);
     }
+    const side = altPair.baseAsset === takerRequestQueryParams.buyTokenAddress ? AltQuoteSide.Sell : AltQuoteSide.Buy;
+
+    // comparison price needs to be quote/base
+    // in the standard implementation, it's maker/taker
+    let altComparisonPrice: string | undefined;
+    if (altPair.quoteAsset === makerToken) {
+        altComparisonPrice = takerRequestQueryParams.comparisonPrice
+            ? takerRequestQueryParams.comparisonPrice
+            : undefined;
+    } else {
+        altComparisonPrice = takerRequestQueryParams.comparisonPrice
+            ? new BigNumber(takerRequestQueryParams.comparisonPrice).pow(-1).toString()
+            : undefined;
+    }
+
+    let data: AltQuoteRequestData;
+    data = {
+        market: `${altPair.id}`,
+        model: quoteModel,
+        profile,
+        side,
+        meta: {
+            txOrigin: takerRequestQueryParams.txOrigin!,
+            taker: takerRequestQueryParams.takerAddress,
+            client: integratorKey,
+        },
+    };
+
+    // specify a comparison price if it exists
+    if (altComparisonPrice) {
+        data.meta.existingOrder = {
+            price: altComparisonPrice,
+        };
+    }
+
+    // need to specify amount or value
+    // amount is units of the base asset
+    // value is units of the quote asset
+    let requestSize: string;
+    if (takerRequestQueryParams.buyAmountBaseUnits) {
+        requestSize = Web3Wrapper.toUnitAmount(
+            new BigNumber(takerRequestQueryParams.buyAmountBaseUnits),
+            takerRequestQueryParams.buyTokenAddress === altPair.baseAsset
+                ? altPair.baseAssetDecimals
+                : altPair.quoteAssetDecimals,
+        ).toString();
+        if (takerRequestQueryParams.buyTokenAddress === altPair.baseAsset) {
+            data.amount = requestSize;
+            // add to 'existing order' if there is a comparison price
+            if (data.meta.existingOrder) {
+                data.meta.existingOrder.value = requestSize;
+            }
+        } else {
+            data.value = requestSize;
+            // add to 'existing order' if there is a comparison price
+            if (data.meta.existingOrder) {
+                data.meta.existingOrder.amount = requestSize;
+            }
+        }
+    } else if (takerRequestQueryParams.sellAmountBaseUnits) {
+        requestSize = Web3Wrapper.toUnitAmount(
+            new BigNumber(takerRequestQueryParams.sellAmountBaseUnits),
+            takerRequestQueryParams.sellTokenAddress === altPair.baseAsset
+                ? altPair.baseAssetDecimals
+                : altPair.quoteAssetDecimals,
+        ).toString();
+        if (takerRequestQueryParams.sellTokenAddress === altPair.baseAsset) {
+            data.amount = requestSize;
+            if (data.meta.existingOrder) {
+                data.meta.existingOrder.value = requestSize;
+            }
+        } else {
+            data.value = requestSize;
+            if (data.meta.existingOrder) {
+                data.meta.existingOrder.amount = requestSize;
+            }
+        }
+    }
+
+    const response = await axiosInstance.post(`${url}/quotes`, data, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        timeout: maxResponseTimeMs,
+    });
+
+    if (response.data.status === 'rejected') {
+        throw new Error('alt MM rejected quote');
+    }
+
+    const parsedResponse =
+        quoteModel === 'firm'
+            ? parseFirmQuoteResponseFromAltMM(response.data)
+            : parseIndicativeQuoteResponseFromAltMM(response.data, altPair, makerToken, takerToken);
+
+    return {
+        // hack to appease type checking
+        data: (parsedResponse as unknown) as ResponseT,
+        status: response.status,
+    };
 }

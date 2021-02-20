@@ -100,7 +100,7 @@ describe('QuoteRequestor', async () => {
                 market: 'XYZ-123',
                 model: AltQuoteModel.Firm,
                 profile: ALT_PROFILE,
-                side: AltQuoteSide.Buy,
+                side: AltQuoteSide.Sell,
                 meta: {
                     txOrigin,
                     taker: takerAddress,
@@ -241,7 +241,7 @@ describe('QuoteRequestor', async () => {
             );
         });
     });
-    describe('requestRfqtIndicativeQuotesAsync for Indicative quotes', async () => {
+    describe.only('requestRfqtIndicativeQuotesAsync for Indicative quotes', async () => {
         it('should optionally accept a "comparisonPrice" parameter', async () => {
             const response = QuoteRequestor.makeQueryParameters(
                 otherToken1, // tx origin
@@ -438,7 +438,7 @@ describe('QuoteRequestor', async () => {
                 market: 'XYZ-123',
                 model: AltQuoteModel.Indicative,
                 profile: ALT_PROFILE,
-                side: AltQuoteSide.Buy,
+                side: AltQuoteSide.Sell,
                 meta: {
                     txOrigin,
                     taker: takerAddress,
@@ -484,7 +484,7 @@ describe('QuoteRequestor', async () => {
                 market: 'XYZ-123',
                 model: AltQuoteModel.Indicative,
                 profile: ALT_PROFILE,
-                side: AltQuoteSide.Buy,
+                side: AltQuoteSide.Sell,
                 meta: {
                     txOrigin,
                     taker: takerAddress,
@@ -530,7 +530,7 @@ describe('QuoteRequestor', async () => {
                 market: 'XYZ-123',
                 model: AltQuoteModel.Indicative,
                 profile: ALT_PROFILE,
-                side: AltQuoteSide.Sell,
+                side: AltQuoteSide.Buy,
                 meta: {
                     txOrigin,
                     taker: takerAddress,
@@ -576,7 +576,7 @@ describe('QuoteRequestor', async () => {
                 market: 'XYZ-123',
                 model: AltQuoteModel.Indicative,
                 profile: ALT_PROFILE,
-                side: AltQuoteSide.Sell,
+                side: AltQuoteSide.Buy,
                 meta: {
                     txOrigin,
                     taker: takerAddress,
