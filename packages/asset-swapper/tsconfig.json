@@ -5,6 +5,7 @@
     "files": [
         "generated-artifacts/BalanceChecker.json",
         "generated-artifacts/ERC20BridgeSampler.json",
+        "generated-artifacts/FakeTaker.json",
         "test/generated-artifacts/ApproximateBuys.json",
         "test/generated-artifacts/BalanceChecker.json",
         "test/generated-artifacts/BalancerSampler.json",
@@ -15,6 +16,7 @@
         "test/generated-artifacts/DummyLiquidityProvider.json",
         "test/generated-artifacts/ERC20BridgeSampler.json",
         "test/generated-artifacts/Eth2DaiSampler.json",
+        "test/generated-artifacts/FakeTaker.json",
         "test/generated-artifacts/IBalancer.json",
         "test/generated-artifacts/IBancor.json",
         "test/generated-artifacts/ICurve.json",

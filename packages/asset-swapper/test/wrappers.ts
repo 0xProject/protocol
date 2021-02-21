@@ -13,6 +13,7 @@ export * from '../test/generated-wrappers/deployment_constants';
 export * from '../test/generated-wrappers/dummy_liquidity_provider';
 export * from '../test/generated-wrappers/erc20_bridge_sampler';
 export * from '../test/generated-wrappers/eth2_dai_sampler';
+export * from '../test/generated-wrappers/fake_taker';
 export * from '../test/generated-wrappers/i_balancer';
 export * from '../test/generated-wrappers/i_bancor';
 export * from '../test/generated-wrappers/i_curve';
