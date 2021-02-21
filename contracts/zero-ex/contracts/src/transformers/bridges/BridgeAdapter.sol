@@ -28,6 +28,7 @@ import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
+import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyber.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
@@ -46,6 +47,7 @@ contract BridgeAdapter is
     MixinCurve,
     MixinCryptoCom,
     MixinDodo,
+    MixinDodoV2,
     MixinKyber,
     MixinMooniswap,
     MixinMStable,
@@ -64,6 +66,7 @@ contract BridgeAdapter is
         MixinCurve()
         MixinCryptoCom()
         MixinDodo()
+        MixinDodoV2()
         MixinKyber(weth)
         MixinMooniswap(weth)
         MixinMStable()
@@ -158,6 +161,12 @@ contract BridgeAdapter is
             );
         } else if (order.source == BridgeSource.DODO) {
             boughtAmount = _tradeDodo(
+                sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.DODOV2) {
+            boughtAmount = _tradeDodoV2(
                 sellToken,
                 sellAmount,
                 order.bridgeData

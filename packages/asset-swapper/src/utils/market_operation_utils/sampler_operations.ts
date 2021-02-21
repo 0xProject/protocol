@@ -8,8 +8,18 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 import { BalancerPoolsCache } from './balancer_utils';
 import { BancorService } from './bancor_service';
 import {
+    getCurveInfosForPair,
+    getDodoV2Offsets,
+    getKyberOffsets,
+    getSnowSwapInfosForPair,
+    getSwerveInfosForPair,
+    isAllowedKyberReserveId,
+} from './bridge_source_utils';
+import {
     LIQUIDITY_PROVIDER_REGISTRY,
     MAINNET_CRYPTO_COM_ROUTER,
+    MAINNET_DODOV2_PRIVATE_POOL_FACTORY,
+    MAINNET_DODOV2_VENDING_MACHINE_FACTORY,
     MAINNET_MOONISWAP_REGISTRY,
     MAINNET_MOONISWAP_V2_1_REGISTRY,
     MAINNET_MOONISWAP_V2_REGISTRY,
@@ -19,8 +29,6 @@ import {
     ZERO_AMOUNT,
 } from './constants';
 import { CreamPoolsCache } from './cream_utils';
-import { getCurveInfosForPair, getSnowSwapInfosForPair, getSwerveInfosForPair } from './curve_utils';
-import { getKyberOffsets, isAllowedKyberReserveId } from './kyber_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { SamplerContractOperation } from './sampler_contract_operation';
@@ -917,6 +925,52 @@ export class SamplerOperations {
         });
     }
 
+    public getDODOV2SellQuotes(
+        registry: string,
+        offset: BigNumber,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<DODOFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.DodoV2,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromDODOV2,
+            params: [registry, offset, takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: DODOFillData): BigNumber[] => {
+                const [isSellBase, pool, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [boolean, string, BigNumber[]]
+                >('sampleSellsFromDODOV2', callResults);
+                fillData.isSellBase = isSellBase;
+                fillData.poolAddress = pool;
+                return samples;
+            },
+        });
+    }
+
+    public getDODOV2BuyQuotes(
+        registry: string,
+        offset: BigNumber,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<DODOFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.DodoV2,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromDODOV2,
+            params: [registry, offset, takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: DODOFillData): BigNumber[] => {
+                const [isSellBase, pool, samples] = this._samplerContract.getABIDecodedReturnData<
+                    [boolean, string, BigNumber[]]
+                >('sampleSellsFromDODOV2', callResults);
+                fillData.isSellBase = isSellBase;
+                fillData.poolAddress = pool;
+                return samples;
+            },
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1119,6 +1173,27 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
+                        case ERC20BridgeSource.DodoV2:
+                            return [
+                                ...getDodoV2Offsets().map(offset =>
+                                    this.getDODOV2SellQuotes(
+                                        MAINNET_DODOV2_PRIVATE_POOL_FACTORY,
+                                        offset,
+                                        makerToken,
+                                        takerToken,
+                                        takerFillAmounts,
+                                    ),
+                                ),
+                                ...getDodoV2Offsets().map(offset =>
+                                    this.getDODOV2SellQuotes(
+                                        MAINNET_DODOV2_VENDING_MACHINE_FACTORY,
+                                        offset,
+                                        makerToken,
+                                        takerToken,
+                                        takerFillAmounts,
+                                    ),
+                                ),
+                            ];
                         case ERC20BridgeSource.Bancor:
                             return this.getBancorSellQuotes(makerToken, takerToken, takerFillAmounts);
                         default:
@@ -1252,6 +1327,27 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                        case ERC20BridgeSource.DodoV2:
+                            return [
+                                ...getDodoV2Offsets().map(offset =>
+                                    this.getDODOV2BuyQuotes(
+                                        MAINNET_DODOV2_PRIVATE_POOL_FACTORY,
+                                        offset,
+                                        makerToken,
+                                        takerToken,
+                                        makerFillAmounts,
+                                    ),
+                                ),
+                                ...getDodoV2Offsets().map(offset =>
+                                    this.getDODOV2BuyQuotes(
+                                        MAINNET_DODOV2_VENDING_MACHINE_FACTORY,
+                                        offset,
+                                        makerToken,
+                                        takerToken,
+                                        makerFillAmounts,
+                                    ),
+                                ),
+                            ];
                         case ERC20BridgeSource.Bancor:
                             return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         default:

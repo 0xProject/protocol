@@ -118,6 +118,8 @@ export function getERC20BridgeSourceToBridgeSource(source: ERC20BridgeSource): B
             return BridgeSource.Uniswap;
         case ERC20BridgeSource.UniswapV2:
             return BridgeSource.UniswapV2;
+        case ERC20BridgeSource.DodoV2:
+            return BridgeSource.DodoV2;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -179,6 +181,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Dodo:
             const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
             bridgeData = encoder.encode([MAINNET_DODO_HELPER, dodoFillData.poolAddress, dodoFillData.isSellBase]);
+            break;
+        case ERC20BridgeSource.DodoV2:
+            const dodoV2FillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
+            bridgeData = encoder.encode([dodoV2FillData.poolAddress, dodoV2FillData.isSellBase]);
             break;
         case ERC20BridgeSource.Shell:
             const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
@@ -255,6 +261,10 @@ export const BRIDGE_ENCODERS: {
     ]),
     [ERC20BridgeSource.Dodo]: AbiEncoder.create([
         { name: 'helper', type: 'address' },
+        { name: 'poolAddress', type: 'address' },
+        { name: 'isSellBase', type: 'bool' },
+    ]),
+    [ERC20BridgeSource.DodoV2]: AbiEncoder.create([
         { name: 'poolAddress', type: 'address' },
         { name: 'isSellBase', type: 'bool' },
     ]),

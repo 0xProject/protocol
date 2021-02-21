@@ -58,6 +58,7 @@ export const SELL_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Shell,
     ERC20BridgeSource.MultiHop,
     ERC20BridgeSource.Dodo,
+    ERC20BridgeSource.DodoV2,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.CryptoCom,
@@ -83,6 +84,7 @@ export const BUY_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.SushiSwap,
     ERC20BridgeSource.MultiHop,
     ERC20BridgeSource.Dodo,
+    ERC20BridgeSource.DodoV2,
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.CryptoCom,
@@ -471,6 +473,9 @@ export const MAINNET_MOONISWAP_V2_REGISTRY = '0xc4a8b7e29e3c8ec560cd4945c1cf3461
 export const MAINNET_MOONISWAP_V2_1_REGISTRY = '0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643';
 
 export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
+export const MAINNET_DODOV2_PRIVATE_POOL_FACTORY = '0x6b4fa0bc61eddc928e0df9c7f01e407bfcd3e5ef';
+export const MAINNET_DODOV2_VENDING_MACHINE_FACTORY = '0x72d220ce168c4f361dd4dee5d826a01ad8598f6c';
+export const MAX_DODOV2_POOLS_QUERIED = 3;
 
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
     '1': '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
@@ -603,6 +608,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         // sell quote requires additional calculation and overhead
         return isSellBase ? 180e3 : 300e3;
     },
+    [ERC20BridgeSource.DodoV2]: (_fillData?: FillData) => 100e3,
     [ERC20BridgeSource.SnowSwap]: fillData => {
         switch ((fillData as SnowSwapFillData).pool.poolAddress.toLowerCase()) {
             case '0xbf7ccd6c446acfcc5df023043f2167b62e81899b':

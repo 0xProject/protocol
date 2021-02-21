@@ -9,6 +9,10 @@
             {
                 "note": "Export `CurveLiquidityProviderContract`",
                 "pr": 144
+            },
+            {
+                "note": "Add `DodoV2`",
+                "pr": 152
             }
         ]
     },
