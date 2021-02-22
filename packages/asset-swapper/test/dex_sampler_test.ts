@@ -343,6 +343,7 @@ describe('DexSampler tests', () => {
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getUniswapV2SellQuotes(
+                    NULL_ADDRESS,
                     [expectedMakerToken, expectedTakerToken],
                     expectedTakerFillAmounts,
                 ),

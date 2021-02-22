@@ -37,6 +37,10 @@
             {
                 "note": "Added support for `Dodo` v2",
                 "pr": 152
+            },
+            {
+                "note": "Added support for `Linkswap`",
+                "pr": 153
             }
         ]
     },

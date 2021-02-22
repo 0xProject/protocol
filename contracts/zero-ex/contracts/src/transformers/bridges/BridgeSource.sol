@@ -41,6 +41,7 @@ library BridgeSource {
     uint256 constant internal UNISWAP = 16;
     uint256 constant internal UNISWAPV2 = 17;
     uint256 constant internal DODOV2 = 18;
+    uint256 constant internal LINKSWAP = 19;
     // New sources should be APPENDED to this list, taking the next highest
     // integer value.
 }
