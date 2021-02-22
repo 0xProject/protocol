@@ -51,7 +51,7 @@ contract BatchFillNativeOrdersFeature is
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
 
     constructor(address zeroExAddress)
-        internal
+        public
         FixinEIP712(zeroExAddress)
     {
         // solhint-disable no-empty-blocks
