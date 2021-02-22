@@ -31,7 +31,6 @@
                 "pr": 147
             },
             {
-
                 "note": "Create `FakeTaker` contract to get result data and gas used",
                 "pr": 151
             },
