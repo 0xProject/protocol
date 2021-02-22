@@ -182,13 +182,13 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             data.amount = requestSize;
             // add to 'existing order' if there is a comparison price
             if (data.meta.existingOrder) {
-                data.meta.existingOrder.value = requestSize;
+                data.meta.existingOrder.amount = requestSize;
             }
         } else {
             data.value = requestSize;
             // add to 'existing order' if there is a comparison price
             if (data.meta.existingOrder) {
-                data.meta.existingOrder.amount = requestSize;
+                data.meta.existingOrder.value = requestSize;
             }
         }
     } else if (takerRequestQueryParams.sellAmountBaseUnits) {
@@ -201,12 +201,12 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         if (takerRequestQueryParams.sellTokenAddress === altPair.baseAsset) {
             data.amount = requestSize;
             if (data.meta.existingOrder) {
-                data.meta.existingOrder.value = requestSize;
+                data.meta.existingOrder.amount = requestSize;
             }
         } else {
             data.value = requestSize;
             if (data.meta.existingOrder) {
-                data.meta.existingOrder.amount = requestSize;
+                data.meta.existingOrder.value = requestSize;
             }
         }
     }
