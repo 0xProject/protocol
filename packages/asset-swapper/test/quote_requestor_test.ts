@@ -241,7 +241,7 @@ describe('QuoteRequestor', async () => {
             );
         });
     });
-    describe.only('requestRfqtIndicativeQuotesAsync for Indicative quotes', async () => {
+    describe('requestRfqtIndicativeQuotesAsync for Indicative quotes', async () => {
         it('should optionally accept a "comparisonPrice" parameter', async () => {
             const response = QuoteRequestor.makeQueryParameters(
                 otherToken1, // tx origin
