@@ -476,36 +476,4 @@ blockchainTests.resets.only('BatchFillNativeOrdersFeature', env => {
             );
         });
     });
-    // tslint:disable:no-empty
-    describe('marketSellLimitOrders', () => {
-        it('Fills multiple orders up to the `takerTokenSellAmount`', async () => {});
-        it('Fills multiple orders with taker token fees up to the `takerTokenSellAmount`', async () => {});
-        it('Fills all orders if total taker amount < `takerTokenSellAmount`', async () => {});
-        it('Fills multiple orders and refunds excess ETH', async () => {});
-        it('Skips over unfillable orders and refunds excess ETH', async () => {});
-        it('Fills multiple orders up to the `takerTokenSellAmount` with revertIfIncomplete=true', async () => {});
-        it('If revertIfIncomplete==true, reverts if the full `takerTokenSellAmount` is not sold', async () => {});
-    });
-    describe('marketSellRfqOrders', () => {
-        it('Fills multiple orders up to the `takerTokenSellAmount`', async () => {});
-        it('Fills all orders if total taker amount < `takerTokenSellAmount`', async () => {});
-        it('Skips over unfillable orders', async () => {});
-        it('Fills multiple orders up to the `takerTokenSellAmount` with revertIfIncomplete=true', async () => {});
-        it('If revertIfIncomplete==true, reverts if the full `takerTokenSellAmount` is not sold', async () => {});
-    });
-    describe('marketBuyLimitOrders', () => {
-        it('Fills multiple orders up to the `makerTokenBuyAmount`', async () => {});
-        it('Fills all orders if total maker amount < `makerTokenBuyAmount`', async () => {});
-        it('Fills multiple orders and refunds excess ETH', async () => {});
-        it('Skips over unfillable orders and refunds excess ETH', async () => {});
-        it('Fills multiple orders up to the `makerTokenBuyAmount` with revertIfIncomplete=true', async () => {});
-        it('If revertIfIncomplete==true, reverts if the full `makerTokenBuyAmount` is not bought', async () => {});
-    });
-    describe('marketBuyRfqOrders', () => {
-        it('Fills multiple orders up to the `makerTokenBuyAmount`', async () => {});
-        it('Fills all orders if total maker amount < `makerTokenBuyAmount`', async () => {});
-        it('Skips over unfillable orders', async () => {});
-        it('Fills multiple orders up to the `makerTokenBuyAmount` with revertIfIncomplete=true', async () => {});
-        it('If revertIfIncomplete==true, reverts if the full `makerTokenBuyAmount` is not bought', async () => {});
-    });
 });
