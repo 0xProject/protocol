@@ -1,6 +1,6 @@
 import { Web3Wrapper } from '@0x/dev-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@0x/quote-server';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, logUtils } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import { constants } from '../constants';
@@ -211,10 +211,17 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         }
     }
 
+    logUtils.log('alt mm data:');
+    logUtils.log(JSON.stringify(data));
+    logUtils.log('alt mm header:');
+    logUtils.log(JSON.stringify({ Authorization: `Bearer ${apiKey}`}));
     const response = await axiosInstance.post(`${url}/quotes`, data, {
         headers: { Authorization: `Bearer ${apiKey}` },
         timeout: maxResponseTimeMs,
     });
+
+    logUtils.log('alt mm response:');
+    logUtils.log(JSON.stringify(response.data));
 
     if (response.data.status === 'rejected') {
         throw new Error('alt MM rejected quote');
