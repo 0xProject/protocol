@@ -2,6 +2,7 @@ import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
+    MAINNET_CURVE_INFOS,
     MAINNET_SHELL_POOLS,
     MAINNET_SNOWSWAP_INFOS,
     MAINNET_SWERVE_INFOS,
@@ -43,7 +44,7 @@ export function getShellsForPair(takerToken: string, makerToken: string): string
 
 // tslint:disable completed-docs
 export function getCurveInfosForPair(takerToken: string, makerToken: string): CurveInfo[] {
-    return Object.values(MAINNET_SWERVE_INFOS).filter(c =>
+    return Object.values(MAINNET_CURVE_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaToken === undefined) ||
