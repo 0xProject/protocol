@@ -68,23 +68,4 @@ abstract contract NativeOrdersProtocolFees is
     {
         return PROTOCOL_FEE_MULTIPLIER;
     }
-
-    /// @dev Refund any leftover protocol fees in `msg.value` to `msg.sender`.
-    /// @param ethProtocolFeePaid How much ETH was paid in protocol fees.
-    function _refundExcessProtocolFeeToSender(uint256 ethProtocolFeePaid)
-        internal
-    {
-        if (msg.value > ethProtocolFeePaid && msg.sender != address(this)) {
-            uint256 refundAmount = msg.value.safeSub(ethProtocolFeePaid);
-            (bool success,) = msg
-                .sender
-                .call{value: refundAmount}("");
-            if (!success) {
-                LibNativeOrdersRichErrors.ProtocolFeeRefundFailed(
-                    msg.sender,
-                    refundAmount
-                ).rrevert();
-            }
-        }
-    }
 }

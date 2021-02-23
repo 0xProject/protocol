@@ -115,7 +115,7 @@ contract MultiplexFeature is
         returns (uint256 outputTokenAmount)
     {
         // Cache the sender's balance of the output token.
-        uint256 senderBalanceBefore = fillData.outputToken.getTokenBalanceOf(msg.sender);
+        outputTokenAmount = fillData.outputToken.getTokenBalanceOf(msg.sender);
         // Cache the contract's ETH balance prior to this call.
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
@@ -123,19 +123,11 @@ contract MultiplexFeature is
         // allowable amount of ETH for the wrapped calls to consume.
         _batchFill(fillData, msg.value);
 
-        // RFC: I think these balance checks are arguably unnecessary,
-        // and that we can instead trust the `outputTokenAmount` and
-        // `remainingEth` values returned by `_batchFill`. AFAICT the
-        // `remainingEth` value should always be accurate, and the
-        // `outputTokenAmount` is only inaccurate if the sender has
-        // an allowance set on a malicious token contract or liquidity
-        // provider.
-
         // The `outputTokenAmount` returned by `_batchFill` may not
         // be fully accurate (e.g. due to some janky token and/or
         // reentrancy situation).
         outputTokenAmount = fillData.outputToken.getTokenBalanceOf(msg.sender)
-            .safeSub(senderBalanceBefore);
+            .safeSub(outputTokenAmount);
         require(
             outputTokenAmount >= minBuyAmount,
             "MultiplexFeature::batchFill/UNDERBOUGHT"
@@ -170,24 +162,17 @@ contract MultiplexFeature is
         override
         returns (uint256 outputTokenAmount)
     {
-        require(
-            fillData.tokens.length == fillData.calls.length + 1,
-            "MultiplexFeature::multiHopFill/MISMATCHED_ARRAY_LENGTHS"
-        );
         IERC20TokenV06 outputToken = IERC20TokenV06(fillData.tokens[fillData.tokens.length - 1]);
-        uint256 senderBalanceBefore = outputToken.getTokenBalanceOf(msg.sender);
+        outputTokenAmount = outputToken.getTokenBalanceOf(msg.sender);
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
         _multiHopFill(fillData, msg.value);
-
-        // RFC: I think these balance checks are arguably unnecessary,
-        // see reasoning above.
 
         // The `outputTokenAmount` returned by `_multiHopFill` may not
         // be fully accurate (e.g. due to some janky token and/or
         // reentrancy situation).
         outputTokenAmount = outputToken.getTokenBalanceOf(msg.sender)
-            .safeSub(senderBalanceBefore);
+            .safeSub(outputTokenAmount);
         require(
             outputTokenAmount >= minBuyAmount,
             "MultiplexFeature::multiHopFill/UNDERBOUGHT"
@@ -285,7 +270,7 @@ contract MultiplexFeature is
                     // Transfer the input ETH to the provider.
                     payable(provider).transfer(inputTokenAmount);
                     // Count that ETH as spent.
-                    remainingEth = remainingEth -= inputTokenAmount;
+                    remainingEth -= inputTokenAmount;
                 } else {
                     // Transfer input ERC20 tokens to the provider.
                     _transferERC20Tokens(
@@ -367,10 +352,30 @@ contract MultiplexFeature is
         }
     }
 
+    // Internal variant of `multiHopFill`. This function can be nested within
+    // a `_batchFill`.
+    // This function executes a sequence of fills "hopping" through the
+    // path of tokens given by `fillData.tokens`. The nested operations that
+    // can be used as "hops" are:
+    // - WETH.deposit (wraps ETH)
+    // - WETH.withdraw (unwraps WETH)
+    // - _sellToUniswap (executes a Uniswap/Sushiswap swap)
+    // - _sellToLiquidityProvider (executes a PLP swap)
+    // - _transformERC20 (executes arbitrary ERC20 Transformations)
+    // This function optimizes the number of ERC20 transfers performed
+    // by having each hop transfer its output tokens directly to the
+    // target address of the next hop.
     function _multiHopFill(MultiHopFillData memory fillData, uint256 totalEth)
         public
         returns (uint256 outputTokenAmount, uint256 remainingEth)
     {
+        // There should be one call/hop between every two tokens
+        // in the path.
+        // tokens[0]––calls[0]––>tokens[1]––...––calls[n-1]––>tokens[n]
+        require(
+            fillData.tokens.length == fillData.calls.length + 1,
+            "MultiplexFeature::_multiHopFill/MISMATCHED_ARRAY_LENGTHS"
+        );
         // Track the remaining ETH allocated to this call.
         remainingEth = totalEth;
         // This variable is used as the input and output amounts of
@@ -690,7 +695,7 @@ contract MultiplexFeature is
         returns (address recipient)
     {
         recipient = msg.sender;
-        if (i != calls.length - 1) {
+        if (i < calls.length - 1) {
             WrappedMultiHopCall memory nextCall = calls[i + 1];
             if (nextCall.selector == this._sellToUniswap.selector) {
                 (address[] memory tokens, bool isSushi) = abi.decode(

@@ -21,10 +21,15 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "../../errors/LibNativeOrdersRichErrors.sol";
 
 
 /// @dev A library for common native order operations.
 library LibNativeOrder {
+    using LibSafeMathV06 for uint256;
+    using LibRichErrorsV06 for bytes;
 
     enum OrderStatus {
         INVALID,
@@ -214,6 +219,25 @@ library LibNativeOrder {
             // order.salt;
             mstore(add(mem, 0x140), mload(add(order, 0x120)))
             structHash := keccak256(mem, 0x160)
+        }
+    }
+
+    /// @dev Refund any leftover protocol fees in `msg.value` to `msg.sender`.
+    /// @param ethProtocolFeePaid How much ETH was paid in protocol fees.
+    function refundExcessProtocolFeeToSender(uint256 ethProtocolFeePaid)
+        internal
+    {
+        if (msg.value > ethProtocolFeePaid && msg.sender != address(this)) {
+            uint256 refundAmount = msg.value.safeSub(ethProtocolFeePaid);
+            (bool success,) = msg
+                .sender
+                .call{value: refundAmount}("");
+            if (!success) {
+                LibNativeOrdersRichErrors.ProtocolFeeRefundFailed(
+                    msg.sender,
+                    refundAmount
+                ).rrevert();
+            }
         }
     }
 }

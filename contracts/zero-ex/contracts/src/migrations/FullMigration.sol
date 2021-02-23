@@ -25,7 +25,7 @@ import "../features/interfaces/IOwnableFeature.sol";
 import "../features/TokenSpenderFeature.sol";
 import "../features/TransformERC20Feature.sol";
 import "../features/MetaTransactionsFeature.sol";
-import "../features/native_orders/NativeOrdersFeature.sol";
+import "../features/NativeOrdersFeature.sol";
 import "../external/AllowanceTarget.sol";
 import "./InitialMigration.sol";
 

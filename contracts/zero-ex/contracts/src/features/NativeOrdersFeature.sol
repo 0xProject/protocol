@@ -20,10 +20,10 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "../../migrations/LibMigrate.sol";
-import "../interfaces/IFeature.sol";
-import "../interfaces/INativeOrdersFeature.sol";
-import "./NativeOrdersSettlement.sol";
+import "../migrations/LibMigrate.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/INativeOrdersFeature.sol";
+import "./native_orders/NativeOrdersSettlement.sol";
 
 
 /// @dev Feature for interacting with limit and RFQ orders.

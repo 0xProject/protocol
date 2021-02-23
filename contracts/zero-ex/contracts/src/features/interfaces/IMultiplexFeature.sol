@@ -52,7 +52,8 @@ interface IMultiplexFeature {
 
     // Parameters for `multiHopFill`.
     struct MultiHopFillData {
-        // The sell path.
+        // The sell path, i.e.
+        // tokens = [inputToken, hopToken1, ..., hopTokenN, outputToken]
         address[] tokens;
         // The amount of `tokens[0]` to sell.
         uint256 sellAmount;

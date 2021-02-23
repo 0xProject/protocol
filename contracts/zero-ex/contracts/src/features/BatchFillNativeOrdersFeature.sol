@@ -91,6 +91,10 @@ contract BatchFillNativeOrdersFeature is
             uint128[] memory makerTokenFilledAmounts
         )
     {
+        require(
+            orders.length == signatures.length && orders.length == takerTokenFillAmounts.length,
+            'BatchFillNativeOrdersFeature::batchFillLimitOrders/MISMATCHED_ARRAY_LENGTHS'
+        );
         takerTokenFilledAmounts = new uint128[](orders.length);
         makerTokenFilledAmounts = new uint128[](orders.length);
         uint256 protocolFee = uint256(INativeOrdersFeature(address(this)).getProtocolFeeMultiplier())
@@ -122,14 +126,14 @@ contract BatchFillNativeOrdersFeature is
                     LibNativeOrder.getLimitOrderStructHash(orders[i])
                 );
                 // Did not fill the amount requested.
-                LibNativeOrdersRichErrors.FillOrKillFailedError(
+                LibNativeOrdersRichErrors.BatchFillIncompleteError(
                     orderHash,
                     takerTokenFilledAmounts[i],
                     takerTokenFillAmounts[i]
                 ).rrevert();
             }
         }
-        _refundExcessProtocolFeeToSender(ethProtocolFeePaid);
+        LibNativeOrder.refundExcessProtocolFeeToSender(ethProtocolFeePaid);
     }
 
     /// @dev Fills multiple RFQ orders.
@@ -153,6 +157,10 @@ contract BatchFillNativeOrdersFeature is
             uint128[] memory makerTokenFilledAmounts
         )
     {
+        require(
+            orders.length == signatures.length && orders.length == takerTokenFillAmounts.length,
+            'BatchFillNativeOrdersFeature::batchFillRfqOrders/MISMATCHED_ARRAY_LENGTHS'
+        );
         takerTokenFilledAmounts = new uint128[](orders.length);
         makerTokenFilledAmounts = new uint128[](orders.length);
         for (uint256 i = 0; i != orders.length; i++) {
@@ -179,29 +187,10 @@ contract BatchFillNativeOrdersFeature is
                 bytes32 orderHash = _getEIP712Hash(
                     LibNativeOrder.getRfqOrderStructHash(orders[i])
                 );
-                LibNativeOrdersRichErrors.FillOrKillFailedError(
+                LibNativeOrdersRichErrors.BatchFillIncompleteError(
                     orderHash,
                     takerTokenFilledAmounts[i],
                     takerTokenFillAmounts[i]
-                ).rrevert();
-            }
-        }
-    }
-
-    /// @dev Refund any leftover protocol fees in `msg.value` to `msg.sender`.
-    /// @param ethProtocolFeePaid How much ETH was paid in protocol fees.
-    function _refundExcessProtocolFeeToSender(uint256 ethProtocolFeePaid)
-        private
-    {
-        if (msg.value > ethProtocolFeePaid && msg.sender != address(this)) {
-            uint256 refundAmount = msg.value.safeSub(ethProtocolFeePaid);
-            (bool success,) = msg
-                .sender
-                .call{value: refundAmount}("");
-            if (!success) {
-                LibNativeOrdersRichErrors.ProtocolFeeRefundFailed(
-                    msg.sender,
-                    refundAmount
                 ).rrevert();
             }
         }

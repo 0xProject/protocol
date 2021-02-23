@@ -131,7 +131,7 @@ abstract contract NativeOrdersSettlement is
                 taker: msg.sender,
                 sender: msg.sender
             }));
-        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        LibNativeOrder.refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount
@@ -200,7 +200,7 @@ abstract contract NativeOrdersSettlement is
                 takerTokenFillAmount
             ).rrevert();
         }
-        _refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
+        LibNativeOrder.refundExcessProtocolFeeToSender(results.ethProtocolFeePaid);
         makerTokenFilledAmount = results.makerTokenFilledAmount;
     }
 
