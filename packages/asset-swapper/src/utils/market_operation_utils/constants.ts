@@ -62,6 +62,7 @@ export const SELL_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.CryptoCom,
+    ERC20BridgeSource.Linkswap,
 ]);
 
 /**
@@ -88,6 +89,7 @@ export const BUY_SOURCE_FILTER = new SourceFilters([
     ERC20BridgeSource.Cream,
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.CryptoCom,
+    ERC20BridgeSource.Linkswap,
 ]);
 
 /**
@@ -157,6 +159,7 @@ export const TOKENS = {
     EURS: '0xdb25f211ab05b1c97d595516f45794528a807ad8',
     sEUR: '0xd71ecff9342a5ced620049e616c5035f1db98620',
     sETH: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
+    LINK: '0x514910771af9ca656af840dff83e8264ecf986ca',
     // Mirror Protocol
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
@@ -465,6 +468,8 @@ export const MAINNET_UNISWAP_V1_ROUTER = '0xc0a47dfe034b400b47bdad5fecda2621de6c
 export const MAINNET_UNISWAP_V2_ROUTER = '0xf164fc0ec4e93095b804a4795bbe1e041497b92a';
 export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f';
 export const MAINNET_CRYPTO_COM_ROUTER = '0xceb90e4c17d626be0facd78b79c9c87d7ca181b3';
+export const MAINNET_LINKSWAP_ROUTER = '0xa7ece0911fe8c60bff9e99f8fafcdbe56e07aff1';
+
 export const MAINNET_MSTABLE_ROUTER = '0xe2f2a5c287993345a840db3b0845fbc70f5935a5';
 export const MAINNET_OASIS_ROUTER = '0x794e6e91555438afc3ccf1c5076a74f42133d08d';
 
@@ -579,8 +584,17 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.CryptoCom]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
-        let gas = 90e3 + 20e3 + 60e3; // temporary allowance diff, unrolled FQT
-        const path = (fillData as SushiSwapFillData).tokenAddressPath;
+        let gas = 90e3;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.Linkswap]: (fillData?: FillData) => {
+        // TODO: Different base cost if to/from ETH.
+        let gas = 90e3;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.
         }

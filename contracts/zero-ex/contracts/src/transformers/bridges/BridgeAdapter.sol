@@ -103,7 +103,8 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.UNISWAPV2) {
+        } else if (order.source == BridgeSource.UNISWAPV2 ||
+                   order.source == BridgeSource.LINKSWAP) {
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
