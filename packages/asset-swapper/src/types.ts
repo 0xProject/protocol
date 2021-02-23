@@ -7,7 +7,7 @@ import {
     RfqOrderFields,
     Signature,
 } from '@0x/protocol-utils';
-import { TakerRequestQueryParams } from '@0x/quote-server';
+import { TakerRequestQueryParams, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 
 import {
@@ -228,6 +228,7 @@ export interface RfqtRequestOpts {
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQT?: boolean;
+    altRfqtAssetOfferings?: AltRfqtMakerAssetOfferings;
 }
 
 /**
@@ -246,6 +247,25 @@ export interface RfqtMakerAssetOfferings {
     [endpoint: string]: Array<[string, string]>;
 }
 
+export interface AltOffering {
+    id: string;
+    baseAsset: string;
+    quoteAsset: string;
+    baseAssetDecimals: number;
+    quoteAssetDecimals: number;
+}
+export interface AltRfqtMakerAssetOfferings {
+    [endpoint: string]: AltOffering[];
+}
+export enum RfqPairType {
+    Standard = 'standard',
+    Alt = 'alt',
+}
+export interface TypedMakerUrl {
+    url: string;
+    pairType: RfqPairType;
+}
+
 export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
 
 export interface RfqtFirmQuoteValidator {
@@ -255,6 +275,10 @@ export interface RfqtFirmQuoteValidator {
 export interface SwapQuoterRfqtOpts {
     takerApiKeyWhitelist: string[];
     makerAssetOfferings: RfqtMakerAssetOfferings;
+    altRfqCreds?: {
+        altRfqApiKey: string;
+        altRfqProfile: string;
+    };
     warningLogger?: LogFunction;
     infoLogger?: LogFunction;
 }
@@ -333,6 +357,17 @@ export interface MockedRfqtQuoteResponse {
     responseCode: number;
 }
 
+/**
+ * Represents a mocked RFQT maker responses.
+ */
+export interface AltMockedRfqtQuoteResponse {
+    endpoint: string;
+    mmApiKey: string;
+    requestData: AltQuoteRequestData;
+    responseData: any;
+    responseCode: number;
+}
+
 export interface SamplerOverrides {
     overrides: GethCallOverrides;
     block: BlockParam;
@@ -344,3 +379,50 @@ export interface SamplerCallResult {
 }
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+export enum AltQuoteModel {
+    Firm = 'firm',
+    Indicative = 'indicative',
+}
+
+export enum AltQuoteSide {
+    Buy = 'buy',
+    Sell = 'sell',
+}
+
+export interface AltQuoteRequestData {
+    market: string;
+    model: AltQuoteModel;
+    profile: string;
+    side: AltQuoteSide;
+    value?: string;
+    amount?: string;
+    meta: {
+        txOrigin: string;
+        taker: string;
+        client: string;
+        existingOrder?: {
+            price: string;
+            value?: string;
+            amount?: string;
+        };
+    };
+}
+
+export interface AltBaseRfqResponse extends AltQuoteRequestData {
+    id: string;
+    price?: string;
+}
+
+export interface AltIndicativeQuoteResponse extends AltBaseRfqResponse {
+    model: AltQuoteModel.Indicative;
+    status: 'live' | 'rejected';
+}
+
+export interface AltFirmQuoteResponse extends AltBaseRfqResponse {
+    model: AltQuoteModel.Firm;
+    data: {
+        '0xv4order': V4SignedRfqOrder;
+    };
+    status: 'active' | 'rejected';
+}
