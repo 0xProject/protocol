@@ -135,7 +135,7 @@ contract MultiplexFeature is
         );
         // Refund ETH
         if (ethBalanceAfter > ethBalanceBefore) {
-            payable(msg.sender).transfer(ethBalanceAfter - ethBalanceBefore);
+            _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
         }
     }
 
@@ -182,7 +182,7 @@ contract MultiplexFeature is
         );
         // Refund ETH
         if (ethBalanceAfter > ethBalanceBefore) {
-            payable(msg.sender).transfer(ethBalanceAfter - ethBalanceBefore);
+            _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
         }
     }
 
@@ -260,7 +260,7 @@ contract MultiplexFeature is
                         remainingEth
                     );
                     // Transfer the input ETH to the provider.
-                    payable(provider).transfer(inputTokenAmount);
+                    _transferEth(payable(provider), inputTokenAmount);
                     // Count that ETH as spent.
                     remainingEth -= inputTokenAmount;
                 } else {
@@ -371,7 +371,7 @@ contract MultiplexFeature is
         // This variable is used as the input and output amounts of
         // each hop. After the final hop, this will contain the output
         // amount of the multi-hop fill.
-         outputTokenAmount = fillData.sellAmount;
+        outputTokenAmount = fillData.sellAmount;
         // This variable is used to cache the address to target in the
         // next hop. See `_computeHopRecipient` for details.
         address nextTarget;
@@ -417,7 +417,7 @@ contract MultiplexFeature is
                             outputTokenAmount,
                             remainingEth
                         );
-                        payable(provider).transfer(outputTokenAmount);
+                        _transferEth(payable(provider), outputTokenAmount);
                         remainingEth -= outputTokenAmount;
                     } else {
                         _transferERC20Tokens(
@@ -521,7 +521,7 @@ contract MultiplexFeature is
             } else if (wrappedCall.selector == IEtherTokenV06.withdraw.selector) {
                 // Unwrap WETH and send to `msg.sender`.
                 weth.withdraw(outputTokenAmount);
-                msg.sender.transfer(outputTokenAmount);
+                _transferEth(msg.sender, outputTokenAmount);
                 nextTarget = address(0);
             } else {
                 revert("MultiplexFeature::_multiHopFill/UNRECOGNIZED_SELECTOR");
@@ -637,6 +637,13 @@ contract MultiplexFeature is
             recipient
         );
         return outputTokenAmount;
+    }
+
+    function _transferEth(address payable recipient, uint256 amount)
+        private
+    {
+        (bool success,) = recipient.call{value: amount}("");
+        require(success, "MultiplexFeature::_transferEth/TRANSFER_FALIED");
     }
 
     // Some liquidity sources (e.g. Uniswap, Sushiswap, and PLP) can be passed
