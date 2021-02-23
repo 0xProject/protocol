@@ -645,7 +645,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             expect(bridgeFillEvent.inputTokenAmount).to.bignumber.equal(uniswapOutputAmount);
             expect(bridgeFillEvent.outputTokenAmount).to.bignumber.gt(0);
         });
-        it('MultiplexFeature.multiHopFill() complex scenario', async () => {
+        it.skip('MultiplexFeature.multiHopFill() complex scenario', async () => {
             /*
 
                                       /––––PLP–––> USDC

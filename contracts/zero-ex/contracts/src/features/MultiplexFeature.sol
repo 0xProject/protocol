@@ -67,10 +67,6 @@ contract MultiplexFeature is
     uint256 private constant UNISWAP_PAIR_INIT_CODE_HASH = 0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f;
     // Init code hash of the (Sushiswap) UniswapV2Pair contract.
     uint256 private constant SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
-    /// @dev The highest bit of a uint256 value.
-    uint256 private constant HIGH_BIT = 2 ** 255;
-    /// @dev Mask of the lower 255 bits of a uint256 value.
-    uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
 
     constructor(
         IEtherTokenV06 weth_,
@@ -119,9 +115,8 @@ contract MultiplexFeature is
         // Cache the contract's ETH balance prior to this call.
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
-        // Perform the batch fill. Pass in `msg.value` as the maximum
-        // allowable amount of ETH for the wrapped calls to consume.
-        _batchFill(fillData, msg.value);
+        // Perform the batch fill.
+        _batchFill(fillData);
 
         // The `outputTokenAmount` returned by `_batchFill` may not
         // be fully accurate (e.g. due to some janky token and/or
@@ -166,6 +161,8 @@ contract MultiplexFeature is
         outputTokenAmount = outputToken.getTokenBalanceOf(msg.sender);
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
+        // Perform the multi-hop fill. Pass in `msg.value` as the maximum
+        // allowable amount of ETH for the wrapped calls to consume.
         _multiHopFill(fillData, msg.value);
 
         // The `outputTokenAmount` returned by `_multiHopFill` may not
@@ -191,17 +188,13 @@ contract MultiplexFeature is
 
     // Similar to FQT. If `fillData.sellAmount` is set to `type(uint256).max`,
     // this is effectively a batch fill. Otherwise it can be set to perform a
-    // market sell of some amount. In the case of a market sell, the `sellAmount`
-    // values of the constituent wrapped calls can encode percentages of the
-    // full `fillData.sellAmount`. This is useful if e.g. the `_batchFill` call
-    // the second leg of a multi-hop fill, where the sell amount is not known
-    // ahead of time.
-    function _batchFill(BatchFillData memory fillData, uint256 totalEth)
-        public
+    // market sell of some amount.
+    function _batchFill(BatchFillData memory fillData)
+        internal
         returns (uint256 outputTokenAmount, uint256 remainingEth)
     {
         // Track the remaining ETH allocated to this call.
-        remainingEth = totalEth;
+        remainingEth = msg.value;
         // Track the amount of input token sold.
         uint256 soldAmount;
         for (uint256 i = 0; i != fillData.calls.length; i++) {
@@ -209,9 +202,8 @@ contract MultiplexFeature is
             if (soldAmount >= fillData.sellAmount) { break; }
             WrappedBatchCall memory wrappedCall = fillData.calls[i];
             // Compute the fill amount.
-            uint256 inputTokenAmount = _normalizeAmount(
+            uint256 inputTokenAmount = LibSafeMathV06.min256(
                 wrappedCall.sellAmount,
-                fillData.sellAmount,
                 fillData.sellAmount.safeSub(soldAmount)
             );
             if (wrappedCall.selector == INativeOrdersFeature._fillRfqOrder.selector) {
@@ -304,10 +296,9 @@ contract MultiplexFeature is
                     wrappedCall.data,
                     (ITransformERC20Feature.Transformation[], uint256)
                 );
-                // Normalize the ETH and input token amounts.
-                ethValue = _normalizeAmount(
+                // Do not spend more than the remaining ETH.
+                ethValue = LibSafeMathV06.min256(
                     ethValue,
-                    totalEth,
                     remainingEth
                 );
                 try ITransformERC20Feature(address(this))._transformERC20
@@ -331,10 +322,9 @@ contract MultiplexFeature is
                     (address[], WrappedMultiHopCall[], uint256)
                 );
                 multiHopFillData.sellAmount = inputTokenAmount;
-                // Normalize the ETH and input token amounts.
-                ethValue = _normalizeAmount(
+                // Do not spend more than the remaining ETH.
+                ethValue = LibSafeMathV06.min256(
                     ethValue,
-                    totalEth,
                     remainingEth
                 );
                 // Subtract the ethValue allocated to the nested multi-hop fill.
@@ -521,32 +511,6 @@ contract MultiplexFeature is
                 // If the recipient was not `msg.sender`, it must be the target
                 // contract for the next hop.
                 nextTarget = args.taker == msg.sender ? address(0) : args.taker;
-            } else if (wrappedCall.selector == this._batchFill.selector) {
-                BatchFillData memory batchFillData;
-                batchFillData.inputToken = IERC20TokenV06(fillData.tokens[i]);
-                batchFillData.outputToken = IERC20TokenV06(fillData.tokens[i + 1]);
-                uint256 ethValue;
-                (batchFillData.calls, ethValue) = abi.decode(
-                    wrappedCall.data,
-                    (WrappedBatchCall[], uint256)
-                );
-                // Do not spend more than the remaining ETH.
-                ethValue = LibSafeMathV06.min256(ethValue, remainingEth);
-                if (IERC20TokenV06(fillData.tokens[i]).isTokenETH()) {
-                    batchFillData.sellAmount = LibSafeMathV06.min256(
-                        outputTokenAmount,
-                        ethValue
-                    );
-                } else {
-                    batchFillData.sellAmount = outputTokenAmount;
-                }
-                // Decrement the remaining ETH.
-                remainingEth -= ethValue;
-                uint256 leftoverEth;
-                (outputTokenAmount, leftoverEth) = _batchFill(batchFillData, ethValue);
-                // Add back any ETH that was unused by the `_batchFill`.
-                remainingEth += leftoverEth;
-                nextTarget = address(0);
             } else if (wrappedCall.selector == IEtherTokenV06.deposit.selector) {
                 uint256 ethValue = LibSafeMathV06.min256(outputTokenAmount, remainingEth);
                 // Wrap ETH.
@@ -777,28 +741,5 @@ contract MultiplexFeature is
                 UNISWAP_PAIR_INIT_CODE_HASH
             ))));
         }
-    }
-
-    // Convert possible proportional values to absolute quantities.
-    function _normalizeAmount(
-        uint256 rawAmount,
-        uint256 totalBalance,
-        uint256 remainingBalance
-    )
-        private
-        pure
-        returns (uint256 normalized)
-    {
-        if ((rawAmount & HIGH_BIT) == HIGH_BIT) {
-            // If the high bit of `rawAmount` is set then the lower 255 bits
-            // specify a fraction of `totalBalance`.
-            return LibSafeMathV06.min256(
-                totalBalance
-                    * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)
-                    / 1e18,
-                remainingBalance
-            );
-        }
-        return LibSafeMathV06.min256(rawAmount, remainingBalance);
     }
 }
