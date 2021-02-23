@@ -612,6 +612,7 @@ export class MarketOperationUtils {
                 amount,
                 marketSideLiquidity,
                 _opts.feeSchedule,
+                _opts.exchangeProxyOverhead,
             ).wholeOrder;
         }
 
