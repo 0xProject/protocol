@@ -4,6 +4,15 @@
         "changes": [
             {
                 "note": "Deploy new FQT",
+                "pr": 155
+            }
+        ]
+    },
+    {
+        "version": "5.10.0",
+        "changes": [
+            {
+                "note": "Deploy new FQT",
                 "pr": 129
             }
         ],
