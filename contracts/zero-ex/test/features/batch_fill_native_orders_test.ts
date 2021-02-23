@@ -25,7 +25,7 @@ import {
 } from '../utils/orders';
 import { TestMintableERC20TokenContract } from '../wrappers';
 
-blockchainTests.resets.only('BatchFillNativeOrdersFeature', env => {
+blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
     const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
     let maker: string;
     let taker: string;
@@ -280,7 +280,7 @@ blockchainTests.resets.only('BatchFillNativeOrdersFeature', env => {
                 .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), true)
                 .awaitTransactionSuccessAsync({ from: taker, value });
             return expect(tx).to.revertWith(
-                new RevertErrors.NativeOrders.FillOrKillFailedError(
+                new RevertErrors.NativeOrders.BatchFillIncompleteError(
                     expiredOrder.getHash(),
                     ZERO_AMOUNT,
                     expiredOrder.takerAmount,
@@ -302,7 +302,7 @@ blockchainTests.resets.only('BatchFillNativeOrdersFeature', env => {
                 .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), true)
                 .awaitTransactionSuccessAsync({ from: taker, value });
             return expect(tx).to.revertWith(
-                new RevertErrors.NativeOrders.FillOrKillFailedError(
+                new RevertErrors.NativeOrders.BatchFillIncompleteError(
                     partiallyFilledOrder.getHash(),
                     partiallyFilledOrder.takerAmount.minus(partialFillAmount),
                     partiallyFilledOrder.takerAmount,
@@ -447,7 +447,7 @@ blockchainTests.resets.only('BatchFillNativeOrdersFeature', env => {
                 .batchFillRfqOrders(orders, signatures, orders.map(order => order.takerAmount), true)
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
-                new RevertErrors.NativeOrders.FillOrKillFailedError(
+                new RevertErrors.NativeOrders.BatchFillIncompleteError(
                     expiredOrder.getHash(),
                     ZERO_AMOUNT,
                     expiredOrder.takerAmount,
@@ -468,7 +468,7 @@ blockchainTests.resets.only('BatchFillNativeOrdersFeature', env => {
                 .batchFillRfqOrders(orders, signatures, orders.map(order => order.takerAmount), true)
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
-                new RevertErrors.NativeOrders.FillOrKillFailedError(
+                new RevertErrors.NativeOrders.BatchFillIncompleteError(
                     partiallyFilledOrder.getHash(),
                     partiallyFilledOrder.takerAmount.minus(partialFillAmount),
                     partiallyFilledOrder.takerAmount,
