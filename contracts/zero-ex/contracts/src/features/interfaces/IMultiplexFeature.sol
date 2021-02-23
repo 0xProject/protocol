@@ -42,9 +42,6 @@ interface IMultiplexFeature {
         // The selector of the function to call.
         bytes4 selector;
         // Amount of `inputToken` to sell.
-        // Setting the high-bit indicates that `sellAmount & LOW_BITS`
-        // should be treated as a `1e18` fraction of the current balance
-        // of `sellToken`, where `1e18+ == 100%` and `0.5e18 == 50%`, etc.
         uint256 sellAmount;
         // ABI-encoded parameters needed to perform the call.
         bytes data;
