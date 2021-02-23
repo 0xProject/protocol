@@ -45,7 +45,9 @@
             {
                 "note": "Re-add WBTC in default intermediate hops",
                 "pr": 154
-            }
+            },
+                "note": "Add an alternative RFQ market making implementation",
+                "pr": 139
         ]
     },
     {

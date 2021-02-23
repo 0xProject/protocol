@@ -348,6 +348,7 @@ export class SwapQuoter {
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = new QuoteRequestor(
                 rfqtOptions ? rfqtOptions.makerAssetOfferings || {} : {},
+                rfqtOptions ? rfqtOptions.altRfqCreds : undefined,
                 rfqtOptions ? rfqtOptions.warningLogger : undefined,
                 rfqtOptions ? rfqtOptions.infoLogger : undefined,
                 this.expiryBufferMs,

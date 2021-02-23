@@ -1,14 +1,22 @@
 import { tokenUtils } from '@0x/dev-utils';
 import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
-import { TakerRequestQueryParams } from '@0x/quote-server';
+import { TakerRequestQueryParams, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, logUtils } from '@0x/utils';
 import * as chai from 'chai';
 import _ = require('lodash');
 import 'mocha';
 
 import { constants } from '../src/constants';
-import { MarketOperation, MockedRfqtQuoteResponse } from '../src/types';
+import {
+    AltMockedRfqtQuoteResponse,
+    AltQuoteModel,
+    AltQuoteRequestData,
+    AltQuoteSide,
+    AltRfqtMakerAssetOfferings,
+    MarketOperation,
+    MockedRfqtQuoteResponse,
+} from '../src/types';
 import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor, quoteRequestorHttpClient } from '../src/utils/quote_requestor';
 
@@ -17,6 +25,12 @@ import { RfqtQuoteEndpoint, testHelpers } from './utils/test_helpers';
 
 chaiSetup.configure();
 const expect = chai.expect;
+const ALT_MM_API_KEY = 'averysecurekey';
+const ALT_PROFILE = 'acoolprofile';
+const ALT_RFQ_CREDS = {
+    altRfqApiKey: ALT_MM_API_KEY,
+    altRfqProfile: ALT_PROFILE,
+};
 
 function makeThreeMinuteExpiry(): BigNumber {
     const expiry = new Date(Date.now());
@@ -28,6 +42,18 @@ describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
+    const altRfqtAssetOfferings: AltRfqtMakerAssetOfferings = {
+        'https://132.0.0.1': [
+            {
+                id: 'XYZ-123',
+                baseAsset: makerToken,
+                quoteAsset: takerToken,
+                baseAssetDecimals: 2,
+                quoteAssetDecimals: 3,
+            },
+        ],
+    };
+
     describe('requestRfqtFirmQuotesAsync for firm quotes', async () => {
         it('should return successful RFQT requests', async () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
@@ -37,6 +63,8 @@ describe('QuoteRequestor', async () => {
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -65,6 +93,30 @@ describe('QuoteRequestor', async () => {
                 txOrigin,
                 expiry: makeThreeMinuteExpiry(),
                 signature: validSignature,
+            };
+            // request is to sell 10000 units of the base token
+            // 10 units at 3 decimals
+            const altFirmRequestData = {
+                market: 'XYZ-123',
+                model: AltQuoteModel.Firm,
+                profile: ALT_PROFILE,
+                side: AltQuoteSide.Sell,
+                meta: {
+                    txOrigin,
+                    taker: takerAddress,
+                    client: apiKey,
+                },
+                value: '10',
+            };
+            const altFirmResponse = {
+                ...altFirmRequestData,
+                id: 'random_id',
+                // tslint:disable-next-line:custom-no-magic-numbers
+                price: new BigNumber(10 / 100).toString(),
+                status: 'active',
+                data: {
+                    '0xv4order': validSignedOrder,
+                },
             };
 
             // Successful response
@@ -124,6 +176,14 @@ describe('QuoteRequestor', async () => {
                 endpoint: 'https://425.0.0.1',
                 responseData: { signedOrder: { ...validSignedOrder, txOrigin: NULL_ADDRESS } },
             });
+            // A successful response code and order from an alt RFQ implementation
+            altMockedRequests.push({
+                endpoint: 'https://132.0.0.1',
+                mmApiKey: ALT_MM_API_KEY,
+                responseCode: StatusCodes.Success,
+                requestData: altFirmRequestData,
+                responseData: altFirmResponse,
+            });
 
             const normalizedSuccessfulOrder = {
                 order: {
@@ -139,20 +199,24 @@ describe('QuoteRequestor', async () => {
 
             return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                altMockedRequests,
                 RfqtQuoteEndpoint.Firm,
                 async () => {
-                    const qr = new QuoteRequestor({
-                        'https://1337.0.0.1': [[makerToken, takerToken]],
-                        'https://420.0.0.1': [[makerToken, takerToken]],
-                        'https://421.0.0.1': [[makerToken, takerToken]],
-                        'https://421.1.0.1': [[makerToken, takerToken]],
-                        'https://422.0.0.1': [[makerToken, takerToken]],
-                        'https://423.0.0.1': [[makerToken, takerToken]],
-                        'https://424.0.0.1': [[makerToken, takerToken]],
-                        'https://425.0.0.1': [[makerToken, takerToken]],
-                        'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T provider when they don't support the requested asset pair. */,
-                        'https://37.0.0.1': [[makerToken, takerToken]],
-                    });
+                    const qr = new QuoteRequestor(
+                        {
+                            'https://1337.0.0.1': [[makerToken, takerToken]],
+                            'https://420.0.0.1': [[makerToken, takerToken]],
+                            'https://421.0.0.1': [[makerToken, takerToken]],
+                            'https://421.1.0.1': [[makerToken, takerToken]],
+                            'https://422.0.0.1': [[makerToken, takerToken]],
+                            'https://423.0.0.1': [[makerToken, takerToken]],
+                            'https://424.0.0.1': [[makerToken, takerToken]],
+                            'https://425.0.0.1': [[makerToken, takerToken]],
+                            'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T provider when they don't support the requested asset pair. */,
+                            'https://37.0.0.1': [[makerToken, takerToken]],
+                        },
+                        ALT_RFQ_CREDS,
+                    );
                     const resp = await qr.requestRfqtFirmQuotesAsync(
                         makerToken,
                         takerToken,
@@ -164,9 +228,14 @@ describe('QuoteRequestor', async () => {
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
+                            altRfqtAssetOfferings,
                         },
                     );
-                    expect(resp).to.deep.eq([normalizedSuccessfulOrder, normalizedSuccessfulOrder]);
+                    expect(resp).to.deep.eq([
+                        normalizedSuccessfulOrder,
+                        normalizedSuccessfulOrder,
+                        normalizedSuccessfulOrder,
+                    ]);
                 },
                 quoteRequestorHttpClient,
             );
@@ -255,6 +324,7 @@ describe('QuoteRequestor', async () => {
 
             return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                [],
                 RfqtQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor({
@@ -318,6 +388,7 @@ describe('QuoteRequestor', async () => {
 
             return testHelpers.withMockedRfqtQuotes(
                 mockedRequests,
+                [],
                 RfqtQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] });
@@ -338,6 +409,242 @@ describe('QuoteRequestor', async () => {
                 },
                 quoteRequestorHttpClient,
             );
+        });
+        it('should return successful alt indicative quotes', async () => {
+            const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
+            const txOrigin = '0xf209925defc99488e3afff1174e48b4fa628302a';
+            const apiKey = 'my-ko0l-api-key';
+
+            // base token has 2 decimals
+            // quote token has 3 decimals
+            const baseToken = makerToken;
+            const quoteToken = takerToken;
+
+            // Set up RFQT responses
+            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+            const altScenarios: Array<{
+                successfulQuote: V4RFQIndicativeQuote;
+                requestedMakerToken: string;
+                requestedTakerToken: string;
+                requestedAmount: BigNumber;
+                requestedOperation: MarketOperation;
+            }> = [];
+
+            // SCENARIO 1
+            // buy, base asset specified
+            // requesting to buy 100 units (10000 base units) of the base token
+            // returning a price of 0.01, which should mean 10000 maker, 1000 taker amount
+            const buyAmountAltRequest: AltQuoteRequestData = {
+                market: 'XYZ-123',
+                model: AltQuoteModel.Indicative,
+                profile: ALT_PROFILE,
+                side: AltQuoteSide.Sell,
+                meta: {
+                    txOrigin,
+                    taker: takerAddress,
+                    client: apiKey,
+                },
+                amount: '100',
+            };
+            // Successful response
+            const buyAmountAltResponse = {
+                ...buyAmountAltRequest,
+                id: 'random_id',
+                // tslint:disable-next-line:custom-no-magic-numbers
+                price: new BigNumber(0.01).toString(),
+                status: 'live',
+            };
+            const successfulBuyAmountQuote: V4RFQIndicativeQuote = {
+                makerToken: baseToken,
+                takerToken: quoteToken,
+                makerAmount: new BigNumber(10000),
+                takerAmount: new BigNumber(1000),
+                expiry: new BigNumber(0),
+            };
+            altMockedRequests.push({
+                endpoint: 'https://132.0.0.1',
+                mmApiKey: ALT_MM_API_KEY,
+                responseCode: StatusCodes.Success,
+                requestData: buyAmountAltRequest,
+                responseData: buyAmountAltResponse,
+            });
+            altScenarios.push({
+                successfulQuote: successfulBuyAmountQuote,
+                requestedMakerToken: baseToken,
+                requestedTakerToken: quoteToken,
+                requestedAmount: new BigNumber(10000),
+                requestedOperation: MarketOperation.Buy,
+            });
+
+            // SCENARIO 2
+            // alt buy, quote asset specified
+            // user is requesting to sell 1 unit of the quote token, or 1000 base units
+            // returning a price of 0.01, which should mean 10000 maker amount, 1000 taker amount
+            const buyValueAltRequest: AltQuoteRequestData = {
+                market: 'XYZ-123',
+                model: AltQuoteModel.Indicative,
+                profile: ALT_PROFILE,
+                side: AltQuoteSide.Sell,
+                meta: {
+                    txOrigin,
+                    taker: takerAddress,
+                    client: apiKey,
+                },
+                value: '1',
+            };
+            // Successful response
+            const buyValueAltResponse = {
+                ...buyValueAltRequest,
+                id: 'random_id',
+                // tslint:disable-next-line:custom-no-magic-numbers
+                price: new BigNumber(0.01).toString(),
+                status: 'live',
+            };
+            const successfulBuyValueQuote: V4RFQIndicativeQuote = {
+                makerToken: baseToken,
+                takerToken: quoteToken,
+                makerAmount: new BigNumber(10000),
+                takerAmount: new BigNumber(1000),
+                expiry: new BigNumber(0),
+            };
+            altMockedRequests.push({
+                endpoint: 'https://132.0.0.1',
+                mmApiKey: ALT_MM_API_KEY,
+                responseCode: StatusCodes.Success,
+                requestData: buyValueAltRequest,
+                responseData: buyValueAltResponse,
+            });
+            altScenarios.push({
+                successfulQuote: successfulBuyValueQuote,
+                requestedMakerToken: baseToken,
+                requestedTakerToken: quoteToken,
+                requestedAmount: new BigNumber(1000),
+                requestedOperation: MarketOperation.Sell,
+            });
+
+            // SCENARIO 3
+            // alt sell, base asset specified
+            // user is requesting to sell 100 units (10000 base units) of the base token
+            // returning a price of 0.01, which should mean 10000 taker amount, 1000 maker amount
+            const sellAmountAltRequest: AltQuoteRequestData = {
+                market: 'XYZ-123',
+                model: AltQuoteModel.Indicative,
+                profile: ALT_PROFILE,
+                side: AltQuoteSide.Buy,
+                meta: {
+                    txOrigin,
+                    taker: takerAddress,
+                    client: apiKey,
+                },
+                amount: '100',
+            };
+            // Successful response
+            const sellAmountAltResponse = {
+                ...sellAmountAltRequest,
+                id: 'random_id',
+                // tslint:disable-next-line:custom-no-magic-numbers
+                price: new BigNumber(0.01).toString(),
+                status: 'live',
+            };
+            const successfulSellAmountQuote: V4RFQIndicativeQuote = {
+                makerToken: quoteToken,
+                takerToken: baseToken,
+                makerAmount: new BigNumber(1000),
+                takerAmount: new BigNumber(10000),
+                expiry: new BigNumber(0),
+            };
+            altMockedRequests.push({
+                endpoint: 'https://132.0.0.1',
+                mmApiKey: ALT_MM_API_KEY,
+                responseCode: StatusCodes.Success,
+                requestData: sellAmountAltRequest,
+                responseData: sellAmountAltResponse,
+            });
+            altScenarios.push({
+                successfulQuote: successfulSellAmountQuote,
+                requestedMakerToken: quoteToken,
+                requestedTakerToken: baseToken,
+                requestedAmount: new BigNumber(10000),
+                requestedOperation: MarketOperation.Sell,
+            });
+
+            // SCENARIO 4
+            // alt sell, quote asset specified
+            // user is requesting to buy 1 unit (1000 base units) of the quote token
+            // returning a price of 0.01, which should mean 10000 taker amount, 1000 maker amount
+            const sellValueAltRequest: AltQuoteRequestData = {
+                market: 'XYZ-123',
+                model: AltQuoteModel.Indicative,
+                profile: ALT_PROFILE,
+                side: AltQuoteSide.Buy,
+                meta: {
+                    txOrigin,
+                    taker: takerAddress,
+                    client: apiKey,
+                },
+                value: '1',
+            };
+            // Successful response
+            const sellValueAltResponse = {
+                ...sellValueAltRequest,
+                id: 'random_id',
+                // tslint:disable-next-line:custom-no-magic-numbers
+                price: new BigNumber(0.01).toString(),
+                status: 'live',
+            };
+            const successfulSellValueQuote: V4RFQIndicativeQuote = {
+                makerToken: quoteToken,
+                takerToken: baseToken,
+                makerAmount: new BigNumber(1000),
+                takerAmount: new BigNumber(10000),
+                expiry: new BigNumber(0),
+            };
+            altMockedRequests.push({
+                endpoint: 'https://132.0.0.1',
+                mmApiKey: ALT_MM_API_KEY,
+                responseCode: StatusCodes.Success,
+                requestData: sellValueAltRequest,
+                responseData: sellValueAltResponse,
+            });
+            altScenarios.push({
+                successfulQuote: successfulSellValueQuote,
+                requestedMakerToken: quoteToken,
+                requestedTakerToken: baseToken,
+                requestedAmount: new BigNumber(1000),
+                requestedOperation: MarketOperation.Buy,
+            });
+
+            let scenarioCounter = 1;
+            for (const altScenario of altScenarios) {
+                logUtils.log(`Alt MM indicative scenario ${scenarioCounter}`);
+                scenarioCounter += 1;
+                await testHelpers.withMockedRfqtQuotes(
+                    [],
+                    altMockedRequests,
+                    RfqtQuoteEndpoint.Indicative,
+                    async () => {
+                        const qr = new QuoteRequestor({}, ALT_RFQ_CREDS);
+                        const resp = await qr.requestRfqtIndicativeQuotesAsync(
+                            altScenario.requestedMakerToken,
+                            altScenario.requestedTakerToken,
+                            altScenario.requestedAmount,
+                            altScenario.requestedOperation,
+                            undefined,
+                            {
+                                apiKey,
+                                takerAddress,
+                                txOrigin,
+                                intentOnFilling: true,
+                                altRfqtAssetOfferings,
+                            },
+                        );
+                        // hack to get the expiry right, since it's dependent on the current timestamp
+                        const expected = { ...altScenario.successfulQuote, expiry: resp[0].expiry };
+                        expect(resp.sort()).to.eql([expected].sort());
+                    },
+                    quoteRequestorHttpClient,
+                );
+            }
         });
     });
 });
