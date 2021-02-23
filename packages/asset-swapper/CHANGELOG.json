@@ -41,6 +41,10 @@
             {
                 "note": "Added support for `Linkswap`",
                 "pr": 153
+            },
+            {
+                "note": "Re-add WBTC in default intermediate hops",
+                "pr": 154
             }
         ]
     },

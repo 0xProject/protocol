@@ -195,7 +195,7 @@ export const POOLS = {
     curve_aave: '0xdebf20617708857ebe4f679508e7b7863a8a8eee', // 25.aave
 };
 
-export const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC];
+export const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC, TOKENS.WBTC];
 
 export const DEFAULT_TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = new TokenAdjacencyGraphBuilder({
     default: DEFAULT_INTERMEDIATE_TOKENS,
