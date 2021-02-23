@@ -119,8 +119,7 @@ contract MultiplexFeature is
         _batchFill(fillData);
 
         // The `outputTokenAmount` returned by `_batchFill` may not
-        // be fully accurate (e.g. due to some janky token and/or
-        // reentrancy situation).
+        // be fully accurate (e.g. due to some janky token).
         outputTokenAmount = fillData.outputToken.getTokenBalanceOf(msg.sender)
             .safeSub(outputTokenAmount);
         require(
@@ -158,7 +157,9 @@ contract MultiplexFeature is
         returns (uint256 outputTokenAmount)
     {
         IERC20TokenV06 outputToken = IERC20TokenV06(fillData.tokens[fillData.tokens.length - 1]);
+        // Cache the sender's balance of the output token.
         outputTokenAmount = outputToken.getTokenBalanceOf(msg.sender);
+        // Cache the contract's ETH balance prior to this call.
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
 
         // Perform the multi-hop fill. Pass in `msg.value` as the maximum
@@ -166,8 +167,7 @@ contract MultiplexFeature is
         _multiHopFill(fillData, msg.value);
 
         // The `outputTokenAmount` returned by `_multiHopFill` may not
-        // be fully accurate (e.g. due to some janky token and/or
-        // reentrancy situation).
+        // be fully accurate (e.g. due to some janky token).
         outputTokenAmount = outputToken.getTokenBalanceOf(msg.sender)
             .safeSub(outputTokenAmount);
         require(
