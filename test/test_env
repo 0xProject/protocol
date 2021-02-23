@@ -7,3 +7,6 @@ META_TXN_RELAY_PRIVATE_KEY=82b9c3b8d45f608badd8fda250a0d95088381540e850734519b65
 META_TXN_RATE_LIMITER_CONFIG='{"api_key":{"daily":{"allowedDailyLimit": 1}}}'
 NODE_ENV=test
 ETH_GAS_STATION_API_URL=https://ethgasstation.api.0x.org/api/ethgasAPI.json
+ALT_RFQ_MM_ENDPOINT=https://altrfq.com
+ALT_RFQ_MM_API_KEY=averysecurekey
+ALT_RFQ_MM_PROFILE=acoolprofile

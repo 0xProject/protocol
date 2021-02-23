@@ -11,6 +11,7 @@ import {
     SOURCE_FLAGS,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
+    SwapQuoterRfqtOpts,
 } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
@@ -201,13 +202,23 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGI
     ? []
     : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
-export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
+export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.ALT_RFQ_MM_ENDPOINT)
     ? []
     : assertEnvVarType(
           'RFQT_API_KEY_WHITELIST_JSON',
           process.env.RFQT_API_KEY_WHITELIST_JSON,
           EnvVarType.JsonStringList,
       );
+
+export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
+    ? undefined
+    : assertEnvVarType('ALT_RFQ_MM_ENDPOINT', process.env.ALT_RFQ_MM_ENDPOINT, EnvVarType.Url);
+export const ALT_RFQ_MM_API_KEY: string | undefined = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
+    ? undefined
+    : assertEnvVarType('ALT_RFQ_MM_API_KEY', process.env.ALT_RFQ_MM_API_KEY, EnvVarType.NonEmptyString);
+export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
+    ? undefined
+    : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
 
 export const PLP_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.PLP_API_KEY_WHITELIST_JSON)
     ? []
@@ -369,13 +380,25 @@ export const DEFAULT_INTERMEDIATE_TOKENS = [
     getTokenMetadataIfExists('WBTC', CHAIN_ID)?.tokenAddress,
 ].filter(t => t) as string[];
 
+let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqtOpts = {
+    takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
+    makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
+};
+
+if (ALT_RFQ_MM_API_KEY && ALT_RFQ_MM_PROFILE) {
+    SWAP_QUOTER_RFQT_OPTS = {
+        ...SWAP_QUOTER_RFQT_OPTS,
+        altRfqCreds: {
+            altRfqApiKey: ALT_RFQ_MM_API_KEY,
+            altRfqProfile: ALT_RFQ_MM_PROFILE,
+        },
+    };
+}
+
 export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     chainId: CHAIN_ID,
     expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
-    rfqt: {
-        takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
-        makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
-    },
+    rfqt: SWAP_QUOTER_RFQT_OPTS,
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
