@@ -4,6 +4,7 @@ import * as chai from 'chai';
 import * as _ from 'lodash';
 import 'mocha';
 
+import { SOURCE_FLAGS } from '../src';
 import { MarketOperation } from '../src/types';
 import { getComparisonPrices } from '../src/utils/market_operation_utils/comparison_price';
 import { SourceFilters } from '../src/utils/market_operation_utils/source_filters';
@@ -36,6 +37,14 @@ const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
 
 const feeSchedule = {
     [ERC20BridgeSource.Native]: _.constant(GAS_PRICE.times(NATIVE_ORDER_FEE)),
+};
+
+const exchangeProxyOverhead = (sourceFlags: number) => {
+    if ([SOURCE_FLAGS.Native].includes(sourceFlags)) {
+        return new BigNumber(150e3).times(GAS_PRICE);
+    } else {
+        return new BigNumber(200e3).times(GAS_PRICE);
+    }
 };
 
 const buyMarketSideLiquidity: MarketSideLiquidity = {
@@ -89,10 +98,16 @@ describe('getComparisonPrices', async () => {
         // raw maker over taker rate, let's say is 500 flat
         const adjustedRate = new BigNumber(500);
 
-        const comparisonPrices = getComparisonPrices(adjustedRate, AMOUNT, sellMarketSideLiquidity, feeSchedule);
+        const comparisonPrices = getComparisonPrices(
+            adjustedRate,
+            AMOUNT,
+            sellMarketSideLiquidity,
+            feeSchedule,
+            exchangeProxyOverhead,
+        );
 
         // expected outcome
-        const EXPECTED_PRICE = new BigNumber('500.55');
+        const EXPECTED_PRICE = new BigNumber('500.925');
 
         expect(comparisonPrices.wholeOrder).to.deep.eq(EXPECTED_PRICE);
     });
@@ -105,10 +120,16 @@ describe('getComparisonPrices', async () => {
         // raw maker over taker rate, let's say is ETH/DAI rate is 500 flat
         const adjustedRate = new BigNumber(1).dividedBy(new BigNumber(500));
 
-        const comparisonPrices = getComparisonPrices(adjustedRate, AMOUNT, buyMarketSideLiquidity, feeSchedule);
+        const comparisonPrices = getComparisonPrices(
+            adjustedRate,
+            AMOUNT,
+            buyMarketSideLiquidity,
+            feeSchedule,
+            exchangeProxyOverhead,
+        );
 
         // expected outcome
-        const EXPECTED_PRICE = new BigNumber('0.0020022024');
+        const EXPECTED_PRICE = new BigNumber('0.0020037069');
 
         expect(comparisonPrices.wholeOrder).to.deep.eq(EXPECTED_PRICE);
     });
@@ -119,7 +140,13 @@ describe('getComparisonPrices', async () => {
         // raw maker over taker rate, let's say is 500 flat
         const adjustedRate = new BigNumber(500);
 
-        const comparisonPrices = getComparisonPrices(adjustedRate, AMOUNT, sellMarketSideLiquidity, feeSchedule);
+        const comparisonPrices = getComparisonPrices(
+            adjustedRate,
+            AMOUNT,
+            sellMarketSideLiquidity,
+            feeSchedule,
+            exchangeProxyOverhead,
+        );
 
         expect(comparisonPrices.wholeOrder === undefined);
     });
