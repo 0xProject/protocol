@@ -1,4 +1,5 @@
 import {
+    AffiliateFeeType,
     ContractAddresses,
     ERC20BridgeSource,
     QuoteReport,
@@ -394,6 +395,13 @@ export interface TokenMetadata {
     tokenAddress: string;
 }
 
+// tslint:disable:enum-naming
+export enum FeeParamTypes {
+    POSITIVE_SLIPPAGE = 'POSITIVE_SLIPPAGE',
+    FIXED = 'FIXED',
+}
+// tslint:enable:enum-naming
+
 export interface AffiliateFeeAmounts {
     gasCost: BigNumber;
     sellTokenFeeAmount: BigNumber;
@@ -441,7 +449,8 @@ export interface SourceComparison {
     savingsInEth?: BigNumber;
 }
 
-export interface PercentageFee {
+export interface AffiliateFee {
+    feeType: AffiliateFeeType;
     recipient: string;
     sellTokenPercentageFee: number;
     buyTokenPercentageFee: number;
@@ -454,7 +463,7 @@ interface SwapQuoteParamsBase {
     excludedSources: ERC20BridgeSource[];
     includedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
-    affiliateFee: PercentageFee;
+    affiliateFee: AffiliateFee;
     includePriceComparisons?: boolean;
 }
 

@@ -149,7 +149,10 @@ export enum ValidationErrorReasons {
     TakerAddressInvalid = 'TAKER_ADDRESS_INVALID',
     RequiresIntentOnFilling = 'REQUIRES_INTENT_ON_FILLING',
     UnfillableRequiresMakerAddress = 'MAKER_ADDRESS_REQUIRED_TO_FETCH_UNFILLABLE_ORDERS',
+    MultipleFeeTypesUsed = 'MULTIPLE_FEE_TYPES_USED',
+    FeeRecipientMissing = 'FEE_RECIPIENT_MISSING',
 }
+
 export abstract class AlertError {
     public abstract message: string;
     public shouldAlert: boolean = true;

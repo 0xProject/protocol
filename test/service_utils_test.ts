@@ -1,10 +1,10 @@
-import { ERC20BridgeSource } from '@0x/asset-swapper';
-import { expect } from '@0x/contracts-test-utils';
+import { AffiliateFeeType, ERC20BridgeSource } from '@0x/asset-swapper';
+import { expect, randomAddress } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 // tslint:disable-next-line:no-implicit-dependencies
 import 'mocha';
 
-import { AFFILIATE_FEE_TRANSFORMER_GAS, ZERO } from '../src/constants';
+import { AFFILIATE_FEE_TRANSFORMER_GAS, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS, ZERO } from '../src/constants';
 import { serviceUtils } from '../src/utils/service_utils';
 
 import { AFFILIATE_DATA_SELECTOR } from './constants';
@@ -76,6 +76,7 @@ describe(SUITE_NAME, () => {
     describe('getAffiliateFeeAmounts', () => {
         it('returns the correct amounts if the fee is zero', () => {
             const affiliateFee = {
+                feeType: AffiliateFeeType.PercentageFee,
                 recipient: '',
                 buyTokenPercentageFee: 0,
                 sellTokenPercentageFee: 0,
@@ -89,7 +90,8 @@ describe(SUITE_NAME, () => {
         });
         it('returns the correct amounts if the fee is non-zero', () => {
             const affiliateFee = {
-                recipient: '',
+                feeType: AffiliateFeeType.PercentageFee,
+                recipient: randomAddress(),
                 buyTokenPercentageFee: 0.01,
                 sellTokenPercentageFee: 0,
             };
@@ -102,6 +104,20 @@ describe(SUITE_NAME, () => {
                 sellTokenFeeAmount: ZERO,
                 gasCost: AFFILIATE_FEE_TRANSFORMER_GAS,
             });
+        });
+    });
+    it('returns the correct amounts if the positive slippage fee is non-zero', () => {
+        const affiliateFee = {
+            feeType: AffiliateFeeType.PositiveSlippageFee,
+            recipient: randomAddress(),
+            buyTokenPercentageFee: 0,
+            sellTokenPercentageFee: 0,
+        };
+        const costInfo = serviceUtils.getAffiliateFeeAmounts(randomSellQuote, affiliateFee);
+        expect(costInfo).to.deep.equal({
+            buyTokenFeeAmount: ZERO,
+            sellTokenFeeAmount: ZERO,
+            gasCost: POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS,
         });
     });
 });

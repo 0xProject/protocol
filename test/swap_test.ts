@@ -393,6 +393,30 @@ describe.skip(SUITE_NAME, () => {
                     ),
                 );
             });
+            it('validation error if both percentage and positive slippage fee enabled', async () => {
+                await quoteAndExpectAsync(
+                    app,
+                    {
+                        ...sellQuoteParams,
+                        feeType: 'POSITIVE_SLIPPAGE',
+                        buyTokenPercentageFee: '0.9',
+                    },
+                    {
+                        validationErrors: [
+                            {
+                                code: ValidationErrorCodes.UnsupportedOption,
+                                field: 'buyTokenPercentageFee',
+                                reason: ValidationErrorReasons.MultipleFeeTypesUsed,
+                            },
+                            {
+                                code: ValidationErrorCodes.UnsupportedOption,
+                                field: 'feeType',
+                                reason: ValidationErrorReasons.MultipleFeeTypesUsed,
+                            },
+                        ],
+                    },
+                );
+            });
             it('validation error if given a non-zero sell token fee', async () => {
                 const feeRecipient = randomAddress();
                 await quoteAndExpectAsync(

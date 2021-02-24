@@ -291,7 +291,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     const apiKey: string | undefined = req.header('0x-api-key');
 
     // Parse string params
-    const { takerAddress, affiliateAddress, feeRecipient } = req.query;
+    const { takerAddress, affiliateAddress } = req.query;
 
     // Parse boolean params and defaults
     // tslint:disable:boolean-naming
@@ -348,37 +348,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
             },
         ]);
     }
-    const sellTokenPercentageFee = Number.parseFloat(req.query.sellTokenPercentageFee as string) || 0;
-    const buyTokenPercentageFee = Number.parseFloat(req.query.buyTokenPercentageFee as string) || 0;
-    if (sellTokenPercentageFee > 0) {
-        throw new ValidationError([
-            {
-                field: 'sellTokenPercentageFee',
-                code: ValidationErrorCodes.UnsupportedOption,
-                reason: ValidationErrorReasons.ArgumentNotYetSupported,
-            },
-        ]);
-    }
-    if (buyTokenPercentageFee > 1) {
-        throw new ValidationError([
-            {
-                field: 'buyTokenPercentageFee',
-                code: ValidationErrorCodes.ValueOutOfRange,
-                reason: ValidationErrorReasons.PercentageOutOfRange,
-            },
-        ]);
-    }
-    const affiliateFee = feeRecipient
-        ? {
-              recipient: feeRecipient as string,
-              sellTokenPercentageFee,
-              buyTokenPercentageFee,
-          }
-        : {
-              recipient: NULL_ADDRESS,
-              sellTokenPercentageFee: 0,
-              buyTokenPercentageFee: 0,
-          };
 
     // Parse sources
     // tslint:disable-next-line: boolean-naming
@@ -442,6 +411,8 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         }
         return undefined;
     })();
+
+    const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
 
     return {
         takerAddress: takerAddress as string,

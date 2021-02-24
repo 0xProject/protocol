@@ -43,6 +43,7 @@ export const WRAP_ETH_GAS = UNWRAP_WETH_GAS;
 export const UNWRAP_QUOTE_GAS = TX_BASE_GAS.plus(UNWRAP_WETH_GAS);
 export const WRAP_QUOTE_GAS = UNWRAP_QUOTE_GAS;
 export const AFFILIATE_FEE_TRANSFORMER_GAS = new BigNumber(15000);
+export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 export const ONE_GWEI = new BigNumber(1000000000);
 
 // API namespaces

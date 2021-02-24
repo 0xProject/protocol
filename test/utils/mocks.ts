@@ -76,6 +76,6 @@ export const randomSellQuote: SwapQuote = {
     isTwoHop: false,
     makerTokenDecimals: 18,
     takerTokenDecimals: 18,
-    takerTokenToEthRate: new BigNumber(0),
-    makerTokenToEthRate: new BigNumber(0),
+    takerAmountPerEth: new BigNumber(0),
+    makerAmountPerEth: new BigNumber(0),
 };

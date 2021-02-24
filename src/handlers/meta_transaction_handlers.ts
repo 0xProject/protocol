@@ -1,7 +1,7 @@
 import { assert } from '@0x/assert';
 import { ERC20BridgeSource, Signature, SwapQuoterError } from '@0x/asset-swapper';
 import { MarketOperation } from '@0x/types';
-import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
@@ -380,39 +380,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
     const isBNT = sellTokenAddress.toLowerCase() === bntAddress || buyTokenAddress.toLowerCase() === bntAddress;
     const excludedSources = isBNT ? _excludedSources : _excludedSources.concat(ERC20BridgeSource.Bancor);
 
-    const feeRecipient = req.query.feeRecipient as string;
-    const sellTokenPercentageFee = Number.parseFloat(req.query.sellTokenPercentageFee as string) || 0;
-    const buyTokenPercentageFee = Number.parseFloat(req.query.buyTokenPercentageFee as string) || 0;
-    if (sellTokenPercentageFee > 0) {
-        throw new ValidationError([
-            {
-                field: 'sellTokenPercentageFee',
-                code: ValidationErrorCodes.UnsupportedOption,
-                reason: ValidationErrorReasons.ArgumentNotYetSupported,
-            },
-        ]);
-    }
-    if (buyTokenPercentageFee > 1) {
-        throw new ValidationError([
-            {
-                field: 'buyTokenPercentageFee',
-                code: ValidationErrorCodes.ValueOutOfRange,
-                reason: ValidationErrorReasons.PercentageOutOfRange,
-            },
-        ]);
-    }
-    const affiliateFee = feeRecipient
-        ? {
-              recipient: feeRecipient,
-              sellTokenPercentageFee,
-              buyTokenPercentageFee,
-          }
-        : {
-              recipient: NULL_ADDRESS,
-              sellTokenPercentageFee: 0,
-              buyTokenPercentageFee: 0,
-          };
-
+    const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
     const affiliateAddress = req.query.affiliateAddress as string | undefined;
 
     return {
