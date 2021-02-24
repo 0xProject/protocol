@@ -6,7 +6,14 @@ import * as _ from 'lodash';
 import { MarketOperation } from '../../types';
 
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
-import { ComparisonPrice, ERC20BridgeSource, ExchangeProxyOverhead, FeeEstimate, FeeSchedule, MarketSideLiquidity } from './types';
+import {
+    ComparisonPrice,
+    ERC20BridgeSource,
+    ExchangeProxyOverhead,
+    FeeEstimate,
+    FeeSchedule,
+    MarketSideLiquidity,
+} from './types';
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat

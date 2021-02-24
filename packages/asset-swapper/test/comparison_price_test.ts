@@ -98,7 +98,13 @@ describe('getComparisonPrices', async () => {
         // raw maker over taker rate, let's say is 500 flat
         const adjustedRate = new BigNumber(500);
 
-        const comparisonPrices = getComparisonPrices(adjustedRate, AMOUNT, sellMarketSideLiquidity, feeSchedule, exchangeProxyOverhead);
+        const comparisonPrices = getComparisonPrices(
+            adjustedRate,
+            AMOUNT,
+            sellMarketSideLiquidity,
+            feeSchedule,
+            exchangeProxyOverhead,
+        );
 
         // expected outcome
         const EXPECTED_PRICE = new BigNumber('500.925');
@@ -114,7 +120,13 @@ describe('getComparisonPrices', async () => {
         // raw maker over taker rate, let's say is ETH/DAI rate is 500 flat
         const adjustedRate = new BigNumber(1).dividedBy(new BigNumber(500));
 
-        const comparisonPrices = getComparisonPrices(adjustedRate, AMOUNT, buyMarketSideLiquidity, feeSchedule, exchangeProxyOverhead);
+        const comparisonPrices = getComparisonPrices(
+            adjustedRate,
+            AMOUNT,
+            buyMarketSideLiquidity,
+            feeSchedule,
+            exchangeProxyOverhead,
+        );
 
         // expected outcome
         const EXPECTED_PRICE = new BigNumber('0.0020037069');
@@ -128,7 +140,13 @@ describe('getComparisonPrices', async () => {
         // raw maker over taker rate, let's say is 500 flat
         const adjustedRate = new BigNumber(500);
 
-        const comparisonPrices = getComparisonPrices(adjustedRate, AMOUNT, sellMarketSideLiquidity, feeSchedule, exchangeProxyOverhead);
+        const comparisonPrices = getComparisonPrices(
+            adjustedRate,
+            AMOUNT,
+            sellMarketSideLiquidity,
+            feeSchedule,
+            exchangeProxyOverhead,
+        );
 
         expect(comparisonPrices.wholeOrder === undefined);
     });
