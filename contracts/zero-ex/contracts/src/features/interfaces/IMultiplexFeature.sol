@@ -75,6 +75,22 @@ interface IMultiplexFeature {
         address recipient
     );
 
+    event MultiplexBatchFill(
+        address indexed taker,
+        address inputToken,
+        address outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount
+    );
+
+    event MultiplexMultiHopFill(
+        address indexed taker,
+        address inputToken,
+        address outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount
+    );
+
     /// @dev Executes a batch of fills selling `fillData.inputToken`
     ///      for `fillData.outputToken` in sequence. Refer to the
     ///      internal variant `_batchFill` for the allowed nested

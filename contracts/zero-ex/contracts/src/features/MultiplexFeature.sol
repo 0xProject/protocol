@@ -136,6 +136,14 @@ contract MultiplexFeature is
         if (ethBalanceAfter > ethBalanceBefore) {
             _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
         }
+
+        emit MultiplexBatchFill(
+            msg.sender,
+            address(fillData.inputToken),
+            address(fillData.outputToken),
+            fillData.sellAmount,
+            outputTokenAmount
+        );
     }
 
     /// @dev Executes a sequence of fills "hopping" through the
@@ -184,11 +192,22 @@ contract MultiplexFeature is
         if (ethBalanceAfter > ethBalanceBefore) {
             _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
         }
+
+        emit MultiplexMultiHopFill(
+            msg.sender,
+            fillData.tokens[0],
+            address(outputToken),
+            fillData.sellAmount,
+            outputTokenAmount
+        );
     }
 
     // Similar to FQT. If `fillData.sellAmount` is set to `type(uint256).max`,
     // this is effectively a batch fill. Otherwise it can be set to perform a
-    // market sell of some amount.
+    // market sell of some amount. Note that the `outputTokenAmount` returned
+    // by this function could theoretically be inaccurate if `msg.sender` has
+    // set a token allowance on an external contract that gets called during
+    // the execution of this function.
     function _batchFill(BatchFillData memory fillData)
         internal
         returns (uint256 outputTokenAmount, uint256 remainingEth)
@@ -354,7 +373,10 @@ contract MultiplexFeature is
     // - _transformERC20 (executes arbitrary ERC20 Transformations)
     // This function optimizes the number of ERC20 transfers performed
     // by having each hop transfer its output tokens directly to the
-    // target address of the next hop.
+    // target address of the next hop. Note that the `outputTokenAmount` returned
+    // by this function could theoretically be inaccurate if `msg.sender` has
+    // set a token allowance on an external contract that gets called during
+    // the execution of this function.
     function _multiHopFill(MultiHopFillData memory fillData, uint256 totalEth)
         public
         returns (uint256 outputTokenAmount, uint256 remainingEth)
