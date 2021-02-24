@@ -5,7 +5,8 @@
             {
                 "note": "Major version bump with V4 FQT"
             }
-        ]
+        ],
+        "timestamp": 1614141718
     },
     {
         "version": "6.6.0",

@@ -10,7 +10,8 @@
                 "note": "Deploy new `PositiveSlippageFeeTransformer`",
                 "pr": 101
             }
-        ]
+        ],
+        "timestamp": 1614141718
     },
     {
         "version": "5.10.0",

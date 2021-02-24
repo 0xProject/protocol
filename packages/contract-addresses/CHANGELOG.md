@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.11.0 - _February 24, 2021_
+
+    * Deploy new FQT (#155)
+    * Deploy new `PositiveSlippageFeeTransformer` (#101)
+
 ## v5.10.0 - _February 10, 2021_
 
     * Deploy new FQT (#129)

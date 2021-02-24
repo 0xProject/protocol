@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.19.0 - _February 24, 2021_
+
+    * Add `CurveLiquidityProvider` and misc refactors (#127)
+    * Export `CurveLiquidityProviderContract` (#144)
+    * Add `DodoV2` (#152)
+    * Add `Linkswap` (#153)
+    * refund ETH with no gas limit in FQT (#155)
+    * Added an opt-in `PositiveSlippageAffiliateFee` (#101)
+
 ## v0.18.2 - _February 10, 2021_
 
     * Update FQT for v4 native orders (#104)

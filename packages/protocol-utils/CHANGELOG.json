@@ -10,7 +10,8 @@
                 "note": "Add `DodoV2` and `Linkswap` BridgeSource",
                 "pr": 152
             }
-        ]
+        ],
+        "timestamp": 1614141718
     },
     {
         "version": "1.2.0",

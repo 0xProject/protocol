@@ -54,7 +54,8 @@
                 "note": "Added an opt-in `PositiveSlippageAffiliateFee`",
                 "pr": 101
             }
-        ]
+        ],
+        "timestamp": 1614141718
     },
     {
         "version": "6.0.0",

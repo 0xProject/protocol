@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.3.0 - _February 24, 2021_
+
+    * Add VIP utils (#127)
+    * Add `DodoV2` and `Linkswap` BridgeSource (#152)
+
 ## v1.2.0 - _February 10, 2021_
 
     * Update transformer utils for V4 FQT (#104)

@@ -5,6 +5,22 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.1.0 - _February 24, 2021_
+
+    * Filter MultiHop where second source is not present (#138)
+    * Add CurveLiquidityProvider "direct" route to EP consumer. (#127)
+    * Fix compiler error on `ILiquidityProvider` call (#127)
+    * Add deployed `CurveLiquidityProvider` addresses (#144)
+    * Support `Mirror Protocol` with hops to `UST` (#142)
+    * Fix protocol fee in fee schedule for `RfqOrder` (#146)
+    * Special case BNB in uni v1 sampler (#147)
+    * Create `FakeTaker` contract to get result data and gas used (#151)
+    * Added support for `Dodo` v2 (#152)
+    * Added support for `Linkswap` (#153)
+    * Re-add WBTC in default intermediate hops (#154)
+    * Add an alternative RFQ market making implementation (#139)
+    * Added an opt-in `PositiveSlippageAffiliateFee` (#101)
+
 ## v6.0.0 - _February 10, 2021_
 
     * Pull top 250 Balancer pairs on initialization (#113)

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v7.0.0 - _February 24, 2021_
+
+    * Major version bump with V4 FQT
+
 ## v6.6.0 - _February 10, 2021_
 
     * Update `BridgeAdapter` deployment (#104)

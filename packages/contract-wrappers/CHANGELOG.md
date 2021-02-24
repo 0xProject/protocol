@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.13.0 - _February 24, 2021_
+
+    * Regenerate wrappers (#145)
+
 ## v13.12.3 - _February 10, 2021_
 
     * Dependencies updated
