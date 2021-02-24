@@ -342,8 +342,8 @@ export async function runMigrationsAsync(
         provider,
         txDefaults,
         allArtifacts,
-        exchange.address,
         bridgeAdapter.address,
+        exchangeProxy.address,
     );
 
     const contractAddresses = {
