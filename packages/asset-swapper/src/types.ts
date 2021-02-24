@@ -54,12 +54,15 @@ export interface NativeOrderFillableAmountFields {
  * toAddress: The contract address to call.
  * ethAmount: The eth amount in wei to send with the smart contract call.
  * allowanceTarget: The address the taker should grant an allowance to.
+ * gasOverhead: The gas overhead needed to be added to the gas limit to allow for optional
+ * operations which may not visible at eth_estimateGas time
  */
 export interface CalldataInfo {
     calldataHexString: string;
     toAddress: string;
     ethAmount: BigNumber;
     allowanceTarget: string;
+    gasOverhead: BigNumber;
 }
 
 /**
@@ -98,7 +101,14 @@ export interface SwapQuoteExecutionOpts extends SwapQuoteGetOutputOpts {
     gasLimit?: number;
 }
 
-export interface AffiliateFee {
+export enum AffiliateFeeType {
+    None,
+    PercentageFee,
+    PositiveSlippageFee,
+}
+
+export interface AffiliateFeeAmount {
+    feeType: AffiliateFeeType;
     recipient: string;
     buyTokenFeeAmount: BigNumber;
     sellTokenFeeAmount: BigNumber;
@@ -130,7 +140,7 @@ export enum ExchangeProxyRefundReceiver {
 export interface ExchangeProxyContractOpts {
     isFromETH: boolean;
     isToETH: boolean;
-    affiliateFee: AffiliateFee;
+    affiliateFee: AffiliateFeeAmount;
     refundReceiver: string | ExchangeProxyRefundReceiver;
     isMetaTransaction: boolean;
     shouldSellEntireBalance: boolean;
@@ -161,8 +171,8 @@ export interface SwapQuoteBase {
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
-    takerTokenToEthRate: BigNumber;
-    makerTokenToEthRate: BigNumber;
+    takerAmountPerEth: BigNumber;
+    makerAmountPerEth: BigNumber;
 }
 
 /**

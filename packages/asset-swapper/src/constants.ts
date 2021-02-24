@@ -3,6 +3,7 @@ import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 
 import {
+    AffiliateFeeType,
     ExchangeProxyContractOpts,
     LogFunction,
     OrderPrunerOpts,
@@ -12,7 +13,11 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from './types';
-import { DEFAULT_GET_MARKET_ORDERS_OPTS, TOKENS } from './utils/market_operation_utils/constants';
+import {
+    DEFAULT_GET_MARKET_ORDERS_OPTS,
+    DEFAULT_INTERMEDIATE_TOKENS,
+    DEFAULT_TOKEN_ADJACENCY_GRAPH,
+} from './utils/market_operation_utils/constants';
 
 const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
 const NULL_BYTES = '0x';
@@ -38,7 +43,6 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 // default 50% buffer for selecting native orders to be aggregated with other sources
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
 
-const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC];
 const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
@@ -49,12 +53,14 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
         takerApiKeyWhitelist: [],
         makerAssetOfferings: {},
     },
+    tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH,
 };
 
 const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts = {
     isFromETH: false,
     isToETH: false,
     affiliateFee: {
+        feeType: AffiliateFeeType.None,
         recipient: NULL_ADDRESS,
         buyTokenFeeAmount: ZERO_AMOUNT,
         sellTokenFeeAmount: ZERO_AMOUNT,
@@ -86,9 +92,12 @@ export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r
 
 export { DEFAULT_FEE_SCHEDULE, DEFAULT_GAS_SCHEDULE } from './utils/market_operation_utils/constants';
 
+export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
+
 export const constants = {
     ETH_GAS_STATION_API_URL,
     PROTOCOL_FEE_MULTIPLIER,
+    POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS,
     NULL_BYTES,
     ZERO_AMOUNT,
     NULL_ADDRESS,

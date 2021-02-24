@@ -21,6 +21,10 @@
             {
                 "note": "refund ETH with no gas limit in FQT",
                 "pr": 155
+            },
+            {
+                "note": "Added an opt-in `PositiveSlippageAffiliateFee`",
+                "pr": 101
             }
         ]
     },

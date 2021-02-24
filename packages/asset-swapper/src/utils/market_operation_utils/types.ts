@@ -11,6 +11,7 @@ import { NativeOrderWithFillableAmounts, RfqtFirmQuoteValidator, RfqtRequestOpts
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
+import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
 
 /**
@@ -374,8 +375,9 @@ export interface OptimizerResult {
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
-    takerTokenToEthRate: BigNumber;
-    makerTokenToEthRate: BigNumber;
+    unoptimizedPath?: CollapsedPath;
+    takerAmountPerEth: BigNumber;
+    makerAmountPerEth: BigNumber;
 }
 
 export interface OptimizerResultWithReport extends OptimizerResult {
@@ -396,8 +398,8 @@ export interface MarketSideLiquidity {
     inputAmount: BigNumber;
     inputToken: string;
     outputToken: string;
-    ethToOutputRate: BigNumber;
-    ethToInputRate: BigNumber;
+    outputAmountPerEth: BigNumber;
+    inputAmountPerEth: BigNumber;
     quoteSourceFilters: SourceFilters;
     makerTokenDecimals: number;
     takerTokenDecimals: number;

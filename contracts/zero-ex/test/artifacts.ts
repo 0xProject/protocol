@@ -92,6 +92,7 @@ import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFe
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
+import * as PositiveSlippageFeeTransformer from '../test/generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
 import * as TestCallTarget from '../test/generated-artifacts/TestCallTarget.json';
@@ -209,6 +210,7 @@ export const artifacts = {
     LibERC20Transformer: LibERC20Transformer as ContractArtifact,
     LogMetadataTransformer: LogMetadataTransformer as ContractArtifact,
     PayTakerTransformer: PayTakerTransformer as ContractArtifact,
+    PositiveSlippageFeeTransformer: PositiveSlippageFeeTransformer as ContractArtifact,
     Transformer: Transformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     BridgeAdapter: BridgeAdapter as ContractArtifact,

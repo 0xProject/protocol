@@ -645,6 +645,8 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };
 
+export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(20000);
+
 // tslint:enable:custom-no-magic-numbers
 
 export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {

@@ -90,6 +90,7 @@ export * from '../test/generated-wrappers/native_orders_feature';
 export * from '../test/generated-wrappers/ownable_feature';
 export * from '../test/generated-wrappers/pay_taker_transformer';
 export * from '../test/generated-wrappers/permissionless_transformer_deployer';
+export * from '../test/generated-wrappers/positive_slippage_fee_transformer';
 export * from '../test/generated-wrappers/simple_function_registry_feature';
 export * from '../test/generated-wrappers/test_bridge';
 export * from '../test/generated-wrappers/test_call_target';

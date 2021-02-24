@@ -46,6 +46,7 @@ export {
     IZeroExContract,
     LogMetadataTransformerContract,
     PayTakerTransformerContract,
+    PositiveSlippageFeeTransformerContract,
     WethTransformerContract,
     ZeroExContract,
 } from './wrappers';

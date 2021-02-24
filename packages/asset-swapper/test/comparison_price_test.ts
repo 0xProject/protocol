@@ -49,8 +49,8 @@ const exchangeProxyOverhead = (sourceFlags: number) => {
 
 const buyMarketSideLiquidity: MarketSideLiquidity = {
     // needed params
-    ethToOutputRate: new BigNumber(500),
-    ethToInputRate: new BigNumber(1),
+    outputAmountPerEth: new BigNumber(500),
+    inputAmountPerEth: new BigNumber(1),
     side: MarketOperation.Buy,
     makerTokenDecimals: 18,
     takerTokenDecimals: 18,
@@ -70,8 +70,8 @@ const buyMarketSideLiquidity: MarketSideLiquidity = {
 
 const sellMarketSideLiquidity: MarketSideLiquidity = {
     // needed params
-    ethToOutputRate: new BigNumber(500),
-    ethToInputRate: new BigNumber(1),
+    outputAmountPerEth: new BigNumber(500),
+    inputAmountPerEth: new BigNumber(1),
     side: MarketOperation.Sell,
     makerTokenDecimals: 18,
     takerTokenDecimals: 18,
