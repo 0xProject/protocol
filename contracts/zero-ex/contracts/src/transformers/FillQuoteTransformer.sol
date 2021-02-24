@@ -273,13 +273,15 @@ contract FillQuoteTransformer is
 
         // Refund unspent protocol fees.
         if (state.ethRemaining > 0 && data.refundReceiver != address(0)) {
+            bool transferSuccess;
             if (data.refundReceiver == REFUND_RECEIVER_TAKER) {
-                context.taker.transfer(state.ethRemaining);
+                (transferSuccess,) = context.taker.call{value: state.ethRemaining}("");
             } else if (data.refundReceiver == REFUND_RECEIVER_SENDER) {
-                context.sender.transfer(state.ethRemaining);
+                (transferSuccess,) = context.sender.call{value: state.ethRemaining}("");
             } else {
-                data.refundReceiver.transfer(state.ethRemaining);
+                (transferSuccess,) = data.refundReceiver.call{value: state.ethRemaining}("");
             }
+            require(transferSuccess, "FillQuoteTransformer/ETHER_TRANSFER_FALIED");
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }

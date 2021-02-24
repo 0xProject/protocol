@@ -118,6 +118,10 @@ export function getERC20BridgeSourceToBridgeSource(source: ERC20BridgeSource): B
             return BridgeSource.Uniswap;
         case ERC20BridgeSource.UniswapV2:
             return BridgeSource.UniswapV2;
+        case ERC20BridgeSource.DodoV2:
+            return BridgeSource.DodoV2;
+        case ERC20BridgeSource.Linkswap:
+            return BridgeSource.Linkswap;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -164,6 +168,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.UniswapV2:
         case ERC20BridgeSource.SushiSwap:
         case ERC20BridgeSource.CryptoCom:
+        case ERC20BridgeSource.Linkswap:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData | SushiSwapFillData>)
                 .fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
@@ -179,6 +184,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Dodo:
             const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
             bridgeData = encoder.encode([MAINNET_DODO_HELPER, dodoFillData.poolAddress, dodoFillData.isSellBase]);
+            break;
+        case ERC20BridgeSource.DodoV2:
+            const dodoV2FillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
+            bridgeData = encoder.encode([dodoV2FillData.poolAddress, dodoV2FillData.isSellBase]);
             break;
         case ERC20BridgeSource.Shell:
             const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
@@ -258,6 +267,10 @@ export const BRIDGE_ENCODERS: {
         { name: 'poolAddress', type: 'address' },
         { name: 'isSellBase', type: 'bool' },
     ]),
+    [ERC20BridgeSource.DodoV2]: AbiEncoder.create([
+        { name: 'poolAddress', type: 'address' },
+        { name: 'isSellBase', type: 'bool' },
+    ]),
     // Curve like
     [ERC20BridgeSource.Curve]: curveEncoder,
     [ERC20BridgeSource.Swerve]: curveEncoder,
@@ -267,6 +280,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
+    [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,
     [ERC20BridgeSource.Mooniswap]: poolEncoder,

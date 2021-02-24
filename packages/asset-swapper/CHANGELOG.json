@@ -35,6 +35,18 @@
                 "pr": 151
             },
             {
+                "note": "Added support for `Dodo` v2",
+                "pr": 152
+            },
+            {
+                "note": "Added support for `Linkswap`",
+                "pr": 153
+            },
+            {
+                "note": "Re-add WBTC in default intermediate hops",
+                "pr": 154
+            },
+            {
                 "note": "Add an alternative RFQ market making implementation",
                 "pr": 139
             }

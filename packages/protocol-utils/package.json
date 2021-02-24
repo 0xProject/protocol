@@ -10,6 +10,7 @@
     "scripts": {
         "build": "yarn tsc -b",
         "build:ci": "yarn build",
+        "watch": "tsc -w -p tsconfig.json",
         "publish:private": "yarn clean && yarn build && gitpkg publish",
         "test": "yarn run_mocha",
         "rebuild_and_test": "run-s build test",

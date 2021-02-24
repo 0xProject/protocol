@@ -12,6 +12,7 @@ import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DeploymentConstants from '../test/generated-artifacts/DeploymentConstants.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
+import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
 import * as DummyLiquidityProvider from '../test/generated-artifacts/DummyLiquidityProvider.json';
 import * as ERC20BridgeSampler from '../test/generated-artifacts/ERC20BridgeSampler.json';
 import * as Eth2DaiSampler from '../test/generated-artifacts/Eth2DaiSampler.json';
@@ -49,6 +50,7 @@ export const artifacts = {
     BancorSampler: BancorSampler as ContractArtifact,
     CurveSampler: CurveSampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,
+    DODOV2Sampler: DODOV2Sampler as ContractArtifact,
     DeploymentConstants: DeploymentConstants as ContractArtifact,
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     Eth2DaiSampler: Eth2DaiSampler as ContractArtifact,

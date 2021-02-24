@@ -105,6 +105,7 @@
         "test/generated-artifacts/MixinCryptoCom.json",
         "test/generated-artifacts/MixinCurve.json",
         "test/generated-artifacts/MixinDodo.json",
+        "test/generated-artifacts/MixinDodoV2.json",
         "test/generated-artifacts/MixinKyber.json",
         "test/generated-artifacts/MixinMStable.json",
         "test/generated-artifacts/MixinMooniswap.json",

@@ -5,6 +5,10 @@
             {
                 "note": "Add VIP utils",
                 "pr": 127
+            },
+            {
+                "note": "Add `DodoV2` and `Linkswap` BridgeSource",
+                "pr": 152
             }
         ]
     },

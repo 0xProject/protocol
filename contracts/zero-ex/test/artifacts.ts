@@ -78,6 +78,7 @@ import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
 import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
 import * as MixinDodo from '../test/generated-artifacts/MixinDodo.json';
+import * as MixinDodoV2 from '../test/generated-artifacts/MixinDodoV2.json';
 import * as MixinKyber from '../test/generated-artifacts/MixinKyber.json';
 import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json';
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
@@ -219,6 +220,7 @@ export const artifacts = {
     MixinCryptoCom: MixinCryptoCom as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,
     MixinDodo: MixinDodo as ContractArtifact,
+    MixinDodoV2: MixinDodoV2 as ContractArtifact,
     MixinKyber: MixinKyber as ContractArtifact,
     MixinMStable: MixinMStable as ContractArtifact,
     MixinMooniswap: MixinMooniswap as ContractArtifact,
