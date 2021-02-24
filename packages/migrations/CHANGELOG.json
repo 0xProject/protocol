@@ -1,5 +1,13 @@
 [
     {
+        "version": "7.0.0",
+        "changes": [
+            {
+                "note": "Major version bump with V4 FQT"
+            }
+        ]
+    },
+    {
         "version": "6.6.0",
         "changes": [
             {
