@@ -1,6 +1,6 @@
 {
     "name": "@0x/order-utils",
-    "version": "10.4.16",
+    "version": "10.4.17",
     "engines": {
         "node": ">=6.12"
     },
@@ -69,8 +69,8 @@
     },
     "dependencies": {
         "@0x/assert": "^3.0.21",
-        "@0x/contract-addresses": "^5.10.0",
-        "@0x/contract-wrappers": "^13.12.3",
+        "@0x/contract-addresses": "^5.11.0",
+        "@0x/contract-wrappers": "^13.13.0",
         "@0x/json-schemas": "^5.4.1",
         "@0x/utils": "^6.2.0",
         "@0x/web3-wrapper": "^7.4.1",
