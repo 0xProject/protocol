@@ -74,11 +74,10 @@ export { InsufficientAssetLiquidityError } from './errors';
 export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { SwapQuoter, Orderbook } from './swap_quoter';
 export {
-    AffiliateFeeType,
     AltOffering,
     AltRfqtMakerAssetOfferings,
-    AffiliateFeeAmount,
     AffiliateFeeType,
+    AffiliateFeeAmount,
     AssetSwapperContractAddresses,
     CalldataInfo,
     ExchangeProxyContractOpts,
