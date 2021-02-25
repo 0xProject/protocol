@@ -2,11 +2,6 @@
 Allowances
 ###############################
 
-.. _Allowance Target Address: https://github.com/0xProject/protocol/blob/development/packages/contract-addresses/addresses.json#L40
+Both maker and taker allowance should be be set directly on the `Exchange Proxy contract <./addresses.html#exchange-v4>`_.
 
-After the official release, allowances will be set directly on the Exchange V4 Proxy contract.
-Presently, while we are in beta, allowances should be set on the `Allowance Target <./addresses.html#exchange-v4>`_.
-
-The motivation for eliminating the separate Allowance Target in the official release is
-to reduce transaction costs. Depending on the operational overhead for our integrators,
-we may support allowances on both the Exchange V4 & the Allowance Target after the official release, which is slated for January, 2021.
+For takers, legacy allowances set on the `Allowance Target <./addresses.html#exchange-v4>`_ will continue to work during this transition period but will suffer a gas penalty. It's highly encouraged to migrate allowances over to the Exchange Proxy as soon as possible to avoid interruption.
