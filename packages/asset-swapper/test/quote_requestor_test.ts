@@ -3,11 +3,14 @@ import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils
 import { TakerRequestQueryParams, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber, logUtils } from '@0x/utils';
+import Axios, { AxiosInstance } from 'axios';
 import * as chai from 'chai';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
 import _ = require('lodash');
 import 'mocha';
 
-import { constants } from '../src/constants';
+import { constants, KEEP_ALIVE_TTL } from '../src/constants';
 import {
     AltMockedRfqtQuoteResponse,
     AltQuoteModel,
@@ -18,10 +21,15 @@ import {
     MockedRfqtQuoteResponse,
 } from '../src/types';
 import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
-import { QuoteRequestor, quoteRequestorHttpClient } from '../src/utils/quote_requestor';
+import { QuoteRequestor } from '../src/utils/quote_requestor';
 
 import { chaiSetup } from './utils/chai_setup';
 import { RfqtQuoteEndpoint, testHelpers } from './utils/test_helpers';
+
+const quoteRequestorHttpClient = Axios.create({
+    httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+    httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+});
 
 chaiSetup.configure();
 const expect = chai.expect;
