@@ -125,12 +125,12 @@ export class QuoteRequestor {
     }
 
     constructor(
+        private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
-        private readonly _quoteRequestorHttpClient: AxiosInstance,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
     }
