@@ -152,7 +152,7 @@ export class SwapQuoter {
         this._quoteRequestorHttpClient = Axios.create({
             httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
             httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-            ...rfqt.axiosInstanceOpts,
+            ...rfqt ? rfqt.axiosInstanceOpts : {},
         });
     }
 
@@ -357,8 +357,8 @@ export class SwapQuoter {
         // pass the QuoteRequestor on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = new QuoteRequestor(
-                this._quoteRequestorHttpClient,
                 rfqtOptions ? rfqtOptions.makerAssetOfferings || {} : {},
+                this._quoteRequestorHttpClient,
                 rfqtOptions ? rfqtOptions.altRfqCreds : undefined,
                 rfqtOptions ? rfqtOptions.warningLogger : undefined,
                 rfqtOptions ? rfqtOptions.infoLogger : undefined,

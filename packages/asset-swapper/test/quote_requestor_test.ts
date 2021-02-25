@@ -223,6 +223,7 @@ describe('QuoteRequestor', async () => {
                             'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T provider when they don't support the requested asset pair. */,
                             'https://37.0.0.1': [[makerToken, takerToken]],
                         },
+                        quoteRequestorHttpClient,
                         ALT_RFQ_CREDS,
                     );
                     const resp = await qr.requestRfqtFirmQuotesAsync(
@@ -343,7 +344,8 @@ describe('QuoteRequestor', async () => {
                         'https://423.0.0.1': [[makerToken, takerToken]],
                         'https://424.0.0.1': [[makerToken, takerToken]],
                         'https://37.0.0.1': [[makerToken, takerToken]],
-                    });
+                    },
+                    quoteRequestorHttpClient);
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
                         takerToken,
@@ -399,7 +401,7 @@ describe('QuoteRequestor', async () => {
                 [],
                 RfqtQuoteEndpoint.Indicative,
                 async () => {
-                    const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] });
+                    const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] }, quoteRequestorHttpClient);
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
                         takerToken,
@@ -631,7 +633,7 @@ describe('QuoteRequestor', async () => {
                     altMockedRequests,
                     RfqtQuoteEndpoint.Indicative,
                     async () => {
-                        const qr = new QuoteRequestor({}, ALT_RFQ_CREDS);
+                        const qr = new QuoteRequestor({}, quoteRequestorHttpClient, ALT_RFQ_CREDS);
                         const resp = await qr.requestRfqtIndicativeQuotesAsync(
                             altScenario.requestedMakerToken,
                             altScenario.requestedTakerToken,

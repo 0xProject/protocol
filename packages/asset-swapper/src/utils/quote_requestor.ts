@@ -125,8 +125,8 @@ export class QuoteRequestor {
     }
 
     constructor(
-        private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
+        private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
