@@ -238,11 +238,9 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             status: response.status,
             message: response.data,
         };
-        warningLogger(rejectedRequestInfo, `Alt RFQ MM did not return a status of 201`);
+        warningLogger(rejectedRequestInfo, `Alt RFQ MM did not return a status of ${SUCCESS_CODE}`);
         return {
             data: (emptyResponse as unknown) as ResponseT,
-            // hack: set the http status to 204 no content so we can more
-            // easily track when no quote is returned
             status: response.status,
         };
     }
