@@ -29,6 +29,10 @@ const KEEP_ALIVE_TTL = 5 * 60 * ONE_SECOND_MS;
 export const quoteRequestorHttpClient: AxiosInstance = Axios.create({
     httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
     httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+    proxy: {
+        host: 'targethost',
+        port: 3000,
+    },
 });
 
 const MAKER_TIMEOUT_STREAK_LENGTH = 10;
