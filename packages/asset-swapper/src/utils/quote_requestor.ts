@@ -457,6 +457,7 @@ export class QuoteRequestor {
                             options.altRfqtAssetOfferings || {},
                             requestParams,
                             quoteRequestorHttpClient,
+                            this._warningLogger,
                         );
 
                         const latencyMs = Date.now() - timeBeforeAwait;
