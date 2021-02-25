@@ -204,5 +204,14 @@ contract CurveLiquidityProvider is
             boughtAmount = LibERC20Transformer
                 .getTokenBalanceOf(outputToken, address(this));
         }
+
+        emit LiquidityProviderFill(
+            inputToken,
+            outputToken,
+            sellAmount,
+            boughtAmount,
+            bytes32("Curve"),
+            address(data.curveAddress)
+        );
     }
 }

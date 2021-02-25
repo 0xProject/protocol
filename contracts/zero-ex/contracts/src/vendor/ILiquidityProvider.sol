@@ -24,6 +24,22 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 interface ILiquidityProvider {
 
+    /// @dev An optional event an LP can emit for each fill against a source.
+    /// @param inputToken The input token.
+    /// @param outputToken The output token.
+    /// @param inputTokenAmount How much input token was sold.
+    /// @param outputTokenAmount How much output token was bought.
+    /// @param sourceId A bytes32 encoded ascii source ID. E.g., `bytes32('Curve')`/
+    /// @param sourceAddress An optional address associated with the source (e.g, a curve pool).
+    event LiquidityProviderFill(
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint256 inputTokenAmount,
+        uint256 outputTokenAmount,
+        bytes32 sourceId,
+        address sourceAddress
+    );
+
     /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`
     ///      to sell must be transferred to the contract prior to calling this
     ///      function to trigger the trade.

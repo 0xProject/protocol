@@ -264,4 +264,24 @@ blockchainTests.resets('MooniswapLiquidityProvider feature', env => {
         const call = lp.sellEthForToken(ETH_TOKEN_ADDRESS, RECIPIENT, BUY_AMOUNT, mooniswapData);
         return expect(call.callAsync()).to.revertWith('MooniswapLiquidityProvider/INVALID_ARGS');
     });
+
+    it('emits a LiquidityProviderFill event', async () => {
+        await prepareNextSwapFundsAsync(sellToken.address, SELL_AMOUNT, buyToken.address, BUY_AMOUNT);
+        const call = lp.sellTokenForToken(sellToken.address, buyToken.address, RECIPIENT, BUY_AMOUNT, mooniswapData);
+        const { logs } = await call.awaitTransactionSuccessAsync();
+        verifyEventsFromLogs(
+            logs,
+            [
+                {
+                    inputToken: sellToken.address,
+                    outputToken: buyToken.address,
+                    inputTokenAmount: SELL_AMOUNT,
+                    outputTokenAmount: BUY_AMOUNT,
+                    sourceId: hexUtils.rightPad(hexUtils.toHex(Buffer.from('Mooniswap'))),
+                    sourceAddress: testMooniswap.address,
+                },
+            ],
+            'LiquidityProviderFill',
+        );
+    });
 });

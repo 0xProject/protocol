@@ -199,6 +199,15 @@ contract MooniswapLiquidityProvider is
         if (outputToken == WETH) {
             WETH.deposit{value: boughtAmount}();
         }
+
+        emit LiquidityProviderFill(
+            inputToken,
+            outputToken,
+            sellAmount,
+            boughtAmount,
+            bytes32("Mooniswap"),
+            address(pool)
+        );
     }
 
     /// @dev Check if a token is ETH or WETH.

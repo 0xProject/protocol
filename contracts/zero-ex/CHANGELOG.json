@@ -5,6 +5,10 @@
             {
                 "note": "Add `MooniswapLiquidityProvider`",
                 "pr": 143
+            },
+            {
+                "note": "Emit `LiquidityProviderFill` event in `CurveLiquidityProvider`",
+                "pr": 143
             }
         ]
     },

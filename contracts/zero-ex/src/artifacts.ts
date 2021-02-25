@@ -26,7 +26,6 @@ import * as IZeroEx from '../generated-artifacts/IZeroEx.json';
 import * as LiquidityProviderFeature from '../generated-artifacts/LiquidityProviderFeature.json';
 import * as LogMetadataTransformer from '../generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../generated-artifacts/MetaTransactionsFeature.json';
-import * as MooniswapLiquidityProvider from '../generated-artifacts/MooniswapLiquidityProvider.json';
 import * as NativeOrdersFeature from '../generated-artifacts/NativeOrdersFeature.json';
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
@@ -67,5 +66,4 @@ export const artifacts = {
     FeeCollectorController: FeeCollectorController as ContractArtifact,
     FeeCollector: FeeCollector as ContractArtifact,
     CurveLiquidityProvider: CurveLiquidityProvider as ContractArtifact,
-    MooniswapLiquidityProvider: MooniswapLiquidityProvider as ContractArtifact,
 };
