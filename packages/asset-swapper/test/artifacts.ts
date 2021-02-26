@@ -36,7 +36,6 @@ import * as MultiBridgeSampler from '../test/generated-artifacts/MultiBridgeSamp
 import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSampler.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
-import * as SushiSwapSampler from '../test/generated-artifacts/SushiSwapSampler.json';
 import * as TestERC20BridgeSampler from '../test/generated-artifacts/TestERC20BridgeSampler.json';
 import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
@@ -63,7 +62,6 @@ export const artifacts = {
     NativeOrderSampler: NativeOrderSampler as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
-    SushiSwapSampler: SushiSwapSampler as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,

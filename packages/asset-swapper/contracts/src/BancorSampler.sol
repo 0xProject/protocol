@@ -92,6 +92,10 @@ contract BancorSampler is
                 returns (uint256 amount)
             {
                 makerTokenAmounts[i] = amount;
+                // Break early if there are 0 amounts
+                if (makerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch {
                 // Swallow failures, leaving all results as zero.
                 break;

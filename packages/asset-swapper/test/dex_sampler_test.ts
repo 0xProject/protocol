@@ -287,7 +287,12 @@ describe('DexSampler tests', () => {
                 async () => undefined,
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getEth2DaiSellQuotes(expectedMakerToken, expectedTakerToken, expectedTakerFillAmounts),
+                dexOrderSampler.getEth2DaiSellQuotes(
+                    randomAddress(),
+                    expectedMakerToken,
+                    expectedTakerToken,
+                    expectedTakerFillAmounts,
+                ),
             );
             expect(fillableAmounts).to.deep.eq(expectedMakerFillAmounts);
         });
@@ -315,7 +320,12 @@ describe('DexSampler tests', () => {
                 async () => undefined,
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getUniswapSellQuotes(expectedMakerToken, expectedTakerToken, expectedTakerFillAmounts),
+                dexOrderSampler.getUniswapSellQuotes(
+                    randomAddress(),
+                    expectedMakerToken,
+                    expectedTakerToken,
+                    expectedTakerFillAmounts,
+                ),
             );
             expect(fillableAmounts).to.deep.eq(expectedMakerFillAmounts);
         });
@@ -374,7 +384,12 @@ describe('DexSampler tests', () => {
                 async () => undefined,
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getEth2DaiBuyQuotes(expectedMakerToken, expectedTakerToken, expectedMakerFillAmounts),
+                dexOrderSampler.getEth2DaiBuyQuotes(
+                    randomAddress(),
+                    expectedMakerToken,
+                    expectedTakerToken,
+                    expectedMakerFillAmounts,
+                ),
             );
             expect(fillableAmounts).to.deep.eq(expectedTakerFillAmounts);
         });
@@ -402,7 +417,12 @@ describe('DexSampler tests', () => {
                 async () => undefined,
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getUniswapBuyQuotes(expectedMakerToken, expectedTakerToken, expectedMakerFillAmounts),
+                dexOrderSampler.getUniswapBuyQuotes(
+                    randomAddress(),
+                    expectedMakerToken,
+                    expectedTakerToken,
+                    expectedMakerFillAmounts,
+                ),
             );
             expect(fillableAmounts).to.deep.eq(expectedTakerFillAmounts);
         });

@@ -3,11 +3,12 @@ import { BigNumber, NULL_BYTES } from '@0x/utils';
 import {
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAINNET_CURVE_INFOS,
-    MAINNET_SHELL_POOLS,
     MAINNET_SNOWSWAP_INFOS,
     MAINNET_SWERVE_INFOS,
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
+    NULL_ADDRESS,
+    SHELL_POOLS,
 } from './constants';
 import { CurveInfo, SnowSwapInfo, SwerveInfo } from './types';
 
@@ -17,6 +18,11 @@ import { CurveInfo, SnowSwapInfo, SwerveInfo } from './types';
  */
 export function isAllowedKyberReserveId(reserveId: string): boolean {
     return reserveId !== NULL_BYTES && !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX);
+}
+
+// tslint:disable-next-line: completed-docs
+export function isValidAddress(address: any): address is string {
+    return (typeof address === 'string' || address instanceof String) && address.toString() !== NULL_ADDRESS;
 }
 
 /**
@@ -37,7 +43,7 @@ export function getDodoV2Offsets(): BigNumber[] {
 
 // tslint:disable completed-docs
 export function getShellsForPair(takerToken: string, makerToken: string): string[] {
-    return Object.values(MAINNET_SHELL_POOLS)
+    return Object.values(SHELL_POOLS)
         .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
         .map(i => i.poolAddress);
 }

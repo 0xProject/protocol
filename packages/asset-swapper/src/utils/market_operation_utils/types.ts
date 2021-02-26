@@ -58,6 +58,9 @@ export enum ERC20BridgeSource {
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
     Linkswap = 'Linkswap',
+    // Other
+    PancakeSwap = 'Pancakeswap',
+    BakerySwap = 'Bakeryswap',
 }
 
 // tslint:disable: enum-naming
@@ -132,8 +135,6 @@ export interface UniswapV2FillData extends FillData {
     router: string;
 }
 
-export interface SushiSwapFillData extends UniswapV2FillData {}
-
 export interface ShellFillData extends FillData {
     poolAddress: string;
 }
@@ -161,6 +162,11 @@ export interface DODOFillData extends FillData {
     poolAddress: string;
     isSellBase: boolean;
 }
+
+export interface GenericRouterFillData extends FillData {
+    router: string;
+}
+
 export interface MultiHopFillData extends FillData {
     firstHopSource: SourceQuoteOperation;
     secondHopSource: SourceQuoteOperation;

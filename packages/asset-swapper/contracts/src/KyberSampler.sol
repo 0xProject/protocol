@@ -68,11 +68,11 @@ contract KyberSampler is
                 makerToken,
                 takerTokenAmounts[i]
             );
-            // Return early if the source has no liquidity
-            if (value == 0) {
-                return (reserveId, hint, makerTokenAmounts);
-            }
             makerTokenAmounts[i] = value;
+            // Break early if there are 0 amounts
+            if (makerTokenAmounts[i] == 0) {
+                break;
+            }
         }
     }
 

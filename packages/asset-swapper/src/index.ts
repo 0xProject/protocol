@@ -113,6 +113,8 @@ export {
     DEFAULT_TOKEN_ADJACENCY_GRAPH,
     DEFAULT_GAS_SCHEDULE,
     SOURCE_FLAGS,
+    BUY_SOURCE_FILTER,
+    SELL_SOURCE_FILTER,
 } from './utils/market_operation_utils/constants';
 export {
     Parameters,
@@ -149,7 +151,6 @@ export {
     SnowSwapFillData,
     SnowSwapInfo,
     SourceQuoteOperation,
-    SushiSwapFillData,
     SwerveFillData,
     SwerveInfo,
     TokenAdjacencyGraph,
