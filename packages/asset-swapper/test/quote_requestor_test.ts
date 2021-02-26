@@ -336,16 +336,18 @@ describe('QuoteRequestor', async () => {
                 [],
                 RfqtQuoteEndpoint.Indicative,
                 async () => {
-                    const qr = new QuoteRequestor({
-                        'https://1337.0.0.1': [[makerToken, takerToken]],
-                        'https://420.0.0.1': [[makerToken, takerToken]],
-                        'https://421.0.0.1': [[makerToken, takerToken]],
-                        'https://422.0.0.1': [[makerToken, takerToken]],
-                        'https://423.0.0.1': [[makerToken, takerToken]],
-                        'https://424.0.0.1': [[makerToken, takerToken]],
-                        'https://37.0.0.1': [[makerToken, takerToken]],
-                    },
-                    quoteRequestorHttpClient);
+                    const qr = new QuoteRequestor(
+                        {
+                            'https://1337.0.0.1': [[makerToken, takerToken]],
+                            'https://420.0.0.1': [[makerToken, takerToken]],
+                            'https://421.0.0.1': [[makerToken, takerToken]],
+                            'https://422.0.0.1': [[makerToken, takerToken]],
+                            'https://423.0.0.1': [[makerToken, takerToken]],
+                            'https://424.0.0.1': [[makerToken, takerToken]],
+                            'https://37.0.0.1': [[makerToken, takerToken]],
+                        },
+                        quoteRequestorHttpClient,
+                    );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
                         takerToken,
@@ -401,7 +403,10 @@ describe('QuoteRequestor', async () => {
                 [],
                 RfqtQuoteEndpoint.Indicative,
                 async () => {
-                    const qr = new QuoteRequestor({ 'https://1337.0.0.1': [[makerToken, takerToken]] }, quoteRequestorHttpClient);
+                    const qr = new QuoteRequestor(
+                        { 'https://1337.0.0.1': [[makerToken, takerToken]] },
+                        quoteRequestorHttpClient,
+                    );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
                         takerToken,

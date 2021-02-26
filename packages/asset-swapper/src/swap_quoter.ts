@@ -152,7 +152,7 @@ export class SwapQuoter {
         this._quoteRequestorHttpClient = Axios.create({
             httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
             httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-            ...rfqt ? rfqt.axiosInstanceOpts : {},
+            ...(rfqt ? rfqt.axiosInstanceOpts : {}),
         });
     }
 
