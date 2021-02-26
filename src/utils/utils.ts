@@ -107,4 +107,14 @@ export const utils = {
         })();
         return intervalUtils.setAsyncExcludingInterval(fn, intervalMs, onError);
     },
+    calculateCallDataGas: (bytes: string) => {
+        const buf = Buffer.from(bytes.replace(/0x/g, ''), 'hex');
+        let gas = 21000;
+        for (const b of buf) {
+            // 4 gas per 0 byte, 16 gas per non-zero
+            // tslint:disable-next-line
+            gas += b === 0 ? 4 : 16;
+        }
+        return gas;
+    },
 };

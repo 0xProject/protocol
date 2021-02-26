@@ -2,8 +2,10 @@ import {
     AffiliateFeeAmount,
     AffiliateFeeType,
     AltRfqtMakerAssetOfferings,
+    artifacts,
     AssetSwapperContractAddresses,
     ERC20BridgeSource,
+    FakeTakerContract,
     GetMarketOrdersRfqtOpts,
     Orderbook,
     RfqtFirmQuoteValidator,
@@ -34,9 +36,9 @@ import {
     SWAP_QUOTER_OPTS,
 } from '../config';
 import {
-    DEFAULT_VALIDATION_GAS_LIMIT,
     GAS_LIMIT_BUFFER_MULTIPLIER,
     NULL_ADDRESS,
+    NULL_BYTES,
     ONE,
     ONE_MINUTE_MS,
     UNWRAP_QUOTE_GAS,
@@ -65,12 +67,13 @@ import { paginationUtils } from '../utils/pagination_utils';
 import { createResultCache } from '../utils/result_cache';
 import { serviceUtils } from '../utils/service_utils';
 import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
+import { utils } from '../utils/utils';
 
 export class SwapService {
     private readonly _provider: SupportedProvider;
+    private readonly _fakeTaker: FakeTakerContract;
     private readonly _swapQuoter: SwapQuoter;
     private readonly _swapQuoteConsumer: SwapQuoteConsumer;
-    private readonly _web3Wrapper: Web3Wrapper;
     private readonly _wethContract: WETH9Contract;
     private readonly _contractAddresses: ContractAddresses;
     private readonly _firmQuoteValidator: RfqtFirmQuoteValidator | undefined;
@@ -141,10 +144,10 @@ export class SwapService {
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
-        this._web3Wrapper = new Web3Wrapper(this._provider);
 
         this._contractAddresses = contractAddresses;
         this._wethContract = new WETH9Contract(this._contractAddresses.etherToken, this._provider);
+        this._fakeTaker = new FakeTakerContract(NULL_ADDRESS, this._provider);
     }
 
     public async calculateSwapQuoteAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
@@ -551,20 +554,31 @@ export class SwapService {
     }
 
     private async _estimateGasOrThrowRevertErrorAsync(txData: Partial<TxData>): Promise<BigNumber> {
-        const gas = await this._web3Wrapper.estimateGasAsync(txData).catch(_e => DEFAULT_VALIDATION_GAS_LIMIT);
-        await this._throwIfCallIsRevertErrorAsync({
-            ...txData,
-            // gas: new BigNumber(gas).times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue(),
-            gas,
-        });
-        return new BigNumber(gas);
-    }
-
-    private async _throwIfCallIsRevertErrorAsync(txData: Partial<TxData>): Promise<void> {
-        let callResult;
         let revertError;
+        let gasEstimate = ZERO;
+        let callResult: {
+            success: boolean;
+            resultData: string;
+            gasUsed: BigNumber;
+        } = { success: false, resultData: NULL_BYTES, gasUsed: ZERO };
         try {
-            callResult = await this._web3Wrapper.callAsync(txData);
+            // Split out the `to` and `data` so it doesn't override
+            const { data, to, ...rest } = txData;
+            callResult = await this._fakeTaker.execute(to!, data!).callAsync({
+                ...rest,
+                // Set the `to` to be the user address with a fake contract at that address
+                to: txData.from!,
+                // TODO jacob this has issues with protocol fees, but a gas amount is needed to use gasPrice
+                gasPrice: 0,
+                overrides: {
+                    // Override the user address with the Fake Taker contract
+                    [txData.from!]: {
+                        code: _.get(artifacts.FakeTaker, 'compilerOutput.evm.deployedBytecode.object'),
+                    },
+                },
+            });
+
+            gasEstimate = callResult.gasUsed.plus(utils.calculateCallDataGas(data!));
         } catch (e) {
             if (e.message && /insufficient funds/.test(e.message)) {
                 throw new InsufficientFundsError();
@@ -587,8 +601,8 @@ export class SwapService {
             }
         }
         try {
-            if (callResult) {
-                revertError = RevertError.decode(callResult, false);
+            if (callResult! && !callResult.success) {
+                revertError = RevertError.decode(callResult.resultData, false);
             }
         } catch (e) {
             // No revert error
@@ -596,6 +610,7 @@ export class SwapService {
         if (revertError) {
             throw revertError;
         }
+        return gasEstimate;
     }
 
     private async _getSwapQuotePartialTransactionAsync(
