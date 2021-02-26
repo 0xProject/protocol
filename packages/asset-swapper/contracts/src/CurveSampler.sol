@@ -72,11 +72,11 @@ contract CurveSampler is
             if (didSucceed) {
                 buyAmount = abi.decode(resultData, (uint256));
             }
-            // Exit early if the amount is too high for the source to serve
-            if (buyAmount == 0) {
+            makerTokenAmounts[i] = buyAmount;
+            // Break early if there are 0 amounts
+            if (makerTokenAmounts[i] == 0) {
                 break;
             }
-            makerTokenAmounts[i] = buyAmount;
         }
     }
 
@@ -123,11 +123,11 @@ contract CurveSampler is
             if (didSucceed) {
                 sellAmount = abi.decode(resultData, (uint256));
             }
-            // Exit early if the amount is too high for the source to serve
-            if (sellAmount == 0) {
+            takerTokenAmounts[i] = sellAmount;
+            // Break early if there are 0 amounts
+            if (takerTokenAmounts[i] == 0) {
                 break;
             }
-            takerTokenAmounts[i] = sellAmount;
         }
     }
 

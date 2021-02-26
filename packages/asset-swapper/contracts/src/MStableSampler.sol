@@ -61,6 +61,10 @@ contract MStableSampler is
                 returns (bool, string memory, uint256 amount)
             {
                 makerTokenAmounts[i] = amount;
+                // Break early if there are 0 amounts
+                if (makerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;

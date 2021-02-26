@@ -1,5 +1,7 @@
+import { ChainId } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import _ = require('lodash');
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
@@ -18,7 +20,6 @@ import {
     LiquidityProviderRegistry,
     MultiHopFillData,
     SnowSwapFillData,
-    SushiSwapFillData,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './types';
@@ -38,59 +39,111 @@ export const NULL_BYTES = '0x';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const COMPARISON_PRICE_DECIMALS = 10;
 
+export const CHAIN_ID = ChainId.BSC as ChainId;
+
+function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue: T): { [key in ChainId]: T } {
+    // TODO I don't like this but iterating through enums is weird
+    return {
+        [ChainId.Mainnet]: defaultValue,
+        [ChainId.Ropsten]: defaultValue,
+        [ChainId.Rinkeby]: defaultValue,
+        [ChainId.Kovan]: defaultValue,
+        [ChainId.Ganache]: defaultValue,
+        [ChainId.BSC]: defaultValue,
+        ...(rest || {}),
+    };
+}
+
 /**
  * Valid sources for market sell.
  */
-export const SELL_SOURCE_FILTER = new SourceFilters([
-    ERC20BridgeSource.Native,
-    ERC20BridgeSource.Uniswap,
-    ERC20BridgeSource.UniswapV2,
-    ERC20BridgeSource.Eth2Dai,
-    ERC20BridgeSource.Kyber,
-    ERC20BridgeSource.Curve,
-    ERC20BridgeSource.Balancer,
-    ERC20BridgeSource.Bancor,
-    ERC20BridgeSource.MStable,
-    ERC20BridgeSource.Mooniswap,
-    ERC20BridgeSource.Swerve,
-    ERC20BridgeSource.SnowSwap,
-    ERC20BridgeSource.SushiSwap,
-    ERC20BridgeSource.Shell,
-    ERC20BridgeSource.MultiHop,
-    ERC20BridgeSource.Dodo,
-    ERC20BridgeSource.DodoV2,
-    ERC20BridgeSource.Cream,
-    ERC20BridgeSource.LiquidityProvider,
-    ERC20BridgeSource.CryptoCom,
-    ERC20BridgeSource.Linkswap,
-]);
+export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
+    {
+        [ChainId.Mainnet]: new SourceFilters([
+            ERC20BridgeSource.Native,
+            ERC20BridgeSource.Uniswap,
+            ERC20BridgeSource.UniswapV2,
+            ERC20BridgeSource.Eth2Dai,
+            ERC20BridgeSource.Kyber,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.Balancer,
+            ERC20BridgeSource.Bancor,
+            ERC20BridgeSource.MStable,
+            ERC20BridgeSource.Mooniswap,
+            ERC20BridgeSource.Swerve,
+            ERC20BridgeSource.SnowSwap,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Shell,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Dodo,
+            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Cream,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.CryptoCom,
+            ERC20BridgeSource.Linkswap,
+        ]),
+        [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.BSC]: new SourceFilters([
+            ERC20BridgeSource.PancakeSwap,
+            ERC20BridgeSource.BakerySwap,
+            ERC20BridgeSource.Mooniswap,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.SushiSwap,
+        ]),
+    },
+
+    new SourceFilters([]),
+);
+export const SELL_SOURCE_FILTER = SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  * Valid sources for market buy.
  */
-export const BUY_SOURCE_FILTER = new SourceFilters([
-    ERC20BridgeSource.Native,
-    ERC20BridgeSource.Uniswap,
-    ERC20BridgeSource.UniswapV2,
-    ERC20BridgeSource.Eth2Dai,
-    ERC20BridgeSource.Kyber,
-    ERC20BridgeSource.Curve,
-    ERC20BridgeSource.Balancer,
-    // ERC20BridgeSource.Bancor, // FIXME: Bancor Buys not implemented in Sampler
-    ERC20BridgeSource.MStable,
-    ERC20BridgeSource.Mooniswap,
-    ERC20BridgeSource.Shell,
-    ERC20BridgeSource.Swerve,
-    ERC20BridgeSource.SnowSwap,
-    ERC20BridgeSource.SushiSwap,
-    ERC20BridgeSource.MultiHop,
-    ERC20BridgeSource.Dodo,
-    ERC20BridgeSource.DodoV2,
-    ERC20BridgeSource.Cream,
-    ERC20BridgeSource.LiquidityProvider,
-    ERC20BridgeSource.CryptoCom,
-    ERC20BridgeSource.Linkswap,
-]);
+export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
+    {
+        [ChainId.Mainnet]: new SourceFilters([
+            ERC20BridgeSource.Native,
+            ERC20BridgeSource.Uniswap,
+            ERC20BridgeSource.UniswapV2,
+            ERC20BridgeSource.Eth2Dai,
+            ERC20BridgeSource.Kyber,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.Balancer,
+            // ERC20BridgeSource.Bancor, // FIXME: Bancor Buys not implemented in Sampler
+            ERC20BridgeSource.MStable,
+            ERC20BridgeSource.Mooniswap,
+            ERC20BridgeSource.Shell,
+            ERC20BridgeSource.Swerve,
+            ERC20BridgeSource.SnowSwap,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Dodo,
+            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Cream,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.CryptoCom,
+            ERC20BridgeSource.Linkswap,
+        ]),
+        [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.BSC]: new SourceFilters([
+            ERC20BridgeSource.PancakeSwap,
+            ERC20BridgeSource.BakerySwap,
+            ERC20BridgeSource.Mooniswap,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.SushiSwap,
+        ]),
+    },
+    new SourceFilters([]),
+);
+export const BUY_SOURCE_FILTER = BUY_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  *  0x Protocol Fee Multiplier
@@ -100,7 +153,14 @@ export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 /**
  * Sources to poll for ETH fee price estimates.
  */
-export const FEE_QUOTE_SOURCES = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
+export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
+    {
+        [ChainId.Mainnet]: [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2],
+        [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
+    },
+    [],
+);
+export const FEE_QUOTE_SOURCES = FEE_QUOTE_SOURCES_BY_CHAIN_ID[CHAIN_ID];
 
 export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } = Object.assign(
     {},
@@ -166,7 +226,7 @@ export const TOKENS = {
     ...MIRROR_WRAPPED_TOKENS,
 };
 
-export const POOLS = {
+export const CURVE_POOLS = {
     curve_compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead
     curve_PAX: '0x06364f10b501e868329afbc005b3492902d6c763', // 2.PAX
@@ -195,21 +255,53 @@ export const POOLS = {
     curve_aave: '0xdebf20617708857ebe4f679508e7b7863a8a8eee', // 25.aave
 };
 
-export const DEFAULT_INTERMEDIATE_TOKENS = [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC, TOKENS.WBTC];
+export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
+    {
+        [ChainId.Mainnet]: [TOKENS.WETH, TOKENS.USDT, TOKENS.DAI, TOKENS.USDC, TOKENS.WBTC],
+        [ChainId.BSC]: [
+            '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', // WBNB
+            '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
+            '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3', // DAI
+            '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
+            '0x2170ed0880ac9a755fd29b2688956bd959f933f8', // ETH
+            '0x55d398326f99059ff775485246999027b3197955', // BUSD-T
+        ],
+    },
+    [],
+);
+export const DEFAULT_INTERMEDIATE_TOKENS = DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[CHAIN_ID];
 
-export const DEFAULT_TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = new TokenAdjacencyGraphBuilder({
-    default: DEFAULT_INTERMEDIATE_TOKENS,
-})
-    // Mirror Protocol
-    .tap(builder => {
-        builder
-            .add(TOKENS.MIR, TOKENS.UST)
-            .add(TOKENS.UST, [TOKENS.MIR, ...Object.values(MIRROR_WRAPPED_TOKENS)])
-            .add(TOKENS.USDT, TOKENS.UST);
-        Object.values(MIRROR_WRAPPED_TOKENS).forEach(t => builder.add(t, TOKENS.UST));
-    })
-    // Build
-    .build();
+export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdjacencyGraph>(
+    {
+        [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS,
+        })
+            // Mirror Protocol
+            .tap(builder => {
+                builder
+                    .add(TOKENS.MIR, TOKENS.UST)
+                    .add(TOKENS.UST, [TOKENS.MIR, ...Object.values(MIRROR_WRAPPED_TOKENS)])
+                    .add(TOKENS.USDT, TOKENS.UST);
+                Object.values(MIRROR_WRAPPED_TOKENS).forEach(t => builder.add(t, TOKENS.UST));
+            })
+            // Build
+            .build(),
+    },
+    new TokenAdjacencyGraphBuilder({ default: DEFAULT_INTERMEDIATE_TOKENS }).build(),
+);
+export const DEFAULT_TOKEN_ADJACENCY_GRAPH = DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[CHAIN_ID];
+
+export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: TOKENS.WETH,
+        [ChainId.BSC]: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', // WBNB
+    },
+    NULL_ADDRESS,
+);
+export const NATIVE_FEE_TOKEN = NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID];
+
+export const NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID = valueByChainId({}, ONE_ETHER);
+export const NATIVE_FEE_TOKEN_AMOUNT = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  * Mainnet Curve configuration
@@ -217,147 +309,147 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = new TokenAdjac
  * I.e DaiUsdc curve has DAI as index 0 and USDC as index 1
  */
 export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
-    [POOLS.curve_compound]: {
+    [CURVE_POOLS.curve_compound]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
-        poolAddress: POOLS.curve_compound,
+        poolAddress: CURVE_POOLS.curve_compound,
         tokens: [TOKENS.DAI, TOKENS.USDC],
         metaToken: undefined,
     },
-    [POOLS.curve_PAX]: {
+    [CURVE_POOLS.curve_PAX]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_PAX,
+        poolAddress: CURVE_POOLS.curve_PAX,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.PAX],
         metaToken: undefined,
     },
-    [POOLS.curve_sUSD]: {
+    [CURVE_POOLS.curve_sUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_sUSD,
+        poolAddress: CURVE_POOLS.curve_sUSD,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD],
         metaToken: undefined,
     },
-    [POOLS.curve_renBTC]: {
+    [CURVE_POOLS.curve_renBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_renBTC,
+        poolAddress: CURVE_POOLS.curve_renBTC,
         tokens: [TOKENS.RenBTC, TOKENS.WBTC],
         metaToken: undefined,
     },
-    [POOLS.curve_sBTC]: {
+    [CURVE_POOLS.curve_sBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_sBTC,
+        poolAddress: CURVE_POOLS.curve_sBTC,
         tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
         metaToken: undefined,
     },
-    [POOLS.curve_HBTC]: {
+    [CURVE_POOLS.curve_HBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_HBTC,
+        poolAddress: CURVE_POOLS.curve_HBTC,
         tokens: [TOKENS.hBTC, TOKENS.WBTC],
         metaToken: undefined,
     },
-    [POOLS.curve_TRI]: {
+    [CURVE_POOLS.curve_TRI]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_TRI,
+        poolAddress: CURVE_POOLS.curve_TRI,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: undefined,
     },
-    [POOLS.curve_GUSD]: {
+    [CURVE_POOLS.curve_GUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_GUSD,
+        poolAddress: CURVE_POOLS.curve_GUSD,
         tokens: [TOKENS.GUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: TOKENS.GUSD,
     },
-    [POOLS.curve_HUSD]: {
+    [CURVE_POOLS.curve_HUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_HUSD,
+        poolAddress: CURVE_POOLS.curve_HUSD,
         tokens: [TOKENS.HUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: TOKENS.HUSD,
     },
-    [POOLS.curve_USDN]: {
+    [CURVE_POOLS.curve_USDN]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_USDN,
+        poolAddress: CURVE_POOLS.curve_USDN,
         tokens: [TOKENS.USDN, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: TOKENS.USDN,
     },
-    [POOLS.curve_mUSD]: {
+    [CURVE_POOLS.curve_mUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_mUSD,
+        poolAddress: CURVE_POOLS.curve_mUSD,
         tokens: [TOKENS.mUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: TOKENS.mUSD,
     },
-    [POOLS.curve_tBTC]: {
+    [CURVE_POOLS.curve_tBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_tBTC,
+        poolAddress: CURVE_POOLS.curve_tBTC,
         tokens: [TOKENS.tBTC, TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
         metaToken: TOKENS.tBTC,
     },
-    [POOLS.curve_dUSD]: {
+    [CURVE_POOLS.curve_dUSD]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_dUSD,
+        poolAddress: CURVE_POOLS.curve_dUSD,
         tokens: [TOKENS.dUSD, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: TOKENS.dUSD,
     },
-    [POOLS.curve_pBTC]: {
+    [CURVE_POOLS.curve_pBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_pBTC,
+        poolAddress: CURVE_POOLS.curve_pBTC,
         tokens: [TOKENS.pBTC, TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
         metaToken: TOKENS.pBTC,
     },
-    [POOLS.curve_bBTC]: {
+    [CURVE_POOLS.curve_bBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_bBTC,
+        poolAddress: CURVE_POOLS.curve_bBTC,
         tokens: [TOKENS.bBTC, TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
         metaToken: TOKENS.bBTC,
     },
-    [POOLS.curve_oBTC]: {
+    [CURVE_POOLS.curve_oBTC]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_oBTC,
+        poolAddress: CURVE_POOLS.curve_oBTC,
         tokens: [TOKENS.oBTC, TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
         metaToken: TOKENS.oBTC,
     },
-    [POOLS.curve_UST]: {
+    [CURVE_POOLS.curve_UST]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_UST,
+        poolAddress: CURVE_POOLS.curve_UST,
         tokens: [TOKENS.UST, TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: TOKENS.UST,
     },
-    [POOLS.curve_eurs]: {
+    [CURVE_POOLS.curve_eurs]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_eurs,
+        poolAddress: CURVE_POOLS.curve_eurs,
         tokens: [TOKENS.EURS, TOKENS.sEUR],
         metaToken: undefined,
     },
@@ -369,19 +461,19 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
     //     tokens: [TOKENS.ETH, TOKENS.sETH],
     //     metaToken: undefined,
     // },
-    [POOLS.curve_aave]: {
+    [CURVE_POOLS.curve_aave]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_aave,
+        poolAddress: CURVE_POOLS.curve_aave,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT],
         metaToken: undefined,
     },
-    [POOLS.curve_aave]: {
+    [CURVE_POOLS.curve_aave]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange,
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: POOLS.curve_aave,
+        poolAddress: CURVE_POOLS.curve_aave,
         tokens: [TOKENS.aDAI, TOKENS.aUSDC, TOKENS.aUSDT],
         metaToken: undefined,
     },
@@ -448,51 +540,158 @@ export const MAINNET_KYBER_NETWORK_PROXY = '0x9aab3f75489902f3a48495025729a0af77
 
 export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
 
-export const MAINNET_UNISWAP_V1_ROUTER = '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95';
-export const MAINNET_UNISWAP_V2_ROUTER = '0xf164fc0ec4e93095b804a4795bbe1e041497b92a';
-export const MAINNET_SUSHI_SWAP_ROUTER = '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f';
-export const MAINNET_CRYPTO_COM_ROUTER = '0xceb90e4c17d626be0facd78b79c9c87d7ca181b3';
-export const MAINNET_LINKSWAP_ROUTER = '0xa7ece0911fe8c60bff9e99f8fafcdbe56e07aff1';
+export const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95',
+    },
+    NULL_ADDRESS,
+);
+export const UNISWAPV1_ROUTER = UNISWAPV1_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
-export const MAINNET_MSTABLE_ROUTER = '0xe2f2a5c287993345a840db3b0845fbc70f5935a5';
-export const MAINNET_OASIS_ROUTER = '0x794e6e91555438afc3ccf1c5076a74f42133d08d';
+export const UNISWAPV2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xf164fc0ec4e93095b804a4795bbe1e041497b92a',
+    },
+    NULL_ADDRESS,
+);
+export const UNISWAPV2_ROUTER = UNISWAPV2_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
-export const MAINNET_MOONISWAP_REGISTRY = '0x71CD6666064C3A1354a3B4dca5fA1E2D3ee7D303';
-export const MAINNET_MOONISWAP_V2_REGISTRY = '0xc4a8b7e29e3c8ec560cd4945c1cf3461a85a148d';
-export const MAINNET_MOONISWAP_V2_1_REGISTRY = '0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643';
+export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f',
+        [ChainId.BSC]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
+    },
+    NULL_ADDRESS,
+);
+export const SUSHISWAP_ROUTER = SUSHISWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
+
+export const CRYPTO_COM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xceb90e4c17d626be0facd78b79c9c87d7ca181b3',
+    },
+    NULL_ADDRESS,
+);
+export const CRYPTO_COM_ROUTER = CRYPTO_COM_ROUTER_BY_CHAIN_ID[CHAIN_ID];
+
+export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    { [ChainId.Mainnet]: '0xa7ece0911fe8c60bff9e99f8fafcdbe56e07aff1' },
+    NULL_ADDRESS,
+);
+export const LINKSWAP_ROUTER = LINKSWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
+
+export const MSTABLE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+    },
+    NULL_ADDRESS,
+);
+export const MSTABLE_ROUTER = MSTABLE_ROUTER_BY_CHAIN_ID[CHAIN_ID];
+
+export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x794e6e91555438afc3ccf1c5076a74f42133d08d',
+    },
+    NULL_ADDRESS,
+);
+export const OASIS_ROUTER = OASIS_ROUTER_BY_CHAIN_ID[CHAIN_ID];
+
+export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Mainnet]: [
+            '0x71CD6666064C3A1354a3B4dca5fA1E2D3ee7D303',
+            '0xc4a8b7e29e3c8ec560cd4945c1cf3461a85a148d',
+            '0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643',
+        ],
+        [ChainId.BSC]: ['0xd41b24bba51fac0e4827b6f94c0d6ddeb183cd64'],
+    },
+    [] as string[],
+);
+export const MOONISWAP_REGISTRIES = MOONISWAP_REGISTRIES_BY_CHAIN_ID[CHAIN_ID];
 
 export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
-export const MAINNET_DODOV2_PRIVATE_POOL_FACTORY = '0x6b4fa0bc61eddc928e0df9c7f01e407bfcd3e5ef';
-export const MAINNET_DODOV2_VENDING_MACHINE_FACTORY = '0x72d220ce168c4f361dd4dee5d826a01ad8598f6c';
+
+export const DODOV2_FACTORIES_BY_CHAIN_ID = valueByChainId<string[]>(
+    {
+        [ChainId.Mainnet]: [
+            '0x6b4fa0bc61eddc928e0df9c7f01e407bfcd3e5ef', // Private Pool
+            '0x72d220ce168c4f361dd4dee5d826a01ad8598f6c', // Vending Machine
+        ],
+        [ChainId.BSC]: [
+            '0xafe0a75dffb395eaabd0a7e1bbbd0b11f8609eef', // Private Pool
+            '0x790b4a80fb1094589a3c0efc8740aa9b0c1733fb', // Vending Machine
+        ],
+    },
+    [] as string[],
+);
+export const DODOV2_FACTORIES = DODOV2_FACTORIES_BY_CHAIN_ID[CHAIN_ID];
 export const MAX_DODOV2_POOLS_QUERIED = 3;
 
-export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
-    '1': '0x561b94454b65614ae3db0897b74303f4acf7cc75',
-    '3': '0xae241c6fc7f28f6dc0cb58b4112ba7f63fcaf5e2',
-    '1337': NULL_ADDRESS,
-};
-
-// TODO(dorothy-zbornak): Point these to real addresses after deploying.
-export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
-    '1': '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
-    '3': '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
-    '1337': NULL_ADDRESS,
-};
-
-export const MAINNET_SHELL_POOLS = {
-    StableCoins: {
-        poolAddress: '0x8f26d7bab7a73309141a291525c965ecdea7bf42',
-        tokens: [TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD, TOKENS.DAI],
+export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
+        [ChainId.Ropsten]: '0xAa213dcDFbF104e08cbAeC3d1628eD197553AfCc',
     },
-    Bitcoin: {
-        poolAddress: '0xc2d019b901f8d4fdb2b9a65b5d226ad88c66ee8d',
-        tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
+    NULL_ADDRESS,
+);
+export const CURVE_LIQUIDITY_PROVIDER = CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[CHAIN_ID];
+
+export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
+        [ChainId.Ropsten]: '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
     },
-};
+    NULL_ADDRESS,
+);
+export const MOONISWAP_LIQUIDITY_PROVIDER = MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[CHAIN_ID];
+
+export const SHELL_POOLS_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Mainnet]: {
+            StableCoins: {
+                poolAddress: '0x8f26d7bab7a73309141a291525c965ecdea7bf42',
+                tokens: [TOKENS.USDC, TOKENS.USDT, TOKENS.sUSD, TOKENS.DAI],
+            },
+            Bitcoin: {
+                poolAddress: '0xc2d019b901f8d4fdb2b9a65b5d226ad88c66ee8d',
+                tokens: [TOKENS.RenBTC, TOKENS.WBTC, TOKENS.sBTC],
+            },
+        },
+    },
+    {
+        StableCoins: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        Bitcoin: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+    },
+);
+export const SHELL_POOLS = SHELL_POOLS_BY_CHAIN_ID[CHAIN_ID];
 
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
+
+//
+// BSC
+//
+export const PANCAKESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0x05ff2b0db69458a0750badebc4f9e13add608c7f',
+    },
+    NULL_ADDRESS,
+);
+export const PANCAKESWAP_ROUTER = PANCAKESWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
+
+export const BAKERYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0xcde540d7eafe93ac5fe6233bee57e1270d3e330f',
+    },
+    NULL_ADDRESS,
+);
+export const BAKERYSWAP_ROUTER = BAKERYSWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  * Calculated gross gas cost of the underlying exchange.
@@ -520,32 +719,32 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Curve]: fillData => {
         const poolAddress = (fillData as CurveFillData).pool.poolAddress.toLowerCase();
         switch (poolAddress) {
-            case POOLS.curve_renBTC:
-            case POOLS.curve_sBTC:
-            case POOLS.curve_sUSD:
-            case POOLS.curve_HBTC:
-            case POOLS.curve_TRI:
+            case CURVE_POOLS.curve_renBTC:
+            case CURVE_POOLS.curve_sBTC:
+            case CURVE_POOLS.curve_sUSD:
+            case CURVE_POOLS.curve_HBTC:
+            case CURVE_POOLS.curve_TRI:
                 return 150e3;
-            case POOLS.curve_USDN:
-            case POOLS.curve_mUSD:
+            case CURVE_POOLS.curve_USDN:
+            case CURVE_POOLS.curve_mUSD:
                 return 300e3;
-            case POOLS.curve_GUSD:
-            case POOLS.curve_HUSD:
+            case CURVE_POOLS.curve_GUSD:
+            case CURVE_POOLS.curve_HUSD:
                 return 310e3;
-            case POOLS.curve_tBTC:
+            case CURVE_POOLS.curve_tBTC:
                 return 370e3;
-            case POOLS.curve_UST:
+            case CURVE_POOLS.curve_UST:
                 return 500e3;
-            case POOLS.curve_dUSD:
-            case POOLS.curve_bBTC:
-            case POOLS.curve_oBTC:
-            case POOLS.curve_eurs:
+            case CURVE_POOLS.curve_dUSD:
+            case CURVE_POOLS.curve_bBTC:
+            case CURVE_POOLS.curve_oBTC:
+            case CURVE_POOLS.curve_eurs:
                 return 600e3;
-            case POOLS.curve_compound:
+            case CURVE_POOLS.curve_compound:
                 return 750e3;
-            case POOLS.curve_aave:
+            case CURVE_POOLS.curve_aave:
                 return 800e3;
-            case POOLS.curve_PAX:
+            case CURVE_POOLS.curve_PAX:
                 return 850e3;
             // case POOLS.curve_seth:
             default:
@@ -565,7 +764,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.SushiSwap]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
         let gas = 90e3;
-        const path = (fillData as SushiSwapFillData).tokenAddressPath;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.
         }
@@ -625,6 +824,27 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Bancor]: (fillData?: FillData) => {
         let gas = 200e3;
         const path = (fillData as BancorFillData).path;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    //
+    // BSC
+    //
+    [ERC20BridgeSource.PancakeSwap]: (fillData?: FillData) => {
+        // TODO: Different base cost if to/from ETH.
+        let gas = 90e3;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.BakerySwap]: (fillData?: FillData) => {
+        // TODO: Different base cost if to/from ETH.
+        let gas = 90e3;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.
         }

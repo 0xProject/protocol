@@ -55,6 +55,10 @@ contract UniswapV2Sampler is
                 returns (uint256[] memory amounts)
             {
                 makerTokenAmounts[i] = amounts[path.length - 1];
+                // Break early if there are 0 amounts
+                if (makerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
@@ -87,6 +91,10 @@ contract UniswapV2Sampler is
                 returns (uint256[] memory amounts)
             {
                 takerTokenAmounts[i] = amounts[0];
+                // Break early if there are 0 amounts
+                if (takerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;

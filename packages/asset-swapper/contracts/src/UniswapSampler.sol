@@ -102,7 +102,8 @@ contract UniswapSampler is
                     makerTokenAmounts[i] = 0;
                 }
             }
-            if (!didSucceed) {
+            // Break early if amounts are 0
+            if (!didSucceed || makerTokenAmounts[i] == 0) {
                 break;
             }
         }
@@ -165,7 +166,8 @@ contract UniswapSampler is
                     takerTokenAmounts[i] = 0;
                 }
             }
-            if (!didSucceed) {
+            // Break early if amounts are 0
+            if (!didSucceed || takerTokenAmounts[i] == 0) {
                 break;
             }
         }

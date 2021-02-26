@@ -32,10 +32,7 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
-import {
-    CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
-    MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
-} from '../utils/market_operation_utils/constants';
+import { CURVE_LIQUIDITY_PROVIDER, MOONISWAP_LIQUIDITY_PROVIDER } from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
     getERC20BridgeSourceToBridgeSource,
@@ -189,7 +186,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .sellToLiquidityProvider(
                         isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                         isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+                        CURVE_LIQUIDITY_PROVIDER,
                         NULL_ADDRESS,
                         sellAmount,
                         minBuyAmount,
@@ -215,7 +212,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .sellToLiquidityProvider(
                         isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                         isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+                        MOONISWAP_LIQUIDITY_PROVIDER,
                         NULL_ADDRESS,
                         sellAmount,
                         minBuyAmount,
