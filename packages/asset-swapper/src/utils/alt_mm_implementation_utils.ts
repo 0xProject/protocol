@@ -221,9 +221,6 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             headers: { Authorization: `Bearer ${apiKey}` },
             timeout: maxResponseTimeMs,
         })
-        .then(resp => {
-            return resp;
-        })
         .catch(err => {
             warningLogger(err, `Alt RFQ MM request failed`);
             throw new Error(`Alt RFQ MM request failed`);
