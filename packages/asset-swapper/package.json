@@ -75,7 +75,7 @@
         "@ethersproject/address": "^5.0.1",
         "@ethersproject/contracts": "^5.0.1",
         "@ethersproject/providers": "^5.0.4",
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "axios-mock-adapter": "^1.18.1",
         "cream-sor": "^0.3.3",
         "decimal.js": "^10.2.0",
