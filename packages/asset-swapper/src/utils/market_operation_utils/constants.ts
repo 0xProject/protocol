@@ -656,3 +656,6 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
     shouldGenerateQuoteReport: false,
     tokenAdjacencyGraph: { default: [] },
 };
+
+// EP gas overhead for a LiquidityProvider bridge route.
+export const LP_BRIDGE_GAS_OVERHEAD = new BigNumber(50e3);
