@@ -170,8 +170,8 @@ export const POOLS = {
     curve_compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead
     curve_PAX: '0x06364f10b501e868329afbc005b3492902d6c763', // 2.PAX
-    curve_y: '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51', // 3.Y
-    curve_BUSD: '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27', // 4.BUSD
+    // 3. 0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51 y-pool is dead
+    // 4. 0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27 BUSD is dead
     curve_sUSD: '0xa5407eae9ba41422680e2e00537571bcc53efbfd', // 5.sUSD
     curve_renBTC: '0x93054188d876f558f4a66b2ef1d97d16edf0895b', // 6.ren
     curve_sBTC: '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714', // 7.sbtc
@@ -231,22 +231,6 @@ export const MAINNET_CURVE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: POOLS.curve_PAX,
         tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.PAX],
-        metaToken: undefined,
-    },
-    [POOLS.curve_y]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
-        poolAddress: POOLS.curve_y,
-        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.TUSD],
-        metaToken: undefined,
-    },
-    [POOLS.curve_BUSD]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.get_dx_underlying,
-        poolAddress: POOLS.curve_BUSD,
-        tokens: [TOKENS.DAI, TOKENS.USDC, TOKENS.USDT, TOKENS.BUSD],
         metaToken: undefined,
     },
     [POOLS.curve_sUSD]: {
@@ -555,8 +539,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
             case POOLS.curve_aave:
                 return 800e3;
             case POOLS.curve_PAX:
-            case POOLS.curve_y:
-            case POOLS.curve_BUSD:
                 return 850e3;
             // case POOLS.curve_seth:
             default:
