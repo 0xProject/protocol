@@ -1,5 +1,15 @@
 [
     {
+        "version": "6.2.0",
+        "changes": [
+            {
+                "note": "drop curve Y and BUSD pools",
+                "pr": 161
+            }
+        ],
+        "timestamp": 1614645844
+    },
+    {
         "version": "6.1.0",
         "changes": [
             {
