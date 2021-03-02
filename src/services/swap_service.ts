@@ -36,6 +36,7 @@ import {
     SWAP_QUOTER_OPTS,
 } from '../config';
 import {
+    DEFAULT_VALIDATION_GAS_LIMIT,
     GAS_LIMIT_BUFFER_MULTIPLIER,
     NULL_ADDRESS,
     NULL_BYTES,
@@ -54,6 +55,7 @@ import {
     AffiliateFee,
     BucketedPriceDepth,
     CalaculateMarketDepthParams,
+    ChainId,
     GetSwapQuoteParams,
     GetSwapQuoteResponse,
     Price,
@@ -74,6 +76,7 @@ export class SwapService {
     private readonly _fakeTaker: FakeTakerContract;
     private readonly _swapQuoter: SwapQuoter;
     private readonly _swapQuoteConsumer: SwapQuoteConsumer;
+    private readonly _web3Wrapper: Web3Wrapper;
     private readonly _wethContract: WETH9Contract;
     private readonly _contractAddresses: ContractAddresses;
     private readonly _firmQuoteValidator: RfqtFirmQuoteValidator | undefined;
@@ -144,6 +147,7 @@ export class SwapService {
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
+        this._web3Wrapper = new Web3Wrapper(this._provider);
 
         this._contractAddresses = contractAddresses;
         this._wethContract = new WETH9Contract(this._contractAddresses.etherToken, this._provider);
@@ -561,24 +565,35 @@ export class SwapService {
             resultData: string;
             gasUsed: BigNumber;
         } = { success: false, resultData: NULL_BYTES, gasUsed: ZERO };
+        let callResultGanacheRaw: string | undefined;
         try {
-            // Split out the `to` and `data` so it doesn't override
-            const { data, to, ...rest } = txData;
-            callResult = await this._fakeTaker.execute(to!, data!).callAsync({
-                ...rest,
-                // Set the `to` to be the user address with a fake contract at that address
-                to: txData.from!,
-                // TODO jacob this has issues with protocol fees, but a gas amount is needed to use gasPrice
-                gasPrice: 0,
-                overrides: {
-                    // Override the user address with the Fake Taker contract
-                    [txData.from!]: {
-                        code: _.get(artifacts.FakeTaker, 'compilerOutput.evm.deployedBytecode.object'),
+            // NOTE: Ganache does not support overrides
+            if (CHAIN_ID === ChainId.Ganache) {
+                const gas = await this._web3Wrapper.estimateGasAsync(txData).catch(_e => DEFAULT_VALIDATION_GAS_LIMIT);
+                callResultGanacheRaw = await this._web3Wrapper.callAsync({
+                    ...txData,
+                    gas,
+                });
+                gasEstimate = new BigNumber(gas);
+            } else {
+                // Split out the `to` and `data` so it doesn't override
+                const { data, to, ...rest } = txData;
+                callResult = await this._fakeTaker.execute(to!, data!).callAsync({
+                    ...rest,
+                    // Set the `to` to be the user address with a fake contract at that address
+                    to: txData.from!,
+                    // TODO jacob this has issues with protocol fees, but a gas amount is needed to use gasPrice
+                    gasPrice: 0,
+                    overrides: {
+                        // Override the user address with the Fake Taker contract
+                        [txData.from!]: {
+                            code: _.get(artifacts.FakeTaker, 'compilerOutput.evm.deployedBytecode.object'),
+                        },
                     },
-                },
-            });
+                });
 
-            gasEstimate = callResult.gasUsed.plus(utils.calculateCallDataGas(data!));
+                gasEstimate = callResult.gasUsed.plus(utils.calculateCallDataGas(data!));
+            }
         } catch (e) {
             if (e.message && /insufficient funds/.test(e.message)) {
                 throw new InsufficientFundsError();
@@ -601,7 +616,9 @@ export class SwapService {
             }
         }
         try {
-            if (callResult! && !callResult.success) {
+            if (callResultGanacheRaw) {
+                revertError = RevertError.decode(callResultGanacheRaw, false);
+            } else if (callResult! && !callResult.success) {
                 revertError = RevertError.decode(callResult.resultData, false);
             }
         } catch (e) {

@@ -2,14 +2,12 @@ import { logUtils as log } from '@0x/utils';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { promisify } from 'util';
-
-import { getDBConnectionAsync } from '../../src/db_connection';
 
 import { getTestDBConnectionAsync } from './db_connection';
 
+// depends on a `docker-compose-test.yml` existing in the api root directory
 const apiRootDir = path.normalize(path.resolve(`${__dirname}/../../../`));
-const testRootDir = `${apiRootDir}/test`;
+const dockerComposeFilename = 'docker-compose-test.yml';
 
 export enum LogType {
     Console,
@@ -28,7 +26,6 @@ export interface LoggingConfig {
 }
 
 let didTearDown = false;
-const dockerComposeFilename = 'docker-compose-test.yml';
 
 /**
  * Sets up 0x-api's dependencies.
@@ -36,24 +33,16 @@ const dockerComposeFilename = 'docker-compose-test.yml';
  *        helps to make the logs more intelligible.
  * @param logType Indicates where logs should be directed.
  */
-export async function setupDependenciesAsync(
-    suiteName: string,
-    shouldStartMesh: boolean = false,
-    logType?: LogType,
-): Promise<void> {
-    await createFreshDockerComposeFileOnceAsync();
-
+export async function setupDependenciesAsync(suiteName: string, logType?: LogType): Promise<void> {
     // Tear down any existing dependencies or lingering data if a tear-down has
     // not been called yet.
     if (!didTearDown) {
         await teardownDependenciesAsync(suiteName, logType);
     }
 
-    const dockerUpArgs = ['-f', dockerComposeFilename, 'up', 'ganache', 'postgres'];
-    const dockerCmdArgs = shouldStartMesh ? dockerUpArgs.concat('mesh') : dockerUpArgs;
     // Spin up the 0x-api dependencies
-    const up = spawn('docker-compose', dockerCmdArgs, {
-        cwd: testRootDir,
+    const up = spawn('docker-compose', ['-f', dockerComposeFilename, 'up'], {
+        cwd: apiRootDir,
     });
     directLogs(up, suiteName, 'up', logType);
     didTearDown = false;
@@ -64,8 +53,6 @@ export async function setupDependenciesAsync(
     await confirmPostgresConnectivityAsync();
     // Create a test db connection in this instance, and synchronize it
     await getTestDBConnectionAsync();
-    // // Make sure the db schema is up to date
-    // await runDbMigrationAsync(suiteName, logType);
 }
 
 /**
@@ -77,15 +64,12 @@ export async function setupDependenciesAsync(
 export async function teardownDependenciesAsync(suiteName: string, logType?: LogType): Promise<void> {
     // Tear down any existing docker containers from the `docker-compose-test.yml` file.
     const down = spawn('docker-compose', ['-f', dockerComposeFilename, 'down'], {
-        cwd: testRootDir,
+        cwd: apiRootDir,
     });
 
     directLogs(down, suiteName, 'down', logType);
     const timeout = 20000;
     await waitForCloseAsync(down, 'down', timeout);
-    const clean = spawn('rm', ['-rf', '0x_mesh_test', 'postgres_test'], { cwd: testRootDir });
-    directLogs(clean, suiteName, 'clean data', logType);
-    await waitForCloseAsync(clean, 'clean data', timeout);
     didTearDown = true;
 }
 
@@ -108,24 +92,6 @@ function directLogs(
         stream.stdout.pipe(logStream);
         stream.stderr.pipe(errorStream);
     }
-}
-
-const volumeRegex = new RegExp(/[ \t\r]*volumes:.*\n([ \t\r]*-.*\n)+/, 'g');
-let didCreateFreshComposeFile = false;
-
-// Removes the volume fields from the docker-compose-test.yml to fix a
-// docker compatibility issue with Linux systems.
-// Issue: https://github.com/0xProject/0x-api/issues/186
-async function createFreshDockerComposeFileOnceAsync(): Promise<void> {
-    if (didCreateFreshComposeFile) {
-        return;
-    }
-    const dockerComposeString = (await promisify(fs.readFile)(`${apiRootDir}/${dockerComposeFilename}`)).toString();
-    await promisify(fs.writeFile)(
-        `${testRootDir}/${dockerComposeFilename}`,
-        dockerComposeString.replace(volumeRegex, ''),
-    );
-    didCreateFreshComposeFile = true;
 }
 
 function neatlyPrintChunk(prefix: string, chunk: Buffer): void {
@@ -174,7 +140,7 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
         await Promise.all([
             // delay before retrying
             new Promise<void>(resolve => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
-            await getDBConnectionAsync(),
+            await getTestDBConnectionAsync(),
         ]);
         return;
     } catch (e) {
@@ -185,15 +151,6 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
         }
     }
 }
-
-// async function runDbMigrationAsync(suiteName: string, logType?: LogType): Promise<void> {
-//     const migrate = spawn('yarn', ['db:migrate'], {
-//         cwd: testRootDir,
-//     });
-//     directLogs(migrate, suiteName, 'migrate', logType);
-//     const timeout = 20000;
-//     await waitForCloseAsync(migrate, 'migrate', timeout);
-// }
 
 async function sleepAsync(timeSeconds: number): Promise<void> {
     return new Promise<void>(resolve => {

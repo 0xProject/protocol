@@ -228,7 +228,6 @@ export class MetaTransactionHandlers {
             });
             return;
         }
-        // TODO(kimpers): Refactor this to use published 5.2 @0x/json-schemas
         schemaUtils.validateSchema(req.body, schemas.metaTransactionFillRequestSchema);
 
         // parse the request body

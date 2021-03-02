@@ -3,8 +3,7 @@ import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/cont
 import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
 import { constants, expect, signingUtils, transactionHashUtils } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
-import { AddOrdersResults } from '@0x/mesh-graphql-client';
-import { SignatureType, SignedOrder, ZeroExTransaction } from '@0x/types';
+import { SignatureType, ZeroExTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
@@ -16,7 +15,8 @@ import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '..
 import * as config from '../src/config';
 import { META_TRANSACTION_PATH, ONE_SECOND_MS, TEN_MINUTES_MS } from '../src/constants';
 import { GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
-import { GetMetaTransactionQuoteResponse } from '../src/types';
+import { GetMetaTransactionQuoteResponse, SignedLimitOrder } from '../src/types';
+import { AddOrdersResultsV4 } from '../src/utils/mesh_client';
 import { meshUtils } from '../src/utils/mesh_utils';
 
 import {
@@ -25,8 +25,7 @@ import {
     getProvider,
     MATCHA_AFFILIATE_ADDRESS,
     MATCHA_AFFILIATE_ENCODED_PARTIAL_ORDER_DATA,
-    WETH_ASSET_DATA,
-    ZRX_ASSET_DATA,
+    WETH_TOKEN_ADDRESS,
     ZRX_TOKEN_ADDRESS,
 } from './constants';
 import { resetState } from './test_setup';
@@ -59,8 +58,7 @@ describe.skip(SUITE_NAME, () => {
     let zrx: DummyERC20TokenContract;
 
     before(async () => {
-        const shouldStartMesh = true;
-        await setupDependenciesAsync(SUITE_NAME, shouldStartMesh);
+        await setupDependenciesAsync(SUITE_NAME);
         provider = getProvider();
         // start the 0x-api app
         dependencies = await getDefaultAppDependenciesAsync(provider, {
@@ -341,42 +339,10 @@ describe.skip(SUITE_NAME, () => {
         });
     });
 
-    interface StringifiedOrder {
-        chainId: number;
-        exchangeAddress: string;
-        makerAddress: string;
-        takerAddress: string;
-        feeRecipientAddress: string;
-        senderAddress: string;
-        makerAssetAmount: string;
-        takerAssetAmount: string;
-        makerFee: string;
-        takerFee: string;
-        expirationTimeSeconds: string;
-        salt: string;
-        makerAssetData: string;
-        takerAssetData: string;
-        makerFeeAssetData: string;
-        takerFeeAssetData: string;
-        signature: string;
-    }
-
-    function stringifyOrderBigNumbers(order: SignedOrder): StringifiedOrder {
-        return {
-            ...order,
-            makerAssetAmount: order.makerAssetAmount.toString(),
-            makerFee: order.makerFee.toString(),
-            takerAssetAmount: order.takerAssetAmount.toString(),
-            takerFee: order.takerFee.toString(),
-            salt: order.salt.toString(),
-            expirationTimeSeconds: order.expirationTimeSeconds.toString(),
-        };
-    }
-
     interface QuoteTestCase {
         quote: GetMetaTransactionQuoteResponse;
         expectedBuyAmount: string;
-        expectedOrders: SignedOrder[];
+        expectedOrders: SignedLimitOrder[];
         expectedPrice: string;
     }
 
@@ -411,7 +377,8 @@ describe.skip(SUITE_NAME, () => {
                 signer: takerAddress,
                 domain: { chainId, verifyingContract: contractAddresses.exchangeProxy },
             },
-            orders: testCase.expectedOrders.map(order => stringifyOrderBigNumbers(order)),
+            // TODO(kimpers) [V4] is stringify fine here?
+            orders: testCase.expectedOrders.map(order => JSON.stringify(order)),
             buyAmount: testCase.expectedBuyAmount,
             sellAmount: calculateSellAmount(testCase.expectedBuyAmount, testCase.expectedPrice),
             // NOTE(jalextowle): 0x is the only source that is currently being tested.
@@ -466,16 +433,16 @@ describe.skip(SUITE_NAME, () => {
                 for (const buyToken of ['ETH', ETH_TOKEN_ADDRESS]) {
                     await meshTestUtils.addPartialOrdersAsync([
                         {
-                            makerAssetData: ZRX_ASSET_DATA,
-                            takerAssetData: WETH_ASSET_DATA,
-                            makerAssetAmount: ONE_THOUSAND_IN_BASE,
-                            takerAssetAmount: ONE_THOUSAND_IN_BASE,
+                            makerToken: ZRX_TOKEN_ADDRESS,
+                            takerToken: WETH_TOKEN_ADDRESS,
+                            makerAmount: ONE_THOUSAND_IN_BASE,
+                            takerAmount: ONE_THOUSAND_IN_BASE,
                         },
                         {
-                            makerAssetData: WETH_ASSET_DATA,
-                            takerAssetData: ZRX_ASSET_DATA,
-                            makerAssetAmount: MAKER_WETH_AMOUNT,
-                            takerAssetAmount: ONE_THOUSAND_IN_BASE,
+                            makerToken: WETH_TOKEN_ADDRESS,
+                            takerToken: ZRX_TOKEN_ADDRESS,
+                            makerAmount: MAKER_WETH_AMOUNT,
+                            takerAmount: ONE_THOUSAND_IN_BASE,
                         },
                     ]);
                     const args = {
@@ -595,7 +562,7 @@ describe.skip(SUITE_NAME, () => {
             }
 
             describe('single order submission', () => {
-                let validationResults: AddOrdersResults;
+                let validationResults: AddOrdersResultsV4;
                 const price = '1';
                 const sellAmount = calculateSellAmount(buyAmount, price);
 
@@ -656,10 +623,10 @@ describe.skip(SUITE_NAME, () => {
                 });
 
                 it.skip('submitting the quote is successful and money changes hands correctly', async () => {
-                    const makerAddress = validationResults.accepted[0].order.makerAddress;
+                    const makerAddress = validationResults.accepted[0].order.maker;
                     await weth.deposit().awaitTransactionSuccessAsync({ from: takerAddress, value: buyAmount });
                     await weth
-                        .approve(contractAddresses.erc20Proxy, new BigNumber(buyAmount))
+                        .approve(contractAddresses.exchangeProxy, new BigNumber(buyAmount))
                         .awaitTransactionSuccessAsync({ from: takerAddress });
 
                     const startMakerWethBalance = await weth.balanceOf(makerAddress).callAsync();
@@ -698,7 +665,7 @@ describe.skip(SUITE_NAME, () => {
 
             // TODO: There is a problem with this test case. It is currently throwing an `IncompleteFillError`
             describe.skip('two order submission', () => {
-                let validationResults: AddOrdersResults;
+                let validationResults: AddOrdersResultsV4;
                 const largeBuyAmount = DEFAULT_MAKER_ASSET_AMOUNT.times(2).toString();
                 const price = '1.5';
                 const sellAmount = calculateSellAmount(largeBuyAmount, price);
@@ -763,10 +730,10 @@ describe.skip(SUITE_NAME, () => {
                 });
 
                 it('submitting the quote is successful and money changes hands correctly', async () => {
-                    const makerAddress = validationResults.accepted[0].order.makerAddress;
+                    const makerAddress = validationResults.accepted[0].order.maker;
                     await weth.deposit().awaitTransactionSuccessAsync({ from: takerAddress, value: largeBuyAmount });
                     await weth
-                        .approve(contractAddresses.erc20Proxy, new BigNumber(largeBuyAmount))
+                        .approve(contractAddresses.exchangeProxy, new BigNumber(largeBuyAmount))
                         .awaitTransactionSuccessAsync({ from: takerAddress });
 
                     const startMakerWethBalance = await weth.balanceOf(makerAddress).callAsync();

@@ -1,44 +1,18 @@
 version: '3'
 services:
     ganache:
-        image: '0xorg/ganache-cli:6.4.1'
+        image: '0xorg/ganache-cli:6.5.10'
         ports:
             - '8545:8545'
         environment:
-            VERSION: 6.6.0
+            VERSION: 7.0.0
+            CHAIN_ID: 1337
+            NETWORK_ID: 1337
     postgres:
         image: postgres:9.6
         environment:
             - POSTGRES_USER=api
             - POSTGRES_PASSWORD=api
             - POSTGRES_DB=api
-        # persist the postgres data to disk so we don't lose it
-        # on rebuilds.
-        volumes:
-            - ./postgres_test:/var/lib/postgresql/data
         ports:
             - '5432:5432'
-    mesh:
-        image: '0xorg/mesh:10.2.0'
-        depends_on:
-            - ganache
-        restart: on-failure
-        environment:
-            ETHEREUM_RPC_URL: 'http://ganache:8545'
-            ETHEREUM_CHAIN_ID: '1337'
-            USE_BOOTSTRAP_LIST: 'false'
-            VERBOSITY: 4
-            PRIVATE_KEY_PATH: ''
-            ENABLE_GRAPHQL_SERVER: 'true'
-            ENABLE_GRAPHQL_PLAYGROUND: 'true' # TODO(kimpers): remove this?
-            BLOCK_POLLING_INTERVAL: '2s'
-            ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
-        volumes:
-            - ./0x_mesh_test:/usr/mesh/0x_mesh
-        ports:
-            - '60557:60557'
-            - '60558:60558'
-            - '60559:60559'
-        command: |
-            sh -c "waitForGanache () { until printf 'POST /\r\nContent-Length: 26\r\n\r\n{\"method\":\"net_listening\"}' | nc localhost 8545 | grep true; do continue; done }; waitForGanache && ./mesh"
-

@@ -1,0 +1,24 @@
+{
+    "id": "/sraOrderConfigPayloadSchema",
+    "type": "object",
+    "properties": {
+        "maker": { "$ref": "/addressSchema" },
+        "taker": { "$ref": "/addressSchema" },
+        "makerAmount": { "$ref": "/wholeNumberSchema" },
+        "takerAmount": { "$ref": "/wholeNumberSchema" },
+        "makerToken": { "$ref": "/hexSchema" },
+        "takerToken": { "$ref": "/hexSchema" },
+        "verifyingContract": { "$ref": "/addressSchema" },
+        "expiry": { "$ref": "/wholeNumberSchema" }
+    },
+    "required": [
+        "maker",
+        "taker",
+        "makerAmount",
+        "takerAmount",
+        "makerToken",
+        "takerToken",
+        "verifyingContract",
+        "expiry"
+    ]
+}

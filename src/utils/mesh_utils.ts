@@ -1,36 +1,62 @@
+import { LimitOrder } from '@0x/asset-swapper';
 import {
+    AcceptedOrderResult,
     OrderEvent,
     OrderEventEndState,
-    OrderWithMetadata,
+    OrderWithMetadataV4,
     RejectedOrderCode,
-    SignedOrder,
+    RejectedOrderResult,
 } from '@0x/mesh-graphql-client';
 import * as _ from 'lodash';
 
 import { ZERO } from '../constants';
 import { ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { AcceptedOrderResult, APIOrderWithMetaData, OrdersByLifecycleEvents, RejectedOrderResult } from '../types';
+import { OrdersByLifecycleEvents, SignedLimitOrder, SRAOrder } from '../types';
 
-type OrderData = AcceptedOrderResult | RejectedOrderResult | OrderEvent | OrderWithMetadata;
+type AcceptedOrderWithEndState = AcceptedOrderResult<OrderWithMetadataV4> & { endState: OrderEventEndState };
+type OrderData =
+    | AcceptedOrderResult<OrderWithMetadataV4>
+    | AcceptedOrderWithEndState
+    | RejectedOrderResult<SignedLimitOrder>
+    | OrderWithMetadataV4;
 
-const isOrderEvent = (orderData: OrderData): orderData is OrderEvent => !!(orderData as OrderEvent).endState;
-const isRejectedOrderResult = (orderData: OrderData): orderData is RejectedOrderResult =>
-    !!(orderData as RejectedOrderResult).code;
-const isOrderWithMetadata = (orderData: OrderData): orderData is OrderWithMetadata =>
-    !!(orderData as OrderWithMetadata).fillableTakerAssetAmount;
+const isRejectedOrderResult = (orderData: OrderData): orderData is RejectedOrderResult<SignedLimitOrder> =>
+    !!(orderData as RejectedOrderResult<SignedLimitOrder>).code;
+const isOrderWithMetadata = (orderData: OrderData): orderData is OrderWithMetadataV4 =>
+    !!(orderData as OrderWithMetadataV4).fillableTakerAssetAmount;
+
+const isAcceptedOrderWithEndState = (orderData: OrderData): orderData is AcceptedOrderWithEndState =>
+    (orderData as AcceptedOrderWithEndState).isNew !== undefined && !!(orderData as AcceptedOrderWithEndState).endState;
+
+export type OrderEventV4 = OrderEvent & { orderv4: OrderWithMetadataV4 };
 
 export const meshUtils = {
-    orderWithMetadataToSignedOrder(order: OrderWithMetadata): SignedOrder {
-        const cleanedOrder: SignedOrder = _.omit(order, ['hash', 'fillableTakerAssetAmount']);
+    orderWithMetadataToSignedOrder(order: OrderWithMetadataV4): SignedLimitOrder {
+        const cleanedOrder: SignedLimitOrder = _.omit(order, ['hash', 'fillableTakerAssetAmount']);
 
         return cleanedOrder;
     },
-    orderInfosToApiOrders: (orders: OrderData[]): APIOrderWithMetaData[] => {
-        return orders.map(e => meshUtils.orderInfoToAPIOrder(e));
+    orderEventToSRAOrder: (orderData: OrderEventV4): SRAOrder => {
+        const order = meshUtils.orderWithMetadataToSignedOrder(orderData.orderv4);
+        const remainingFillableTakerAssetAmount = orderData.orderv4.fillableTakerAssetAmount;
+        const orderHash = orderData.orderv4.hash;
+        const state = orderData.endState;
+
+        return {
+            order,
+            metaData: {
+                orderHash,
+                remainingFillableTakerAssetAmount,
+                state,
+            },
+        };
     },
-    orderInfoToAPIOrder: (orderData: OrderData): APIOrderWithMetaData => {
-        let order: SignedOrder;
+    orderInfosToApiOrders: (orders: OrderData[]): SRAOrder[] => {
+        return orders.map(e => meshUtils.orderInfoToSRAOrder(e));
+    },
+    orderInfoToSRAOrder: (orderData: OrderData): SRAOrder => {
+        let order: SignedLimitOrder;
         let remainingFillableTakerAssetAmount = ZERO;
         let orderHash: string;
         let state: OrderEventEndState | undefined;
@@ -38,22 +64,23 @@ export const meshUtils = {
             order = meshUtils.orderWithMetadataToSignedOrder(orderData);
             remainingFillableTakerAssetAmount = orderData.fillableTakerAssetAmount;
             orderHash = orderData.hash;
-        } else if (isOrderEvent(orderData)) {
-            order = meshUtils.orderWithMetadataToSignedOrder(orderData.order);
-            remainingFillableTakerAssetAmount = orderData.order.fillableTakerAssetAmount;
-            orderHash = orderData.order.hash;
-
-            state = orderData.endState;
         } else if (isRejectedOrderResult(orderData)) {
             order = orderData.order;
-            // TODO(kimpers): sometimes this will not exist according to Mesh GQL spec. Is this a problem?
             orderHash = orderData.hash!;
-
             state = meshUtils.rejectedCodeToOrderState(orderData.code);
         } else {
             order = meshUtils.orderWithMetadataToSignedOrder(orderData.order);
             remainingFillableTakerAssetAmount = orderData.order.fillableTakerAssetAmount;
             orderHash = orderData.order.hash;
+            // For persistent orders we add an end state
+            if (isAcceptedOrderWithEndState(orderData)) {
+                state = orderData.endState;
+            }
+        }
+
+        // According to mesh graphql client spec, order hash can sometimes be empty
+        if (_.isEmpty(orderHash)) {
+            orderHash = new LimitOrder(order).getHash();
         }
 
         return {
@@ -76,7 +103,7 @@ export const meshUtils = {
             case RejectedOrderCode.OrderFullyFilled:
                 return OrderEventEndState.FullyFilled;
             default:
-                return undefined;
+                return OrderEventEndState.Invalid;
         }
     },
     rejectedCodeToSRACode: (code: RejectedOrderCode): ValidationErrorCodes => {
@@ -101,10 +128,10 @@ export const meshUtils = {
                 return ValidationErrorCodes.InternalError;
         }
     },
-    calculateOrderLifecycle: (orders: APIOrderWithMetaData[]): OrdersByLifecycleEvents => {
-        const added: APIOrderWithMetaData[] = [];
-        const removed: APIOrderWithMetaData[] = [];
-        const updated: APIOrderWithMetaData[] = [];
+    calculateOrderLifecycle: (orders: SRAOrder[]): OrdersByLifecycleEvents => {
+        const added: SRAOrder[] = [];
+        const removed: SRAOrder[] = [];
+        const updated: SRAOrder[] = [];
         for (const order of orders) {
             switch (order.metaData.state as OrderEventEndState) {
                 case OrderEventEndState.Added: {

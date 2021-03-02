@@ -11,11 +11,6 @@ export function createSRARouter(orderBook: OrderBookService): express.Router {
     // Link to docs in the root.
     router.get('/', asyncHandler(SRAHandlers.rootAsync.bind(SRAHandlers)));
     /**
-     * GET AssetPairs endpoint retrieves a list of available asset pairs and the information required to trade them.
-     * http://sra3-spec.s3-website-us-east-1.amazonaws.com/#operation/getAssetPairs
-     */
-    router.get('/asset_pairs', asyncHandler(handlers.assetPairsAsync.bind(handlers)));
-    /**
      * GET Orders endpoint retrieves a list of orders given query parameters.
      * http://sra3-spec.s3-website-us-east-1.amazonaws.com/#operation/getOrders
      */

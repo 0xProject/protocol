@@ -15,6 +15,5 @@
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true
     },
-    "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts"],
-    "files": ["./src/schemas/swap_quote_request_schema.json"]
+    "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts", "src/schemas/*.json"]
 }

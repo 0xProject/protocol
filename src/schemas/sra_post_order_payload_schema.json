@@ -1,0 +1,77 @@
+{
+    "id": "/sraPostOrderPayloadSchema",
+    "properties": {
+        "makerToken": {
+            "$ref": "/addressSchema"
+        },
+        "takerToken": {
+            "$ref": "/addressSchema"
+        },
+        "makerAmount": {
+            "type": "string"
+        },
+        "takerAmount": {
+            "type": "string"
+        },
+        "takerTokenFeeAmount": {
+            "type": "string"
+        },
+        "maker": {
+            "$ref": "/addressSchema"
+        },
+        "taker": {
+            "$ref": "/addressSchema"
+        },
+        "sender": {
+            "$ref": "/addressSchema"
+        },
+        "feeRecipient": {
+            "$ref": "/addressSchema"
+        },
+        "pool": {
+            "type": "string"
+        },
+        "expiry": {
+            "type": "string"
+        },
+        "salt": {
+            "type": "string"
+        },
+        "chainId": {
+            "type": "number"
+        },
+        "verifyingContract": {
+            "$ref": "/addressSchema"
+        },
+        "signature": {
+            "type": "object",
+            "properties": {
+                "signatureType": {
+                    "type": "number"
+                },
+                "v": {
+                    "type": "number"
+                },
+                "s": {
+                    "type": "string"
+                },
+                "r": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "makerToken",
+        "takerToken",
+        "makerAmount",
+        "takerAmount",
+        "maker",
+        "expiry",
+        "salt",
+        "chainId",
+        "verifyingContract",
+        "signature"
+    ],
+    "type": "object"
+}

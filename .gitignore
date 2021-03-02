@@ -89,9 +89,6 @@ TODOs.org
 # macOS desktop services store
 .DS_Store
 
-# test docker file
-test/docker-compose*.yml
-
 TODO.txt
 
 0x_mesh_test/

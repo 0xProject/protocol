@@ -5,7 +5,9 @@ import {
     KeyValueEntity,
     MakerBalanceChainCacheEntity,
     PersistentSignedOrderEntity,
+    PersistentSignedOrderV4Entity,
     SignedOrderEntity,
+    SignedOrderV4Entity,
     TransactionEntity,
 } from './entities';
 
@@ -15,6 +17,8 @@ const entities = [
     TransactionEntity,
     KeyValueEntity,
     MakerBalanceChainCacheEntity,
+    SignedOrderV4Entity,
+    PersistentSignedOrderV4Entity,
 ];
 
 const config: ConnectionOptions = {
@@ -36,5 +40,8 @@ const config: ConnectionOptions = {
               },
           }
         : { url: POSTGRES_URI }),
+    cli: {
+        migrationsDir: 'migrations',
+    },
 };
 module.exports = config;

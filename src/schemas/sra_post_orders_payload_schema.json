@@ -1,0 +1,7 @@
+{
+    "id": "/sraPostOrdersPayloadSchema",
+    "type": "array",
+    "items": {
+        "$ref": "/sraPostOrderPayloadSchema"
+    }
+}

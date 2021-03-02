@@ -1,14 +1,3 @@
-import { schemas } from '@0x/json-schemas';
-import { assetDataUtils } from '@0x/order-utils';
-import {
-    APIOrder,
-    AssetProxyId,
-    MultiAssetDataWithRecursiveDecoding,
-    OrdersChannelMessageTypes,
-    OrdersChannelSubscriptionOpts,
-    SignedOrder,
-    WebsocketConnectionEventType,
-} from '@0x/types';
 import * as http from 'http';
 import * as _ from 'lodash';
 import * as WebSocket from 'ws';
@@ -17,15 +6,21 @@ import { MESH_IGNORED_ADDRESSES } from '../config';
 import { MalformedJSONError, NotImplementedError, WebsocketServiceError } from '../errors';
 import { logger } from '../logger';
 import { generateError } from '../middleware/error_handling';
+import { schemas } from '../schemas/schemas';
 import {
     MessageChannels,
     MessageTypes,
     OrderChannelRequest,
+    OrdersChannelMessageTypes,
+    OrdersChannelSubscriptionOpts,
+    SignedLimitOrder,
+    SRAOrder,
     UpdateOrdersChannelMessageWithChannel,
+    WebsocketConnectionEventType,
     WebsocketSRAOpts,
 } from '../types';
 import { MeshClient } from '../utils/mesh_client';
-import { meshUtils } from '../utils/mesh_utils';
+import { meshUtils, OrderEventV4 } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
@@ -56,71 +51,25 @@ export class WebsocketService {
         string,
         OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS
     > = new Map(); // requestId -> { base, quote }
-    private readonly _orderEventsSubscription?: ZenObservable.Subscription;
-    private static _decodedContractAndAssetData(assetData: string): { assetProxyId: string; data: string[] } {
-        let data: string[] = [assetData];
-        const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(assetData);
-        if (orderUtils.isMultiAssetData(decodedAssetData)) {
-            for (const nested of decodedAssetData.nestedAssetData) {
-                data = [...data, ...WebsocketService._decodedContractAndAssetData(nested).data];
-            }
-        } else if (orderUtils.isStaticCallAssetData(decodedAssetData)) {
-            // do nothing
-        } else {
-            data = [
-                ...data,
-                // tslint:disable-next-line:no-unnecessary-type-assertion
-                (decodedAssetData as Exclude<typeof decodedAssetData, MultiAssetDataWithRecursiveDecoding>)
-                    .tokenAddress,
-            ];
-        }
-        return { data, assetProxyId: decodedAssetData.assetProxyId };
-    }
+    private _orderEventsSubscription?: ZenObservable.Subscription;
     private static _matchesOrdersChannelSubscription(
-        order: SignedOrder,
+        order: SignedLimitOrder,
         opts: OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS,
     ): boolean {
         if (opts === 'ALL_SUBSCRIPTION_OPTS') {
             return true;
         }
-        const { makerAssetData, takerAssetData } = order;
-        const makerAssetDataTakerAssetData = [makerAssetData, takerAssetData];
-        // Handle the specific, unambiguous asset datas
-        // traderAssetData?: string;
-        if (opts.traderAssetData && makerAssetDataTakerAssetData.includes(opts.traderAssetData)) {
-            return true;
-        }
-        // makerAssetData?: string;
-        // takerAssetData?: string;
+        const { makerToken, takerToken } = order;
+
+        // If the user provided a makerToken or takerToken that does not match the order we skip
         if (
-            opts.makerAssetData &&
-            opts.takerAssetData &&
-            makerAssetDataTakerAssetData.includes(opts.makerAssetData) &&
-            makerAssetDataTakerAssetData.includes(opts.takerAssetData)
+            (opts.takerToken && takerToken.toLowerCase() !== opts.takerToken.toLowerCase()) ||
+            (opts.makerToken && makerToken.toLowerCase() !== opts.makerToken.toLowerCase())
         ) {
-            return true;
-        }
-        // makerAssetAddress?: string;
-        // takerAssetAddress?: string;
-        const makerContractAndAssetData = WebsocketService._decodedContractAndAssetData(makerAssetData);
-        const takerContractAndAssetData = WebsocketService._decodedContractAndAssetData(takerAssetData);
-        if (
-            opts.makerAssetAddress &&
-            opts.takerAssetAddress &&
-            makerContractAndAssetData.assetProxyId !== AssetProxyId.MultiAsset &&
-            makerContractAndAssetData.assetProxyId !== AssetProxyId.StaticCall &&
-            takerContractAndAssetData.assetProxyId !== AssetProxyId.MultiAsset &&
-            takerContractAndAssetData.assetProxyId !== AssetProxyId.StaticCall &&
-            makerContractAndAssetData.data.includes(opts.makerAssetAddress) &&
-            takerContractAndAssetData.data.includes(opts.takerAssetAddress)
-        ) {
-            return true;
+            return false;
         }
 
-        // TODO (dekz)handle MAP
-        // makerAssetProxyId?: string;
-        // takerAssetProxyId?: string;
-        return false;
+        return true;
     }
     private static _handleError(_ws: WrappedWebSocket, err: Error): void {
         logger.error(new WebsocketServiceError(err));
@@ -136,11 +85,25 @@ export class WebsocketService {
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
         this._meshClient = meshClient;
 
-        this._orderEventsSubscription = this._meshClient.onOrderEvents().subscribe({
-            next: events => this.orderUpdate(meshUtils.orderInfosToApiOrders(events.map(e => e.order))),
-            error: err => {
-                logger.error(new WebsocketServiceError(err));
-            },
+        const subscribeToUpdates = () => {
+            this._orderEventsSubscription = this._meshClient.onOrderEvents().subscribe({
+                next: events =>
+                    this.orderUpdate(
+                        // NOTE: We only care about V4 order updates
+                        events.filter(e => !!e.orderv4).map(e => meshUtils.orderEventToSRAOrder(e as OrderEventV4)),
+                    ),
+                error: err => {
+                    logger.error(new WebsocketServiceError(err));
+                },
+            });
+        };
+
+        subscribeToUpdates();
+
+        this._meshClient.onReconnected(() => {
+            logger.info('WebsocketService reconnected to Mesh.');
+
+            subscribeToUpdates();
         });
     }
 
@@ -156,7 +119,7 @@ export class WebsocketService {
             this._orderEventsSubscription.unsubscribe();
         }
     }
-    public orderUpdate(apiOrders: APIOrder[]): void {
+    public orderUpdate(apiOrders: SRAOrder[]): void {
         if (this._server.clients.size === 0) {
             return;
         }
@@ -172,14 +135,14 @@ export class WebsocketService {
             // Future optimisation is to invert this structure so the order isn't duplicated over many request ids
             // order->requestIds it is less likely to get multiple order updates and more likely
             // to have many subscribers and a single order
-            const requestIdToOrders: { [requestId: string]: Set<APIOrder> } = {};
+            const requestIdToOrders: { [requestId: string]: Set<SRAOrder> } = {};
             for (const [requestId, subscriptionOpts] of this._requestIdToSubscriptionOpts) {
                 if (WebsocketService._matchesOrdersChannelSubscription(order.order, subscriptionOpts)) {
                     if (requestIdToOrders[requestId]) {
                         const orderSet = requestIdToOrders[requestId];
                         orderSet.add(order);
                     } else {
-                        const orderSet = new Set<APIOrder>();
+                        const orderSet = new Set<SRAOrder>();
                         orderSet.add(order);
                         requestIdToOrders[requestId] = orderSet;
                     }
@@ -208,7 +171,7 @@ export class WebsocketService {
             throw new MalformedJSONError();
         }
 
-        schemaUtils.validateSchema(message, schemas.relayerApiOrdersChannelSubscribeSchema);
+        schemaUtils.validateSchema(message, schemas.sraOrdersChannelSubscribeSchema);
         const { requestId, payload, type } = message;
         switch (type) {
             case MessageTypes.Subscribe:

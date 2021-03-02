@@ -1,0 +1,9 @@
+{
+    "id": "/sraOrderbookQuerySchema",
+    "type": "object",
+    "properties": {
+        "baseToken": { "$ref": "/addressSchema" },
+        "quoteToken": { "$ref": "/addressSchema" }
+    },
+    "required": ["baseToken", "quoteToken"]
+}

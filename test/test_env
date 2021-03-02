@@ -10,3 +10,5 @@ ETH_GAS_STATION_API_URL=https://ethgasstation.api.0x.org/api/ethgasAPI.json
 ALT_RFQ_MM_ENDPOINT=https://altrfq.com
 ALT_RFQ_MM_API_KEY=averysecurekey
 ALT_RFQ_MM_PROFILE=acoolprofile
+MESH_WEBSOCKET_URI=ws://localhost:60557
+MESH_HTTP_URI=ws://localhost:60557

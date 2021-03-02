@@ -1,11 +1,13 @@
 version: '3'
 services:
     ganache:
-        image: '0xorg/ganache-cli:6.4.1'
+        image: '0xorg/ganache-cli:6.5.10'
         ports:
             - '8545:8545'
         environment:
-            VERSION: 6.6.0
+            VERSION: 7.0.0
+            CHAIN_ID: 1337
+            NETWORK_ID: 1337
     postgres:
         image: postgres:9.6
         environment:
@@ -28,7 +30,7 @@ services:
             CHAIN_ID: '${CHAIN_ID}'
             POSTGRES_URI: 'postgres://api:api@postgres/api'
     mesh:
-        image: 0xorg/mesh:10.2.0
+        image: 0xorg/mesh:11.0.0
         depends_on:
             - ganache
         restart: on-failure
@@ -39,7 +41,7 @@ services:
             VERBOSITY: 4
             PRIVATE_KEY_PATH: ''
             ENABLE_GRAPHQL_SERVER: 'true'
-            ENABLE_GRAPHQL_PLAYGROUND: 'true' # TODO(kimpers): remove this?
+            ENABLE_GRAPHQL_PLAYGROUND: 'true'
             BLOCK_POLLING_INTERVAL: '2s'
             ETHEREUM_RPC_MAX_REQUESTS_PER_24_HR_UTC: '150000'
         volumes:
