@@ -291,4 +291,32 @@ blockchainTests.resets('CurveLiquidityProvider feature', env => {
         const call = lp.sellEthForToken(ETH_TOKEN_ADDRESS, RECIPIENT, BUY_AMOUNT, encodeCurveData());
         return expect(call.callAsync()).to.revertWith('CurveLiquidityProvider/INVALID_ARGS');
     });
+
+    it('emits a LiquidityProviderFill event', async () => {
+        await fundProviderContractAsync(SELL_TOKEN_COIN_IDX);
+        const call = lp.sellTokenForToken(
+            sellToken.address,
+            buyToken.address,
+            RECIPIENT,
+            BUY_AMOUNT,
+            encodeCurveData(),
+        );
+        const { logs } = await call.awaitTransactionSuccessAsync();
+        verifyEventsFromLogs(
+            logs,
+            [
+                {
+                    inputToken: sellToken.address,
+                    outputToken: buyToken.address,
+                    inputTokenAmount: SELL_AMOUNT,
+                    outputTokenAmount: BUY_AMOUNT,
+                    sourceId: hexUtils.rightPad(hexUtils.toHex(Buffer.from('Curve'))),
+                    sourceAddress: testCurve.address,
+                    sender: taker,
+                    recipient: RECIPIENT,
+                },
+            ],
+            'LiquidityProviderFill',
+        );
+    });
 });

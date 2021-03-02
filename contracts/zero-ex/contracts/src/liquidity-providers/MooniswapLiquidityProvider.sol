@@ -23,23 +23,24 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../transformers/LibERC20Transformer.sol";
 import "../vendor/ILiquidityProvider.sol";
+import "../vendor/IMooniswapPool.sol";
 
 
-contract CurveLiquidityProvider is
+contract MooniswapLiquidityProvider is
     ILiquidityProvider
 {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
-    struct CurveData {
-        address curveAddress;
-        bytes4 exchangeFunctionSelector;
-        int128 fromCoinIdx;
-        int128 toCoinIdx;
+    IEtherTokenV06 private immutable WETH;
+
+    constructor(IEtherTokenV06 weth) public {
+        WETH = weth;
     }
 
     /// @dev This contract must be payable because takers can transfer funds
@@ -68,18 +69,17 @@ contract CurveLiquidityProvider is
     {
         require(
             !LibERC20Transformer.isTokenETH(inputToken)
-                && !LibERC20Transformer.isTokenETH(outputToken),
-            "CurveLiquidityProvider/INVALID_ARGS"
+                && !LibERC20Transformer.isTokenETH(outputToken)
+                && inputToken != outputToken,
+            "MooniswapLiquidityProvider/INVALID_ARGS"
         );
         boughtAmount = _executeSwap(
             inputToken,
             outputToken,
             minBuyAmount,
-            abi.decode(auxiliaryData, (CurveData)),
+            abi.decode(auxiliaryData, (IMooniswapPool)),
             recipient
         );
-        // Every pool contract currently checks this but why not.
-        require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
         outputToken.compatTransfer(recipient, boughtAmount);
     }
 
@@ -104,17 +104,15 @@ contract CurveLiquidityProvider is
     {
         require(
             !LibERC20Transformer.isTokenETH(outputToken),
-            "CurveLiquidityProvider/INVALID_ARGS"
+            "MooniswapLiquidityProvider/INVALID_ARGS"
         );
         boughtAmount = _executeSwap(
             LibERC20Transformer.ETH_TOKEN,
             outputToken,
             minBuyAmount,
-            abi.decode(auxiliaryData, (CurveData)),
+            abi.decode(auxiliaryData, (IMooniswapPool)),
             recipient
         );
-        // Every pool contract currently checks this but why not.
-        require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
         outputToken.compatTransfer(recipient, boughtAmount);
     }
 
@@ -137,18 +135,16 @@ contract CurveLiquidityProvider is
     {
         require(
             !LibERC20Transformer.isTokenETH(inputToken),
-            "CurveLiquidityProvider/INVALID_ARGS"
+            "MooniswapLiquidityProvider/INVALID_ARGS"
         );
         boughtAmount = _executeSwap(
             inputToken,
             LibERC20Transformer.ETH_TOKEN,
             minBuyAmount,
-            abi.decode(auxiliaryData, (CurveData)),
+            abi.decode(auxiliaryData, (IMooniswapPool)),
             recipient
         );
-        // Every pool contract currently checks this but why not.
-        require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
-        recipient.transfer(boughtAmount);
+        recipient.call{value: boughtAmount}("");
     }
 
     /// @dev Quotes the amount of `outputToken` that would be obtained by
@@ -163,7 +159,7 @@ contract CurveLiquidityProvider is
         override
         returns (uint256)
     {
-        revert("CurveLiquidityProvider/NOT_IMPLEMENTED");
+        revert("MooniswapLiquidityProvider/NOT_IMPLEMENTED");
     }
 
     /// @dev Perform the swap against the curve pool. Handles any combination of
@@ -172,41 +168,40 @@ contract CurveLiquidityProvider is
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
         uint256 minBuyAmount,
-        CurveData memory data,
-        address recipient // Only used to log event.
+        IMooniswapPool pool,
+        address recipient // Only used to log event
     )
         private
         returns (uint256 boughtAmount)
     {
         uint256 sellAmount =
             LibERC20Transformer.getTokenBalanceOf(inputToken, address(this));
-        if (!LibERC20Transformer.isTokenETH(inputToken)) {
-            inputToken.approveIfBelow(data.curveAddress, sellAmount);
+        uint256 ethValue = 0;
+        if (inputToken == WETH) {
+            // Selling WETH. Unwrap to ETH.
+            require(!_isTokenEthLike(outputToken), 'MooniswapLiquidityProvider/ETH_TO_ETH');
+            WETH.withdraw(sellAmount);
+            ethValue = sellAmount;
+        } else if (LibERC20Transformer.isTokenETH(inputToken)) {
+            // Selling ETH directly.
+            ethValue = sellAmount;
+            require(!_isTokenEthLike(outputToken), 'MooniswapLiquidityProvider/ETH_TO_ETH');
+        } else {
+            // Selling a regular ERC20.
+            require(inputToken != outputToken, 'MooniswapLiquidityProvider/SAME_TOKEN');
+            inputToken.approveIfBelow(address(pool), sellAmount);
         }
 
-        (bool success, bytes memory resultData) =
-            data.curveAddress.call
-                { value: LibERC20Transformer.isTokenETH(inputToken) ? sellAmount : 0 }
-                (abi.encodeWithSelector(
-                    data.exchangeFunctionSelector,
-                    data.fromCoinIdx,
-                    data.toCoinIdx,
-                    // dx
-                    sellAmount,
-                    // min dy
-                    minBuyAmount
-                ));
-        if (!success) {
-            resultData.rrevert();
-        }
-        if (resultData.length == 32) {
-            // Pool returned a boughtAmount
-            boughtAmount = abi.decode(resultData, (uint256));
-        } else {
-            // Not all pool contracts return a `boughtAmount`, so we return
-            // our balance of the output token if it wasn't returned.
-            boughtAmount = LibERC20Transformer
-                .getTokenBalanceOf(outputToken, address(this));
+        boughtAmount = pool.swap{value: ethValue}(
+            _isTokenEthLike(inputToken) ? IERC20TokenV06(0) : inputToken,
+            _isTokenEthLike(outputToken) ? IERC20TokenV06(0) : outputToken,
+            sellAmount,
+            minBuyAmount,
+            address(0)
+        );
+
+        if (outputToken == WETH) {
+            WETH.deposit{value: boughtAmount}();
         }
 
         emit LiquidityProviderFill(
@@ -214,10 +209,19 @@ contract CurveLiquidityProvider is
             outputToken,
             sellAmount,
             boughtAmount,
-            bytes32("Curve"),
-            address(data.curveAddress),
+            bytes32("Mooniswap"),
+            address(pool),
             msg.sender,
             recipient
         );
+    }
+
+    /// @dev Check if a token is ETH or WETH.
+    function _isTokenEthLike(IERC20TokenV06 token)
+        private
+        view
+        returns (bool isEthOrWeth)
+    {
+        return LibERC20Transformer.isTokenETH(token) || token == WETH;
     }
 }

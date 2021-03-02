@@ -32,15 +32,20 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
-import { CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID } from '../utils/market_operation_utils/constants';
+import {
+    CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+    MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+} from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
     getERC20BridgeSourceToBridgeSource,
+    poolEncoder,
 } from '../utils/market_operation_utils/orders';
 import {
     CurveFillData,
     ERC20BridgeSource,
     LiquidityProviderFillData,
+    MooniswapFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
@@ -199,6 +204,27 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])) {
+            const fillData = quote.orders[0].fills[0].fillData as MooniswapFillData;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                        poolEncoder.encode([fillData.poolAddress]),
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this.contractAddresses.exchangeProxy,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
