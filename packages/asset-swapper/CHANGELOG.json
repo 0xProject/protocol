@@ -2,6 +2,7 @@
     {
         "version": "6.3.0",
         "changes": [
+            {
                 "note": "Add MooniswapLiquidityProvider \"direct\" route to EP consumer.",
                 "pr": 143
             }

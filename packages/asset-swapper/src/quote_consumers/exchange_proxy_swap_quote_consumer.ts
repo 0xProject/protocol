@@ -34,7 +34,6 @@ import {
 import { assert } from '../utils/assert';
 import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
-    LP_BRIDGE_GAS_OVERHEAD,
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
 import {
@@ -205,7 +204,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,
-                gasOverhead: LP_BRIDGE_GAS_OVERHEAD,
+                gasOverhead: ZERO_AMOUNT,
             };
         }
 
@@ -226,7 +225,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this.contractAddresses.exchangeProxy,
-                gasOverhead: LP_BRIDGE_GAS_OVERHEAD,
+                gasOverhead: ZERO_AMOUNT,
             };
         }
 
