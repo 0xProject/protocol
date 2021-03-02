@@ -144,7 +144,7 @@ contract MooniswapLiquidityProvider is
             abi.decode(auxiliaryData, (IMooniswapPool)),
             recipient
         );
-        recipient.transfer(boughtAmount);
+        recipient.call{value: boughtAmount}("");
     }
 
     /// @dev Quotes the amount of `outputToken` that would be obtained by
