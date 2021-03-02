@@ -312,6 +312,8 @@ blockchainTests.resets('CurveLiquidityProvider feature', env => {
                     outputTokenAmount: BUY_AMOUNT,
                     sourceId: hexUtils.rightPad(hexUtils.toHex(Buffer.from('Curve'))),
                     sourceAddress: testCurve.address,
+                    sender: taker,
+                    recipient: RECIPIENT,
                 },
             ],
             'LiquidityProviderFill',

@@ -279,6 +279,8 @@ blockchainTests.resets('MooniswapLiquidityProvider feature', env => {
                     outputTokenAmount: BUY_AMOUNT,
                     sourceId: hexUtils.rightPad(hexUtils.toHex(Buffer.from('Mooniswap'))),
                     sourceAddress: testMooniswap.address,
+                    sender: taker,
+                    recipient: RECIPIENT,
                 },
             ],
             'LiquidityProviderFill',

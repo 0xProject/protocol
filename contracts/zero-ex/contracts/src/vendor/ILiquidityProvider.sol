@@ -31,13 +31,19 @@ interface ILiquidityProvider {
     /// @param outputTokenAmount How much output token was bought.
     /// @param sourceId A bytes32 encoded ascii source ID. E.g., `bytes32('Curve')`/
     /// @param sourceAddress An optional address associated with the source (e.g, a curve pool).
+    /// @param sourceId A bytes32 encoded ascii source ID. E.g., `bytes32('Curve')`/
+    /// @param sourceAddress An optional address associated with the source (e.g, a curve pool).
+    /// @param sender The caller of the LP.
+    /// @param recipient The recipient of the output tokens.
     event LiquidityProviderFill(
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
         uint256 inputTokenAmount,
         uint256 outputTokenAmount,
         bytes32 sourceId,
-        address sourceAddress
+        address sourceAddress,
+        address sender,
+        address recipient
     );
 
     /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`

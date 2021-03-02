@@ -77,7 +77,8 @@ contract MooniswapLiquidityProvider is
             inputToken,
             outputToken,
             minBuyAmount,
-            abi.decode(auxiliaryData, (IMooniswapPool))
+            abi.decode(auxiliaryData, (IMooniswapPool)),
+            recipient
         );
         outputToken.compatTransfer(recipient, boughtAmount);
     }
@@ -109,7 +110,8 @@ contract MooniswapLiquidityProvider is
             LibERC20Transformer.ETH_TOKEN,
             outputToken,
             minBuyAmount,
-            abi.decode(auxiliaryData, (IMooniswapPool))
+            abi.decode(auxiliaryData, (IMooniswapPool)),
+            recipient
         );
         outputToken.compatTransfer(recipient, boughtAmount);
     }
@@ -139,7 +141,8 @@ contract MooniswapLiquidityProvider is
             inputToken,
             LibERC20Transformer.ETH_TOKEN,
             minBuyAmount,
-            abi.decode(auxiliaryData, (IMooniswapPool))
+            abi.decode(auxiliaryData, (IMooniswapPool)),
+            recipient
         );
         recipient.transfer(boughtAmount);
     }
@@ -165,7 +168,8 @@ contract MooniswapLiquidityProvider is
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
         uint256 minBuyAmount,
-        IMooniswapPool pool
+        IMooniswapPool pool,
+        address recipient // Only used to log event
     )
         private
         returns (uint256 boughtAmount)
@@ -206,7 +210,9 @@ contract MooniswapLiquidityProvider is
             sellAmount,
             boughtAmount,
             bytes32("Mooniswap"),
-            address(pool)
+            address(pool),
+            msg.sender,
+            recipient
         );
     }
 

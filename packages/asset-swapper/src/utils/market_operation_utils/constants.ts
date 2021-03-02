@@ -466,7 +466,6 @@ export const MAINNET_DODOV2_PRIVATE_POOL_FACTORY = '0x6b4fa0bc61eddc928e0df9c7f0
 export const MAINNET_DODOV2_VENDING_MACHINE_FACTORY = '0x72d220ce168c4f361dd4dee5d826a01ad8598f6c';
 export const MAX_DODOV2_POOLS_QUERIED = 3;
 
-// TODO(dorothy-zbornak): Point these to real addresses after deploying.
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
     '1': '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
     '3': '0xAa213dcDFbF104e08cbAeC3d1628eD197553AfCc',
