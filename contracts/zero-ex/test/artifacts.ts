@@ -9,7 +9,7 @@ import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateF
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
-import * as BridgeSource from '../test/generated-artifacts/BridgeSource.json';
+import * as BridgeProtocols from '../test/generated-artifacts/BridgeProtocols.json';
 import * as CurveLiquidityProvider from '../test/generated-artifacts/CurveLiquidityProvider.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
@@ -85,7 +85,6 @@ import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
 import * as MixinOasis from '../test/generated-artifacts/MixinOasis.json';
 import * as MixinShell from '../test/generated-artifacts/MixinShell.json';
-import * as MixinSushiswap from '../test/generated-artifacts/MixinSushiswap.json';
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
 import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridge.json';
@@ -218,7 +217,7 @@ export const artifacts = {
     Transformer: Transformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     BridgeAdapter: BridgeAdapter as ContractArtifact,
-    BridgeSource: BridgeSource as ContractArtifact,
+    BridgeProtocols: BridgeProtocols as ContractArtifact,
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
@@ -232,7 +231,6 @@ export const artifacts = {
     MixinMooniswap: MixinMooniswap as ContractArtifact,
     MixinOasis: MixinOasis as ContractArtifact,
     MixinShell: MixinShell as ContractArtifact,
-    MixinSushiswap: MixinSushiswap as ContractArtifact,
     MixinUniswap: MixinUniswap as ContractArtifact,
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,

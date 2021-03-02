@@ -52,7 +52,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
     let singleProtocolFee: BigNumber;
 
     const GAS_PRICE = 1337;
-    const TEST_BRIDGE_SOURCE = 12345678;
+    const TEST_BRIDGE_SOURCE = hexUtils.random(32);
     const HIGH_BIT = new BigNumber(2).pow(255);
     const REVERT_AMOUNT = new BigNumber('0xdeadbeef');
 

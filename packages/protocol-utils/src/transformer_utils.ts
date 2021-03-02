@@ -1,11 +1,11 @@
-import { AbiEncoder, BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { AbiEncoder, BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 
 import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from './orders';
 import { Signature, SIGNATURE_ABI } from './signature_utils';
 
 const BRIDGE_ORDER_ABI_COMPONENTS = [
-    { name: 'source', type: 'uint256' },
+    { name: 'source', type: 'bytes32' },
     { name: 'takerTokenAmount', type: 'uint256' },
     { name: 'makerTokenAmount', type: 'uint256' },
     { name: 'bridgeData', type: 'bytes' },
@@ -104,38 +104,37 @@ export interface FillQuoteTransformerData {
     refundReceiver: string;
 }
 
+// tslint:disable: enum-naming
 /**
- * Identifies the DEX type of a bridge order.
+ * Identifies the DEX protocol used to fill a bridge order.
  */
-export enum BridgeSource {
-    Balancer,
-    Bancor,
-    // tslint:disable-next-line: enum-naming
-    CoFiX,
+export enum BridgeProtocol {
+    Unknown,
     Curve,
-    Cream,
-    CryptoCom,
-    Dodo,
+    UniswapV2,
+    Uniswap,
+    Balancer,
     Kyber,
-    LiquidityProvider,
     Mooniswap,
     MStable,
     Oasis,
     Shell,
-    Snowswap,
-    Sushiswap,
-    Swerve,
-    Uniswap,
-    UniswapV2,
+    Dodo,
     DodoV2,
-    Linkswap,
+    CryptoCom,
+    Bancor,
+    CoFiX,
 }
+// tslint:enable: enum-naming
 
 /**
  * `FillQuoteTransformer.BridgeOrder`
  */
 export interface FillQuoteTransformerBridgeOrder {
-    source: BridgeSource;
+    // A bytes32 hex where the upper 16 bytes are an int128, right-aligned
+    // protocol ID and the lower 16 bytes are a bytes16, left-aligned,
+    // ASCII source name.
+    source: string;
     takerTokenAmount: BigNumber;
     makerTokenAmount: BigNumber;
     bridgeData: string;
@@ -352,4 +351,18 @@ export function encodePositiveSlippageFeeTransformerData(data: PositiveSlippageF
  */
 export function decodePositiveSlippageFeeTransformerData(encoded: string): PositiveSlippageFeeTransformerData {
     return positiveSlippageFeeTransformerDataEncoder.decode(encoded);
+}
+
+/**
+ * Packs a bridge protocol ID and an ASCII DEX name into a single byte32.
+ */
+export function encodeBridgeSourceId(protocol: BridgeProtocol, name: string): string {
+    const nameBuf = Buffer.from(name);
+    if (nameBuf.length > 16) {
+        throw new Error(`"${name}" is too long to be a bridge source name (max of 16 ascii chars)`);
+    }
+    return hexUtils.concat(
+        hexUtils.rightPad(hexUtils.toHex(Buffer.from(name)), 16),
+        hexUtils.leftPad(hexUtils.toHex(protocol), 16),
+    );
 }
