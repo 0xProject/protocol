@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.2.0 - _March 2, 2021_
+
+    * drop curve Y and BUSD pools (#161)
+
 ## v6.1.0 - _February 24, 2021_
 
     * Filter MultiHop where second source is not present (#138)
