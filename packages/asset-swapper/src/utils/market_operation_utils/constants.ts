@@ -467,16 +467,16 @@ export const MAINNET_DODOV2_VENDING_MACHINE_FACTORY = '0x72d220ce168c4f361dd4dee
 export const MAX_DODOV2_POOLS_QUERIED = 3;
 
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
-    '1': '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
-    '3': '0xAa213dcDFbF104e08cbAeC3d1628eD197553AfCc',
+    '1': '0x561b94454b65614ae3db0897b74303f4acf7cc75',
+    '3': '0xae241c6fc7f28f6dc0cb58b4112ba7f63fcaf5e2',
     '1337': NULL_ADDRESS,
 };
 
 // TODO(dorothy-zbornak): Point these to real addresses after deploying.
 export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID: { [id: string]: string } = {
-    '1': '0xe3a207e4225d459095491ea75d30b31968dff887',
-    '3': '0xe3a207e4225d459095491ea75d30b31968dff887',
-    '1337': '0xe3a207e4225d459095491ea75d30b31968dff887',
+    '1': '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
+    '3': '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
+    '1337': NULL_ADDRESS,
 };
 
 export const MAINNET_SHELL_POOLS = {
