@@ -2,9 +2,7 @@ import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
-import Axios, { AxiosInstance } from 'axios';
-import { Agent as HttpAgent } from 'http';
-import { Agent as HttpsAgent } from 'https';
+import { AxiosInstance } from 'axios';
 
 import { constants } from '../constants';
 import {
@@ -20,16 +18,7 @@ import {
 } from '../types';
 
 import { returnQuoteFromAltMMAsync } from './alt_mm_implementation_utils';
-import { ONE_SECOND_MS } from './market_operation_utils/constants';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
-
-// tslint:disable-next-line: custom-no-magic-numbers
-const KEEP_ALIVE_TTL = 5 * 60 * ONE_SECOND_MS;
-
-export const quoteRequestorHttpClient: AxiosInstance = Axios.create({
-    httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-    httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-});
 
 const MAKER_TIMEOUT_STREAK_LENGTH = 10;
 const MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES = 10;
@@ -137,6 +126,7 @@ export class QuoteRequestor {
 
     constructor(
         private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
+        private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
@@ -420,7 +410,7 @@ export class QuoteRequestor {
                         : options.makerEndpointMaxResponseTimeMs;
                 try {
                     if (typedMakerUrl.pairType === RfqPairType.Standard) {
-                        const response = await quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
+                        const response = await this._quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
                             headers: { '0x-api-key': options.apiKey },
                             params: requestParams,
                             timeout: maxResponseTimeMs,
@@ -456,7 +446,7 @@ export class QuoteRequestor {
                             maxResponseTimeMs,
                             options.altRfqtAssetOfferings || {},
                             requestParams,
-                            quoteRequestorHttpClient,
+                            this._quoteRequestorHttpClient,
                         );
 
                         const latencyMs = Date.now() - timeBeforeAwait;

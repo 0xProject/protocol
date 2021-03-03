@@ -1,11 +1,14 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
+import Axios, { AxiosInstance } from 'axios';
 import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { constants, INVALID_SIGNATURE } from './constants';
+import { constants, INVALID_SIGNATURE, KEEP_ALIVE_TTL } from './constants';
 import {
     AssetSwapperContractAddresses,
     MarketBuySwapQuote,
@@ -70,6 +73,7 @@ export class SwapQuoter {
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
     private readonly _marketOperationUtils: MarketOperationUtils;
     private readonly _rfqtOptions?: SwapQuoterRfqtOpts;
+    private readonly _quoteRequestorHttpClient: AxiosInstance;
 
     /**
      * Instantiates a new SwapQuoter instance
@@ -144,6 +148,12 @@ export class SwapQuoter {
                 exchangeAddress: this._contractAddresses.exchange,
             },
         );
+
+        this._quoteRequestorHttpClient = Axios.create({
+            httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+            httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+            ...(rfqt ? rfqt.axiosInstanceOpts : {}),
+        });
     }
 
     public async getBatchMarketBuySwapQuoteAsync(
@@ -348,6 +358,7 @@ export class SwapQuoter {
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = new QuoteRequestor(
                 rfqtOptions ? rfqtOptions.makerAssetOfferings || {} : {},
+                this._quoteRequestorHttpClient,
                 rfqtOptions ? rfqtOptions.altRfqCreds : undefined,
                 rfqtOptions ? rfqtOptions.warningLogger : undefined,
                 rfqtOptions ? rfqtOptions.infoLogger : undefined,

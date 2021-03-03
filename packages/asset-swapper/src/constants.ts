@@ -94,6 +94,9 @@ export { DEFAULT_FEE_SCHEDULE, DEFAULT_GAS_SCHEDULE } from './utils/market_opera
 
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 
+// tslint:disable-next-line: custom-no-magic-numbers
+export const KEEP_ALIVE_TTL = 5 * 60 * ONE_SECOND_MS;
+
 export const constants = {
     ETH_GAS_STATION_API_URL,
     PROTOCOL_FEE_MULTIPLIER,
