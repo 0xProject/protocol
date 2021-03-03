@@ -36,6 +36,7 @@ import * as IMooniswapPool from '../test/generated-artifacts/IMooniswapPool.json
 import * as INativeOrdersFeature from '../test/generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../test/generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../test/generated-artifacts/IOwnableFeature.json';
+import * as IPancakeSwapFeature from '../test/generated-artifacts/IPancakeSwapFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../test/generated-artifacts/ISimpleFunctionRegistryFeature.json';
 import * as IStaking from '../test/generated-artifacts/IStaking.json';
 import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts/ITestSimpleFunctionRegistryFeature.json';
@@ -91,6 +92,7 @@ import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridg
 import * as MooniswapLiquidityProvider from '../test/generated-artifacts/MooniswapLiquidityProvider.json';
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
+import * as PancakeSwapFeature from '../test/generated-artifacts/PancakeSwapFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
 import * as PositiveSlippageFeeTransformer from '../test/generated-artifacts/PositiveSlippageFeeTransformer.json';
@@ -173,6 +175,7 @@ export const artifacts = {
     IMetaTransactionsFeature: IMetaTransactionsFeature as ContractArtifact,
     INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
     IOwnableFeature: IOwnableFeature as ContractArtifact,
+    IPancakeSwapFeature: IPancakeSwapFeature as ContractArtifact,
     ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,
     ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
@@ -181,6 +184,7 @@ export const artifacts = {
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
+    PancakeSwapFeature: PancakeSwapFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
     TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,

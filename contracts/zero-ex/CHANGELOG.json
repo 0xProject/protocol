@@ -5,6 +5,10 @@
             {
                 "note": "Encoding protocol ID and source name in bridge source ID",
                 "pr": 162
+            },
+            {
+                "note": "Add PancakeSwapFeature",
+                "pr": 164
             }
         ]
     },

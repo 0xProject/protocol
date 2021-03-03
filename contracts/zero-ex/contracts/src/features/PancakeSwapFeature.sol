@@ -1,0 +1,401 @@
+// SPDX-License-Identifier: Apache-2.0
+/*
+
+  Copyright 2021 ZeroEx Intl.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+*/
+
+pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
+
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "../migrations/LibMigrate.sol";
+import "../external/IAllowanceTarget.sol";
+import "../fixins/FixinCommon.sol";
+import "./IFeature.sol";
+import "./IPancakeSwapFeature.sol";
+
+
+/// @dev VIP pancake fill functions.
+contract PancakeSwapFeature is
+    IFeature,
+    IPancakeSwapFeature,
+    FixinCommon
+{
+    /// @dev Name of this feature.
+    string public constant override FEATURE_NAME = "PancakeSwapFeature";
+    /// @dev Version of this feature.
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    /// @dev WBNB contract.
+    IEtherTokenV06 private immutable WBNB;
+
+    // 0xFF + address of the PancakeSwap factory contract.
+    uint256 constant private FF_PANCAKESWAP_FACTORY = 0xFFBCfCcbde45cE874adCB698cC183deBcF179528120000000000000000000000;
+    // 0xFF + address of the BakerySwap factory contract.
+    uint256 constant private FF_BAKERYSWAP_FACTORY = 0xFF01bF7C66c6BD861915CdaaE475042d3c4BaE16A70000000000000000000000;
+    // Init code hash of the PancakeSwap pair contract.
+    uint256 constant private PANCAKESWAP_PAIR_INIT_CODE_HASH = 0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66;
+    // Init code hash of the BakerySwap pair contract.
+    uint256 constant private BAKERYSWAP_PAIR_INIT_CODE_HASH = 0xe2e87433120e32c4738a7d8f3271f3d872cbe16241d67537139158d90bac61d3;
+    // Mask of the lower 20 bytes of a bytes32.
+    uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    // BNB pseudo-token address.
+    uint256 constant private ETH_TOKEN_ADDRESS_32 = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
+    // Maximum token quantity that can be swapped against the PancakeSwapPair contract.
+    uint256 constant private MAX_SWAP_AMOUNT = 2**112;
+
+    // bytes4(keccak256("executeCall(address,bytes)"))
+    uint256 constant private ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32 = 0xbca8c7b500000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("getReserves()"))
+    uint256 constant private PANCAKESWAP_PAIR_RESERVES_CALL_SELECTOR_32 = 0x0902f1ac00000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("swap(uint256,uint256,address,bytes)"))
+    uint256 constant private PANCAKESWAP_PAIR_SWAP_CALL_SELECTOR_32 = 0x022c0d9f00000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("transferFrom(address,address,uint256)"))
+    uint256 constant private TRANSFER_FROM_CALL_SELECTOR_32 = 0x23b872dd00000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("allowance(address,address)"))
+    uint256 constant private ALLOWANCE_CALL_SELECTOR_32 = 0xdd62ed3e00000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("withdraw(uint256)"))
+    uint256 constant private WETH_WITHDRAW_CALL_SELECTOR_32 = 0x2e1a7d4d00000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("deposit()"))
+    uint256 constant private WETH_DEPOSIT_CALL_SELECTOR_32 = 0xd0e30db000000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("transfer(address,uint256)"))
+    uint256 constant private ERC20_TRANSFER_CALL_SELECTOR_32 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000;
+
+    /// @dev Construct this contract.
+    /// @param wbnb The WBNB contract.
+    constructor(IEtherTokenV06 wbnb) public {
+        WBNB = wbnb;
+    }
+
+    /// @dev Initialize and register this feature.
+    ///      Should be delegatecalled by `Migrate.migrate()`.
+    /// @return success `LibMigrate.SUCCESS` on success.
+    function migrate()
+        external
+        returns (bytes4 success)
+    {
+        _registerFeatureFunction(this.sellToPancakeSwap.selector);
+        return LibMigrate.MIGRATE_SUCCESS;
+    }
+
+    /// @dev Efficiently sell directly to pancake/BakerySwap.
+    /// @param tokens Sell path.
+    /// @param sellAmount of `tokens[0]` Amount to sell.
+    /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
+    /// @param isBakerySwap Use BakerySwap if true.
+    /// @return buyAmount Amount of `tokens[-1]` bought.
+    function sellToPancakeSwap(
+        IERC20TokenV06[] calldata tokens,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        bool isBakerySwap
+    )
+        external
+        payable
+        override
+        returns (uint256 buyAmount)
+    {
+        require(tokens.length > 1, "PancakeSwapFeature/InvalidTokensLength");
+        {
+            // Load immutables onto the stack.
+            IEtherTokenV06 wbnb = WBNB;
+
+            // Store some vars in memory to get around stack limits.
+            assembly {
+                // calldataload(mload(0xA00)) == first element of `tokens` array
+                mstore(0xA00, add(calldataload(0x04), 0x24))
+                // mload(0xA20) == isBakerySwap
+                mstore(0xA20, isBakerySwap)
+                // mload(0xA40) == WBNB
+                mstore(0xA40, wbnb)
+            }
+        }
+
+        assembly {
+            // numPairs == tokens.length - 1
+            let numPairs := sub(calldataload(add(calldataload(0x04), 0x4)), 1)
+            // We use the previous buy amount as the sell amount for the next
+            // pair in a path. So for the first swap we want to set it to `sellAmount`.
+            buyAmount := sellAmount
+            let buyToken
+            let nextPair := 0
+
+            for {let i := 0} lt(i, numPairs) {i := add(i, 1)} {
+                // sellToken = tokens[i]
+                let sellToken := loadTokenAddress(i)
+                // buyToken = tokens[i+1]
+                buyToken := loadTokenAddress(add(i, 1))
+                // The canonical ordering of this token pair.
+                let pairOrder := lt(normalizeToken(sellToken), normalizeToken(buyToken))
+
+                // Compute the pair address if it hasn't already been computed
+                // from the last iteration.
+                let pair := nextPair
+                if iszero(pair) {
+                    pair := computePairAddress(sellToken, buyToken)
+                    nextPair := 0
+                }
+
+                if iszero(i) {
+                    // This is the first token in the path.
+                    switch eq(sellToken, ETH_TOKEN_ADDRESS_32)
+                        case 0 { // Not selling BNB. Selling an ERC20 instead.
+                            // Make sure BNB was not attached to the call.
+                            if gt(callvalue(), 0) {
+                                revert(0, 0)
+                            }
+                            // For the first pair we need to transfer sellTokens into the
+                            // pair contract.
+                            moveTakerTokensTo(sellToken, pair, sellAmount)
+                        }
+                        default {
+                            // If selling BNB, we need to wrap it to WBNB and transfer to the
+                            // pair contract.
+                            if iszero(eq(callvalue(), sellAmount)) {
+                                revert(0, 0)
+                            }
+                            sellToken := mload(0xA40)// Re-assign to WBNB
+                            // Call `WBNB.deposit{value: sellAmount}()`
+                            mstore(0xB00, WETH_DEPOSIT_CALL_SELECTOR_32)
+                            if iszero(call(gas(), sellToken, sellAmount, 0xB00, 0x4, 0x00, 0x0)) {
+                                bubbleRevert()
+                            }
+                            // Call `WBNB.transfer(pair, sellAmount)`
+                            mstore(0xB00, ERC20_TRANSFER_CALL_SELECTOR_32)
+                            mstore(0xB04, pair)
+                            mstore(0xB24, sellAmount)
+                            if iszero(call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)) {
+                                bubbleRevert()
+                            }
+                        }
+                    // No need to check results, if deposit/transfers failed the PancakeSwapPair will
+                    // reject our trade (or it may succeed if somehow the reserve was out of sync)
+                    // this is fine for the taker.
+                }
+
+                // Call pair.getReserves(), store the results at `0xC00`
+                mstore(0xB00, PANCAKESWAP_PAIR_RESERVES_CALL_SELECTOR_32)
+                if iszero(staticcall(gas(), pair, 0xB00, 0x4, 0xC00, 0x40)) {
+                    bubbleRevert()
+                }
+                // Revert if the pair contract does not return at least two words.
+                if lt(returndatasize(), 0x40) {
+                    revert(0,0)
+                }
+
+                // Sell amount for this hop is the previous buy amount.
+                let pairSellAmount := buyAmount
+                // Compute the buy amount based on the pair reserves.
+                {
+                    let sellReserve
+                    let buyReserve
+                    switch iszero(pairOrder)
+                        case 0 {
+                            // Transpose if pair order is different.
+                            sellReserve := mload(0xC00)
+                            buyReserve := mload(0xC20)
+                        }
+                        default {
+                            sellReserve := mload(0xC20)
+                            buyReserve := mload(0xC00)
+                        }
+                    // Ensure that the sellAmount is < 2¹¹².
+                    if gt(pairSellAmount, MAX_SWAP_AMOUNT) {
+                        revert(0, 0)
+                    }
+                    // Pairs are in the range (0, 2¹¹²) so this shouldn't overflow.
+                    // buyAmount = (pairSellAmount * 997 * buyReserve) /
+                    //     (pairSellAmount * 997 + sellReserve * 1000);
+                    let sellAmountWithFee := mul(pairSellAmount, 997)
+                    buyAmount := div(
+                        mul(sellAmountWithFee, buyReserve),
+                        add(sellAmountWithFee, mul(sellReserve, 1000))
+                    )
+                }
+
+                let receiver
+                // Is this the last pair contract?
+                switch eq(add(i, 1), numPairs)
+                    case 0 {
+                        // Not the last pair contract, so forward bought tokens to
+                        // the next pair contract.
+                        nextPair := computePairAddress(
+                            buyToken,
+                            loadTokenAddress(add(i, 2))
+                        )
+                        receiver := nextPair
+                    }
+                    default {
+                        // The last pair contract.
+                        // Forward directly to taker UNLESS they want BNB back.
+                        switch eq(buyToken, ETH_TOKEN_ADDRESS_32)
+                            case 0 {
+                                receiver := caller()
+                            }
+                            default {
+                                receiver := address()
+                            }
+                    }
+
+                // Call pair.swap()
+                mstore(0xB00, PANCAKESWAP_PAIR_SWAP_CALL_SELECTOR_32)
+                switch pairOrder
+                    case 0 {
+                        mstore(0xB04, buyAmount)
+                        mstore(0xB24, 0)
+                    }
+                    default {
+                        mstore(0xB04, 0)
+                        mstore(0xB24, buyAmount)
+                    }
+                mstore(0xB44, receiver)
+                mstore(0xB64, 0x80)
+                mstore(0xB84, 0)
+                if iszero(call(gas(), pair, 0, 0xB00, 0xA4, 0, 0)) {
+                    bubbleRevert()
+                }
+            } // End for-loop.
+
+            // If buying BNB, unwrap the WBNB first
+            if eq(buyToken, ETH_TOKEN_ADDRESS_32) {
+                // Call `WBNB.withdraw(buyAmount)`
+                mstore(0xB00, WETH_WITHDRAW_CALL_SELECTOR_32)
+                mstore(0xB04, buyAmount)
+                if iszero(call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)) {
+                    bubbleRevert()
+                }
+                // Transfer BNB to the caller.
+                if iszero(call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)) {
+                    bubbleRevert()
+                }
+            }
+
+            // Functions ///////////////////////////////////////////////////////
+
+            // Load a token address from the `tokens` calldata argument.
+            function loadTokenAddress(idx) -> addr {
+                addr := and(ADDRESS_MASK, calldataload(add(mload(0xA00), mul(idx, 0x20))))
+            }
+
+            // Convert BNB pseudo-token addresses to WBNB.
+            function normalizeToken(token) -> normalized {
+                normalized := token
+                // Translate BNB pseudo-tokens to WBNB.
+                if eq(token, ETH_TOKEN_ADDRESS_32) {
+                    normalized := mload(0xA40)
+                }
+            }
+
+            // Compute the address of the PancakeSwapPair contract given two
+            // tokens.
+            function computePairAddress(tokenA, tokenB) -> pair {
+                // Convert BNB pseudo-token addresses to WBNB.
+                tokenA := normalizeToken(tokenA)
+                tokenB := normalizeToken(tokenB)
+                // There is one contract for every combination of tokens,
+                // which is deployed using CREATE2.
+                // The derivation of this address is given by:
+                //   address(keccak256(abi.encodePacked(
+                //       bytes(0xFF),
+                //       address(PANCAKESWAP_FACTORY_ADDRESS),
+                //       keccak256(abi.encodePacked(
+                //           tokenA < tokenB ? tokenA : tokenB,
+                //           tokenA < tokenB ? tokenB : tokenA,
+                //       )),
+                //       bytes32(PANCAKESWAP_PAIR_INIT_CODE_HASH),
+                //   )));
+
+                // Compute the salt (the hash of the sorted tokens).
+                // Tokens are written in reverse memory order to packed encode
+                // them as two 20-byte values in a 40-byte chunk of memory
+                // starting at 0xB0C.
+                switch lt(tokenA, tokenB)
+                    case 0 {
+                        mstore(0xB14, tokenA)
+                        mstore(0xB00, tokenB)
+                    }
+                    default {
+                        mstore(0xB14, tokenB)
+                        mstore(0xB00, tokenA)
+                    }
+                let salt := keccak256(0xB0C, 0x28)
+                // Compute the pair address by hashing all the components together.
+                switch mload(0xA20) // isBakerySwap
+                    case 0 {
+                        mstore(0xB00, FF_PANCAKESWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, PANCAKESWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    default {
+                        mstore(0xB00, FF_BAKERYSWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, BAKERYSWAP_PAIR_INIT_CODE_HASH)
+                    }
+                pair := and(ADDRESS_MASK, keccak256(0xB00, 0x55))
+            }
+
+            // Revert with the return data from the most recent call.
+            function bubbleRevert() {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+
+            // Move `amount` tokens from the taker/caller to `to`.
+            function moveTakerTokensTo(token, to, amount) {
+                // Perform a `transferFrom()`
+                mstore(0xB00, TRANSFER_FROM_CALL_SELECTOR_32)
+                mstore(0xB04, caller())
+                mstore(0xB24, to)
+                mstore(0xB44, amount)
+
+                let success := call(
+                    gas(),
+                    token,
+                    0,
+                    0xB00,
+                    0x64,
+                    0xC00,
+                    // Copy only the first 32 bytes of return data. We
+                    // only care about reading a boolean in the success
+                    // case, and we discard the return data in the
+                    // failure case.
+                    0x20
+                )
+
+                let rdsize := returndatasize()
+
+                // Check for ERC20 success. ERC20 tokens should
+                // return a boolean, but some return nothing or
+                // extra data. We accept 0-length return data as
+                // success, or at least 32 bytes that starts with
+                // a 32-byte boolean true.
+                success := and(
+                    success,                         // call itself succeeded
+                    or(
+                        iszero(rdsize),              // no return data, or
+                        and(
+                            iszero(lt(rdsize, 32)),  // at least 32 bytes
+                            eq(mload(0xC00), 1)      // starts with uint256(1)
+                        )
+                    )
+                )
+            }
+        }
+
+        // Revert if we bought too little.
+        require(buyAmount >= minBuyAmount, "PancakeSwapFeature/UnderBought");
+    }
+}
