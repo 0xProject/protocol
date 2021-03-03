@@ -26,7 +26,7 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 /// @dev VIP uniswap fill functions.
 interface IPancakeSwapFeature {
 
-    /// @dev Efficiently sell directly to uniswap/sushiswap.
+    /// @dev Efficiently sell directly to PancakeSwap/BakerySwap.
     /// @param tokens Sell path.
     /// @param sellAmount of `tokens[0]` Amount to sell.
     /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
