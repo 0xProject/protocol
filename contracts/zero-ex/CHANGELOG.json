@@ -1,5 +1,18 @@
 [
     {
+        "version": "0.20.0",
+        "changes": [
+            {
+                "note": "Add `MooniswapLiquidityProvider`",
+                "pr": 143
+            },
+            {
+                "note": "Emit `LiquidityProviderFill` event in `CurveLiquidityProvider`",
+                "pr": 143
+            }
+        ]
+    },
+    {
         "version": "0.19.0",
         "changes": [
             {

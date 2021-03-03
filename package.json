@@ -23,7 +23,7 @@
         "run:publish:gha": "run-s build script:publish:gha",
         "script:prepublish_checks": "node ./node_modules/@0x/monorepo-scripts/lib/prepublish_checks.js",
         "script:publish": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo protocol --doc-gen-config ./doc-gen-config.json",
-        "script:publish:gha": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo protocol --auto-commit --no-upload-docs --yes --doc-gen-config ./doc-gen-config.json",
+        "script:publish:gha": "node ./node_modules/@0x/monorepo-scripts/lib/publish.js --repo protocol --auto-commit --no-upload-docs --yes --doc-gen-config ./doc-gen-config.json --prerelease \"${PUBLISH_PRERELEASE}\"",
         "install:all": "yarn install",
         "wsrun": "wsrun",
         "lerna": "lerna",
@@ -66,7 +66,7 @@
         "ignoreDependencyVersionsForPackage": "contract-wrappers"
     },
     "devDependencies": {
-        "@0x/monorepo-scripts": "^3.0.5",
+        "@0x/monorepo-scripts": "^3.1.1",
         "@0x-lerna-fork/lerna": "3.16.10",
         "@0xproject/npm-cli-login": "^0.0.11",
         "async-child-process": "^1.1.1",

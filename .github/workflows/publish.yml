@@ -7,6 +7,9 @@ on:
               description: 'required CI status'
               default: 'success'
               required: true
+          prerelease:
+              description: 'prerelease name'
+              required: false
 
 jobs:
     publish:
@@ -21,7 +24,7 @@ jobs:
                   (echo "::error ::${{ github.ref }} does not have a successful CI status" && false)
             - uses: actions/checkout@v2
               with:
-                ref: 'development'
+                ref: ${{ github.ref }}
                 fetch-depth: 0
             - uses: actions/setup-node@v1
               with:
@@ -41,7 +44,9 @@ jobs:
               env:
                   NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
                   GITHUB_TOKEN: ${{ github.token }}
+                  PUBLISH_PRERELEASE: ${{ github.event.inputs.prerelease }}
             - name: 'merge into main branch'
+              if: github.event.inputs.prerelease == '' # unless it's a prerelease
               run: |
                   git checkout main && \
                   git merge ${{ github.ref }} && \

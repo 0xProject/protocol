@@ -238,7 +238,7 @@ export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, str
     return [makerToken, takerToken];
 }
 
-const poolEncoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
+export const poolEncoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
 const curveEncoder = AbiEncoder.create([
     { name: 'curveAddress', type: 'address' },
     { name: 'exchangeFunctionSelector', type: 'bytes4' },
