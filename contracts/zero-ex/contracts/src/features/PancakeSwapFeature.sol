@@ -370,8 +370,7 @@ contract PancakeSwapFeature is
                     0xC00,
                     // Copy only the first 32 bytes of return data. We
                     // only care about reading a boolean in the success
-                    // case, and we discard the return data in the
-                    // failure case.
+                    // case. We will use returndatacopy() in the failure case.
                     0x20
                 )
 
@@ -392,6 +391,12 @@ contract PancakeSwapFeature is
                         )
                     )
                 )
+
+                if iszero(success) {
+                    // Revert with the data returned from the transferFrom call.
+                    returndatacopy(0, 0, rdsize)
+                    revert(0, rdsize)
+                }
             }
         }
 

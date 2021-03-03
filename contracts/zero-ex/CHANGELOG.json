@@ -9,6 +9,10 @@
             {
                 "note": "Add PancakeSwapFeature",
                 "pr": 164
+            },
+            {
+                "note": "Remove TokenSpender/AllowanceTarget/greedy tokens stuff",
+                "pr": 164
             }
         ]
     },

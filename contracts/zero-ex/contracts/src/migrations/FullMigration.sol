@@ -22,11 +22,9 @@ pragma experimental ABIEncoderV2;
 
 import "../ZeroEx.sol";
 import "../features/IOwnableFeature.sol";
-import "../features/TokenSpenderFeature.sol";
 import "../features/TransformERC20Feature.sol";
 import "../features/MetaTransactionsFeature.sol";
 import "../features/NativeOrdersFeature.sol";
-import "../external/AllowanceTarget.sol";
 import "./InitialMigration.sol";
 
 
@@ -39,7 +37,6 @@ contract FullMigration {
     struct Features {
         SimpleFunctionRegistryFeature registry;
         OwnableFeature ownable;
-        TokenSpenderFeature tokenSpender;
         TransformERC20Feature transformERC20;
         MetaTransactionsFeature metaTransactions;
         NativeOrdersFeature nativeOrders;
@@ -107,7 +104,7 @@ contract FullMigration {
         );
 
         // Add features.
-        _addFeatures(zeroEx, owner, features, migrateOpts);
+        _addFeatures(zeroEx, features, migrateOpts);
 
         // Transfer ownership to the real owner.
         IOwnableFeature(address(zeroEx)).transferOwnership(owner);
@@ -132,36 +129,16 @@ contract FullMigration {
 
     /// @dev Deploy and register features to the ZeroEx contract.
     /// @param zeroEx The bootstrapped ZeroEx contract.
-    /// @param owner The ultimate owner of the ZeroEx contract.
     /// @param features Features to add to the proxy.
     /// @param migrateOpts Parameters needed to initialize features.
     function _addFeatures(
         ZeroEx zeroEx,
-        address owner,
         Features memory features,
         MigrateOpts memory migrateOpts
     )
         private
     {
         IOwnableFeature ownable = IOwnableFeature(address(zeroEx));
-        // TokenSpenderFeature
-        {
-            // Create the allowance target.
-            AllowanceTarget allowanceTarget = new AllowanceTarget();
-            // Let the ZeroEx contract use the allowance target.
-            allowanceTarget.addAuthorizedAddress(address(zeroEx));
-            // Transfer ownership of the allowance target to the (real) owner.
-            allowanceTarget.transferOwnership(owner);
-            // Register the feature.
-            ownable.migrate(
-                address(features.tokenSpender),
-                abi.encodeWithSelector(
-                    TokenSpenderFeature.migrate.selector,
-                    allowanceTarget
-                ),
-                address(this)
-            );
-        }
         // TransformERC20Feature
         {
             // Register the feature.

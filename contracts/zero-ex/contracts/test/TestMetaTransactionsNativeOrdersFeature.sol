@@ -35,8 +35,7 @@ contract TestMetaTransactionsNativeOrdersFeature is
             IEtherTokenV06(0),
             IStaking(0),
             FeeCollectorController(address(new TestFeeCollectorController())),
-            0,
-            bytes32(0)
+            0
         )
     {}
 

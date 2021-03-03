@@ -5,7 +5,6 @@ import { TxData } from 'ethereum-types';
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { ZERO_BYTES32 } from './constants';
 import {
     FeeCollectorControllerContract,
     FullMigrationContract,
@@ -15,7 +14,6 @@ import {
     NativeOrdersFeatureContract,
     OwnableFeatureContract,
     SimpleFunctionRegistryFeatureContract,
-    TokenSpenderFeatureContract,
     TransformERC20FeatureContract,
     ZeroExContract,
 } from './wrappers';
@@ -108,7 +106,6 @@ export async function initialMigrateAsync(
  * Addresses of features for a full deployment of the Exchange Proxy.
  */
 export interface FullFeatures extends BootstrapFeatures {
-    tokenSpender: string;
     transformERC20: string;
     metaTransactions: string;
     nativeOrders: string;
@@ -118,7 +115,6 @@ export interface FullFeatures extends BootstrapFeatures {
  * Artifacts to use when deploying full features.
  */
 export interface FullFeatureArtifacts extends BootstrapFeatureArtifacts {
-    tokenSpender: SimpleContractArtifact;
     transformERC20: SimpleContractArtifact;
     metaTransactions: SimpleContractArtifact;
     nativeOrders: SimpleContractArtifact;
@@ -133,7 +129,6 @@ export interface FullFeaturesDeployConfig {
     wethAddress: string;
     stakingAddress: string;
     protocolFeeMultiplier: number;
-    greedyTokensBloomFilter: string;
 }
 
 /**
@@ -149,11 +144,9 @@ const DEFAULT_FULL_FEATURES_DEPLOY_CONFIG = {
     stakingAddress: NULL_ADDRESS,
     feeCollectorController: NULL_ADDRESS,
     protocolFeeMultiplier: 70e3,
-    greedyTokensBloomFilter: ZERO_BYTES32,
 };
 
 const DEFAULT_FULL_FEATURES_ARTIFACTS = {
-    tokenSpender: artifacts.TokenSpenderFeature,
     transformERC20: artifacts.TransformERC20Feature,
     metaTransactions: artifacts.MetaTransactionsFeature,
     nativeOrders: artifacts.NativeOrdersFeature,
@@ -187,14 +180,6 @@ export async function deployFullFeaturesAsync(
     }
     return {
         ...(await deployBootstrapFeaturesAsync(provider, txDefaults)),
-        tokenSpender:
-            features.tokenSpender ||
-            (await TokenSpenderFeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.tokenSpender,
-                provider,
-                txDefaults,
-                artifacts,
-            )).address,
         transformERC20:
             features.transformERC20 ||
             (await TransformERC20FeatureContract.deployFrom0xArtifactAsync(
@@ -202,7 +187,6 @@ export async function deployFullFeaturesAsync(
                 provider,
                 txDefaults,
                 artifacts,
-                _config.greedyTokensBloomFilter,
             )).address,
         metaTransactions:
             features.metaTransactions ||
@@ -212,7 +196,6 @@ export async function deployFullFeaturesAsync(
                 txDefaults,
                 artifacts,
                 _config.zeroExAddress,
-                _config.greedyTokensBloomFilter,
             )).address,
         nativeOrders:
             features.nativeOrders ||
@@ -226,7 +209,6 @@ export async function deployFullFeaturesAsync(
                 _config.stakingAddress,
                 _config.feeCollectorController,
                 _config.protocolFeeMultiplier,
-                _config.greedyTokensBloomFilter,
             )).address,
     };
 }

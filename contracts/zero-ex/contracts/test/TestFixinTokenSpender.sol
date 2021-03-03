@@ -26,12 +26,7 @@ import "../src/fixins/FixinTokenSpender.sol";
 contract TestFixinTokenSpender is
     FixinTokenSpender
 {
-    uint256 constant private TRIGGER_FALLBACK_SUCCESS_AMOUNT = 1340;
-
-    constructor(bytes32 greedyTokensBloomFilter)
-        public
-        FixinTokenSpender(greedyTokensBloomFilter)
-    {}
+    constructor() public {}
 
     function transferERC20Tokens(
         IERC20TokenV06 token,
@@ -56,21 +51,6 @@ contract TestFixinTokenSpender is
         uint256 amount
     );
 
-    // This is called as a fallback when the original transferFrom() fails.
-    function _spendERC20Tokens(
-        IERC20TokenV06 token,
-        address owner,
-        address to,
-        uint256 amount
-    )
-        external
-    {
-        require(amount == TRIGGER_FALLBACK_SUCCESS_AMOUNT,
-            "TokenSpenderFallback/FAILURE_AMOUNT");
-
-        emit FallbackCalled(address(token), owner, to, amount);
-    }
-
     function getSpendableERC20BalanceOf(
         IERC20TokenV06 token,
         address owner
@@ -80,13 +60,5 @@ contract TestFixinTokenSpender is
         returns (uint256)
     {
         return _getSpendableERC20BalanceOf(token, owner);
-    }
-
-    function isTokenPossiblyGreedy(IERC20TokenV06 token)
-        external
-        view
-        returns (bool)
-    {
-        return _isTokenPossiblyGreedy(token);
     }
 }

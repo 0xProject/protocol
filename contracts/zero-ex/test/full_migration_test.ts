@@ -8,11 +8,9 @@ import { artifacts } from './artifacts';
 import { abis } from './utils/abis';
 import { deployFullFeaturesAsync, FullFeatures } from './utils/migration';
 import {
-    AllowanceTargetContract,
     IMetaTransactionsFeatureContract,
     INativeOrdersFeatureContract,
     IOwnableFeatureContract,
-    ITokenSpenderFeatureContract,
     ITransformERC20FeatureContract,
     TestFullMigrationContract,
     ZeroExContract,
@@ -69,10 +67,6 @@ blockchainTests.resets('Full migration', env => {
     });
 
     const FEATURE_FNS = {
-        TokenSpender: {
-            contractType: ITokenSpenderFeatureContract,
-            fns: ['_spendERC20Tokens'],
-        },
         TransformERC20: {
             contractType: ITransformERC20FeatureContract,
             fns: [
@@ -206,27 +200,6 @@ blockchainTests.resets('Full migration', env => {
             }
         });
     }
-
-    describe("TokenSpender's allowance target", () => {
-        let allowanceTarget: AllowanceTargetContract;
-
-        before(async () => {
-            const contract = new ITokenSpenderFeatureContract(zeroEx.address, env.provider, env.txDefaults);
-            allowanceTarget = new AllowanceTargetContract(
-                await contract.getAllowanceTarget().callAsync(),
-                env.provider,
-                env.txDefaults,
-            );
-        });
-
-        it('is owned by owner', async () => {
-            return expect(allowanceTarget.owner().callAsync()).to.become(owner);
-        });
-
-        it('Proxy is authorized', async () => {
-            return expect(allowanceTarget.authorized(zeroEx.address).callAsync()).to.become(true);
-        });
-    });
 
     describe('TransformERC20', () => {
         let feature: ITransformERC20FeatureContract;

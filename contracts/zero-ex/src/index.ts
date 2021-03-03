@@ -41,7 +41,6 @@ export {
     IOwnableFeatureEvents,
     ISimpleFunctionRegistryFeatureContract,
     ISimpleFunctionRegistryFeatureEvents,
-    ITokenSpenderFeatureContract,
     ITransformERC20FeatureContract,
     IZeroExContract,
     LogMetadataTransformerContract,

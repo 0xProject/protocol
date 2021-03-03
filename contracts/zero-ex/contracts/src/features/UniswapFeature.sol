@@ -39,12 +39,8 @@ contract UniswapFeature is
     string public constant override FEATURE_NAME = "UniswapFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 1);
-    /// @dev A bloom filter for tokens that consume all gas when `transferFrom()` fails.
-    bytes32 public immutable GREEDY_TOKENS_BLOOM_FILTER;
     /// @dev WETH contract.
     IEtherTokenV06 private immutable WETH;
-    /// @dev AllowanceTarget instance.
-    IAllowanceTarget private immutable ALLOWANCE_TARGET;
 
     // 0xFF + address of the UniswapV2Factory contract.
     uint256 constant private FF_UNISWAP_FACTORY = 0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
@@ -80,16 +76,8 @@ contract UniswapFeature is
 
     /// @dev Construct this contract.
     /// @param weth The WETH contract.
-    /// @param allowanceTarget The AllowanceTarget contract.
-    /// @param greedyTokensBloomFilter The bloom filter for greedy tokens.
-    constructor(
-        IEtherTokenV06 weth,
-        IAllowanceTarget allowanceTarget,
-        bytes32 greedyTokensBloomFilter
-    ) public {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
-        ALLOWANCE_TARGET = allowanceTarget;
-        GREEDY_TOKENS_BLOOM_FILTER = greedyTokensBloomFilter;
     }
 
     /// @dev Initialize and register this feature.
@@ -124,8 +112,6 @@ contract UniswapFeature is
         {
             // Load immutables onto the stack.
             IEtherTokenV06 weth = WETH;
-            IAllowanceTarget allowanceTarget = ALLOWANCE_TARGET;
-            bytes32 greedyTokensBloomFilter = GREEDY_TOKENS_BLOOM_FILTER;
 
             // Store some vars in memory to get around stack limits.
             assembly {
@@ -135,10 +121,6 @@ contract UniswapFeature is
                 mstore(0xA20, isSushi)
                 // mload(0xA40) == WETH
                 mstore(0xA40, weth)
-                // mload(0xA60) == ALLOWANCE_TARGET
-                mstore(0xA60, allowanceTarget)
-                // mload(0xA80) == GREEDY_TOKENS_BLOOM_FILTER
-                mstore(0xA80, greedyTokensBloomFilter)
             }
         }
 
@@ -373,38 +355,7 @@ contract UniswapFeature is
 
             // Move `amount` tokens from the taker/caller to `to`.
             function moveTakerTokensTo(token, to, amount) {
-
-                // If the token is possibly greedy, we check the allowance rather
-                // than relying on letting the transferFrom() call fail and
-                // falling through to legacy allowance target because the token
-                // will eat all our gas.
-                if isTokenPossiblyGreedy(token) {
-                    // Check if we have enough direct allowance by calling
-                    // `token.allowance()``
-                    mstore(0xB00, ALLOWANCE_CALL_SELECTOR_32)
-                    mstore(0xB04, caller())
-                    mstore(0xB24, address())
-                    let success := staticcall(gas(), token, 0xB00, 0x44, 0xC00, 0x20)
-                    if iszero(success) {
-                        // Call to allowance() failed.
-                        bubbleRevert()
-                    }
-                    // Make sure the allowance call returned at least a word.
-                    if lt(returndatasize(), 0x20) {
-                        revert(0, 0)
-                    }
-                    // Call succeeded.
-                    // Result is stored in 0xC00-0xC20.
-                    if lt(mload(0xC00), amount) {
-                        // We don't have enough direct allowance, so try
-                        // going through the legacy allowance taregt.
-                        moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount)
-                        leave
-                    }
-                }
-
-                // Otherwise we will optimistically try to perform a `transferFrom()`
-                // directly then if it fails we will go through the legacy allowance target.
+                // Perform a `transferFrom()`
                 mstore(0xB00, TRANSFER_FROM_CALL_SELECTOR_32)
                 mstore(0xB04, caller())
                 mstore(0xB24, to)
@@ -419,8 +370,7 @@ contract UniswapFeature is
                     0xC00,
                     // Copy only the first 32 bytes of return data. We
                     // only care about reading a boolean in the success
-                    // case, and we discard the return data in the
-                    // failure case.
+                    // case. We will use returndatacopy() in the failure case.
                     0x20
                 )
 
@@ -443,36 +393,10 @@ contract UniswapFeature is
                 )
 
                 if iszero(success) {
-                    // Try to fall back to the allowance target.
-                    moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount)
+                    // Revert with the data returned from the transferFrom call.
+                    returndatacopy(0, 0, rdsize)
+                    revert(0, rdsize)
                 }
-            }
-
-            // Move tokens by going through the legacy allowance target contract.
-            function moveTakerTokensToWithLegacyAllowanceTarget(token, to, amount) {
-                mstore(0xB00, ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32)
-                mstore(0xB04, token)
-                mstore(0xB24, 0x40)
-                mstore(0xB44, 0x64)
-                mstore(0xB64, TRANSFER_FROM_CALL_SELECTOR_32)
-                mstore(0xB68, caller())
-                mstore(0xB88, to)
-                mstore(0xBA8, amount)
-                if iszero(call(gas(), mload(0xA60), 0, 0xB00, 0xC8, 0x00, 0x0)) {
-                    bubbleRevert()
-                }
-                // If this fall back failed, the swap will most likely fail
-                // so there's no need to validate the result.
-            }
-
-            // Checks if a token possibly belongs to the GREEDY_TOKENS_BLOOM_FILTER
-            // bloom filter.
-            function isTokenPossiblyGreedy(token) -> isPossiblyGreedy {
-                // The hash is given by:
-                // (1 << (keccak256(token) % 256)) | (1 << (token % 256))
-                mstore(0, token)
-                let h := or(shl(mod(keccak256(0, 32), 256), 1), shl(mod(token, 256), 1))
-                isPossiblyGreedy := eq(and(h, mload(0xA80)), h)
             }
         }
 
