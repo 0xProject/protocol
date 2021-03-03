@@ -237,6 +237,11 @@ contract MultiplexFeature is
                 if (order.expiry <= uint64(block.timestamp)) {
                     continue;
                 }
+                require(
+                    order.takerToken == fillData.inputToken &&
+                    order.makerToken == fillData.outputToken,
+                    "MultiplexFeature::_batchFill/RFQ_ORDER_INVALID_TOKENS"
+                );
                 // Try filling the RFQ order. Swallows reverts.
                 try
                     INativeOrdersFeature(address(this))._fillRfqOrder
@@ -256,6 +261,12 @@ contract MultiplexFeature is
                 (address[] memory tokens, bool isSushi) = abi.decode(
                     wrappedCall.data,
                     (address[], bool)
+                );
+                require(
+                    tokens.length >= 2 &&
+                    tokens[0] == address(fillData.inputToken) &&
+                    tokens[tokens.length - 1] == address(fillData.outputToken),
+                    "MultiplexFeature::_batchFill/UNISWAP_INVALID_TOKENS"
                 );
                 // Perform the Uniswap/Sushiswap trade.
                 uint256 outputTokenAmount_  = _sellToUniswap(
@@ -320,6 +331,12 @@ contract MultiplexFeature is
                     ethValue,
                     remainingEth
                 );
+                if (ethValue > 0) {
+                    require(
+                        args.inputToken.isTokenETH(),
+                        "MultiplexFeature::_batchFill/ETH_TRANSFORM_ONLY"
+                    );
+                }
                 try ITransformERC20Feature(address(this))._transformERC20
                     {value: ethValue}
                     (args)
@@ -525,6 +542,12 @@ contract MultiplexFeature is
                 );
                 // Do not spend more than the remaining ETH.
                 ethValue = LibSafeMathV06.min256(ethValue, remainingEth);
+                if (ethValue > 0) {
+                    require(
+                        args.inputToken.isTokenETH(),
+                        "MultiplexFeature::_multiHopFill/ETH_TRANSFORM_ONLY"
+                    );
+                }
                 // Call `_transformERC20`.
                 outputTokenAmount = ITransformERC20Feature(address(this))
                     ._transformERC20{value: ethValue}(args);
@@ -534,6 +557,10 @@ contract MultiplexFeature is
                 // contract for the next hop.
                 nextTarget = args.taker == msg.sender ? address(0) : args.taker;
             } else if (wrappedCall.selector == IEtherTokenV06.deposit.selector) {
+                require(
+                    i == 0,
+                    "MultiplexFeature::_multiHopFill/DEPOSIT_FIRST_HOP_ONLY"
+                );
                 uint256 ethValue = LibSafeMathV06.min256(outputTokenAmount, remainingEth);
                 // Wrap ETH.
                 weth.deposit{value: ethValue}();
@@ -541,6 +568,10 @@ contract MultiplexFeature is
                 weth.transfer(nextTarget, ethValue);
                 remainingEth -= ethValue;
             } else if (wrappedCall.selector == IEtherTokenV06.withdraw.selector) {
+                require(
+                    i == fillData.calls.length - 1,
+                    "MultiplexFeature::_multiHopFill/WITHDRAW_LAST_HOP_ONLY"
+                );
                 // Unwrap WETH and send to `msg.sender`.
                 weth.withdraw(outputTokenAmount);
                 _transferEth(msg.sender, outputTokenAmount);
@@ -697,9 +728,9 @@ contract MultiplexFeature is
                 );
                 recipient = _computeUniswapPairAddress(tokens[0], tokens[1], isSushi);
             } else if (nextCall.selector == this._sellToLiquidityProvider.selector) {
-                (recipient, ,) = abi.decode(
+                (recipient,) = abi.decode(
                     nextCall.data,
-                    (address, bytes, uint256)
+                    (address, bytes)
                 );
             } else if (nextCall.selector == IEtherTokenV06.withdraw.selector) {
                 recipient = address(this);
@@ -709,6 +740,10 @@ contract MultiplexFeature is
                 );
             }
         }
+        require(
+            recipient != address(0),
+            "MultiplexFeature::_computeHopRecipient/RECIPIENT_IS_NULL"
+        );
     }
 
     // Computes the the amount of output token that would be bought
