@@ -12,6 +12,11 @@ RUN apk update && \
 
 # Runtime container with minimal dependencies
 FROM node:12-alpine
+
+RUN apk update && \
+    apk upgrade && \
+    apk add ca-certificates
+
 WORKDIR /usr/src/app
 COPY --from=yarn-install /usr/src/app/node_modules /usr/src/app/node_modules
 # Bundle app source

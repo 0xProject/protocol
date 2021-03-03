@@ -8,7 +8,6 @@ import {
     RfqtQuoteEndpoint,
     Signature,
 } from '@0x/asset-swapper';
-import { quoteRequestorHttpClient } from '@0x/asset-swapper/lib/src/utils/quote_requestor';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
@@ -17,8 +16,10 @@ import { BlockchainLifecycle } from '@0x/dev-utils';
 import { Web3ProviderEngine } from '@0x/subproviders';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
-import { Server } from 'http';
+import Axios from 'axios';
+import { Agent as HttpAgent, Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
+import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 import 'mocha';
 import * as request from 'supertest';
@@ -38,6 +39,14 @@ import { ganacheZrxWethRfqOrderExchangeProxy, rfqtIndicativeQuoteResponse } from
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../src/app')];
 
+// tslint:disable-next-line: custom-no-magic-numbers
+const KEEP_ALIVE_TTL = 5 * 60 * 1000;
+
+const quoteRequestorHttpClient = Axios.create({
+    httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+    httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+});
+
 let app: Express.Application;
 let server: Server;
 
@@ -56,7 +65,7 @@ const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC2
 const DEFAULT_SELL_AMOUNT = new BigNumber(100000000000000000);
 const DEFAULT_QUERY = `buyToken=ZRX&sellToken=WETH&excludedSources=${EXCLUDED_SOURCES.join(',')}&gasPrice=1`;
 
-describe(SUITE_NAME, () => {
+describe.skip(SUITE_NAME, () => {
     const contractAddresses: ContractAddresses = CONTRACT_ADDRESSES;
     let makerAddress: string;
     let takerAddress: string;

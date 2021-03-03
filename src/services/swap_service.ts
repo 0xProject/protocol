@@ -33,6 +33,8 @@ import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
     RFQT_REQUEST_MAX_RESPONSE_MS,
+    RFQ_PROXY_ADDRESS,
+    RFQ_PROXY_PORT,
     SWAP_QUOTER_OPTS,
 } from '../config';
 import {
@@ -136,12 +138,23 @@ export class SwapService {
     ) {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
+
+        let axiosOpts = {};
+        if (RFQ_PROXY_ADDRESS !== undefined && RFQ_PROXY_PORT !== undefined) {
+            axiosOpts = {
+                proxy: {
+                    host: RFQ_PROXY_ADDRESS,
+                    port: RFQ_PROXY_PORT,
+                },
+            };
+        }
         const swapQuoterOpts: Partial<SwapQuoterOpts> = {
             ...SWAP_QUOTER_OPTS,
             rfqt: {
                 ...SWAP_QUOTER_OPTS.rfqt!,
                 warningLogger: logger.warn.bind(logger),
                 infoLogger: logger.info.bind(logger),
+                axiosInstanceOpts: axiosOpts,
             },
             contractAddresses,
         };
