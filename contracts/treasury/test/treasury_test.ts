@@ -580,4 +580,47 @@ blockchainTests.resets('Treasury governance', env => {
             expect(await weth.balanceOf(staking.address).callAsync()).to.bignumber.equal(wethAmount);
         });
     });
+    describe('Can update thresholds via proposal', () => {
+        it('Updates proposal and quorum thresholds', async () => {
+            // Delegator has enough ZRX to create and pass a proposal
+            await staking.stake(TREASURY_PARAMS.quorumThreshold).awaitTransactionSuccessAsync({ from: delegator });
+            await staking
+                .moveStake(
+                    new StakeInfo(StakeStatus.Undelegated),
+                    new StakeInfo(StakeStatus.Delegated, defaultPoolId),
+                    TREASURY_PARAMS.quorumThreshold,
+                )
+                .awaitTransactionSuccessAsync({ from: delegator });
+            await fastForwardToNextEpochAsync();
+            const currentEpoch = await staking.currentEpoch().callAsync();
+            const newProposalThreshold = new BigNumber(420);
+            const newQuorumThreshold = new BigNumber(1337);
+            const updateThresholdsAction = {
+                target: treasury.address,
+                data: treasury
+                    .updateThresholds(newProposalThreshold, newQuorumThreshold)
+                    .getABIEncodedTransactionData(),
+                value: constants.ZERO_AMOUNT,
+            };
+            const tx = treasury.propose(
+                [updateThresholdsAction],
+                currentEpoch.plus(3),
+                `Updates proposal threshold to ${newProposalThreshold} and quorum threshold to ${newQuorumThreshold}`,
+                [],
+            );
+            const proposalId = await tx.callAsync({ from: delegator });
+            await tx.awaitTransactionSuccessAsync({ from: delegator });
+            await fastForwardToNextEpochAsync();
+            await fastForwardToNextEpochAsync();
+            await treasury.castVote(proposalId, true, []).awaitTransactionSuccessAsync({ from: delegator });
+            await fastForwardToNextEpochAsync();
+            await treasury
+                .execute(proposalId, [updateThresholdsAction])
+                .awaitTransactionSuccessAsync({ from: delegator });
+            const proposalThreshold = await treasury.proposalThreshold().callAsync();
+            const quorumThreshold = await treasury.quorumThreshold().callAsync();
+            expect(proposalThreshold).to.bignumber.equal(newProposalThreshold);
+            expect(quorumThreshold).to.bignumber.equal(newQuorumThreshold);
+        });
+    });
 });
