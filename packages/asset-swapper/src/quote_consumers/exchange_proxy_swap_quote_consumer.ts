@@ -38,8 +38,8 @@ import {
 } from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
-    poolEncoder,
     erc20BridgeSourceToBridgeSource,
+    poolEncoder,
 } from '../utils/market_operation_utils/orders';
 import {
     CurveFillData,
