@@ -5,6 +5,10 @@
             {
                 "note": "Add MooniswapLiquidityProvider \"direct\" route to EP consumer.",
                 "pr": 143
+            },
+            {
+                "note": "Enable the ability to send RFQT requests thru a proxy",
+                "pr": 159
             }
         ]
     },
