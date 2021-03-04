@@ -38,7 +38,7 @@ import {
 } from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
-    getERC20BridgeSourceToBridgeSource,
+    erc20BridgeSourceToBridgeSource,
     poolEncoder,
 } from '../utils/market_operation_utils/orders';
 import {
@@ -446,7 +446,7 @@ function getFQTTransformerDataFromOptimizedOrders(
                 bridgeData: createBridgeDataForBridgeOrder(order),
                 makerTokenAmount: order.makerAmount,
                 takerTokenAmount: order.takerAmount,
-                source: getERC20BridgeSourceToBridgeSource(order.source),
+                source: erc20BridgeSourceToBridgeSource(order.source),
             });
         } else if (isOptimizedLimitOrder(order)) {
             fqtData.limitOrders.push({

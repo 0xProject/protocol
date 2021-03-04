@@ -315,7 +315,6 @@ export async function runMigrationsAsync(
     );
 
     const exchangeProxy = await fullMigrateExchangeProxyAsync(txDefaults.from, provider, txDefaults);
-    const exchangeProxyAllowanceTargetAddress = await exchangeProxy.getAllowanceTarget().callAsync();
     const exchangeProxyFlashWalletAddress = await exchangeProxy.getTransformWallet().callAsync();
 
     // Deploy transformers.
@@ -382,7 +381,6 @@ export async function runMigrationsAsync(
         dexForwarderBridge: NULL_ADDRESS,
         exchangeProxyGovernor: NULL_ADDRESS,
         exchangeProxy: exchangeProxy.address,
-        exchangeProxyAllowanceTarget: exchangeProxyAllowanceTargetAddress,
         exchangeProxyTransformerDeployer: txDefaults.from,
         exchangeProxyFlashWallet: exchangeProxyFlashWalletAddress,
         exchangeProxyLiquidityProviderSandbox: NULL_ADDRESS,

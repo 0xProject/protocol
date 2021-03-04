@@ -13,8 +13,7 @@ contract TestNativeOrdersFeature is
         IEtherTokenV06 weth,
         IStaking staking,
         FeeCollectorController _feeCollectorController, // Unused but necessary for artifact compatibility.
-        uint32 protocolFeeMultiplier,
-        bytes32 greedyTokensBloomFilter
+        uint32 protocolFeeMultiplier
     )
         public
         NativeOrdersFeature(
@@ -22,8 +21,7 @@ contract TestNativeOrdersFeature is
             weth,
             staking,
             FeeCollectorController(address(new TestFeeCollectorController())),
-            protocolFeeMultiplier,
-            greedyTokensBloomFilter
+            protocolFeeMultiplier
         )
     {
         // solhint-disable no-empty-blocks

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -26,43 +26,47 @@ import "../migrations/LibMigrate.sol";
 import "../external/IAllowanceTarget.sol";
 import "../fixins/FixinCommon.sol";
 import "./IFeature.sol";
-import "./IUniswapFeature.sol";
+import "./IPancakeSwapFeature.sol";
 
 
-/// @dev VIP uniswap fill functions.
-contract UniswapFeature is
+/// @dev VIP pancake fill functions.
+contract PancakeSwapFeature is
     IFeature,
-    IUniswapFeature,
+    IPancakeSwapFeature,
     FixinCommon
 {
     /// @dev Name of this feature.
-    string public constant override FEATURE_NAME = "UniswapFeature";
+    string public constant override FEATURE_NAME = "PancakeSwapFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 1);
-    /// @dev WETH contract.
-    IEtherTokenV06 private immutable WETH;
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    /// @dev WBNB contract.
+    IEtherTokenV06 private immutable WBNB;
 
-    // 0xFF + address of the UniswapV2Factory contract.
-    uint256 constant private FF_UNISWAP_FACTORY = 0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
-    // 0xFF + address of the (Sushiswap) UniswapV2Factory contract.
-    uint256 constant private FF_SUSHISWAP_FACTORY = 0xFFC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac0000000000000000000000;
-    // Init code hash of the UniswapV2Pair contract.
-    uint256 constant private UNISWAP_PAIR_INIT_CODE_HASH = 0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f;
-    // Init code hash of the (Sushiswap) UniswapV2Pair contract.
+    // 0xFF + address of the PancakeSwap factory contract.
+    uint256 constant private FF_PANCAKESWAP_FACTORY = 0xffbcfccbde45ce874adcb698cc183debcf179528120000000000000000000000;
+    // 0xFF + address of the BakerySwap factory contract.
+    uint256 constant private FF_BAKERYSWAP_FACTORY = 0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
+    // 0xFF + address of the SushiSwap factory contract.
+    uint256 constant private FF_SUSHISWAP_FACTORY = 0xffc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac0000000000000000000000;
+    // Init code hash of the PancakeSwap pair contract.
+    uint256 constant private PANCAKESWAP_PAIR_INIT_CODE_HASH = 0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66;
+    // Init code hash of the BakerySwap pair contract.
+    uint256 constant private BAKERYSWAP_PAIR_INIT_CODE_HASH = 0xe2e87433120e32c4738a7d8f3271f3d872cbe16241d67537139158d90bac61d3;
+    // Init code hash of the SushiSwap pair contract.
     uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
     // Mask of the lower 20 bytes of a bytes32.
     uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
-    // ETH pseudo-token address.
+    // BNB pseudo-token address.
     uint256 constant private ETH_TOKEN_ADDRESS_32 = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
-    // Maximum token quantity that can be swapped against the UniswapV2Pair contract.
+    // Maximum token quantity that can be swapped against the PancakeSwapPair contract.
     uint256 constant private MAX_SWAP_AMOUNT = 2**112;
 
     // bytes4(keccak256("executeCall(address,bytes)"))
     uint256 constant private ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32 = 0xbca8c7b500000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("getReserves()"))
-    uint256 constant private UNISWAP_PAIR_RESERVES_CALL_SELECTOR_32 = 0x0902f1ac00000000000000000000000000000000000000000000000000000000;
+    uint256 constant private PANCAKESWAP_PAIR_RESERVES_CALL_SELECTOR_32 = 0x0902f1ac00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("swap(uint256,uint256,address,bytes)"))
-    uint256 constant private UNISWAP_PAIR_SWAP_CALL_SELECTOR_32 = 0x022c0d9f00000000000000000000000000000000000000000000000000000000;
+    uint256 constant private PANCAKESWAP_PAIR_SWAP_CALL_SELECTOR_32 = 0x022c0d9f00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("transferFrom(address,address,uint256)"))
     uint256 constant private TRANSFER_FROM_CALL_SELECTOR_32 = 0x23b872dd00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("allowance(address,address)"))
@@ -75,9 +79,9 @@ contract UniswapFeature is
     uint256 constant private ERC20_TRANSFER_CALL_SELECTOR_32 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000;
 
     /// @dev Construct this contract.
-    /// @param weth The WETH contract.
-    constructor(IEtherTokenV06 weth) public {
-        WETH = weth;
+    /// @param wbnb The WBNB contract.
+    constructor(IEtherTokenV06 wbnb) public {
+        WBNB = wbnb;
     }
 
     /// @dev Initialize and register this feature.
@@ -87,40 +91,40 @@ contract UniswapFeature is
         external
         returns (bytes4 success)
     {
-        _registerFeatureFunction(this.sellToUniswap.selector);
+        _registerFeatureFunction(this.sellToPancakeSwap.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
-    /// @dev Efficiently sell directly to uniswap/sushiswap.
+    /// @dev Efficiently sell directly to pancake/BakerySwap/SushiSwap.
     /// @param tokens Sell path.
     /// @param sellAmount of `tokens[0]` Amount to sell.
     /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
-    /// @param isSushi Use sushiswap if true.
+    /// @param fork The protocol fork to use.
     /// @return buyAmount Amount of `tokens[-1]` bought.
-    function sellToUniswap(
+    function sellToPancakeSwap(
         IERC20TokenV06[] calldata tokens,
         uint256 sellAmount,
         uint256 minBuyAmount,
-        bool isSushi
+        ProtocolFork fork
     )
         external
         payable
         override
         returns (uint256 buyAmount)
     {
-        require(tokens.length > 1, "UniswapFeature/InvalidTokensLength");
+        require(tokens.length > 1, "PancakeSwapFeature/InvalidTokensLength");
         {
             // Load immutables onto the stack.
-            IEtherTokenV06 weth = WETH;
+            IEtherTokenV06 wbnb = WBNB;
 
             // Store some vars in memory to get around stack limits.
             assembly {
                 // calldataload(mload(0xA00)) == first element of `tokens` array
                 mstore(0xA00, add(calldataload(0x04), 0x24))
-                // mload(0xA20) == isSushi
-                mstore(0xA20, isSushi)
-                // mload(0xA40) == WETH
-                mstore(0xA40, weth)
+                // mload(0xA20) == fork
+                mstore(0xA20, fork)
+                // mload(0xA40) == WBNB
+                mstore(0xA40, wbnb)
             }
         }
 
@@ -152,8 +156,8 @@ contract UniswapFeature is
                 if iszero(i) {
                     // This is the first token in the path.
                     switch eq(sellToken, ETH_TOKEN_ADDRESS_32)
-                        case 0 { // Not selling ETH. Selling an ERC20 instead.
-                            // Make sure ETH was not attached to the call.
+                        case 0 { // Not selling BNB. Selling an ERC20 instead.
+                            // Make sure BNB was not attached to the call.
                             if gt(callvalue(), 0) {
                                 revert(0, 0)
                             }
@@ -162,18 +166,18 @@ contract UniswapFeature is
                             moveTakerTokensTo(sellToken, pair, sellAmount)
                         }
                         default {
-                            // If selling ETH, we need to wrap it to WETH and transfer to the
+                            // If selling BNB, we need to wrap it to WBNB and transfer to the
                             // pair contract.
                             if iszero(eq(callvalue(), sellAmount)) {
                                 revert(0, 0)
                             }
-                            sellToken := mload(0xA40)// Re-assign to WETH
-                            // Call `WETH.deposit{value: sellAmount}()`
+                            sellToken := mload(0xA40)// Re-assign to WBNB
+                            // Call `WBNB.deposit{value: sellAmount}()`
                             mstore(0xB00, WETH_DEPOSIT_CALL_SELECTOR_32)
                             if iszero(call(gas(), sellToken, sellAmount, 0xB00, 0x4, 0x00, 0x0)) {
                                 bubbleRevert()
                             }
-                            // Call `WETH.transfer(pair, sellAmount)`
+                            // Call `WBNB.transfer(pair, sellAmount)`
                             mstore(0xB00, ERC20_TRANSFER_CALL_SELECTOR_32)
                             mstore(0xB04, pair)
                             mstore(0xB24, sellAmount)
@@ -181,13 +185,13 @@ contract UniswapFeature is
                                 bubbleRevert()
                             }
                         }
-                    // No need to check results, if deposit/transfers failed the UniswapV2Pair will
+                    // No need to check results, if deposit/transfers failed the PancakeSwapPair will
                     // reject our trade (or it may succeed if somehow the reserve was out of sync)
                     // this is fine for the taker.
                 }
 
                 // Call pair.getReserves(), store the results at `0xC00`
-                mstore(0xB00, UNISWAP_PAIR_RESERVES_CALL_SELECTOR_32)
+                mstore(0xB00, PANCAKESWAP_PAIR_RESERVES_CALL_SELECTOR_32)
                 if iszero(staticcall(gas(), pair, 0xB00, 0x4, 0xC00, 0x40)) {
                     bubbleRevert()
                 }
@@ -240,7 +244,7 @@ contract UniswapFeature is
                     }
                     default {
                         // The last pair contract.
-                        // Forward directly to taker UNLESS they want ETH back.
+                        // Forward directly to taker UNLESS they want BNB back.
                         switch eq(buyToken, ETH_TOKEN_ADDRESS_32)
                             case 0 {
                                 receiver := caller()
@@ -251,7 +255,7 @@ contract UniswapFeature is
                     }
 
                 // Call pair.swap()
-                mstore(0xB00, UNISWAP_PAIR_SWAP_CALL_SELECTOR_32)
+                mstore(0xB00, PANCAKESWAP_PAIR_SWAP_CALL_SELECTOR_32)
                 switch pairOrder
                     case 0 {
                         mstore(0xB04, buyAmount)
@@ -269,15 +273,15 @@ contract UniswapFeature is
                 }
             } // End for-loop.
 
-            // If buying ETH, unwrap the WETH first
+            // If buying BNB, unwrap the WBNB first
             if eq(buyToken, ETH_TOKEN_ADDRESS_32) {
-                // Call `WETH.withdraw(buyAmount)`
+                // Call `WBNB.withdraw(buyAmount)`
                 mstore(0xB00, WETH_WITHDRAW_CALL_SELECTOR_32)
                 mstore(0xB04, buyAmount)
                 if iszero(call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)) {
                     bubbleRevert()
                 }
-                // Transfer ETH to the caller.
+                // Transfer BNB to the caller.
                 if iszero(call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)) {
                     bubbleRevert()
                 }
@@ -290,19 +294,19 @@ contract UniswapFeature is
                 addr := and(ADDRESS_MASK, calldataload(add(mload(0xA00), mul(idx, 0x20))))
             }
 
-            // Convert ETH pseudo-token addresses to WETH.
+            // Convert BNB pseudo-token addresses to WBNB.
             function normalizeToken(token) -> normalized {
                 normalized := token
-                // Translate ETH pseudo-tokens to WETH.
+                // Translate BNB pseudo-tokens to WBNB.
                 if eq(token, ETH_TOKEN_ADDRESS_32) {
                     normalized := mload(0xA40)
                 }
             }
 
-            // Compute the address of the UniswapV2Pair contract given two
+            // Compute the address of the PancakeSwapPair contract given two
             // tokens.
             function computePairAddress(tokenA, tokenB) -> pair {
-                // Convert ETH pseudo-token addresses to WETH.
+                // Convert BNB pseudo-token addresses to WBNB.
                 tokenA := normalizeToken(tokenA)
                 tokenB := normalizeToken(tokenB)
                 // There is one contract for every combination of tokens,
@@ -310,12 +314,12 @@ contract UniswapFeature is
                 // The derivation of this address is given by:
                 //   address(keccak256(abi.encodePacked(
                 //       bytes(0xFF),
-                //       address(UNISWAP_FACTORY_ADDRESS),
+                //       address(PANCAKESWAP_FACTORY_ADDRESS),
                 //       keccak256(abi.encodePacked(
                 //           tokenA < tokenB ? tokenA : tokenB,
                 //           tokenA < tokenB ? tokenB : tokenA,
                 //       )),
-                //       bytes32(UNISWAP_PAIR_INIT_CODE_HASH),
+                //       bytes32(PANCAKESWAP_PAIR_INIT_CODE_HASH),
                 //   )));
 
                 // Compute the salt (the hash of the sorted tokens).
@@ -333,11 +337,16 @@ contract UniswapFeature is
                     }
                 let salt := keccak256(0xB0C, 0x28)
                 // Compute the pair address by hashing all the components together.
-                switch mload(0xA20) // isSushi
+                switch mload(0xA20) // isBakerySwap
                     case 0 {
-                        mstore(0xB00, FF_UNISWAP_FACTORY)
+                        mstore(0xB00, FF_PANCAKESWAP_FACTORY)
                         mstore(0xB15, salt)
-                        mstore(0xB35, UNISWAP_PAIR_INIT_CODE_HASH)
+                        mstore(0xB35, PANCAKESWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    case 1 {
+                        mstore(0xB00, FF_BAKERYSWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, BAKERYSWAP_PAIR_INIT_CODE_HASH)
                     }
                     default {
                         mstore(0xB00, FF_SUSHISWAP_FACTORY)
@@ -401,7 +410,6 @@ contract UniswapFeature is
         }
 
         // Revert if we bought too little.
-        // TODO: replace with rich revert?
-        require(buyAmount >= minBuyAmount, "UniswapFeature/UnderBought");
+        require(buyAmount >= minBuyAmount, "PancakeSwapFeature/UnderBought");
     }
 }

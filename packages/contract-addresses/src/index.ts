@@ -30,7 +30,6 @@ export interface ContractAddresses {
     dexForwarderBridge: string;
     exchangeProxyGovernor: string;
     exchangeProxy: string;
-    exchangeProxyAllowanceTarget: string;
     exchangeProxyTransformerDeployer: string;
     exchangeProxyFlashWallet: string;
     exchangeProxyLiquidityProviderSandbox: string;

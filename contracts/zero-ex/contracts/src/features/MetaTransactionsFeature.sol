@@ -105,11 +105,10 @@ contract MetaTransactionsFeature is
         }
     }
 
-    constructor(address zeroExAddress, bytes32 greedyTokensBloomFilter)
+    constructor(address zeroExAddress)
         public
         FixinCommon()
         FixinEIP712(zeroExAddress)
-        FixinTokenSpender(greedyTokensBloomFilter)
     {
         // solhint-disable-next-line no-empty-blocks
     }

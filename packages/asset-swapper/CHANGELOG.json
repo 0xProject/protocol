@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.4.0-bsc.0",
+        "changes": [
+            {
+                "note": "Use new bridge source ID encoding.",
+                "pr": 162
+            }
+        ]
+    },
+    {
         "version": "6.3.0",
         "changes": [
             {

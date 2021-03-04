@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -26,20 +26,24 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 interface IBridgeAdapter {
 
     struct BridgeOrder {
-        uint256 source;
+        // Upper 16 bytes: uint128 protocol ID (right-aligned)
+        // Lower 16 bytes: ASCII source name (left-aligned)
+        bytes32 source;
         uint256 takerTokenAmount;
         uint256 makerTokenAmount;
         bytes bridgeData;
     }
 
     /// @dev Emitted when tokens are swapped with an external source.
-    /// @param source The unique ID for the source. See `BridgeSource.sol`
+    /// @param source A unique ID for the source, where the upper 16 bytes
+    ///        encodes the (right-aligned) uint128 protocol ID and the
+    ///        lower 16 bytes encodes an ASCII source name.
     /// @param inputToken The token the bridge is converting from.
     /// @param outputToken The token the bridge is converting to.
     /// @param inputTokenAmount Amount of input token sold.
     /// @param outputTokenAmount Amount of output token bought.
     event BridgeFill(
-        uint256 source,
+        bytes32 source,
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
         uint256 inputTokenAmount,

@@ -30,5 +30,5 @@ contract TestTransformERC20 is
         _;
     }
 
-    constructor() public TransformERC20Feature(0) {}
+    constructor() public TransformERC20Feature() {}
 }

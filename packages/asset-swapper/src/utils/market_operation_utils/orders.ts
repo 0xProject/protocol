@@ -1,4 +1,4 @@
-import { BridgeSource, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
+import { BridgeProtocol, encodeBridgeSourceId, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
@@ -80,48 +80,48 @@ export function createOrdersFromTwoHopSample(
     ];
 }
 
-export function getERC20BridgeSourceToBridgeSource(source: ERC20BridgeSource): BridgeSource {
+export function erc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): string {
     switch (source) {
         case ERC20BridgeSource.Balancer:
-            return BridgeSource.Balancer;
+            return encodeBridgeSourceId(BridgeProtocol.Balancer, 'Balancer');
         case ERC20BridgeSource.Bancor:
-            return BridgeSource.Bancor;
+            return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
         // case ERC20BridgeSource.CoFiX:
-        //    return BridgeSource.CoFiX;
+        //    return encodeBridgeSourceId(BridgeProtocol.CoFiX, 'CoFiX');
         case ERC20BridgeSource.Curve:
-            return BridgeSource.Curve;
+            return encodeBridgeSourceId(BridgeProtocol.Curve, 'Curve');
         case ERC20BridgeSource.Cream:
-            return BridgeSource.Cream;
+            return encodeBridgeSourceId(BridgeProtocol.Balancer, 'Cream');
         case ERC20BridgeSource.CryptoCom:
-            return BridgeSource.CryptoCom;
+            return encodeBridgeSourceId(BridgeProtocol.CryptoCom, 'CryptoCom');
         case ERC20BridgeSource.Dodo:
-            return BridgeSource.Dodo;
+            return encodeBridgeSourceId(BridgeProtocol.Dodo, 'Dodo');
         case ERC20BridgeSource.Kyber:
-            return BridgeSource.Kyber;
+            return encodeBridgeSourceId(BridgeProtocol.Kyber, 'Kyber');
         case ERC20BridgeSource.LiquidityProvider:
-            return BridgeSource.LiquidityProvider;
+            return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LiquidityProvider');
         case ERC20BridgeSource.Mooniswap:
-            return BridgeSource.Mooniswap;
+            return encodeBridgeSourceId(BridgeProtocol.Mooniswap, 'Mooniswap');
         case ERC20BridgeSource.MStable:
-            return BridgeSource.MStable;
+            return encodeBridgeSourceId(BridgeProtocol.MStable, 'MStable');
         case ERC20BridgeSource.Eth2Dai:
-            return BridgeSource.Oasis;
+            return encodeBridgeSourceId(BridgeProtocol.Oasis, 'Eth2Dai');
         case ERC20BridgeSource.Shell:
-            return BridgeSource.Shell;
+            return encodeBridgeSourceId(BridgeProtocol.Shell, 'Shell');
         case ERC20BridgeSource.SnowSwap:
-            return BridgeSource.Snowswap;
+            return encodeBridgeSourceId(BridgeProtocol.Curve, 'SnowSwap');
         case ERC20BridgeSource.SushiSwap:
-            return BridgeSource.Sushiswap;
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SushiSwap');
         case ERC20BridgeSource.Swerve:
-            return BridgeSource.Swerve;
+            return encodeBridgeSourceId(BridgeProtocol.Curve, 'Swerve');
         case ERC20BridgeSource.Uniswap:
-            return BridgeSource.Uniswap;
+            return encodeBridgeSourceId(BridgeProtocol.Uniswap, 'Uniswap');
         case ERC20BridgeSource.UniswapV2:
-            return BridgeSource.UniswapV2;
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2');
         case ERC20BridgeSource.DodoV2:
-            return BridgeSource.DodoV2;
+            return encodeBridgeSourceId(BridgeProtocol.DodoV2, 'DodoV2');
         case ERC20BridgeSource.Linkswap:
-            return BridgeSource.Linkswap;
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Linkswap');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }

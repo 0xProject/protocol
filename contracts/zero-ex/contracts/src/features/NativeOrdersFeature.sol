@@ -120,13 +120,11 @@ contract NativeOrdersFeature is
         IEtherTokenV06 weth,
         IStaking staking,
         FeeCollectorController feeCollectorController,
-        uint32 protocolFeeMultiplier,
-        bytes32 greedyTokensBloomFilter
+        uint32 protocolFeeMultiplier
     )
         public
         FixinEIP712(zeroExAddress)
         FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
-        FixinTokenSpender(greedyTokensBloomFilter)
     {
         // solhint-disable no-empty-blocks
     }
