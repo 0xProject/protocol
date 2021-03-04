@@ -30,7 +30,7 @@ services:
             CHAIN_ID: '${CHAIN_ID}'
             POSTGRES_URI: 'postgres://api:api@postgres/api'
     mesh:
-        image: 0xorg/mesh:11.0.0
+        image: 0xorg/mesh:11.0.1
         depends_on:
             - ganache
         restart: on-failure

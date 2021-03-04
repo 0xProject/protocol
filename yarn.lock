@@ -540,10 +540,10 @@
     jsonschema "^1.2.0"
     lodash.values "^4.3.0"
 
-"@0x/mesh-browser-lite@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@0x/mesh-browser-lite/-/mesh-browser-lite-11.0.0.tgz#96935f232cf2a10d45e95ac52b18523d06cec9ec"
-  integrity sha512-u6spn2FOyHofArIy+/FcPy4Xgs56Sk2OZjomOKVqq8RJqMR31GeXaJvopcVTt68erXB3xUxS29BVVjpMI7rOLw==
+"@0x/mesh-browser-lite@^11.0.1":
+  version "11.0.1"
+  resolved "https://registry.yarnpkg.com/@0x/mesh-browser-lite/-/mesh-browser-lite-11.0.1.tgz#9ef972911b5e35281cc21f79c0ff710be029e6d4"
+  integrity sha512-FBHzzPiOObsbt/L7wR35wU+3/NIufc1byNAv1/VNDsHI0R6WTfp196ozXc4hCfWXOcDc/C4Bl+j6Ao9OpEMXyw==
   dependencies:
     "@0x/order-utils" "^10.2.0"
     "@0x/utils" "^6.2.0"
@@ -551,12 +551,12 @@
     dexie "^3.0.1"
     ethereum-types "^3.0.0"
 
-"@0x/mesh-graphql-client@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@0x/mesh-graphql-client/-/mesh-graphql-client-11.0.0.tgz#6faca69a9285efcb3784844516b951ffa2bfb392"
-  integrity sha512-HTpg8JdEaCKzRsP+2sQK49zSDx+ETQZLaBvnS8ylSjF7RsfOpdwNNCwZGVrptPHsOMVE9oyLtTGsJW4lrRV3tw==
+"@0x/mesh-graphql-client@^11.0.1":
+  version "11.0.1"
+  resolved "https://registry.yarnpkg.com/@0x/mesh-graphql-client/-/mesh-graphql-client-11.0.1.tgz#31bb25f099e92f6d76ba529dd26908064449e66c"
+  integrity sha512-zZvSKVcV4hv9AoEE+p+q56fV/toj/HAnid14Dbg1Al9CnkT2un37f+RFx34zgT0++QBKeeP+We5zeXB47EeMpw==
   dependencies:
-    "@0x/mesh-browser-lite" "^11.0.0"
+    "@0x/mesh-browser-lite" "^11.0.1"
     "@0x/protocol-utils" "^1.1.4"
     "@0x/types" "^3.2.0"
     "@0x/utils" "^6.2.0"
