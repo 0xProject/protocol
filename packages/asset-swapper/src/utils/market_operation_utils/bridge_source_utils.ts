@@ -1,6 +1,9 @@
+import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
+    BAKERYSWAP_ROUTER_BY_CHAIN_ID,
+    CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAINNET_CURVE_INFOS,
     MAINNET_SNOWSWAP_INFOS,
@@ -8,9 +11,12 @@ import {
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
     NULL_ADDRESS,
-    SHELL_POOLS,
+    PANCAKESWAP_ROUTER_BY_CHAIN_ID,
+    SHELL_POOLS_BY_CHAIN_ID,
+    SUSHISWAP_ROUTER_BY_CHAIN_ID,
+    UNISWAPV2_ROUTER_BY_CHAIN_ID,
 } from './constants';
-import { CurveInfo, SnowSwapInfo, SwerveInfo } from './types';
+import { CurveInfo, ERC20BridgeSource, SnowSwapInfo, SwerveInfo } from './types';
 
 /**
  * Filter Kyber reserves which should not be used (0xbb bridged reserves)
@@ -42,14 +48,20 @@ export function getDodoV2Offsets(): BigNumber[] {
 }
 
 // tslint:disable completed-docs
-export function getShellsForPair(takerToken: string, makerToken: string): string[] {
-    return Object.values(SHELL_POOLS)
+export function getShellsForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
+    if (chainId !== ChainId.Mainnet) {
+        return [];
+    }
+    return Object.values(SHELL_POOLS_BY_CHAIN_ID[chainId])
         .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
         .map(i => i.poolAddress);
 }
 
 // tslint:disable completed-docs
-export function getCurveInfosForPair(takerToken: string, makerToken: string): CurveInfo[] {
+export function getCurveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.Mainnet) {
+        return [];
+    }
     return Object.values(MAINNET_CURVE_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
@@ -59,7 +71,10 @@ export function getCurveInfosForPair(takerToken: string, makerToken: string): Cu
     );
 }
 
-export function getSwerveInfosForPair(takerToken: string, makerToken: string): SwerveInfo[] {
+export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): SwerveInfo[] {
+    if (chainId !== ChainId.Mainnet) {
+        return [];
+    }
     return Object.values(MAINNET_SWERVE_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
@@ -69,7 +84,10 @@ export function getSwerveInfosForPair(takerToken: string, makerToken: string): S
     );
 }
 
-export function getSnowSwapInfosForPair(takerToken: string, makerToken: string): SnowSwapInfo[] {
+export function getSnowSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): SnowSwapInfo[] {
+    if (chainId !== ChainId.Mainnet) {
+        return [];
+    }
     return Object.values(MAINNET_SNOWSWAP_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
@@ -77,4 +95,29 @@ export function getSnowSwapInfosForPair(takerToken: string, makerToken: string):
                 (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
         ),
     );
+}
+
+export function uniswapV2LikeRouterAddress(
+    chainId: ChainId,
+    source:
+        | ERC20BridgeSource.UniswapV2
+        | ERC20BridgeSource.SushiSwap
+        | ERC20BridgeSource.CryptoCom
+        | ERC20BridgeSource.PancakeSwap
+        | ERC20BridgeSource.BakerySwap,
+): string {
+    switch (source) {
+        case ERC20BridgeSource.UniswapV2:
+            return UNISWAPV2_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.SushiSwap:
+            return SUSHISWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.CryptoCom:
+            return CRYPTO_COM_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.PancakeSwap:
+            return PANCAKESWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.BakerySwap:
+            return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        default:
+            throw new Error(`Unknown UniswapV2 like source ${source}`);
+    }
 }

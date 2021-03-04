@@ -546,7 +546,6 @@ export const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const UNISWAPV1_ROUTER = UNISWAPV1_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const UNISWAPV2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -554,7 +553,6 @@ export const UNISWAPV2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const UNISWAPV2_ROUTER = UNISWAPV2_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -563,7 +561,6 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const SUSHISWAP_ROUTER = SUSHISWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const CRYPTO_COM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -571,13 +568,11 @@ export const CRYPTO_COM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const CRYPTO_COM_ROUTER = CRYPTO_COM_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     { [ChainId.Mainnet]: '0xa7ece0911fe8c60bff9e99f8fafcdbe56e07aff1' },
     NULL_ADDRESS,
 );
-export const LINKSWAP_ROUTER = LINKSWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const MSTABLE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -585,7 +580,6 @@ export const MSTABLE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const MSTABLE_ROUTER = MSTABLE_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -593,7 +587,6 @@ export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const OASIS_ROUTER = OASIS_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
@@ -606,7 +599,6 @@ export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     },
     [] as string[],
 );
-export const MOONISWAP_REGISTRIES = MOONISWAP_REGISTRIES_BY_CHAIN_ID[CHAIN_ID];
 
 export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
 
@@ -623,7 +615,6 @@ export const DODOV2_FACTORIES_BY_CHAIN_ID = valueByChainId<string[]>(
     },
     [] as string[],
 );
-export const DODOV2_FACTORIES = DODOV2_FACTORIES_BY_CHAIN_ID[CHAIN_ID];
 export const MAX_DODOV2_POOLS_QUERIED = 3;
 
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
@@ -633,7 +624,6 @@ export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const CURVE_LIQUIDITY_PROVIDER = CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[CHAIN_ID];
 
 export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -642,7 +632,6 @@ export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const MOONISWAP_LIQUIDITY_PROVIDER = MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[CHAIN_ID];
 
 export const SHELL_POOLS_BY_CHAIN_ID = valueByChainId(
     {
@@ -668,7 +657,6 @@ export const SHELL_POOLS_BY_CHAIN_ID = valueByChainId(
         },
     },
 );
-export const SHELL_POOLS = SHELL_POOLS_BY_CHAIN_ID[CHAIN_ID];
 
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
@@ -683,7 +671,6 @@ export const PANCAKESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const PANCAKESWAP_ROUTER = PANCAKESWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 export const BAKERYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -691,7 +678,6 @@ export const BAKERYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const BAKERYSWAP_ROUTER = BAKERYSWAP_ROUTER_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  * Calculated gross gas cost of the underlying exchange.

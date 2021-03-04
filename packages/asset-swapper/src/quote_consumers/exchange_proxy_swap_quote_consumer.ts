@@ -1,4 +1,4 @@
-import { ContractAddresses } from '@0x/contract-addresses';
+import { ChainId, ContractAddresses } from '@0x/contract-addresses';
 import { IZeroExContract } from '@0x/contract-wrappers';
 import {
     encodeAffiliateFeeTransformerData,
@@ -32,7 +32,10 @@ import {
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/assert';
-import { CURVE_LIQUIDITY_PROVIDER, MOONISWAP_LIQUIDITY_PROVIDER } from '../utils/market_operation_utils/constants';
+import {
+    CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+    MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+} from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
     getERC20BridgeSourceToBridgeSource,
@@ -57,7 +60,7 @@ const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly provider: ZeroExProvider;
-    public readonly chainId: number;
+    public readonly chainId: ChainId;
     public readonly transformerNonces: {
         wethTransformer: number;
         payTakerTransformer: number;
@@ -186,7 +189,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .sellToLiquidityProvider(
                         isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                         isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        CURVE_LIQUIDITY_PROVIDER,
+                        CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
                         NULL_ADDRESS,
                         sellAmount,
                         minBuyAmount,
@@ -212,7 +215,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .sellToLiquidityProvider(
                         isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                         isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        MOONISWAP_LIQUIDITY_PROVIDER,
+                        MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
                         NULL_ADDRESS,
                         sellAmount,
                         minBuyAmount,

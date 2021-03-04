@@ -1,4 +1,4 @@
-import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import {
     constants,
     expect,
@@ -26,6 +26,7 @@ const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000
 describe('DexSampler tests', () => {
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
+    const chainId = ChainId.Mainnet;
 
     const wethAddress = getContractAddressesForChainOrThrow(CHAIN_ID).etherToken;
     const exchangeProxyAddress = getContractAddressesForChainOrThrow(CHAIN_ID).exchangeProxy;
@@ -105,6 +106,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -129,6 +131,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -157,6 +160,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -190,6 +194,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -234,6 +239,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -278,6 +284,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -311,6 +318,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -343,6 +351,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -375,6 +384,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -408,6 +418,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -470,6 +481,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -529,6 +541,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 new MockSamplerContract({}),
                 undefined,
                 balancerPoolsCache,
@@ -582,6 +595,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,
@@ -632,6 +646,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 new MockSamplerContract({}),
                 undefined,
                 balancerPoolsCache,
@@ -666,6 +681,7 @@ describe('DexSampler tests', () => {
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
+                chainId,
                 sampler,
                 undefined,
                 undefined,

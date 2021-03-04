@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
@@ -16,24 +17,19 @@ import {
     getSwerveInfosForPair,
     isAllowedKyberReserveId,
     isValidAddress,
+    uniswapV2LikeRouterAddress,
 } from './bridge_source_utils';
 import {
-    BAKERYSWAP_ROUTER,
-    CRYPTO_COM_ROUTER,
-    DODOV2_FACTORIES,
-    LINKSWAP_ROUTER,
+    DODOV2_FACTORIES_BY_CHAIN_ID,
+    LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY,
     MAX_UINT256,
-    MOONISWAP_REGISTRIES,
-    MSTABLE_ROUTER,
-    NULL_ADDRESS,
-    OASIS_ROUTER,
-    PANCAKESWAP_ROUTER,
-    SELL_SOURCE_FILTER,
-    SUSHISWAP_ROUTER,
+    MOONISWAP_REGISTRIES_BY_CHAIN_ID,
+    MSTABLE_ROUTER_BY_CHAIN_ID,
+    OASIS_ROUTER_BY_CHAIN_ID,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
     TOKENS,
-    UNISWAPV1_ROUTER,
-    UNISWAPV2_ROUTER,
+    UNISWAPV1_ROUTER_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
 import { CreamPoolsCache } from './cream_utils';
@@ -96,6 +92,7 @@ export class SamplerOperations {
     }
 
     constructor(
+        protected readonly chainId: ChainId,
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
@@ -1031,94 +1028,50 @@ export class SamplerOperations {
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
         const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph);
         // Drop out MultiHop and Native as we do not query those here.
-        const _sources = SELL_SOURCE_FILTER.exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]).getAllowed(
-            sources,
-        );
+        const _sources = SELL_SOURCE_FILTER_BY_CHAIN_ID[this.chainId]
+            .exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native])
+            .getAllowed(sources);
         const allOps = _.flatten(
             _sources.map(
                 (source): SourceQuoteOperation | SourceQuoteOperation[] => {
                     switch (source) {
                         case ERC20BridgeSource.Eth2Dai:
-                            return isValidAddress(OASIS_ROUTER)
-                                ? this.getEth2DaiSellQuotes(OASIS_ROUTER, makerToken, takerToken, takerFillAmounts)
+                            return isValidAddress(OASIS_ROUTER_BY_CHAIN_ID[this.chainId])
+                                ? this.getEth2DaiSellQuotes(
+                                      OASIS_ROUTER_BY_CHAIN_ID[this.chainId],
+                                      makerToken,
+                                      takerToken,
+                                      takerFillAmounts,
+                                  )
                                 : [];
                         case ERC20BridgeSource.Uniswap:
-                            return isValidAddress(UNISWAPV1_ROUTER)
-                                ? this.getUniswapSellQuotes(UNISWAPV1_ROUTER, makerToken, takerToken, takerFillAmounts)
+                            return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
+                                ? this.getUniswapSellQuotes(
+                                      UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId],
+                                      makerToken,
+                                      takerToken,
+                                      takerFillAmounts,
+                                  )
                                 : [];
                         case ERC20BridgeSource.UniswapV2:
-                            if (!isValidAddress(UNISWAPV2_ROUTER)) {
-                                return [];
-                            }
-                            const ops = [
-                                this.getUniswapV2SellQuotes(
-                                    UNISWAPV2_ROUTER,
-                                    [takerToken, makerToken],
-                                    takerFillAmounts,
-                                ),
-                            ];
-                            intermediateTokens.forEach(t => {
-                                ops.push(
-                                    this.getUniswapV2SellQuotes(
-                                        UNISWAPV2_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        takerFillAmounts,
-                                    ),
-                                );
-                            });
-                            return ops;
                         case ERC20BridgeSource.SushiSwap:
-                            if (!isValidAddress(SUSHISWAP_ROUTER)) {
-                                return [];
-                            }
-                            const sushiOps = [
-                                this.getUniswapV2SellQuotes(
-                                    SUSHISWAP_ROUTER,
-                                    [takerToken, makerToken],
-                                    takerFillAmounts,
-                                    ERC20BridgeSource.SushiSwap,
-                                ),
-                            ];
-                            intermediateTokens.forEach(t => {
-                                sushiOps.push(
-                                    this.getUniswapV2SellQuotes(
-                                        SUSHISWAP_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        takerFillAmounts,
-                                        ERC20BridgeSource.SushiSwap,
-                                    ),
-                                );
-                            });
-                            return sushiOps;
                         case ERC20BridgeSource.CryptoCom:
-                            if (!isValidAddress(CRYPTO_COM_ROUTER)) {
+                        case ERC20BridgeSource.PancakeSwap:
+                        case ERC20BridgeSource.BakerySwap:
+                            const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
+                            if (!isValidAddress(uniLikeRouter)) {
                                 return [];
                             }
-                            const cryptoComOps = [
-                                this.getUniswapV2SellQuotes(
-                                    CRYPTO_COM_ROUTER,
-                                    [takerToken, makerToken],
-                                    takerFillAmounts,
-                                    ERC20BridgeSource.CryptoCom,
-                                ),
-                            ];
-                            intermediateTokens.forEach(t => {
-                                cryptoComOps.push(
-                                    this.getUniswapV2SellQuotes(
-                                        CRYPTO_COM_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        takerFillAmounts,
-                                        ERC20BridgeSource.CryptoCom,
-                                    ),
-                                );
-                            });
-                            return cryptoComOps;
+                            return [
+                                [takerToken, makerToken],
+                                ...intermediateTokens.map(t => [takerToken, t, makerToken]),
+                            ].map(path => this.getUniswapV2SellQuotes(uniLikeRouter, path, takerFillAmounts, source));
                         case ERC20BridgeSource.Kyber:
                             return getKyberOffsets().map(offset =>
                                 this.getKyberSellQuotes(offset, makerToken, takerToken, takerFillAmounts),
                             );
                         case ERC20BridgeSource.Curve:
-                            return getCurveInfosForPair(takerToken, makerToken).map(pool =>
+                            return getCurveInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getCurveSellQuotes(
                                     pool,
                                     pool.tokens.indexOf(takerToken),
@@ -1127,7 +1080,7 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.Swerve:
-                            return getSwerveInfosForPair(takerToken, makerToken).map(pool =>
+                            return getSwerveInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getSwerveSellQuotes(
                                     pool,
                                     pool.tokens.indexOf(takerToken),
@@ -1136,7 +1089,7 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.SnowSwap:
-                            return getSnowSwapInfosForPair(takerToken, makerToken).map(pool =>
+                            return getSnowSwapInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getSnowSwapSellQuotes(
                                     pool,
                                     pool.tokens.indexOf(takerToken),
@@ -1154,22 +1107,22 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.MStable:
                             // TODO jacob pass to the sampler
-                            return isValidAddress(MSTABLE_ROUTER)
-                                ? this.getMStableSellQuotes(MSTABLE_ROUTER, makerToken, takerToken, takerFillAmounts)
+                            return isValidAddress(MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId])
+                                ? this.getMStableSellQuotes(
+                                      MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId],
+                                      makerToken,
+                                      takerToken,
+                                      takerFillAmounts,
+                                  )
                                 : [];
                         case ERC20BridgeSource.Mooniswap:
-                            return MOONISWAP_REGISTRIES
-                                ? [
-                                      ...MOONISWAP_REGISTRIES.filter(r => isValidAddress(r)).map(registry =>
-                                          this.getMooniswapSellQuotes(
-                                              registry,
-                                              makerToken,
-                                              takerToken,
-                                              takerFillAmounts,
-                                          ),
-                                      ),
-                                  ]
-                                : [];
+                            return [
+                                ...MOONISWAP_REGISTRIES_BY_CHAIN_ID[this.chainId]
+                                    .filter(r => isValidAddress(r))
+                                    .map(registry =>
+                                        this.getMooniswapSellQuotes(registry, makerToken, takerToken, takerFillAmounts),
+                                    ),
+                            ];
                         case ERC20BridgeSource.Balancer:
                             return this.balancerPoolsCache
                                 .getCachedPoolAddressesForPair(takerToken, makerToken)!
@@ -1195,74 +1148,44 @@ export class SamplerOperations {
                                     ),
                                 );
                         case ERC20BridgeSource.Shell:
-                            return getShellsForPair(takerToken, makerToken).map(pool =>
+                            return getShellsForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.DodoV2:
                             return _.flatten(
-                                DODOV2_FACTORIES.filter(factory => isValidAddress(factory)).map(factory =>
-                                    getDodoV2Offsets().map(offset =>
-                                        this.getDODOV2SellQuotes(
-                                            factory,
-                                            offset,
-                                            makerToken,
-                                            takerToken,
-                                            takerFillAmounts,
+                                DODOV2_FACTORIES_BY_CHAIN_ID[this.chainId]
+                                    .filter(factory => isValidAddress(factory))
+                                    .map(factory =>
+                                        getDodoV2Offsets().map(offset =>
+                                            this.getDODOV2SellQuotes(
+                                                factory,
+                                                offset,
+                                                makerToken,
+                                                takerToken,
+                                                takerFillAmounts,
+                                            ),
                                         ),
                                     ),
-                                ),
                             );
                         case ERC20BridgeSource.Bancor:
                             return this.getBancorSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.Linkswap:
-                            if (!isValidAddress(LINKSWAP_ROUTER)) {
+                            if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
                                 return [];
                             }
-                            const linkOps = [
+                            return [
+                                [takerToken, makerToken],
+                                ...[TOKENS.LINK, TOKENS.WETH].map(t => [takerToken, t, makerToken]),
+                            ].map(path =>
                                 this.getUniswapV2SellQuotes(
-                                    LINKSWAP_ROUTER,
-                                    [takerToken, makerToken],
+                                    LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],
+                                    path,
                                     takerFillAmounts,
                                     ERC20BridgeSource.Linkswap,
                                 ),
-                            ];
-                            // LINK is the base asset in many of the pools on Linkswap
-                            getIntermediateTokens(makerToken, takerToken, {
-                                default: [TOKENS.LINK, TOKENS.WETH],
-                            }).forEach(t => {
-                                linkOps.push(
-                                    this.getUniswapV2SellQuotes(
-                                        LINKSWAP_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        takerFillAmounts,
-                                        ERC20BridgeSource.Linkswap,
-                                    ),
-                                );
-                            });
-                            return linkOps;
-                        case ERC20BridgeSource.PancakeSwap:
-                        case ERC20BridgeSource.BakerySwap:
-                            const router =
-                                source === ERC20BridgeSource.PancakeSwap ? PANCAKESWAP_ROUTER : BAKERYSWAP_ROUTER;
-                            if (!isValidAddress(router)) {
-                                return [];
-                            }
-                            const pancakeOps = [
-                                this.getUniswapV2SellQuotes(router, [takerToken, makerToken], takerFillAmounts, source),
-                            ];
-                            intermediateTokens.forEach(t => {
-                                pancakeOps.push(
-                                    this.getUniswapV2SellQuotes(
-                                        router,
-                                        [takerToken, t, makerToken],
-                                        takerFillAmounts,
-                                        source,
-                                    ),
-                                );
-                            });
-                            return pancakeOps;
+                            );
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1288,86 +1211,42 @@ export class SamplerOperations {
                     switch (source) {
                         case ERC20BridgeSource.Eth2Dai:
                             // TODO jacob pass in to Sampler
-                            return isValidAddress(OASIS_ROUTER)
-                                ? this.getEth2DaiBuyQuotes(OASIS_ROUTER, makerToken, takerToken, makerFillAmounts)
+                            return isValidAddress(OASIS_ROUTER_BY_CHAIN_ID[this.chainId])
+                                ? this.getEth2DaiBuyQuotes(
+                                      OASIS_ROUTER_BY_CHAIN_ID[this.chainId],
+                                      makerToken,
+                                      takerToken,
+                                      makerFillAmounts,
+                                  )
                                 : [];
                         case ERC20BridgeSource.Uniswap:
-                            return isValidAddress(UNISWAPV1_ROUTER)
-                                ? this.getUniswapBuyQuotes(UNISWAPV1_ROUTER, makerToken, takerToken, makerFillAmounts)
+                            return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
+                                ? this.getUniswapBuyQuotes(
+                                      UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId],
+                                      makerToken,
+                                      takerToken,
+                                      makerFillAmounts,
+                                  )
                                 : [];
                         case ERC20BridgeSource.UniswapV2:
-                            if (!isValidAddress(UNISWAPV2_ROUTER)) {
-                                return [];
-                            }
-                            const ops = [
-                                this.getUniswapV2BuyQuotes(
-                                    UNISWAPV2_ROUTER,
-                                    [takerToken, makerToken],
-                                    makerFillAmounts,
-                                ),
-                            ];
-                            intermediateTokens.forEach(t => {
-                                ops.push(
-                                    this.getUniswapV2BuyQuotes(
-                                        UNISWAPV2_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        makerFillAmounts,
-                                    ),
-                                );
-                            });
-                            return ops;
                         case ERC20BridgeSource.SushiSwap:
-                            if (!isValidAddress(SUSHISWAP_ROUTER)) {
-                                return [];
-                            }
-                            const sushiOps = [
-                                this.getUniswapV2BuyQuotes(
-                                    SUSHISWAP_ROUTER,
-                                    [takerToken, makerToken],
-                                    makerFillAmounts,
-                                    ERC20BridgeSource.SushiSwap,
-                                ),
-                            ];
-                            intermediateTokens.forEach(t => {
-                                sushiOps.push(
-                                    this.getUniswapV2BuyQuotes(
-                                        SUSHISWAP_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        makerFillAmounts,
-                                        ERC20BridgeSource.SushiSwap,
-                                    ),
-                                );
-                            });
-                            return sushiOps;
                         case ERC20BridgeSource.CryptoCom:
-                            if (!isValidAddress(CRYPTO_COM_ROUTER)) {
+                        case ERC20BridgeSource.PancakeSwap:
+                        case ERC20BridgeSource.BakerySwap:
+                            const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
+                            if (!isValidAddress(uniLikeRouter)) {
                                 return [];
                             }
-                            const cryptoComOps = [
-                                this.getUniswapV2BuyQuotes(
-                                    CRYPTO_COM_ROUTER,
-                                    [takerToken, makerToken],
-                                    makerFillAmounts,
-                                    ERC20BridgeSource.CryptoCom,
-                                ),
-                            ];
-                            intermediateTokens.forEach(t => {
-                                cryptoComOps.push(
-                                    this.getUniswapV2BuyQuotes(
-                                        CRYPTO_COM_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        makerFillAmounts,
-                                        ERC20BridgeSource.CryptoCom,
-                                    ),
-                                );
-                            });
-                            return cryptoComOps;
+                            return [
+                                [takerToken, makerToken],
+                                ...intermediateTokens.map(t => [takerToken, t, makerToken]),
+                            ].map(path => this.getUniswapV2BuyQuotes(uniLikeRouter, path, makerFillAmounts, source));
                         case ERC20BridgeSource.Kyber:
                             return getKyberOffsets().map(offset =>
                                 this.getKyberBuyQuotes(offset, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.Curve:
-                            return getCurveInfosForPair(takerToken, makerToken).map(pool =>
+                            return getCurveInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getCurveBuyQuotes(
                                     pool,
                                     pool.tokens.indexOf(takerToken),
@@ -1376,7 +1255,7 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.Swerve:
-                            return getSwerveInfosForPair(takerToken, makerToken).map(pool =>
+                            return getSwerveInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getSwerveBuyQuotes(
                                     pool,
                                     pool.tokens.indexOf(takerToken),
@@ -1385,7 +1264,7 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.SnowSwap:
-                            return getSnowSwapInfosForPair(takerToken, makerToken).map(pool =>
+                            return getSnowSwapInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getSnowSwapBuyQuotes(
                                     pool,
                                     pool.tokens.indexOf(takerToken),
@@ -1402,17 +1281,21 @@ export class SamplerOperations {
                                 this.getLiquidityProviderBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.MStable:
-                            return isValidAddress(MSTABLE_ROUTER)
-                                ? this.getMStableBuyQuotes(MSTABLE_ROUTER, makerToken, takerToken, makerFillAmounts)
+                            return isValidAddress(MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId])
+                                ? this.getMStableBuyQuotes(
+                                      MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId],
+                                      makerToken,
+                                      takerToken,
+                                      makerFillAmounts,
+                                  )
                                 : [];
                         case ERC20BridgeSource.Mooniswap:
-                            if (!MOONISWAP_REGISTRIES) {
-                                return [];
-                            }
                             return [
-                                ...MOONISWAP_REGISTRIES.filter(r => isValidAddress(r)).map(registry =>
-                                    this.getMooniswapBuyQuotes(registry, makerToken, takerToken, makerFillAmounts),
-                                ),
+                                ...MOONISWAP_REGISTRIES_BY_CHAIN_ID[this.chainId]
+                                    .filter(r => isValidAddress(r))
+                                    .map(registry =>
+                                        this.getMooniswapBuyQuotes(registry, makerToken, takerToken, makerFillAmounts),
+                                    ),
                             ];
                         case ERC20BridgeSource.Balancer:
                             return this.balancerPoolsCache
@@ -1439,53 +1322,45 @@ export class SamplerOperations {
                                     ),
                                 );
                         case ERC20BridgeSource.Shell:
-                            return getShellsForPair(takerToken, makerToken).map(pool =>
+                            return getShellsForPair(this.chainId, takerToken, makerToken).map(pool =>
                                 this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.DodoV2:
                             return _.flatten(
-                                DODOV2_FACTORIES.filter(factory => isValidAddress(factory)).map(factory =>
-                                    getDodoV2Offsets().map(offset =>
-                                        this.getDODOV2BuyQuotes(
-                                            factory,
-                                            offset,
-                                            makerToken,
-                                            takerToken,
-                                            makerFillAmounts,
+                                DODOV2_FACTORIES_BY_CHAIN_ID[this.chainId]
+                                    .filter(factory => isValidAddress(factory))
+                                    .map(factory =>
+                                        getDodoV2Offsets().map(offset =>
+                                            this.getDODOV2BuyQuotes(
+                                                factory,
+                                                offset,
+                                                makerToken,
+                                                takerToken,
+                                                makerFillAmounts,
+                                            ),
                                         ),
                                     ),
-                                ),
                             );
                         case ERC20BridgeSource.Bancor:
                             return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.Linkswap:
-                            if (!isValidAddress(LINKSWAP_ROUTER)) {
+                            if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
                                 return [];
                             }
-                            const linkOps = [
+                            return [
+                                [takerToken, makerToken],
+                                // LINK is the base asset in many of the pools on Linkswap
+                                ...[TOKENS.LINK, TOKENS.WETH].map(t => [takerToken, t, makerToken]),
+                            ].map(path =>
                                 this.getUniswapV2BuyQuotes(
-                                    LINKSWAP_ROUTER,
-                                    [takerToken, makerToken],
+                                    LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],
+                                    path,
                                     makerFillAmounts,
                                     ERC20BridgeSource.Linkswap,
                                 ),
-                            ];
-                            // LINK is the base asset in many of the pools on Linkswap
-                            getIntermediateTokens(makerToken, takerToken, {
-                                default: [TOKENS.LINK, TOKENS.WETH],
-                            }).forEach(t => {
-                                linkOps.push(
-                                    this.getUniswapV2BuyQuotes(
-                                        LINKSWAP_ROUTER,
-                                        [takerToken, t, makerToken],
-                                        makerFillAmounts,
-                                        ERC20BridgeSource.Linkswap,
-                                    ),
-                                );
-                            });
-                            return linkOps;
+                            );
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }
