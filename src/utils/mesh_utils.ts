@@ -13,6 +13,7 @@ import { ZERO } from '../constants';
 import { ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { OrdersByLifecycleEvents, SignedLimitOrder, SRAOrder } from '../types';
+import { objectETHAddressNormalizer } from '../utils/address_utils';
 
 type AcceptedOrderWithEndState = AcceptedOrderResult<OrderWithMetadataV4> & { endState: OrderEventEndState };
 type OrderData =
@@ -33,7 +34,9 @@ export type OrderEventV4 = OrderEvent & { orderv4: OrderWithMetadataV4 };
 
 export const meshUtils = {
     orderWithMetadataToSignedOrder(order: OrderWithMetadataV4): SignedLimitOrder {
-        const cleanedOrder: SignedLimitOrder = _.omit(order, ['hash', 'fillableTakerAssetAmount']);
+        const cleanedOrder: SignedLimitOrder = objectETHAddressNormalizer(
+            _.omit(order, ['hash', 'fillableTakerAssetAmount']),
+        );
 
         return cleanedOrder;
     },
