@@ -52,10 +52,9 @@ contract LiquidityProviderFeature is
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox public immutable sandbox;
 
-    constructor(LiquidityProviderSandbox sandbox_, bytes32 greedyTokensBloomFilter)
+    constructor(LiquidityProviderSandbox sandbox_)
         public
         FixinCommon()
-        FixinTokenSpender(greedyTokensBloomFilter)
     {
         sandbox = sandbox_;
     }

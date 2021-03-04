@@ -38,7 +38,7 @@ contract TestMetaTransactionsTransformERC20Feature is
         Transformation[] transformations
     );
 
-    constructor() public TransformERC20Feature(0) {}
+    constructor() public TransformERC20Feature() {}
 
     function _transformERC20(TransformERC20Args memory args)
         public

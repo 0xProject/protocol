@@ -1,5 +1,22 @@
 [
     {
+        "version": "0.21.0",
+        "changes": [
+            {
+                "note": "Encoding protocol ID and source name in bridge source ID",
+                "pr": 162
+            },
+            {
+                "note": "Add PancakeSwapFeature",
+                "pr": 164
+            },
+            {
+                "note": "Remove TokenSpender/AllowanceTarget/greedy tokens stuff",
+                "pr": 164
+            }
+        ]
+    },
+    {
         "version": "0.20.0",
         "changes": [
             {

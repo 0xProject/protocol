@@ -60,10 +60,7 @@ contract TransformERC20Feature is
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 3, 1);
 
-    constructor(bytes32 greedyTokensBloomFilter)
-        public
-        FixinTokenSpender(greedyTokensBloomFilter)
-    {}
+    constructor() public {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.

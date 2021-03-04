@@ -1,5 +1,14 @@
 [
     {
+        "version": "13.15.0",
+        "changes": [
+            {
+                "note": "Regenerate wrappers",
+                "pr": 164
+            }
+        ]
+    },
+    {
         "version": "13.14.0",
         "changes": [
             {

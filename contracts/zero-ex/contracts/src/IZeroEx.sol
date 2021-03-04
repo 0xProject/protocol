@@ -36,10 +36,10 @@ import "./features/interfaces/IMultiplexFeature.sol";
 interface IZeroEx is
     IOwnableFeature,
     ISimpleFunctionRegistryFeature,
-    ITokenSpenderFeature,
     ITransformERC20Feature,
     IMetaTransactionsFeature,
     IUniswapFeature,
+    IPancakeSwapFeature,
     ILiquidityProviderFeature,
     INativeOrdersFeature,
     IBatchFillNativeOrdersFeature,

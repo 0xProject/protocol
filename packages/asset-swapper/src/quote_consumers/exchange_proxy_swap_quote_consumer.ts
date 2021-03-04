@@ -35,7 +35,11 @@ import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
-import { poolEncoder } from '../utils/market_operation_utils/orders';
+import {
+    createBridgeDataForBridgeOrder,
+    erc20BridgeSourceToBridgeSource,
+    poolEncoder,
+} from '../utils/market_operation_utils/orders';
 import {
     CurveFillData,
     ERC20BridgeSource,
@@ -490,13 +494,39 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             .getABIEncodedTransactionData();
     }
 
-    private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
-        const weth = new WETH9Contract(NULL_ADDRESS, this.provider);
-        const wrappedMultiHopCalls = [];
-        if (opts.isFromETH) {
-            wrappedMultiHopCalls.push({
-                selector: weth.getSelector('deposit'),
-                data: NULL_BYTES,
+function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
+    return quote.type === MarketOperation.Buy;
+}
+
+function isOptimizedBridgeOrder(x: OptimizedMarketOrder): x is OptimizedMarketBridgeOrder {
+    return x.type === FillQuoteTransformerOrderType.Bridge;
+}
+
+function isOptimizedLimitOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+    return x.type === FillQuoteTransformerOrderType.Limit;
+}
+
+function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+    return x.type === FillQuoteTransformerOrderType.Rfq;
+}
+
+function getFQTTransformerDataFromOptimizedOrders(
+    orders: OptimizedMarketOrder[],
+): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
+    const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> = {
+        bridgeOrders: [],
+        limitOrders: [],
+        rfqOrders: [],
+        fillSequence: [],
+    };
+
+    for (const order of orders) {
+        if (isOptimizedBridgeOrder(order)) {
+            fqtData.bridgeOrders.push({
+                bridgeData: createBridgeDataForBridgeOrder(order),
+                makerTokenAmount: order.makerAmount,
+                takerTokenAmount: order.takerAmount,
+                source: erc20BridgeSourceToBridgeSource(order.source),
             });
         }
         const [firstHopOrder, secondHopOrder] = quote.orders;

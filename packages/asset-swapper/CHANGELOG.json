@@ -17,6 +17,10 @@
             {
                 "note": "improve logging for alt RFQ requests",
                 "pr": 158
+            },
+            {
+                "note": "Use new bridge source ID encoding.",
+                "pr": 162
             }
         ]
     },

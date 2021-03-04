@@ -286,18 +286,6 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "token", "type": "address" },
-                    { "internalType": "address", "name": "owner", "type": "address" },
-                    { "internalType": "address", "name": "to", "type": "address" },
-                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
-                ],
-                "name": "_spendERC20Tokens",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
                     {
                         "components": [
                             { "internalType": "address payable", "name": "taker", "type": "address" },
@@ -974,13 +962,6 @@
                 "type": "function"
             },
             {
-                "inputs": [],
-                "name": "getAllowanceTarget",
-                "outputs": [{ "internalType": "address", "name": "target", "type": "address" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
                 "inputs": [
                     {
                         "components": [
@@ -1303,16 +1284,6 @@
                 "type": "function"
             },
             {
-                "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "token", "type": "address" },
-                    { "internalType": "address", "name": "owner", "type": "address" }
-                ],
-                "name": "getSpendableERC20BalanceOf",
-                "outputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
                 "inputs": [],
                 "name": "getTransformWallet",
                 "outputs": [{ "internalType": "contract IFlashWallet", "name": "wallet", "type": "address" }],
@@ -1411,6 +1382,18 @@
                     { "internalType": "contract IERC20TokenV06[]", "name": "tokens", "type": "address[]" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
                     { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
+                    { "internalType": "enum IPancakeSwapFeature.ProtocolFork", "name": "fork", "type": "uint8" }
+                ],
+                "name": "sellToPancakeSwap",
+                "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "contract IERC20TokenV06[]", "name": "tokens", "type": "address[]" },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
                     { "internalType": "bool", "name": "isSushi", "type": "bool" }
                 ],
                 "name": "sellToUniswap",
@@ -1497,15 +1480,6 @@
                     "returns": {
                         "makerTokenFilledAmount": "How much maker token was filled.",
                         "takerTokenFilledAmount": "How much maker token was filled."
-                    }
-                },
-                "_spendERC20Tokens(address,address,address,uint256)": {
-                    "details": "Transfers ERC20 tokens from `owner` to `to`.      Only callable from within.",
-                    "params": {
-                        "amount": "The amount of `token` to transfer.",
-                        "owner": "The owner of the tokens.",
-                        "to": "The recipient of the tokens.",
-                        "token": "The token to spend."
                     }
                 },
                 "_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[]))": {
@@ -1679,10 +1653,6 @@
                         "takerTokenFilledAmount": "How much maker token was filled."
                     }
                 },
-                "getAllowanceTarget()": {
-                    "details": "Get the address of the allowance target.",
-                    "returns": { "target": "The target of token allowances." }
-                },
                 "getLimitOrderHash((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))": {
                     "details": "Get the canonical hash of a limit order.",
                     "params": { "order": "The limit order." },
@@ -1756,11 +1726,6 @@
                         "rollbackLength": "The number of items in the rollback history for         the function."
                     }
                 },
-                "getSpendableERC20BalanceOf(address,address)": {
-                    "details": "Gets the maximum amount of an ERC20 token `token` that can be      pulled from `owner`.",
-                    "params": { "owner": "The owner of the tokens.", "token": "The token to spend." },
-                    "returns": { "amount": "The amount of tokens that can be pulled." }
-                },
                 "getTransformWallet()": {
                     "details": "Return the current wallet instance that will serve as the execution      context for transformations.",
                     "returns": { "wallet": "The wallet instance." }
@@ -1815,6 +1780,16 @@
                         "sellAmount": "The amount of `inputToken` to sell."
                     },
                     "returns": { "boughtAmount": "The amount of `outputToken` bought." }
+                },
+                "sellToPancakeSwap(address[],uint256,uint256,uint8)": {
+                    "details": "Efficiently sell directly to PancakeSwap/BakerySwap/Sushiswap.",
+                    "params": {
+                        "fork": "The protocol fork to use.",
+                        "minBuyAmount": "Minimum amount of `tokens[-1]` to buy.",
+                        "sellAmount": "of `tokens[0]` Amount to sell.",
+                        "tokens": "Sell path."
+                    },
+                    "returns": { "buyAmount": "Amount of `tokens[-1]` bought." }
                 },
                 "sellToUniswap(address[],uint256,uint256,bool)": {
                     "details": "Efficiently sell directly to uniswap/sushiswap.",
