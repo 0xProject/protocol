@@ -43,13 +43,17 @@ contract PancakeSwapFeature is
     IEtherTokenV06 private immutable WBNB;
 
     // 0xFF + address of the PancakeSwap factory contract.
-    uint256 constant private FF_PANCAKESWAP_FACTORY = 0xFFBCfCcbde45cE874adCB698cC183deBcF179528120000000000000000000000;
+    uint256 constant private FF_PANCAKESWAP_FACTORY = 0xffbcfccbde45ce874adcb698cc183debcf179528120000000000000000000000;
     // 0xFF + address of the BakerySwap factory contract.
-    uint256 constant private FF_BAKERYSWAP_FACTORY = 0xFF01bF7C66c6BD861915CdaaE475042d3c4BaE16A70000000000000000000000;
+    uint256 constant private FF_BAKERYSWAP_FACTORY = 0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
+    // 0xFF + address of the SushiSwap factory contract.
+    uint256 constant private FF_SUSHISWAP_FACTORY = 0xffc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac0000000000000000000000;
     // Init code hash of the PancakeSwap pair contract.
     uint256 constant private PANCAKESWAP_PAIR_INIT_CODE_HASH = 0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66;
     // Init code hash of the BakerySwap pair contract.
     uint256 constant private BAKERYSWAP_PAIR_INIT_CODE_HASH = 0xe2e87433120e32c4738a7d8f3271f3d872cbe16241d67537139158d90bac61d3;
+    // Init code hash of the SushiSwap pair contract.
+    uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
     // Mask of the lower 20 bytes of a bytes32.
     uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
     // BNB pseudo-token address.
@@ -91,17 +95,17 @@ contract PancakeSwapFeature is
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
-    /// @dev Efficiently sell directly to pancake/BakerySwap.
+    /// @dev Efficiently sell directly to pancake/BakerySwap/SushiSwap.
     /// @param tokens Sell path.
     /// @param sellAmount of `tokens[0]` Amount to sell.
     /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
-    /// @param isBakerySwap Use BakerySwap if true.
+    /// @param fork The protocol fork to use.
     /// @return buyAmount Amount of `tokens[-1]` bought.
     function sellToPancakeSwap(
         IERC20TokenV06[] calldata tokens,
         uint256 sellAmount,
         uint256 minBuyAmount,
-        bool isBakerySwap
+        ProtocolFork fork
     )
         external
         payable
@@ -117,8 +121,8 @@ contract PancakeSwapFeature is
             assembly {
                 // calldataload(mload(0xA00)) == first element of `tokens` array
                 mstore(0xA00, add(calldataload(0x04), 0x24))
-                // mload(0xA20) == isBakerySwap
-                mstore(0xA20, isBakerySwap)
+                // mload(0xA20) == fork
+                mstore(0xA20, fork)
                 // mload(0xA40) == WBNB
                 mstore(0xA40, wbnb)
             }
@@ -339,10 +343,15 @@ contract PancakeSwapFeature is
                         mstore(0xB15, salt)
                         mstore(0xB35, PANCAKESWAP_PAIR_INIT_CODE_HASH)
                     }
-                    default {
+                    case 1 {
                         mstore(0xB00, FF_BAKERYSWAP_FACTORY)
                         mstore(0xB15, salt)
                         mstore(0xB35, BAKERYSWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    default {
+                        mstore(0xB00, FF_SUSHISWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, SUSHISWAP_PAIR_INIT_CODE_HASH)
                     }
                 pair := and(ADDRESS_MASK, keccak256(0xB00, 0x55))
             }
