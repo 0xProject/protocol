@@ -882,30 +882,6 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
-                        name: 'token',
-                        type: 'address',
-                    },
-                    {
-                        name: 'owner',
-                        type: 'address',
-                    },
-                    {
-                        name: 'to',
-                        type: 'address',
-                    },
-                    {
-                        name: 'amount',
-                        type: 'uint256',
-                    },
-                ],
-                name: '_spendERC20Tokens',
-                outputs: [],
-                stateMutability: 'nonpayable',
-                type: 'function',
-            },
-            {
-                inputs: [
-                    {
                         name: 'args',
                         type: 'tuple',
                         components: [
@@ -2037,18 +2013,6 @@ export class IZeroExContract extends BaseContract {
                 type: 'function',
             },
             {
-                inputs: [],
-                name: 'getAllowanceTarget',
-                outputs: [
-                    {
-                        name: 'target',
-                        type: 'address',
-                    },
-                ],
-                stateMutability: 'view',
-                type: 'function',
-            },
-            {
                 inputs: [
                     {
                         name: 'order',
@@ -2740,27 +2704,6 @@ export class IZeroExContract extends BaseContract {
                 type: 'function',
             },
             {
-                inputs: [
-                    {
-                        name: 'token',
-                        type: 'address',
-                    },
-                    {
-                        name: 'owner',
-                        type: 'address',
-                    },
-                ],
-                name: 'getSpendableERC20BalanceOf',
-                outputs: [
-                    {
-                        name: 'amount',
-                        type: 'uint256',
-                    },
-                ],
-                stateMutability: 'view',
-                type: 'function',
-            },
-            {
                 inputs: [],
                 name: 'getTransformWallet',
                 outputs: [
@@ -2883,6 +2826,35 @@ export class IZeroExContract extends BaseContract {
                 outputs: [
                     {
                         name: 'boughtAmount',
+                        type: 'uint256',
+                    },
+                ],
+                stateMutability: 'payable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'tokens',
+                        type: 'address[]',
+                    },
+                    {
+                        name: 'sellAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'minBuyAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'fork',
+                        type: 'uint8',
+                    },
+                ],
+                name: 'sellToPancakeSwap',
+                outputs: [
+                    {
+                        name: 'buyAmount',
                         type: 'uint256',
                     },
                 ],
@@ -3254,69 +3226,6 @@ export class IZeroExContract extends BaseContract {
                     signature,
                     takerTokenFillAmount,
                     taker.toLowerCase(),
-                ]);
-            },
-        };
-    }
-    /**
-     * Transfers ERC20 tokens from `owner` to `to`.
-     * Only callable from within.
-     * @param token The token to spend.
-     * @param owner The owner of the tokens.
-     * @param to The recipient of the tokens.
-     * @param amount The amount of `token` to transfer.
-     */
-    public _spendERC20Tokens(token: string, owner: string, to: string, amount: BigNumber): ContractTxFunctionObj<void> {
-        const self = (this as any) as IZeroExContract;
-        assert.isString('token', token);
-        assert.isString('owner', owner);
-        assert.isString('to', to);
-        assert.isBigNumber('amount', amount);
-        const functionSignature = '_spendERC20Tokens(address,address,address,uint256)';
-
-        return {
-            async sendTransactionAsync(
-                txData?: Partial<TxData> | undefined,
-                opts: SendTransactionOpts = { shouldValidate: true },
-            ): Promise<string> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
-                    { data: this.getABIEncodedTransactionData(), ...txData },
-                    this.estimateGasAsync.bind(this),
-                );
-                if (opts.shouldValidate !== false) {
-                    await this.callAsync(txDataWithDefaults);
-                }
-                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
-            },
-            awaitTransactionSuccessAsync(
-                txData?: Partial<TxData>,
-                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
-            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
-                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
-            },
-            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
-                    data: this.getABIEncodedTransactionData(),
-                    ...txData,
-                });
-                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
-            },
-            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
-                BaseContract._assertCallParams(callData, defaultBlock);
-                const rawCallResult = await self._performCallAsync(
-                    { data: this.getABIEncodedTransactionData(), ...callData },
-                    defaultBlock,
-                );
-                const abiEncoder = self._lookupAbiEncoder(functionSignature);
-                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
-                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
-            },
-            getABIEncodedTransactionData(): string {
-                return self._strictEncodeArguments(functionSignature, [
-                    token.toLowerCase(),
-                    owner.toLowerCase(),
-                    to.toLowerCase(),
-                    amount,
                 ]);
             },
         };
@@ -4613,55 +4522,6 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Get the address of the allowance target.
-     */
-    public getAllowanceTarget(): ContractTxFunctionObj<string> {
-        const self = (this as any) as IZeroExContract;
-        const functionSignature = 'getAllowanceTarget()';
-
-        return {
-            async sendTransactionAsync(
-                txData?: Partial<TxData> | undefined,
-                opts: SendTransactionOpts = { shouldValidate: true },
-            ): Promise<string> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
-                    { data: this.getABIEncodedTransactionData(), ...txData },
-                    this.estimateGasAsync.bind(this),
-                );
-                if (opts.shouldValidate !== false) {
-                    await this.callAsync(txDataWithDefaults);
-                }
-                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
-            },
-            awaitTransactionSuccessAsync(
-                txData?: Partial<TxData>,
-                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
-            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
-                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
-            },
-            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
-                    data: this.getABIEncodedTransactionData(),
-                    ...txData,
-                });
-                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
-            },
-            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
-                BaseContract._assertCallParams(callData, defaultBlock);
-                const rawCallResult = await self._performCallAsync(
-                    { data: this.getABIEncodedTransactionData(), ...callData },
-                    defaultBlock,
-                );
-                const abiEncoder = self._lookupAbiEncoder(functionSignature);
-                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
-                return abiEncoder.strictDecodeReturnValue<string>(rawCallResult);
-            },
-            getABIEncodedTransactionData(): string {
-                return self._strictEncodeArguments(functionSignature, []);
-            },
-        };
-    }
-    /**
      * Get the canonical hash of a limit order.
      * @param order The limit order.
      */
@@ -5464,60 +5324,6 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Gets the maximum amount of an ERC20 token `token` that can be
-     * pulled from `owner`.
-     * @param token The token to spend.
-     * @param owner The owner of the tokens.
-     */
-    public getSpendableERC20BalanceOf(token: string, owner: string): ContractTxFunctionObj<BigNumber> {
-        const self = (this as any) as IZeroExContract;
-        assert.isString('token', token);
-        assert.isString('owner', owner);
-        const functionSignature = 'getSpendableERC20BalanceOf(address,address)';
-
-        return {
-            async sendTransactionAsync(
-                txData?: Partial<TxData> | undefined,
-                opts: SendTransactionOpts = { shouldValidate: true },
-            ): Promise<string> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
-                    { data: this.getABIEncodedTransactionData(), ...txData },
-                    this.estimateGasAsync.bind(this),
-                );
-                if (opts.shouldValidate !== false) {
-                    await this.callAsync(txDataWithDefaults);
-                }
-                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
-            },
-            awaitTransactionSuccessAsync(
-                txData?: Partial<TxData>,
-                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
-            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
-                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
-            },
-            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
-                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
-                    data: this.getABIEncodedTransactionData(),
-                    ...txData,
-                });
-                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
-            },
-            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
-                BaseContract._assertCallParams(callData, defaultBlock);
-                const rawCallResult = await self._performCallAsync(
-                    { data: this.getABIEncodedTransactionData(), ...callData },
-                    defaultBlock,
-                );
-                const abiEncoder = self._lookupAbiEncoder(functionSignature);
-                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
-                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
-            },
-            getABIEncodedTransactionData(): string {
-                return self._strictEncodeArguments(functionSignature, [token.toLowerCase(), owner.toLowerCase()]);
-            },
-        };
-    }
-    /**
      * Return the current wallet instance that will serve as the execution
      * context for transformations.
      */
@@ -5915,6 +5721,68 @@ export class IZeroExContract extends BaseContract {
                     minBuyAmount,
                     auxiliaryData,
                 ]);
+            },
+        };
+    }
+    /**
+     * Efficiently sell directly to PancakeSwap/BakerySwap/Sushiswap.
+     * @param tokens Sell path.
+     * @param sellAmount of `tokens[0]` Amount to sell.
+     * @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
+     * @param fork The protocol fork to use.
+     */
+    public sellToPancakeSwap(
+        tokens: string[],
+        sellAmount: BigNumber,
+        minBuyAmount: BigNumber,
+        fork: number | BigNumber,
+    ): ContractTxFunctionObj<BigNumber> {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('tokens', tokens);
+        assert.isBigNumber('sellAmount', sellAmount);
+        assert.isBigNumber('minBuyAmount', minBuyAmount);
+        assert.isNumberOrBigNumber('fork', fork);
+        const functionSignature = 'sellToPancakeSwap(address[],uint256,uint256,uint8)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [tokens, sellAmount, minBuyAmount, fork]);
             },
         };
     }
