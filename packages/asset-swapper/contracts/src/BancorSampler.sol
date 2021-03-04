@@ -35,6 +35,11 @@ contract BancorSampler is DeploymentConstants
         address[][] paths;
     }
 
+    struct BancorSamplerOpts {
+        address registry;
+        address[][] paths;
+    }
+
     /// @dev Sample sell quotes from Bancor.
     /// @param opts BancorSamplerOpts The Bancor registry contract address and paths
     /// @param takerToken Address of the taker token (what to sell).

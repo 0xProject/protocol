@@ -42,6 +42,14 @@ contract KyberSampler is
         bytes hint;
     }
 
+    struct KyberSamplerOpts {
+        uint256 reserveOffset;
+        address hintHandler;
+        address networkProxy;
+        address weth;
+        bytes hint;
+    }
+
     /// @dev Sample sell quotes from Kyber.
     /// @param opts KyberSamplerOpts The nth reserve
     /// @param takerToken Address of the taker token (what to sell).

@@ -21,25 +21,18 @@ import {
     uniswapV2LikeRouterAddress,
 } from './bridge_source_utils';
 import {
-<<<<<<< HEAD
     BANCOR_REGISTRY_BY_CHAIN_ID,
     DODO_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
-=======
-    DODOV2_FACTORIES_BY_CHAIN_ID,
->>>>>>> proliferate the chainId
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
     MSTABLE_ROUTER_BY_CHAIN_ID,
-<<<<<<< HEAD
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
     NULL_BYTES,
-=======
->>>>>>> proliferate the chainId
     OASIS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     TOKENS,
@@ -107,11 +100,7 @@ export class SamplerOperations {
     }
 
     constructor(
-<<<<<<< HEAD
         public readonly chainId: ChainId,
-=======
-        protected readonly chainId: ChainId,
->>>>>>> proliferate the chainId
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
@@ -893,7 +882,7 @@ export class SamplerOperations {
     }
 
     public getDODOSellQuotes(
-        opts: { helper: string; registry: string },
+        opts: { registry: string; helper: string },
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -916,7 +905,7 @@ export class SamplerOperations {
     }
 
     public getDODOBuyQuotes(
-        opts: { helper: string; registry: string },
+        opts: { registry: string; helper: string },
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
