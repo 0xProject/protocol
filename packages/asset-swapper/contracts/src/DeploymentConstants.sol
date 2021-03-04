@@ -156,28 +156,6 @@ contract DeploymentConstants {
     // /// @dev Mainnet address of the mStable mUSD contract.
     // address constant private MUSD_ADDRESS = address(0);
 
-    /// @dev Overridable way to get the `KyberNetworkProxy` address.
-    /// @return kyberAddress The `IKyberNetworkProxy` address.
-    function _getKyberNetworkProxyAddress()
-        virtual
-        internal
-        view
-        returns (address kyberAddress)
-    {
-        return KYBER_NETWORK_PROXY_ADDRESS;
-    }
-
-    /// @dev Overridable way to get the `KyberHintHandler` address.
-    /// @return hintHandlerAddress The `IKyberHintHandler` address.
-    function _getKyberHintHandlerAddress()
-        virtual
-        internal
-        view
-        returns (address hintHandlerAddress)
-    {
-        return KYBER_HINT_HANDLER_ADDRESS;
-    }
-
     /// @dev Overridable way to get the WETH address.
     /// @return wethAddress The WETH address.
     function _getWethAddress()
@@ -339,15 +317,5 @@ contract DeploymentConstants {
         returns (address registry)
     {
         return DODO_HELPER;
-    }
-
-    /// @dev An overridable way to retrieve the Bancor Registry contract address.
-    /// @return registry The Bancor registry contract address.
-    function _getBancorRegistryAddress()
-        internal
-        view
-        returns (address registry)
-    {
-        return BANCOR_REGISTRY;
     }
 }

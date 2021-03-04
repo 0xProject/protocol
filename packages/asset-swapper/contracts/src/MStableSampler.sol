@@ -34,13 +34,15 @@ contract MStableSampler is
     /// @dev Default gas limit for mStable calls.
     uint256 constant private DEFAULT_CALL_GAS = 800e3; // 800k
 
-    /// @dev Sample sell quotes from the mStable mUSD contract
+    /// @dev Sample sell quotes from the mStable contract
+    /// @param router Address of the mStable contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromMStable(
+        address router,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -55,7 +57,7 @@ contract MStableSampler is
 
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IMStable(_getMUsdAddress()).getSwapOutput
+                IMStable(router).getSwapOutput
                     {gas: DEFAULT_CALL_GAS}
                     (takerToken, makerToken, takerTokenAmounts[i])
                 returns (bool, string memory, uint256 amount)
@@ -72,13 +74,15 @@ contract MStableSampler is
         }
     }
 
-    /// @dev Sample buy quotes from MStable mUSD contract
+    /// @dev Sample buy quotes from MStable contract
+    /// @param router Address of the mStable contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromMStable(
+        address router,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -89,8 +93,8 @@ contract MStableSampler is
     {
         return _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(makerToken),
-                takerTokenData: abi.encode(takerToken),
+                makerTokenData: abi.encode(makerToken, router),
+                takerTokenData: abi.encode(takerToken, router),
                 getSellQuoteCallback: _sampleSellForApproximateBuyFromMStable
             }),
             makerTokenAmounts
@@ -106,13 +110,13 @@ contract MStableSampler is
         view
         returns (uint256 buyAmount)
     {
-        (address takerToken) =
-            abi.decode(takerTokenData, (address));
+        (address takerToken, address router) =
+            abi.decode(takerTokenData, (address, address));
         (address makerToken) =
             abi.decode(makerTokenData, (address));
         try
             this.sampleSellsFromMStable
-                (takerToken, makerToken, _toSingleValueArray(sellAmount))
+                (router, takerToken, makerToken, _toSingleValueArray(sellAmount))
             returns (uint256[] memory amounts)
         {
             return amounts[0];

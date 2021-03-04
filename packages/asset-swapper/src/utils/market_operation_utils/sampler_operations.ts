@@ -20,12 +20,16 @@ import {
     uniswapV2LikeRouterAddress,
 } from './bridge_source_utils';
 import {
+    BANCOR_REGISTRY_BY_CHAIN_ID,
+    DODO_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
+    KYBER_CONFIG_BY_CHAIN_ID,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
     MSTABLE_ROUTER_BY_CHAIN_ID,
+    NULL_BYTES,
     OASIS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     TOKENS,
@@ -49,6 +53,7 @@ import {
     GenericRouterFillData,
     HopInfo,
     KyberFillData,
+    KyberSamplerOpts,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MooniswapFillData,
@@ -154,6 +159,7 @@ export class SamplerOperations {
     }
 
     public getKyberSellQuotes(
+        kyberOpts: KyberSamplerOpts,
         reserveOffset: BigNumber,
         makerToken: string,
         takerToken: string,
@@ -163,19 +169,21 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Kyber,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromKyberNetwork,
-            params: [reserveOffset, takerToken, makerToken, takerFillAmounts],
+            params: [{ ...kyberOpts, reserveOffset, hint: NULL_BYTES }, takerToken, makerToken, takerFillAmounts],
             callback: (callResults: string, fillData: KyberFillData): BigNumber[] => {
                 const [reserveId, hint, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string, string, BigNumber[]]
                 >('sampleSellsFromKyberNetwork', callResults);
                 fillData.hint = hint;
                 fillData.reserveId = reserveId;
+                fillData.networkProxy = kyberOpts.networkProxy;
                 return isAllowedKyberReserveId(reserveId) ? samples : [];
             },
         });
     }
 
     public getKyberBuyQuotes(
+        kyberOpts: KyberSamplerOpts,
         reserveOffset: BigNumber,
         makerToken: string,
         takerToken: string,
@@ -185,13 +193,14 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Kyber,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromKyberNetwork,
-            params: [reserveOffset, takerToken, makerToken, makerFillAmounts],
+            params: [{ ...kyberOpts, reserveOffset, hint: NULL_BYTES }, takerToken, makerToken, makerFillAmounts],
             callback: (callResults: string, fillData: KyberFillData): BigNumber[] => {
                 const [reserveId, hint, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string, string, BigNumber[]]
                 >('sampleBuysFromKyberNetwork', callResults);
                 fillData.hint = hint;
                 fillData.reserveId = reserveId;
+                fillData.networkProxy = kyberOpts.networkProxy;
                 return isAllowedKyberReserveId(reserveId) ? samples : [];
             },
         });
@@ -304,7 +313,7 @@ export class SamplerOperations {
             fillData: { router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromEth2Dai,
-            params: [takerToken, makerToken, takerFillAmounts],
+            params: [router, takerToken, makerToken, takerFillAmounts],
         });
     }
 
@@ -319,7 +328,7 @@ export class SamplerOperations {
             fillData: { router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromEth2Dai,
-            params: [takerToken, makerToken, makerFillAmounts],
+            params: [router, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -607,7 +616,7 @@ export class SamplerOperations {
             fillData: { router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromMStable,
-            params: [takerToken, makerToken, takerFillAmounts],
+            params: [router, takerToken, makerToken, takerFillAmounts],
         });
     }
 
@@ -622,11 +631,12 @@ export class SamplerOperations {
             fillData: { router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromMStable,
-            params: [takerToken, makerToken, makerFillAmounts],
+            params: [router, takerToken, makerToken, makerFillAmounts],
         });
     }
 
     public getBancorSellQuotes(
+        registry: string,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -636,7 +646,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Bancor,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromBancor,
-            params: [paths, takerToken, makerToken, takerFillAmounts],
+            params: [{ registry, paths }, takerToken, makerToken, takerFillAmounts],
             callback: (callResults: string, fillData: BancorFillData): BigNumber[] => {
                 const [networkAddress, path, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string, string[], BigNumber[]]
@@ -650,6 +660,7 @@ export class SamplerOperations {
 
     // Unimplemented
     public getBancorBuyQuotes(
+        registry: string,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -658,11 +669,11 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Bancor,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBancor,
-            params: [[], takerToken, makerToken, makerFillAmounts],
+            params: [{ registry, paths: [] }, takerToken, makerToken, makerFillAmounts],
             callback: (callResults: string, fillData: BancorFillData): BigNumber[] => {
                 const [networkAddress, path, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string, string[], BigNumber[]]
-                >('sampleSellsFromBancor', callResults);
+                >('sampleBuysFromBancor', callResults);
                 fillData.networkAddress = networkAddress;
                 fillData.path = path;
                 return samples;
@@ -852,6 +863,7 @@ export class SamplerOperations {
     }
 
     public getDODOSellQuotes(
+        opts: { registry: string; helper: string },
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -860,7 +872,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Dodo,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromDODO,
-            params: [takerToken, makerToken, takerFillAmounts],
+            params: [opts, takerToken, makerToken, takerFillAmounts],
             callback: (callResults: string, fillData: DODOFillData): BigNumber[] => {
                 const [isSellBase, pool, samples] = this._samplerContract.getABIDecodedReturnData<
                     [boolean, string, BigNumber[]]
@@ -873,6 +885,7 @@ export class SamplerOperations {
     }
 
     public getDODOBuyQuotes(
+        opts: { registry: string; helper: string },
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -881,7 +894,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Dodo,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromDODO,
-            params: [takerToken, makerToken, makerFillAmounts],
+            params: [opts, takerToken, makerToken, makerFillAmounts],
             callback: (callResults: string, fillData: DODOFillData): BigNumber[] => {
                 const [isSellBase, pool, samples] = this._samplerContract.getABIDecodedReturnData<
                     [boolean, string, BigNumber[]]
@@ -1068,7 +1081,13 @@ export class SamplerOperations {
                             ].map(path => this.getUniswapV2SellQuotes(uniLikeRouter, path, takerFillAmounts, source));
                         case ERC20BridgeSource.Kyber:
                             return getKyberOffsets().map(offset =>
-                                this.getKyberSellQuotes(offset, makerToken, takerToken, takerFillAmounts),
+                                this.getKyberSellQuotes(
+                                    KYBER_CONFIG_BY_CHAIN_ID[this.chainId],
+                                    offset,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                ),
                             );
                         case ERC20BridgeSource.Curve:
                             return getCurveInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
@@ -1152,7 +1171,15 @@ export class SamplerOperations {
                                 this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
                             );
                         case ERC20BridgeSource.Dodo:
-                            return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
+                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId])) {
+                                return [];
+                            }
+                            return this.getDODOSellQuotes(
+                                DODO_CONFIG_BY_CHAIN_ID[this.chainId],
+                                makerToken,
+                                takerToken,
+                                takerFillAmounts,
+                            );
                         case ERC20BridgeSource.DodoV2:
                             return _.flatten(
                                 DODOV2_FACTORIES_BY_CHAIN_ID[this.chainId]
@@ -1170,7 +1197,15 @@ export class SamplerOperations {
                                     ),
                             );
                         case ERC20BridgeSource.Bancor:
-                            return this.getBancorSellQuotes(makerToken, takerToken, takerFillAmounts);
+                            if (!isValidAddress(BANCOR_REGISTRY_BY_CHAIN_ID[this.chainId])) {
+                                return [];
+                            }
+                            return this.getBancorSellQuotes(
+                                BANCOR_REGISTRY_BY_CHAIN_ID[this.chainId],
+                                makerToken,
+                                takerToken,
+                                takerFillAmounts,
+                            );
                         case ERC20BridgeSource.Linkswap:
                             if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
                                 return [];
@@ -1243,7 +1278,13 @@ export class SamplerOperations {
                             ].map(path => this.getUniswapV2BuyQuotes(uniLikeRouter, path, makerFillAmounts, source));
                         case ERC20BridgeSource.Kyber:
                             return getKyberOffsets().map(offset =>
-                                this.getKyberBuyQuotes(offset, makerToken, takerToken, makerFillAmounts),
+                                this.getKyberBuyQuotes(
+                                    KYBER_CONFIG_BY_CHAIN_ID[this.chainId],
+                                    offset,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                ),
                             );
                         case ERC20BridgeSource.Curve:
                             return getCurveInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
@@ -1326,7 +1367,15 @@ export class SamplerOperations {
                                 this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.Dodo:
-                            return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId])) {
+                                return [];
+                            }
+                            return this.getDODOBuyQuotes(
+                                DODO_CONFIG_BY_CHAIN_ID[this.chainId],
+                                makerToken,
+                                takerToken,
+                                makerFillAmounts,
+                            );
                         case ERC20BridgeSource.DodoV2:
                             return _.flatten(
                                 DODOV2_FACTORIES_BY_CHAIN_ID[this.chainId]
@@ -1344,7 +1393,9 @@ export class SamplerOperations {
                                     ),
                             );
                         case ERC20BridgeSource.Bancor:
-                            return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                            // Unimplemented
+                            // return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
+                            return [];
                         case ERC20BridgeSource.Linkswap:
                             if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
                                 return [];

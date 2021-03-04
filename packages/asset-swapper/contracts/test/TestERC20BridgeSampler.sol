@@ -357,24 +357,6 @@ contract TestERC20BridgeSamplerKyberNetwork is
             toToken
         );
     }
-
-    function _getKyberNetworkProxyAddress()
-        override
-        internal
-        view
-        returns (address)
-    {
-        return address(this);
-    }
-
-    function _getKyberHintHandlerAddress()
-        override
-        internal
-        view
-        returns (address)
-    {
-        return address(this);
-    }
 }
 
 
@@ -531,25 +513,5 @@ contract TestERC20BridgeSampler is
         returns (address uniswapV2RouterAddress)
     {
         return address(uniswapV2Router);
-    }
-
-    // Overriden to point to a custom contract.
-    function _getKyberNetworkProxyAddress()
-        override
-        internal
-        view
-        returns (address kyberAddress)
-    {
-        return address(kyber);
-    }
-
-    // Overriden to point to a custom contract.
-    function _getKyberHintHandlerAddress()
-        override
-        internal
-        view
-        returns (address kyberAddress)
-    {
-        return address(kyber);
     }
 }

@@ -171,6 +171,7 @@ describe('DexSampler tests', () => {
             );
             const [fillableAmounts] = await dexOrderSampler.executeAsync(
                 dexOrderSampler.getKyberSellQuotes(
+                    { hintHandler: randomAddress(), networkProxy: randomAddress(), weth: randomAddress() },
                     new BigNumber(0),
                     expectedMakerToken,
                     expectedTakerToken,
@@ -461,7 +462,7 @@ describe('DexSampler tests', () => {
                     expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue());
                 },
-                sampleSellsFromEth2Dai: (takerToken, makerToken, fillAmounts) => {
+                sampleSellsFromEth2Dai: (_router, takerToken, makerToken, fillAmounts) => {
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
                     expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
@@ -575,7 +576,7 @@ describe('DexSampler tests', () => {
                     expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue());
                 },
-                sampleBuysFromEth2Dai: (takerToken, makerToken, fillAmounts) => {
+                sampleBuysFromEth2Dai: (_router, takerToken, makerToken, fillAmounts) => {
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
                     expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);

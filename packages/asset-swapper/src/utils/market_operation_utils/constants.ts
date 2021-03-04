@@ -16,6 +16,7 @@ import {
     FeeSchedule,
     FillData,
     GetMarketOrdersOpts,
+    KyberSamplerOpts,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MultiHopFillData,
@@ -536,7 +537,20 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
  */
 export const KYBER_BRIDGED_LIQUIDITY_PREFIX = '0xbb';
 export const MAX_KYBER_RESERVES_QUERIED = 5;
-export const MAINNET_KYBER_NETWORK_PROXY = '0x9aab3f75489902f3a48495025729a0af77d4b11e';
+export const KYBER_CONFIG_BY_CHAIN_ID = valueByChainId<KyberSamplerOpts>(
+    {
+        [ChainId.Mainnet]: {
+            networkProxy: '0x9aab3f75489902f3a48495025729a0af77d4b11e',
+            hintHandler: '0xa1C0Fa73c39CFBcC11ec9Eb1Afc665aba9996E2C',
+            weth: TOKENS.WETH,
+        },
+    },
+    {
+        networkProxy: NULL_ADDRESS,
+        hintHandler: NULL_ADDRESS,
+        weth: NULL_ADDRESS,
+    },
+);
 
 export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
 
@@ -600,7 +614,15 @@ export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     [] as string[],
 );
 
-export const MAINNET_DODO_HELPER = '0x533da777aedce766ceae696bf90f8541a4ba80eb';
+export const DODO_CONFIG_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Mainnet]: {
+            helper: '0x533da777aedce766ceae696bf90f8541a4ba80eb',
+            registry: '0x3A97247DF274a17C59A3bd12735ea3FcDFb49950',
+        },
+    },
+    { helper: NULL_ADDRESS, registry: NULL_ADDRESS },
+);
 
 export const DODOV2_FACTORIES_BY_CHAIN_ID = valueByChainId<string[]>(
     {
@@ -629,6 +651,13 @@ export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
         [ChainId.Ropsten]: '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
+    },
+    NULL_ADDRESS,
+);
+
+export const BANCOR_REGISTRY_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x52Ae12ABe5D8BD778BD5397F99cA900624CfADD4',
     },
     NULL_ADDRESS,
 );
