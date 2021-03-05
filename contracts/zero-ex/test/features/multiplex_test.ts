@@ -109,6 +109,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             env.provider,
             env.txDefaults,
             artifacts,
+            zeroEx.address,
             WETH_ADDRESS,
             PLP_SANDBOX_ADDRESS,
             GREEDY_TOKENS_BLOOM_FILTER,

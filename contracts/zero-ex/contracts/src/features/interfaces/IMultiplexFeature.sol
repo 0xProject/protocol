@@ -75,20 +75,10 @@ interface IMultiplexFeature {
         address recipient
     );
 
-    event MultiplexBatchFill(
-        address indexed taker,
-        address inputToken,
-        address outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount
-    );
-
-    event MultiplexMultiHopFill(
-        address indexed taker,
-        address inputToken,
-        address outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount
+    event ExpiredRfqOrder(
+        bytes32 orderHash,
+        address maker,
+        uint256 secondsSinceExpiry
     );
 
     /// @dev Executes a batch of fills selling `fillData.inputToken`

@@ -26,6 +26,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../external/ILiquidityProviderSandbox.sol";
 import "../fixins/FixinCommon.sol";
+import "../fixins/FixinEIP712.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
 import "../transformers/LibERC20Transformer.sol";
@@ -44,6 +45,7 @@ contract MultiplexFeature is
     IFeature,
     IMultiplexFeature,
     FixinCommon,
+    FixinEIP712,
     FixinTokenSpender
 {
     using LibERC20Transformer for IERC20TokenV06;
@@ -69,11 +71,13 @@ contract MultiplexFeature is
     uint256 private constant SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
 
     constructor(
+        address zeroExAddress,
         IEtherTokenV06 weth_,
         ILiquidityProviderSandbox sandbox_,
         bytes32 greedyTokensBloomFilter
     )
         public
+        FixinEIP712(zeroExAddress)
         FixinTokenSpender(greedyTokensBloomFilter)
     {
         weth = weth_;
@@ -136,14 +140,6 @@ contract MultiplexFeature is
         if (ethBalanceAfter > ethBalanceBefore) {
             _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
         }
-
-        emit MultiplexBatchFill(
-            msg.sender,
-            address(fillData.inputToken),
-            address(fillData.outputToken),
-            fillData.sellAmount,
-            outputTokenAmount
-        );
     }
 
     /// @dev Executes a sequence of fills "hopping" through the
@@ -192,14 +188,6 @@ contract MultiplexFeature is
         if (ethBalanceAfter > ethBalanceBefore) {
             _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
         }
-
-        emit MultiplexMultiHopFill(
-            msg.sender,
-            fillData.tokens[0],
-            address(outputToken),
-            fillData.sellAmount,
-            outputTokenAmount
-        );
     }
 
     // Similar to FQT. If `fillData.sellAmount` is set to `type(uint256).max`,
@@ -235,6 +223,14 @@ contract MultiplexFeature is
                     (LibNativeOrder.RfqOrder, LibSignature.Signature)
                 );
                 if (order.expiry <= uint64(block.timestamp)) {
+                    bytes32 orderHash = _getEIP712Hash(
+                        LibNativeOrder.getRfqOrderStructHash(order)
+                    );
+                    emit ExpiredRfqOrder(
+                        orderHash,
+                        order.maker,
+                        block.timestamp - uint256(order.expiry)
+                    );
                     continue;
                 }
                 require(
