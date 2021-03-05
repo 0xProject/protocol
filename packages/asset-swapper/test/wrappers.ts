@@ -10,7 +10,6 @@ export * from '../test/generated-wrappers/bancor_sampler';
 export * from '../test/generated-wrappers/curve_sampler';
 export * from '../test/generated-wrappers/d_o_d_o_sampler';
 export * from '../test/generated-wrappers/d_o_d_o_v2_sampler';
-export * from '../test/generated-wrappers/deployment_constants';
 export * from '../test/generated-wrappers/dummy_liquidity_provider';
 export * from '../test/generated-wrappers/erc20_bridge_sampler';
 export * from '../test/generated-wrappers/eth2_dai_sampler';

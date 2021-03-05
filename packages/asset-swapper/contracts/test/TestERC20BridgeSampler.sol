@@ -19,7 +19,6 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "../src/DeploymentConstants.sol";
 import "../src/ERC20BridgeSampler.sol";
 import "../src/interfaces/IEth2Dai.sol";
 import "../src/interfaces/IKyberNetwork.sol";
@@ -89,6 +88,25 @@ library LibDeterministicQuotes {
     }
 }
 
+contract TestDeploymentConstants {
+
+    // solhint-disable separate-by-one-line-in-contract
+
+    // Mainnet addresses ///////////////////////////////////////////////////////
+    /// @dev Mainnet address of the WETH contract.
+    address constant private WETH_ADDRESS = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
+    /// @dev Overridable way to get the WETH address.
+    /// @return wethAddress The WETH address.
+    function _getWethAddress()
+        internal
+        view
+        returns (address wethAddress)
+    {
+        return WETH_ADDRESS;
+    }
+
+}
 
 contract FailTrigger {
 
@@ -110,7 +128,7 @@ contract FailTrigger {
 
 contract TestERC20BridgeSamplerUniswapExchange is
     IUniswapExchangeQuotes,
-    DeploymentConstants,
+    TestDeploymentConstants,
     FailTrigger
 {
     bytes32 constant private BASE_SALT = 0x1d6a6a0506b0b4a554b907a4c29d9f4674e461989d9c1921feb17b26716385ab;
@@ -199,7 +217,7 @@ contract TestERC20BridgeSamplerUniswapExchange is
 
 contract TestERC20BridgeSamplerUniswapV2Router01 is
     IUniswapV2Router01,
-    DeploymentConstants,
+    TestDeploymentConstants,
     FailTrigger
 {
     bytes32 constant private SALT = 0xadc7fcb33c735913b8635927e66896b356a53a912ab2ceff929e60a04b53b3c1;
@@ -250,7 +268,7 @@ contract TestERC20BridgeSamplerUniswapV2Router01 is
 
 // solhint-disable space-after-comma
 contract TestERC20BridgeSamplerKyberNetwork is
-    DeploymentConstants,
+    TestDeploymentConstants,
     FailTrigger
 {
     bytes32 constant private SALT = 0x0ff3ca9d46195c39f9a12afb74207b4970349fb3cfb1e459bbf170298d326bc7;

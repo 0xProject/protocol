@@ -1,6 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
 import { LimitOrderFields } from '@0x/protocol-utils';
-import { addressUtils } from '@0x/utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -1237,7 +1236,9 @@ export class SamplerOperations {
                             }
                             return [
                                 [takerToken, makerToken],
-                                ...[TOKENS.LINK, TOKENS.WETH].map(t => [takerToken, t, makerToken]),
+                                ...getIntermediateTokens(makerToken, takerToken, {
+                                    default: [TOKENS.LINK, TOKENS.WETH],
+                                }).map(t => [takerToken, t, makerToken]),
                             ].map(path =>
                                 this.getUniswapV2SellQuotes(
                                     LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],
@@ -1428,7 +1429,9 @@ export class SamplerOperations {
                             return [
                                 [takerToken, makerToken],
                                 // LINK is the base asset in many of the pools on Linkswap
-                                ...[TOKENS.LINK, TOKENS.WETH].map(t => [takerToken, t, makerToken]),
+                                ...getIntermediateTokens(makerToken, takerToken, {
+                                    default: [TOKENS.LINK, TOKENS.WETH],
+                                }).map(t => [takerToken, t, makerToken]),
                             ].map(path =>
                                 this.getUniswapV2BuyQuotes(
                                     LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],

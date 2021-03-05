@@ -1,7 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import _ = require('lodash');
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
@@ -591,7 +590,7 @@ export const MSTABLE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x5e3e0548935a83aD29fb2A9153d331dc6d49020f',
+        [ChainId.Mainnet]: '0x5e3e0548935a83ad29fb2a9153d331dc6d49020f',
     },
     NULL_ADDRESS,
 );
