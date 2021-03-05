@@ -20,7 +20,6 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
@@ -39,7 +38,6 @@ interface IDODO {
 }
 
 contract DODOSampler is
-    DeploymentConstants,
     SamplerUtils,
     ApproximateBuys
 {

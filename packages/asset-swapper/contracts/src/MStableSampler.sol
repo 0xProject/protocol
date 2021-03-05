@@ -20,14 +20,12 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IMStable.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
 
 contract MStableSampler is
-    DeploymentConstants,
     SamplerUtils,
     ApproximateBuys
 {

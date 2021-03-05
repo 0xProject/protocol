@@ -20,12 +20,10 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IUniswapV2Router01.sol";
 
 
-contract UniswapV2Sampler is
-    DeploymentConstants
+contract UniswapV2Sampler
 {
     /// @dev Gas limit for UniswapV2 calls.
     uint256 constant private UNISWAPV2_CALL_GAS = 150e3; // 150k

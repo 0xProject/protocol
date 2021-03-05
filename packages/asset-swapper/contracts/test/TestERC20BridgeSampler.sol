@@ -19,6 +19,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
+import "../src/DeploymentConstants.sol";
 import "../src/ERC20BridgeSampler.sol";
 import "../src/interfaces/IEth2Dai.sol";
 import "../src/interfaces/IKyberNetwork.sol";
@@ -483,35 +484,5 @@ contract TestERC20BridgeSampler is
         returns (uint8 decimals)
     {
         return LibDeterministicQuotes.getDeterministicTokenDecimals(tokenAddress);
-    }
-
-    // Overriden to point to a custom contract.
-    function _getEth2DaiAddress()
-        override
-        internal
-        view
-        returns (address eth2daiAddress)
-    {
-        return address(eth2Dai);
-    }
-
-    // Overriden to point to a custom contract.
-    function _getUniswapExchangeFactoryAddress()
-        override
-        internal
-        view
-        returns (address uniswapAddress)
-    {
-        return address(uniswap);
-    }
-
-    // Overriden to point to a custom contract.
-    function _getUniswapV2Router01Address()
-        override
-        internal
-        view
-        returns (address uniswapV2RouterAddress)
-    {
-        return address(uniswapV2Router);
     }
 }

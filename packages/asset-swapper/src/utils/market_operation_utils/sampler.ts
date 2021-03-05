@@ -34,7 +34,7 @@ type BatchedOperationResult<T> = T extends BatchedOperation<infer TResult> ? TRe
  */
 export class DexOrderSampler extends SamplerOperations {
     constructor(
-        chainId: ChainId,
+        public readonly chainId: ChainId,
         _samplerContract: ERC20BridgeSamplerContract,
         private readonly _samplerOverrides?: SamplerOverrides,
         balancerPoolsCache?: BalancerPoolsCache,

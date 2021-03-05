@@ -1,5 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { LimitOrderFields } from '@0x/protocol-utils';
+import { addressUtils } from '@0x/utils';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -16,6 +17,7 @@ import {
     getSnowSwapInfosForPair,
     getSwerveInfosForPair,
     isAllowedKyberReserveId,
+    isBadTokenForSource,
     isValidAddress,
     uniswapV2LikeRouterAddress,
 } from './bridge_source_utils';
@@ -29,6 +31,8 @@ import {
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
     MSTABLE_ROUTER_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+    NULL_ADDRESS,
     NULL_BYTES,
     OASIS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
@@ -97,7 +101,7 @@ export class SamplerOperations {
     }
 
     constructor(
-        protected readonly chainId: ChainId,
+        public readonly chainId: ChainId,
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
@@ -212,12 +216,15 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<GenericRouterFillData> {
+        // Uniswap uses ETH instead of WETH, represented by address(0)
+        const uniswapTakerToken = takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
+        const uniswapMakerToken = makerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : makerToken;
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Uniswap,
             fillData: { router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromUniswap,
-            params: [takerToken, makerToken, takerFillAmounts],
+            params: [router, uniswapTakerToken, uniswapMakerToken, takerFillAmounts],
         });
     }
 
@@ -227,12 +234,15 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<GenericRouterFillData> {
+        // Uniswap uses ETH instead of WETH, represented by address(0)
+        const uniswapTakerToken = takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
+        const uniswapMakerToken = makerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : makerToken;
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Uniswap,
             fillData: { router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromUniswap,
-            params: [takerToken, makerToken, makerFillAmounts],
+            params: [router, uniswapTakerToken, uniswapMakerToken, makerFillAmounts],
         });
     }
 
@@ -687,11 +697,16 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<MooniswapFillData> {
+        // Mooniswap uses ETH instead of WETH, represented by address(0)
+        const mooniswapTakerToken =
+            takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
+        const mooniswapMakerToken =
+            makerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : makerToken;
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Mooniswap,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromMooniswap,
-            params: [registry, takerToken, makerToken, takerFillAmounts],
+            params: [registry, mooniswapTakerToken, mooniswapMakerToken, takerFillAmounts],
             callback: (callResults: string, fillData: MooniswapFillData): BigNumber[] => {
                 const [poolAddress, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
                     'sampleSellsFromMooniswap',
@@ -709,11 +724,16 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<MooniswapFillData> {
+        // Mooniswap uses ETH instead of WETH, represented by address(0)
+        const mooniswapTakerToken =
+            takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
+        const mooniswapMakerToken =
+            makerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : makerToken;
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Mooniswap,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromMooniswap,
-            params: [registry, takerToken, makerToken, makerFillAmounts],
+            params: [registry, mooniswapTakerToken, mooniswapMakerToken, makerFillAmounts],
             callback: (callResults: string, fillData: MooniswapFillData): BigNumber[] => {
                 const [poolAddress, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
                     'sampleBuysFromMooniswap',
@@ -863,7 +883,7 @@ export class SamplerOperations {
     }
 
     public getDODOSellQuotes(
-        opts: { registry: string; helper: string },
+        opts: { helper: string; registry: string },
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -879,13 +899,14 @@ export class SamplerOperations {
                 >('sampleSellsFromDODO', callResults);
                 fillData.isSellBase = isSellBase;
                 fillData.poolAddress = pool;
+                fillData.helperAddress = opts.helper;
                 return samples;
             },
         });
     }
 
     public getDODOBuyQuotes(
-        opts: { registry: string; helper: string },
+        opts: { helper: string; registry: string },
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -901,6 +922,7 @@ export class SamplerOperations {
                 >('sampleBuysFromDODO', callResults);
                 fillData.isSellBase = isSellBase;
                 fillData.poolAddress = pool;
+                fillData.helperAddress = opts.helper;
                 return samples;
             },
         });
@@ -1047,6 +1069,9 @@ export class SamplerOperations {
         const allOps = _.flatten(
             _sources.map(
                 (source): SourceQuoteOperation | SourceQuoteOperation[] => {
+                    if (isBadTokenForSource(makerToken, source) || isBadTokenForSource(takerToken, source)) {
+                        return [];
+                    }
                     switch (source) {
                         case ERC20BridgeSource.Eth2Dai:
                             return isValidAddress(OASIS_ROUTER_BY_CHAIN_ID[this.chainId])
@@ -1171,7 +1196,7 @@ export class SamplerOperations {
                                 this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
                             );
                         case ERC20BridgeSource.Dodo:
-                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId])) {
+                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                                 return [];
                             }
                             return this.getDODOSellQuotes(
@@ -1367,7 +1392,7 @@ export class SamplerOperations {
                                 this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.Dodo:
-                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId])) {
+                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                                 return [];
                             }
                             return this.getDODOBuyQuotes(

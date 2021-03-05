@@ -20,11 +20,9 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IShell.sol";
 
-contract ShellSampler is
-    DeploymentConstants
+contract ShellSampler
 {
     /// @dev Default gas limit for Shell calls.
     uint256 constant private DEFAULT_CALL_GAS = 300e3; // 300k

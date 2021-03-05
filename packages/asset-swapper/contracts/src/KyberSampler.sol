@@ -20,19 +20,19 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IKyberNetwork.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
 
 contract KyberSampler is
-    DeploymentConstants,
     SamplerUtils,
     ApproximateBuys
 {
     /// @dev Gas limit for Kyber calls.
     uint256 constant private KYBER_CALL_GAS = 500e3; // 500k
+    /// @dev Kyber ETH pseudo-address.
+    address constant internal KYBER_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     struct KyberSamplerOpts {
         uint256 reserveOffset;

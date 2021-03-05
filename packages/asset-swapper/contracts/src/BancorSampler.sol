@@ -20,18 +20,13 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IBancor.sol";
 
-
-
-contract BancorSampler is
-        DeploymentConstants
+contract BancorSampler
 {
 
     /// @dev Base gas limit for Bancor calls.
     uint256 constant private BANCOR_CALL_GAS = 300e3; // 300k
-    address constant private BANCOR_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     struct BancorSamplerOpts {
         address registry;

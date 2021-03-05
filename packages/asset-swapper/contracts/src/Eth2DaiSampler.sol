@@ -20,13 +20,11 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IEth2Dai.sol";
 import "./SamplerUtils.sol";
 
 
 contract Eth2DaiSampler is
-    DeploymentConstants,
     SamplerUtils
 {
     /// @dev Base gas limit for Eth2Dai calls.

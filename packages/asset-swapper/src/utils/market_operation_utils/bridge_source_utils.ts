@@ -26,8 +26,8 @@ export function isAllowedKyberReserveId(reserveId: string): boolean {
     return reserveId !== NULL_BYTES && !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX);
 }
 
-// tslint:disable-next-line: completed-docs
-export function isValidAddress(address: any): address is string {
+// tslint:disable-next-line: completed-docs ban-types
+export function isValidAddress(address: string | String): address is string {
     return (typeof address === 'string' || address instanceof String) && address.toString() !== NULL_ADDRESS;
 }
 
@@ -120,4 +120,14 @@ export function uniswapV2LikeRouterAddress(
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }
+}
+
+const BAD_TOKENS_BY_SOURCE: Partial<{ [key in ERC20BridgeSource]: string[] }> = {
+    [ERC20BridgeSource.Uniswap]: [
+        '0xb8c77482e45f1f44de1745f52c74426c631bdd52', // BNB
+    ],
+};
+
+export function isBadTokenForSource(token: string, source: ERC20BridgeSource): boolean {
+    return (BAD_TOKENS_BY_SOURCE[source] || []).includes(token.toLowerCase());
 }

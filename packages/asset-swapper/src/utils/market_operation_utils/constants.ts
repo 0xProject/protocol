@@ -40,8 +40,6 @@ export const NULL_BYTES = '0x';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const COMPARISON_PRICE_DECIMALS = 10;
 
-export const CHAIN_ID = ChainId.BSC as ChainId;
-
 function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue: T): { [key in ChainId]: T } {
     // TODO I don't like this but iterating through enums is weird
     return {
@@ -99,7 +97,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
 
     new SourceFilters([]),
 );
-export const SELL_SOURCE_FILTER = SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  * Valid sources for market buy.
@@ -144,7 +141,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
     },
     new SourceFilters([]),
 );
-export const BUY_SOURCE_FILTER = BUY_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  *  0x Protocol Fee Multiplier
@@ -161,7 +157,6 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
     },
     [],
 );
-export const FEE_QUOTE_SOURCES = FEE_QUOTE_SOURCES_BY_CHAIN_ID[CHAIN_ID];
 
 export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } = Object.assign(
     {},
@@ -270,12 +265,11 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
     },
     [],
 );
-export const DEFAULT_INTERMEDIATE_TOKENS = DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[CHAIN_ID];
 
 export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdjacencyGraph>(
     {
         [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS,
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet],
         })
             // Mirror Protocol
             .tap(builder => {
@@ -287,10 +281,12 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             })
             // Build
             .build(),
+        [ChainId.BSC]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC],
+        }).build(),
     },
-    new TokenAdjacencyGraphBuilder({ default: DEFAULT_INTERMEDIATE_TOKENS }).build(),
+    new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
-export const DEFAULT_TOKEN_ADJACENCY_GRAPH = DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[CHAIN_ID];
 
 export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -299,10 +295,8 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-export const NATIVE_FEE_TOKEN = NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID];
 
 export const NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID = valueByChainId({}, ONE_ETHER);
-export const NATIVE_FEE_TOKEN_AMOUNT = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[CHAIN_ID];
 
 /**
  * Mainnet Curve configuration
@@ -597,7 +591,7 @@ export const MSTABLE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x794e6e91555438afc3ccf1c5076a74f42133d08d',
+        [ChainId.Mainnet]: '0x5e3e0548935a83aD29fb2A9153d331dc6d49020f',
     },
     NULL_ADDRESS,
 );
