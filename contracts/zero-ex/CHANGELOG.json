@@ -9,6 +9,10 @@
             {
                 "note": "Emit `LiquidityProviderFill` event in `CurveLiquidityProvider`",
                 "pr": 143
+            },
+            {
+                "note": "Add BatchFillNativeOrdersFeature and MultiplexFeature",
+                "pr": 140
             }
         ]
     },
