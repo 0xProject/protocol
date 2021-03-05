@@ -338,7 +338,9 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);
     const gasPrice = req.query.gasPrice === undefined ? undefined : new BigNumber(req.query.gasPrice as string);
     const slippagePercentage =
-        Number.parseFloat(req.query.slippagePercentage as string) || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE;
+        req.query.slippagePercentage === undefined
+            ? DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE
+            : Number.parseFloat(req.query.slippagePercentage as string);
     if (slippagePercentage > 1) {
         throw new ValidationError([
             {
