@@ -78,7 +78,7 @@ interface IMultiplexFeature {
     event ExpiredRfqOrder(
         bytes32 orderHash,
         address maker,
-        uint256 secondsSinceExpiry
+        uint64 expiry
     );
 
     /// @dev Executes a batch of fills selling `fillData.inputToken`

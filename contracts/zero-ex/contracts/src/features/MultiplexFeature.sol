@@ -229,7 +229,7 @@ contract MultiplexFeature is
                     emit ExpiredRfqOrder(
                         orderHash,
                         order.maker,
-                        block.timestamp - uint256(order.expiry)
+                        order.expiry
                     );
                     continue;
                 }
