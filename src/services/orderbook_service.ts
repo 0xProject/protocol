@@ -93,12 +93,20 @@ export class OrderBookService {
 
         // Pre-filters; exists in the entity verbatim
         const orderFilter = _.pickBy(orderFieldFilters, _.identity.bind(_));
-        filters.push(orderFilter);
 
         // Post-filters; filters that don't exist verbatim
         if (additionalFilters.trader) {
-            filters.push({ maker: additionalFilters.trader });
-            filters.push({ taker: additionalFilters.trader });
+            filters.push({
+                ...orderFilter,
+                maker: additionalFilters.trader,
+            });
+
+            filters.push({
+                ...orderFilter,
+                taker: additionalFilters.trader,
+            });
+        } else {
+            filters.push(orderFilter);
         }
 
         // Add an expiry time check to all filters

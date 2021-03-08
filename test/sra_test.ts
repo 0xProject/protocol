@@ -50,6 +50,7 @@ describe(SUITE_NAME, () => {
     let server: Server;
     let dependencies: AppDependencies;
     let makerAddress: string;
+    let otherAddress: string;
 
     let blockchainLifecycle: BlockchainLifecycle;
     let provider: Web3ProviderEngine;
@@ -103,7 +104,7 @@ describe(SUITE_NAME, () => {
         blockchainLifecycle = new BlockchainLifecycle(web3Wrapper);
 
         const accounts = await web3Wrapper.getAvailableAddressesAsync();
-        [makerAddress] = accounts;
+        [makerAddress, otherAddress] = accounts;
 
         const privateKeyBuf = constants.TESTRPC_PRIVATE_KEYS[accounts.indexOf(makerAddress)];
         privateKey = `0x${privateKeyBuf.toString('hex')}`;
@@ -187,6 +188,41 @@ describe(SUITE_NAME, () => {
             });
 
             await (await getDBConnectionAsync()).manager.remove(orderUtils.serializeOrder(apiOrder));
+        });
+        it('should filter by order parameters AND trader', async () => {
+            const matchingOrders = await Promise.all([
+                addNewOrderAsync({
+                    makerToken: ZRX_TOKEN_ADDRESS,
+                    takerToken: WETH_TOKEN_ADDRESS,
+                    maker: makerAddress,
+                }),
+                addNewOrderAsync({
+                    makerToken: ZRX_TOKEN_ADDRESS,
+                    takerToken: WETH_TOKEN_ADDRESS,
+                    taker: makerAddress,
+                    maker: otherAddress,
+                }),
+            ]);
+
+            // Should not match trader
+            await addNewOrderAsync({
+                makerToken: ZRX_TOKEN_ADDRESS,
+                takerToken: WETH_TOKEN_ADDRESS,
+                maker: otherAddress,
+            });
+            const response = await httpGetAsync({
+                app,
+                route: `${SRA_PATH}/orders?makerToken=${ZRX_TOKEN_ADDRESS}&trader=${makerAddress}`,
+            });
+            const sortByHash = (arr: any[]) => _.sortBy(arr, 'metaData.orderHash');
+            const { body } = response;
+            // Remove createdAt from response for easier comparison
+            const cleanRecords = body.records.map((r: any) => _.omit(r, 'metaData.createdAt'));
+
+            expect(response.type).to.eq(`application/json`);
+            expect(response.status).to.eq(HttpStatus.OK);
+            expect(body.total).to.eq(2);
+            expect(sortByHash(cleanRecords)).to.deep.eq(sortByHash(JSON.parse(JSON.stringify(matchingOrders))));
         });
         it('should return empty response when filtered by query params', async () => {
             const apiOrder = await addNewOrderAsync({ maker: makerAddress });
