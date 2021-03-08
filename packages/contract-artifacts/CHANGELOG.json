@@ -1,5 +1,14 @@
 [
     {
+        "version": "3.13.0",
+        "changes": [
+            {
+                "note": "Update IZeroEx artifact",
+                "pr": 140
+            }
+        ]
+    },
+    {
         "version": "3.12.0",
         "changes": [
             {

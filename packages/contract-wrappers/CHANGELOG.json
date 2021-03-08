@@ -1,5 +1,14 @@
 [
     {
+        "version": "13.14.0",
+        "changes": [
+            {
+                "note": "Update IZeroExContract wrapper",
+                "pr": 140
+            }
+        ]
+    },
+    {
         "version": "13.13.0",
         "changes": [
             {

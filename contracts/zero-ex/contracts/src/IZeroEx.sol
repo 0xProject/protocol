@@ -29,6 +29,7 @@ import "./features/interfaces/IUniswapFeature.sol";
 import "./features/interfaces/ILiquidityProviderFeature.sol";
 import "./features/interfaces/INativeOrdersFeature.sol";
 import "./features/interfaces/IBatchFillNativeOrdersFeature.sol";
+import "./features/interfaces/IMultiplexFeature.sol";
 
 
 /// @dev Interface for a fully featured Exchange Proxy.
@@ -41,7 +42,8 @@ interface IZeroEx is
     IUniswapFeature,
     ILiquidityProviderFeature,
     INativeOrdersFeature,
-    IBatchFillNativeOrdersFeature
+    IBatchFillNativeOrdersFeature,
+    IMultiplexFeature
 {
     // solhint-disable state-visibility
 
