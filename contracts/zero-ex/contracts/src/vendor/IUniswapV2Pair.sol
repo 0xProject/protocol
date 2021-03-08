@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -17,19 +17,32 @@
 
 */
 
-pragma solidity ^0.6.5;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.6.12;
 
-import "../src/features/interfaces/INativeOrdersFeature.sol";
 
-contract TestRfqOriginRegistration {
-    function registerAllowedRfqOrigins(
-        INativeOrdersFeature feature,
-        address[] memory origins,
-        bool allowed
-    )
+interface IUniswapV2Pair {
+    event Swap(
+        address indexed sender,
+        uint256 amount0In,
+        uint256 amount1In,
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address indexed to
+    );
+
+    function swap(
+        uint amount0Out,
+        uint amount1Out,
+        address to,
+        bytes calldata data
+    ) external;
+
+    function getReserves()
         external
-    {
-        feature.registerAllowedRfqOrigins(origins, allowed);
-    }
+        view
+        returns (
+            uint112 reserve0,
+            uint112 reserve1,
+            uint32 blockTimestampLast
+        );
 }

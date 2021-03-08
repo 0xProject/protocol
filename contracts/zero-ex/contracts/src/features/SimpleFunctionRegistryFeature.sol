@@ -26,8 +26,8 @@ import "../storage/LibProxyStorage.sol";
 import "../storage/LibSimpleFunctionRegistryStorage.sol";
 import "../errors/LibSimpleFunctionRegistryRichErrors.sol";
 import "../migrations/LibBootstrap.sol";
-import "./IFeature.sol";
-import "./ISimpleFunctionRegistryFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/ISimpleFunctionRegistryFeature.sol";
 
 
 /// @dev Basic registry management features.

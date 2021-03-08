@@ -23,8 +23,8 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../errors/LibCommonRichErrors.sol";
 import "../errors/LibOwnableRichErrors.sol";
-import "../features/IOwnableFeature.sol";
-import "../features/ISimpleFunctionRegistryFeature.sol";
+import "../features/interfaces/IOwnableFeature.sol";
+import "../features/interfaces/ISimpleFunctionRegistryFeature.sol";
 
 
 /// @dev Common feature utilities.

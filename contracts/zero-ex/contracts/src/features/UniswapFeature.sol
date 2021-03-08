@@ -25,8 +25,8 @@ import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../migrations/LibMigrate.sol";
 import "../external/IAllowanceTarget.sol";
 import "../fixins/FixinCommon.sol";
-import "./IFeature.sol";
-import "./IUniswapFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/IUniswapFeature.sol";
 
 
 /// @dev VIP uniswap fill functions.
@@ -380,7 +380,7 @@ contract UniswapFeature is
                 // will eat all our gas.
                 if isTokenPossiblyGreedy(token) {
                     // Check if we have enough direct allowance by calling
-                    // `token.allowance()``
+                    // `token.allowance()`
                     mstore(0xB00, ALLOWANCE_CALL_SELECTOR_32)
                     mstore(0xB04, caller())
                     mstore(0xB24, address())

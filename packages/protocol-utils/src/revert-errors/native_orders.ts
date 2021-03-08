@@ -110,6 +110,20 @@ export class OnlyOrderMakerAllowed extends RevertError {
     }
 }
 
+export class BatchFillIncompleteError extends RevertError {
+    constructor(orderHash?: string, takerTokenFilledAmount?: Numberish, takerTokenFillAmount?: Numberish) {
+        super(
+            'BatchFillIncompleteError',
+            'BatchFillIncompleteError(bytes32 orderHash, uint256 takerTokenFilledAmount, uint256 takerTokenFillAmount)',
+            {
+                orderHash,
+                takerTokenFilledAmount,
+                takerTokenFillAmount,
+            },
+        );
+    }
+}
+
 const types = [
     ProtocolFeeRefundFailed,
     OrderNotFillableByOriginError,
@@ -120,6 +134,7 @@ const types = [
     CancelSaltTooLowError,
     FillOrKillFailedError,
     OnlyOrderMakerAllowed,
+    BatchFillIncompleteError,
 ];
 
 // Register the types we've defined.

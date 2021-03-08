@@ -6,6 +6,7 @@ export {
     WETH9Events,
     WETH9DepositEventArgs,
     WETH9TransferEventArgs,
+    WETH9WithdrawalEventArgs,
     ZRXTokenContract,
     DummyERC20TokenTransferEventArgs,
     ERC20TokenEventArgs,
