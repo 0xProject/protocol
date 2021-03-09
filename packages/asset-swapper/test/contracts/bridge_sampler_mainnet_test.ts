@@ -1,7 +1,9 @@
+import { ChainId } from '@0x/contract-addresses';
 import { blockchainTests, describe, expect, toBaseUnitAmount, Web3ProviderEngine } from '@0x/contracts-test-utils';
 import { RPCSubprovider } from '@0x/subproviders';
-import { BigNumber, providerUtils } from '@0x/utils';
+import { BigNumber, NULL_BYTES, providerUtils } from '@0x/utils';
 
+import { KYBER_CONFIG_BY_CHAIN_ID, TOKENS } from '../../src/utils/market_operation_utils/constants';
 import { artifacts } from '../artifacts';
 import { ERC20BridgeSamplerContract } from '../wrappers';
 
@@ -78,28 +80,33 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
         });
     });
     describe('Kyber', () => {
-        const WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-        const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f';
-        const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+        const WETH = TOKENS.WETH;
+        const DAI = TOKENS.DAI;
+        const USDC = TOKENS.USDC;
         const RESERVE_OFFSET = new BigNumber(0);
+        const KYBER_OPTS = {
+            ...KYBER_CONFIG_BY_CHAIN_ID[ChainId.Mainnet],
+            reserveOffset: RESERVE_OFFSET,
+            hint: NULL_BYTES,
+        };
         describe('sampleSellsFromKyberNetwork()', () => {
             it('samples sells from Kyber DAI->WETH', async () => {
                 const [, samples] = await testContract
-                    .sampleSellsFromKyberNetwork(RESERVE_OFFSET, DAI, WETH, [toBaseUnitAmount(1)])
+                    .sampleSellsFromKyberNetwork(KYBER_OPTS, DAI, WETH, [toBaseUnitAmount(1)])
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
             });
             it('samples sells from Kyber WETH->DAI', async () => {
                 const [, samples] = await testContract
-                    .sampleSellsFromKyberNetwork(RESERVE_OFFSET, WETH, DAI, [toBaseUnitAmount(1)])
+                    .sampleSellsFromKyberNetwork(KYBER_OPTS, WETH, DAI, [toBaseUnitAmount(1)])
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
             });
             it('samples sells from Kyber DAI->USDC', async () => {
                 const [, samples] = await testContract
-                    .sampleSellsFromKyberNetwork(RESERVE_OFFSET, DAI, USDC, [toBaseUnitAmount(1)])
+                    .sampleSellsFromKyberNetwork(KYBER_OPTS, DAI, USDC, [toBaseUnitAmount(1)])
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
@@ -111,7 +118,7 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
                 // From ETH to DAI
                 // I want to buy 1 DAI
                 const [, samples] = await testContract
-                    .sampleBuysFromKyberNetwork(RESERVE_OFFSET, WETH, DAI, [toBaseUnitAmount(1)])
+                    .sampleBuysFromKyberNetwork(KYBER_OPTS, WETH, DAI, [toBaseUnitAmount(1)])
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
@@ -121,7 +128,7 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
                 // From USDC to DAI
                 // I want to buy 1 WETH
                 const [, samples] = await testContract
-                    .sampleBuysFromKyberNetwork(RESERVE_OFFSET, DAI, WETH, [toBaseUnitAmount(1)])
+                    .sampleBuysFromKyberNetwork(KYBER_OPTS, DAI, WETH, [toBaseUnitAmount(1)])
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);

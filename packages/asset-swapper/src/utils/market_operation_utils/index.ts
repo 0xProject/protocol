@@ -1,6 +1,5 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
-import { request } from 'http';
 import * as _ from 'lodash';
 
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
@@ -20,13 +19,12 @@ import {
 import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
 import { getComparisonPrices } from './comparison_price';
 import {
-    BUY_SOURCE_FILTER,
+    BUY_SOURCE_FILTER_BY_CHAIN_ID,
     DEFAULT_GET_MARKET_ORDERS_OPTS,
-    FEE_QUOTE_SOURCES,
-    NATIVE_FEE_TOKEN,
-    NATIVE_FEE_TOKEN_AMOUNT,
-    ONE_ETHER,
-    SELL_SOURCE_FILTER,
+    FEE_QUOTE_SOURCES_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
@@ -55,7 +53,9 @@ import {
 export class MarketOperationUtils {
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
-    private readonly _feeSources = new SourceFilters(FEE_QUOTE_SOURCES);
+    private readonly _feeSources: SourceFilters;
+    private readonly _nativeFeeToken: string;
+    private readonly _nativeFeeTokenAmount: BigNumber;
 
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
@@ -82,8 +82,11 @@ export class MarketOperationUtils {
         private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
     ) {
-        this._buySources = BUY_SOURCE_FILTER;
-        this._sellSources = SELL_SOURCE_FILTER;
+        this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
+        this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
+        this._feeSources = new SourceFilters(FEE_QUOTE_SOURCES_BY_CHAIN_ID[_sampler.chainId]);
+        this._nativeFeeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[_sampler.chainId];
+        this._nativeFeeTokenAmount = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[_sampler.chainId];
     }
 
     /**
@@ -141,15 +144,15 @@ export class MarketOperationUtils {
             this._sampler.getMedianSellRate(
                 feeSourceFilters.sources,
                 makerToken,
-                NATIVE_FEE_TOKEN,
-                NATIVE_FEE_TOKEN_AMOUNT,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
             ),
             // Get ETH -> taker token price.
             this._sampler.getMedianSellRate(
                 feeSourceFilters.sources,
                 takerToken,
-                NATIVE_FEE_TOKEN,
-                NATIVE_FEE_TOKEN_AMOUNT,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
             ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
@@ -277,15 +280,15 @@ export class MarketOperationUtils {
             this._sampler.getMedianSellRate(
                 feeSourceFilters.sources,
                 makerToken,
-                NATIVE_FEE_TOKEN,
-                NATIVE_FEE_TOKEN_AMOUNT,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
             ),
             // Get ETH -> taker token price.
             this._sampler.getMedianSellRate(
                 feeSourceFilters.sources,
                 takerToken,
-                NATIVE_FEE_TOKEN,
-                NATIVE_FEE_TOKEN_AMOUNT,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
             ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
@@ -392,8 +395,8 @@ export class MarketOperationUtils {
                 this._sampler.getMedianSellRate(
                     feeSourceFilters.sources,
                     orders[0].order.takerToken,
-                    NATIVE_FEE_TOKEN,
-                    NATIVE_FEE_TOKEN_AMOUNT,
+                    this._nativeFeeToken,
+                    this._nativeFeeTokenAmount,
                 ),
             ),
             ...batchNativeOrders.map((orders, i) =>

@@ -20,7 +20,6 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
@@ -44,7 +43,6 @@ interface IDODOV2Pool {
 }
 
 contract DODOV2Sampler is
-    DeploymentConstants,
     SamplerUtils,
     ApproximateBuys
 {

@@ -3,7 +3,7 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
-import { MAINNET_DODO_HELPER, MAINNET_KYBER_NETWORK_PROXY, MAX_UINT256, ZERO_AMOUNT } from './constants';
+import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
@@ -172,7 +172,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Kyber:
             const kyberFillData = (order as OptimizedMarketBridgeOrder<KyberFillData>).fillData;
-            bridgeData = encoder.encode([MAINNET_KYBER_NETWORK_PROXY, kyberFillData.hint]);
+            bridgeData = encoder.encode([kyberFillData.networkProxy, kyberFillData.hint]);
             break;
         case ERC20BridgeSource.Mooniswap:
             const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
@@ -180,7 +180,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Dodo:
             const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
-            bridgeData = encoder.encode([MAINNET_DODO_HELPER, dodoFillData.poolAddress, dodoFillData.isSellBase]);
+            bridgeData = encoder.encode([
+                dodoFillData.helperAddress,
+                dodoFillData.poolAddress,
+                dodoFillData.isSellBase,
+            ]);
             break;
         case ERC20BridgeSource.DodoV2:
             const dodoV2FillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;

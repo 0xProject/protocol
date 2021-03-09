@@ -152,6 +152,7 @@ export interface BancorFillData extends FillData {
 export interface KyberFillData extends FillData {
     hint: string;
     reserveId: string;
+    networkProxy: string;
 }
 
 export interface MooniswapFillData extends FillData {
@@ -161,6 +162,7 @@ export interface MooniswapFillData extends FillData {
 export interface DODOFillData extends FillData {
     poolAddress: string;
     isSellBase: boolean;
+    helperAddress: string;
 }
 
 export interface GenericRouterFillData extends FillData {
@@ -445,4 +447,10 @@ export interface GenerateOptimizedOrdersOpts {
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
+}
+
+export interface KyberSamplerOpts {
+    networkProxy: string;
+    hintHandler: string;
+    weth: string;
 }

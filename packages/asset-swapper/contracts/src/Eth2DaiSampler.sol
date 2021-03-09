@@ -20,25 +20,25 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IEth2Dai.sol";
 import "./SamplerUtils.sol";
 
 
 contract Eth2DaiSampler is
-    DeploymentConstants,
     SamplerUtils
 {
     /// @dev Base gas limit for Eth2Dai calls.
     uint256 constant private ETH2DAI_CALL_GAS = 1000e3; // 1m
 
     /// @dev Sample sell quotes from Eth2Dai/Oasis.
+    /// @param router Address of the Eth2Dai/Oasis contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromEth2Dai(
+        address router,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -52,7 +52,7 @@ contract Eth2DaiSampler is
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IEth2Dai(_getEth2DaiAddress()).getBuyAmount
+                IEth2Dai(router).getBuyAmount
                     {gas: ETH2DAI_CALL_GAS}
                     (makerToken, takerToken, takerTokenAmounts[i])
                 returns (uint256 amount)
@@ -70,12 +70,14 @@ contract Eth2DaiSampler is
     }
 
     /// @dev Sample buy quotes from Eth2Dai/Oasis.
+    /// @param router Address of the Eth2Dai/Oasis contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Maker token sell amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromEth2Dai(
+        address router,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -89,7 +91,7 @@ contract Eth2DaiSampler is
         takerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IEth2Dai(_getEth2DaiAddress()).getPayAmount
+                IEth2Dai(router).getPayAmount
                     {gas: ETH2DAI_CALL_GAS}
                     (takerToken, makerToken, makerTokenAmounts[i])
                 returns (uint256 amount)
