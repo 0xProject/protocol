@@ -115,9 +115,9 @@ export function erc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): stri
         case ERC20BridgeSource.Linkswap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Linkswap');
         case ERC20BridgeSource.PancakeSwap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Pancakeswap');
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'PancakeSwap');
         case ERC20BridgeSource.BakerySwap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Bakeryswap');
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BakerySwap');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
