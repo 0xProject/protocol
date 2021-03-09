@@ -1,0 +1,100 @@
+[
+    {
+        "version": "1.3.0",
+        "changes": [
+            {
+                "note": "Add VIP utils",
+                "pr": 127
+            },
+            {
+                "note": "Add `DodoV2` and `Linkswap` BridgeSource",
+                "pr": 152
+            }
+        ],
+        "timestamp": 1614141718
+    },
+    {
+        "version": "1.2.0",
+        "changes": [
+            {
+                "note": "Update transformer utils for V4 FQT",
+                "pr": 104
+            }
+        ],
+        "timestamp": 1612950500
+    },
+    {
+        "version": "1.1.5",
+        "changes": [
+            {
+                "note": "Use `Web3Wrapper.signTypedDataAsync()` instead of removed `Web3Wrapper.signTypedDataV4Async()`",
+                "pr": 124
+            }
+        ],
+        "timestamp": 1611648096
+    },
+    {
+        "timestamp": 1610510890,
+        "version": "1.1.4",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1609802516,
+        "version": "1.1.3",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1608692071,
+        "version": "1.1.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1608245516,
+        "version": "1.1.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "1.1.0",
+        "changes": [
+            {
+                "note": "Add the `MetaTransaction` class for EP mtxs",
+                "pr": 90
+            }
+        ],
+        "timestamp": 1608149382
+    },
+    {
+        "timestamp": 1607485227,
+        "version": "1.0.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "1.0.0",
+        "changes": [
+            {
+                "note": "Package created",
+                "pr": 76
+            }
+        ]
+    }
+]

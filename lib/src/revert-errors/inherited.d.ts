@@ -1,0 +1,2 @@
+export declare const Common: any, Proxy: any, SimpleFunctionRegistry: any, Ownable: any, Spender: any, TransformERC20: any, Wallet: any, MetaTransactions: any, SignatureValidator: any, LiquidityProvider: any;
+//# sourceMappingURL=inherited.d.ts.map
