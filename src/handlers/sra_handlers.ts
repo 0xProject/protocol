@@ -13,7 +13,7 @@ import {
     ValidationError,
     ValidationErrorCodes,
 } from '../errors';
-import { schemas } from '../schemas/schemas';
+import { schemas } from '../schemas';
 import { OrderBookService } from '../services/orderbook_service';
 import { OrderConfigResponse, SignedLimitOrder } from '../types';
 import { paginationUtils } from '../utils/pagination_utils';

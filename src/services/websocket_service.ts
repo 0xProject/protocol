@@ -6,7 +6,7 @@ import { MESH_IGNORED_ADDRESSES } from '../config';
 import { MalformedJSONError, NotImplementedError, WebsocketServiceError } from '../errors';
 import { logger } from '../logger';
 import { generateError } from '../middleware/error_handling';
-import { schemas } from '../schemas/schemas';
+import { schemas } from '../schemas';
 import {
     MessageChannels,
     MessageTypes,

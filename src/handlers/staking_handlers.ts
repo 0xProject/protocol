@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
-import { schemas } from '../schemas/schemas';
+import { schemas } from '../schemas';
 import { StakingDataService } from '../services/staking_data_service';
 import {
     Epoch,

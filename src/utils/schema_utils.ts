@@ -2,8 +2,14 @@ import { Schema, SchemaValidator } from '@0x/json-schemas';
 import { ValidationError as SchemaValidationError } from 'jsonschema';
 
 import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from '../errors';
+import { schemas } from '../schemas';
 
 const schemaValidator = new SchemaValidator();
+for (const schema of Object.values(schemas)) {
+    if (schema !== undefined) {
+        schemaValidator.addSchema(schema);
+    }
+}
 
 export const schemaUtils = {
     validateSchema(instance: any, schema: Schema): void {

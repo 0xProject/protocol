@@ -23,7 +23,7 @@ import {
 } from '../errors';
 import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
-import { schemas } from '../schemas/schemas';
+import { schemas } from '../schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { GetSwapPriceResponse, GetSwapQuoteParams, GetSwapQuoteResponse } from '../types';

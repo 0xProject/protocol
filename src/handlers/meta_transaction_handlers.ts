@@ -23,7 +23,7 @@ import {
 } from '../errors';
 import { logger } from '../logger';
 import { isAPIError, isRevertError } from '../middleware/error_handling';
-import { schemas } from '../schemas/schemas';
+import { schemas } from '../schemas';
 import { MetaTransactionService } from '../services/meta_transaction_service';
 import {
     ChainId,
