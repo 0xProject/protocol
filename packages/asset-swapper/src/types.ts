@@ -436,13 +436,3 @@ export interface AltFirmQuoteResponse extends AltBaseRfqResponse {
     };
     status: 'active' | 'rejected';
 }
-
-// export enum ChainId {
-//    Mainnet = 1,
-//    Ropsten = 3,
-//    Rinkeby = 4,
-//    Kovan = 42,
-//    // tslint:disable-next-line: enum-naming
-//    BSC = 56,
-//    Ganache = 1337,
-// }
