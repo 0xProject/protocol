@@ -362,7 +362,7 @@ export function encodeBridgeSourceId(protocol: BridgeProtocol, name: string): st
         throw new Error(`"${name}" is too long to be a bridge source name (max of 16 ascii chars)`);
     }
     return hexUtils.concat(
-        hexUtils.rightPad(hexUtils.toHex(Buffer.from(name)), 16),
         hexUtils.leftPad(hexUtils.toHex(protocol), 16),
+        hexUtils.rightPad(hexUtils.toHex(Buffer.from(name)), 16),
     );
 }
