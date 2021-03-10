@@ -35,6 +35,7 @@ import { assert } from '../utils/assert';
 import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
@@ -299,7 +300,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             transforms.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
-                    token: this.contractAddresses.etherToken,
+                    token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
                     amount: MAX_UINT256,
                 }),
             });
