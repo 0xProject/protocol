@@ -5,6 +5,8 @@ import { MarketOperation } from '../../types';
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
 import { DexSample, ERC20BridgeSource, ExchangeProxyOverhead, FeeSchedule, MultiHopFillData } from './types';
 
+// tslint:disable:no-bitwise
+
 /**
  * Returns the fee-adjusted rate of a two-hop quote. Returns zero if the
  * quote falls short of the target input.
@@ -22,7 +24,11 @@ export function getTwoHopAdjustedRate(
         return ZERO_AMOUNT;
     }
     const penalty = outputAmountPerEth.times(
-        exchangeProxyOverhead(SOURCE_FLAGS.MultiHop).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
+        exchangeProxyOverhead(
+            SOURCE_FLAGS.MultiHop |
+                SOURCE_FLAGS[twoHopQuote.fillData.firstHopSource.source] |
+                SOURCE_FLAGS[twoHopQuote.fillData.secondHopSource.source],
+        ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
     );
     const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
     return side === MarketOperation.Sell ? adjustedOutput.div(input) : input.div(adjustedOutput);
