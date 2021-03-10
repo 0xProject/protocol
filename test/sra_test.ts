@@ -59,7 +59,7 @@ describe(SUITE_NAME, () => {
 
     async function addNewOrderAsync(
         params: Partial<SignedLimitOrder> & { maker: string },
-        remainingFillableAssetAmount?: BigNumber,
+        remainingFillableAmount?: BigNumber,
     ): Promise<SRAOrder> {
         const validationResults = await meshUtils.addPartialOrdersAsync([
             {
@@ -74,10 +74,10 @@ describe(SUITE_NAME, () => {
 
         const order = validationResults.accepted[0].order;
         const apiOrder: SRAOrder = {
-            order: _.omit(order, ['fillableTakerAssetAmount', 'hash']),
+            order: _.omit(order, ['fillableTakerAssetAmount', 'hash']) as SignedLimitOrder,
             metaData: {
                 orderHash: order.hash,
-                remainingFillableTakerAssetAmount: remainingFillableAssetAmount || order.takerAmount,
+                remainingFillableTakerAmount: remainingFillableAmount || order.takerAmount,
             },
         };
 

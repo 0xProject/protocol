@@ -56,8 +56,8 @@ export class PersistentSignedOrderV4Entity {
     @Column({ name: 'signature', type: 'varchar' })
     public signature?: string;
 
-    @Column({ name: 'remaining_fillable_taker_asset_amount', type: 'varchar' })
-    public remainingFillableTakerAssetAmount?: string;
+    @Column({ name: 'remaining_fillable_taker_amount', type: 'varchar' })
+    public remainingFillableTakerAmount?: string;
 
     @Column({ name: 'state', type: 'enum', enum: OrderEventEndState, default: OrderEventEndState.Added })
     public orderState?: OrderEventEndState;
@@ -82,7 +82,7 @@ export class PersistentSignedOrderV4Entity {
             sender?: string;
             feeRecipient?: string;
             signature?: string;
-            remainingFillableTakerAssetAmount?: string;
+            remainingFillableTakerAmount?: string;
             orderState?: OrderEventEndState;
         } = {},
     ) {
@@ -101,7 +101,7 @@ export class PersistentSignedOrderV4Entity {
         this.sender = opts.sender;
         this.feeRecipient = opts.feeRecipient;
         this.signature = opts.signature;
-        this.remainingFillableTakerAssetAmount = opts.remainingFillableTakerAssetAmount;
+        this.remainingFillableTakerAmount = opts.remainingFillableTakerAmount;
         this.signature = opts.signature;
         this.orderState = opts.orderState || OrderEventEndState.Added;
     }

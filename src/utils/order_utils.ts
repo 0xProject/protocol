@@ -136,7 +136,7 @@ export const orderUtils = {
         const createdAt = (signedOrderEntity as PersistentSignedOrderV4Entity).createdAt;
         const metaData: SRAOrderMetaData = {
             orderHash: signedOrderEntity.hash,
-            remainingFillableTakerAssetAmount: new BigNumber(signedOrderEntity.remainingFillableTakerAssetAmount),
+            remainingFillableTakerAmount: new BigNumber(signedOrderEntity.remainingFillableTakerAmount),
             state,
             createdAt,
         };
@@ -167,7 +167,7 @@ export const orderUtils = {
             pool: signedOrder.pool,
             expiry: signedOrder.expiry.toString(),
             hash: apiOrder.metaData.orderHash,
-            remainingFillableTakerAssetAmount: apiOrder.metaData.remainingFillableTakerAssetAmount.toString(),
+            remainingFillableTakerAmount: apiOrder.metaData.remainingFillableTakerAmount.toString(),
         });
         return signedOrderEntity;
     },
@@ -207,7 +207,7 @@ export const orderUtils = {
             pool: signedOrder.pool,
             expiry: signedOrder.expiry.toString(),
             hash: apiOrder.metaData.orderHash,
-            remainingFillableTakerAssetAmount: apiOrder.metaData.remainingFillableTakerAssetAmount.toString(),
+            remainingFillableTakerAmount: apiOrder.metaData.remainingFillableTakerAmount.toString(),
             orderState: apiOrder.metaData.state || OrderEventEndState.Added,
         });
         return persistentOrder;

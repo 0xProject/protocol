@@ -52,8 +52,8 @@ export class SignedOrderV4Entity {
     @Column({ name: 'signature', type: 'varchar' })
     public signature?: string;
 
-    @Column({ name: 'remaining_fillable_taker_asset_amount', type: 'varchar' })
-    public remainingFillableTakerAssetAmount?: string;
+    @Column({ name: 'remaining_fillable_taker_amount', type: 'varchar' })
+    public remainingFillableTakerAmount?: string;
 
     @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
     public createdAt?: string;
@@ -74,7 +74,7 @@ export class SignedOrderV4Entity {
             sender?: string;
             feeRecipient?: string;
             signature?: string;
-            remainingFillableTakerAssetAmount?: string;
+            remainingFillableTakerAmount?: string;
         } = {},
     ) {
         this.hash = opts.hash;
@@ -92,7 +92,7 @@ export class SignedOrderV4Entity {
         this.sender = opts.sender;
         this.feeRecipient = opts.feeRecipient;
         this.signature = opts.signature;
-        this.remainingFillableTakerAssetAmount = opts.remainingFillableTakerAssetAmount;
+        this.remainingFillableTakerAmount = opts.remainingFillableTakerAmount;
         this.signature = opts.signature;
     }
 }

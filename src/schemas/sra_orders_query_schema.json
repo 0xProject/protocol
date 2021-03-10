@@ -44,7 +44,7 @@
         "feeRecipient": {
             "$ref": "/addressSchema"
         },
-        "remainingFillableAssetAmount": {
+        "remainingFillableTakerAmount": {
             "$ref": "/wholeNumberSchema"
         },
         "hash": {

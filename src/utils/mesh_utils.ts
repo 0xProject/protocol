@@ -42,7 +42,7 @@ export const meshUtils = {
     },
     orderEventToSRAOrder: (orderData: OrderEventV4): SRAOrder => {
         const order = meshUtils.orderWithMetadataToSignedOrder(orderData.orderv4);
-        const remainingFillableTakerAssetAmount = orderData.orderv4.fillableTakerAssetAmount;
+        const remainingFillableTakerAmount = orderData.orderv4.fillableTakerAssetAmount;
         const orderHash = orderData.orderv4.hash;
         const state = orderData.endState;
 
@@ -50,7 +50,7 @@ export const meshUtils = {
             order,
             metaData: {
                 orderHash,
-                remainingFillableTakerAssetAmount,
+                remainingFillableTakerAmount,
                 state,
             },
         };
@@ -60,12 +60,12 @@ export const meshUtils = {
     },
     orderInfoToSRAOrder: (orderData: OrderData): SRAOrder => {
         let order: SignedLimitOrder;
-        let remainingFillableTakerAssetAmount = ZERO;
+        let remainingFillableTakerAmount = ZERO;
         let orderHash: string;
         let state: OrderEventEndState | undefined;
         if (isOrderWithMetadata(orderData)) {
             order = meshUtils.orderWithMetadataToSignedOrder(orderData);
-            remainingFillableTakerAssetAmount = orderData.fillableTakerAssetAmount;
+            remainingFillableTakerAmount = orderData.fillableTakerAssetAmount;
             orderHash = orderData.hash;
         } else if (isRejectedOrderResult(orderData)) {
             order = orderData.order;
@@ -73,7 +73,7 @@ export const meshUtils = {
             state = meshUtils.rejectedCodeToOrderState(orderData.code);
         } else {
             order = meshUtils.orderWithMetadataToSignedOrder(orderData.order);
-            remainingFillableTakerAssetAmount = orderData.order.fillableTakerAssetAmount;
+            remainingFillableTakerAmount = orderData.order.fillableTakerAssetAmount;
             orderHash = orderData.order.hash;
             // For persistent orders we add an end state
             if (isAcceptedOrderWithEndState(orderData)) {
@@ -90,7 +90,7 @@ export const meshUtils = {
             order,
             metaData: {
                 orderHash,
-                remainingFillableTakerAssetAmount,
+                remainingFillableTakerAmount,
                 state,
             },
         };

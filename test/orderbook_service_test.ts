@@ -77,7 +77,7 @@ async function newSRAOrderAsync(
         },
         metaData: {
             orderHash: limitOrder.getHash(),
-            remainingFillableTakerAssetAmount: limitOrder.takerAmount,
+            remainingFillableTakerAmount: limitOrder.takerAmount,
             state: undefined,
             ...metadata,
         },
