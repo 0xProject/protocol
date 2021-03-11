@@ -58,6 +58,7 @@ import {
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
+const PANCAKE_SWAP_FORKS = [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.BakerySwap, ERC20BridgeSource.SushiSwap];
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly provider: ZeroExProvider;
@@ -133,10 +134,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // VIP routes.
         if (
-            isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [
-                ERC20BridgeSource.UniswapV2,
-                ERC20BridgeSource.SushiSwap,
-            ])
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
         ) {
             const source = quote.orders[0].source;
             const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
@@ -164,7 +163,44 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
+        if (
+            this.chainId === ChainId.BSC &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [
+                ERC20BridgeSource.PancakeSwap,
+                ERC20BridgeSource.BakerySwap,
+                ERC20BridgeSource.SushiSwap,
+            ])
+        ) {
+            const source = quote.orders[0].source;
+            const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToPancakeSwap(
+                        fillData.tokenAddressPath.map((a, i) => {
+                            if (i === 0 && isFromETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            if (i === fillData.tokenAddressPath.length - 1 && isToETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            return a;
+                        }),
+                        sellAmount,
+                        minBuyAmount,
+                        PANCAKE_SWAP_FORKS.indexOf(source),
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])
+        ) {
             const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
             const target = fillData.poolAddress;
             return {
@@ -187,10 +223,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
 
         if (
-            isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [
-                ERC20BridgeSource.Curve,
-                ERC20BridgeSource.Swerve,
-            ])
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])
         ) {
             const fillData = quote.orders[0].fills[0].fillData as CurveFillData;
             return {
@@ -217,7 +251,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [ERC20BridgeSource.Mooniswap])) {
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
+        ) {
             const fillData = quote.orders[0].fills[0].fillData as MooniswapFillData;
             return {
                 calldataHexString: this._exchangeProxy
@@ -393,7 +430,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
 function isDirectSwapCompatible(
     quote: SwapQuote,
-    chainId: ChainId,
     opts: ExchangeProxyContractOpts,
     directSources: ERC20BridgeSource[],
 ): boolean {
@@ -419,11 +455,6 @@ function isDirectSwapCompatible(
     }
     // VIP does not support selling the entire balance
     if (opts.shouldSellEntireBalance) {
-        return false;
-    }
-
-    // TODO Jacob refactor for other networks
-    if (chainId !== ChainId.Mainnet) {
         return false;
     }
 
