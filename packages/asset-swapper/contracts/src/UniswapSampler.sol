@@ -20,7 +20,6 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IUniswapExchangeQuotes.sol";
 import "./SamplerUtils.sol";
 
@@ -37,21 +36,20 @@ interface IUniswapExchangeFactory {
 
 
 contract UniswapSampler is
-    DeploymentConstants,
     SamplerUtils
 {
     /// @dev Gas limit for Uniswap calls.
     uint256 constant private UNISWAP_CALL_GAS = 150e3; // 150k
-    // @dev The BNB token is poisoned on uniswap v1.
-    address constant private BAD_MAKER_TOKEN = 0xB8c77482e45F1F44dE1745F52C74426C631bDD52;
 
     /// @dev Sample sell quotes from Uniswap.
+    /// @param router Address of the Uniswap Router
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromUniswap(
+        address router,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -63,23 +61,20 @@ contract UniswapSampler is
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
-        if (makerToken == BAD_MAKER_TOKEN) {
-            // BNB is poisoned on v1. You can only sell to it.
-            return makerTokenAmounts;
-        }
-        IUniswapExchangeQuotes takerTokenExchange = takerToken == _getWethAddress() ?
-            IUniswapExchangeQuotes(0) : _getUniswapExchange(takerToken);
-        IUniswapExchangeQuotes makerTokenExchange = makerToken == _getWethAddress() ?
-            IUniswapExchangeQuotes(0) : _getUniswapExchange(makerToken);
+
+        IUniswapExchangeQuotes takerTokenExchange = takerToken == address(0) ?
+            IUniswapExchangeQuotes(0) : _getUniswapExchange(router, takerToken);
+        IUniswapExchangeQuotes makerTokenExchange = makerToken == address(0) ?
+            IUniswapExchangeQuotes(0) : _getUniswapExchange(router, makerToken);
         for (uint256 i = 0; i < numSamples; i++) {
             bool didSucceed = true;
-            if (makerToken == _getWethAddress()) {
+            if (makerToken == address(0)) {
                 (makerTokenAmounts[i], didSucceed) = _callUniswapExchangePriceFunction(
                     address(takerTokenExchange),
                     takerTokenExchange.getTokenToEthInputPrice.selector,
                     takerTokenAmounts[i]
                 );
-            } else if (takerToken == _getWethAddress()) {
+            } else if (takerToken == address(0)) {
                 (makerTokenAmounts[i], didSucceed) = _callUniswapExchangePriceFunction(
                     address(makerTokenExchange),
                     makerTokenExchange.getEthToTokenInputPrice.selector,
@@ -102,7 +97,8 @@ contract UniswapSampler is
                     makerTokenAmounts[i] = 0;
                 }
             }
-            if (!didSucceed) {
+            // Break early if amounts are 0
+            if (!didSucceed || makerTokenAmounts[i] == 0) {
                 break;
             }
         }
@@ -115,6 +111,7 @@ contract UniswapSampler is
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromUniswap(
+        address router,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -126,23 +123,20 @@ contract UniswapSampler is
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
-        if (makerToken == BAD_MAKER_TOKEN) {
-            // BNB is poisoned on v1. You can only sell to it.
-            return takerTokenAmounts;
-        }
-        IUniswapExchangeQuotes takerTokenExchange = takerToken == _getWethAddress() ?
-            IUniswapExchangeQuotes(0) : _getUniswapExchange(takerToken);
-        IUniswapExchangeQuotes makerTokenExchange = makerToken == _getWethAddress() ?
-            IUniswapExchangeQuotes(0) : _getUniswapExchange(makerToken);
+
+        IUniswapExchangeQuotes takerTokenExchange = takerToken == address(0) ?
+            IUniswapExchangeQuotes(0) : _getUniswapExchange(router, takerToken);
+        IUniswapExchangeQuotes makerTokenExchange = makerToken == address(0) ?
+            IUniswapExchangeQuotes(0) : _getUniswapExchange(router, makerToken);
         for (uint256 i = 0; i < numSamples; i++) {
             bool didSucceed = true;
-            if (makerToken == _getWethAddress()) {
+            if (makerToken == address(0)) {
                 (takerTokenAmounts[i], didSucceed) = _callUniswapExchangePriceFunction(
                     address(takerTokenExchange),
                     takerTokenExchange.getTokenToEthOutputPrice.selector,
                     makerTokenAmounts[i]
                 );
-            } else if (takerToken == _getWethAddress()) {
+            } else if (takerToken == address(0)) {
                 (takerTokenAmounts[i], didSucceed) = _callUniswapExchangePriceFunction(
                     address(makerTokenExchange),
                     makerTokenExchange.getEthToTokenOutputPrice.selector,
@@ -165,7 +159,8 @@ contract UniswapSampler is
                     takerTokenAmounts[i] = 0;
                 }
             }
-            if (!didSucceed) {
+            // Break early if amounts are 0
+            if (!didSucceed || takerTokenAmounts[i] == 0) {
                 break;
             }
         }
@@ -203,15 +198,16 @@ contract UniswapSampler is
 
     /// @dev Retrive an existing Uniswap exchange contract.
     ///      Throws if the exchange does not exist.
+    /// @param router Address of the Uniswap router.
     /// @param tokenAddress Address of the token contract.
     /// @return exchange `IUniswapExchangeQuotes` for the token.
-    function _getUniswapExchange(address tokenAddress)
+    function _getUniswapExchange(address router, address tokenAddress)
         private
         view
         returns (IUniswapExchangeQuotes exchange)
     {
         exchange = IUniswapExchangeQuotes(
-            address(IUniswapExchangeFactory(_getUniswapExchangeFactoryAddress())
+            address(IUniswapExchangeFactory(router)
             .getExchange(tokenAddress))
         );
     }

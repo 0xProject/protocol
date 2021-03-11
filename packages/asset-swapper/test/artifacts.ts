@@ -10,7 +10,6 @@ import * as BalanceChecker from '../test/generated-artifacts/BalanceChecker.json
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
-import * as DeploymentConstants from '../test/generated-artifacts/DeploymentConstants.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
 import * as DummyLiquidityProvider from '../test/generated-artifacts/DummyLiquidityProvider.json';
@@ -36,7 +35,6 @@ import * as MultiBridgeSampler from '../test/generated-artifacts/MultiBridgeSamp
 import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSampler.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
-import * as SushiSwapSampler from '../test/generated-artifacts/SushiSwapSampler.json';
 import * as TestERC20BridgeSampler from '../test/generated-artifacts/TestERC20BridgeSampler.json';
 import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
@@ -51,7 +49,6 @@ export const artifacts = {
     CurveSampler: CurveSampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,
     DODOV2Sampler: DODOV2Sampler as ContractArtifact,
-    DeploymentConstants: DeploymentConstants as ContractArtifact,
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     Eth2DaiSampler: Eth2DaiSampler as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,
@@ -63,7 +60,6 @@ export const artifacts = {
     NativeOrderSampler: NativeOrderSampler as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
-    SushiSwapSampler: SushiSwapSampler as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,

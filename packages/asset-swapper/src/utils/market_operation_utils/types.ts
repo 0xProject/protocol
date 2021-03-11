@@ -58,6 +58,9 @@ export enum ERC20BridgeSource {
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
     Linkswap = 'Linkswap',
+    // Other
+    PancakeSwap = 'PancakeSwap',
+    BakerySwap = 'BakerySwap',
 }
 
 // tslint:disable: enum-naming
@@ -132,8 +135,6 @@ export interface UniswapV2FillData extends FillData {
     router: string;
 }
 
-export interface SushiSwapFillData extends UniswapV2FillData {}
-
 export interface ShellFillData extends FillData {
     poolAddress: string;
 }
@@ -151,6 +152,7 @@ export interface BancorFillData extends FillData {
 export interface KyberFillData extends FillData {
     hint: string;
     reserveId: string;
+    networkProxy: string;
 }
 
 export interface MooniswapFillData extends FillData {
@@ -160,7 +162,13 @@ export interface MooniswapFillData extends FillData {
 export interface DODOFillData extends FillData {
     poolAddress: string;
     isSellBase: boolean;
+    helperAddress: string;
 }
+
+export interface GenericRouterFillData extends FillData {
+    router: string;
+}
+
 export interface MultiHopFillData extends FillData {
     firstHopSource: SourceQuoteOperation;
     secondHopSource: SourceQuoteOperation;
@@ -439,4 +447,10 @@ export interface GenerateOptimizedOrdersOpts {
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
+}
+
+export interface KyberSamplerOpts {
+    networkProxy: string;
+    hintHandler: string;
+    weth: string;
 }

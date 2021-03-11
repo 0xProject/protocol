@@ -1,6 +1,5 @@
-import { ContractAddresses } from '@0x/contract-addresses';
-import { WETH9Contract } from '@0x/contracts-erc20';
-import { IZeroExContract, MultiplexFeatureContract } from '@0x/contracts-zero-ex';
+import { ChainId, ContractAddresses } from '@0x/contract-addresses';
+import { IZeroExContract, MultiplexFeatureContract } from '@0x/contract-wrappers';
 import {
     encodeAffiliateFeeTransformerData,
     encodeCurveLiquidityProviderData,
@@ -34,6 +33,7 @@ import { assert } from '../utils/assert';
 import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
 import {
     createBridgeDataForBridgeOrder,
@@ -69,7 +69,7 @@ const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly provider: ZeroExProvider;
-    public readonly chainId: number;
+    public readonly chainId: ChainId;
     public readonly transformerNonces: {
         wethTransformer: number;
         payTakerTransformer: number;
@@ -143,7 +143,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // VIP routes.
         if (
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
+            isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [
+                ERC20BridgeSource.UniswapV2,
+                ERC20BridgeSource.SushiSwap,
+            ])
         ) {
             const source = quote.orders[0].source;
             const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
@@ -171,7 +174,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
+        if (isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
             const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
             const target = fillData.poolAddress;
             return {
@@ -193,7 +196,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])) {
+        if (
+            isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [
+                ERC20BridgeSource.Curve,
+                ERC20BridgeSource.Swerve,
+            ])
+        ) {
             const fillData = quote.orders[0].fills[0].fillData as CurveFillData;
             return {
                 calldataHexString: this._exchangeProxy
@@ -219,7 +227,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])) {
+        if (isDirectSwapCompatible(quote, this.chainId, optsWithDefaults, [ERC20BridgeSource.Mooniswap])) {
             const fillData = quote.orders[0].fills[0].fillData as MooniswapFillData;
             return {
                 calldataHexString: this._exchangeProxy
@@ -321,7 +329,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             transforms.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
-                    token: this.contractAddresses.etherToken,
+                    token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
                     amount: MAX_UINT256,
                 }),
             });

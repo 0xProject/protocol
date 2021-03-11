@@ -19,11 +19,12 @@ import {
 import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
 import { getComparisonPrices } from './comparison_price';
 import {
-    BUY_SOURCE_FILTER,
+    BUY_SOURCE_FILTER_BY_CHAIN_ID,
     DEFAULT_GET_MARKET_ORDERS_OPTS,
-    FEE_QUOTE_SOURCES,
-    ONE_ETHER,
-    SELL_SOURCE_FILTER,
+    FEE_QUOTE_SOURCES_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
@@ -50,10 +51,11 @@ import {
 // tslint:disable:boolean-naming
 
 export class MarketOperationUtils {
-    private readonly _wethAddress: string;
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
-    private readonly _feeSources = new SourceFilters(FEE_QUOTE_SOURCES);
+    private readonly _feeSources: SourceFilters;
+    private readonly _nativeFeeToken: string;
+    private readonly _nativeFeeTokenAmount: BigNumber;
 
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
@@ -71,9 +73,11 @@ export class MarketOperationUtils {
         private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
     ) {
-        this._wethAddress = contractAddresses.etherToken.toLowerCase();
-        this._buySources = BUY_SOURCE_FILTER;
-        this._sellSources = SELL_SOURCE_FILTER;
+        this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
+        this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
+        this._feeSources = new SourceFilters(FEE_QUOTE_SOURCES_BY_CHAIN_ID[_sampler.chainId]);
+        this._nativeFeeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[_sampler.chainId];
+        this._nativeFeeTokenAmount = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[_sampler.chainId];
     }
 
     /**
@@ -128,9 +132,19 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                makerToken,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
+            ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                takerToken,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
+            ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
@@ -254,9 +268,19 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, makerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                makerToken,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
+            ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(feeSourceFilters.sources, takerToken, this._wethAddress, ONE_ETHER),
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                takerToken,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
+            ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
                 quoteSourceFilters.exclude(offChainSources).sources,
@@ -362,8 +386,8 @@ export class MarketOperationUtils {
                 this._sampler.getMedianSellRate(
                     feeSourceFilters.sources,
                     orders[0].order.takerToken,
-                    this._wethAddress,
-                    ONE_ETHER,
+                    this._nativeFeeToken,
+                    this._nativeFeeTokenAmount,
                 ),
             ),
             ...batchNativeOrders.map((orders, i) =>

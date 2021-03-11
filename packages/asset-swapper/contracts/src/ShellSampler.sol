@@ -20,11 +20,9 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IShell.sol";
 
-contract ShellSampler is
-    DeploymentConstants
+contract ShellSampler
 {
     /// @dev Default gas limit for Shell calls.
     uint256 constant private DEFAULT_CALL_GAS = 300e3; // 300k
@@ -58,6 +56,10 @@ contract ShellSampler is
                 returns (uint256 amount)
             {
                 makerTokenAmounts[i] = amount;
+                // Break early if there are 0 amounts
+                if (makerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
@@ -94,6 +96,10 @@ contract ShellSampler is
                 returns (uint256 amount)
             {
                 takerTokenAmounts[i] = amount;
+                // Break early if there are 0 amounts
+                if (takerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
