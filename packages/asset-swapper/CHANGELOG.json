@@ -5,6 +5,14 @@
             {
                 "note": "Use new bridge source ID encoding.",
                 "pr": 162
+            },
+            {
+                "note": "Refactor to provide chain id specific addresses",
+                "pr": 163
+            },
+            {
+                "note": "Added PancakeSwap and BakerySwap on Chain 56",
+                "pr": 163
             }
         ]
     },

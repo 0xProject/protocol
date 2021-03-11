@@ -20,21 +20,23 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IBancor.sol";
 
+contract DeploymentConstants {}
 
-
-contract BancorSampler is
-        DeploymentConstants
+contract BancorSampler is DeploymentConstants
 {
 
     /// @dev Base gas limit for Bancor calls.
     uint256 constant private BANCOR_CALL_GAS = 300e3; // 300k
-    address constant private BANCOR_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
+    struct BancorSamplerOpts {
+        address registry;
+        address[][] paths;
+    }
 
     /// @dev Sample sell quotes from Bancor.
-    /// @param paths The paths to check for Bancor. Only the best is used
+    /// @param opts BancorSamplerOpts The Bancor registry contract address and paths
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
@@ -43,7 +45,7 @@ contract BancorSampler is
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromBancor(
-        address[][] memory paths,
+        BancorSamplerOpts memory opts,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -52,38 +54,13 @@ contract BancorSampler is
         view
         returns (address bancorNetwork, address[] memory path, uint256[] memory makerTokenAmounts)
     {
-        bancorNetwork = _getBancorNetwork();
-        if (paths.length == 0) {
+        if (opts.paths.length == 0) {
             return (bancorNetwork, path, makerTokenAmounts);
         }
-        uint256 maxBoughtAmount = 0;
-        // Find the best path by selling the largest taker amount
-        for (uint256 i = 0; i < paths.length; i++) {
-            if (paths[i].length < 2) {
-                continue;
-            }
+        (bancorNetwork, path) = _findBestPath(opts, takerToken, makerToken, takerTokenAmounts);
+        makerTokenAmounts = new uint256[](takerTokenAmounts.length);
 
-            try
-                IBancorNetwork(bancorNetwork)
-                    .rateByPath
-                        {gas: BANCOR_CALL_GAS}
-                        (paths[i], takerTokenAmounts[takerTokenAmounts.length-1])
-                returns (uint256 amount)
-            {
-                if (amount > maxBoughtAmount) {
-                    maxBoughtAmount = amount;
-                    path = paths[i];
-                }
-            } catch {
-                // Swallow failures, leaving all results as zero.
-                continue;
-            }
-        }
-
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
-
-        for (uint256 i = 0; i < numSamples; i++) {
+        for (uint256 i = 0; i < makerTokenAmounts.length; i++) {
             try
                 IBancorNetwork(bancorNetwork)
                     .rateByPath
@@ -92,6 +69,10 @@ contract BancorSampler is
                 returns (uint256 amount)
             {
                 makerTokenAmounts[i] = amount;
+                // Break early if there are 0 amounts
+                if (makerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch {
                 // Swallow failures, leaving all results as zero.
                 break;
@@ -101,7 +82,7 @@ contract BancorSampler is
     }
 
     /// @dev Sample buy quotes from Bancor. Unimplemented
-    /// @param paths The paths to check for Bancor. Only the best is used
+    /// @param opts BancorSamplerOpts The Bancor registry contract address and paths
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
@@ -110,7 +91,7 @@ contract BancorSampler is
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromBancor(
-        address[][] memory paths,
+        BancorSamplerOpts memory opts,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -121,12 +102,51 @@ contract BancorSampler is
     {
     }
 
-    function _getBancorNetwork()
+    function _findBestPath(
+        BancorSamplerOpts memory opts,
+        address takerToken,
+        address makerToken,
+        uint256[] memory takerTokenAmounts
+    )
+        internal
+        view
+        returns (address bancorNetwork, address[] memory path)
+    {
+        bancorNetwork = _getBancorNetwork(opts.registry);
+        if (opts.paths.length == 0) {
+            return (bancorNetwork, path);
+        }
+        uint256 maxBoughtAmount = 0;
+        // Find the best path by selling the largest taker amount
+        for (uint256 i = 0; i < opts.paths.length; i++) {
+            if (opts.paths[i].length < 2) {
+                continue;
+            }
+
+            try
+                IBancorNetwork(bancorNetwork)
+                    .rateByPath
+                        {gas: BANCOR_CALL_GAS}
+                        (opts.paths[i], takerTokenAmounts[takerTokenAmounts.length-1])
+                returns (uint256 amount)
+            {
+                if (amount > maxBoughtAmount) {
+                    maxBoughtAmount = amount;
+                    path = opts.paths[i];
+                }
+            } catch {
+                // Swallow failures, leaving all results as zero.
+                continue;
+            }
+        }
+    }
+
+    function _getBancorNetwork(address registry)
         private
         view
         returns (address)
     {
-        IBancorRegistry registry = IBancorRegistry(_getBancorRegistryAddress());
+        IBancorRegistry registry = IBancorRegistry(registry);
         return registry.getAddress(registry.BANCOR_NETWORK());
     }
 }

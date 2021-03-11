@@ -3,15 +3,7 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
-import {
-    MAINNET_DODO_HELPER,
-    MAINNET_KYBER_NETWORK_PROXY,
-    MAINNET_MSTABLE_ROUTER,
-    MAINNET_OASIS_ROUTER,
-    MAINNET_UNISWAP_V1_ROUTER,
-    MAX_UINT256,
-    ZERO_AMOUNT,
-} from './constants';
+import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
@@ -21,6 +13,7 @@ import {
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    GenericRouterFillData,
     KyberFillData,
     LiquidityProviderFillData,
     MooniswapFillData,
@@ -34,7 +27,6 @@ import {
     OrderDomain,
     ShellFillData,
     SnowSwapFillData,
-    SushiSwapFillData,
     SwerveFillData,
     UniswapV2FillData,
 } from './types';
@@ -122,6 +114,10 @@ export function erc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): stri
             return encodeBridgeSourceId(BridgeProtocol.DodoV2, 'DodoV2');
         case ERC20BridgeSource.Linkswap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Linkswap');
+        case ERC20BridgeSource.PancakeSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'PancakeSwap');
+        case ERC20BridgeSource.BakerySwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BakerySwap');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -169,13 +165,14 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.SushiSwap:
         case ERC20BridgeSource.CryptoCom:
         case ERC20BridgeSource.Linkswap:
-            const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData | SushiSwapFillData>)
-                .fillData;
+        case ERC20BridgeSource.PancakeSwap:
+        case ERC20BridgeSource.BakerySwap:
+            const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
         case ERC20BridgeSource.Kyber:
             const kyberFillData = (order as OptimizedMarketBridgeOrder<KyberFillData>).fillData;
-            bridgeData = encoder.encode([MAINNET_KYBER_NETWORK_PROXY, kyberFillData.hint]);
+            bridgeData = encoder.encode([kyberFillData.networkProxy, kyberFillData.hint]);
             break;
         case ERC20BridgeSource.Mooniswap:
             const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
@@ -183,7 +180,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Dodo:
             const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
-            bridgeData = encoder.encode([MAINNET_DODO_HELPER, dodoFillData.poolAddress, dodoFillData.isSellBase]);
+            bridgeData = encoder.encode([
+                dodoFillData.helperAddress,
+                dodoFillData.poolAddress,
+                dodoFillData.isSellBase,
+            ]);
             break;
         case ERC20BridgeSource.DodoV2:
             const dodoV2FillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
@@ -198,13 +199,16 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([lpFillData.poolAddress, tokenAddressEncoder.encode([order.takerToken])]);
             break;
         case ERC20BridgeSource.Uniswap:
-            bridgeData = encoder.encode([MAINNET_UNISWAP_V1_ROUTER]);
+            const uniFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
+            bridgeData = encoder.encode([uniFillData.router]);
             break;
         case ERC20BridgeSource.Eth2Dai:
-            bridgeData = encoder.encode([MAINNET_OASIS_ROUTER]);
+            const oasisFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
+            bridgeData = encoder.encode([oasisFillData.router]);
             break;
         case ERC20BridgeSource.MStable:
-            bridgeData = encoder.encode([MAINNET_MSTABLE_ROUTER]);
+            const mStableFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
+            bridgeData = encoder.encode([mStableFillData.router]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -289,6 +293,9 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Balancer]: poolEncoder,
     [ERC20BridgeSource.Cream]: poolEncoder,
     [ERC20BridgeSource.Uniswap]: poolEncoder,
+    // BSC
+    [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.BakerySwap]: routerAddressPathEncoder,
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

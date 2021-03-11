@@ -1,9 +1,10 @@
 import { ContractTxFunctionObj } from '@0x/base-contract';
 import { constants } from '@0x/contracts-test-utils';
 import { LimitOrderFields, Signature } from '@0x/protocol-utils';
-import { BigNumber, hexUtils } from '@0x/utils';
+import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 
 import { SamplerCallResult } from '../../src/types';
+import { KyberSamplerOpts } from '../../src/utils/market_operation_utils/types';
 import { ERC20BridgeSamplerContract } from '../../src/wrappers';
 
 export type GetOrderFillableAssetAmountResult = BigNumber[];
@@ -14,18 +15,32 @@ export type GetOrderFillableAssetAmountHandler = (
 ) => GetOrderFillableAssetAmountResult;
 
 export type SampleResults = BigNumber[];
-export type SampleSellsHandler = (
+export type SampleSellsUniswapHandler = (
+    router: string,
     takerToken: string,
     makerToken: string,
     takerTokenAmounts: BigNumber[],
 ) => SampleResults;
-export type SampleBuysHandler = (
+export type SampleBuysUniswapHandler = (
+    router: string,
+    takerToken: string,
+    makerToken: string,
+    makerTokenAmounts: BigNumber[],
+) => SampleResults;
+export type SampleSellsEth2DaiHandler = (
+    router: string,
+    takerToken: string,
+    makerToken: string,
+    takerTokenAmounts: BigNumber[],
+) => SampleResults;
+export type SampleBuysEth2DaiHandler = (
+    router: string,
     takerToken: string,
     makerToken: string,
     makerTokenAmounts: BigNumber[],
 ) => SampleResults;
 export type SampleSellsKyberHandler = (
-    reserveOffset: BigNumber,
+    opts: KyberSamplerOpts,
     takerToken: string,
     makerToken: string,
     takerTokenAmounts: BigNumber[],
@@ -57,11 +72,11 @@ interface Handlers {
     getLimitOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     sampleSellsFromKyberNetwork: SampleSellsKyberHandler;
     sampleSellsFromLiquidityProvider: SampleSellsLPHandler;
-    sampleSellsFromEth2Dai: SampleSellsHandler;
-    sampleSellsFromUniswap: SampleSellsHandler;
+    sampleSellsFromEth2Dai: SampleSellsEth2DaiHandler;
+    sampleSellsFromUniswap: SampleSellsUniswapHandler;
     sampleSellsFromUniswapV2: SampleUniswapV2Handler;
-    sampleBuysFromEth2Dai: SampleBuysHandler;
-    sampleBuysFromUniswap: SampleBuysHandler;
+    sampleBuysFromEth2Dai: SampleBuysEth2DaiHandler;
+    sampleBuysFromUniswap: SampleBuysUniswapHandler;
     sampleBuysFromUniswapV2: SampleUniswapV2Handler;
     sampleBuysFromLiquidityProvider: SampleSellsLPHandler;
 }
@@ -111,7 +126,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     }
 
     public sampleSellsFromKyberNetwork(
-        reserveOffset: BigNumber,
+        opts: KyberSamplerOpts,
         takerToken: string,
         makerToken: string,
         takerAssetAmounts: BigNumber[],
@@ -119,7 +134,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         return this._wrapCall(
             super.sampleSellsFromKyberNetwork,
             this._handlers.sampleSellsFromKyberNetwork,
-            reserveOffset,
+            { ...opts, reserveOffset: new BigNumber(1), hint: NULL_BYTES },
             takerToken,
             makerToken,
             takerAssetAmounts,
@@ -127,6 +142,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     }
 
     public sampleSellsFromEth2Dai(
+        router: string,
         takerToken: string,
         makerToken: string,
         takerAssetAmounts: BigNumber[],
@@ -134,6 +150,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         return this._wrapCall(
             super.sampleSellsFromEth2Dai,
             this._handlers.sampleSellsFromEth2Dai,
+            router,
             takerToken,
             makerToken,
             takerAssetAmounts,
@@ -141,6 +158,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     }
 
     public sampleSellsFromUniswap(
+        router: string,
         takerToken: string,
         makerToken: string,
         takerAssetAmounts: BigNumber[],
@@ -148,6 +166,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         return this._wrapCall(
             super.sampleSellsFromUniswap,
             this._handlers.sampleSellsFromUniswap,
+            router,
             takerToken,
             makerToken,
             takerAssetAmounts,
@@ -185,6 +204,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     }
 
     public sampleBuysFromEth2Dai(
+        router: string,
         takerToken: string,
         makerToken: string,
         makerAssetAmounts: BigNumber[],
@@ -192,6 +212,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         return this._wrapCall(
             super.sampleBuysFromEth2Dai,
             this._handlers.sampleBuysFromEth2Dai,
+            router,
             takerToken,
             makerToken,
             makerAssetAmounts,
@@ -199,6 +220,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     }
 
     public sampleBuysFromUniswap(
+        router: string,
         takerToken: string,
         makerToken: string,
         makerAssetAmounts: BigNumber[],
@@ -206,6 +228,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         return this._wrapCall(
             super.sampleBuysFromUniswap,
             this._handlers.sampleBuysFromUniswap,
+            router,
             takerToken,
             makerToken,
             makerAssetAmounts,

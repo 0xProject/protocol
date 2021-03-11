@@ -20,7 +20,6 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
@@ -39,15 +38,19 @@ interface IDODO {
 }
 
 contract DODOSampler is
-    DeploymentConstants,
     SamplerUtils,
     ApproximateBuys
 {
 
     /// @dev Gas limit for DODO calls.
     uint256 constant private DODO_CALL_GAS = 300e3; // 300k
+    struct DODOSamplerOpts {
+        address registry;
+        address helper;
+    }
 
     /// @dev Sample sell quotes from DODO.
+    /// @param opts DODOSamplerOpts DODO Registry and helper addresses
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
@@ -56,6 +59,7 @@ contract DODOSampler is
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromDODO(
+        DODOSamplerOpts memory opts,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -68,14 +72,14 @@ contract DODOSampler is
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
 
-        pool = IDODOZoo(_getDODORegistryAddress()).getDODO(takerToken, makerToken);
+        pool = IDODOZoo(opts.registry).getDODO(takerToken, makerToken);
         address baseToken;
         // If pool exists we have the correct order of Base/Quote
         if (pool != address(0)) {
             baseToken = takerToken;
             sellBase = true;
         } else {
-            pool = IDODOZoo(_getDODORegistryAddress()).getDODO(makerToken, takerToken);
+            pool = IDODOZoo(opts.registry).getDODO(makerToken, takerToken);
             // No pool either direction
             if (address(pool) == address(0)) {
                 return (sellBase, pool, makerTokenAmounts);
@@ -91,19 +95,20 @@ contract DODOSampler is
 
         for (uint256 i = 0; i < numSamples; i++) {
             uint256 buyAmount = _sampleSellForApproximateBuyFromDODO(
-                abi.encode(takerToken, pool, baseToken), // taker token data
-                abi.encode(makerToken, pool, baseToken), // maker token data
+                abi.encode(takerToken, pool, baseToken, opts.helper), // taker token data
+                abi.encode(makerToken, pool, baseToken, opts.helper), // maker token data
                 takerTokenAmounts[i]
             );
-            // Exit early if the amount is too high for the source to serve
-            if (buyAmount == 0) {
+            makerTokenAmounts[i] = buyAmount;
+            // Break early if there are 0 amounts
+            if (makerTokenAmounts[i] == 0) {
                 break;
             }
-            makerTokenAmounts[i] = buyAmount;
         }
     }
 
     /// @dev Sample buy quotes from DODO.
+    /// @param opts DODOSamplerOpts DODO Registry and helper addresses
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token sell amount for each sample.
@@ -112,6 +117,7 @@ contract DODOSampler is
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromDODO(
+        DODOSamplerOpts memory opts,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -126,7 +132,7 @@ contract DODOSampler is
 
         // Pool is BASE/QUOTE
         // Look up the pool from the taker/maker combination
-        pool = IDODOZoo(_getDODORegistryAddress()).getDODO(takerToken, makerToken);
+        pool = IDODOZoo(opts.registry).getDODO(takerToken, makerToken);
         address baseToken;
         // If pool exists we have the correct order of Base/Quote
         if (pool != address(0)) {
@@ -134,7 +140,7 @@ contract DODOSampler is
             sellBase = true;
         } else {
             // Look up the pool from the maker/taker combination
-            pool = IDODOZoo(_getDODORegistryAddress()).getDODO(makerToken, takerToken);
+            pool = IDODOZoo(opts.registry).getDODO(makerToken, takerToken);
             // No pool either direction
             if (address(pool) == address(0)) {
                 return (sellBase, pool, takerTokenAmounts);
@@ -150,8 +156,8 @@ contract DODOSampler is
 
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(makerToken, pool, baseToken),
-                takerTokenData: abi.encode(takerToken, pool, baseToken),
+                makerTokenData: abi.encode(makerToken, pool, baseToken, opts.helper),
+                takerTokenData: abi.encode(takerToken, pool, baseToken, opts.helper),
                 getSellQuoteCallback: _sampleSellForApproximateBuyFromDODO
             }),
             makerTokenAmounts
@@ -167,9 +173,9 @@ contract DODOSampler is
         view
         returns (uint256)
     {
-        (address takerToken, address pool, address baseToken) = abi.decode(
+        (address takerToken, address pool, address baseToken, address helper) = abi.decode(
             takerTokenData,
-            (address, address, address)
+            (address, address, address, address)
         );
 
         // We will get called to sell both the taker token and also to sell the maker token
@@ -189,7 +195,7 @@ contract DODOSampler is
         } else {
             // If quote token then use helper, this is less accurate
             try
-                IDODOHelper(_getDODOHelperAddress()).querySellQuoteToken
+                IDODOHelper(helper).querySellQuoteToken
                     {gas: DODO_CALL_GAS}
                     (pool, sellAmount)
                 returns (uint256 amount)

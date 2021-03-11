@@ -33,7 +33,6 @@ import "./MStableSampler.sol";
 import "./MooniswapSampler.sol";
 import "./NativeOrderSampler.sol";
 import "./ShellSampler.sol";
-import "./SushiSwapSampler.sol";
 import "./TwoHopSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
@@ -54,7 +53,6 @@ contract ERC20BridgeSampler is
     MultiBridgeSampler,
     NativeOrderSampler,
     ShellSampler,
-    SushiSwapSampler,
     TwoHopSampler,
     UniswapSampler,
     UniswapV2Sampler,

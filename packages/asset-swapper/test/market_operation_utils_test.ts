@@ -19,9 +19,9 @@ import { NativeOrderWithFillableAmounts } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
 import {
-    BUY_SOURCE_FILTER,
+    BUY_SOURCE_FILTER_BY_CHAIN_ID,
     POSITIVE_INF,
-    SELL_SOURCE_FILTER,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
 } from '../src/utils/market_operation_utils/constants';
 import { CreamPoolsCache } from '../src/utils/market_operation_utils/cream_utils';
@@ -65,9 +65,11 @@ const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.CryptoCom,
     ERC20BridgeSource.Linkswap,
+    ERC20BridgeSource.PancakeSwap,
+    ERC20BridgeSource.BakerySwap,
 ];
-const BUY_SOURCES = BUY_SOURCE_FILTER.sources;
-const SELL_SOURCES = SELL_SOURCE_FILTER.sources;
+const BUY_SOURCES = BUY_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
+const SELL_SOURCES = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
 const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = { default: [] };
 
 const SIGNATURE = { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign };
@@ -298,6 +300,8 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.DodoV2]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.CryptoCom]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.Linkswap]: _.times(NUM_SAMPLES, () => 0),
+        [ERC20BridgeSource.PancakeSwap]: _.times(NUM_SAMPLES, () => 0),
+        [ERC20BridgeSource.BakerySwap]: _.times(NUM_SAMPLES, () => 0),
     };
 
     const DEFAULT_RATES: RatesBySource = {
@@ -315,7 +319,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.UniswapV2]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Balancer]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Bancor]: { path: [], networkAddress: randomAddress() },
-        [ERC20BridgeSource.Kyber]: { hint: '0x', reserveId: '0x' },
+        [ERC20BridgeSource.Kyber]: { hint: '0x', reserveId: '0x', networkAddress: randomAddress() },
         [ERC20BridgeSource.Curve]: {
             pool: {
                 poolAddress: randomAddress(),
@@ -360,6 +364,8 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.DodoV2]: {},
         [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Linkswap]: { tokenAddressPath: [] },
+        [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
+        [ERC20BridgeSource.Eth2Dai]: { router: randomAddress() },
     };
 
     const DEFAULT_OPS = {
@@ -438,6 +444,7 @@ describe('MarketOperationUtils tests', () => {
         balancerPoolsCache: new BalancerPoolsCache(),
         creamPoolsCache: new CreamPoolsCache(),
         liquidityProviderRegistry: {},
+        chainId: CHAIN_ID,
     } as any) as DexOrderSampler;
 
     function replaceSamplerOps(ops: Partial<typeof DEFAULT_OPS> = {}): void {
