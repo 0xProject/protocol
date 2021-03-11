@@ -52,6 +52,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     rfqt: {
         takerApiKeyWhitelist: [],
         makerAssetOfferings: {},
+        txOriginBlacklist: [],
     },
     tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH,
 };

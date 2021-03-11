@@ -286,6 +286,7 @@ export interface RfqtFirmQuoteValidator {
 export interface SwapQuoterRfqtOpts {
     takerApiKeyWhitelist: string[];
     makerAssetOfferings: RfqtMakerAssetOfferings;
+    txOriginBlacklist: string[];
     altRfqCreds?: {
         altRfqApiKey: string;
         altRfqProfile: string;
