@@ -10,6 +10,7 @@ import {
     AltRfqtMakerAssetOfferings,
     LogFunction,
     MarketOperation,
+    RfqmMakerAssetOfferings,
     RfqPairType,
     RfqtMakerAssetOfferings,
     RfqtRequestOpts,
@@ -83,6 +84,7 @@ export class QuoteRequestor {
         sellTokenAddress: string, // taker token
         assetFillAmount: BigNumber,
         comparisonPrice?: BigNumber,
+        isLastLook?: boolean,
     ): TakerRequestQueryParams {
         const { buyAmountBaseUnits, sellAmountBaseUnits } =
             marketOperation === MarketOperation.Buy
@@ -97,13 +99,20 @@ export class QuoteRequestor {
 
         const requestParamsWithBigNumbers: Pick<
             TakerRequestQueryParams,
-            'buyTokenAddress' | 'sellTokenAddress' | 'txOrigin' | 'comparisonPrice' | 'protocolVersion' | 'takerAddress'
+            | 'txOrigin'
+            | 'takerAddress'
+            | 'buyTokenAddress'
+            | 'sellTokenAddress'
+            | 'comparisonPrice'
+            | 'isLastLook'
+            | 'protocolVersion'
         > = {
             txOrigin,
             takerAddress,
-            comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
             buyTokenAddress,
             sellTokenAddress,
+            comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
+            isLastLook: Boolean(isLastLook).toString(),
             protocolVersion: '4',
         };
 
@@ -126,6 +135,7 @@ export class QuoteRequestor {
 
     constructor(
         private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
+        private readonly _rfqmAssetOfferings: RfqmMakerAssetOfferings,
         private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
@@ -133,6 +143,32 @@ export class QuoteRequestor {
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
+    }
+
+    public async requestRfqmFirmQuotesAsync(
+        makerToken: string, // maker token
+        takerToken: string, // taker token
+        assetFillAmount: BigNumber,
+        marketOperation: MarketOperation,
+        comparisonPrice: BigNumber | undefined,
+        options: RfqtRequestOpts,
+    ): Promise<SignedNativeOrder[]> {
+        // TODO: implementation
+        this._infoLogger({}, 'TODO');
+        return [];
+    }
+
+    public async requestRfqmIndicativeQuotesAsync(
+        makerToken: string,
+        takerToken: string,
+        assetFillAmount: BigNumber,
+        marketOperation: MarketOperation,
+        comparisonPrice: BigNumber | undefined,
+        options: RfqtRequestOpts,
+    ): Promise<V4RFQIndicativeQuote[]> {
+        // TODO: implementation
+        this._infoLogger({}, 'TODO');
+        return [];
     }
 
     public async requestRfqtFirmQuotesAsync(
@@ -356,14 +392,17 @@ export class QuoteRequestor {
         options: RfqtRequestOpts,
         quoteType: 'firm' | 'indicative',
     ): Promise<Array<RfqQuote<ResponseT>>> {
+        const isRFQM = Boolean(options.isLastLook); // presently, a sufficient check to determine if this is RFQM
+
         const requestParams = QuoteRequestor.makeQueryParameters(
-            options.txOrigin,
+            isRFQM ? 'TODO: registry address' : options.txOrigin,
             options.takerAddress,
             marketOperation,
             makerToken,
             takerToken,
             assetFillAmount,
             comparisonPrice,
+            options.isLastLook,
         );
 
         const quotePath = (() => {
@@ -377,7 +416,9 @@ export class QuoteRequestor {
             }
         })();
 
-        const standardUrls = Object.keys(this._rfqtAssetOfferings).map(
+        const assetOfferings = isRFQM ? this._rfqmAssetOfferings : this._rfqtAssetOfferings;
+
+        const standardUrls = Object.keys(assetOfferings).map(
             (mm: string): TypedMakerUrl => {
                 return { pairType: RfqPairType.Standard, url: mm };
             },

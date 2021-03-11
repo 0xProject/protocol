@@ -240,6 +240,7 @@ export interface RfqtRequestOpts {
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQT?: boolean;
     altRfqtAssetOfferings?: AltRfqtMakerAssetOfferings;
+    isLastLook?: boolean; // TODO - rename this type to RfqRequestOpts
 }
 
 /**
@@ -255,6 +256,11 @@ export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
  * The value type represents an array of supported asset pairs, with each array element encoded as a 2-element array of token addresses.
  */
 export interface RfqtMakerAssetOfferings {
+    [endpoint: string]: Array<[string, string]>;
+}
+
+// TODO: Merge w/RfqtMakerAssetOfferings
+export interface RfqmMakerAssetOfferings {
     [endpoint: string]: Array<[string, string]>;
 }
 
