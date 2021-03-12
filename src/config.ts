@@ -189,7 +189,7 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGI
     ? []
     : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
-export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST)
+export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
     ? []
     : assertEnvVarType(
           'RFQT_API_KEY_WHITELIST_JSON',
