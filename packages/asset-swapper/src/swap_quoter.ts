@@ -410,6 +410,14 @@ export class SwapQuoter {
         return whitelistedApiKeys.includes(apiKey);
     }
 
+    private _isTxOriginBlacklisted(txOrigin: string | undefined): boolean {
+        if (!txOrigin) {
+            return false;
+        }
+        const blacklistedTxOrigins = this._rfqtOptions ? this._rfqtOptions.txOriginBlacklist : new Set();
+        return blacklistedTxOrigins.has(txOrigin.toLowerCase());
+    }
+
     private _validateRfqtOpts(
         sourceFilters: SourceFilters,
         rfqt: RfqtRequestOpts | undefined,
@@ -433,6 +441,19 @@ export class SwapQuoter {
                         apiKey,
                     },
                     'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
+                );
+            }
+            return undefined;
+        }
+
+        // If the requested tx origin is blacklisted, raise a warning and disable RFQ
+        if (this._isTxOriginBlacklisted(txOrigin)) {
+            if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
+                this._rfqtOptions.warningLogger(
+                    {
+                        txOrigin,
+                    },
+                    'Attempt at using a tx Origin that is blacklisted. Disabling RFQ for the request lifetime.',
                 );
             }
             return undefined;
