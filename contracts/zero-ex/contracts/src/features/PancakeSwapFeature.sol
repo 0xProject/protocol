@@ -38,7 +38,7 @@ contract PancakeSwapFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "PancakeSwapFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
     /// @dev WBNB contract.
     IEtherTokenV06 private immutable WBNB;
 
@@ -47,13 +47,13 @@ contract PancakeSwapFeature is
     // 0xFF + address of the BakerySwap factory contract.
     uint256 constant private FF_BAKERYSWAP_FACTORY = 0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
     // 0xFF + address of the SushiSwap factory contract.
-    uint256 constant private FF_SUSHISWAP_FACTORY = 0xffc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac0000000000000000000000;
+    uint256 constant private FF_SUSHISWAP_FACTORY = 0xffc35DADB65012eC5796536bD9864eD8773aBc74C40000000000000000000000;
     // Init code hash of the PancakeSwap pair contract.
     uint256 constant private PANCAKESWAP_PAIR_INIT_CODE_HASH = 0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66;
     // Init code hash of the BakerySwap pair contract.
     uint256 constant private BAKERYSWAP_PAIR_INIT_CODE_HASH = 0xe2e87433120e32c4738a7d8f3271f3d872cbe16241d67537139158d90bac61d3;
     // Init code hash of the SushiSwap pair contract.
-    uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
+    uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xcd82e2d9daddbf51cbce8d5429a0996e16fc670c4056566f19cf8864ad45a746;
     // Mask of the lower 20 bytes of a bytes32.
     uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
     // BNB pseudo-token address.
