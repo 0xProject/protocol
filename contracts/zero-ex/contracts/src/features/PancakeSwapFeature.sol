@@ -53,7 +53,7 @@ contract PancakeSwapFeature is
     // Init code hash of the BakerySwap pair contract.
     uint256 constant private BAKERYSWAP_PAIR_INIT_CODE_HASH = 0xe2e87433120e32c4738a7d8f3271f3d872cbe16241d67537139158d90bac61d3;
     // Init code hash of the SushiSwap pair contract.
-    uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xcd82e2d9daddbf51cbce8d5429a0996e16fc670c4056566f19cf8864ad45a746;
+    uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
     // Mask of the lower 20 bytes of a bytes32.
     uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
     // BNB pseudo-token address.
@@ -197,7 +197,8 @@ contract PancakeSwapFeature is
                 }
                 // Revert if the pair contract does not return at least two words.
                 if lt(returndatasize(), 0x40) {
-                    revert(0,0)
+                    mstore(0, pair)
+                    revert(0, 32)
                 }
 
                 // Sell amount for this hop is the previous buy amount.
@@ -337,7 +338,7 @@ contract PancakeSwapFeature is
                     }
                 let salt := keccak256(0xB0C, 0x28)
                 // Compute the pair address by hashing all the components together.
-                switch mload(0xA20) // isBakerySwap
+                switch mload(0xA20) // fork
                     case 0 {
                         mstore(0xB00, FF_PANCAKESWAP_FACTORY)
                         mstore(0xB15, salt)
