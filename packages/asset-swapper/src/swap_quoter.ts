@@ -415,7 +415,7 @@ export class SwapQuoter {
             return false;
         }
         const blacklistedTxOrigins = this._rfqtOptions ? this._rfqtOptions.txOriginBlacklist : new Set();
-        return blacklistedTxOrigins.has(txOrigin);
+        return blacklistedTxOrigins.has(txOrigin.toLowerCase());
     }
 
     private _validateRfqtOpts(
