@@ -414,8 +414,8 @@ export class SwapQuoter {
         if (!txOrigin) {
             return false;
         }
-        const blacklistedTxOrigins = this._rfqtOptions ? this._rfqtOptions.txOriginBlacklist : [];
-        return blacklistedTxOrigins.includes(txOrigin);
+        const blacklistedTxOrigins = this._rfqtOptions ? this._rfqtOptions.txOriginBlacklist : new Set();
+        return blacklistedTxOrigins.has(txOrigin);
     }
 
     private _validateRfqtOpts(
