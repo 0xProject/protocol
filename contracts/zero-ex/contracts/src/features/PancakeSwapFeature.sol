@@ -38,7 +38,7 @@ contract PancakeSwapFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "PancakeSwapFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
     /// @dev WBNB contract.
     IEtherTokenV06 private immutable WBNB;
 
@@ -47,7 +47,7 @@ contract PancakeSwapFeature is
     // 0xFF + address of the BakerySwap factory contract.
     uint256 constant private FF_BAKERYSWAP_FACTORY = 0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
     // 0xFF + address of the SushiSwap factory contract.
-    uint256 constant private FF_SUSHISWAP_FACTORY = 0xffc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac0000000000000000000000;
+    uint256 constant private FF_SUSHISWAP_FACTORY = 0xffc35DADB65012eC5796536bD9864eD8773aBc74C40000000000000000000000;
     // Init code hash of the PancakeSwap pair contract.
     uint256 constant private PANCAKESWAP_PAIR_INIT_CODE_HASH = 0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66;
     // Init code hash of the BakerySwap pair contract.
@@ -197,7 +197,8 @@ contract PancakeSwapFeature is
                 }
                 // Revert if the pair contract does not return at least two words.
                 if lt(returndatasize(), 0x40) {
-                    revert(0,0)
+                    mstore(0, pair)
+                    revert(0, 32)
                 }
 
                 // Sell amount for this hop is the previous buy amount.
@@ -337,7 +338,7 @@ contract PancakeSwapFeature is
                     }
                 let salt := keccak256(0xB0C, 0x28)
                 // Compute the pair address by hashing all the components together.
-                switch mload(0xA20) // isBakerySwap
+                switch mload(0xA20) // fork
                     case 0 {
                         mstore(0xB00, FF_PANCAKESWAP_FACTORY)
                         mstore(0xB15, salt)
