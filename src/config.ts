@@ -189,7 +189,7 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGI
     ? []
     : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
-export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.ALT_RFQ_MM_ENDPOINT)
+export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST)
     ? []
     : assertEnvVarType(
           'RFQT_API_KEY_WHITELIST_JSON',
@@ -197,7 +197,17 @@ export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.ALT_RFQ_MM
           EnvVarType.JsonStringList,
       );
 
-export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
+export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = _.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST)
+    ? new Set()
+    : new Set(
+          assertEnvVarType(
+              'RFQT_TX_ORIGIN_BLACKLIST',
+              process.env.RFQT_TX_ORIGIN_BLACKLIST,
+              EnvVarType.JsonStringList,
+          ).map((addr: string) => addr.toLowerCase()),
+      );
+
+export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_ENDPOINT)
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_ENDPOINT', process.env.ALT_RFQ_MM_ENDPOINT, EnvVarType.Url);
 export const ALT_RFQ_MM_API_KEY: string | undefined = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
@@ -378,6 +388,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS = [
 let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqtOpts = {
     takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
     makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
+    txOriginBlacklist: RFQT_TX_ORIGIN_BLACKLIST,
 };
 
 if (ALT_RFQ_MM_API_KEY && ALT_RFQ_MM_PROFILE) {
