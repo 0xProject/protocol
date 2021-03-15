@@ -88,7 +88,7 @@ contract MixinMakerPSM {
         bool isSellGem;
     }
 
-    function _tradeBalancer(
+    function _tradeMakerPSM(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,

@@ -30,6 +30,7 @@ import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyber.sol";
+import "./mixins/MixinMakerPSM.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
@@ -49,6 +50,7 @@ contract BridgeAdapter is
     MixinDodo,
     MixinDodoV2,
     MixinKyber,
+    MixinMakerPSM,
     MixinMooniswap,
     MixinMStable,
     MixinNerve,
@@ -68,6 +70,7 @@ contract BridgeAdapter is
         MixinDodo()
         MixinDodoV2()
         MixinKyber(weth)
+        MixinMakerPSM()
         MixinMooniswap(weth)
         MixinMStable()
         MixinNerve()
@@ -118,6 +121,13 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.KYBER) {
             boughtAmount = _tradeKyber(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (order.source == BridgeSource.MAKERPSM) {
+            boughtAmount = _tradeMakerPSM(
                 sellToken,
                 buyToken,
                 sellAmount,
