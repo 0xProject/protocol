@@ -2,6 +2,7 @@ import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
+    MAINNET_COMPONENT_POOLS,
     MAINNET_CURVE_INFOS,
     MAINNET_SHELL_POOLS,
     MAINNET_SNOWSWAP_INFOS,
@@ -38,6 +39,13 @@ export function getDodoV2Offsets(): BigNumber[] {
 // tslint:disable completed-docs
 export function getShellsForPair(takerToken: string, makerToken: string): string[] {
     return Object.values(MAINNET_SHELL_POOLS)
+        .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
+        .map(i => i.poolAddress);
+}
+
+// tslint:disable completed-docs
+export function getComponentsForPair(takerToken: string, makerToken: string): string[] {
+    return Object.values(MAINNET_COMPONENT_POOLS)
         .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
         .map(i => i.poolAddress);
 }

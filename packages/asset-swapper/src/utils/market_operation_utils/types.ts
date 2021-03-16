@@ -58,6 +58,7 @@ export enum ERC20BridgeSource {
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
     Linkswap = 'Linkswap',
+    Component = 'Component',
 }
 
 // tslint:disable: enum-naming
@@ -137,6 +138,8 @@ export interface SushiSwapFillData extends UniswapV2FillData {}
 export interface ShellFillData extends FillData {
     poolAddress: string;
 }
+
+export interface ComponentFillData extends ShellFillData {}
 
 export interface LiquidityProviderFillData extends FillData {
     poolAddress: string;

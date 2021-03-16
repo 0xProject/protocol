@@ -15,6 +15,7 @@ import {
     getSwerveInfosForPair,
     isAllowedKyberReserveId,
 } from './bridge_source_utils';
+import { getComponentsForPair } from './component_utils';
 import {
     LIQUIDITY_PROVIDER_REGISTRY,
     MAINNET_CRYPTO_COM_ROUTER,
@@ -40,6 +41,7 @@ import {
     BalancerFillData,
     BancorFillData,
     BatchedOperation,
+    ComponentFillData,
     CurveFillData,
     CurveInfo,
     DexSample,
@@ -833,6 +835,36 @@ export class SamplerOperations {
         });
     }
 
+    public getComponentSellQuotes(
+        poolAddress: string,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<ComponentFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Component,
+            fillData: { poolAddress },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromShell,
+            params: [poolAddress, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getComponentBuyQuotes(
+        poolAddress: string,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Component,
+            fillData: { poolAddress },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromShell,
+            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
     public getShellSellQuotes(
         poolAddress: string,
         makerToken: string,
@@ -1173,6 +1205,10 @@ export class SamplerOperations {
                             return getShellsForPair(takerToken, makerToken).map(pool =>
                                 this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
                             );
+                        case ERC20BridgeSource.Component:
+                            return getComponentsForPair(takerToken, makerToken).map(pool =>
+                                this.getComponentSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                            );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOSellQuotes(makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.DodoV2:
@@ -1371,6 +1407,10 @@ export class SamplerOperations {
                         case ERC20BridgeSource.Shell:
                             return getShellsForPair(takerToken, makerToken).map(pool =>
                                 this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                            );
+                        case ERC20BridgeSource.Component:
+                            return getComponentsForPair(takerToken, makerToken).map(pool =>
+                                this.getComponentBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
                             );
                         case ERC20BridgeSource.Dodo:
                             return this.getDODOBuyQuotes(makerToken, takerToken, makerFillAmounts);

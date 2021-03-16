@@ -17,6 +17,7 @@ import {
     BalancerFillData,
     BancorFillData,
     CollapsedFill,
+    ComponentFillData,
     CurveFillData,
     DexSample,
     DODOFillData,
@@ -108,6 +109,8 @@ export function getERC20BridgeSourceToBridgeSource(source: ERC20BridgeSource): B
             return BridgeSource.Oasis;
         case ERC20BridgeSource.Shell:
             return BridgeSource.Shell;
+        case ERC20BridgeSource.Component:
+            return BridgeSource.Shell;
         case ERC20BridgeSource.SnowSwap:
             return BridgeSource.Snowswap;
         case ERC20BridgeSource.SushiSwap:
@@ -192,6 +195,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Shell:
             const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
             bridgeData = encoder.encode([shellFillData.poolAddress]);
+            break;
+        case ERC20BridgeSource.Component:
+            const componentFillData = (order as OptimizedMarketBridgeOrder<ComponentFillData>).fillData;
+            bridgeData = encoder.encode([componentFillData.poolAddress]);
             break;
         case ERC20BridgeSource.LiquidityProvider:
             const lpFillData = (order as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
@@ -283,6 +290,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,
+    [ERC20BridgeSource.Component]: poolEncoder,
     [ERC20BridgeSource.Mooniswap]: poolEncoder,
     [ERC20BridgeSource.Eth2Dai]: poolEncoder,
     [ERC20BridgeSource.MStable]: poolEncoder,
