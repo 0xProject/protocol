@@ -153,9 +153,25 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
     ): Promise<SignedNativeOrder[]> {
-        // TODO: implementation
-        this._infoLogger({}, 'TODO');
-        return [];
+        const _opts: RfqtRequestOpts = {
+            ...constants.DEFAULT_RFQT_REQUEST_OPTS,
+            ...options,
+            txOrigin: constants.METATX_WORKER_REGISTRY,
+            isLastLook: true,
+        };
+
+        if (!_opts.takerAddress) {
+            _opts.takerAddress = constants.NULL_ADDRESS;
+        }
+
+        return this._fetchAndValidateFirmQuotes(
+            makerToken,
+            takerToken,
+            assetFillAmount,
+            marketOperation,
+            comparisonPrice,
+            _opts,
+        );
     }
 
     public async requestRfqtFirmQuotesAsync(
@@ -171,72 +187,14 @@ export class QuoteRequestor {
             throw new Error('RFQ-T firm quotes require the presence of a tx origin');
         }
 
-        const quotesRaw = await this._getQuotesAsync<V4RFQFirmQuote>(
+        return this._fetchAndValidateFirmQuotes(
             makerToken,
             takerToken,
             assetFillAmount,
             marketOperation,
             comparisonPrice,
             _opts,
-            'firm',
         );
-        const quotes = quotesRaw.map(result => ({ ...result, response: result.response.signedOrder }));
-
-        // validate
-        const validationFunction = (o: V4SignedRfqOrder) => {
-            try {
-                // Handle the validate throwing, i.e if it isn't an object or json response
-                return this._schemaValidator.isValid(o, schemas.v4RfqSignedOrderSchema);
-            } catch (e) {
-                return false;
-            }
-        };
-        const validQuotes = quotes.filter(result => {
-            const order = result.response;
-            if (!validationFunction(order)) {
-                this._warningLogger(result, 'Invalid RFQ-T firm quote received, filtering out');
-                return false;
-            }
-            if (
-                !hasExpectedAddresses([
-                    [makerToken, order.makerToken],
-                    [takerToken, order.takerToken],
-                    [_opts.takerAddress, order.taker],
-                    [_opts.txOrigin, order.txOrigin],
-                ])
-            ) {
-                this._warningLogger(
-                    order,
-                    'Unexpected token, tx origin or taker address in RFQ-T order, filtering out',
-                );
-                return false;
-            }
-            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
-                this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
-                return false;
-            } else {
-                return true;
-            }
-        });
-
-        // Save the maker URI for later and return just the order
-        const rfqQuotes = validQuotes.map(result => {
-            const { signature, ...rest } = result.response;
-            const order: SignedNativeOrder = {
-                order: {
-                    ...rest,
-                    makerAmount: new BigNumber(result.response.makerAmount),
-                    takerAmount: new BigNumber(result.response.takerAmount),
-                    expiry: new BigNumber(result.response.expiry),
-                    salt: new BigNumber(result.response.salt),
-                },
-                type: FillQuoteTransformerOrderType.Rfq,
-                signature,
-            };
-            this._orderSignatureToMakerUri[nativeDataToId(result.response)] = result.makerUri;
-            return order;
-        });
-        return rfqQuotes;
     }
 
     public async requestRfqmIndicativeQuotesAsync(
@@ -522,6 +480,81 @@ export class QuoteRequestor {
         });
         const results = (await Promise.all(quotePromises)).filter(x => x !== undefined);
         return results as Array<RfqQuote<ResponseT>>;
+    }
+    private async _fetchAndValidateFirmQuotes(
+        makerToken: string,
+        takerToken: string,
+        assetFillAmount: BigNumber,
+        marketOperation: MarketOperation,
+        comparisonPrice: BigNumber | undefined,
+        options: RfqtRequestOpts,
+    ): Promise<SignedNativeOrder[]> {
+        const quotesRaw = await this._getQuotesAsync<V4RFQFirmQuote>(
+            makerToken,
+            takerToken,
+            assetFillAmount,
+            marketOperation,
+            comparisonPrice,
+            options,
+            'firm',
+        );
+        const quotes = quotesRaw.map(result => ({ ...result, response: result.response.signedOrder }));
+
+        // validate
+        const validationFunction = (o: V4SignedRfqOrder) => {
+            try {
+                // Handle the validate throwing, i.e if it isn't an object or json response
+                return this._schemaValidator.isValid(o, schemas.v4RfqSignedOrderSchema);
+            } catch (e) {
+                return false;
+            }
+        };
+        const validQuotes = quotes.filter(result => {
+            const order = result.response;
+            if (!validationFunction(order)) {
+                this._warningLogger(result, 'Invalid RFQ-T firm quote received, filtering out');
+                return false;
+            }
+            if (
+                !hasExpectedAddresses([
+                    [makerToken, order.makerToken],
+                    [takerToken, order.takerToken],
+                    [options.takerAddress, order.taker],
+                    [options.txOrigin, order.txOrigin],
+                ])
+            ) {
+                this._warningLogger(
+                    order,
+                    'Unexpected token, tx origin or taker address in RFQ-T order, filtering out',
+                );
+                return false;
+            }
+            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
+                this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
+                return false;
+            } else {
+                return true;
+            }
+        });
+
+        // Save the maker URI for later and return just the order
+        const rfqQuotes = validQuotes.map(result => {
+            const { signature, ...rest } = result.response;
+            const order: SignedNativeOrder = {
+                order: {
+                    ...rest,
+                    makerAmount: new BigNumber(result.response.makerAmount),
+                    takerAmount: new BigNumber(result.response.takerAmount),
+                    expiry: new BigNumber(result.response.expiry),
+                    salt: new BigNumber(result.response.salt),
+                },
+                type: FillQuoteTransformerOrderType.Rfq,
+                signature,
+            };
+            this._orderSignatureToMakerUri[nativeDataToId(result.response)] = result.makerUri;
+            return order;
+        });
+        return rfqQuotes;
     }
 
     private async _fetchAndValidateIndicativeQuotes(
