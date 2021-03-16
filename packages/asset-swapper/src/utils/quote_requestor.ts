@@ -84,7 +84,7 @@ export class QuoteRequestor {
         sellTokenAddress: string, // taker token
         assetFillAmount: BigNumber,
         comparisonPrice?: BigNumber,
-        isLastLook?: boolean,
+        isLastLook = false,
     ): TakerRequestQueryParams {
         const { buyAmountBaseUnits, sellAmountBaseUnits } =
             marketOperation === MarketOperation.Buy
@@ -112,7 +112,7 @@ export class QuoteRequestor {
             buyTokenAddress,
             sellTokenAddress,
             comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
-            isLastLook: Boolean(isLastLook).toString(),
+            isLastLook: isLastLook.toString(),
             protocolVersion: '4',
         };
 
@@ -153,19 +153,6 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
     ): Promise<SignedNativeOrder[]> {
-        // TODO: implementation
-        this._infoLogger({}, 'TODO');
-        return [];
-    }
-
-    public async requestRfqmIndicativeQuotesAsync(
-        makerToken: string,
-        takerToken: string,
-        assetFillAmount: BigNumber,
-        marketOperation: MarketOperation,
-        comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
-    ): Promise<V4RFQIndicativeQuote[]> {
         // TODO: implementation
         this._infoLogger({}, 'TODO');
         return [];
@@ -252,6 +239,35 @@ export class QuoteRequestor {
         return rfqQuotes;
     }
 
+    public async requestRfqmIndicativeQuotesAsync(
+        makerToken: string,
+        takerToken: string,
+        assetFillAmount: BigNumber,
+        marketOperation: MarketOperation,
+        comparisonPrice: BigNumber | undefined,
+        options: RfqtRequestOpts,
+    ): Promise<V4RFQIndicativeQuote[]> {
+        const _opts: RfqtRequestOpts = {
+            ...constants.DEFAULT_RFQT_REQUEST_OPTS,
+            ...options,
+            txOrigin: constants.METATX_WORKER_REGISTRY,
+            isLastLook: true,
+        };
+
+        if (!_opts.takerAddress) {
+            _opts.takerAddress = constants.NULL_ADDRESS;
+        }
+
+        return this._fetchAndValidateIndicativeQuotes(
+            makerToken,
+            takerToken,
+            assetFillAmount,
+            marketOperation,
+            comparisonPrice,
+            _opts,
+        );
+    }
+
     public async requestRfqtIndicativeQuotesAsync(
         makerToken: string,
         takerToken: string,
@@ -272,42 +288,14 @@ export class QuoteRequestor {
         if (!_opts.txOrigin) {
             _opts.txOrigin = constants.NULL_ADDRESS;
         }
-        const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
+        return this._fetchAndValidateIndicativeQuotes(
             makerToken,
             takerToken,
             assetFillAmount,
             marketOperation,
             comparisonPrice,
             _opts,
-            'indicative',
         );
-
-        // validate
-        const validationFunction = (o: V4RFQIndicativeQuote) => this._isValidRfqtIndicativeQuoteResponse(o);
-        const validQuotes = rawQuotes.filter(result => {
-            const order = result.response;
-            if (!validationFunction(order)) {
-                this._warningLogger(result, 'Invalid RFQ-T indicative quote received, filtering out');
-                return false;
-            }
-            if (!hasExpectedAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
-                this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
-                return false;
-            }
-            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
-                this._warningLogger(order, 'Expiry too soon in RFQ-T indicative quote, filtering out');
-                return false;
-            } else {
-                return true;
-            }
-        });
-        const quotes = validQuotes.map(r => r.response);
-        quotes.forEach(q => {
-            q.makerAmount = new BigNumber(q.makerAmount);
-            q.takerAmount = new BigNumber(q.takerAmount);
-            q.expiry = new BigNumber(q.expiry);
-        });
-        return quotes;
     }
 
     /**
@@ -393,9 +381,11 @@ export class QuoteRequestor {
         quoteType: 'firm' | 'indicative',
     ): Promise<Array<RfqQuote<ResponseT>>> {
         const isRFQM = Boolean(options.isLastLook); // presently, a sufficient check to determine if this is RFQM
+        const txOrigin = isRFQM ? constants.METATX_WORKER_REGISTRY : options.txOrigin;
+        const assetOfferings = isRFQM ? this._rfqmAssetOfferings : this._rfqtAssetOfferings;
 
         const requestParams = QuoteRequestor.makeQueryParameters(
-            isRFQM ? 'TODO: registry address' : options.txOrigin,
+            txOrigin,
             options.takerAddress,
             marketOperation,
             makerToken,
@@ -415,8 +405,6 @@ export class QuoteRequestor {
                     throw new Error(`Unexpected quote type ${quoteType}`);
             }
         })();
-
-        const assetOfferings = isRFQM ? this._rfqmAssetOfferings : this._rfqtAssetOfferings;
 
         const standardUrls = Object.keys(assetOfferings).map(
             (mm: string): TypedMakerUrl => {
@@ -526,11 +514,7 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${
-                            typedMakerUrl.url
-                        } for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${
-                            options.txOrigin
-                        }`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
                     );
                     return;
                 }
@@ -538,5 +522,57 @@ export class QuoteRequestor {
         });
         const results = (await Promise.all(quotePromises)).filter(x => x !== undefined);
         return results as Array<RfqQuote<ResponseT>>;
+    }
+
+    private async _fetchAndValidateIndicativeQuotes(
+        makerToken: string,
+        takerToken: string,
+        assetFillAmount: BigNumber,
+        marketOperation: MarketOperation,
+        comparisonPrice: BigNumber | undefined,
+        options: RfqtRequestOpts,
+    ): Promise<V4RFQIndicativeQuote[]> {
+        // fetch quotes
+        const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
+            makerToken,
+            takerToken,
+            assetFillAmount,
+            marketOperation,
+            comparisonPrice,
+            options,
+            'indicative',
+        );
+
+        // validate
+        const validationFunction = (o: V4RFQIndicativeQuote) => this._isValidRfqtIndicativeQuoteResponse(o);
+        const validQuotes = rawQuotes.filter(result => {
+            const order = result.response;
+            if (!validationFunction(order)) {
+                this._warningLogger(result, 'Invalid RFQ-T indicative quote received, filtering out');
+                return false;
+            }
+            if (
+                !hasExpectedAddresses([
+                    [makerToken, order.makerToken],
+                    [takerToken, order.takerToken],
+                ])
+            ) {
+                this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
+                return false;
+            }
+            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
+                this._warningLogger(order, 'Expiry too soon in RFQ-T indicative quote, filtering out');
+                return false;
+            } else {
+                return true;
+            }
+        });
+        const quotes = validQuotes.map(r => r.response);
+        quotes.forEach(q => {
+            q.makerAmount = new BigNumber(q.makerAmount);
+            q.takerAmount = new BigNumber(q.takerAmount);
+            q.expiry = new BigNumber(q.expiry);
+        });
+        return quotes;
     }
 }

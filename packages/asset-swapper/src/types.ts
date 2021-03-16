@@ -231,6 +231,8 @@ export type SwapQuoteOrdersBreakdown = Partial<
  *                        If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
  *                        array in `SwapQuoteRequestOpts`, an Error will be raised.
  */
+// TODO - rename this type to RfqRequestOpts
+
 export interface RfqtRequestOpts {
     takerAddress: string;
     txOrigin: string;
@@ -240,7 +242,7 @@ export interface RfqtRequestOpts {
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQT?: boolean;
     altRfqtAssetOfferings?: AltRfqtMakerAssetOfferings;
-    isLastLook?: boolean; // TODO - rename this type to RfqRequestOpts
+    isLastLook?: boolean;
 }
 
 /**
