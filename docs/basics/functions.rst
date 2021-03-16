@@ -2,7 +2,7 @@
 Basic Functionality
 ###############################
 
-Below is a catalog of basic Exchange functionality. For more advanced usage, like meta-transactions and dex aggregation, see the Advanced section. 
+Below is a catalog of basic Exchange functionality. For more advanced usage, like meta-transactions and dex aggregation, see the Advanced section.
 
 +---------------------------------+--------------------------------------------------------------------------+
 | **Limit Orders**                | **Overview**                                                             |
@@ -254,8 +254,8 @@ The hash can be manually generated using the following code:
                 'address verifyingContract)'
             )),
             // The EIP712 domain separator values.
-            'ZeroEx',
-            '1.0.0',
+            keccak256('ZeroEx'),
+            keccak256('1.0.0'),
             1, // For mainnet
             0xDef1C0ded9bec7F1a1670819833240f027b25EfF, // Address of the Exchange Proxy
         )),
@@ -269,8 +269,8 @@ The hash can be manually generated using the following code:
                 'uint128 makerAmount,',
                 'uint128 takerAmount,',
                 'uint128 takerTokenFeeAmount,',
-                'address taker,',
                 'address maker,',
+                'address taker,',
                 'address sender,',
                 'address feeRecipient,',
                 'bytes32 pool,',
@@ -492,8 +492,8 @@ The hash can be manually generated using the following code:
                 'address verifyingContract)'
             )),
             // The EIP712 domain separator values.
-            'ZeroEx',
-            '1.0.0',
+            keccak256('ZeroEx'),
+            keccak256('1.0.0'),
             1, // For mainnet
             0xDef1C0ded9bec7F1a1670819833240f027b25EfF, // Address of the Exchange Proxy
         )),
@@ -526,7 +526,7 @@ The hash can be manually generated using the following code:
             order.salt
         ))
     ));
-    
+
 
 registerAllowedRfqOrigins
 --------------------------
