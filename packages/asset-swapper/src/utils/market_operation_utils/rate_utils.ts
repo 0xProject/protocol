@@ -26,8 +26,8 @@ export function getTwoHopAdjustedRate(
     const penalty = outputAmountPerEth.times(
         exchangeProxyOverhead(
             SOURCE_FLAGS.MultiHop |
-                SOURCE_FLAGS[twoHopQuote.fillData.firstHopSource.source] |
-                SOURCE_FLAGS[twoHopQuote.fillData.secondHopSource.source],
+                SOURCE_FLAGS[fillData.firstHopSource.source] |
+                SOURCE_FLAGS[fillData.secondHopSource.source],
         ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
     );
     const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);

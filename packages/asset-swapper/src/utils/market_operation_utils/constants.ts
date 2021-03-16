@@ -110,7 +110,9 @@ export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } & {
 } = Object.assign(
     {},
     ...['RfqOrder', 'LimitOrder', ...Object.values(ERC20BridgeSource)].map(
-        (source: ERC20BridgeSource | 'RfqOrder' | 'LimitOrder', index) => ({ [source]: 1 << index }),
+        (source: ERC20BridgeSource | 'RfqOrder' | 'LimitOrder', index) => ({
+            [source]: source === ERC20BridgeSource.Native ? 0 : 1 << index,
+        }),
     ),
 );
 
