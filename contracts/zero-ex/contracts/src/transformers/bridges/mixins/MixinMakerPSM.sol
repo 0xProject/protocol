@@ -24,12 +24,6 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
-// Maker units
-// wad: fixed point decimal with 18 decimals (for basic quantities, e.g. balances)
-// ray: fixed point decimal with 27 decimals (for precise quantites, e.g. ratios)
-// rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
-// See https://github.com/makerdao/dss/blob/master/DEVELOPING.md
-
 interface IPSM {
     // @dev Get the fee for selling USDC to DAI in PSM
     // @return tin toll in [wad]
@@ -88,6 +82,15 @@ contract MixinMakerPSM {
         bool isSellGem;
     }
 
+    // Maker units
+    // wad: fixed point decimal with 18 decimals (for basic quantities, e.g. balances)
+    uint256 WAD = 10 ** 18;
+    // ray: fixed point decimal with 27 decimals (for precise quantites, e.g. ratios)
+    uint256 RAY = 10 ** 27;
+    // rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
+    uint256 RAD = 10 ** 45;
+    // See https://github.com/makerdao/dss/blob/master/DEVELOPING.md
+
     function _tradeMakerPSM(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
@@ -103,8 +106,6 @@ contract MixinMakerPSM {
 
         IPSM psm = IPSM(data.psmAddress);
 
-        // TODO: handle fees
-
         if (data.isSellGem == true) {
             sellToken.approveIfBelow(
                 data.authGemAddress,
@@ -113,13 +114,15 @@ contract MixinMakerPSM {
 
             psm.sellGem(address(this), sellAmount);
         } else {
+            uint256 feeDivisor = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
+            uint256 buyTokenBaseUnit = uint256(10) ** buyToken.decimals();
+            uint256 gemAmount =  sellAmount.safeMul(buyTokenBaseUnit).safeDiv(feeDivisor);
+
             sellToken.approveIfBelow(
                 data.psmAddress,
                 sellAmount
             );
-            // TODO: this needs to calculate the correct usdc amount to buy
-            // in order to sell X DAI including tout fee
-            psm.buyGem(address(this), sellAmount);
+            psm.buyGem(address(this), gemAmount);
         }
 
         return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
