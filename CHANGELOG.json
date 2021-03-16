@@ -1,0 +1,470 @@
+[
+    {
+        "version": "0.20.0",
+        "changes": [
+            {
+                "note": "Add `MooniswapLiquidityProvider`",
+                "pr": 143
+            },
+            {
+                "note": "Emit `LiquidityProviderFill` event in `CurveLiquidityProvider`",
+                "pr": 143
+            },
+            {
+                "note": "Add BatchFillNativeOrdersFeature and MultiplexFeature",
+                "pr": 140
+            }
+        ]
+    },
+    {
+        "version": "0.19.0",
+        "changes": [
+            {
+                "note": "Add `CurveLiquidityProvider` and misc refactors",
+                "pr": 127
+            },
+            {
+                "note": "Export `CurveLiquidityProviderContract`",
+                "pr": 144
+            },
+            {
+                "note": "Add `DodoV2`",
+                "pr": 152
+            },
+            {
+                "note": "Add `Linkswap`",
+                "pr": 153
+            },
+            {
+                "note": "refund ETH with no gas limit in FQT",
+                "pr": 155
+            },
+            {
+                "note": "Added an opt-in `PositiveSlippageAffiliateFee`",
+                "pr": 101
+            }
+        ],
+        "timestamp": 1614141718
+    },
+    {
+        "version": "0.18.2",
+        "changes": [
+            {
+                "note": "Update FQT for v4 native orders",
+                "pr": 104
+            }
+        ],
+        "timestamp": 1612950500
+    },
+    {
+        "version": "0.18.1",
+        "changes": [
+            {
+                "note": "Swallow reverts in `batchGetLimitOrderRelevantStates()` and `batchGetRfqOrderRelevantStates()`",
+                "pr": 117
+            }
+        ],
+        "timestamp": 1611648096
+    },
+    {
+        "version": "0.18.0",
+        "changes": [
+            {
+                "note": "Use consistent returndatasize checks in UniswapFeature",
+                "pr": 96
+            },
+            {
+                "note": "Remove `MetaTransactionsFeature._executeMetaTransaction()` and `SignatureValidatorFeature`",
+                "pr": 109
+            }
+        ],
+        "timestamp": 1610510890
+    },
+    {
+        "version": "0.17.0",
+        "changes": [
+            {
+                "note": "Add DevUtils-like functions to `NativeOrdersFeature`",
+                "pr": 97
+            },
+            {
+                "note": "Add SPDX license identifiers to solidity files",
+                "pr": 105
+            }
+        ],
+        "timestamp": 1609802516
+    },
+    {
+        "version": "0.16.0",
+        "changes": [
+            {
+                "note": "Fix CryptoCom rollup"
+            }
+        ],
+        "timestamp": 1608692071
+    },
+    {
+        "version": "0.15.0",
+        "changes": [
+            {
+                "note": "Add MixinBancor to BridgeAdapter",
+                "pr": 91
+            },
+            {
+                "note": "Add MixinCoFiX to BridgeAdapter",
+                "pr": 92
+            }
+        ],
+        "timestamp": 1608245516
+    },
+    {
+        "version": "0.14.0",
+        "changes": [
+            {
+                "note": "Use the `MetaTransaction` class from `@0x/protocol-utils` in tests.",
+                "pr": 90
+            }
+        ],
+        "timestamp": 1608149382
+    },
+    {
+        "version": "0.13.0",
+        "changes": [
+            {
+                "note": "Address audit feedback in UniswapFeature",
+                "pr": 82
+            },
+            {
+                "note": "Always transfer `msg.value` to the liquidity provider contract in LiquidityProviderFeature to",
+                "pr": 82
+            },
+            {
+                "note": "Remove backwards compatibility with old PLP/bridge interface in `LiquidityProviderFeature` and `MixinZeroExBridge`",
+                "pr": 85
+            }
+        ],
+        "timestamp": 1608105788
+    },
+    {
+        "version": "0.12.0",
+        "changes": [
+            {
+                "note": "Add test for selector collisions on the proxy",
+                "pr": 74
+            },
+            {
+                "note": "Move tooling out into `@0x/protocol-utils`.",
+                "pr": 76
+            }
+        ],
+        "timestamp": 1607485227
+    },
+    {
+        "timestamp": 1607381756,
+        "version": "0.11.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "0.11.0",
+        "changes": [
+            {
+                "note": "Turn `LibTokenSpender` into `FixinTokenSpender`",
+                "pr": 38
+            },
+            {
+                "note": "Use bloom filters to check if a token is greedy and do not optimistically fall through transferFrom() if so",
+                "pr": 38
+            },
+            {
+                "note": "Revert to original proxy implementation",
+                "pr": 38
+            },
+            {
+                "note": "Fix incorrect cancel order event param",
+                "pr": 38
+            },
+            {
+                "note": "Add a gas limit to first `LibTokenSpender` and `UniswapFeature` transfer",
+                "pr": 38
+            },
+            {
+                "note": "Convert metatransactions to use `LibSignature`",
+                "pr": 31
+            },
+            {
+                "note": "Add metatransaction support for limit orders",
+                "pr": 44
+            },
+            {
+                "note": "Require RFQ orders to specify a transaction origin, and allow approved alternative addresses",
+                "pr": 47
+            },
+            {
+                "note": "Do not try to pull all tokens if selling all ETH in `TransformERC20Feature`",
+                "pr": 46
+            },
+            {
+                "note": "Remove protocol fees from all RFQ orders and add `taker` field to RFQ orders",
+                "pr": 45
+            },
+            {
+                "note": "Fix getRfqOrderInfo() to return status INVALID when missing txOrigin",
+                "pr": 50
+            },
+            {
+                "note": "Remove calldata signing functionality",
+                "pr": 51
+            },
+            {
+                "note": "Add a permissionless transformer deployer",
+                "pr": 55
+            },
+            {
+                "note": "Add Crypto.com to `BridgeAdapter`",
+                "pr": 43
+            },
+            {
+                "note": "Use `FeeCollectorController` contract for deploying `FeeCollector`s",
+                "pr": 59
+            }
+        ],
+        "timestamp": 1606961263
+    },
+    {
+        "version": "0.10.0",
+        "changes": [
+            {
+                "note": "Add `checkAllowance` flag to LibTokenSpender.spendERC20Tokens",
+                "pr": 39
+            },
+            {
+                "note": "Use new `checkAllowance` flag in LiquidityProviderFeature, TransformERC20Feature, and MetaTransactionsFeature",
+                "pr": 39
+            },
+            {
+                "note": "Add native orders features",
+                "pr": 27
+            }
+        ],
+        "timestamp": 1605763885
+    },
+    {
+        "version": "0.9.0",
+        "changes": [
+            {
+                "note": "Rewrite the ZeroEx contract in Yul",
+                "pr": 23
+            },
+            {
+                "note": "Update LiquidityProviderFeature to use off-chain registry and sandbox",
+                "pr": 16
+            },
+            {
+                "note": "Update ILiquidityProvider interface",
+                "pr": 16
+            },
+            {
+                "note": "Update ProtocolFeeUnfunded event to emit order hash",
+                "pr": 16
+            }
+        ],
+        "timestamp": 1605302002
+    },
+    {
+        "version": "0.8.0",
+        "changes": [
+            {
+                "note": "Trust LP boughtAmount return value",
+                "pr": 29
+            }
+        ],
+        "timestamp": 1604385937
+    },
+    {
+        "version": "0.7.0",
+        "changes": [
+            {
+                "note": "Change `ProtocolFeeUnfunded` event in FQT",
+                "pr": 28
+            },
+            {
+                "note": "Use new PLP interface in FQT.",
+                "pr": 28
+            }
+        ],
+        "timestamp": 1604376968
+    },
+    {
+        "version": "0.6.0",
+        "changes": [
+            {
+                "note": "Add support for collecting protocol fees in ETH or WETH",
+                "pr": 2
+            },
+            {
+                "note": "Add `LibSignature` library",
+                "pr": 21
+            },
+            {
+                "note": "Add `LimitOrdersFeature`",
+                "pr": 27
+            }
+        ],
+        "timestamp": 1604355662
+    },
+    {
+        "timestamp": 1603851023,
+        "version": "0.5.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "0.5.0",
+        "changes": [
+            {
+                "note": "Add `Swerve`, `SnowSwap`, `DODO` and `SushiSwap` into FQT",
+                "pr": 7
+            }
+        ],
+        "timestamp": 1603833198
+    },
+    {
+        "version": "0.4.0",
+        "changes": [
+            {
+                "note": "Use the exchange proxy as the primary allowance target",
+                "pr": 3
+            }
+        ],
+        "timestamp": 1603487270
+    },
+    {
+        "version": "0.3.0",
+        "changes": [
+            {
+                "note": "Internal audit fixes",
+                "pr": 2657
+            },
+            {
+                "note": "Add refund mechanism to meta-transactions",
+                "pr": 2657
+            },
+            {
+                "note": "Pass sender address to transformers",
+                "pr": 2657
+            },
+            {
+                "note": "Refund unused protocol fees to `refundReceiver` in FQT",
+                "pr": 2657
+            },
+            {
+                "note": "Fix `TransformerDeployer.kill()` calling the wrong `die()` interface.",
+                "pr": 2624
+            },
+            {
+                "note": "Address CD post-audit feedback",
+                "pr": 2657
+            },
+            {
+                "note": "Add `LogMetadataTransformer`",
+                "pr": 2657
+            },
+            {
+                "note": "Rename all feature contracts to have `Feature` suffix",
+                "pr": 2657
+            },
+            {
+                "note": "Return `IZeroExContract` in `fullMigrateAsync()`",
+                "pr": 2657
+            },
+            {
+                "note": "Add taker address enforcement to RFQT orders in FQT",
+                "pr": 2692
+            },
+            {
+                "note": "All calldata is valid if quote signer is unset in `TransformERC20`",
+                "pr": 2692
+            },
+            {
+                "note": "Add updated Kyber and Mooniswap rollup to FQT",
+                "pr": 2692
+            },
+            {
+                "note": "Add `UniswapFeature`",
+                "pr": 2703
+            },
+            {
+                "note": "Fix versioning (`_encodeVersion()`) bug",
+                "pr": 2703
+            },
+            {
+                "note": "Added LiquidityProviderFeature",
+                "pr": 2691
+            },
+            {
+                "note": "Added `Shell` into FQT",
+                "pr": 2722
+            },
+            {
+                "note": "Added `CREAM` into FQT",
+                "pr": 2715
+            }
+        ],
+        "timestamp": 1603265572
+    },
+    {
+        "version": "0.2.0",
+        "changes": [
+            {
+                "note": "Export migration tools",
+                "pr": 2612
+            },
+            {
+                "note": "Export `AffiliateFeeTransformerContract`",
+                "pr": 2622
+            },
+            {
+                "note": "Add `MetaTransactions` and `SignatureValidator` features",
+                "pr": 2610
+            },
+            {
+                "note": "Update `TransformERC20` and `MetaTransactions` to handle signed calldata.",
+                "pr": 2626
+            }
+        ],
+        "timestamp": 1594788383
+    },
+    {
+        "timestamp": 1592969527,
+        "version": "0.1.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "0.1.0",
+        "changes": [
+            {
+                "note": "Create this package",
+                "pr": 2540
+            },
+            {
+                "note": "Introduce fill `TransformERC20` feature.",
+                "pr": 2545
+            },
+            {
+                "note": "Fill Bridges directly in `FillQuoteTransformer`.",
+                "pr": 2608
+            }
+        ]
+    }
+]

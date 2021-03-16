@@ -1,0 +1,381 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "TestLiquidityProvider",
+    "compilerOutput": {
+        "abi": [
+            {
+                "inputs": [
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "xAsset_",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "yAsset_",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "ethBalance",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "SellEthForToken",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "inputTokenBalance",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "SellTokenForEth",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "inputTokenBalance",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "SellTokenForToken",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "sellEthForToken",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address payable",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "sellTokenForEth",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "sellTokenForToken",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "xAsset",
+                "outputs": [
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "yAsset",
+                "outputs": [
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "kind": "dev",
+            "methods": {
+                "sellEthForToken(address,address,uint256,bytes)": {
+                    "details": "Trades ETH for token. ETH must be sent to the contract prior to      calling this function to trigger the trade.",
+                    "params": {
+                        "minBuyAmount": "The minimum acceptable amount of `outputToken` to buy.",
+                        "outputToken": "The token being bought.",
+                        "recipient": "The recipient of the bought tokens."
+                    },
+                    "returns": {
+                        "_0": "boughtAmount The amount of `outputToken` bought."
+                    }
+                },
+                "sellTokenForEth(address,address,uint256,bytes)": {
+                    "details": "Trades token for ETH. The token must be sent to the contract prior      to calling this function to trigger the trade.",
+                    "params": {
+                        "inputToken": "The token being sold.",
+                        "minBuyAmount": "The minimum acceptable amount of ETH to buy.",
+                        "recipient": "The recipient of the bought tokens."
+                    },
+                    "returns": {
+                        "_0": "boughtAmount The amount of ETH bought."
+                    }
+                },
+                "sellTokenForToken(address,address,address,uint256,bytes)": {
+                    "details": "Trades `inputToken` for `outputToken`. The amount of `inputToken`      to sell must be transferred to the contract prior to calling this      function to trigger the trade.",
+                    "params": {
+                        "inputToken": "The token being sold.",
+                        "minBuyAmount": "The minimum acceptable amount of `outputToken` to buy.",
+                        "outputToken": "The token being bought.",
+                        "recipient": "The recipient of the bought tokens."
+                    },
+                    "returns": {
+                        "_0": "boughtAmount The amount of `outputToken` bought."
+                    }
+                }
+            },
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x60c060405234801561001057600080fd5b5060405161064f38038061064f83398101604081905261002f9161004d565b6001600160601b0319606092831b8116608052911b1660a05261009e565b6000806040838503121561005f578182fd5b825161006a81610086565b602084015190925061007b81610086565b809150509250929050565b6001600160a01b038116811461009b57600080fd5b50565b60805160601c60a05160601c6105886100c7600039806102f352508061031752506105886000f3fe60806040526004361061005e5760003560e01c8063b52e845811610043578063b52e8458146100c0578063c858540a146100e0578063f280726b1461010257610065565b806365d02b041461006a57806369be90ec146100a057610065565b3661006557005b600080fd5b34801561007657600080fd5b5061008a6100853660046103f1565b610117565b6040516100979190610524565b60405180910390f35b3480156100ac57600080fd5b5061008a6100bb366004610380565b6101ea565b3480156100cc57600080fd5b5061008a6100db366004610380565b6102ba565b3480156100ec57600080fd5b506100f56102f1565b604051610097919061048c565b34801561010e57600080fd5b506100f5610315565b60007f72e1b68f223f767f8f4e75471718f528e74c571e73cb3e7d4620e1c5daa44488878787878b73ffffffffffffffffffffffffffffffffffffffff166370a08231306040518263ffffffff1660e01b8152600401610177919061048c565b60206040518083038186803b15801561018f57600080fd5b505afa1580156101a3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101c79190610474565b6040516101d89594939291906104e3565b60405180910390a19695505050505050565b60007ff19658c26bb755dbf08298ecedda00e49e9d6b5d26968a394637c30849d2427f8686868973ffffffffffffffffffffffffffffffffffffffff166370a08231306040518263ffffffff1660e01b8152600401610249919061048c565b60206040518083038186803b15801561026157600080fd5b505afa158015610275573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102999190610474565b6040516102a994939291906104ad565b60405180910390a195945050505050565b60007f678ad43a49f074542215575fe2203b2d03f61a461d1cca15922445e58f2a9ca2868686476040516102a994939291906104ad565b7f000000000000000000000000000000000000000000000000000000000000000081565b7f000000000000000000000000000000000000000000000000000000000000000081565b60008083601f84011261034a578182fd5b50813567ffffffffffffffff811115610361578182fd5b60208301915083602082850101111561037957600080fd5b9250929050565b600080600080600060808688031215610397578081fd5b85356103a28161052d565b945060208601356103b28161052d565b935060408601359250606086013567ffffffffffffffff8111156103d4578182fd5b6103e088828901610339565b969995985093965092949392505050565b60008060008060008060a08789031215610409578081fd5b86356104148161052d565b955060208701356104248161052d565b945060408701356104348161052d565b935060608701359250608087013567ffffffffffffffff811115610456578182fd5b61046289828a01610339565b979a9699509497509295939492505050565b600060208284031215610485578081fd5b5051919050565b73ffffffffffffffffffffffffffffffffffffffff91909116815260200190565b73ffffffffffffffffffffffffffffffffffffffff94851681529290931660208301526040820152606081019190915260800190565b73ffffffffffffffffffffffffffffffffffffffff958616815293851660208501529190931660408301526060820192909252608081019190915260a00190565b90815260200190565b73ffffffffffffffffffffffffffffffffffffffff8116811461054f57600080fd5b5056fea264697066735822122056d41d0d5d1ce76f99173252d6659a90ed931dc7bbd519515af516988303e2cb64736f6c634300060c0033",
+                "opcodes": "PUSH1 0xC0 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0x10 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x40 MLOAD PUSH2 0x64F CODESIZE SUB DUP1 PUSH2 0x64F DUP4 CODECOPY DUP2 ADD PUSH1 0x40 DUP2 SWAP1 MSTORE PUSH2 0x2F SWAP2 PUSH2 0x4D JUMP JUMPDEST PUSH1 0x1 PUSH1 0x1 PUSH1 0x60 SHL SUB NOT PUSH1 0x60 SWAP3 DUP4 SHL DUP2 AND PUSH1 0x80 MSTORE SWAP2 SHL AND PUSH1 0xA0 MSTORE PUSH2 0x9E JUMP JUMPDEST PUSH1 0x0 DUP1 PUSH1 0x40 DUP4 DUP6 SUB SLT ISZERO PUSH2 0x5F JUMPI DUP2 DUP3 REVERT JUMPDEST DUP3 MLOAD PUSH2 0x6A DUP2 PUSH2 0x86 JUMP JUMPDEST PUSH1 0x20 DUP5 ADD MLOAD SWAP1 SWAP3 POP PUSH2 0x7B DUP2 PUSH2 0x86 JUMP JUMPDEST DUP1 SWAP2 POP POP SWAP3 POP SWAP3 SWAP1 POP JUMP JUMPDEST PUSH1 0x1 PUSH1 0x1 PUSH1 0xA0 SHL SUB DUP2 AND DUP2 EQ PUSH2 0x9B JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP JUMP JUMPDEST PUSH1 0x80 MLOAD PUSH1 0x60 SHR PUSH1 0xA0 MLOAD PUSH1 0x60 SHR PUSH2 0x588 PUSH2 0xC7 PUSH1 0x0 CODECOPY DUP1 PUSH2 0x2F3 MSTORE POP DUP1 PUSH2 0x317 MSTORE POP PUSH2 0x588 PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x4 CALLDATASIZE LT PUSH2 0x5E JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0xB52E8458 GT PUSH2 0x43 JUMPI DUP1 PUSH4 0xB52E8458 EQ PUSH2 0xC0 JUMPI DUP1 PUSH4 0xC858540A EQ PUSH2 0xE0 JUMPI DUP1 PUSH4 0xF280726B EQ PUSH2 0x102 JUMPI PUSH2 0x65 JUMP JUMPDEST DUP1 PUSH4 0x65D02B04 EQ PUSH2 0x6A JUMPI DUP1 PUSH4 0x69BE90EC EQ PUSH2 0xA0 JUMPI PUSH2 0x65 JUMP JUMPDEST CALLDATASIZE PUSH2 0x65 JUMPI STOP JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0x76 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0x8A PUSH2 0x85 CALLDATASIZE PUSH1 0x4 PUSH2 0x3F1 JUMP JUMPDEST PUSH2 0x117 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x97 SWAP2 SWAP1 PUSH2 0x524 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0xAC JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0x8A PUSH2 0xBB CALLDATASIZE PUSH1 0x4 PUSH2 0x380 JUMP JUMPDEST PUSH2 0x1EA JUMP JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0xCC JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0x8A PUSH2 0xDB CALLDATASIZE PUSH1 0x4 PUSH2 0x380 JUMP JUMPDEST PUSH2 0x2BA JUMP JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0xEC JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0xF5 PUSH2 0x2F1 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x97 SWAP2 SWAP1 PUSH2 0x48C JUMP JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0x10E JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0xF5 PUSH2 0x315 JUMP JUMPDEST PUSH1 0x0 PUSH32 0x72E1B68F223F767F8F4E75471718F528E74C571E73CB3E7D4620E1C5DAA44488 DUP8 DUP8 DUP8 DUP8 DUP12 PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND PUSH4 0x70A08231 ADDRESS PUSH1 0x40 MLOAD DUP3 PUSH4 0xFFFFFFFF AND PUSH1 0xE0 SHL DUP2 MSTORE PUSH1 0x4 ADD PUSH2 0x177 SWAP2 SWAP1 PUSH2 0x48C JUMP JUMPDEST PUSH1 0x20 PUSH1 0x40 MLOAD DUP1 DUP4 SUB DUP2 DUP7 DUP1 EXTCODESIZE ISZERO DUP1 ISZERO PUSH2 0x18F JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP GAS STATICCALL ISZERO DUP1 ISZERO PUSH2 0x1A3 JUMPI RETURNDATASIZE PUSH1 0x0 DUP1 RETURNDATACOPY RETURNDATASIZE PUSH1 0x0 REVERT JUMPDEST POP POP POP POP PUSH1 0x40 MLOAD RETURNDATASIZE PUSH1 0x1F NOT PUSH1 0x1F DUP3 ADD AND DUP3 ADD DUP1 PUSH1 0x40 MSTORE POP DUP2 ADD SWAP1 PUSH2 0x1C7 SWAP2 SWAP1 PUSH2 0x474 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x1D8 SWAP6 SWAP5 SWAP4 SWAP3 SWAP2 SWAP1 PUSH2 0x4E3 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG1 SWAP7 SWAP6 POP POP POP POP POP POP JUMP JUMPDEST PUSH1 0x0 PUSH32 0xF19658C26BB755DBF08298ECEDDA00E49E9D6B5D26968A394637C30849D2427F DUP7 DUP7 DUP7 DUP10 PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND PUSH4 0x70A08231 ADDRESS PUSH1 0x40 MLOAD DUP3 PUSH4 0xFFFFFFFF AND PUSH1 0xE0 SHL DUP2 MSTORE PUSH1 0x4 ADD PUSH2 0x249 SWAP2 SWAP1 PUSH2 0x48C JUMP JUMPDEST PUSH1 0x20 PUSH1 0x40 MLOAD DUP1 DUP4 SUB DUP2 DUP7 DUP1 EXTCODESIZE ISZERO DUP1 ISZERO PUSH2 0x261 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP GAS STATICCALL ISZERO DUP1 ISZERO PUSH2 0x275 JUMPI RETURNDATASIZE PUSH1 0x0 DUP1 RETURNDATACOPY RETURNDATASIZE PUSH1 0x0 REVERT JUMPDEST POP POP POP POP PUSH1 0x40 MLOAD RETURNDATASIZE PUSH1 0x1F NOT PUSH1 0x1F DUP3 ADD AND DUP3 ADD DUP1 PUSH1 0x40 MSTORE POP DUP2 ADD SWAP1 PUSH2 0x299 SWAP2 SWAP1 PUSH2 0x474 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x2A9 SWAP5 SWAP4 SWAP3 SWAP2 SWAP1 PUSH2 0x4AD JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG1 SWAP6 SWAP5 POP POP POP POP POP JUMP JUMPDEST PUSH1 0x0 PUSH32 0x678AD43A49F074542215575FE2203B2D03F61A461D1CCA15922445E58F2A9CA2 DUP7 DUP7 DUP7 SELFBALANCE PUSH1 0x40 MLOAD PUSH2 0x2A9 SWAP5 SWAP4 SWAP3 SWAP2 SWAP1 PUSH2 0x4AD JUMP JUMPDEST PUSH32 0x0 DUP2 JUMP JUMPDEST PUSH32 0x0 DUP2 JUMP JUMPDEST PUSH1 0x0 DUP1 DUP4 PUSH1 0x1F DUP5 ADD SLT PUSH2 0x34A JUMPI DUP2 DUP3 REVERT JUMPDEST POP DUP2 CALLDATALOAD PUSH8 0xFFFFFFFFFFFFFFFF DUP2 GT ISZERO PUSH2 0x361 JUMPI DUP2 DUP3 REVERT JUMPDEST PUSH1 0x20 DUP4 ADD SWAP2 POP DUP4 PUSH1 0x20 DUP3 DUP6 ADD ADD GT ISZERO PUSH2 0x379 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST SWAP3 POP SWAP3 SWAP1 POP JUMP JUMPDEST PUSH1 0x0 DUP1 PUSH1 0x0 DUP1 PUSH1 0x0 PUSH1 0x80 DUP7 DUP9 SUB SLT ISZERO PUSH2 0x397 JUMPI DUP1 DUP2 REVERT JUMPDEST DUP6 CALLDATALOAD PUSH2 0x3A2 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP5 POP PUSH1 0x20 DUP7 ADD CALLDATALOAD PUSH2 0x3B2 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP4 POP PUSH1 0x40 DUP7 ADD CALLDATALOAD SWAP3 POP PUSH1 0x60 DUP7 ADD CALLDATALOAD PUSH8 0xFFFFFFFFFFFFFFFF DUP2 GT ISZERO PUSH2 0x3D4 JUMPI DUP2 DUP3 REVERT JUMPDEST PUSH2 0x3E0 DUP9 DUP3 DUP10 ADD PUSH2 0x339 JUMP JUMPDEST SWAP7 SWAP10 SWAP6 SWAP9 POP SWAP4 SWAP7 POP SWAP3 SWAP5 SWAP4 SWAP3 POP POP POP JUMP JUMPDEST PUSH1 0x0 DUP1 PUSH1 0x0 DUP1 PUSH1 0x0 DUP1 PUSH1 0xA0 DUP8 DUP10 SUB SLT ISZERO PUSH2 0x409 JUMPI DUP1 DUP2 REVERT JUMPDEST DUP7 CALLDATALOAD PUSH2 0x414 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP6 POP PUSH1 0x20 DUP8 ADD CALLDATALOAD PUSH2 0x424 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP5 POP PUSH1 0x40 DUP8 ADD CALLDATALOAD PUSH2 0x434 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP4 POP PUSH1 0x60 DUP8 ADD CALLDATALOAD SWAP3 POP PUSH1 0x80 DUP8 ADD CALLDATALOAD PUSH8 0xFFFFFFFFFFFFFFFF DUP2 GT ISZERO PUSH2 0x456 JUMPI DUP2 DUP3 REVERT JUMPDEST PUSH2 0x462 DUP10 DUP3 DUP11 ADD PUSH2 0x339 JUMP JUMPDEST SWAP8 SWAP11 SWAP7 SWAP10 POP SWAP5 SWAP8 POP SWAP3 SWAP6 SWAP4 SWAP5 SWAP3 POP POP POP JUMP JUMPDEST PUSH1 0x0 PUSH1 0x20 DUP3 DUP5 SUB SLT ISZERO PUSH2 0x485 JUMPI DUP1 DUP2 REVERT JUMPDEST POP MLOAD SWAP2 SWAP1 POP JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF SWAP2 SWAP1 SWAP2 AND DUP2 MSTORE PUSH1 0x20 ADD SWAP1 JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF SWAP5 DUP6 AND DUP2 MSTORE SWAP3 SWAP1 SWAP4 AND PUSH1 0x20 DUP4 ADD MSTORE PUSH1 0x40 DUP3 ADD MSTORE PUSH1 0x60 DUP2 ADD SWAP2 SWAP1 SWAP2 MSTORE PUSH1 0x80 ADD SWAP1 JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF SWAP6 DUP7 AND DUP2 MSTORE SWAP4 DUP6 AND PUSH1 0x20 DUP6 ADD MSTORE SWAP2 SWAP1 SWAP4 AND PUSH1 0x40 DUP4 ADD MSTORE PUSH1 0x60 DUP3 ADD SWAP3 SWAP1 SWAP3 MSTORE PUSH1 0x80 DUP2 ADD SWAP2 SWAP1 SWAP2 MSTORE PUSH1 0xA0 ADD SWAP1 JUMP JUMPDEST SWAP1 DUP2 MSTORE PUSH1 0x20 ADD SWAP1 JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF DUP2 AND DUP2 EQ PUSH2 0x54F JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 JUMP 0xD4 SAR 0xD 0x5D SHR 0xE7 PUSH16 0x99173252D6659A90ED931DC7BBD51951 GAS CREATE2 AND SWAP9 DUP4 SUB 0xE2 0xCB PUSH5 0x736F6C6343 STOP MOD 0xC STOP CALLER ",
+                "sourceMap": "747:3292:0:-:0;;;1360:138;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;-1:-1:-1;;;;;;1449:16:0;;;;;;;;1475;;;;;747:3292;;190:487:-1;;;366:2;354:9;345:7;341:23;337:32;334:2;;;-1:-1;;372:12;334:2;111:6;105:13;123:55;172:5;123:55;:::i;:::-;557:2;629:22;;105:13;424:96;;-1:-1;123:55;105:13;123:55;:::i;:::-;565:96;;;;328:349;;;;;:::o;1030:161::-;-1:-1;;;;;964:54;;1111:57;;1101:2;;1182:1;;1172:12;1101:2;1095:96;:::o;:::-;747:3292:0;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+                "immutableReferences": {
+                    "37": [
+                        {
+                            "length": 32,
+                            "start": 791
+                        }
+                    ],
+                    "39": [
+                        {
+                            "length": 32,
+                            "start": 755
+                        }
+                    ]
+                },
+                "linkReferences": {},
+                "object": "0x60806040526004361061005e5760003560e01c8063b52e845811610043578063b52e8458146100c0578063c858540a146100e0578063f280726b1461010257610065565b806365d02b041461006a57806369be90ec146100a057610065565b3661006557005b600080fd5b34801561007657600080fd5b5061008a6100853660046103f1565b610117565b6040516100979190610524565b60405180910390f35b3480156100ac57600080fd5b5061008a6100bb366004610380565b6101ea565b3480156100cc57600080fd5b5061008a6100db366004610380565b6102ba565b3480156100ec57600080fd5b506100f56102f1565b604051610097919061048c565b34801561010e57600080fd5b506100f5610315565b60007f72e1b68f223f767f8f4e75471718f528e74c571e73cb3e7d4620e1c5daa44488878787878b73ffffffffffffffffffffffffffffffffffffffff166370a08231306040518263ffffffff1660e01b8152600401610177919061048c565b60206040518083038186803b15801561018f57600080fd5b505afa1580156101a3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101c79190610474565b6040516101d89594939291906104e3565b60405180910390a19695505050505050565b60007ff19658c26bb755dbf08298ecedda00e49e9d6b5d26968a394637c30849d2427f8686868973ffffffffffffffffffffffffffffffffffffffff166370a08231306040518263ffffffff1660e01b8152600401610249919061048c565b60206040518083038186803b15801561026157600080fd5b505afa158015610275573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102999190610474565b6040516102a994939291906104ad565b60405180910390a195945050505050565b60007f678ad43a49f074542215575fe2203b2d03f61a461d1cca15922445e58f2a9ca2868686476040516102a994939291906104ad565b7f000000000000000000000000000000000000000000000000000000000000000081565b7f000000000000000000000000000000000000000000000000000000000000000081565b60008083601f84011261034a578182fd5b50813567ffffffffffffffff811115610361578182fd5b60208301915083602082850101111561037957600080fd5b9250929050565b600080600080600060808688031215610397578081fd5b85356103a28161052d565b945060208601356103b28161052d565b935060408601359250606086013567ffffffffffffffff8111156103d4578182fd5b6103e088828901610339565b969995985093965092949392505050565b60008060008060008060a08789031215610409578081fd5b86356104148161052d565b955060208701356104248161052d565b945060408701356104348161052d565b935060608701359250608087013567ffffffffffffffff811115610456578182fd5b61046289828a01610339565b979a9699509497509295939492505050565b600060208284031215610485578081fd5b5051919050565b73ffffffffffffffffffffffffffffffffffffffff91909116815260200190565b73ffffffffffffffffffffffffffffffffffffffff94851681529290931660208301526040820152606081019190915260800190565b73ffffffffffffffffffffffffffffffffffffffff958616815293851660208501529190931660408301526060820192909252608081019190915260a00190565b90815260200190565b73ffffffffffffffffffffffffffffffffffffffff8116811461054f57600080fd5b5056fea264697066735822122056d41d0d5d1ce76f99173252d6659a90ed931dc7bbd519515af516988303e2cb64736f6c634300060c0033",
+                "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x4 CALLDATASIZE LT PUSH2 0x5E JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0xB52E8458 GT PUSH2 0x43 JUMPI DUP1 PUSH4 0xB52E8458 EQ PUSH2 0xC0 JUMPI DUP1 PUSH4 0xC858540A EQ PUSH2 0xE0 JUMPI DUP1 PUSH4 0xF280726B EQ PUSH2 0x102 JUMPI PUSH2 0x65 JUMP JUMPDEST DUP1 PUSH4 0x65D02B04 EQ PUSH2 0x6A JUMPI DUP1 PUSH4 0x69BE90EC EQ PUSH2 0xA0 JUMPI PUSH2 0x65 JUMP JUMPDEST CALLDATASIZE PUSH2 0x65 JUMPI STOP JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0x76 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0x8A PUSH2 0x85 CALLDATASIZE PUSH1 0x4 PUSH2 0x3F1 JUMP JUMPDEST PUSH2 0x117 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x97 SWAP2 SWAP1 PUSH2 0x524 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0xAC JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0x8A PUSH2 0xBB CALLDATASIZE PUSH1 0x4 PUSH2 0x380 JUMP JUMPDEST PUSH2 0x1EA JUMP JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0xCC JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0x8A PUSH2 0xDB CALLDATASIZE PUSH1 0x4 PUSH2 0x380 JUMP JUMPDEST PUSH2 0x2BA JUMP JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0xEC JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0xF5 PUSH2 0x2F1 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x97 SWAP2 SWAP1 PUSH2 0x48C JUMP JUMPDEST CALLVALUE DUP1 ISZERO PUSH2 0x10E JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0xF5 PUSH2 0x315 JUMP JUMPDEST PUSH1 0x0 PUSH32 0x72E1B68F223F767F8F4E75471718F528E74C571E73CB3E7D4620E1C5DAA44488 DUP8 DUP8 DUP8 DUP8 DUP12 PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND PUSH4 0x70A08231 ADDRESS PUSH1 0x40 MLOAD DUP3 PUSH4 0xFFFFFFFF AND PUSH1 0xE0 SHL DUP2 MSTORE PUSH1 0x4 ADD PUSH2 0x177 SWAP2 SWAP1 PUSH2 0x48C JUMP JUMPDEST PUSH1 0x20 PUSH1 0x40 MLOAD DUP1 DUP4 SUB DUP2 DUP7 DUP1 EXTCODESIZE ISZERO DUP1 ISZERO PUSH2 0x18F JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP GAS STATICCALL ISZERO DUP1 ISZERO PUSH2 0x1A3 JUMPI RETURNDATASIZE PUSH1 0x0 DUP1 RETURNDATACOPY RETURNDATASIZE PUSH1 0x0 REVERT JUMPDEST POP POP POP POP PUSH1 0x40 MLOAD RETURNDATASIZE PUSH1 0x1F NOT PUSH1 0x1F DUP3 ADD AND DUP3 ADD DUP1 PUSH1 0x40 MSTORE POP DUP2 ADD SWAP1 PUSH2 0x1C7 SWAP2 SWAP1 PUSH2 0x474 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x1D8 SWAP6 SWAP5 SWAP4 SWAP3 SWAP2 SWAP1 PUSH2 0x4E3 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG1 SWAP7 SWAP6 POP POP POP POP POP POP JUMP JUMPDEST PUSH1 0x0 PUSH32 0xF19658C26BB755DBF08298ECEDDA00E49E9D6B5D26968A394637C30849D2427F DUP7 DUP7 DUP7 DUP10 PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND PUSH4 0x70A08231 ADDRESS PUSH1 0x40 MLOAD DUP3 PUSH4 0xFFFFFFFF AND PUSH1 0xE0 SHL DUP2 MSTORE PUSH1 0x4 ADD PUSH2 0x249 SWAP2 SWAP1 PUSH2 0x48C JUMP JUMPDEST PUSH1 0x20 PUSH1 0x40 MLOAD DUP1 DUP4 SUB DUP2 DUP7 DUP1 EXTCODESIZE ISZERO DUP1 ISZERO PUSH2 0x261 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP GAS STATICCALL ISZERO DUP1 ISZERO PUSH2 0x275 JUMPI RETURNDATASIZE PUSH1 0x0 DUP1 RETURNDATACOPY RETURNDATASIZE PUSH1 0x0 REVERT JUMPDEST POP POP POP POP PUSH1 0x40 MLOAD RETURNDATASIZE PUSH1 0x1F NOT PUSH1 0x1F DUP3 ADD AND DUP3 ADD DUP1 PUSH1 0x40 MSTORE POP DUP2 ADD SWAP1 PUSH2 0x299 SWAP2 SWAP1 PUSH2 0x474 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x2A9 SWAP5 SWAP4 SWAP3 SWAP2 SWAP1 PUSH2 0x4AD JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG1 SWAP6 SWAP5 POP POP POP POP POP JUMP JUMPDEST PUSH1 0x0 PUSH32 0x678AD43A49F074542215575FE2203B2D03F61A461D1CCA15922445E58F2A9CA2 DUP7 DUP7 DUP7 SELFBALANCE PUSH1 0x40 MLOAD PUSH2 0x2A9 SWAP5 SWAP4 SWAP3 SWAP2 SWAP1 PUSH2 0x4AD JUMP JUMPDEST PUSH32 0x0 DUP2 JUMP JUMPDEST PUSH32 0x0 DUP2 JUMP JUMPDEST PUSH1 0x0 DUP1 DUP4 PUSH1 0x1F DUP5 ADD SLT PUSH2 0x34A JUMPI DUP2 DUP3 REVERT JUMPDEST POP DUP2 CALLDATALOAD PUSH8 0xFFFFFFFFFFFFFFFF DUP2 GT ISZERO PUSH2 0x361 JUMPI DUP2 DUP3 REVERT JUMPDEST PUSH1 0x20 DUP4 ADD SWAP2 POP DUP4 PUSH1 0x20 DUP3 DUP6 ADD ADD GT ISZERO PUSH2 0x379 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST SWAP3 POP SWAP3 SWAP1 POP JUMP JUMPDEST PUSH1 0x0 DUP1 PUSH1 0x0 DUP1 PUSH1 0x0 PUSH1 0x80 DUP7 DUP9 SUB SLT ISZERO PUSH2 0x397 JUMPI DUP1 DUP2 REVERT JUMPDEST DUP6 CALLDATALOAD PUSH2 0x3A2 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP5 POP PUSH1 0x20 DUP7 ADD CALLDATALOAD PUSH2 0x3B2 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP4 POP PUSH1 0x40 DUP7 ADD CALLDATALOAD SWAP3 POP PUSH1 0x60 DUP7 ADD CALLDATALOAD PUSH8 0xFFFFFFFFFFFFFFFF DUP2 GT ISZERO PUSH2 0x3D4 JUMPI DUP2 DUP3 REVERT JUMPDEST PUSH2 0x3E0 DUP9 DUP3 DUP10 ADD PUSH2 0x339 JUMP JUMPDEST SWAP7 SWAP10 SWAP6 SWAP9 POP SWAP4 SWAP7 POP SWAP3 SWAP5 SWAP4 SWAP3 POP POP POP JUMP JUMPDEST PUSH1 0x0 DUP1 PUSH1 0x0 DUP1 PUSH1 0x0 DUP1 PUSH1 0xA0 DUP8 DUP10 SUB SLT ISZERO PUSH2 0x409 JUMPI DUP1 DUP2 REVERT JUMPDEST DUP7 CALLDATALOAD PUSH2 0x414 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP6 POP PUSH1 0x20 DUP8 ADD CALLDATALOAD PUSH2 0x424 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP5 POP PUSH1 0x40 DUP8 ADD CALLDATALOAD PUSH2 0x434 DUP2 PUSH2 0x52D JUMP JUMPDEST SWAP4 POP PUSH1 0x60 DUP8 ADD CALLDATALOAD SWAP3 POP PUSH1 0x80 DUP8 ADD CALLDATALOAD PUSH8 0xFFFFFFFFFFFFFFFF DUP2 GT ISZERO PUSH2 0x456 JUMPI DUP2 DUP3 REVERT JUMPDEST PUSH2 0x462 DUP10 DUP3 DUP11 ADD PUSH2 0x339 JUMP JUMPDEST SWAP8 SWAP11 SWAP7 SWAP10 POP SWAP5 SWAP8 POP SWAP3 SWAP6 SWAP4 SWAP5 SWAP3 POP POP POP JUMP JUMPDEST PUSH1 0x0 PUSH1 0x20 DUP3 DUP5 SUB SLT ISZERO PUSH2 0x485 JUMPI DUP1 DUP2 REVERT JUMPDEST POP MLOAD SWAP2 SWAP1 POP JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF SWAP2 SWAP1 SWAP2 AND DUP2 MSTORE PUSH1 0x20 ADD SWAP1 JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF SWAP5 DUP6 AND DUP2 MSTORE SWAP3 SWAP1 SWAP4 AND PUSH1 0x20 DUP4 ADD MSTORE PUSH1 0x40 DUP3 ADD MSTORE PUSH1 0x60 DUP2 ADD SWAP2 SWAP1 SWAP2 MSTORE PUSH1 0x80 ADD SWAP1 JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF SWAP6 DUP7 AND DUP2 MSTORE SWAP4 DUP6 AND PUSH1 0x20 DUP6 ADD MSTORE SWAP2 SWAP1 SWAP4 AND PUSH1 0x40 DUP4 ADD MSTORE PUSH1 0x60 DUP3 ADD SWAP3 SWAP1 SWAP3 MSTORE PUSH1 0x80 DUP2 ADD SWAP2 SWAP1 SWAP2 MSTORE PUSH1 0xA0 ADD SWAP1 JUMP JUMPDEST SWAP1 DUP2 MSTORE PUSH1 0x20 ADD SWAP1 JUMP JUMPDEST PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF DUP2 AND DUP2 EQ PUSH2 0x54F JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 JUMP 0xD4 SAR 0xD 0x5D SHR 0xE7 PUSH16 0x99173252D6659A90ED931DC7BBD51951 GAS CREATE2 AND SWAP9 DUP4 SUB 0xE2 0xCB PUSH5 0x736F6C6343 STOP MOD 0xC STOP CALLER ",
+                "sourceMap": "747:3292:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2049:447;;;;;;;;;;-1:-1:-1;2049:447:0;;;;;:::i;:::-;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;3640:397;;;;;;;;;;-1:-1:-1;3640:397:0;;;;;:::i;:::-;;:::i;2896:361::-;;;;;;;;;;-1:-1:-1;2896:361:0;;;;;:::i;:::-;;:::i;1315:38::-;;;;;;;;;;;;;:::i;:::-;;;;;;;:::i;1271:::-;;;;;;;;;;;;;:::i;2049:447::-;2271:7;2299:190;2330:10;2354:11;2379:9;2402:12;2443:10;2428:36;;;2473:4;2428:51;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;2299:190;;;;;;;;;;:::i;:::-;;;;;;;;2049:447;;;;;;;;:::o;3640:397::-;3839:7;3867:163;3896:10;3920:9;3943:12;3984:10;3969:36;;;4014:4;3969:51;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;3867:163;;;;;;;;;:::i;:::-;;;;;;;;3640:397;;;;;;;:::o;2896:361::-;3088:7;3116:134;3145:11;3170:9;3193:12;3219:21;3116:134;;;;;;;;;:::i;1315:38::-;;;:::o;1271:::-;;;:::o;309:336:-1:-;;;423:3;416:4;408:6;404:17;400:27;390:2;;-1:-1;;431:12;390:2;-1:-1;461:20;;501:18;490:30;;487:2;;;-1:-1;;523:12;487:2;567:4;559:6;555:17;543:29;;618:3;567:4;598:17;559:6;584:32;;581:41;578:2;;;635:1;;625:12;578:2;383:262;;;;;:::o;931:757::-;;;;;;1113:3;1101:9;1092:7;1088:23;1084:33;1081:2;;;-1:-1;;1120:12;1081:2;85:6;72:20;97:33;124:5;97:33;:::i;:::-;1172:63;-1:-1;1272:2;1319:22;;217:20;242:41;217:20;242:41;:::i;:::-;1280:71;-1:-1;1388:2;1427:22;;720:20;;-1:-1;1524:2;1509:18;;1496:32;1548:18;1537:30;;1534:2;;;-1:-1;;1570:12;1534:2;1608:64;1664:7;1655:6;1644:9;1640:22;1608:64;:::i;:::-;1075:613;;;;-1:-1;1075:613;;-1:-1;1590:82;;;1075:613;-1:-1;;;1075:613::o;1695:867::-;;;;;;;1886:3;1874:9;1865:7;1861:23;1857:33;1854:2;;;-1:-1;;1893:12;1854:2;85:6;72:20;97:33;124:5;97:33;:::i;:::-;1945:63;-1:-1;2045:2;2084:22;;72:20;97:33;72:20;97:33;:::i;:::-;2053:63;-1:-1;2153:2;2192:22;;72:20;97:33;72:20;97:33;:::i;:::-;2161:63;-1:-1;2261:2;2300:22;;720:20;;-1:-1;2397:3;2382:19;;2369:33;2422:18;2411:30;;2408:2;;;-1:-1;;2444:12;2408:2;2482:64;2538:7;2529:6;2518:9;2514:22;2482:64;:::i;:::-;1848:714;;;;-1:-1;1848:714;;-1:-1;1848:714;;2464:82;;1848:714;-1:-1;;;1848:714::o;3317:263::-;;3432:2;3420:9;3411:7;3407:23;3403:32;3400:2;;;-1:-1;;3438:12;3400:2;-1:-1;868:13;;3394:186;-1:-1;3394:186::o;4153:238::-;6994:42;6983:54;;;;3666:58;;4288:2;4273:18;;4259:132::o;4398:572::-;6994:42;6983:54;;;3807:37;;6983:54;;;;4790:2;4775:18;;3666:58;4873:2;4858:18;;4104:37;4956:2;4941:18;;4104:37;;;;4617:3;4602:19;;4588:382::o;4977:668::-;6994:42;6983:54;;;3807:37;;6983:54;;;5381:2;5366:18;;3807:37;6983:54;;;;5464:2;5449:18;;3807:37;5547:2;5532:18;;4104:37;;;;5630:3;5615:19;;4104:37;;;;5216:3;5201:19;;5187:458::o;6488:222::-;4104:37;;;6615:2;6600:18;;6586:124::o;7816:117::-;6994:42;7903:5;6983:54;7878:5;7875:35;7865:2;;7924:1;;7914:12;7865:2;7859:74;:::o"
+            },
+            "methodIdentifiers": {
+                "sellEthForToken(address,address,uint256,bytes)": "b52e8458",
+                "sellTokenForEth(address,address,uint256,bytes)": "69be90ec",
+                "sellTokenForToken(address,address,address,uint256,bytes)": "65d02b04",
+                "xAsset()": "f280726b",
+                "yAsset()": "c858540a"
+            }
+        }
+    },
+    "sourceTreeHashHex": "0xf1a7fa23be34b0d55fdaf37b3cd8e44ca864fc09fa5469bea43c2003cf58a602",
+    "sources": {
+        "./TestLiquidityProvider.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ncontract TestLiquidityProvider {\n    event SellTokenForToken(\n        address inputToken,\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        uint256 inputTokenBalance\n    );\n\n    event SellEthForToken(\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        uint256 ethBalance\n    );\n\n    event SellTokenForEth(\n        address inputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        uint256 inputTokenBalance\n    );\n\n    IERC20TokenV06 public immutable xAsset;\n    IERC20TokenV06 public immutable yAsset;\n\n    constructor(IERC20TokenV06 xAsset_, IERC20TokenV06 yAsset_)\n        public\n    {\n        xAsset = xAsset_;\n        yAsset = yAsset_;\n    }\n\n    receive() external payable {}\n\n    /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`\n    ///      to sell must be transferred to the contract prior to calling this\n    ///      function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellTokenForToken(\n        address inputToken,\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata // auxiliaryData\n    )\n        external\n        returns (uint256)\n    {\n        emit SellTokenForToken(\n            inputToken,\n            outputToken,\n            recipient,\n            minBuyAmount,\n            IERC20TokenV06(inputToken).balanceOf(address(this))\n        );\n    }\n\n    /// @dev Trades ETH for token. ETH must be sent to the contract prior to\n    ///      calling this function to trigger the trade.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellEthForToken(\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata // auxiliaryData\n    )\n        external\n        returns (uint256)\n    {\n        emit SellEthForToken(\n            outputToken,\n            recipient,\n            minBuyAmount,\n            address(this).balance\n        );\n    }\n\n    /// @dev Trades token for ETH. The token must be sent to the contract prior\n    ///      to calling this function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.\n    /// @return boughtAmount The amount of ETH bought.\n    function sellTokenForEth(\n        address inputToken,\n        address payable recipient,\n        uint256 minBuyAmount,\n        bytes calldata // auxiliaryData\n    )\n        external\n        returns (uint256)\n    {\n        emit SellTokenForEth(\n            inputToken,\n            recipient,\n            minBuyAmount,\n            IERC20TokenV06(inputToken).balanceOf(address(this))\n        );\n    }\n}\n"
+        },
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": {
+            "id": 1,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./TestLiquidityProvider.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ncontract TestLiquidityProvider {\n    event SellTokenForToken(\n        address inputToken,\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        uint256 inputTokenBalance\n    );\n\n    event SellEthForToken(\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        uint256 ethBalance\n    );\n\n    event SellTokenForEth(\n        address inputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        uint256 inputTokenBalance\n    );\n\n    IERC20TokenV06 public immutable xAsset;\n    IERC20TokenV06 public immutable yAsset;\n\n    constructor(IERC20TokenV06 xAsset_, IERC20TokenV06 yAsset_)\n        public\n    {\n        xAsset = xAsset_;\n        yAsset = yAsset_;\n    }\n\n    receive() external payable {}\n\n    /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`\n    ///      to sell must be transferred to the contract prior to calling this\n    ///      function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellTokenForToken(\n        address inputToken,\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata // auxiliaryData\n    )\n        external\n        returns (uint256)\n    {\n        emit SellTokenForToken(\n            inputToken,\n            outputToken,\n            recipient,\n            minBuyAmount,\n            IERC20TokenV06(inputToken).balanceOf(address(this))\n        );\n    }\n\n    /// @dev Trades ETH for token. ETH must be sent to the contract prior to\n    ///      calling this function to trigger the trade.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellEthForToken(\n        address outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata // auxiliaryData\n    )\n        external\n        returns (uint256)\n    {\n        emit SellEthForToken(\n            outputToken,\n            recipient,\n            minBuyAmount,\n            address(this).balance\n        );\n    }\n\n    /// @dev Trades token for ETH. The token must be sent to the contract prior\n    ///      to calling this function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.\n    /// @return boughtAmount The amount of ETH bought.\n    function sellTokenForEth(\n        address inputToken,\n        address payable recipient,\n        uint256 minBuyAmount,\n        bytes calldata // auxiliaryData\n    )\n        external\n        returns (uint256)\n    {\n        emit SellTokenForEth(\n            inputToken,\n            recipient,\n            minBuyAmount,\n            IERC20TokenV06(inputToken).balanceOf(address(this))\n        );\n    }\n}\n",
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils",
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}

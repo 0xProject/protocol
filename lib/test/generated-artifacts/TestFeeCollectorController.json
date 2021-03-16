@@ -1,0 +1,90 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "TestFeeCollectorController",
+    "compilerOutput": {
+        "abi": [
+            {
+                "inputs": [],
+                "name": "FEE_COLLECTOR_INIT_CODE_HASH",
+                "outputs": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "",
+                        "type": "bytes32"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "details": "FeeCollectorControllerContract-like contract with a null init code hash.",
+            "kind": "dev",
+            "methods": {},
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x608060405260008055348015601357600080fd5b50608c806100226000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063f2541a8c14602d575b600080fd5b60336047565b604051603e9190604d565b60405180910390f35b60005481565b9081526020019056fea2646970667358221220f19f3ce46f71535f1f66f7173ab789a3d95978f00c48cebc2d457a2d0752831264736f6c634300060c0033",
+                "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 SSTORE CALLVALUE DUP1 ISZERO PUSH1 0x13 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x8C DUP1 PUSH2 0x22 PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH1 0x28 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0xF2541A8C EQ PUSH1 0x2D JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH1 0x33 PUSH1 0x47 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH1 0x3E SWAP2 SWAP1 PUSH1 0x4D JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x0 SLOAD DUP2 JUMP JUMPDEST SWAP1 DUP2 MSTORE PUSH1 0x20 ADD SWAP1 JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 CALL SWAP16 EXTCODECOPY 0xE4 PUSH16 0x71535F1F66F7173AB789A3D95978F00C 0x48 0xCE 0xBC 0x2D GASLIMIT PUSH27 0x2D0752831264736F6C634300060C00330000000000000000000000 ",
+                "sourceMap": "831:93:0:-:0;;;920:1;874:47;;831:93;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+                "immutableReferences": {},
+                "linkReferences": {},
+                "object": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063f2541a8c14602d575b600080fd5b60336047565b604051603e9190604d565b60405180910390f35b60005481565b9081526020019056fea2646970667358221220f19f3ce46f71535f1f66f7173ab789a3d95978f00c48cebc2d457a2d0752831264736f6c634300060c0033",
+                "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH1 0x28 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0xF2541A8C EQ PUSH1 0x2D JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH1 0x33 PUSH1 0x47 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH1 0x3E SWAP2 SWAP1 PUSH1 0x4D JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH1 0x0 SLOAD DUP2 JUMP JUMPDEST SWAP1 DUP2 MSTORE PUSH1 0x20 ADD SWAP1 JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 CALL SWAP16 EXTCODECOPY 0xE4 PUSH16 0x71535F1F66F7173AB789A3D95978F00C 0x48 0xCE 0xBC 0x2D GASLIMIT PUSH27 0x2D0752831264736F6C634300060C00330000000000000000000000 ",
+                "sourceMap": "831:93:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;874:47;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;;;;;:::o;125:222:-1:-;76:37;;;252:2;237:18;;223:124::o"
+            },
+            "methodIdentifiers": {
+                "FEE_COLLECTOR_INIT_CODE_HASH()": "f2541a8c"
+            }
+        }
+    },
+    "sourceTreeHashHex": "0x3bc1ddbab42a856b39a48a3f519be481ec8e60fa718e56017b5f6559d4b838e0",
+    "sources": {
+        "./TestFeeCollectorController.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\n\n/// @dev FeeCollectorControllerContract-like contract with a null init code hash.\n//       Does not implement anything else, so finalization will fail.\ncontract TestFeeCollectorController {\n\n    bytes32 public FEE_COLLECTOR_INIT_CODE_HASH = 0;\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./TestFeeCollectorController.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\n\n/// @dev FeeCollectorControllerContract-like contract with a null init code hash.\n//       Does not implement anything else, so finalization will fail.\ncontract TestFeeCollectorController {\n\n    bytes32 public FEE_COLLECTOR_INIT_CODE_HASH = 0;\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils",
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}

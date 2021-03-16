@@ -1,0 +1,38 @@
+import { ContractArtifact } from 'ethereum-types';
+export declare const artifacts: {
+    IZeroEx: ContractArtifact;
+    ZeroEx: ContractArtifact;
+    FullMigration: ContractArtifact;
+    InitialMigration: ContractArtifact;
+    IFlashWallet: ContractArtifact;
+    IAllowanceTarget: ContractArtifact;
+    IERC20Transformer: ContractArtifact;
+    IOwnableFeature: ContractArtifact;
+    ISimpleFunctionRegistryFeature: ContractArtifact;
+    ITokenSpenderFeature: ContractArtifact;
+    ITransformERC20Feature: ContractArtifact;
+    FillQuoteTransformer: ContractArtifact;
+    PayTakerTransformer: ContractArtifact;
+    PositiveSlippageFeeTransformer: ContractArtifact;
+    WethTransformer: ContractArtifact;
+    OwnableFeature: ContractArtifact;
+    SimpleFunctionRegistryFeature: ContractArtifact;
+    TransformERC20Feature: ContractArtifact;
+    TokenSpenderFeature: ContractArtifact;
+    AffiliateFeeTransformer: ContractArtifact;
+    MetaTransactionsFeature: ContractArtifact;
+    LogMetadataTransformer: ContractArtifact;
+    BridgeAdapter: ContractArtifact;
+    LiquidityProviderFeature: ContractArtifact;
+    ILiquidityProviderFeature: ContractArtifact;
+    NativeOrdersFeature: ContractArtifact;
+    INativeOrdersFeature: ContractArtifact;
+    FeeCollectorController: ContractArtifact;
+    FeeCollector: ContractArtifact;
+    CurveLiquidityProvider: ContractArtifact;
+    BatchFillNativeOrdersFeature: ContractArtifact;
+    IBatchFillNativeOrdersFeature: ContractArtifact;
+    MultiplexFeature: ContractArtifact;
+    IMultiplexFeature: ContractArtifact;
+};
+//# sourceMappingURL=artifacts.d.ts.map

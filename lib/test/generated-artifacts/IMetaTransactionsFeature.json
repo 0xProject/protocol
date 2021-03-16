@@ -1,0 +1,548 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "IMetaTransactionsFeature",
+    "compilerOutput": {
+        "abi": [
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "bytes32",
+                        "name": "hash",
+                        "type": "bytes32"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "bytes4",
+                        "name": "selector",
+                        "type": "bytes4"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "signer",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "sender",
+                        "type": "address"
+                    }
+                ],
+                "name": "MetaTransactionExecuted",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address payable",
+                                "name": "signer",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "sender",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "minGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "maxGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "expirationTimeSeconds",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "salt",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bytes",
+                                "name": "callData",
+                                "type": "bytes"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "contract IERC20TokenV06",
+                                "name": "feeToken",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "feeAmount",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeature.MetaTransactionData[]",
+                        "name": "mtxs",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            {
+                                "internalType": "uint8",
+                                "name": "v",
+                                "type": "uint8"
+                            },
+                            {
+                                "internalType": "bytes32",
+                                "name": "r",
+                                "type": "bytes32"
+                            },
+                            {
+                                "internalType": "bytes32",
+                                "name": "s",
+                                "type": "bytes32"
+                            }
+                        ],
+                        "internalType": "struct LibSignature.Signature[]",
+                        "name": "signatures",
+                        "type": "tuple[]"
+                    }
+                ],
+                "name": "batchExecuteMetaTransactions",
+                "outputs": [
+                    {
+                        "internalType": "bytes[]",
+                        "name": "returnResults",
+                        "type": "bytes[]"
+                    }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address payable",
+                                "name": "signer",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "sender",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "minGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "maxGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "expirationTimeSeconds",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "salt",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bytes",
+                                "name": "callData",
+                                "type": "bytes"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "contract IERC20TokenV06",
+                                "name": "feeToken",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "feeAmount",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeature.MetaTransactionData",
+                        "name": "mtx",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            {
+                                "internalType": "uint8",
+                                "name": "v",
+                                "type": "uint8"
+                            },
+                            {
+                                "internalType": "bytes32",
+                                "name": "r",
+                                "type": "bytes32"
+                            },
+                            {
+                                "internalType": "bytes32",
+                                "name": "s",
+                                "type": "bytes32"
+                            }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "executeMetaTransaction",
+                "outputs": [
+                    {
+                        "internalType": "bytes",
+                        "name": "returnResult",
+                        "type": "bytes"
+                    }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address payable",
+                                "name": "signer",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "sender",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "minGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "maxGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "expirationTimeSeconds",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "salt",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bytes",
+                                "name": "callData",
+                                "type": "bytes"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "contract IERC20TokenV06",
+                                "name": "feeToken",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "feeAmount",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeature.MetaTransactionData",
+                        "name": "mtx",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getMetaTransactionExecutedBlock",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "blockNumber",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address payable",
+                                "name": "signer",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "sender",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "minGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "maxGasPrice",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "expirationTimeSeconds",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "salt",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bytes",
+                                "name": "callData",
+                                "type": "bytes"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "value",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "contract IERC20TokenV06",
+                                "name": "feeToken",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "feeAmount",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeature.MetaTransactionData",
+                        "name": "mtx",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getMetaTransactionHash",
+                "outputs": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "mtxHash",
+                        "type": "bytes32"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "mtxHash",
+                        "type": "bytes32"
+                    }
+                ],
+                "name": "getMetaTransactionHashExecutedBlock",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "blockNumber",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "details": "Meta-transactions feature.",
+            "events": {
+                "MetaTransactionExecuted(bytes32,bytes4,address,address)": {
+                    "details": "Emitted whenever a meta-transaction is executed via      `executeMetaTransaction()` or `executeMetaTransactions()`.",
+                    "params": {
+                        "hash": "The meta-transaction hash.",
+                        "selector": "The selector of the function being executed.",
+                        "sender": "Who executed the meta-transaction.",
+                        "signer": "Who to execute the meta-transaction on behalf of."
+                    }
+                }
+            },
+            "kind": "dev",
+            "methods": {
+                "batchExecuteMetaTransactions((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
+                    "details": "Execute multiple meta-transactions.",
+                    "params": {
+                        "mtxs": "The meta-transactions.",
+                        "signatures": "The signature by each respective `mtx.signer`."
+                    },
+                    "returns": {
+                        "returnResults": "The ABI-encoded results of the underlying calls."
+                    }
+                },
+                "executeMetaTransaction((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),(uint8,uint8,bytes32,bytes32))": {
+                    "details": "Execute a single meta-transaction.",
+                    "params": {
+                        "mtx": "The meta-transaction.",
+                        "signature": "The signature by `mtx.signer`."
+                    },
+                    "returns": {
+                        "returnResult": "The ABI-encoded result of the underlying call."
+                    }
+                },
+                "getMetaTransactionExecutedBlock((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))": {
+                    "details": "Get the block at which a meta-transaction has been executed.",
+                    "params": {
+                        "mtx": "The meta-transaction."
+                    },
+                    "returns": {
+                        "blockNumber": "The block height when the meta-transactioin was executed."
+                    }
+                },
+                "getMetaTransactionHash((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))": {
+                    "details": "Get the EIP712 hash of a meta-transaction.",
+                    "params": {
+                        "mtx": "The meta-transaction."
+                    },
+                    "returns": {
+                        "mtxHash": "The EIP712 hash of `mtx`."
+                    }
+                },
+                "getMetaTransactionHashExecutedBlock(bytes32)": {
+                    "details": "Get the block at which a meta-transaction hash has been executed.",
+                    "params": {
+                        "mtxHash": "The meta-transaction hash."
+                    },
+                    "returns": {
+                        "blockNumber": "The block height when the meta-transactioin was executed."
+                    }
+                }
+            },
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "deployedBytecode": {
+                "immutableReferences": {},
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "methodIdentifiers": {
+                "batchExecuteMetaTransactions((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256)[],(uint8,uint8,bytes32,bytes32)[])": "c5579ec8",
+                "executeMetaTransaction((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),(uint8,uint8,bytes32,bytes32))": "3d61ed3e",
+                "getMetaTransactionExecutedBlock((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))": "3fb2da38",
+                "getMetaTransactionHash((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))": "ae550497",
+                "getMetaTransactionHashExecutedBlock(bytes32)": "72d17d03"
+            }
+        }
+    },
+    "sourceTreeHashHex": "0xe24ae6bbaf5a2c6bc9af568ec2dd9b68c9c6367d53f1bae3d607df1a1b5189d1",
+    "sources": {
+        "./IMetaTransactionsFeature.sol": {
+            "id": 1,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\nimport \"../libs/LibSignature.sol\";\n\n/// @dev Meta-transactions feature.\ninterface IMetaTransactionsFeature {\n    /// @dev Describes an exchange proxy meta transaction.\n    struct MetaTransactionData {\n        // Signer of meta-transaction. On whose behalf to execute the MTX.\n        address payable signer;\n        // Required sender, or NULL for anyone.\n        address sender;\n        // Minimum gas price.\n        uint256 minGasPrice;\n        // Maximum gas price.\n        uint256 maxGasPrice;\n        // MTX is invalid after this time.\n        uint256 expirationTimeSeconds;\n        // Nonce to make this MTX unique.\n        uint256 salt;\n        // Encoded call data to a function on the exchange proxy.\n        bytes callData;\n        // Amount of ETH to attach to the call.\n        uint256 value;\n        // ERC20 fee `signer` pays `sender`.\n        IERC20TokenV06 feeToken;\n        // ERC20 fee amount.\n        uint256 feeAmount;\n    }\n\n    /// @dev Emitted whenever a meta-transaction is executed via\n    ///      `executeMetaTransaction()` or `executeMetaTransactions()`.\n    /// @param hash The meta-transaction hash.\n    /// @param selector The selector of the function being executed.\n    /// @param signer Who to execute the meta-transaction on behalf of.\n    /// @param sender Who executed the meta-transaction.\n    event MetaTransactionExecuted(\n        bytes32 hash,\n        bytes4 indexed selector,\n        address signer,\n        address sender\n    );\n\n    /// @dev Execute a single meta-transaction.\n    /// @param mtx The meta-transaction.\n    /// @param signature The signature by `mtx.signer`.\n    /// @return returnResult The ABI-encoded result of the underlying call.\n    function executeMetaTransaction(\n        MetaTransactionData calldata mtx,\n        LibSignature.Signature calldata signature\n    )\n        external\n        payable\n        returns (bytes memory returnResult);\n\n    /// @dev Execute multiple meta-transactions.\n    /// @param mtxs The meta-transactions.\n    /// @param signatures The signature by each respective `mtx.signer`.\n    /// @return returnResults The ABI-encoded results of the underlying calls.\n    function batchExecuteMetaTransactions(\n        MetaTransactionData[] calldata mtxs,\n        LibSignature.Signature[] calldata signatures\n    )\n        external\n        payable\n        returns (bytes[] memory returnResults);\n\n    /// @dev Get the block at which a meta-transaction has been executed.\n    /// @param mtx The meta-transaction.\n    /// @return blockNumber The block height when the meta-transactioin was executed.\n    function getMetaTransactionExecutedBlock(MetaTransactionData calldata mtx)\n        external\n        view\n        returns (uint256 blockNumber);\n\n    /// @dev Get the block at which a meta-transaction hash has been executed.\n    /// @param mtxHash The meta-transaction hash.\n    /// @return blockNumber The block height when the meta-transactioin was executed.\n    function getMetaTransactionHashExecutedBlock(bytes32 mtxHash)\n        external\n        view\n        returns (uint256 blockNumber);\n\n    /// @dev Get the EIP712 hash of a meta-transaction.\n    /// @param mtx The meta-transaction.\n    /// @return mtxHash The EIP712 hash of `mtx`.\n    function getMetaTransactionHash(MetaTransactionData calldata mtx)\n        external\n        view\n        returns (bytes32 mtxHash);\n}\n"
+        },
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": {
+            "id": 3,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+        },
+        "../libs/LibSignature.sol": {
+            "id": 2,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol\";\nimport \"../../errors/LibSignatureRichErrors.sol\";\n\n\n/// @dev A library for validating signatures.\nlibrary LibSignature {\n    using LibRichErrorsV06 for bytes;\n\n    // '\\x19Ethereum Signed Message:\\n32\\x00\\x00\\x00\\x00' in a word.\n    uint256 private constant ETH_SIGN_HASH_PREFIX =\n        0x19457468657265756d205369676e6564204d6573736167653a0a333200000000;\n    /// @dev Exclusive upper limit on ECDSA signatures 'R' values.\n    ///      The valid range is given by fig (282) of the yellow paper.\n    uint256 private constant ECDSA_SIGNATURE_R_LIMIT =\n        uint256(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141);\n    /// @dev Exclusive upper limit on ECDSA signatures 'S' values.\n    ///      The valid range is given by fig (283) of the yellow paper.\n    uint256 private constant ECDSA_SIGNATURE_S_LIMIT = ECDSA_SIGNATURE_R_LIMIT / 2 + 1;\n\n    /// @dev Allowed signature types.\n    enum SignatureType {\n        ILLEGAL,\n        INVALID,\n        EIP712,\n        ETHSIGN\n    }\n\n    /// @dev Encoded EC signature.\n    struct Signature {\n        // How to validate the signature.\n        SignatureType signatureType;\n        // EC Signature data.\n        uint8 v;\n        // EC Signature data.\n        bytes32 r;\n        // EC Signature data.\n        bytes32 s;\n    }\n\n    /// @dev Retrieve the signer of a signature.\n    ///      Throws if the signature can't be validated.\n    /// @param hash The hash that was signed.\n    /// @param signature The signature.\n    /// @return recovered The recovered signer address.\n    function getSignerOfHash(\n        bytes32 hash,\n        Signature memory signature\n    )\n        internal\n        pure\n        returns (address recovered)\n    {\n        // Ensure this is a signature type that can be validated against a hash.\n        _validateHashCompatibleSignature(hash, signature);\n\n        if (signature.signatureType == SignatureType.EIP712) {\n            // Signed using EIP712\n            recovered = ecrecover(\n                hash,\n                signature.v,\n                signature.r,\n                signature.s\n            );\n        } else if (signature.signatureType == SignatureType.ETHSIGN) {\n            // Signed using `eth_sign`\n            // Need to hash `hash` with \"\\x19Ethereum Signed Message:\\n32\" prefix\n            // in packed encoding.\n            bytes32 ethSignHash;\n            assembly {\n                // Use scratch space\n                mstore(0, ETH_SIGN_HASH_PREFIX) // length of 28 bytes\n                mstore(28, hash) // length of 32 bytes\n                ethSignHash := keccak256(0, 60)\n            }\n            recovered = ecrecover(\n                ethSignHash,\n                signature.v,\n                signature.r,\n                signature.s\n            );\n        }\n        // `recovered` can be null if the signature values are out of range.\n        if (recovered == address(0)) {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.BAD_SIGNATURE_DATA,\n                hash\n            ).rrevert();\n        }\n    }\n\n    /// @dev Validates that a signature is compatible with a hash signee.\n    /// @param hash The hash that was signed.\n    /// @param signature The signature.\n    function _validateHashCompatibleSignature(\n        bytes32 hash,\n        Signature memory signature\n    )\n        private\n        pure\n    {\n        // Ensure the r and s are within malleability limits.\n        if (uint256(signature.r) >= ECDSA_SIGNATURE_R_LIMIT ||\n            uint256(signature.s) >= ECDSA_SIGNATURE_S_LIMIT)\n        {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.BAD_SIGNATURE_DATA,\n                hash\n            ).rrevert();\n        }\n\n        // Always illegal signature.\n        if (signature.signatureType == SignatureType.ILLEGAL) {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.ILLEGAL,\n                hash\n            ).rrevert();\n        }\n\n        // Always invalid.\n        if (signature.signatureType == SignatureType.INVALID) {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.ALWAYS_INVALID,\n                hash\n            ).rrevert();\n        }\n\n        // Solidity should check that the signature type is within enum range for us\n        // when abi-decoding.\n    }\n}\n"
+        },
+        "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol": {
+            "id": 4,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\nlibrary LibRichErrorsV06 {\n\n    // bytes4(keccak256(\"Error(string)\"))\n    bytes4 internal constant STANDARD_ERROR_SELECTOR = 0x08c379a0;\n\n    // solhint-disable func-name-mixedcase\n    /// @dev ABI encode a standard, string revert error payload.\n    ///      This is the same payload that would be included by a `revert(string)`\n    ///      solidity statement. It has the function signature `Error(string)`.\n    /// @param message The error string.\n    /// @return The ABI encoded error.\n    function StandardError(string memory message)\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            STANDARD_ERROR_SELECTOR,\n            bytes(message)\n        );\n    }\n    // solhint-enable func-name-mixedcase\n\n    /// @dev Reverts an encoded rich revert reason `errorData`.\n    /// @param errorData ABI encoded error data.\n    function rrevert(bytes memory errorData)\n        internal\n        pure\n    {\n        assembly {\n            revert(add(errorData, 0x20), mload(errorData))\n        }\n    }\n}\n"
+        },
+        "../../errors/LibSignatureRichErrors.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\nlibrary LibSignatureRichErrors {\n\n    enum SignatureValidationErrorCodes {\n        ALWAYS_INVALID,\n        INVALID_LENGTH,\n        UNSUPPORTED,\n        ILLEGAL,\n        WRONG_SIGNER,\n        BAD_SIGNATURE_DATA\n    }\n\n    // solhint-disable func-name-mixedcase\n\n    function SignatureValidationError(\n        SignatureValidationErrorCodes code,\n        bytes32 hash,\n        address signerAddress,\n        bytes memory signature\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"SignatureValidationError(uint8,bytes32,address,bytes)\")),\n            code,\n            hash,\n            signerAddress,\n            signature\n        );\n    }\n\n    function SignatureValidationError(\n        SignatureValidationErrorCodes code,\n        bytes32 hash\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"SignatureValidationError(uint8,bytes32)\")),\n            code,\n            hash\n        );\n    }\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./IMetaTransactionsFeature.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\nimport \"../libs/LibSignature.sol\";\n\n/// @dev Meta-transactions feature.\ninterface IMetaTransactionsFeature {\n    /// @dev Describes an exchange proxy meta transaction.\n    struct MetaTransactionData {\n        // Signer of meta-transaction. On whose behalf to execute the MTX.\n        address payable signer;\n        // Required sender, or NULL for anyone.\n        address sender;\n        // Minimum gas price.\n        uint256 minGasPrice;\n        // Maximum gas price.\n        uint256 maxGasPrice;\n        // MTX is invalid after this time.\n        uint256 expirationTimeSeconds;\n        // Nonce to make this MTX unique.\n        uint256 salt;\n        // Encoded call data to a function on the exchange proxy.\n        bytes callData;\n        // Amount of ETH to attach to the call.\n        uint256 value;\n        // ERC20 fee `signer` pays `sender`.\n        IERC20TokenV06 feeToken;\n        // ERC20 fee amount.\n        uint256 feeAmount;\n    }\n\n    /// @dev Emitted whenever a meta-transaction is executed via\n    ///      `executeMetaTransaction()` or `executeMetaTransactions()`.\n    /// @param hash The meta-transaction hash.\n    /// @param selector The selector of the function being executed.\n    /// @param signer Who to execute the meta-transaction on behalf of.\n    /// @param sender Who executed the meta-transaction.\n    event MetaTransactionExecuted(\n        bytes32 hash,\n        bytes4 indexed selector,\n        address signer,\n        address sender\n    );\n\n    /// @dev Execute a single meta-transaction.\n    /// @param mtx The meta-transaction.\n    /// @param signature The signature by `mtx.signer`.\n    /// @return returnResult The ABI-encoded result of the underlying call.\n    function executeMetaTransaction(\n        MetaTransactionData calldata mtx,\n        LibSignature.Signature calldata signature\n    )\n        external\n        payable\n        returns (bytes memory returnResult);\n\n    /// @dev Execute multiple meta-transactions.\n    /// @param mtxs The meta-transactions.\n    /// @param signatures The signature by each respective `mtx.signer`.\n    /// @return returnResults The ABI-encoded results of the underlying calls.\n    function batchExecuteMetaTransactions(\n        MetaTransactionData[] calldata mtxs,\n        LibSignature.Signature[] calldata signatures\n    )\n        external\n        payable\n        returns (bytes[] memory returnResults);\n\n    /// @dev Get the block at which a meta-transaction has been executed.\n    /// @param mtx The meta-transaction.\n    /// @return blockNumber The block height when the meta-transactioin was executed.\n    function getMetaTransactionExecutedBlock(MetaTransactionData calldata mtx)\n        external\n        view\n        returns (uint256 blockNumber);\n\n    /// @dev Get the block at which a meta-transaction hash has been executed.\n    /// @param mtxHash The meta-transaction hash.\n    /// @return blockNumber The block height when the meta-transactioin was executed.\n    function getMetaTransactionHashExecutedBlock(bytes32 mtxHash)\n        external\n        view\n        returns (uint256 blockNumber);\n\n    /// @dev Get the EIP712 hash of a meta-transaction.\n    /// @param mtx The meta-transaction.\n    /// @return mtxHash The EIP712 hash of `mtx`.\n    function getMetaTransactionHash(MetaTransactionData calldata mtx)\n        external\n        view\n        returns (bytes32 mtxHash);\n}\n",
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n",
+        "../libs/LibSignature.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol\";\nimport \"../../errors/LibSignatureRichErrors.sol\";\n\n\n/// @dev A library for validating signatures.\nlibrary LibSignature {\n    using LibRichErrorsV06 for bytes;\n\n    // '\\x19Ethereum Signed Message:\\n32\\x00\\x00\\x00\\x00' in a word.\n    uint256 private constant ETH_SIGN_HASH_PREFIX =\n        0x19457468657265756d205369676e6564204d6573736167653a0a333200000000;\n    /// @dev Exclusive upper limit on ECDSA signatures 'R' values.\n    ///      The valid range is given by fig (282) of the yellow paper.\n    uint256 private constant ECDSA_SIGNATURE_R_LIMIT =\n        uint256(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141);\n    /// @dev Exclusive upper limit on ECDSA signatures 'S' values.\n    ///      The valid range is given by fig (283) of the yellow paper.\n    uint256 private constant ECDSA_SIGNATURE_S_LIMIT = ECDSA_SIGNATURE_R_LIMIT / 2 + 1;\n\n    /// @dev Allowed signature types.\n    enum SignatureType {\n        ILLEGAL,\n        INVALID,\n        EIP712,\n        ETHSIGN\n    }\n\n    /// @dev Encoded EC signature.\n    struct Signature {\n        // How to validate the signature.\n        SignatureType signatureType;\n        // EC Signature data.\n        uint8 v;\n        // EC Signature data.\n        bytes32 r;\n        // EC Signature data.\n        bytes32 s;\n    }\n\n    /// @dev Retrieve the signer of a signature.\n    ///      Throws if the signature can't be validated.\n    /// @param hash The hash that was signed.\n    /// @param signature The signature.\n    /// @return recovered The recovered signer address.\n    function getSignerOfHash(\n        bytes32 hash,\n        Signature memory signature\n    )\n        internal\n        pure\n        returns (address recovered)\n    {\n        // Ensure this is a signature type that can be validated against a hash.\n        _validateHashCompatibleSignature(hash, signature);\n\n        if (signature.signatureType == SignatureType.EIP712) {\n            // Signed using EIP712\n            recovered = ecrecover(\n                hash,\n                signature.v,\n                signature.r,\n                signature.s\n            );\n        } else if (signature.signatureType == SignatureType.ETHSIGN) {\n            // Signed using `eth_sign`\n            // Need to hash `hash` with \"\\x19Ethereum Signed Message:\\n32\" prefix\n            // in packed encoding.\n            bytes32 ethSignHash;\n            assembly {\n                // Use scratch space\n                mstore(0, ETH_SIGN_HASH_PREFIX) // length of 28 bytes\n                mstore(28, hash) // length of 32 bytes\n                ethSignHash := keccak256(0, 60)\n            }\n            recovered = ecrecover(\n                ethSignHash,\n                signature.v,\n                signature.r,\n                signature.s\n            );\n        }\n        // `recovered` can be null if the signature values are out of range.\n        if (recovered == address(0)) {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.BAD_SIGNATURE_DATA,\n                hash\n            ).rrevert();\n        }\n    }\n\n    /// @dev Validates that a signature is compatible with a hash signee.\n    /// @param hash The hash that was signed.\n    /// @param signature The signature.\n    function _validateHashCompatibleSignature(\n        bytes32 hash,\n        Signature memory signature\n    )\n        private\n        pure\n    {\n        // Ensure the r and s are within malleability limits.\n        if (uint256(signature.r) >= ECDSA_SIGNATURE_R_LIMIT ||\n            uint256(signature.s) >= ECDSA_SIGNATURE_S_LIMIT)\n        {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.BAD_SIGNATURE_DATA,\n                hash\n            ).rrevert();\n        }\n\n        // Always illegal signature.\n        if (signature.signatureType == SignatureType.ILLEGAL) {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.ILLEGAL,\n                hash\n            ).rrevert();\n        }\n\n        // Always invalid.\n        if (signature.signatureType == SignatureType.INVALID) {\n            LibSignatureRichErrors.SignatureValidationError(\n                LibSignatureRichErrors.SignatureValidationErrorCodes.ALWAYS_INVALID,\n                hash\n            ).rrevert();\n        }\n\n        // Solidity should check that the signature type is within enum range for us\n        // when abi-decoding.\n    }\n}\n",
+        "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\nlibrary LibRichErrorsV06 {\n\n    // bytes4(keccak256(\"Error(string)\"))\n    bytes4 internal constant STANDARD_ERROR_SELECTOR = 0x08c379a0;\n\n    // solhint-disable func-name-mixedcase\n    /// @dev ABI encode a standard, string revert error payload.\n    ///      This is the same payload that would be included by a `revert(string)`\n    ///      solidity statement. It has the function signature `Error(string)`.\n    /// @param message The error string.\n    /// @return The ABI encoded error.\n    function StandardError(string memory message)\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            STANDARD_ERROR_SELECTOR,\n            bytes(message)\n        );\n    }\n    // solhint-enable func-name-mixedcase\n\n    /// @dev Reverts an encoded rich revert reason `errorData`.\n    /// @param errorData ABI encoded error data.\n    function rrevert(bytes memory errorData)\n        internal\n        pure\n    {\n        assembly {\n            revert(add(errorData, 0x20), mload(errorData))\n        }\n    }\n}\n",
+        "../../errors/LibSignatureRichErrors.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\nlibrary LibSignatureRichErrors {\n\n    enum SignatureValidationErrorCodes {\n        ALWAYS_INVALID,\n        INVALID_LENGTH,\n        UNSUPPORTED,\n        ILLEGAL,\n        WRONG_SIGNER,\n        BAD_SIGNATURE_DATA\n    }\n\n    // solhint-disable func-name-mixedcase\n\n    function SignatureValidationError(\n        SignatureValidationErrorCodes code,\n        bytes32 hash,\n        address signerAddress,\n        bytes memory signature\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"SignatureValidationError(uint8,bytes32,address,bytes)\")),\n            code,\n            hash,\n            signerAddress,\n            signature\n        );\n    }\n\n    function SignatureValidationError(\n        SignatureValidationErrorCodes code,\n        bytes32 hash\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"SignatureValidationError(uint8,bytes32)\")),\n            code,\n            hash\n        );\n    }\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils",
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}

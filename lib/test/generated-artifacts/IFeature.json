@@ -1,0 +1,111 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "IFeature",
+    "compilerOutput": {
+        "abi": [
+            {
+                "inputs": [],
+                "name": "FEATURE_NAME",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "FEATURE_VERSION",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "version",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "details": "Basic interface for a feature contract.",
+            "kind": "dev",
+            "methods": {
+                "FEATURE_NAME()": {
+                    "details": "The name of this feature set."
+                },
+                "FEATURE_VERSION()": {
+                    "details": "The version of this feature set."
+                }
+            },
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "deployedBytecode": {
+                "immutableReferences": {},
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "methodIdentifiers": {
+                "FEATURE_NAME()": "6ae4b4f7",
+                "FEATURE_VERSION()": "031b905c"
+            }
+        }
+    },
+    "sourceTreeHashHex": "0x95e4108668c121a4d7072c8cf579ce349fb1287e2259aed613e45d716ceb3905",
+    "sources": {
+        "./IFeature.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\n\n/// @dev Basic interface for a feature contract.\ninterface IFeature {\n\n    // solhint-disable func-name-mixedcase\n\n    /// @dev The name of this feature set.\n    function FEATURE_NAME() external view returns (string memory name);\n\n    /// @dev The version of this feature set.\n    function FEATURE_VERSION() external view returns (uint256 version);\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./IFeature.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\n\n/// @dev Basic interface for a feature contract.\ninterface IFeature {\n\n    // solhint-disable func-name-mixedcase\n\n    /// @dev The name of this feature set.\n    function FEATURE_NAME() external view returns (string memory name);\n\n    /// @dev The version of this feature set.\n    function FEATURE_VERSION() external view returns (uint256 version);\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils",
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}

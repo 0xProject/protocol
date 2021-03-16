@@ -1,0 +1,186 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "IBridgeAdapter",
+    "compilerOutput": {
+        "abi": [
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "source",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "inputTokenAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "outputTokenAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "BridgeFill",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "source",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "takerTokenAmount",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "makerTokenAmount",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bytes",
+                                "name": "bridgeData",
+                                "type": "bytes"
+                            }
+                        ],
+                        "internalType": "struct IBridgeAdapter.BridgeOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "sellToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "buyToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "sellAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "trade",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "boughtAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "events": {
+                "BridgeFill(uint256,address,address,uint256,uint256)": {
+                    "details": "Emitted when tokens are swapped with an external source.",
+                    "params": {
+                        "inputToken": "The token the bridge is converting from.",
+                        "inputTokenAmount": "Amount of input token sold.",
+                        "outputToken": "The token the bridge is converting to.",
+                        "outputTokenAmount": "Amount of output token bought.",
+                        "source": "The unique ID for the source. See `BridgeSource.sol`"
+                    }
+                }
+            },
+            "kind": "dev",
+            "methods": {},
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "deployedBytecode": {
+                "immutableReferences": {},
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "methodIdentifiers": {
+                "trade((uint256,uint256,uint256,bytes),address,address,uint256)": "df2b2737"
+            }
+        }
+    },
+    "sourceTreeHashHex": "0xf5ea2df50b25b7244698d23c3af3b260c435408add2b80d877a3cdce42047fc3",
+    "sources": {
+        "./IBridgeAdapter.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ninterface IBridgeAdapter {\n\n    struct BridgeOrder {\n        uint256 source;\n        uint256 takerTokenAmount;\n        uint256 makerTokenAmount;\n        bytes bridgeData;\n    }\n\n    /// @dev Emitted when tokens are swapped with an external source.\n    /// @param source The unique ID for the source. See `BridgeSource.sol`\n    /// @param inputToken The token the bridge is converting from.\n    /// @param outputToken The token the bridge is converting to.\n    /// @param inputTokenAmount Amount of input token sold.\n    /// @param outputTokenAmount Amount of output token bought.\n    event BridgeFill(\n        uint256 source,\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        uint256 inputTokenAmount,\n        uint256 outputTokenAmount\n    );\n\n    function trade(\n        BridgeOrder calldata order,\n        IERC20TokenV06 sellToken,\n        IERC20TokenV06 buyToken,\n        uint256 sellAmount\n    )\n        external\n        returns (uint256 boughtAmount);\n}\n"
+        },
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": {
+            "id": 1,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./IBridgeAdapter.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ninterface IBridgeAdapter {\n\n    struct BridgeOrder {\n        uint256 source;\n        uint256 takerTokenAmount;\n        uint256 makerTokenAmount;\n        bytes bridgeData;\n    }\n\n    /// @dev Emitted when tokens are swapped with an external source.\n    /// @param source The unique ID for the source. See `BridgeSource.sol`\n    /// @param inputToken The token the bridge is converting from.\n    /// @param outputToken The token the bridge is converting to.\n    /// @param inputTokenAmount Amount of input token sold.\n    /// @param outputTokenAmount Amount of output token bought.\n    event BridgeFill(\n        uint256 source,\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        uint256 inputTokenAmount,\n        uint256 outputTokenAmount\n    );\n\n    function trade(\n        BridgeOrder calldata order,\n        IERC20TokenV06 sellToken,\n        IERC20TokenV06 buyToken,\n        uint256 sellAmount\n    )\n        external\n        returns (uint256 boughtAmount);\n}\n",
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils",
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}

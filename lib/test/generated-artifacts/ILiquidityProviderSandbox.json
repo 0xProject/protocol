@@ -1,0 +1,224 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "ILiquidityProviderSandbox",
+    "compilerOutput": {
+        "abi": [
+            {
+                "inputs": [
+                    {
+                        "internalType": "contract ILiquidityProvider",
+                        "name": "provider",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "auxiliaryData",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "executeSellEthForToken",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "contract ILiquidityProvider",
+                        "name": "provider",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "auxiliaryData",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "executeSellTokenForEth",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "contract ILiquidityProvider",
+                        "name": "provider",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "auxiliaryData",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "executeSellTokenForToken",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "kind": "dev",
+            "methods": {
+                "executeSellEthForToken(address,address,address,uint256,bytes)": {
+                    "details": "Calls `sellEthForToken` on the given `provider` contract to      trigger a trade.",
+                    "params": {
+                        "auxiliaryData": "Auxiliary data supplied to the `provider` contract.",
+                        "minBuyAmount": "The minimum acceptable amount of `outputToken` to buy.",
+                        "outputToken": "The token being bought.",
+                        "provider": "The address of the on-chain liquidity provider.",
+                        "recipient": "The recipient of the bought tokens."
+                    }
+                },
+                "executeSellTokenForEth(address,address,address,uint256,bytes)": {
+                    "details": "Calls `sellTokenForEth` on the given `provider` contract to      trigger a trade.",
+                    "params": {
+                        "auxiliaryData": "Auxiliary data supplied to the `provider` contract.",
+                        "inputToken": "The token being sold.",
+                        "minBuyAmount": "The minimum acceptable amount of ETH to buy.",
+                        "provider": "The address of the on-chain liquidity provider.",
+                        "recipient": "The recipient of the bought tokens."
+                    }
+                },
+                "executeSellTokenForToken(address,address,address,address,uint256,bytes)": {
+                    "details": "Calls `sellTokenForToken` on the given `provider` contract to      trigger a trade.",
+                    "params": {
+                        "auxiliaryData": "Auxiliary data supplied to the `provider` contract.",
+                        "inputToken": "The token being sold.",
+                        "minBuyAmount": "The minimum acceptable amount of `outputToken` to buy.",
+                        "outputToken": "The token being bought.",
+                        "provider": "The address of the on-chain liquidity provider.",
+                        "recipient": "The recipient of the bought tokens."
+                    }
+                }
+            },
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "deployedBytecode": {
+                "immutableReferences": {},
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "methodIdentifiers": {
+                "executeSellEthForToken(address,address,address,uint256,bytes)": "6f025ee6",
+                "executeSellTokenForEth(address,address,address,uint256,bytes)": "14549137",
+                "executeSellTokenForToken(address,address,address,address,uint256,bytes)": "bb503e21"
+            }
+        }
+    },
+    "sourceTreeHashHex": "0x6670c787e86c18274d7d8625866cce285c0823f272fe2d0119af9154d476957a",
+    "sources": {
+        "./ILiquidityProviderSandbox.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\nimport \"../vendor/ILiquidityProvider.sol\";\n\n\ninterface ILiquidityProviderSandbox {\n\n    /// @dev Calls `sellTokenForToken` on the given `provider` contract to\n    ///      trigger a trade.\n    /// @param provider The address of the on-chain liquidity provider.\n    /// @param inputToken The token being sold.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.\n    function executeSellTokenForToken(\n        ILiquidityProvider provider,\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external;\n\n    /// @dev Calls `sellEthForToken` on the given `provider` contract to\n    ///      trigger a trade.\n    /// @param provider The address of the on-chain liquidity provider.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.\n    function executeSellEthForToken(\n        ILiquidityProvider provider,\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external;\n\n    /// @dev Calls `sellTokenForEth` on the given `provider` contract to\n    ///      trigger a trade.\n    /// @param provider The address of the on-chain liquidity provider.\n    /// @param inputToken The token being sold.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.\n    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.\n    function executeSellTokenForEth(\n        ILiquidityProvider provider,\n        IERC20TokenV06 inputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external;\n}\n"
+        },
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": {
+            "id": 2,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+        },
+        "../vendor/ILiquidityProvider.sol": {
+            "id": 1,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ninterface ILiquidityProvider {\n\n    /// @dev An optional event an LP can emit for each fill against a source.\n    /// @param inputToken The input token.\n    /// @param outputToken The output token.\n    /// @param inputTokenAmount How much input token was sold.\n    /// @param outputTokenAmount How much output token was bought.\n    /// @param sourceId A bytes32 encoded ascii source ID. E.g., `bytes32('Curve')`/\n    /// @param sourceAddress An optional address associated with the source (e.g, a curve pool).\n    /// @param sourceId A bytes32 encoded ascii source ID. E.g., `bytes32('Curve')`/\n    /// @param sourceAddress An optional address associated with the source (e.g, a curve pool).\n    /// @param sender The caller of the LP.\n    /// @param recipient The recipient of the output tokens.\n    event LiquidityProviderFill(\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        uint256 inputTokenAmount,\n        uint256 outputTokenAmount,\n        bytes32 sourceId,\n        address sourceAddress,\n        address sender,\n        address recipient\n    );\n\n    /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`\n    ///      to sell must be transferred to the contract prior to calling this\n    ///      function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellTokenForToken(\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external\n        returns (uint256 boughtAmount);\n\n    /// @dev Trades ETH for token. ETH must either be attached to this function\n    ///      call or sent to the contract prior to calling this function to\n    ///      trigger the trade.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellEthForToken(\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external\n        payable\n        returns (uint256 boughtAmount);\n\n    /// @dev Trades token for ETH. The token must be sent to the contract prior\n    ///      to calling this function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.\n    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.\n    /// @return boughtAmount The amount of ETH bought.\n    function sellTokenForEth(\n        IERC20TokenV06 inputToken,\n        address payable recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external\n        returns (uint256 boughtAmount);\n\n    /// @dev Quotes the amount of `outputToken` that would be obtained by\n    ///      selling `sellAmount` of `inputToken`.\n    /// @param inputToken Address of the taker token (what to sell). Use\n    ///        the wETH address if selling ETH.\n    /// @param outputToken Address of the maker token (what to buy). Use\n    ///        the wETH address if buying ETH.\n    /// @param sellAmount Amount of `inputToken` to sell.\n    /// @return outputTokenAmount Amount of `outputToken` that would be obtained.\n    function getSellQuote(\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        uint256 sellAmount\n    )\n        external\n        view\n        returns (uint256 outputTokenAmount);\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./ILiquidityProviderSandbox.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\nimport \"../vendor/ILiquidityProvider.sol\";\n\n\ninterface ILiquidityProviderSandbox {\n\n    /// @dev Calls `sellTokenForToken` on the given `provider` contract to\n    ///      trigger a trade.\n    /// @param provider The address of the on-chain liquidity provider.\n    /// @param inputToken The token being sold.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.\n    function executeSellTokenForToken(\n        ILiquidityProvider provider,\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external;\n\n    /// @dev Calls `sellEthForToken` on the given `provider` contract to\n    ///      trigger a trade.\n    /// @param provider The address of the on-chain liquidity provider.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.\n    function executeSellEthForToken(\n        ILiquidityProvider provider,\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external;\n\n    /// @dev Calls `sellTokenForEth` on the given `provider` contract to\n    ///      trigger a trade.\n    /// @param provider The address of the on-chain liquidity provider.\n    /// @param inputToken The token being sold.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.\n    /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.\n    function executeSellTokenForEth(\n        ILiquidityProvider provider,\n        IERC20TokenV06 inputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external;\n}\n",
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n",
+        "../vendor/ILiquidityProvider.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ninterface ILiquidityProvider {\n\n    /// @dev An optional event an LP can emit for each fill against a source.\n    /// @param inputToken The input token.\n    /// @param outputToken The output token.\n    /// @param inputTokenAmount How much input token was sold.\n    /// @param outputTokenAmount How much output token was bought.\n    /// @param sourceId A bytes32 encoded ascii source ID. E.g., `bytes32('Curve')`/\n    /// @param sourceAddress An optional address associated with the source (e.g, a curve pool).\n    /// @param sourceId A bytes32 encoded ascii source ID. E.g., `bytes32('Curve')`/\n    /// @param sourceAddress An optional address associated with the source (e.g, a curve pool).\n    /// @param sender The caller of the LP.\n    /// @param recipient The recipient of the output tokens.\n    event LiquidityProviderFill(\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        uint256 inputTokenAmount,\n        uint256 outputTokenAmount,\n        bytes32 sourceId,\n        address sourceAddress,\n        address sender,\n        address recipient\n    );\n\n    /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`\n    ///      to sell must be transferred to the contract prior to calling this\n    ///      function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellTokenForToken(\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external\n        returns (uint256 boughtAmount);\n\n    /// @dev Trades ETH for token. ETH must either be attached to this function\n    ///      call or sent to the contract prior to calling this function to\n    ///      trigger the trade.\n    /// @param outputToken The token being bought.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of `outputToken` to buy.\n    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.\n    /// @return boughtAmount The amount of `outputToken` bought.\n    function sellEthForToken(\n        IERC20TokenV06 outputToken,\n        address recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external\n        payable\n        returns (uint256 boughtAmount);\n\n    /// @dev Trades token for ETH. The token must be sent to the contract prior\n    ///      to calling this function to trigger the trade.\n    /// @param inputToken The token being sold.\n    /// @param recipient The recipient of the bought tokens.\n    /// @param minBuyAmount The minimum acceptable amount of ETH to buy.\n    /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.\n    /// @return boughtAmount The amount of ETH bought.\n    function sellTokenForEth(\n        IERC20TokenV06 inputToken,\n        address payable recipient,\n        uint256 minBuyAmount,\n        bytes calldata auxiliaryData\n    )\n        external\n        returns (uint256 boughtAmount);\n\n    /// @dev Quotes the amount of `outputToken` that would be obtained by\n    ///      selling `sellAmount` of `inputToken`.\n    /// @param inputToken Address of the taker token (what to sell). Use\n    ///        the wETH address if selling ETH.\n    /// @param outputToken Address of the maker token (what to buy). Use\n    ///        the wETH address if buying ETH.\n    /// @param sellAmount Amount of `inputToken` to sell.\n    /// @return outputTokenAmount Amount of `outputToken` that would be obtained.\n    function getSellQuote(\n        IERC20TokenV06 inputToken,\n        IERC20TokenV06 outputToken,\n        uint256 sellAmount\n    )\n        external\n        view\n        returns (uint256 outputTokenAmount);\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils",
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}

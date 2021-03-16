@@ -1,0 +1,287 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "IMultiplexFeature",
+    "compilerOutput": {
+        "abi": [
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "bytes32",
+                        "name": "orderHash",
+                        "type": "bytes32"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "maker",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint64",
+                        "name": "expiry",
+                        "type": "uint64"
+                    }
+                ],
+                "name": "ExpiredRfqOrder",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "inputTokenAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "outputTokenAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "provider",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    }
+                ],
+                "name": "LiquidityProviderSwap",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "contract IERC20TokenV06",
+                                "name": "inputToken",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "contract IERC20TokenV06",
+                                "name": "outputToken",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "sellAmount",
+                                "type": "uint256"
+                            },
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "bytes4",
+                                        "name": "selector",
+                                        "type": "bytes4"
+                                    },
+                                    {
+                                        "internalType": "uint256",
+                                        "name": "sellAmount",
+                                        "type": "uint256"
+                                    },
+                                    {
+                                        "internalType": "bytes",
+                                        "name": "data",
+                                        "type": "bytes"
+                                    }
+                                ],
+                                "internalType": "struct IMultiplexFeature.WrappedBatchCall[]",
+                                "name": "calls",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMultiplexFeature.BatchFillData",
+                        "name": "fillData",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "batchFill",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "outputTokenAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address[]",
+                                "name": "tokens",
+                                "type": "address[]"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "sellAmount",
+                                "type": "uint256"
+                            },
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "bytes4",
+                                        "name": "selector",
+                                        "type": "bytes4"
+                                    },
+                                    {
+                                        "internalType": "bytes",
+                                        "name": "data",
+                                        "type": "bytes"
+                                    }
+                                ],
+                                "internalType": "struct IMultiplexFeature.WrappedMultiHopCall[]",
+                                "name": "calls",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMultiplexFeature.MultiHopFillData",
+                        "name": "fillData",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minBuyAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "multiHopFill",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "outputTokenAmount",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "kind": "dev",
+            "methods": {
+                "batchFill((address,address,uint256,(bytes4,uint256,bytes)[]),uint256)": {
+                    "details": "Executes a batch of fills selling `fillData.inputToken`      for `fillData.outputToken` in sequence. Refer to the      internal variant `_batchFill` for the allowed nested      operations.",
+                    "params": {
+                        "fillData": "Encodes the input/output tokens, the sell        amount, and the nested operations for this batch fill.",
+                        "minBuyAmount": "The minimum amount of `fillData.outputToken`        to buy. Reverts if this amount is not met."
+                    },
+                    "returns": {
+                        "outputTokenAmount": "The amount of the output token bought."
+                    }
+                },
+                "multiHopFill((address[],uint256,(bytes4,bytes)[]),uint256)": {
+                    "details": "Executes a sequence of fills \"hopping\" through the      path of tokens given by `fillData.tokens`. Refer to the      internal variant `_multiHopFill` for the allowed nested      operations.",
+                    "params": {
+                        "fillData": "Encodes the path of tokens, the sell amount,        and the nested operations for this multi-hop fill.",
+                        "minBuyAmount": "The minimum amount of the output token        to buy. Reverts if this amount is not met."
+                    },
+                    "returns": {
+                        "outputTokenAmount": "The amount of the output token bought."
+                    }
+                }
+            },
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "deployedBytecode": {
+                "immutableReferences": {},
+                "linkReferences": {},
+                "object": "0x",
+                "opcodes": "",
+                "sourceMap": ""
+            },
+            "methodIdentifiers": {
+                "batchFill((address,address,uint256,(bytes4,uint256,bytes)[]),uint256)": "afc6728e",
+                "multiHopFill((address[],uint256,(bytes4,bytes)[]),uint256)": "21c184b6"
+            }
+        }
+    },
+    "sourceTreeHashHex": "0x71ccfa123aa77227198a599222450f9c958bba70a5f68cfa46ac6b38d15d651a",
+    "sources": {
+        "./IMultiplexFeature.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2021 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ninterface IMultiplexFeature {\n\n    // Parameters for `batchFill`.\n    struct BatchFillData {\n        // The token being sold.\n        IERC20TokenV06 inputToken;\n        // The token being bought.\n        IERC20TokenV06 outputToken;\n        // The amount of `inputToken` to sell.\n        uint256 sellAmount;\n        // The nested calls to perform.\n        WrappedBatchCall[] calls;\n    }\n\n    // Represents a call nested within a `batchFill`.\n    struct WrappedBatchCall {\n        // The selector of the function to call.\n        bytes4 selector;\n        // Amount of `inputToken` to sell.\n        uint256 sellAmount;\n        // ABI-encoded parameters needed to perform the call.\n        bytes data;\n    }\n\n    // Parameters for `multiHopFill`.\n    struct MultiHopFillData {\n        // The sell path, i.e.\n        // tokens = [inputToken, hopToken1, ..., hopTokenN, outputToken]\n        address[] tokens;\n        // The amount of `tokens[0]` to sell.\n        uint256 sellAmount;\n        // The nested calls to perform.\n        WrappedMultiHopCall[] calls;\n    }\n\n    // Represents a call nested within a `multiHopFill`.\n    struct WrappedMultiHopCall {\n        // The selector of the function to call.\n        bytes4 selector;\n        // ABI-encoded parameters needed to perform the call.\n        bytes data;\n    }\n\n    event LiquidityProviderSwap(\n        address inputToken,\n        address outputToken,\n        uint256 inputTokenAmount,\n        uint256 outputTokenAmount,\n        address provider,\n        address recipient\n    );\n\n    event ExpiredRfqOrder(\n        bytes32 orderHash,\n        address maker,\n        uint64 expiry\n    );\n\n    /// @dev Executes a batch of fills selling `fillData.inputToken`\n    ///      for `fillData.outputToken` in sequence. Refer to the\n    ///      internal variant `_batchFill` for the allowed nested\n    ///      operations.\n    /// @param fillData Encodes the input/output tokens, the sell\n    ///        amount, and the nested operations for this batch fill.\n    /// @param minBuyAmount The minimum amount of `fillData.outputToken`\n    ///        to buy. Reverts if this amount is not met.\n    /// @return outputTokenAmount The amount of the output token bought.\n    function batchFill(\n        BatchFillData calldata fillData,\n        uint256 minBuyAmount\n    )\n        external\n        payable\n        returns (uint256 outputTokenAmount);\n\n    /// @dev Executes a sequence of fills \"hopping\" through the\n    ///      path of tokens given by `fillData.tokens`. Refer to the\n    ///      internal variant `_multiHopFill` for the allowed nested\n    ///      operations.\n    /// @param fillData Encodes the path of tokens, the sell amount,\n    ///        and the nested operations for this multi-hop fill.\n    /// @param minBuyAmount The minimum amount of the output token\n    ///        to buy. Reverts if this amount is not met.\n    /// @return outputTokenAmount The amount of the output token bought.\n    function multiHopFill(\n        MultiHopFillData calldata fillData,\n        uint256 minBuyAmount\n    )\n        external\n        payable\n        returns (uint256 outputTokenAmount);\n}\n"
+        },
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": {
+            "id": 1,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./IMultiplexFeature.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2021 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\npragma experimental ABIEncoderV2;\n\nimport \"@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol\";\n\n\ninterface IMultiplexFeature {\n\n    // Parameters for `batchFill`.\n    struct BatchFillData {\n        // The token being sold.\n        IERC20TokenV06 inputToken;\n        // The token being bought.\n        IERC20TokenV06 outputToken;\n        // The amount of `inputToken` to sell.\n        uint256 sellAmount;\n        // The nested calls to perform.\n        WrappedBatchCall[] calls;\n    }\n\n    // Represents a call nested within a `batchFill`.\n    struct WrappedBatchCall {\n        // The selector of the function to call.\n        bytes4 selector;\n        // Amount of `inputToken` to sell.\n        uint256 sellAmount;\n        // ABI-encoded parameters needed to perform the call.\n        bytes data;\n    }\n\n    // Parameters for `multiHopFill`.\n    struct MultiHopFillData {\n        // The sell path, i.e.\n        // tokens = [inputToken, hopToken1, ..., hopTokenN, outputToken]\n        address[] tokens;\n        // The amount of `tokens[0]` to sell.\n        uint256 sellAmount;\n        // The nested calls to perform.\n        WrappedMultiHopCall[] calls;\n    }\n\n    // Represents a call nested within a `multiHopFill`.\n    struct WrappedMultiHopCall {\n        // The selector of the function to call.\n        bytes4 selector;\n        // ABI-encoded parameters needed to perform the call.\n        bytes data;\n    }\n\n    event LiquidityProviderSwap(\n        address inputToken,\n        address outputToken,\n        uint256 inputTokenAmount,\n        uint256 outputTokenAmount,\n        address provider,\n        address recipient\n    );\n\n    event ExpiredRfqOrder(\n        bytes32 orderHash,\n        address maker,\n        uint64 expiry\n    );\n\n    /// @dev Executes a batch of fills selling `fillData.inputToken`\n    ///      for `fillData.outputToken` in sequence. Refer to the\n    ///      internal variant `_batchFill` for the allowed nested\n    ///      operations.\n    /// @param fillData Encodes the input/output tokens, the sell\n    ///        amount, and the nested operations for this batch fill.\n    /// @param minBuyAmount The minimum amount of `fillData.outputToken`\n    ///        to buy. Reverts if this amount is not met.\n    /// @return outputTokenAmount The amount of the output token bought.\n    function batchFill(\n        BatchFillData calldata fillData,\n        uint256 minBuyAmount\n    )\n        external\n        payable\n        returns (uint256 outputTokenAmount);\n\n    /// @dev Executes a sequence of fills \"hopping\" through the\n    ///      path of tokens given by `fillData.tokens`. Refer to the\n    ///      internal variant `_multiHopFill` for the allowed nested\n    ///      operations.\n    /// @param fillData Encodes the path of tokens, the sell amount,\n    ///        and the nested operations for this multi-hop fill.\n    /// @param minBuyAmount The minimum amount of the output token\n    ///        to buy. Reverts if this amount is not met.\n    /// @return outputTokenAmount The amount of the output token bought.\n    function multiHopFill(\n        MultiHopFillData calldata fillData,\n        uint256 minBuyAmount\n    )\n        external\n        payable\n        returns (uint256 outputTokenAmount);\n}\n",
+        "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\ninterface IERC20TokenV06 {\n\n    // solhint-disable no-simple-event-func-name\n    event Transfer(\n        address indexed from,\n        address indexed to,\n        uint256 value\n    );\n\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n\n    /// @dev send `value` token to `to` from `msg.sender`\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transfer(address to, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`\n    /// @param from The address of the sender\n    /// @param to The address of the recipient\n    /// @param value The amount of token to be transferred\n    /// @return True if transfer was successful\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    )\n        external\n        returns (bool);\n\n    /// @dev `msg.sender` approves `spender` to spend `value` tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @param value The amount of wei to be approved for transfer\n    /// @return Always true if the call has enough gas to complete execution\n    function approve(address spender, uint256 value)\n        external\n        returns (bool);\n\n    /// @dev Query total supply of token\n    /// @return Total supply of token\n    function totalSupply()\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the balance of `owner`.\n    /// @param owner The address from which the balance will be retrieved\n    /// @return Balance of owner\n    function balanceOf(address owner)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the allowance for `spender` to spend from `owner`.\n    /// @param owner The address of the account owning tokens\n    /// @param spender The address of the account able to transfer the tokens\n    /// @return Amount of remaining tokens allowed to spent\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Get the number of decimals this token has.\n    function decimals()\n        external\n        view\n        returns (uint8);\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20",
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}

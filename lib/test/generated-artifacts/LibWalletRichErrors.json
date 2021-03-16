@@ -1,0 +1,73 @@
+{
+    "schemaVersion": "2.0.0",
+    "contractName": "LibWalletRichErrors",
+    "compilerOutput": {
+        "abi": [],
+        "devdoc": {
+            "kind": "dev",
+            "methods": {},
+            "version": 1
+        },
+        "evm": {
+            "bytecode": {
+                "linkReferences": {},
+                "object": "0x60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220e193936269a163590b6f4dc492f75d7bc50db8674bd2399d755b284dfe0e3be964736f6c634300060c0033",
+                "opcodes": "PUSH1 0x56 PUSH1 0x23 PUSH1 0xB DUP3 DUP3 DUP3 CODECOPY DUP1 MLOAD PUSH1 0x0 BYTE PUSH1 0x73 EQ PUSH1 0x16 JUMPI INVALID JUMPDEST ADDRESS PUSH1 0x0 MSTORE PUSH1 0x73 DUP2 MSTORE8 DUP3 DUP2 RETURN INVALID PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xE1 SWAP4 SWAP4 PUSH3 0x69A163 MSIZE SIGNEXTEND PUSH16 0x4DC492F75D7BC50DB8674BD2399D755B 0x28 0x4D INVALID 0xE EXTCODESIZE 0xE9 PUSH5 0x736F6C6343 STOP MOD 0xC STOP CALLER ",
+                "sourceMap": "645:1083:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+                "immutableReferences": {},
+                "linkReferences": {},
+                "object": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220e193936269a163590b6f4dc492f75d7bc50db8674bd2399d755b284dfe0e3be964736f6c634300060c0033",
+                "opcodes": "PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xE1 SWAP4 SWAP4 PUSH3 0x69A163 MSIZE SIGNEXTEND PUSH16 0x4DC492F75D7BC50DB8674BD2399D755B 0x28 0x4D INVALID 0xE EXTCODESIZE 0xE9 PUSH5 0x736F6C6343 STOP MOD 0xC STOP CALLER ",
+                "sourceMap": "645:1083:0:-:0;;;;;;;;"
+            },
+            "methodIdentifiers": {}
+        }
+    },
+    "sourceTreeHashHex": "0xbbab69f73dfbe769bed55e4918293f86216a85277a117010aa24228712a1c78c",
+    "sources": {
+        "./LibWalletRichErrors.sol": {
+            "id": 0,
+            "content": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\nlibrary LibWalletRichErrors {\n\n    // solhint-disable func-name-mixedcase\n\n    function WalletExecuteCallFailedError(\n        address wallet,\n        address callTarget,\n        bytes memory callData,\n        uint256 callValue,\n        bytes memory errorData\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"WalletExecuteCallFailedError(address,address,bytes,uint256,bytes)\")),\n            wallet,\n            callTarget,\n            callData,\n            callValue,\n            errorData\n        );\n    }\n\n    function WalletExecuteDelegateCallFailedError(\n        address wallet,\n        address callTarget,\n        bytes memory callData,\n        bytes memory errorData\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"WalletExecuteDelegateCallFailedError(address,address,bytes,bytes)\")),\n            wallet,\n            callTarget,\n            callData,\n            errorData\n        );\n    }\n}\n"
+        }
+    },
+    "sourceCodes": {
+        "./LibWalletRichErrors.sol": "// SPDX-License-Identifier: Apache-2.0\n/*\n\n  Copyright 2020 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity ^0.6.5;\n\n\nlibrary LibWalletRichErrors {\n\n    // solhint-disable func-name-mixedcase\n\n    function WalletExecuteCallFailedError(\n        address wallet,\n        address callTarget,\n        bytes memory callData,\n        uint256 callValue,\n        bytes memory errorData\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"WalletExecuteCallFailedError(address,address,bytes,uint256,bytes)\")),\n            wallet,\n            callTarget,\n            callData,\n            callValue,\n            errorData\n        );\n    }\n\n    function WalletExecuteDelegateCallFailedError(\n        address wallet,\n        address callTarget,\n        bytes memory callData,\n        bytes memory errorData\n    )\n        internal\n        pure\n        returns (bytes memory)\n    {\n        return abi.encodeWithSelector(\n            bytes4(keccak256(\"WalletExecuteDelegateCallFailedError(address,address,bytes,bytes)\")),\n            wallet,\n            callTarget,\n            callData,\n            errorData\n        );\n    }\n}\n"
+    },
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.12+commit.27d51765",
+        "settings": {
+            "remappings": [
+                "@0x/contracts-utils=/Users/michaelzhu/protocol/node_modules/@0x/contracts-utils",
+                "@0x/contracts-erc20=/Users/michaelzhu/protocol/contracts/zero-ex/node_modules/@0x/contracts-erc20"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 1000000,
+                "details": {
+                    "yul": true,
+                    "deduplicate": true,
+                    "cse": true,
+                    "constantOptimizer": true
+                }
+            },
+            "outputSelection": {
+                "*": {
+                    "*": [
+                        "abi",
+                        "devdoc",
+                        "evm.bytecode.object",
+                        "evm.bytecode.sourceMap",
+                        "evm.deployedBytecode.object",
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
+                    ]
+                }
+            },
+            "evmVersion": "istanbul"
+        }
+    },
+    "chains": {}
+}
