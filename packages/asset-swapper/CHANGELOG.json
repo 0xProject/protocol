@@ -9,6 +9,10 @@
             {
                 "note": "Enable the ability to send RFQT requests thru a proxy",
                 "pr": 159
+            },
+            {
+                "note": "Add support for MultiplexFeature",
+                "pr": 168
             }
         ]
     },
