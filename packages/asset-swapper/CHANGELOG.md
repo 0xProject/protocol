@@ -5,6 +5,12 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.3.0-multiplex - _March 16, 2021_
+
+    * Add MooniswapLiquidityProvider "direct" route to EP consumer. (#143)
+    * Enable the ability to send RFQT requests thru a proxy (#159)
+    * Add support for MultiplexFeature (#168)
+
 ## v6.2.0 - _March 2, 2021_
 
     * drop curve Y and BUSD pools (#161)

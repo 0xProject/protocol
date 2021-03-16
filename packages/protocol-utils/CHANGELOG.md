@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.3.1-multiplex.0 - _March 16, 2021_
+
+    * Dependencies updated
+
 ## v1.3.0 - _February 24, 2021_
 
     * Add VIP utils (#127)

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.13.0-multiplex - _March 16, 2021_
+
+    * Update IZeroEx artifact (#140)
+
 ## v3.12.0 - _February 24, 2021_
 
     * Update artifacts (#145)

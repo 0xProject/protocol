@@ -1,5 +1,14 @@
 [
     {
+        "timestamp": 1615932869,
+        "version": "4.1.27-multiplex.0",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1614141718,
         "version": "4.1.26",
         "changes": [

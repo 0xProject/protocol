@@ -1,12 +1,13 @@
 [
     {
-        "version": "3.13.0",
+        "version": "3.13.0-multiplex",
         "changes": [
             {
                 "note": "Update IZeroEx artifact",
                 "pr": 140
             }
-        ]
+        ],
+        "timestamp": 1615932869
     },
     {
         "version": "3.12.0",

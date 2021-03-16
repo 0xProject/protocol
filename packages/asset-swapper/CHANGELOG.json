@@ -1,6 +1,6 @@
 [
     {
-        "version": "6.3.0",
+        "version": "6.3.0-multiplex",
         "changes": [
             {
                 "note": "Add MooniswapLiquidityProvider \"direct\" route to EP consumer.",
@@ -14,7 +14,8 @@
                 "note": "Add support for MultiplexFeature",
                 "pr": 168
             }
-        ]
+        ],
+        "timestamp": 1615932869
     },
     {
         "version": "6.2.0",

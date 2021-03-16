@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v7.0.1-multiplex.0 - _March 16, 2021_
+
+    * Dependencies updated
+
 ## v7.0.0 - _February 24, 2021_
 
     * Major version bump with V4 FQT

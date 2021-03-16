@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.20.0-multiplex - _March 16, 2021_
+
+    * Add `MooniswapLiquidityProvider` (#143)
+    * Emit `LiquidityProviderFill` event in `CurveLiquidityProvider` (#143)
+    * Add BatchFillNativeOrdersFeature and MultiplexFeature (#140)
+    * Export MultiplexFeatureContract (#168)
+
 ## v0.19.0 - _February 24, 2021_
 
     * Add `CurveLiquidityProvider` and misc refactors (#127)
