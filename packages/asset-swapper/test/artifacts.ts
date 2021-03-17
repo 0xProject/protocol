@@ -29,6 +29,7 @@ import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExc
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
 import * as KyberSampler from '../test/generated-artifacts/KyberSampler.json';
 import * as LiquidityProviderSampler from '../test/generated-artifacts/LiquidityProviderSampler.json';
+import * as MakerPSMSampler from '../test/generated-artifacts/MakerPSMSampler.json';
 import * as MooniswapSampler from '../test/generated-artifacts/MooniswapSampler.json';
 import * as MStableSampler from '../test/generated-artifacts/MStableSampler.json';
 import * as MultiBridgeSampler from '../test/generated-artifacts/MultiBridgeSampler.json';
@@ -55,6 +56,7 @@ export const artifacts = {
     KyberSampler: KyberSampler as ContractArtifact,
     LiquidityProviderSampler: LiquidityProviderSampler as ContractArtifact,
     MStableSampler: MStableSampler as ContractArtifact,
+    MakerPSMSampler: MakerPSMSampler as ContractArtifact,
     MooniswapSampler: MooniswapSampler as ContractArtifact,
     MultiBridgeSampler: MultiBridgeSampler as ContractArtifact,
     NativeOrderSampler: NativeOrderSampler as ContractArtifact,

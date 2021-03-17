@@ -47,29 +47,6 @@ interface IPSM {
     ) external;
 }
 
-interface IVAT {
-    // @dev Get a collateral type by identifier
-    // @param ilkIdentifier bytes32 identifier. Example: ethers.utils.formatBytes32String("PSM-USDC-A")
-    // @return ilk
-    // @return ilk.Art Total Normalised Debt in wad
-    // @return ilk.rate Accumulated Rates in ray
-    // @return ilk.spot Price with Safety Margin in ray
-    // @return ilk.line Debt Ceiling in rad
-    // @return ilk.dust Urn Debt Floor in rad
-    function ilks(
-        bytes32 ilkIdentifier
-    ) external view returns (
-        uint256 Art,
-        uint256 rate,
-        uint256 spot,
-        uint256 line,
-        uint256 dust
-    );
-}
-
-
-
-
 contract MixinMakerPSM {
 
     using LibERC20TokenV06 for IERC20TokenV06;

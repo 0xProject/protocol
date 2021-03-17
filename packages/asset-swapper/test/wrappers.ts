@@ -28,6 +28,7 @@ export * from '../test/generated-wrappers/i_uniswap_v2_router01';
 export * from '../test/generated-wrappers/kyber_sampler';
 export * from '../test/generated-wrappers/liquidity_provider_sampler';
 export * from '../test/generated-wrappers/m_stable_sampler';
+export * from '../test/generated-wrappers/maker_p_s_m_sampler';
 export * from '../test/generated-wrappers/mooniswap_sampler';
 export * from '../test/generated-wrappers/multi_bridge_sampler';
 export * from '../test/generated-wrappers/native_order_sampler';
