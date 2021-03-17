@@ -102,9 +102,18 @@ export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
  */
 export const FEE_QUOTE_SOURCES = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
 
-export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } = Object.assign(
+// HACK(mzhu25): Limit and RFQ orders need to be treated as different sources
+//               when computing the exchange proxy gas overhead.
+export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } & {
+    RfqOrder: number;
+    LimitOrder: number;
+} = Object.assign(
     {},
-    ...Object.values(ERC20BridgeSource).map((source: ERC20BridgeSource, index) => ({ [source]: 1 << index })),
+    ...['RfqOrder', 'LimitOrder', ...Object.values(ERC20BridgeSource)].map(
+        (source: ERC20BridgeSource | 'RfqOrder' | 'LimitOrder', index) => ({
+            [source]: source === ERC20BridgeSource.Native ? 0 : 1 << index,
+        }),
+    ),
 );
 
 const MIRROR_WRAPPED_TOKENS = {

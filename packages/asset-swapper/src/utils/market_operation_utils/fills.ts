@@ -83,7 +83,7 @@ function nativeOrdersToFills(
     // Create a single path from all orders.
     let fills: Array<Fill & { adjustedRate: BigNumber }> = [];
     for (const o of orders) {
-        const { fillableTakerAmount, fillableTakerFeeAmount, fillableMakerAmount } = o;
+        const { fillableTakerAmount, fillableTakerFeeAmount, fillableMakerAmount, type } = o;
         const makerAmount = fillableMakerAmount;
         const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
@@ -114,11 +114,11 @@ function nativeOrdersToFills(
             adjustedOutput,
             input: clippedInput,
             output: clippedOutput,
-            flags: SOURCE_FLAGS[ERC20BridgeSource.Native],
+            flags: SOURCE_FLAGS[type === FillQuoteTransformerOrderType.Rfq ? 'RfqOrder' : 'LimitOrder'],
             index: 0, // TBD
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
-            type: o.type,
+            type,
             fillData: { ...o },
         });
     }

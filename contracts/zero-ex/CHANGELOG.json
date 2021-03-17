@@ -13,6 +13,10 @@
             {
                 "note": "Add BatchFillNativeOrdersFeature and MultiplexFeature",
                 "pr": 140
+            },
+            {
+                "note": "Export MultiplexFeatureContract",
+                "pr": 168
             }
         ]
     },
