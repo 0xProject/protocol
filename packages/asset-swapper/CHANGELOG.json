@@ -13,6 +13,10 @@
             {
                 "note": "Add support for MultiplexFeature",
                 "pr": 168
+            },
+            {
+                "note": "Use SOURCE_FLAGS.rfqOrder in comparisonPrice",
+                "pr": 177
             }
         ],
         "timestamp": 1616005394
