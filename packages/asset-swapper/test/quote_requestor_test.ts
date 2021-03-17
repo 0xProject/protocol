@@ -371,7 +371,7 @@ describe('QuoteRequestor', async () => {
             const apiKey = 'my-ko0l-api-key';
             const maxTimeoutMs = 10;
             // tslint:disable-next-line:custom-no-magic-numbers
-            const exceedTimeoutMs = maxTimeoutMs + 5;
+            const exceedTimeoutMs = maxTimeoutMs + 50;
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type

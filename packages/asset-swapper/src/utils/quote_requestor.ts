@@ -397,10 +397,17 @@ export class QuoteRequestor {
 
         const typedMakerUrls = standardUrls.concat(altUrls);
 
-        const cancelTokenSource = axios.CancelToken.source();
         const timeoutMs =
             options.makerEndpointMaxResponseTimeMs ||
             constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!;
+        const bufferMs = 20;
+
+        // Set Timeout on CancelToken
+        const cancelTokenSource = axios.CancelToken.source();
+        setTimeout(() => {
+            cancelTokenSource.cancel('timeout via cancel token');
+        }, timeoutMs + bufferMs);
+
         const quotePromises = typedMakerUrls.map(async typedMakerUrl => {
             // filter out requests to skip
             const isBlacklisted = rfqMakerBlacklist.isMakerBlacklisted(typedMakerUrl.url);
@@ -498,11 +505,6 @@ export class QuoteRequestor {
                 }
             }
         });
-
-        // Set Timeout on CancelToken
-        setTimeout(() => {
-            cancelTokenSource.cancel('timeout via cancel token');
-        }, timeoutMs);
 
         const results = (await Promise.all(quotePromises)).filter(x => x !== undefined);
         return results as Array<RfqQuote<ResponseT>>;
