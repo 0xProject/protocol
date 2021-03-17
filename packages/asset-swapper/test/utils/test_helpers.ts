@@ -49,9 +49,15 @@ export const testHelpers = {
             for (const mockedResponse of standardMockedResponses) {
                 const { endpoint, requestApiKey, requestParams, responseData, responseCode } = mockedResponse;
                 const requestHeaders = { Accept: 'application/json, text/plain, */*', '0x-api-key': requestApiKey };
-                mockedAxios
-                    .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
-                    .replyOnce(responseCode, responseData);
+                if (mockedResponse.callback !== undefined) {
+                    mockedAxios
+                        .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
+                        .reply(mockedResponse.callback);
+                } else {
+                    mockedAxios
+                        .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
+                        .replyOnce(responseCode, responseData);
+                }
             }
             // Mock out Alt RFQT responses
             for (const mockedResponse of altMockedResponses) {
