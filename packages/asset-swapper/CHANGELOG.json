@@ -14,7 +14,8 @@
                 "note": "Add support for MultiplexFeature",
                 "pr": 168
             }
-        ]
+        ],
+        "timestamp": 1616005394
     },
     {
         "version": "6.2.0",
