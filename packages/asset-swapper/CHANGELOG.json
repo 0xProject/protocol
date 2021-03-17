@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.4.0",
+        "changes": [
+            {
+                "note": "Use SOURCE_FLAGS.rfqOrder in comparisonPrice",
+                "pr": 177
+            }
+        ]
+    },
+    {
         "version": "6.3.0",
         "changes": [
             {
