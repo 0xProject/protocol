@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-test-utils",
-    "version": "5.3.22",
+    "version": "5.3.23",
     "engines": {
         "node": ">=6.12"
     },
@@ -47,7 +47,7 @@
         "@0x/contract-addresses": "^5.11.0",
         "@0x/dev-utils": "^4.2.1",
         "@0x/json-schemas": "^5.4.1",
-        "@0x/order-utils": "^10.4.17",
+        "@0x/order-utils": "^10.4.18",
         "@0x/sol-coverage": "^4.0.31",
         "@0x/sol-profiler": "^4.1.21",
         "@0x/sol-trace": "^3.0.31",
