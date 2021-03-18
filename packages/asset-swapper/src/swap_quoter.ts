@@ -14,7 +14,7 @@ import {
     MarketBuySwapQuote,
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
-    RfqtRequestOpts,
+    RfqRequestOpts,
     SignedNativeOrder,
     SwapQuote,
     SwapQuoteInfo,
@@ -334,7 +334,7 @@ export class SwapQuoter {
         // Get SRA orders (limit orders)
         const shouldSkipOpenOrderbook =
             !sourceFilters.isAllowed(ERC20BridgeSource.Native) ||
-            (opts.rfqt && opts.rfqt.nativeExclusivelyRFQT === true);
+            (opts.rfqt && opts.rfqt.nativeExclusivelyRFQ === true);
         const nativeOrders = shouldSkipOpenOrderbook
             ? await Promise.resolve([])
             : await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
@@ -420,17 +420,17 @@ export class SwapQuoter {
 
     private _validateRfqtOpts(
         sourceFilters: SourceFilters,
-        rfqt: RfqtRequestOpts | undefined,
-    ): RfqtRequestOpts | undefined {
+        rfqt: RfqRequestOpts | undefined,
+    ): RfqRequestOpts | undefined {
         if (!rfqt) {
             return rfqt;
         }
         // tslint:disable-next-line: boolean-naming
-        const { apiKey, nativeExclusivelyRFQT, intentOnFilling, txOrigin } = rfqt;
-        // If RFQT is enabled and `nativeExclusivelyRFQT` is set, then `ERC20BridgeSource.Native` should
+        const { apiKey, nativeExclusivelyRFQ, intentOnFilling, txOrigin } = rfqt;
+        // If RFQ-T is enabled and `nativeExclusivelyRFQ` is set, then `ERC20BridgeSource.Native` should
         // never be excluded.
-        if (nativeExclusivelyRFQT === true && !sourceFilters.isAllowed(ERC20BridgeSource.Native)) {
-            throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQT" is set');
+        if (nativeExclusivelyRFQ === true && !sourceFilters.isAllowed(ERC20BridgeSource.Native)) {
+            throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQ" is set');
         }
 
         // If an API key was provided, but the key is not whitelisted, raise a warning and disable RFQ

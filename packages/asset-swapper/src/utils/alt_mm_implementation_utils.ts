@@ -11,7 +11,7 @@ import {
     AltQuoteModel,
     AltQuoteRequestData,
     AltQuoteSide,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
 } from '../types';
 
 function getAltMarketInfo(
@@ -119,7 +119,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     makerToken: string,
     takerToken: string,
     maxResponseTimeMs: number,
-    altRfqtAssetOfferings: AltRfqtMakerAssetOfferings,
+    altRfqtAssetOfferings: AltRfqMakerAssetOfferings,
     takerRequestQueryParams: TakerRequestQueryParams,
     axiosInstance: AxiosInstance,
 ): Promise<{ data: ResponseT; status: number }> {

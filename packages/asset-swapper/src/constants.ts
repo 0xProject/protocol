@@ -8,7 +8,7 @@ import {
     LogFunction,
     OrderPrunerOpts,
     OrderPrunerPermittedFeeTypes,
-    RfqtRequestOpts,
+    RfqRequestOpts,
     SwapQuoteGetOutputOpts,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -79,7 +79,7 @@ const DEFAULT_SWAP_QUOTE_REQUEST_OPTS: SwapQuoteRequestOpts = {
     ...DEFAULT_GET_MARKET_ORDERS_OPTS,
 };
 
-const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqtRequestOpts> = {
+const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqRequestOpts> = {
     makerEndpointMaxResponseTimeMs: 1000,
 };
 

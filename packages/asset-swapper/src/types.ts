@@ -227,19 +227,19 @@ export type SwapQuoteOrdersBreakdown = Partial<
 >;
 
 /**
- * nativeExclusivelyRFQT: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
- *                        If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
- *                        array in `SwapQuoteRequestOpts`, an Error will be raised.
+ * nativeExclusivelyRFQ: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
+ *                       If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
+ *                       array in `SwapQuoteRequestOpts`, an Error will be raised.
  */
-export interface RfqtRequestOpts {
+export interface RfqRequestOpts {
     takerAddress: string;
     txOrigin: string;
     apiKey: string;
     intentOnFilling: boolean;
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
-    nativeExclusivelyRFQT?: boolean;
-    altRfqtAssetOfferings?: AltRfqtMakerAssetOfferings;
+    nativeExclusivelyRFQ?: boolean;
+    altRfqtAssetOfferings?: AltRfqMakerAssetOfferings;
 }
 
 /**
@@ -247,14 +247,14 @@ export interface RfqtRequestOpts {
  */
 export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
     gasPrice?: BigNumber;
-    rfqt?: RfqtRequestOpts;
+    rfqt?: RfqRequestOpts;
 }
 
 /**
- * A mapping from RFQ-T quote provider URLs to the trading pairs they support.
+ * A mapping from RFQ-T/M quote provider URLs to the trading pairs they support.
  * The value type represents an array of supported asset pairs, with each array element encoded as a 2-element array of token addresses.
  */
-export interface RfqtMakerAssetOfferings {
+export interface RfqMakerAssetOfferings {
     [endpoint: string]: Array<[string, string]>;
 }
 
@@ -265,7 +265,7 @@ export interface AltOffering {
     baseAssetDecimals: number;
     quoteAssetDecimals: number;
 }
-export interface AltRfqtMakerAssetOfferings {
+export interface AltRfqMakerAssetOfferings {
     [endpoint: string]: AltOffering[];
 }
 export enum RfqPairType {
@@ -279,13 +279,13 @@ export interface TypedMakerUrl {
 
 export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
 
-export interface RfqtFirmQuoteValidator {
+export interface RfqFirmQuoteValidator {
     getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
 }
 
 export interface SwapQuoterRfqtOpts {
     takerApiKeyWhitelist: string[];
-    makerAssetOfferings: RfqtMakerAssetOfferings;
+    makerAssetOfferings: RfqMakerAssetOfferings;
     txOriginBlacklist: Set<string>;
     altRfqCreds?: {
         altRfqApiKey: string;

@@ -75,7 +75,7 @@ export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { SwapQuoter, Orderbook } from './swap_quoter';
 export {
     AltOffering,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     AffiliateFeeType,
     AffiliateFeeAmount,
     AssetSwapperContractAddresses,
@@ -89,9 +89,9 @@ export {
     MarketSellSwapQuote,
     MockedRfqtQuoteResponse,
     OrderPrunerPermittedFeeTypes,
-    RfqtMakerAssetOfferings,
-    RfqtFirmQuoteValidator,
-    RfqtRequestOpts,
+    RfqMakerAssetOfferings,
+    RfqFirmQuoteValidator,
+    RfqRequestOpts,
     SamplerOverrides,
     SignedNativeOrder,
     SignedOrder,
