@@ -517,7 +517,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     wrappedMultiHopCalls.push({
                         selector: this._multiplex.getSelector('_sellToLiquidityProvider'),
                         data: multiplexPlpEncoder.encode({
-                            tokens: (order.fillData as LiquidityProviderFillData).poolAddress,
+                            provider: (order.fillData as LiquidityProviderFillData).poolAddress,
                             auxiliaryData: NULL_BYTES,
                         }),
                     });
