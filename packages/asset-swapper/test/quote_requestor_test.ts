@@ -80,6 +80,7 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin,
+                isLastLook: 'false',
                 protocolVersion: '4',
             };
             const mockedDefaults = {
@@ -223,6 +224,7 @@ describe('QuoteRequestor', async () => {
                             'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T provider when they don't support the requested asset pair. */,
                             'https://37.0.0.1': [[makerToken, takerToken]],
                         },
+                        {},
                         quoteRequestorHttpClient,
                         ALT_RFQ_CREDS,
                     );
@@ -277,6 +279,7 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin: takerAddress,
+                isLastLook: 'false',
                 protocolVersion: '4',
             };
             const mockedDefaults = {
@@ -346,6 +349,7 @@ describe('QuoteRequestor', async () => {
                             'https://424.0.0.1': [[makerToken, takerToken]],
                             'https://37.0.0.1': [[makerToken, takerToken]],
                         },
+                        {},
                         quoteRequestorHttpClient,
                     );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
@@ -380,6 +384,7 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin: takerAddress,
+                isLastLook: 'false',
                 protocolVersion: '4',
             };
             // Successful response
@@ -405,6 +410,7 @@ describe('QuoteRequestor', async () => {
                 async () => {
                     const qr = new QuoteRequestor(
                         { 'https://1337.0.0.1': [[makerToken, takerToken]] },
+                        {},
                         quoteRequestorHttpClient,
                     );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
@@ -638,7 +644,7 @@ describe('QuoteRequestor', async () => {
                     altMockedRequests,
                     RfqtQuoteEndpoint.Indicative,
                     async () => {
-                        const qr = new QuoteRequestor({}, quoteRequestorHttpClient, ALT_RFQ_CREDS);
+                        const qr = new QuoteRequestor({}, {}, quoteRequestorHttpClient, ALT_RFQ_CREDS);
                         const resp = await qr.requestRfqtIndicativeQuotesAsync(
                             altScenario.requestedMakerToken,
                             altScenario.requestedTakerToken,

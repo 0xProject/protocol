@@ -171,6 +171,7 @@ export class QuoteRequestor {
             marketOperation,
             comparisonPrice,
             _opts,
+            this._rfqmAssetOfferings,
         );
     }
 
@@ -194,6 +195,7 @@ export class QuoteRequestor {
             marketOperation,
             comparisonPrice,
             _opts,
+            this._rfqtAssetOfferings,
         );
     }
 
@@ -223,6 +225,7 @@ export class QuoteRequestor {
             marketOperation,
             comparisonPrice,
             _opts,
+            this._rfqmAssetOfferings,
         );
     }
 
@@ -253,6 +256,7 @@ export class QuoteRequestor {
             marketOperation,
             comparisonPrice,
             _opts,
+            this._rfqtAssetOfferings,
         );
     }
 
@@ -337,13 +341,10 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
         quoteType: 'firm' | 'indicative',
+        assetOfferings: RfqtMakerAssetOfferings,
     ): Promise<Array<RfqQuote<ResponseT>>> {
-        const isRFQM = Boolean(options.isLastLook); // presently, a sufficient check to determine if this is RFQM
-        const txOrigin = isRFQM ? constants.METATX_WORKER_REGISTRY : options.txOrigin;
-        const assetOfferings = isRFQM ? this._rfqmAssetOfferings : this._rfqtAssetOfferings;
-
         const requestParams = QuoteRequestor.makeQueryParameters(
-            txOrigin,
+            options.txOrigin,
             options.takerAddress,
             marketOperation,
             makerToken,
@@ -488,6 +489,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
+        assetOfferings: RfqtMakerAssetOfferings,
     ): Promise<SignedNativeOrder[]> {
         const quotesRaw = await this._getQuotesAsync<V4RFQFirmQuote>(
             makerToken,
@@ -497,6 +499,7 @@ export class QuoteRequestor {
             comparisonPrice,
             options,
             'firm',
+            assetOfferings,
         );
         const quotes = quotesRaw.map(result => ({ ...result, response: result.response.signedOrder }));
 
@@ -564,6 +567,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqtRequestOpts,
+        assetOfferings: RfqtMakerAssetOfferings,
     ): Promise<V4RFQIndicativeQuote[]> {
         // fetch quotes
         const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
@@ -574,6 +578,7 @@ export class QuoteRequestor {
             comparisonPrice,
             options,
             'indicative',
+            assetOfferings,
         );
 
         // validate
