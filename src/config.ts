@@ -33,6 +33,8 @@ import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './ty
 import { parseUtils } from './utils/parse_utils';
 import { getTokenMetadataIfExists } from './utils/token_metadata_utils';
 
+// tslint:disable:no-bitwise
+
 enum EnvVarType {
     AddressList,
     StringList,
@@ -341,6 +343,41 @@ const EXCLUDED_FEE_SOURCES = (() => {
             return [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
     }
 })();
+const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
+const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
+const EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX = (sourceFlags: number) => {
+    if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
+        return TX_BASE_GAS;
+    } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
+        return TX_BASE_GAS.plus(10e3);
+    } else {
+        return FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
+    }
+};
+const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
+    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider | SOURCE_FLAGS.RfqOrder;
+const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS =
+    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider;
+const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: number) => {
+    if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
+        // Uniswap VIP
+        return TX_BASE_GAS;
+    } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
+        // PLP VIP
+        return TX_BASE_GAS.plus(10e3);
+    } else if ((MULTIPLEX_BATCH_FILL_SOURCE_FLAGS | sourceFlags) === MULTIPLEX_BATCH_FILL_SOURCE_FLAGS) {
+        // Multiplex batch fill
+        return TX_BASE_GAS.plus(25e3);
+    } else if (
+        (MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS | sourceFlags) ===
+        (MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS | SOURCE_FLAGS.MultiHop)
+    ) {
+        // Multiplex multi-hop fill
+        return TX_BASE_GAS.plus(25e3);
+    } else {
+        return FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
+    }
+};
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     excludedSources: EXCLUDED_SOURCES,
@@ -349,22 +386,19 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
     sampleDistributionBase: 1.05,
-    exchangeProxyOverhead: (sourceFlags: number) => {
-        if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
-            return TX_BASE_GAS;
-        } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
-            return TX_BASE_GAS.plus(10e3);
-        } else {
-            return new BigNumber(150e3);
-        }
-    },
+    exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED,
     runLimit: 2 ** 8,
     shouldGenerateQuoteReport: false,
 };
 
+export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_MULTIPLEX: Partial<SwapQuoteRequestOpts> = {
+    ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+    exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX,
+};
+
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP: Partial<SwapQuoteRequestOpts> = {
     ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-    exchangeProxyOverhead: () => new BigNumber(150e3),
+    exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_NO_VIP,
 };
 
 export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {

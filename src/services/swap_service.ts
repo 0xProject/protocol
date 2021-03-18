@@ -4,6 +4,7 @@ import {
     AltRfqtMakerAssetOfferings,
     artifacts,
     AssetSwapperContractAddresses,
+    ContractAddresses,
     ERC20BridgeSource,
     FakeTakerContract,
     GetMarketOrdersRfqtOpts,
@@ -16,7 +17,6 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
-import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
 import { MarketOperation, PaginatedCollection } from '@0x/types';
@@ -30,6 +30,7 @@ import {
     ALT_RFQ_MM_API_KEY,
     ALT_RFQ_MM_ENDPOINT,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
+    ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_MULTIPLEX,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -218,12 +219,18 @@ export class SwapService {
         // only generate quote reports for rfqt firm quotes or when price comparison is requested
         const shouldGenerateQuoteReport = includePriceComparisons || (rfqt && rfqt.intentOnFilling);
 
-        const swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts> =
+        let swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts>;
+        if (
             isMetaTransaction ||
             // Note: We allow VIP to continue ahead when positive slippage fee is enabled
             affiliateFee.feeType === AffiliateFeeType.PercentageFee
-                ? ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP
-                : ASSET_SWAPPER_MARKET_ORDERS_OPTS;
+        ) {
+            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP;
+        } else if (isETHBuy || isETHSell) {
+            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_MULTIPLEX;
+        } else {
+            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_OPTS;
+        }
 
         const assetSwapperOpts: Partial<SwapQuoteRequestOpts> = {
             ...swapQuoteRequestOpts,

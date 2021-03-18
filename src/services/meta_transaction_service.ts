@@ -1,5 +1,4 @@
-import { QuoteReport, Signature } from '@0x/asset-swapper';
-import { ContractAddresses } from '@0x/contract-addresses';
+import { ContractAddresses, QuoteReport, Signature } from '@0x/asset-swapper';
 import { ContractTxFunctionObj, ContractWrappers } from '@0x/contract-wrappers';
 import {
     assetDataUtils,

@@ -30,6 +30,7 @@ const ganacheConfigs = {
     shouldUseInProcessGanache: false,
     shouldAllowUnlimitedContractSize: true,
     rpcUrl: ETHEREUM_RPC_URL, // set in docker-compose-test.yml
+    shouldUseFakeGasEstimate: false,
 };
 
 export const getProvider = (): Web3ProviderEngine => {
