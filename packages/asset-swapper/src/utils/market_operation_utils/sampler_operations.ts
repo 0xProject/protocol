@@ -28,7 +28,6 @@ import {
     MAINNET_MAKER_PSM_CONTRACT,
     MAINNET_MAKER_PSM_GEM_TOKEN,
     MAINNET_MAKER_PSM_ILK_IDENTIFIER,
-    MAINNET_MAKER_PSM_VAT,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
     MSTABLE_ROUTER_BY_CHAIN_ID,
@@ -1158,7 +1157,6 @@ export class SamplerOperations {
                             }
                             return this.getMakerPsmSellQuotes(
                                 {
-                                    vatAddress: MAINNET_MAKER_PSM_VAT,
                                     psmAddress: MAINNET_MAKER_PSM_CONTRACT,
                                     ilkIdentifier: MAINNET_MAKER_PSM_ILK_IDENTIFIER,
                                     gemTokenAddress: MAINNET_MAKER_PSM_GEM_TOKEN,
@@ -1353,7 +1351,6 @@ export class SamplerOperations {
                             }
                             return this.getMakerPsmBuyQuotes(
                                 {
-                                    vatAddress: MAINNET_MAKER_PSM_VAT,
                                     psmAddress: MAINNET_MAKER_PSM_CONTRACT,
                                     ilkIdentifier: MAINNET_MAKER_PSM_ILK_IDENTIFIER,
                                     gemTokenAddress: MAINNET_MAKER_PSM_GEM_TOKEN,

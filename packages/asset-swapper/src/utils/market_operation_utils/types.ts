@@ -101,7 +101,6 @@ export interface CurveInfo {
  * Configuration for a specific PSM vault
  */
 export interface PsmInfo {
-    vatAddress: string;
     psmAddress: string;
     ilkIdentifier: string;
     gemTokenAddress: string;

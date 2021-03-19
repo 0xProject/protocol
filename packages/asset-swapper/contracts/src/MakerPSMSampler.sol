@@ -31,6 +31,11 @@ interface IPSM {
     // @dev Get the fee for selling DAI to USDC in PSM
     // @return tout toll out [wad]
     function tout() external view returns (uint256);
+
+    // @dev Get the address of the PSM state Vat
+    // @return address of the Vat
+    function vat() external view returns (address);
+
     // @dev Sell USDC for DAI
     // @param usr The address of the account trading USDC for DAI.
     // @param gemAmt The amount of USDC to sell in USDC base units
@@ -76,7 +81,6 @@ contract MakerPSMSampler is
 
     /// @dev Information about which PSM module to use
     struct MakerPsmInfo {
-        address vatAddress;
         address psmAddress;
         bytes32 ilkIdentifier;
         address gemTokenAddress;
@@ -110,7 +114,7 @@ contract MakerPSMSampler is
     {
         _assertValidPair(makerToken, takerToken);
         IPSM psm = IPSM(psmInfo.psmAddress);
-        IVAT vat = IVAT(psmInfo.vatAddress);
+        IVAT vat = IVAT(psm.vat());
 
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -137,7 +141,7 @@ contract MakerPSMSampler is
     {
         _assertValidPair(makerToken, takerToken);
         IPSM psm = IPSM(psmInfo.psmAddress);
-        IVAT vat = IVAT(psmInfo.vatAddress);
+        IVAT vat = IVAT(psm.vat());
 
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
