@@ -3,25 +3,28 @@ import {
     constants,
     describe,
     expect,
+    getRandomPortion,
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import {
-    LimitOrder,
-    LimitOrderFields,
-    OrderInfo,
-    OrderStatus,
-    RevertErrors,
-    RfqOrder,
-    RfqOrderFields,
-} from '@0x/protocol-utils';
+import { LimitOrder, LimitOrderFields, OrderStatus, RevertErrors, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
 import { AnyRevertError, BigNumber } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
 import { IZeroExContract, IZeroExEvents } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { fullMigrateAsync } from '../utils/migration';
-import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
+import {
+    assertOrderInfoEquals,
+    computeLimitOrderFilledAmounts,
+    computeRfqOrderFilledAmounts,
+    createExpiry,
+    getActualFillableTakerTokenAmount,
+    getFillableMakerTokenAmount,
+    getRandomLimitOrder,
+    getRandomRfqOrder,
+    NativeOrdersTestEnvironment,
+} from '../utils/orders';
 import { TestMintableERC20TokenContract, TestRfqOriginRegistrationContract } from '../wrappers';
 
 blockchainTests.resets('NativeOrdersFeature', env => {
@@ -39,6 +42,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     let takerToken: TestMintableERC20TokenContract;
     let wethToken: TestMintableERC20TokenContract;
     let testRfqOriginRegistration: TestRfqOriginRegistrationContract;
+    let testUtils: NativeOrdersTestEnvironment;
 
     before(async () => {
         let owner;
@@ -78,6 +82,16 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             env.txDefaults,
             artifacts,
         );
+        testUtils = new NativeOrdersTestEnvironment(
+            maker,
+            taker,
+            makerToken,
+            takerToken,
+            zeroEx,
+            GAS_PRICE,
+            SINGLE_PROTOCOL_FEE,
+            env,
+        );
     });
 
     function getTestLimitOrder(fields: Partial<LimitOrderFields> = {}): LimitOrder {
@@ -105,27 +119,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         });
     }
 
-    async function prepareBalancesForOrderAsync(order: LimitOrder | RfqOrder, _taker: string = taker): Promise<void> {
-        await makerToken.mint(maker, order.makerAmount).awaitTransactionSuccessAsync();
-        if ('takerTokenFeeAmount' in order) {
-            await takerToken
-                .mint(_taker, order.takerAmount.plus(order.takerTokenFeeAmount))
-                .awaitTransactionSuccessAsync();
-        } else {
-            await takerToken.mint(_taker, order.takerAmount).awaitTransactionSuccessAsync();
-        }
-    }
-
-    function assertOrderInfoEquals(actual: OrderInfo, expected: OrderInfo): void {
-        expect(actual.status).to.eq(expected.status);
-        expect(actual.orderHash).to.eq(expected.orderHash);
-        expect(actual.takerTokenFilledAmount).to.bignumber.eq(expected.takerTokenFilledAmount);
-    }
-
-    function createExpiry(deltaSeconds: number = 60): BigNumber {
-        return new BigNumber(Math.floor(Date.now() / 1000) + deltaSeconds);
-    }
-
     describe('getProtocolFeeMultiplier()', () => {
         it('returns the protocol fee multiplier', async () => {
             const r = await zeroEx.getProtocolFeeMultiplier().callAsync();
@@ -148,26 +141,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             expect(hash).to.eq(order.getHash());
         });
     });
-
-    async function fillLimitOrderAsync(
-        order: LimitOrder,
-        opts: Partial<{
-            fillAmount: BigNumber | number;
-            taker: string;
-            protocolFee?: BigNumber | number;
-        }> = {},
-    ): Promise<TransactionReceiptWithDecodedLogs> {
-        const { fillAmount, taker: _taker, protocolFee } = {
-            taker,
-            fillAmount: order.takerAmount,
-            ...opts,
-        };
-        await prepareBalancesForOrderAsync(order, _taker);
-        const _protocolFee = protocolFee === undefined ? SINGLE_PROTOCOL_FEE : protocolFee;
-        return zeroEx
-            .fillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), new BigNumber(fillAmount))
-            .awaitTransactionSuccessAsync({ from: _taker, value: _protocolFee });
-    }
 
     describe('getLimitOrderInfo()', () => {
         it('unfilled order', async () => {
@@ -205,7 +178,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const expiry = createExpiry(60);
             const order = getTestLimitOrder({ expiry });
             // Fill the order first.
-            await fillLimitOrderAsync(order);
+            await testUtils.fillLimitOrderAsync(order);
             // Advance time to expire the order.
             await env.web3Wrapper.increaseTimeAsync(61);
             const info = await zeroEx.getLimitOrderInfo(order).callAsync();
@@ -219,7 +192,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('filled order', async () => {
             const order = getTestLimitOrder();
             // Fill the order first.
-            await fillLimitOrderAsync(order);
+            await testUtils.fillLimitOrderAsync(order);
             const info = await zeroEx.getLimitOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
                 status: OrderStatus.Filled,
@@ -232,7 +205,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder();
             const fillAmount = order.takerAmount.minus(1);
             // Fill the order first.
-            await fillLimitOrderAsync(order, { fillAmount });
+            await testUtils.fillLimitOrderAsync(order, { fillAmount });
             const info = await zeroEx.getLimitOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
                 status: OrderStatus.Fillable,
@@ -244,7 +217,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('filled then cancelled order', async () => {
             const order = getTestLimitOrder();
             // Fill the order first.
-            await fillLimitOrderAsync(order);
+            await testUtils.fillLimitOrderAsync(order);
             await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const info = await zeroEx.getLimitOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
@@ -258,7 +231,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder();
             const fillAmount = order.takerAmount.minus(1);
             // Fill the order first.
-            await fillLimitOrderAsync(order, { fillAmount });
+            await testUtils.fillLimitOrderAsync(order, { fillAmount });
             await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const info = await zeroEx.getLimitOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
@@ -268,17 +241,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             });
         });
     });
-
-    async function fillRfqOrderAsync(
-        order: RfqOrder,
-        fillAmount: BigNumber | number = order.takerAmount,
-        _taker: string = taker,
-    ): Promise<TransactionReceiptWithDecodedLogs> {
-        await prepareBalancesForOrderAsync(order, _taker);
-        return zeroEx
-            .fillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), new BigNumber(fillAmount))
-            .awaitTransactionSuccessAsync({ from: _taker });
-    }
 
     describe('getRfqOrderInfo()', () => {
         it('unfilled order', async () => {
@@ -316,7 +278,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('filled then expired order', async () => {
             const expiry = createExpiry(60);
             const order = getTestRfqOrder({ expiry });
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const sig = await order.getSignatureWithProviderAsync(env.provider);
             // Fill the order first.
             await zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
@@ -333,7 +295,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('filled order', async () => {
             const order = getTestRfqOrder();
             // Fill the order first.
-            await fillRfqOrderAsync(order, order.takerAmount, taker);
+            await testUtils.fillRfqOrderAsync(order, order.takerAmount, taker);
             const info = await zeroEx.getRfqOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
                 status: OrderStatus.Filled,
@@ -346,7 +308,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
             const fillAmount = order.takerAmount.minus(1);
             // Fill the order first.
-            await fillRfqOrderAsync(order, fillAmount);
+            await testUtils.fillRfqOrderAsync(order, fillAmount);
             const info = await zeroEx.getRfqOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
                 status: OrderStatus.Fillable,
@@ -358,7 +320,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('filled then cancelled order', async () => {
             const order = getTestRfqOrder();
             // Fill the order first.
-            await fillRfqOrderAsync(order);
+            await testUtils.fillRfqOrderAsync(order);
             await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const info = await zeroEx.getRfqOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
@@ -372,7 +334,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
             const fillAmount = order.takerAmount.minus(1);
             // Fill the order first.
-            await fillRfqOrderAsync(order, fillAmount);
+            await testUtils.fillRfqOrderAsync(order, fillAmount);
             await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
             const info = await zeroEx.getRfqOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
@@ -408,7 +370,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('can cancel a fully filled order', async () => {
             const order = getTestLimitOrder();
-            await fillLimitOrderAsync(order);
+            await testUtils.fillLimitOrderAsync(order);
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -421,7 +383,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('can cancel a partially filled order', async () => {
             const order = getTestLimitOrder();
-            await fillLimitOrderAsync(order, { fillAmount: order.takerAmount.minus(1) });
+            await testUtils.fillLimitOrderAsync(order, { fillAmount: order.takerAmount.minus(1) });
             const receipt = await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -482,7 +444,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('can cancel a fully filled order', async () => {
             const order = getTestRfqOrder();
-            await fillRfqOrderAsync(order);
+            await testUtils.fillRfqOrderAsync(order);
             const receipt = await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -495,7 +457,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('can cancel a partially filled order', async () => {
             const order = getTestRfqOrder();
-            await fillRfqOrderAsync(order, order.takerAmount.minus(1));
+            await testUtils.fillRfqOrderAsync(order, order.takerAmount.minus(1));
             const receipt = await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
             verifyEventsFromLogs(
                 receipt.logs,
@@ -747,63 +709,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         });
     });
 
-    interface LimitOrderFilledAmounts {
-        makerTokenFilledAmount: BigNumber;
-        takerTokenFilledAmount: BigNumber;
-        takerTokenFeeFilledAmount: BigNumber;
-    }
-
-    function computeLimitOrderFilledAmounts(
-        order: LimitOrder,
-        takerTokenFillAmount: BigNumber = order.takerAmount,
-        takerTokenAlreadyFilledAmount: BigNumber = ZERO_AMOUNT,
-    ): LimitOrderFilledAmounts {
-        const fillAmount = BigNumber.min(
-            order.takerAmount,
-            takerTokenFillAmount,
-            order.takerAmount.minus(takerTokenAlreadyFilledAmount),
-        );
-        const makerTokenFilledAmount = fillAmount
-            .times(order.makerAmount)
-            .div(order.takerAmount)
-            .integerValue(BigNumber.ROUND_DOWN);
-        const takerTokenFeeFilledAmount = fillAmount
-            .times(order.takerTokenFeeAmount)
-            .div(order.takerAmount)
-            .integerValue(BigNumber.ROUND_DOWN);
-        return {
-            makerTokenFilledAmount,
-            takerTokenFilledAmount: fillAmount,
-            takerTokenFeeFilledAmount,
-        };
-    }
-
-    function createLimitOrderFilledEventArgs(
-        order: LimitOrder,
-        takerTokenFillAmount: BigNumber = order.takerAmount,
-        takerTokenAlreadyFilledAmount: BigNumber = ZERO_AMOUNT,
-    ): object {
-        const {
-            makerTokenFilledAmount,
-            takerTokenFilledAmount,
-            takerTokenFeeFilledAmount,
-        } = computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
-        const protocolFee = order.taker !== NULL_ADDRESS ? ZERO_AMOUNT : SINGLE_PROTOCOL_FEE;
-        return {
-            taker,
-            takerTokenFilledAmount,
-            makerTokenFilledAmount,
-            takerTokenFeeFilledAmount,
-            orderHash: order.getHash(),
-            maker: order.maker,
-            feeRecipient: order.feeRecipient,
-            makerToken: order.makerToken,
-            takerToken: order.takerToken,
-            protocolFeePaid: protocolFee,
-            pool: order.pool,
-        };
-    }
-
     async function assertExpectedFinalBalancesFromLimitOrderFillAsync(
         order: LimitOrder,
         opts: Partial<{
@@ -841,10 +746,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     describe('fillLimitOrder()', () => {
         it('can fully fill an order', async () => {
             const order = getTestLimitOrder();
-            const receipt = await fillLimitOrderAsync(order);
+            const receipt = await testUtils.fillLimitOrderAsync(order);
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order)],
+                [testUtils.createLimitOrderFilledEventArgs(order)],
                 IZeroExEvents.LimitOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getLimitOrderInfo(order).callAsync(), {
@@ -858,10 +763,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('can partially fill an order', async () => {
             const order = getTestLimitOrder();
             const fillAmount = order.takerAmount.minus(1);
-            const receipt = await fillLimitOrderAsync(order, { fillAmount });
+            const receipt = await testUtils.fillLimitOrderAsync(order, { fillAmount });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createLimitOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.LimitOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getLimitOrderInfo(order).callAsync(), {
@@ -869,24 +774,26 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 status: OrderStatus.Fillable,
                 takerTokenFilledAmount: fillAmount,
             });
-            await assertExpectedFinalBalancesFromLimitOrderFillAsync(order, { takerTokenFillAmount: fillAmount });
+            await assertExpectedFinalBalancesFromLimitOrderFillAsync(order, {
+                takerTokenFillAmount: fillAmount,
+            });
         });
 
         it('can fully fill an order in two steps', async () => {
             const order = getTestLimitOrder();
             let fillAmount = order.takerAmount.dividedToIntegerBy(2);
-            let receipt = await fillLimitOrderAsync(order, { fillAmount });
+            let receipt = await testUtils.fillLimitOrderAsync(order, { fillAmount });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createLimitOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.LimitOrderFilled,
             );
             const alreadyFilledAmount = fillAmount;
             fillAmount = order.takerAmount.minus(fillAmount);
-            receipt = await fillLimitOrderAsync(order, { fillAmount });
+            receipt = await testUtils.fillLimitOrderAsync(order, { fillAmount });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
+                [testUtils.createLimitOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
                 IZeroExEvents.LimitOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getLimitOrderInfo(order).callAsync(), {
@@ -899,10 +806,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('clamps fill amount to remaining available', async () => {
             const order = getTestLimitOrder();
             const fillAmount = order.takerAmount.plus(1);
-            const receipt = await fillLimitOrderAsync(order, { fillAmount });
+            const receipt = await testUtils.fillLimitOrderAsync(order, { fillAmount });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createLimitOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.LimitOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getLimitOrderInfo(order).callAsync(), {
@@ -910,24 +817,26 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 status: OrderStatus.Filled,
                 takerTokenFilledAmount: order.takerAmount,
             });
-            await assertExpectedFinalBalancesFromLimitOrderFillAsync(order, { takerTokenFillAmount: fillAmount });
+            await assertExpectedFinalBalancesFromLimitOrderFillAsync(order, {
+                takerTokenFillAmount: fillAmount,
+            });
         });
 
         it('clamps fill amount to remaining available in partial filled order', async () => {
             const order = getTestLimitOrder();
             let fillAmount = order.takerAmount.dividedToIntegerBy(2);
-            let receipt = await fillLimitOrderAsync(order, { fillAmount });
+            let receipt = await testUtils.fillLimitOrderAsync(order, { fillAmount });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createLimitOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.LimitOrderFilled,
             );
             const alreadyFilledAmount = fillAmount;
             fillAmount = order.takerAmount.minus(fillAmount).plus(1);
-            receipt = await fillLimitOrderAsync(order, { fillAmount });
+            receipt = await testUtils.fillLimitOrderAsync(order, { fillAmount });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
+                [testUtils.createLimitOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
                 IZeroExEvents.LimitOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getLimitOrderInfo(order).callAsync(), {
@@ -939,7 +848,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('cannot fill an expired order', async () => {
             const order = getTestLimitOrder({ expiry: createExpiry(-60) });
-            const tx = fillLimitOrderAsync(order);
+            const tx = testUtils.fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Expired),
             );
@@ -948,7 +857,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('cannot fill a cancelled order', async () => {
             const order = getTestLimitOrder();
             await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            const tx = fillLimitOrderAsync(order);
+            const tx = testUtils.fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
@@ -959,7 +868,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             await zeroEx
                 .cancelPairLimitOrders(makerToken.address, takerToken.address, order.salt.plus(1))
                 .awaitTransactionSuccessAsync({ from: maker });
-            const tx = fillLimitOrderAsync(order);
+            const tx = testUtils.fillLimitOrderAsync(order);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
@@ -967,7 +876,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('non-taker cannot fill order', async () => {
             const order = getTestLimitOrder({ taker });
-            const tx = fillLimitOrderAsync(order, { fillAmount: order.takerAmount, taker: notTaker });
+            const tx = testUtils.fillLimitOrderAsync(order, { fillAmount: order.takerAmount, taker: notTaker });
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
             );
@@ -975,7 +884,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('non-sender cannot fill order', async () => {
             const order = getTestLimitOrder({ sender: taker });
-            const tx = fillLimitOrderAsync(order, { fillAmount: order.takerAmount, taker: notTaker });
+            const tx = testUtils.fillLimitOrderAsync(order, { fillAmount: order.takerAmount, taker: notTaker });
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableBySenderError(order.getHash(), notTaker, order.sender),
             );
@@ -985,7 +894,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder();
             // Overwrite chainId to result in a different hash and therefore different
             // signature.
-            const tx = fillLimitOrderAsync(order.clone({ chainId: 1234 }));
+            const tx = testUtils.fillLimitOrderAsync(order.clone({ chainId: 1234 }));
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), undefined, order.maker),
             );
@@ -993,7 +902,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('fails if no protocol fee attached', async () => {
             const order = getTestLimitOrder();
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const tx = zeroEx
                 .fillLimitOrder(
                     order,
@@ -1008,62 +917,24 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('refunds excess protocol fee', async () => {
             const order = getTestLimitOrder();
-            const receipt = await fillLimitOrderAsync(order, { protocolFee: SINGLE_PROTOCOL_FEE.plus(1) });
+            const receipt = await testUtils.fillLimitOrderAsync(order, { protocolFee: SINGLE_PROTOCOL_FEE.plus(1) });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order)],
+                [testUtils.createLimitOrderFilledEventArgs(order)],
                 IZeroExEvents.LimitOrderFilled,
             );
             await assertExpectedFinalBalancesFromLimitOrderFillAsync(order, { receipt });
         });
     });
 
-    interface RfqOrderFilledAmounts {
-        makerTokenFilledAmount: BigNumber;
-        takerTokenFilledAmount: BigNumber;
-    }
-
-    function computeRfqOrderFilledAmounts(
-        order: RfqOrder,
-        takerTokenFillAmount: BigNumber = order.takerAmount,
-        takerTokenAlreadyFilledAmount: BigNumber = ZERO_AMOUNT,
-    ): RfqOrderFilledAmounts {
-        const fillAmount = BigNumber.min(
-            order.takerAmount,
-            takerTokenFillAmount,
-            order.takerAmount.minus(takerTokenAlreadyFilledAmount),
-        );
-        const makerTokenFilledAmount = fillAmount
-            .times(order.makerAmount)
-            .div(order.takerAmount)
-            .integerValue(BigNumber.ROUND_DOWN);
-        return {
-            makerTokenFilledAmount,
-            takerTokenFilledAmount: fillAmount,
-        };
-    }
-
-    function createRfqOrderFilledEventArgs(
-        order: RfqOrder,
-        takerTokenFillAmount: BigNumber = order.takerAmount,
-        takerTokenAlreadyFilledAmount: BigNumber = ZERO_AMOUNT,
-    ): object {
-        const { makerTokenFilledAmount, takerTokenFilledAmount } = computeRfqOrderFilledAmounts(
-            order,
-            takerTokenFillAmount,
-            takerTokenAlreadyFilledAmount,
-        );
-        return {
-            taker,
-            takerTokenFilledAmount,
-            makerTokenFilledAmount,
-            orderHash: order.getHash(),
-            maker: order.maker,
-            makerToken: order.makerToken,
-            takerToken: order.takerToken,
-            pool: order.pool,
-        };
-    }
+    describe('registerAllowedRfqOrigins()', () => {
+        it('cannot register through a contract', async () => {
+            const tx = testRfqOriginRegistration
+                .registerAllowedRfqOrigins(zeroEx.address, [], true)
+                .awaitTransactionSuccessAsync();
+            expect(tx).to.revertWith('NativeOrdersFeature/NO_CONTRACT_ORIGINS');
+        });
+    });
 
     async function assertExpectedFinalBalancesFromRfqOrderFillAsync(
         order: RfqOrder,
@@ -1081,20 +952,15 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         expect(takerBalance).to.bignumber.eq(makerTokenFilledAmount);
     }
 
-    describe('registerAllowedRfqOrigins()', () => {
-        it('cannot register through a contract', async () => {
-            const tx = testRfqOriginRegistration
-                .registerAllowedRfqOrigins(zeroEx.address, [], true)
-                .awaitTransactionSuccessAsync();
-            expect(tx).to.revertWith('NativeOrdersFeature/NO_CONTRACT_ORIGINS');
-        });
-    });
-
     describe('fillRfqOrder()', () => {
         it('can fully fill an order', async () => {
             const order = getTestRfqOrder();
-            const receipt = await fillRfqOrderAsync(order);
-            verifyEventsFromLogs(receipt.logs, [createRfqOrderFilledEventArgs(order)], IZeroExEvents.RfqOrderFilled);
+            const receipt = await testUtils.fillRfqOrderAsync(order);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [testUtils.createRfqOrderFilledEventArgs(order)],
+                IZeroExEvents.RfqOrderFilled,
+            );
             assertOrderInfoEquals(await zeroEx.getRfqOrderInfo(order).callAsync(), {
                 orderHash: order.getHash(),
                 status: OrderStatus.Filled,
@@ -1106,10 +972,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('can partially fill an order', async () => {
             const order = getTestRfqOrder();
             const fillAmount = order.takerAmount.minus(1);
-            const receipt = await fillRfqOrderAsync(order, fillAmount);
+            const receipt = await testUtils.fillRfqOrderAsync(order, fillAmount);
             verifyEventsFromLogs(
                 receipt.logs,
-                [createRfqOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createRfqOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.RfqOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getRfqOrderInfo(order).callAsync(), {
@@ -1123,18 +989,18 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('can fully fill an order in two steps', async () => {
             const order = getTestRfqOrder();
             let fillAmount = order.takerAmount.dividedToIntegerBy(2);
-            let receipt = await fillRfqOrderAsync(order, fillAmount);
+            let receipt = await testUtils.fillRfqOrderAsync(order, fillAmount);
             verifyEventsFromLogs(
                 receipt.logs,
-                [createRfqOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createRfqOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.RfqOrderFilled,
             );
             const alreadyFilledAmount = fillAmount;
             fillAmount = order.takerAmount.minus(fillAmount);
-            receipt = await fillRfqOrderAsync(order, fillAmount);
+            receipt = await testUtils.fillRfqOrderAsync(order, fillAmount);
             verifyEventsFromLogs(
                 receipt.logs,
-                [createRfqOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
+                [testUtils.createRfqOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
                 IZeroExEvents.RfqOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getRfqOrderInfo(order).callAsync(), {
@@ -1147,10 +1013,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('clamps fill amount to remaining available', async () => {
             const order = getTestRfqOrder();
             const fillAmount = order.takerAmount.plus(1);
-            const receipt = await fillRfqOrderAsync(order, fillAmount);
+            const receipt = await testUtils.fillRfqOrderAsync(order, fillAmount);
             verifyEventsFromLogs(
                 receipt.logs,
-                [createRfqOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createRfqOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.RfqOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getRfqOrderInfo(order).callAsync(), {
@@ -1164,18 +1030,18 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('clamps fill amount to remaining available in partial filled order', async () => {
             const order = getTestRfqOrder();
             let fillAmount = order.takerAmount.dividedToIntegerBy(2);
-            let receipt = await fillRfqOrderAsync(order, fillAmount);
+            let receipt = await testUtils.fillRfqOrderAsync(order, fillAmount);
             verifyEventsFromLogs(
                 receipt.logs,
-                [createRfqOrderFilledEventArgs(order, fillAmount)],
+                [testUtils.createRfqOrderFilledEventArgs(order, fillAmount)],
                 IZeroExEvents.RfqOrderFilled,
             );
             const alreadyFilledAmount = fillAmount;
             fillAmount = order.takerAmount.minus(fillAmount).plus(1);
-            receipt = await fillRfqOrderAsync(order, fillAmount);
+            receipt = await testUtils.fillRfqOrderAsync(order, fillAmount);
             verifyEventsFromLogs(
                 receipt.logs,
-                [createRfqOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
+                [testUtils.createRfqOrderFilledEventArgs(order, fillAmount, alreadyFilledAmount)],
                 IZeroExEvents.RfqOrderFilled,
             );
             assertOrderInfoEquals(await zeroEx.getRfqOrderInfo(order).callAsync(), {
@@ -1187,7 +1053,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('cannot fill an order with wrong tx.origin', async () => {
             const order = getTestRfqOrder();
-            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            const tx = testUtils.fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
             );
@@ -1210,7 +1076,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 ],
                 IZeroExEvents.RfqOrderOriginsAllowed,
             );
-            return fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            return testUtils.fillRfqOrderAsync(order, order.takerAmount, notTaker);
         });
 
         it('cannot fill an order with registered then unregistered tx.origin', async () => {
@@ -1232,7 +1098,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 IZeroExEvents.RfqOrderOriginsAllowed,
             );
 
-            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            const tx = testUtils.fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableByOriginError(order.getHash(), notTaker, taker),
             );
@@ -1240,7 +1106,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('cannot fill an order with a zero tx.origin', async () => {
             const order = getTestRfqOrder({ txOrigin: NULL_ADDRESS });
-            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            const tx = testUtils.fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Invalid),
             );
@@ -1248,7 +1114,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('non-taker cannot fill order', async () => {
             const order = getTestRfqOrder({ taker, txOrigin: notTaker });
-            const tx = fillRfqOrderAsync(order, order.takerAmount, notTaker);
+            const tx = testUtils.fillRfqOrderAsync(order, order.takerAmount, notTaker);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableByTakerError(order.getHash(), notTaker, order.taker),
             );
@@ -1256,7 +1122,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('cannot fill an expired order', async () => {
             const order = getTestRfqOrder({ expiry: createExpiry(-60) });
-            const tx = fillRfqOrderAsync(order);
+            const tx = testUtils.fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Expired),
             );
@@ -1265,7 +1131,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('cannot fill a cancelled order', async () => {
             const order = getTestRfqOrder();
             await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
-            const tx = fillRfqOrderAsync(order);
+            const tx = testUtils.fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
@@ -1276,7 +1142,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             await zeroEx
                 .cancelPairRfqOrders(makerToken.address, takerToken.address, order.salt.plus(1))
                 .awaitTransactionSuccessAsync({ from: maker });
-            const tx = fillRfqOrderAsync(order);
+            const tx = testUtils.fillRfqOrderAsync(order);
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotFillableError(order.getHash(), OrderStatus.Cancelled),
             );
@@ -1286,7 +1152,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
             // Overwrite chainId to result in a different hash and therefore different
             // signature.
-            const tx = fillRfqOrderAsync(order.clone({ chainId: 1234 }));
+            const tx = testUtils.fillRfqOrderAsync(order.clone({ chainId: 1234 }));
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), undefined, order.maker),
             );
@@ -1294,7 +1160,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('fails if ETH is attached', async () => {
             const order = getTestRfqOrder();
-            await prepareBalancesForOrderAsync(order, taker);
+            await testUtils.prepareBalancesForOrdersAsync([order], taker);
             const tx = zeroEx
                 .fillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), order.takerAmount)
                 .awaitTransactionSuccessAsync({ from: taker, value: 1 });
@@ -1306,20 +1172,20 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     describe('fillOrKillLimitOrder()', () => {
         it('can fully fill an order', async () => {
             const order = getTestLimitOrder();
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const receipt = await zeroEx
                 .fillOrKillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), order.takerAmount)
                 .awaitTransactionSuccessAsync({ from: taker, value: SINGLE_PROTOCOL_FEE });
             verifyEventsFromLogs(
                 receipt.logs,
-                [createLimitOrderFilledEventArgs(order)],
+                [testUtils.createLimitOrderFilledEventArgs(order)],
                 IZeroExEvents.LimitOrderFilled,
             );
         });
 
         it('reverts if cannot fill the exact amount', async () => {
             const order = getTestLimitOrder();
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const fillAmount = order.takerAmount.plus(1);
             const tx = zeroEx
                 .fillOrKillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), fillAmount)
@@ -1331,7 +1197,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('refunds excess protocol fee', async () => {
             const order = getTestLimitOrder();
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const takerBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(taker);
             const receipt = await zeroEx
                 .fillOrKillLimitOrder(order, await order.getSignatureWithProviderAsync(env.provider), order.takerAmount)
@@ -1345,16 +1211,20 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     describe('fillOrKillRfqOrder()', () => {
         it('can fully fill an order', async () => {
             const order = getTestRfqOrder();
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const receipt = await zeroEx
                 .fillOrKillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), order.takerAmount)
                 .awaitTransactionSuccessAsync({ from: taker });
-            verifyEventsFromLogs(receipt.logs, [createRfqOrderFilledEventArgs(order)], IZeroExEvents.RfqOrderFilled);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [testUtils.createRfqOrderFilledEventArgs(order)],
+                IZeroExEvents.RfqOrderFilled,
+            );
         });
 
         it('reverts if cannot fill the exact amount', async () => {
             const order = getTestRfqOrder();
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const fillAmount = order.takerAmount.plus(1);
             const tx = zeroEx
                 .fillOrKillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), fillAmount)
@@ -1366,7 +1236,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('fails if ETH is attached', async () => {
             const order = getTestRfqOrder();
-            await prepareBalancesForOrderAsync(order);
+            await testUtils.prepareBalancesForOrdersAsync([order]);
             const tx = zeroEx
                 .fillOrKillRfqOrder(order, await order.getSignatureWithProviderAsync(env.provider), order.takerAmount)
                 .awaitTransactionSuccessAsync({ from: taker, value: 1 });
@@ -1383,34 +1253,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         await makerToken.burn(maker, await makerToken.balanceOf(maker).callAsync()).awaitTransactionSuccessAsync();
         await makerToken.mint(maker, balance).awaitTransactionSuccessAsync();
         await makerToken.approve(zeroEx.address, allowance).awaitTransactionSuccessAsync({ from: maker });
-    }
-
-    function getFillableMakerTokenAmount(
-        order: LimitOrder | RfqOrder,
-        takerTokenFilledAmount: BigNumber = ZERO_AMOUNT,
-    ): BigNumber {
-        return order.takerAmount
-            .minus(takerTokenFilledAmount)
-            .times(order.makerAmount)
-            .div(order.takerAmount)
-            .integerValue(BigNumber.ROUND_DOWN);
-    }
-
-    function getActualFillableTakerTokenAmount(
-        order: LimitOrder | RfqOrder,
-        makerBalance: BigNumber = order.makerAmount,
-        makerAllowance: BigNumber = order.makerAmount,
-        takerTokenFilledAmount: BigNumber = ZERO_AMOUNT,
-    ): BigNumber {
-        const fillableMakerTokenAmount = getFillableMakerTokenAmount(order, takerTokenFilledAmount);
-        return BigNumber.min(fillableMakerTokenAmount, makerBalance, makerAllowance)
-            .times(order.takerAmount)
-            .div(order.makerAmount)
-            .integerValue(BigNumber.ROUND_UP);
-    }
-
-    function getRandomFraction(precision: number = 2): string {
-        return Math.random().toPrecision(precision);
     }
 
     describe('getLimitOrderRelevantState()', () => {
@@ -1487,7 +1329,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             await takerToken
                 .mint(taker, order.takerAmount.plus(order.takerTokenFeeAmount))
                 .awaitTransactionSuccessAsync();
-            await fillLimitOrderAsync(order);
+            await testUtils.fillLimitOrderAsync(order);
             // Partially fill the order.
             const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx
                 .getLimitOrderRelevantState(order, await order.getSignatureWithProviderAsync(env.provider))
@@ -1509,12 +1351,12 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 .mint(taker, order.takerAmount.plus(order.takerTokenFeeAmount))
                 .awaitTransactionSuccessAsync();
             // Partially fill the order.
-            const fillAmount = order.takerAmount.times(getRandomFraction()).integerValue();
-            await fillLimitOrderAsync(order, { fillAmount });
+            const fillAmount = getRandomPortion(order.takerAmount);
+            await testUtils.fillLimitOrderAsync(order, { fillAmount });
             // Reduce maker funds to be < remaining.
             const remainingMakerAmount = getFillableMakerTokenAmount(order, fillAmount);
-            const balance = remainingMakerAmount.times(getRandomFraction()).integerValue();
-            const allowance = remainingMakerAmount.times(getRandomFraction()).integerValue();
+            const balance = getRandomPortion(remainingMakerAmount);
+            const allowance = getRandomPortion(remainingMakerAmount);
             await fundOrderMakerAsync(order, balance, allowance);
             // Get order state.
             const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx
@@ -1604,7 +1446,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             // Fully Fund maker and taker.
             await fundOrderMakerAsync(order);
             await takerToken.mint(taker, order.takerAmount);
-            await fillRfqOrderAsync(order);
+            await testUtils.fillRfqOrderAsync(order);
             // Partially fill the order.
             const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx
                 .getRfqOrderRelevantState(order, await order.getSignatureWithProviderAsync(env.provider))
@@ -1624,12 +1466,12 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             await fundOrderMakerAsync(order);
             await takerToken.mint(taker, order.takerAmount).awaitTransactionSuccessAsync();
             // Partially fill the order.
-            const fillAmount = order.takerAmount.times(getRandomFraction()).integerValue();
-            await fillRfqOrderAsync(order, fillAmount);
+            const fillAmount = getRandomPortion(order.takerAmount);
+            await testUtils.fillRfqOrderAsync(order, fillAmount);
             // Reduce maker funds to be < remaining.
             const remainingMakerAmount = getFillableMakerTokenAmount(order, fillAmount);
-            const balance = remainingMakerAmount.times(getRandomFraction()).integerValue();
-            const allowance = remainingMakerAmount.times(getRandomFraction()).integerValue();
+            const balance = getRandomPortion(remainingMakerAmount);
+            const allowance = getRandomPortion(remainingMakerAmount);
             await fundOrderMakerAsync(order, balance, allowance);
             // Get order state.
             const [orderInfo, fillableTakerAmount, isSignatureValid] = await zeroEx

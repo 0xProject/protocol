@@ -7,6 +7,7 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
 import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
+import * as BatchFillNativeOrdersFeature from '../test/generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
 import * as BridgeSource from '../test/generated-artifacts/BridgeSource.json';
@@ -22,6 +23,7 @@ import * as FixinTokenSpender from '../test/generated-artifacts/FixinTokenSpende
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
 import * as IAllowanceTarget from '../test/generated-artifacts/IAllowanceTarget.json';
+import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
@@ -32,6 +34,9 @@ import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvi
 import * as ILiquidityProviderFeature from '../test/generated-artifacts/ILiquidityProviderFeature.json';
 import * as ILiquidityProviderSandbox from '../test/generated-artifacts/ILiquidityProviderSandbox.json';
 import * as IMetaTransactionsFeature from '../test/generated-artifacts/IMetaTransactionsFeature.json';
+import * as IMooniswapPool from '../test/generated-artifacts/IMooniswapPool.json';
+import * as IMultiplexFeature from '../test/generated-artifacts/IMultiplexFeature.json';
+import * as INativeOrdersEvents from '../test/generated-artifacts/INativeOrdersEvents.json';
 import * as INativeOrdersFeature from '../test/generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../test/generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../test/generated-artifacts/IOwnableFeature.json';
@@ -41,6 +46,7 @@ import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts
 import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpenderFeature.json';
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
 import * as IUniswapFeature from '../test/generated-artifacts/IUniswapFeature.json';
+import * as IUniswapV2Pair from '../test/generated-artifacts/IUniswapV2Pair.json';
 import * as IZeroEx from '../test/generated-artifacts/IZeroEx.json';
 import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
@@ -88,7 +94,13 @@ import * as MixinSushiswap from '../test/generated-artifacts/MixinSushiswap.json
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
 import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridge.json';
+import * as MooniswapLiquidityProvider from '../test/generated-artifacts/MooniswapLiquidityProvider.json';
+import * as MultiplexFeature from '../test/generated-artifacts/MultiplexFeature.json';
+import * as NativeOrdersCancellation from '../test/generated-artifacts/NativeOrdersCancellation.json';
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
+import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.json';
+import * as NativeOrdersProtocolFees from '../test/generated-artifacts/NativeOrdersProtocolFees.json';
+import * as NativeOrdersSettlement from '../test/generated-artifacts/NativeOrdersSettlement.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
@@ -114,6 +126,7 @@ import * as TestMetaTransactionsTransformERC20Feature from '../test/generated-ar
 import * as TestMigrator from '../test/generated-artifacts/TestMigrator.json';
 import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintableERC20Token.json';
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
+import * as TestMooniswap from '../test/generated-artifacts/TestMooniswap.json';
 import * as TestNativeOrdersFeature from '../test/generated-artifacts/TestNativeOrdersFeature.json';
 import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
 import * as TestPermissionlessTransformerDeployerTransformer from '../test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json';
@@ -164,33 +177,43 @@ export const artifacts = {
     LiquidityProviderSandbox: LiquidityProviderSandbox as ContractArtifact,
     PermissionlessTransformerDeployer: PermissionlessTransformerDeployer as ContractArtifact,
     TransformerDeployer: TransformerDeployer as ContractArtifact,
+    BatchFillNativeOrdersFeature: BatchFillNativeOrdersFeature as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
-    IBootstrapFeature: IBootstrapFeature as ContractArtifact,
-    IFeature: IFeature as ContractArtifact,
-    ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,
-    IMetaTransactionsFeature: IMetaTransactionsFeature as ContractArtifact,
-    INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
-    IOwnableFeature: IOwnableFeature as ContractArtifact,
-    ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,
-    ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
-    ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
-    IUniswapFeature: IUniswapFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
+    MultiplexFeature: MultiplexFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
     TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
+    IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
+    IBootstrapFeature: IBootstrapFeature as ContractArtifact,
+    IFeature: IFeature as ContractArtifact,
+    ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,
+    IMetaTransactionsFeature: IMetaTransactionsFeature as ContractArtifact,
+    IMultiplexFeature: IMultiplexFeature as ContractArtifact,
+    INativeOrdersEvents: INativeOrdersEvents as ContractArtifact,
+    INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
+    IOwnableFeature: IOwnableFeature as ContractArtifact,
+    ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,
+    ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
+    ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
+    IUniswapFeature: IUniswapFeature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
+    NativeOrdersCancellation: NativeOrdersCancellation as ContractArtifact,
+    NativeOrdersInfo: NativeOrdersInfo as ContractArtifact,
+    NativeOrdersProtocolFees: NativeOrdersProtocolFees as ContractArtifact,
+    NativeOrdersSettlement: NativeOrdersSettlement as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
     FixinEIP712: FixinEIP712 as ContractArtifact,
     FixinProtocolFees: FixinProtocolFees as ContractArtifact,
     FixinReentrancyGuard: FixinReentrancyGuard as ContractArtifact,
     FixinTokenSpender: FixinTokenSpender as ContractArtifact,
     CurveLiquidityProvider: CurveLiquidityProvider as ContractArtifact,
+    MooniswapLiquidityProvider: MooniswapLiquidityProvider as ContractArtifact,
     FullMigration: FullMigration as ContractArtifact,
     InitialMigration: InitialMigration as ContractArtifact,
     LibBootstrap: LibBootstrap as ContractArtifact,
@@ -233,6 +256,8 @@ export const artifacts = {
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
+    IMooniswapPool: IMooniswapPool as ContractArtifact,
+    IUniswapV2Pair: IUniswapV2Pair as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
@@ -256,6 +281,7 @@ export const artifacts = {
     TestMigrator: TestMigrator as ContractArtifact,
     TestMintTokenERC20Transformer: TestMintTokenERC20Transformer as ContractArtifact,
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
+    TestMooniswap: TestMooniswap as ContractArtifact,
     TestNativeOrdersFeature: TestNativeOrdersFeature as ContractArtifact,
     TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
     TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,

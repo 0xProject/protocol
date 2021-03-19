@@ -4,6 +4,7 @@
  * -----------------------------------------------------------------------------
  */
 export * from '../generated-wrappers/affiliate_fee_transformer';
+export * from '../generated-wrappers/batch_fill_native_orders_feature';
 export * from '../generated-wrappers/bridge_adapter';
 export * from '../generated-wrappers/curve_liquidity_provider';
 export * from '../generated-wrappers/fee_collector';
@@ -11,9 +12,11 @@ export * from '../generated-wrappers/fee_collector_controller';
 export * from '../generated-wrappers/fill_quote_transformer';
 export * from '../generated-wrappers/full_migration';
 export * from '../generated-wrappers/i_allowance_target';
+export * from '../generated-wrappers/i_batch_fill_native_orders_feature';
 export * from '../generated-wrappers/i_erc20_transformer';
 export * from '../generated-wrappers/i_flash_wallet';
 export * from '../generated-wrappers/i_liquidity_provider_feature';
+export * from '../generated-wrappers/i_multiplex_feature';
 export * from '../generated-wrappers/i_native_orders_feature';
 export * from '../generated-wrappers/i_ownable_feature';
 export * from '../generated-wrappers/i_simple_function_registry_feature';
@@ -24,6 +27,7 @@ export * from '../generated-wrappers/initial_migration';
 export * from '../generated-wrappers/liquidity_provider_feature';
 export * from '../generated-wrappers/log_metadata_transformer';
 export * from '../generated-wrappers/meta_transactions_feature';
+export * from '../generated-wrappers/multiplex_feature';
 export * from '../generated-wrappers/native_orders_feature';
 export * from '../generated-wrappers/ownable_feature';
 export * from '../generated-wrappers/pay_taker_transformer';

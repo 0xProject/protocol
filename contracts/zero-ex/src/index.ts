@@ -45,6 +45,7 @@ export {
     ITransformERC20FeatureContract,
     IZeroExContract,
     LogMetadataTransformerContract,
+    MultiplexFeatureContract,
     PayTakerTransformerContract,
     PositiveSlippageFeeTransformerContract,
     WethTransformerContract,

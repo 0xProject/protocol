@@ -1,5 +1,42 @@
 [
     {
+        "version": "6.4.0",
+        "changes": [
+            {
+                "note": "Use SOURCE_FLAGS.rfqOrder in comparisonPrice",
+                "pr": 177
+            }
+        ]
+    },
+    {
+        "version": "6.3.0",
+        "changes": [
+            {
+                "note": "Add MooniswapLiquidityProvider \"direct\" route to EP consumer.",
+                "pr": 143
+            },
+            {
+                "note": "Enable the ability to send RFQT requests thru a proxy",
+                "pr": 159
+            },
+            {
+                "note": "Add support for MultiplexFeature",
+                "pr": 168
+            }
+        ],
+        "timestamp": 1616005394
+    },
+    {
+        "version": "6.2.0",
+        "changes": [
+            {
+                "note": "drop curve Y and BUSD pools",
+                "pr": 161
+            }
+        ],
+        "timestamp": 1614645844
+    },
+    {
         "version": "6.1.0",
         "changes": [
             {

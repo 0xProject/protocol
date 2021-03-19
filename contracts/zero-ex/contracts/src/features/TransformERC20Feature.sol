@@ -33,8 +33,8 @@ import "../external/FlashWallet.sol";
 import "../storage/LibTransformERC20Storage.sol";
 import "../transformers/IERC20Transformer.sol";
 import "../transformers/LibERC20Transformer.sol";
-import "./ITransformERC20Feature.sol";
-import "./IFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/ITransformERC20Feature.sol";
 
 
 /// @dev Feature to composably transform between ERC20 tokens.
@@ -313,7 +313,7 @@ contract TransformERC20Feature is
             to.transfer(msg.value);
         }
         // Transfer input tokens.
-        if (!LibERC20Transformer.isTokenETH(inputToken)) {
+        if (!LibERC20Transformer.isTokenETH(inputToken) && amount != 0) {
             // Token is not ETH, so pull ERC20 tokens.
             _transferERC20Tokens(
                 inputToken,

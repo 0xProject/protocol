@@ -50,7 +50,7 @@ export function getComparisonPrices(
             const fillFeeInEth = new BigNumber(
                 (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }),
             );
-            const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.Native));
+            const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.RfqOrder));
             feeInEth = fillFeeInEth.plus(exchangeProxyOverheadInEth);
         } catch {
             logUtils.warn('Native order fee schedule requires fill data');

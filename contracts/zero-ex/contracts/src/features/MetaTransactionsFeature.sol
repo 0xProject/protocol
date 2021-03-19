@@ -30,11 +30,11 @@ import "../fixins/FixinTokenSpender.sol";
 import "../fixins/FixinEIP712.sol";
 import "../migrations/LibMigrate.sol";
 import "../storage/LibMetaTransactionsStorage.sol";
-import "./IMetaTransactionsFeature.sol";
-import "./ITransformERC20Feature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/IMetaTransactionsFeature.sol";
+import "./interfaces/INativeOrdersFeature.sol";
+import "./interfaces/ITransformERC20Feature.sol";
 import "./libs/LibSignature.sol";
-import "./IFeature.sol";
-import "./INativeOrdersFeature.sol";
 
 /// @dev MetaTransactions feature.
 contract MetaTransactionsFeature is

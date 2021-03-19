@@ -75,7 +75,8 @@ contract CurveLiquidityProvider is
             inputToken,
             outputToken,
             minBuyAmount,
-            abi.decode(auxiliaryData, (CurveData))
+            abi.decode(auxiliaryData, (CurveData)),
+            recipient
         );
         // Every pool contract currently checks this but why not.
         require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
@@ -109,7 +110,8 @@ contract CurveLiquidityProvider is
             LibERC20Transformer.ETH_TOKEN,
             outputToken,
             minBuyAmount,
-            abi.decode(auxiliaryData, (CurveData))
+            abi.decode(auxiliaryData, (CurveData)),
+            recipient
         );
         // Every pool contract currently checks this but why not.
         require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
@@ -141,7 +143,8 @@ contract CurveLiquidityProvider is
             inputToken,
             LibERC20Transformer.ETH_TOKEN,
             minBuyAmount,
-            abi.decode(auxiliaryData, (CurveData))
+            abi.decode(auxiliaryData, (CurveData)),
+            recipient
         );
         // Every pool contract currently checks this but why not.
         require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
@@ -169,7 +172,8 @@ contract CurveLiquidityProvider is
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
         uint256 minBuyAmount,
-        CurveData memory data
+        CurveData memory data,
+        address recipient // Only used to log event.
     )
         private
         returns (uint256 boughtAmount)
@@ -204,5 +208,16 @@ contract CurveLiquidityProvider is
             boughtAmount = LibERC20Transformer
                 .getTokenBalanceOf(outputToken, address(this));
         }
+
+        emit LiquidityProviderFill(
+            inputToken,
+            outputToken,
+            sellAmount,
+            boughtAmount,
+            bytes32("Curve"),
+            address(data.curveAddress),
+            msg.sender,
+            recipient
+        );
     }
 }

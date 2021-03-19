@@ -1,5 +1,27 @@
 [
     {
+        "version": "0.20.0",
+        "changes": [
+            {
+                "note": "Add `MooniswapLiquidityProvider`",
+                "pr": 143
+            },
+            {
+                "note": "Emit `LiquidityProviderFill` event in `CurveLiquidityProvider`",
+                "pr": 143
+            },
+            {
+                "note": "Add BatchFillNativeOrdersFeature and MultiplexFeature",
+                "pr": 140
+            },
+            {
+                "note": "Export MultiplexFeatureContract",
+                "pr": 168
+            }
+        ],
+        "timestamp": 1616005394
+    },
+    {
         "version": "0.19.0",
         "changes": [
             {

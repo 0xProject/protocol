@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "../src/migrations/LibMigrate.sol";
-import "../src/features/IOwnableFeature.sol";
+import "../src/features/interfaces/IOwnableFeature.sol";
 
 
 contract TestMigrator {

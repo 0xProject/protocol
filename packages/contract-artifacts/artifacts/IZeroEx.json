@@ -8,6 +8,16 @@
                 "inputs": [
                     { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
                     { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
+                    { "indexed": false, "internalType": "uint64", "name": "expiry", "type": "uint64" }
+                ],
+                "name": "ExpiredRfqOrder",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
                     { "indexed": false, "internalType": "address", "name": "taker", "type": "address" },
                     { "indexed": false, "internalType": "address", "name": "feeRecipient", "type": "address" },
                     { "indexed": false, "internalType": "address", "name": "makerToken", "type": "address" },
@@ -39,26 +49,11 @@
             {
                 "anonymous": false,
                 "inputs": [
-                    {
-                        "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
-                        "name": "inputToken",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
-                        "name": "outputToken",
-                        "type": "address"
-                    },
+                    { "indexed": false, "internalType": "address", "name": "inputToken", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "outputToken", "type": "address" },
                     { "indexed": false, "internalType": "uint256", "name": "inputTokenAmount", "type": "uint256" },
                     { "indexed": false, "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" },
-                    {
-                        "indexed": false,
-                        "internalType": "contract ILiquidityProvider",
-                        "name": "provider",
-                        "type": "address"
-                    },
+                    { "indexed": false, "internalType": "address", "name": "provider", "type": "address" },
                     { "indexed": false, "internalType": "address", "name": "recipient", "type": "address" }
                 ],
                 "name": "LiquidityProviderSwap",
@@ -442,6 +437,127 @@
                 "name": "batchExecuteMetaTransactions",
                 "outputs": [{ "internalType": "bytes[]", "name": "returnResults", "type": "bytes[]" }],
                 "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                            {
+                                "components": [
+                                    { "internalType": "bytes4", "name": "selector", "type": "bytes4" },
+                                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                                    { "internalType": "bytes", "name": "data", "type": "bytes" }
+                                ],
+                                "internalType": "struct IMultiplexFeature.WrappedBatchCall[]",
+                                "name": "calls",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMultiplexFeature.BatchFillData",
+                        "name": "fillData",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "batchFill",
+                "outputs": [{ "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" }],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "address", "name": "feeRecipient", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.LimitOrder[]",
+                        "name": "orders",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature[]",
+                        "name": "signatures",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint128[]", "name": "takerTokenFillAmounts", "type": "uint128[]" },
+                    { "internalType": "bool", "name": "revertIfIncomplete", "type": "bool" }
+                ],
+                "name": "batchFillLimitOrders",
+                "outputs": [
+                    { "internalType": "uint128[]", "name": "takerTokenFilledAmounts", "type": "uint128[]" },
+                    { "internalType": "uint128[]", "name": "makerTokenFilledAmounts", "type": "uint128[]" }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
+                            { "internalType": "uint64", "name": "expiry", "type": "uint64" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.RfqOrder[]",
+                        "name": "orders",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature[]",
+                        "name": "signatures",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint128[]", "name": "takerTokenFillAmounts", "type": "uint128[]" },
+                    { "internalType": "bool", "name": "revertIfIncomplete", "type": "bool" }
+                ],
+                "name": "batchFillRfqOrders",
+                "outputs": [
+                    { "internalType": "uint128[]", "name": "takerTokenFilledAmounts", "type": "uint128[]" },
+                    { "internalType": "uint128[]", "name": "makerTokenFilledAmounts", "type": "uint128[]" }
+                ],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -1222,6 +1338,33 @@
                 "type": "function"
             },
             {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "address[]", "name": "tokens", "type": "address[]" },
+                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                            {
+                                "components": [
+                                    { "internalType": "bytes4", "name": "selector", "type": "bytes4" },
+                                    { "internalType": "bytes", "name": "data", "type": "bytes" }
+                                ],
+                                "internalType": "struct IMultiplexFeature.WrappedMultiHopCall[]",
+                                "name": "calls",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMultiplexFeature.MultiHopFillData",
+                        "name": "fillData",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "multiHopFill",
+                "outputs": [{ "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" }],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
                 "inputs": [],
                 "name": "owner",
                 "outputs": [{ "internalType": "address", "name": "ownerAddress", "type": "address" }],
@@ -1401,6 +1544,40 @@
                         "signatures": "The signature by each respective `mtx.signer`."
                     },
                     "returns": { "returnResults": "The ABI-encoded results of the underlying calls." }
+                },
+                "batchFill((address,address,uint256,(bytes4,uint256,bytes)[]),uint256)": {
+                    "details": "Executes a batch of fills selling `fillData.inputToken`      for `fillData.outputToken` in sequence. Refer to the      internal variant `_batchFill` for the allowed nested      operations.",
+                    "params": {
+                        "fillData": "Encodes the input/output tokens, the sell        amount, and the nested operations for this batch fill.",
+                        "minBuyAmount": "The minimum amount of `fillData.outputToken`        to buy. Reverts if this amount is not met."
+                    },
+                    "returns": { "outputTokenAmount": "The amount of the output token bought." }
+                },
+                "batchFillLimitOrders((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[],uint128[],bool)": {
+                    "details": "Fills multiple limit orders.",
+                    "params": {
+                        "orders": "Array of limit orders.",
+                        "revertIfIncomplete": "If true, reverts if this function fails to        fill the full fill amount for any individual order.",
+                        "signatures": "Array of signatures corresponding to each order.",
+                        "takerTokenFillAmounts": "Array of desired amounts to fill each order."
+                    },
+                    "returns": {
+                        "makerTokenFilledAmounts": "Array of amounts filled, in maker token.",
+                        "takerTokenFilledAmounts": "Array of amounts filled, in taker token."
+                    }
+                },
+                "batchFillRfqOrders((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[],uint128[],bool)": {
+                    "details": "Fills multiple RFQ orders.",
+                    "params": {
+                        "orders": "Array of RFQ orders.",
+                        "revertIfIncomplete": "If true, reverts if this function fails to        fill the full fill amount for any individual order.",
+                        "signatures": "Array of signatures corresponding to each order.",
+                        "takerTokenFillAmounts": "Array of desired amounts to fill each order."
+                    },
+                    "returns": {
+                        "makerTokenFilledAmounts": "Array of amounts filled, in maker token.",
+                        "takerTokenFilledAmounts": "Array of amounts filled, in taker token."
+                    }
                 },
                 "batchGetLimitOrderRelevantStates((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
                     "details": "Batch version of `getLimitOrderRelevantState()`, without reverting.      Orders that would normally cause `getLimitOrderRelevantState()`      to revert will have empty results.",
@@ -1599,6 +1776,14 @@
                         "newOwner": "The address of the new owner.",
                         "target": "The migrator contract address."
                     }
+                },
+                "multiHopFill((address[],uint256,(bytes4,bytes)[]),uint256)": {
+                    "details": "Executes a sequence of fills \"hopping\" through the      path of tokens given by `fillData.tokens`. Refer to the      internal variant `_multiHopFill` for the allowed nested      operations.",
+                    "params": {
+                        "fillData": "Encodes the path of tokens, the sell amount,        and the nested operations for this multi-hop fill.",
+                        "minBuyAmount": "The minimum amount of the output token        to buy. Reverts if this amount is not met."
+                    },
+                    "returns": { "outputTokenAmount": "The amount of the output token bought." }
                 },
                 "owner()": {
                     "details": "The owner of this contract.",

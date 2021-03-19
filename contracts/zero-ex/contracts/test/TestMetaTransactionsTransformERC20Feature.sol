@@ -20,8 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "../src/features/interfaces/IMetaTransactionsFeature.sol";
 import "../src/features/TransformERC20Feature.sol";
-import "../src/features/IMetaTransactionsFeature.sol";
 
 
 contract TestMetaTransactionsTransformERC20Feature is

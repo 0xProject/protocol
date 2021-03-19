@@ -96,6 +96,18 @@ interface IZrxTreasury {
         view
         returns (uint256);
 
+    /// @dev Updates the proposal and quorum thresholds to the given
+    ///      values. Note that this function is only callable by the
+    ///      treasury contract itself, so the threshold can only be
+    ///      updated via a successful treasury proposal.
+    /// @param newProposalThreshold The new value for the proposal threshold.
+    /// @param newQuorumThreshold The new value for the quorum threshold.
+    function updateThresholds(
+        uint256 newProposalThreshold,
+        uint256 newQuorumThreshold
+    )
+        external;
+
     /// @dev Creates a proposal to send ZRX from this treasury on the
     ///      the given actions. Must have at least `proposalThreshold`
     ///      of voting power to call this function. See `getVotingPower`

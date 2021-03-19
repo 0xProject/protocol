@@ -31,8 +31,8 @@ import "../fixins/FixinCommon.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
 import "../transformers/LibERC20Transformer.sol";
-import "./IFeature.sol";
-import "./ILiquidityProviderFeature.sol";
+import "./interfaces/IFeature.sol";
+import "./interfaces/ILiquidityProviderFeature.sol";
 
 
 contract LiquidityProviderFeature is

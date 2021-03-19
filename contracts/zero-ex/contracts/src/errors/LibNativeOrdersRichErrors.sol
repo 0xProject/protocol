@@ -170,4 +170,21 @@ library LibNativeOrdersRichErrors {
             maker
         );
     }
+
+    function BatchFillIncompleteError(
+        bytes32 orderHash,
+        uint256 takerTokenFilledAmount,
+        uint256 takerTokenFillAmount
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("BatchFillIncompleteError(bytes32,uint256,uint256)")),
+            orderHash,
+            takerTokenFilledAmount,
+            takerTokenFillAmount
+        );
+    }
 }

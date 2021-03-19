@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "../vendor/ILiquidityProvider.sol";
+import "../../vendor/ILiquidityProvider.sol";
 
 
 /// @dev Feature to swap directly with an on-chain liquidity provider.
