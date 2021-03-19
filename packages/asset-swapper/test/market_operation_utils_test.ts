@@ -67,6 +67,7 @@ const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.Linkswap,
     ERC20BridgeSource.PancakeSwap,
     ERC20BridgeSource.BakerySwap,
+    ERC20BridgeSource.MakerPsm,
 ];
 const BUY_SOURCES = BUY_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
@@ -305,6 +306,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Linkswap]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.PancakeSwap]: _.times(NUM_SAMPLES, () => 0),
         [ERC20BridgeSource.BakerySwap]: _.times(NUM_SAMPLES, () => 0),
+        [ERC20BridgeSource.MakerPsm]: _.times(NUM_SAMPLES, () => 0),
     };
 
     const DEFAULT_RATES: RatesBySource = {
@@ -369,6 +371,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Linkswap]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.Eth2Dai]: { router: randomAddress() },
+        [ERC20BridgeSource.MakerPsm]: {},
     };
 
     const DEFAULT_OPS = {

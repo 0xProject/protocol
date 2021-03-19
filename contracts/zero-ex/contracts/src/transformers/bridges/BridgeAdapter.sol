@@ -127,7 +127,7 @@ contract BridgeAdapter is
                 order.bridgeData
             );
         } else if (order.source == BridgeSource.MAKERPSM) {
-            boughtAmount = _tradeMakerPSM(
+            boughtAmount = _tradeMakerPsm(
                 sellToken,
                 buyToken,
                 sellAmount,

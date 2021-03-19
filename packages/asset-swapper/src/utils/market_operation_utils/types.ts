@@ -47,6 +47,7 @@ export enum ERC20BridgeSource {
     Balancer = 'Balancer',
     Cream = 'CREAM',
     Bancor = 'Bancor',
+    MakerPsm = 'MakerPsm',
     MStable = 'mStable',
     Mooniswap = 'Mooniswap',
     MultiHop = 'MultiHop',
@@ -94,6 +95,16 @@ export interface CurveInfo {
     poolAddress: string;
     tokens: string[];
     metaToken: string | undefined;
+}
+
+/**
+ * Configuration for a specific PSM vault
+ */
+export interface PsmInfo {
+    vatAddress: string;
+    psmAddress: string;
+    ilkIdentifier: string;
+    gemTokenAddress: string;
 }
 
 // Internal `fillData` field for `Fill` objects.
@@ -164,6 +175,9 @@ export interface MultiHopFillData extends FillData {
     firstHopSource: SourceQuoteOperation;
     secondHopSource: SourceQuoteOperation;
     intermediateToken: string;
+}
+export interface MakerPsmFillData extends FillData {
+    gemTokenAddress: string;
 }
 export interface HopInfo {
     sourceIndex: BigNumber;

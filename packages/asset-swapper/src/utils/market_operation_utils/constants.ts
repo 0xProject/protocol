@@ -1,6 +1,7 @@
 import { ChainId } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import { formatBytes32String } from '@ethersproject/strings';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
@@ -78,6 +79,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
+            ERC20BridgeSource.MakerPsm,
         ]),
         [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -127,6 +129,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
+            ERC20BridgeSource.MakerPsm,
         ]),
         [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -704,6 +707,13 @@ export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const MAINNET_MAKER_PSM_CONTRACT = '0x89b78cfa322f6c5de0abceecab66aee45393cc5a';
+export const MAINNET_MAKER_PSM_AUTH_GEM = '0x0a59649758aa4d66e25f08dd01271e891fe52199';
+export const MAINNET_MAKER_PSM_VAT = '0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b';
+export const MAINNET_MAKER_PSM_ILK_IDENTIFIER = formatBytes32String('PSM-USDC-A');
+// Currently only USDC is supported
+export const MAINNET_MAKER_PSM_GEM_TOKEN = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
 export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
@@ -776,7 +786,7 @@ export const BAKERYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: fillData => {
         // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
-        const nativeFillData = fillData as ({ type: FillQuoteTransformerOrderType });
+        const nativeFillData = fillData as { type: FillQuoteTransformerOrderType };
         return nativeFillData && nativeFillData.type === FillQuoteTransformerOrderType.Limit
             ? PROTOCOL_FEE_MULTIPLIER.plus(100e3).toNumber()
             : // TODO jacob revisit wth v4 LimitOrders
@@ -863,6 +873,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
+    [ERC20BridgeSource.MakerPsm]: () => 300e3, // TODO(kimpers): Add correct value here
     [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
     [ERC20BridgeSource.Nerve]: () => 150e3,

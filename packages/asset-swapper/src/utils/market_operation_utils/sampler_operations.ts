@@ -25,6 +25,10 @@ import {
     KYBER_CONFIG_BY_CHAIN_ID,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY,
+    MAINNET_MAKER_PSM_CONTRACT,
+    MAINNET_MAKER_PSM_GEM_TOKEN,
+    MAINNET_MAKER_PSM_ILK_IDENTIFIER,
+    MAINNET_MAKER_PSM_VAT,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
     MSTABLE_ROUTER_BY_CHAIN_ID,
@@ -57,8 +61,10 @@ import {
     KyberSamplerOpts,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
+    MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
+    PsmInfo,
     ShellFillData,
     SourceQuoteOperation,
     TokenAdjacencyGraph,
@@ -857,6 +863,34 @@ export class SamplerOperations {
         });
     }
 
+    public getMakerPsmSellQuotes(
+        psmInfo: PsmInfo,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<MakerPsmFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.MakerPsm,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromMakerPsm,
+            params: [psmInfo, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getMakerPsmBuyQuotes(
+        psmInfo: PsmInfo,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<MakerPsmFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.MakerPsm,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromMakerPsm,
+            params: [psmInfo, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1118,6 +1152,21 @@ export class SamplerOperations {
                                     ERC20BridgeSource.Linkswap,
                                 ),
                             );
+                        case ERC20BridgeSource.MakerPsm:
+                            if (this.chainId !== ChainId.Mainnet) {
+                                return [];
+                            }
+                            return this.getMakerPsmSellQuotes(
+                                {
+                                    vatAddress: MAINNET_MAKER_PSM_VAT,
+                                    psmAddress: MAINNET_MAKER_PSM_CONTRACT,
+                                    ilkIdentifier: MAINNET_MAKER_PSM_ILK_IDENTIFIER,
+                                    gemTokenAddress: MAINNET_MAKER_PSM_GEM_TOKEN,
+                                },
+                                makerToken,
+                                takerToken,
+                                takerFillAmounts,
+                            );
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1297,6 +1346,21 @@ export class SamplerOperations {
                                     makerFillAmounts,
                                     ERC20BridgeSource.Linkswap,
                                 ),
+                            );
+                        case ERC20BridgeSource.MakerPsm:
+                            if (this.chainId !== ChainId.Mainnet) {
+                                return [];
+                            }
+                            return this.getMakerPsmBuyQuotes(
+                                {
+                                    vatAddress: MAINNET_MAKER_PSM_VAT,
+                                    psmAddress: MAINNET_MAKER_PSM_CONTRACT,
+                                    ilkIdentifier: MAINNET_MAKER_PSM_ILK_IDENTIFIER,
+                                    gemTokenAddress: MAINNET_MAKER_PSM_GEM_TOKEN,
+                                },
+                                makerToken,
+                                takerToken,
+                                makerFillAmounts,
                             );
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);

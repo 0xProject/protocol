@@ -52,11 +52,10 @@ contract MixinMakerPSM {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
-    struct MakerPSMBridgeData {
+    struct MakerPsmBridgeData {
         address psmAddress;
-        address vatAddress;
         address authGemAddress;
-        bool isSellGem;
+        address gemTokenAddres;
     }
 
     // Maker units
@@ -68,7 +67,7 @@ contract MixinMakerPSM {
     uint256 RAD = 10 ** 45;
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.md
 
-    function _tradeMakerPSM(
+    function _tradeMakerPsm(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
@@ -78,19 +77,19 @@ contract MixinMakerPSM {
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.
-        MakerPSMBridgeData memory data = abi.decode(bridgeData, (MakerPSMBridgeData));
+        MakerPsmBridgeData memory data = abi.decode(bridgeData, (MakerPsmBridgeData));
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
         IPSM psm = IPSM(data.psmAddress);
 
-        if (data.isSellGem == true) {
+        if (address(sellToken) == data.gemTokenAddres) {
             sellToken.approveIfBelow(
                 data.authGemAddress,
                 sellAmount
             );
 
             psm.sellGem(address(this), sellAmount);
-        } else {
+        } else if (address(buyToken) == data.gemTokenAddres) {
             uint256 feeDivisor = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
             uint256 buyTokenBaseUnit = uint256(10) ** buyToken.decimals();
             uint256 gemAmount =  sellAmount.safeMul(buyTokenBaseUnit).safeDiv(feeDivisor);

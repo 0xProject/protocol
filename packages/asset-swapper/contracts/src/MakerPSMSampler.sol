@@ -75,14 +75,14 @@ contract MakerPSMSampler is
     using LibSafeMathV06 for uint256;
 
     /// @dev Information about which PSM module to use
-    struct MakerPSMInfo {
+    struct MakerPsmInfo {
         address vatAddress;
         address psmAddress;
         bytes32 ilkIdentifier;
         address gemTokenAddress;
     }
 
-    /// @dev Gas limit for MakerPSM calls.
+    /// @dev Gas limit for MakerPsm calls.
     uint256 constant private MAKER_PSM_CALL_GAS = 300e3; // 300k
 
 
@@ -98,8 +98,8 @@ contract MakerPSMSampler is
     uint256 MAX_INT = uint256(-1);
 
     /// @dev Sample sell quotes from Maker PSM
-    function sampleSellsFromMakerPSM(
-        MakerPSMInfo memory psmInfo,
+    function sampleSellsFromMakerPsm(
+        MakerPsmInfo memory psmInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -125,8 +125,8 @@ contract MakerPSMSampler is
         }
     }
 
-    function sampleBuysFromMakerPSM(
-        MakerPSMInfo memory psmInfo,
+    function sampleBuysFromMakerPsm(
+        MakerPsmInfo memory psmInfo,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -142,7 +142,7 @@ contract MakerPSMSampler is
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            uint256 sellAmount = _samplePSMSell(psmInfo, makerToken, takerToken, makerTokenAmounts[i], psm, vat);
+            uint256 sellAmount = _samplePSMBuy(psmInfo, makerToken, takerToken, makerTokenAmounts[i], psm, vat);
 
             if (sellAmount == MAX_INT) {
                 break;
@@ -153,7 +153,7 @@ contract MakerPSMSampler is
 
     }
 
-    function _samplePSMSell(MakerPSMInfo memory psmInfo, address makerToken, address takerToken, uint256 takerTokenAmount, IPSM psm, IVAT vat)
+    function _samplePSMSell(MakerPsmInfo memory psmInfo, address makerToken, address takerToken, uint256 takerTokenAmount, IPSM psm, IVAT vat)
         private
         view
         returns (uint256)
@@ -197,7 +197,7 @@ contract MakerPSMSampler is
         return 0;
     }
 
-    function _samplePSMBuy(MakerPSMInfo memory psmInfo, address makerToken, address takerToken, uint256 makerTokenAmount, IPSM psm, IVAT vat)
+    function _samplePSMBuy(MakerPsmInfo memory psmInfo, address makerToken, address takerToken, uint256 makerTokenAmount, IPSM psm, IVAT vat)
         private
         view
         returns (uint256)
