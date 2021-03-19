@@ -16,7 +16,7 @@ import {
     AltQuoteModel,
     AltQuoteRequestData,
     AltQuoteSide,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     MarketOperation,
     MockedRfqtQuoteResponse,
 } from '../src/types';
@@ -50,7 +50,7 @@ describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
-    const altRfqtAssetOfferings: AltRfqtMakerAssetOfferings = {
+    const altRfqAssetOfferings: AltRfqMakerAssetOfferings = {
         'https://132.0.0.1': [
             {
                 id: 'XYZ-123',
@@ -237,7 +237,7 @@ describe('QuoteRequestor', async () => {
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
-                            altRfqtAssetOfferings,
+                            altRfqAssetOfferings,
                         },
                     );
                     expect(resp).to.deep.eq([
@@ -650,7 +650,7 @@ describe('QuoteRequestor', async () => {
                                 takerAddress,
                                 txOrigin,
                                 intentOnFilling: true,
-                                altRfqtAssetOfferings,
+                                altRfqAssetOfferings,
                             },
                         );
                         // hack to get the expiry right, since it's dependent on the current timestamp

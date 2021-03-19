@@ -133,7 +133,7 @@ export {
     FeeSchedule,
     Fill,
     FillData,
-    GetMarketOrdersRfqtOpts,
+    GetMarketOrdersRfqOpts,
     KyberFillData,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,

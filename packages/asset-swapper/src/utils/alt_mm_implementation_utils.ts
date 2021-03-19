@@ -119,12 +119,12 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     makerToken: string,
     takerToken: string,
     maxResponseTimeMs: number,
-    altRfqtAssetOfferings: AltRfqMakerAssetOfferings,
+    altRfqAssetOfferings: AltRfqMakerAssetOfferings,
     takerRequestQueryParams: TakerRequestQueryParams,
     axiosInstance: AxiosInstance,
 ): Promise<{ data: ResponseT; status: number }> {
     const altPair = getAltMarketInfo(
-        altRfqtAssetOfferings[url],
+        altRfqAssetOfferings[url],
         takerRequestQueryParams.buyTokenAddress,
         takerRequestQueryParams.sellTokenAddress,
     );

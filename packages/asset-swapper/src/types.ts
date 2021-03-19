@@ -239,7 +239,7 @@ export interface RfqRequestOpts {
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQ?: boolean;
-    altRfqtAssetOfferings?: AltRfqMakerAssetOfferings;
+    altRfqAssetOfferings?: AltRfqMakerAssetOfferings;
 }
 
 /**
