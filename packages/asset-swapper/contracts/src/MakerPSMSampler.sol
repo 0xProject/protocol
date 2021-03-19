@@ -36,6 +36,10 @@ interface IPSM {
     // @return address of the Vat
     function vat() external view returns (address);
 
+    // @dev Get the address of the underlying vault powering PSM
+    // @return address of gemJoin contract
+    function gemJoin() external view returns (address);
+
     // @dev Sell USDC for DAI
     // @param usr The address of the account trading USDC for DAI.
     // @param gemAmt The amount of USDC to sell in USDC base units

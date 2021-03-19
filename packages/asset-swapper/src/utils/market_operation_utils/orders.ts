@@ -3,13 +3,7 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
-import {
-    MAINNET_MAKER_PSM_AUTH_GEM,
-    MAINNET_MAKER_PSM_CONTRACT,
-    MAINNET_MAKER_PSM_GEM_TOKEN,
-    MAX_UINT256,
-    ZERO_AMOUNT,
-} from './constants';
+import { MAINNET_MAKER_PSM_CONTRACT, MAINNET_MAKER_PSM_GEM_TOKEN, MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
@@ -229,7 +223,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             // const psmFillData = (order as OptimizedMarketBridgeOrder<MakerPsmFillData>).fillData;
             bridgeData = encoder.encode([
                 MAINNET_MAKER_PSM_CONTRACT,
-                MAINNET_MAKER_PSM_AUTH_GEM,
                 MAINNET_MAKER_PSM_GEM_TOKEN,
                 // TODO(kimpers): Any point in passing this as fill data?
                 // psmFillData.gemTokenAddress,
@@ -276,7 +269,6 @@ const curveEncoder = AbiEncoder.create([
 ]);
 const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
-    { name: 'authGemAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');

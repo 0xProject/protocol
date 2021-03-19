@@ -31,6 +31,15 @@ interface IPSM {
     // @dev Get the fee for selling DAI to USDC in PSM
     // @return tout toll out [wad]
     function tout() external view returns (uint256);
+
+    // @dev Get the address of the PSM state Vat
+    // @return address of the Vat
+    function vat() external view returns (address);
+
+    // @dev Get the address of the underlying vault powering PSM
+    // @return address of gemJoin contract
+    function gemJoin() external view returns (address);
+
     // @dev Sell USDC for DAI
     // @param usr The address of the account trading USDC for DAI.
     // @param gemAmt The amount of USDC to sell in USDC base units
@@ -54,7 +63,6 @@ contract MixinMakerPSM {
 
     struct MakerPsmBridgeData {
         address psmAddress;
-        address authGemAddress;
         address gemTokenAddres;
     }
 
@@ -84,7 +92,7 @@ contract MixinMakerPSM {
 
         if (address(sellToken) == data.gemTokenAddres) {
             sellToken.approveIfBelow(
-                data.authGemAddress,
+                psm.gemJoin(),
                 sellAmount
             );
 
