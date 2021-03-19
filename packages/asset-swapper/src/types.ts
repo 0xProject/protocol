@@ -360,9 +360,9 @@ export enum OrderPrunerPermittedFeeTypes {
 }
 
 /**
- * Represents a mocked RFQT maker responses.
+ * Represents a mocked RFQ-T/M maker responses.
  */
-export interface MockedRfqtQuoteResponse {
+export interface MockedRfqQuoteResponse {
     endpoint: string;
     requestApiKey: string;
     requestParams: TakerRequestQueryParams;
@@ -371,9 +371,9 @@ export interface MockedRfqtQuoteResponse {
 }
 
 /**
- * Represents a mocked RFQT maker responses.
+ * Represents a mocked RFQ-T/M alternative maker responses.
  */
-export interface AltMockedRfqtQuoteResponse {
+export interface AltMockedRfqQuoteResponse {
     endpoint: string;
     mmApiKey: string;
     requestData: AltQuoteRequestData;

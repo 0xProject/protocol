@@ -12,13 +12,13 @@ import 'mocha';
 
 import { constants, KEEP_ALIVE_TTL } from '../src/constants';
 import {
-    AltMockedRfqtQuoteResponse,
+    AltMockedRfqQuoteResponse,
     AltQuoteModel,
     AltQuoteRequestData,
     AltQuoteSide,
     AltRfqMakerAssetOfferings,
     MarketOperation,
-    MockedRfqtQuoteResponse,
+    MockedRfqQuoteResponse,
 } from '../src/types';
 import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor } from '../src/utils/quote_requestor';
@@ -70,8 +70,8 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
-            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
 
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
@@ -269,7 +269,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -372,7 +372,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -436,7 +436,7 @@ describe('QuoteRequestor', async () => {
             const quoteToken = takerToken;
 
             // Set up RFQT responses
-            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
             const altScenarios: Array<{
                 successfulQuote: V4RFQIndicativeQuote;
                 requestedMakerToken: string;
