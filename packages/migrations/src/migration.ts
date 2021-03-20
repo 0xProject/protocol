@@ -386,6 +386,7 @@ export async function runMigrationsAsync(
         exchangeProxyTransformerDeployer: txDefaults.from,
         exchangeProxyFlashWallet: exchangeProxyFlashWalletAddress,
         exchangeProxyLiquidityProviderSandbox: NULL_ADDRESS,
+        zrxTreasury: NULL_ADDRESS,
         transformers: {
             wethTransformer: wethTransformer.address,
             payTakerTransformer: payTakerTransformer.address,
