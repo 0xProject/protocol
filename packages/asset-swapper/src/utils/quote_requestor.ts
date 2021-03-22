@@ -254,12 +254,7 @@ export class QuoteRequestor {
                 this._warningLogger(result, 'Invalid RFQ-T indicative quote received, filtering out');
                 return false;
             }
-            if (
-                !hasExpectedAddresses([
-                    [makerToken, order.makerToken],
-                    [takerToken, order.takerToken],
-                ])
-            ) {
+            if (!hasExpectedAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
                 return false;
             }
@@ -499,7 +494,11 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${
+                            typedMakerUrl.url
+                        } for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${
+                            options.txOrigin
+                        }`,
                     );
                     return;
                 }
