@@ -1,6 +1,6 @@
 [
     {
-        "version": "0.21.0-bsc.0",
+        "version": "0.21.0-bsc.1",
         "changes": [
             {
                 "note": "Encoding protocol ID and source name in bridge source ID",
@@ -13,6 +13,10 @@
             {
                 "note": "Remove TokenSpender/AllowanceTarget/greedy tokens stuff",
                 "pr": 164
+            },
+            {
+                "note": "Added Nerve in BridgeAdapter",
+                "pr": 181
             }
         ]
     },

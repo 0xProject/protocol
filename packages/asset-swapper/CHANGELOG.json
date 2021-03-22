@@ -1,6 +1,6 @@
 [
     {
-        "version": "6.4.0-bsc.0",
+        "version": "6.4.0-bsc.1",
         "changes": [
             {
                 "note": "Use new bridge source ID encoding.",
@@ -13,6 +13,10 @@
             {
                 "note": "Added PancakeSwap and BakerySwap on Chain 56",
                 "pr": 163
+            },
+            {
+                "note": "Added Nerve and Dodo (v1) to BSC",
+                "pr": 181
             }
         ]
     },

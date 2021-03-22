@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.4.0-bsc.1",
+        "changes": [
+            {
+                "note": "Added Nerve",
+                "pr": 181
+            }
+        ]
+    },
+    {
         "version": "1.3.0",
         "changes": [
             {
