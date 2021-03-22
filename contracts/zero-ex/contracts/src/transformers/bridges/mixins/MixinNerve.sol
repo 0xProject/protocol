@@ -53,7 +53,6 @@ contract MixinNerve {
         // Decode the bridge data to get the Curve metadata.
         NerveBridgeData memory data = abi.decode(bridgeData, (NerveBridgeData));
         sellToken.approveIfBelow(data.pool, sellAmount);
-        uint256 beforeBalance = buyToken.balanceOf(address(this));
         (bool success, bytes memory resultData) =
             data.pool.call(abi.encodeWithSelector(
                 data.exchangeFunctionSelector,
