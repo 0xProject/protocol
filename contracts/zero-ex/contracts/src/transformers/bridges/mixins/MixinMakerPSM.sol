@@ -68,11 +68,11 @@ contract MixinMakerPSM {
 
     // Maker units
     // wad: fixed point decimal with 18 decimals (for basic quantities, e.g. balances)
-    uint256 WAD = 10 ** 18;
+    uint256 constant private WAD = 10 ** 18;
     // ray: fixed point decimal with 27 decimals (for precise quantites, e.g. ratios)
-    uint256 RAY = 10 ** 27;
+    uint256 constant private RAY = 10 ** 27;
     // rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
-    uint256 RAD = 10 ** 45;
+    uint256 constant private RAD = 10 ** 45;
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.md
 
     function _tradeMakerPsm(
@@ -98,8 +98,8 @@ contract MixinMakerPSM {
 
             psm.sellGem(address(this), sellAmount);
         } else if (address(buyToken) == data.gemTokenAddres) {
-            uint256 feeDivisor = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
-            uint256 buyTokenBaseUnit = uint256(10) ** buyToken.decimals();
+            uint256 feeDivisor = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% fee [tout is in wad];
+            uint256 buyTokenBaseUnit = uint256(10) ** uint256(buyToken.decimals());
             uint256 gemAmount =  sellAmount.safeMul(buyTokenBaseUnit).safeDiv(feeDivisor);
 
             sellToken.approveIfBelow(
