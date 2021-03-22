@@ -61,6 +61,7 @@ export enum ERC20BridgeSource {
     // Other
     PancakeSwap = 'PancakeSwap',
     BakerySwap = 'BakerySwap',
+    Nerve = 'Nerve',
 }
 
 // tslint:disable: enum-naming
@@ -75,6 +76,9 @@ export enum CurveFunctionSelectors {
     get_dx_underlying = '0x0e71d1b9',
     get_dy = '0x5e0d443f',
     get_dx = '0x67df02ca',
+    // Nerve BSC
+    swap = '0x91695586',
+    calculateSwap = '0xa95b089f',
 }
 // tslint:enable: enum-naming
 
@@ -89,9 +93,6 @@ export interface CurveInfo {
     tokens: string[];
     metaToken: string | undefined;
 }
-
-export interface SwerveInfo extends CurveInfo {}
-export interface SnowSwapInfo extends CurveInfo {}
 
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
@@ -112,18 +113,6 @@ export interface CurveFillData extends FillData {
     fromTokenIdx: number;
     toTokenIdx: number;
     pool: CurveInfo;
-}
-
-export interface SwerveFillData extends FillData {
-    fromTokenIdx: number;
-    toTokenIdx: number;
-    pool: SwerveInfo;
-}
-
-export interface SnowSwapFillData extends FillData {
-    fromTokenIdx: number;
-    toTokenIdx: number;
-    pool: SnowSwapInfo;
 }
 
 export interface BalancerFillData extends FillData {

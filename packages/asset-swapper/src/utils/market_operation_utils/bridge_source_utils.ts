@@ -10,13 +10,14 @@ import {
     MAINNET_SWERVE_INFOS,
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
+    NERVE_BSC_INFOS,
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
     SHELL_POOLS_BY_CHAIN_ID,
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
 } from './constants';
-import { CurveInfo, ERC20BridgeSource, SnowSwapInfo, SwerveInfo } from './types';
+import { CurveInfo, ERC20BridgeSource } from './types';
 
 /**
  * Filter Kyber reserves which should not be used (0xbb bridged reserves)
@@ -71,7 +72,7 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
     );
 }
 
-export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): SwerveInfo[] {
+export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
     }
@@ -84,7 +85,7 @@ export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, make
     );
 }
 
-export function getSnowSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): SnowSwapInfo[] {
+export function getSnowSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
     }
@@ -95,6 +96,39 @@ export function getSnowSwapInfosForPair(chainId: ChainId, takerToken: string, ma
                 (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
         ),
     );
+}
+
+export function getNerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.BSC) {
+        return [];
+    }
+    return Object.values(NERVE_BSC_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaToken === undefined) ||
+                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+        ),
+    );
+}
+
+export function getCurveLikeInfosForPair(
+    chainId: ChainId,
+    takerToken: string,
+    makerToken: string,
+    source: ERC20BridgeSource.Curve | ERC20BridgeSource.Swerve | ERC20BridgeSource.SnowSwap | ERC20BridgeSource.Nerve,
+): CurveInfo[] {
+    switch (source) {
+        case ERC20BridgeSource.Curve:
+            return getCurveInfosForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.Swerve:
+            return getSwerveInfosForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.SnowSwap:
+            return getSnowSwapInfosForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.Nerve:
+            return getNerveInfosForPair(chainId, takerToken, makerToken);
+        default:
+            throw new Error(`Unknown Curve like source ${source}`);
+    }
 }
 
 export function uniswapV2LikeRouterAddress(

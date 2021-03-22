@@ -32,6 +32,7 @@ import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyber.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
+import "./mixins/MixinNerve.sol";
 import "./mixins/MixinOasis.sol";
 import "./mixins/MixinShell.sol";
 import "./mixins/MixinUniswap.sol";
@@ -50,6 +51,7 @@ contract BridgeAdapter is
     MixinKyber,
     MixinMooniswap,
     MixinMStable,
+    MixinNerve,
     MixinOasis,
     MixinShell,
     MixinUniswap,
@@ -68,6 +70,7 @@ contract BridgeAdapter is
         MixinKyber(weth)
         MixinMooniswap(weth)
         MixinMStable()
+        MixinNerve()
         MixinOasis()
         MixinShell()
         MixinUniswap(weth)
@@ -174,6 +177,13 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.COFIX) {
             boughtAmount = _tradeCoFiX(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.NERVE) {
+            boughtAmount = _tradeNerve(
                 sellToken,
                 buyToken,
                 sellAmount,

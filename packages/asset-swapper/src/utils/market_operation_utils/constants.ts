@@ -19,7 +19,6 @@ import {
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MultiHopFillData,
-    SnowSwapFillData,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './types';
@@ -85,11 +84,13 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.BSC]: new SourceFilters([
-            ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.BakerySwap,
+            ERC20BridgeSource.Dodo,
+            ERC20BridgeSource.DodoV2,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.MultiHop,
-            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Nerve,
+            ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.SushiSwap,
         ]),
     },
@@ -130,11 +131,13 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.BSC]: new SourceFilters([
-            ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.BakerySwap,
+            ERC20BridgeSource.Dodo,
+            ERC20BridgeSource.DodoV2,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.MultiHop,
-            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Nerve,
+            ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.SushiSwap,
         ]),
     },
@@ -522,6 +525,21 @@ export const MAINNET_SNOWSWAP_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
+export const NERVE_BSC_INFOS: { [name: string]: CurveInfo } = {
+    ['0x1b3771a66ee31180906972580ade9b81afc5fcdc']: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: '0x1b3771a66ee31180906972580ade9b81afc5fcdc',
+        tokens: [
+            '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
+            '0x55d398326f99059ff775485246999027b3197955', // BUSD-T
+            '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
+        ],
+        metaToken: undefined,
+    },
+};
+
 /**
  * Kyber reserve prefixes
  * 0xff Fed price reserve
@@ -612,6 +630,10 @@ export const DODO_CONFIG_BY_CHAIN_ID = valueByChainId(
         [ChainId.Mainnet]: {
             helper: '0x533da777aedce766ceae696bf90f8541a4ba80eb',
             registry: '0x3A97247DF274a17C59A3bd12735ea3FcDFb49950',
+        },
+        [ChainId.BSC]: {
+            helper: '0x0f859706aee7fcf61d5a8939e8cb9dbb6c1eda33',
+            registry: '0xca459456a45e300aa7ef447dbb60f87cccb42828',
         },
     },
     { helper: NULL_ADDRESS, registry: NULL_ADDRESS },
@@ -801,6 +823,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.MStable]: () => 700e3,
     [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
+    [ERC20BridgeSource.Nerve]: () => 150e3,
     [ERC20BridgeSource.Shell]: () => 170e3,
     [ERC20BridgeSource.MultiHop]: (fillData?: FillData) => {
         const firstHop = (fillData as MultiHopFillData).firstHopSource;
@@ -820,7 +843,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.DodoV2]: (_fillData?: FillData) => 100e3,
     [ERC20BridgeSource.SnowSwap]: fillData => {
-        switch ((fillData as SnowSwapFillData).pool.poolAddress.toLowerCase()) {
+        switch ((fillData as CurveFillData).pool.poolAddress.toLowerCase()) {
             case '0xbf7ccd6c446acfcc5df023043f2167b62e81899b':
                 return 1000e3;
             case '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b':

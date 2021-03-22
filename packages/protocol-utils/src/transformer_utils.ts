@@ -124,6 +124,7 @@ export enum BridgeProtocol {
     CryptoCom,
     Bancor,
     CoFiX,
+    Nerve,
 }
 // tslint:enable: enum-naming
 

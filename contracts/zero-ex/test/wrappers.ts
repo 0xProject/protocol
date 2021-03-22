@@ -79,6 +79,7 @@ export * from '../test/generated-wrappers/mixin_dodo_v2';
 export * from '../test/generated-wrappers/mixin_kyber';
 export * from '../test/generated-wrappers/mixin_m_stable';
 export * from '../test/generated-wrappers/mixin_mooniswap';
+export * from '../test/generated-wrappers/mixin_nerve';
 export * from '../test/generated-wrappers/mixin_oasis';
 export * from '../test/generated-wrappers/mixin_shell';
 export * from '../test/generated-wrappers/mixin_uniswap';

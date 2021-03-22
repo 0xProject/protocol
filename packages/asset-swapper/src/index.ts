@@ -148,11 +148,7 @@ export {
     NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
-    SnowSwapFillData,
-    SnowSwapInfo,
     SourceQuoteOperation,
-    SwerveFillData,
-    SwerveInfo,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';

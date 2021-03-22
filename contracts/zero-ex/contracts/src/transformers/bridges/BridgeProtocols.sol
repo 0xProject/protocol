@@ -42,4 +42,5 @@ library BridgeProtocols {
     uint128 internal constant CRYPTOCOM   = 12;
     uint128 internal constant BANCOR      = 13;
     uint128 internal constant COFIX       = 14;
+    uint128 internal constant NERVE       = 15;
 }
