@@ -62,6 +62,7 @@ export enum ERC20BridgeSource {
     PancakeSwap = 'PancakeSwap',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
+    Belt = 'Belt',
 }
 
 // tslint:disable: enum-naming

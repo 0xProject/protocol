@@ -3,6 +3,7 @@ import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
+    BELT_BSC_INFOS,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAINNET_CURVE_INFOS,
@@ -111,11 +112,29 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
     );
 }
 
+export function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.BSC) {
+        return [];
+    }
+    return Object.values(BELT_BSC_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaToken === undefined) ||
+                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+        ),
+    );
+}
+
 export function getCurveLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
     makerToken: string,
-    source: ERC20BridgeSource.Curve | ERC20BridgeSource.Swerve | ERC20BridgeSource.SnowSwap | ERC20BridgeSource.Nerve,
+    source:
+        | ERC20BridgeSource.Curve
+        | ERC20BridgeSource.Swerve
+        | ERC20BridgeSource.SnowSwap
+        | ERC20BridgeSource.Nerve
+        | ERC20BridgeSource.Belt,
 ): CurveInfo[] {
     switch (source) {
         case ERC20BridgeSource.Curve:
@@ -126,6 +145,8 @@ export function getCurveLikeInfosForPair(
             return getSnowSwapInfosForPair(chainId, takerToken, makerToken);
         case ERC20BridgeSource.Nerve:
             return getNerveInfosForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.Belt:
+            return getBeltInfosForPair(chainId, takerToken, makerToken);
         default:
             throw new Error(`Unknown Curve like source ${source}`);
     }
