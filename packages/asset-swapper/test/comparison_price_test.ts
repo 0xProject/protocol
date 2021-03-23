@@ -40,8 +40,8 @@ const feeSchedule = {
 };
 
 const exchangeProxyOverhead = (sourceFlags: number) => {
-    if ([SOURCE_FLAGS.Native].includes(sourceFlags)) {
-        return new BigNumber(150e3).times(GAS_PRICE);
+    if ([SOURCE_FLAGS.RfqOrder].includes(sourceFlags)) {
+        return new BigNumber(20e3).times(GAS_PRICE);
     } else {
         return new BigNumber(200e3).times(GAS_PRICE);
     }
@@ -107,7 +107,7 @@ describe('getComparisonPrices', async () => {
         );
 
         // expected outcome
-        const EXPECTED_PRICE = new BigNumber('500.925');
+        const EXPECTED_PRICE = new BigNumber('500.6');
 
         expect(comparisonPrices.wholeOrder).to.deep.eq(EXPECTED_PRICE);
     });
@@ -129,7 +129,7 @@ describe('getComparisonPrices', async () => {
         );
 
         // expected outcome
-        const EXPECTED_PRICE = new BigNumber('0.0020037069');
+        const EXPECTED_PRICE = new BigNumber('0.0020024029');
 
         expect(comparisonPrices.wholeOrder).to.deep.eq(EXPECTED_PRICE);
     });

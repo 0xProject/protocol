@@ -6,7 +6,8 @@
                 "note": "Update IZeroExContract wrapper",
                 "pr": 140
             }
-        ]
+        ],
+        "timestamp": 1616005394
     },
     {
         "version": "13.13.0",

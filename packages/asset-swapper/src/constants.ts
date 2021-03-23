@@ -8,7 +8,7 @@ import {
     LogFunction,
     OrderPrunerOpts,
     OrderPrunerPermittedFeeTypes,
-    RfqtRequestOpts,
+    RfqRequestOpts,
     SwapQuoteGetOutputOpts,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -53,6 +53,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     rfqt: {
         takerApiKeyWhitelist: [],
         makerAssetOfferings: {},
+        txOriginBlacklist: new Set(),
     },
     tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH,
 };
@@ -79,7 +80,7 @@ const DEFAULT_SWAP_QUOTE_REQUEST_OPTS: SwapQuoteRequestOpts = {
     ...DEFAULT_GET_MARKET_ORDERS_OPTS,
 };
 
-const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqtRequestOpts> = {
+const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqRequestOpts> = {
     makerEndpointMaxResponseTimeMs: 1000,
 };
 

@@ -4,7 +4,7 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import * as _ from 'lodash';
 
 import { InsufficientAssetLiquidityError } from '../../src/errors';
-import { AltMockedRfqtQuoteResponse, MockedRfqtQuoteResponse } from '../../src/types';
+import { AltMockedRfqQuoteResponse, MockedRfqQuoteResponse } from '../../src/types';
 
 export enum RfqtQuoteEndpoint {
     Indicative = 'price',
@@ -37,8 +37,8 @@ export const testHelpers = {
      * requests to RFQ-t providers
      */
     withMockedRfqtQuotes: async (
-        standardMockedResponses: MockedRfqtQuoteResponse[],
-        altMockedResponses: AltMockedRfqtQuoteResponse[],
+        standardMockedResponses: MockedRfqQuoteResponse[],
+        altMockedResponses: AltMockedRfqQuoteResponse[],
         quoteType: RfqtQuoteEndpoint,
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,
@@ -49,9 +49,15 @@ export const testHelpers = {
             for (const mockedResponse of standardMockedResponses) {
                 const { endpoint, requestApiKey, requestParams, responseData, responseCode } = mockedResponse;
                 const requestHeaders = { Accept: 'application/json, text/plain, */*', '0x-api-key': requestApiKey };
-                mockedAxios
-                    .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
-                    .replyOnce(responseCode, responseData);
+                if (mockedResponse.callback !== undefined) {
+                    mockedAxios
+                        .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
+                        .reply(mockedResponse.callback);
+                } else {
+                    mockedAxios
+                        .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
+                        .replyOnce(responseCode, responseData);
+                }
             }
             // Mock out Alt RFQT responses
             for (const mockedResponse of altMockedResponses) {

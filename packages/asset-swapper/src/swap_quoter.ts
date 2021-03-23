@@ -14,14 +14,14 @@ import {
     MarketBuySwapQuote,
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
-    RfqtRequestOpts,
+    RfqRequestOpts,
     SignedNativeOrder,
     SwapQuote,
     SwapQuoteInfo,
     SwapQuoteOrdersBreakdown,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
-    SwapQuoterRfqtOpts,
+    SwapQuoterRfqOpts,
 } from './types';
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
@@ -72,7 +72,7 @@ export class SwapQuoter {
     private readonly _contractAddresses: AssetSwapperContractAddresses;
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
     private readonly _marketOperationUtils: MarketOperationUtils;
-    private readonly _rfqtOptions?: SwapQuoterRfqtOpts;
+    private readonly _rfqtOptions?: SwapQuoterRfqOpts;
     private readonly _quoteRequestorHttpClient: AxiosInstance;
 
     /**
@@ -334,7 +334,7 @@ export class SwapQuoter {
         // Get SRA orders (limit orders)
         const shouldSkipOpenOrderbook =
             !sourceFilters.isAllowed(ERC20BridgeSource.Native) ||
-            (opts.rfqt && opts.rfqt.nativeExclusivelyRFQT === true);
+            (opts.rfqt && opts.rfqt.nativeExclusivelyRFQ === true);
         const nativeOrders = shouldSkipOpenOrderbook
             ? await Promise.resolve([])
             : await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
@@ -411,19 +411,27 @@ export class SwapQuoter {
         return whitelistedApiKeys.includes(apiKey);
     }
 
+    private _isTxOriginBlacklisted(txOrigin: string | undefined): boolean {
+        if (!txOrigin) {
+            return false;
+        }
+        const blacklistedTxOrigins = this._rfqtOptions ? this._rfqtOptions.txOriginBlacklist : new Set();
+        return blacklistedTxOrigins.has(txOrigin.toLowerCase());
+    }
+
     private _validateRfqtOpts(
         sourceFilters: SourceFilters,
-        rfqt: RfqtRequestOpts | undefined,
-    ): RfqtRequestOpts | undefined {
+        rfqt: RfqRequestOpts | undefined,
+    ): RfqRequestOpts | undefined {
         if (!rfqt) {
             return rfqt;
         }
         // tslint:disable-next-line: boolean-naming
-        const { apiKey, nativeExclusivelyRFQT, intentOnFilling, txOrigin } = rfqt;
-        // If RFQT is enabled and `nativeExclusivelyRFQT` is set, then `ERC20BridgeSource.Native` should
+        const { apiKey, nativeExclusivelyRFQ, intentOnFilling, txOrigin } = rfqt;
+        // If RFQ-T is enabled and `nativeExclusivelyRFQ` is set, then `ERC20BridgeSource.Native` should
         // never be excluded.
-        if (nativeExclusivelyRFQT === true && !sourceFilters.isAllowed(ERC20BridgeSource.Native)) {
-            throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQT" is set');
+        if (nativeExclusivelyRFQ === true && !sourceFilters.isAllowed(ERC20BridgeSource.Native)) {
+            throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQ" is set');
         }
 
         // If an API key was provided, but the key is not whitelisted, raise a warning and disable RFQ
@@ -434,6 +442,19 @@ export class SwapQuoter {
                         apiKey,
                     },
                     'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
+                );
+            }
+            return undefined;
+        }
+
+        // If the requested tx origin is blacklisted, raise a warning and disable RFQ
+        if (this._isTxOriginBlacklisted(txOrigin)) {
+            if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
+                this._rfqtOptions.warningLogger(
+                    {
+                        txOrigin,
+                    },
+                    'Attempt at using a tx Origin that is blacklisted. Disabling RFQ for the request lifetime.',
                 );
             }
             return undefined;

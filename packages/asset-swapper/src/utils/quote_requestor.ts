@@ -2,18 +2,18 @@ import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 import { constants } from '../constants';
 import {
     AltQuoteModel,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     LogFunction,
     MarketOperation,
     RfqmMakerAssetOfferings,
     RfqPairType,
-    RfqtMakerAssetOfferings,
-    RfqtRequestOpts,
+    RfqMakerAssetOfferings,
+    RfqRequestOpts,
     SignedNativeOrder,
     TypedMakerUrl,
 } from '../types';
@@ -134,8 +134,8 @@ export class QuoteRequestor {
     }
 
     constructor(
-        private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
-        private readonly _rfqmAssetOfferings: RfqmMakerAssetOfferings,
+        private readonly _rfqtAssetOfferings: RfqMakerAssetOfferings,
+        private readonly _rfqmAssetOfferings: RfqMakerAssetOfferings,
         private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
@@ -181,9 +181,9 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
     ): Promise<SignedNativeOrder[]> {
-        const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
+        const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         if (!_opts.txOrigin || [undefined, '', '0x', NULL_ADDRESS].includes(_opts.txOrigin)) {
             throw new Error('RFQ-T firm quotes require the presence of a tx origin');
         }
@@ -235,9 +235,9 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
     ): Promise<V4RFQIndicativeQuote[]> {
-        const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
+        const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         // Originally a takerAddress was required for indicative quotes, but
         // now we've eliminated that requirement.  @0x/quote-server, however,
         // is still coded to expect a takerAddress.  So if the client didn't
@@ -303,7 +303,7 @@ export class QuoteRequestor {
         typedMakerUrl: TypedMakerUrl,
         makerToken: string,
         takerToken: string,
-        altMakerAssetOfferings: AltRfqtMakerAssetOfferings | undefined,
+        altMakerAssetOfferings: AltRfqMakerAssetOfferings | undefined,
     ): boolean {
         if (typedMakerUrl.pairType === RfqPairType.Standard) {
             for (const assetPair of this._rfqtAssetOfferings[typedMakerUrl.url]) {
@@ -339,7 +339,7 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
         quoteType: 'firm' | 'indicative',
         assetOfferings: RfqtMakerAssetOfferings,
     ): Promise<Array<RfqQuote<ResponseT>>> {
@@ -370,8 +370,8 @@ export class QuoteRequestor {
                 return { pairType: RfqPairType.Standard, url: mm };
             },
         );
-        const altUrls = options.altRfqtAssetOfferings
-            ? Object.keys(options.altRfqtAssetOfferings).map(
+        const altUrls = options.altRfqAssetOfferings
+            ? Object.keys(options.altRfqAssetOfferings).map(
                   (mm: string): TypedMakerUrl => {
                       return { pairType: RfqPairType.Alt, url: mm };
                   },
@@ -380,6 +380,17 @@ export class QuoteRequestor {
 
         const typedMakerUrls = standardUrls.concat(altUrls);
 
+        const timeoutMs =
+            options.makerEndpointMaxResponseTimeMs ||
+            constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!;
+        const bufferMs = 20;
+
+        // Set Timeout on CancelToken
+        const cancelTokenSource = axios.CancelToken.source();
+        setTimeout(() => {
+            cancelTokenSource.cancel('timeout via cancel token');
+        }, timeoutMs + bufferMs);
+
         const quotePromises = typedMakerUrls.map(async typedMakerUrl => {
             // filter out requests to skip
             const isBlacklisted = rfqMakerBlacklist.isMakerBlacklisted(typedMakerUrl.url);
@@ -387,21 +398,18 @@ export class QuoteRequestor {
             if (isBlacklisted) {
                 this._infoLogger({ rfqtMakerInteraction: { ...partialLogEntry } });
                 return;
-            } else if (!this._makerSupportsPair(typedMakerUrl, makerToken, takerToken, options.altRfqtAssetOfferings)) {
+            } else if (!this._makerSupportsPair(typedMakerUrl, makerToken, takerToken, options.altRfqAssetOfferings)) {
                 return;
             } else {
                 // make request to MM
                 const timeBeforeAwait = Date.now();
-                const maxResponseTimeMs =
-                    options.makerEndpointMaxResponseTimeMs === undefined
-                        ? constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!
-                        : options.makerEndpointMaxResponseTimeMs;
                 try {
                     if (typedMakerUrl.pairType === RfqPairType.Standard) {
                         const response = await this._quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
                             headers: { '0x-api-key': options.apiKey },
                             params: requestParams,
-                            timeout: maxResponseTimeMs,
+                            timeout: timeoutMs,
+                            cancelToken: cancelTokenSource.token,
                         });
                         const latencyMs = Date.now() - timeBeforeAwait;
                         this._infoLogger({
@@ -417,7 +425,7 @@ export class QuoteRequestor {
                                 },
                             },
                         });
-                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
+                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                         return { response: response.data, makerUri: typedMakerUrl.url };
                     } else {
                         if (this._altRfqCreds === undefined) {
@@ -431,10 +439,11 @@ export class QuoteRequestor {
                             quoteType === 'firm' ? AltQuoteModel.Firm : AltQuoteModel.Indicative,
                             makerToken,
                             takerToken,
-                            maxResponseTimeMs,
-                            options.altRfqtAssetOfferings || {},
+                            timeoutMs,
+                            options.altRfqAssetOfferings || {},
                             requestParams,
                             this._quoteRequestorHttpClient,
+                            cancelTokenSource.token,
                         );
 
                         const latencyMs = Date.now() - timeBeforeAwait;
@@ -451,7 +460,7 @@ export class QuoteRequestor {
                                 },
                             },
                         });
-                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
+                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                         return { response: quote.data, makerUri: typedMakerUrl.url };
                     }
                 } catch (err) {
@@ -470,15 +479,20 @@ export class QuoteRequestor {
                             },
                         },
                     });
-                    rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
+                    rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${
+                            typedMakerUrl.url
+                        } for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${
+                            options.txOrigin
+                        }`,
                     );
                     return;
                 }
             }
         });
+
         const results = (await Promise.all(quotePromises)).filter(x => x !== undefined);
         return results as Array<RfqQuote<ResponseT>>;
     }
@@ -589,12 +603,7 @@ export class QuoteRequestor {
                 this._warningLogger(result, 'Invalid RFQ-T indicative quote received, filtering out');
                 return false;
             }
-            if (
-                !hasExpectedAddresses([
-                    [makerToken, order.makerToken],
-                    [takerToken, order.takerToken],
-                ])
-            ) {
+            if (!hasExpectedAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ-T order, filtering out');
                 return false;
             }
