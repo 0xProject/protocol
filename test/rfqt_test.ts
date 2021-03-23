@@ -1,7 +1,7 @@
 // tslint:disable:max-file-line-count
 import {
     ERC20BridgeSource,
-    MockedRfqtQuoteResponse,
+    MockedRfqQuoteResponse,
     RfqOrder,
     RfqOrderFields,
     rfqtMocker,
@@ -109,7 +109,7 @@ describe.skip(SUITE_NAME, () => {
 
     describe('v1', async () => {
         const SWAP_PATH = `${BASE_SWAP_PATH}`;
-        let DEFAULT_RFQT_RESPONSE_DATA: Partial<MockedRfqtQuoteResponse>;
+        let DEFAULT_RFQT_RESPONSE_DATA: Partial<MockedRfqQuoteResponse>;
         let signedOrder: RfqOrderFields & { signature: Signature };
         before(async () => {
             DEFAULT_RFQT_RESPONSE_DATA = {

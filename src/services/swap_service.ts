@@ -1,15 +1,15 @@
 import {
     AffiliateFeeAmount,
     AffiliateFeeType,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     artifacts,
     AssetSwapperContractAddresses,
     ContractAddresses,
     ERC20BridgeSource,
     FakeTakerContract,
-    GetMarketOrdersRfqtOpts,
+    GetMarketOrdersRfqOpts,
     Orderbook,
-    RfqtFirmQuoteValidator,
+    RfqFirmQuoteValidator,
     SwapQuote,
     SwapQuoteConsumer,
     SwapQuoteGetOutputOpts,
@@ -82,7 +82,7 @@ export class SwapService {
     private readonly _web3Wrapper: Web3Wrapper;
     private readonly _wethContract: WETH9Contract;
     private readonly _contractAddresses: ContractAddresses;
-    private readonly _firmQuoteValidator: RfqtFirmQuoteValidator | undefined;
+    private readonly _firmQuoteValidator: RfqFirmQuoteValidator | undefined;
     private _altRfqMarketsCache: any;
 
     private static _getSwapQuotePrice(
@@ -135,7 +135,7 @@ export class SwapService {
         orderbook: Orderbook,
         provider: SupportedProvider,
         contractAddresses: AssetSwapperContractAddresses,
-        firmQuoteValidator?: RfqtFirmQuoteValidator | undefined,
+        firmQuoteValidator?: RfqFirmQuoteValidator | undefined,
     ) {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
@@ -193,7 +193,7 @@ export class SwapService {
             shouldSellEntireBalance,
         } = params;
 
-        let _rfqt: GetMarketOrdersRfqtOpts | undefined;
+        let _rfqt: GetMarketOrdersRfqOpts | undefined;
         // Only enable RFQT if there's an API key and either (a) it's a
         // forwarder transaction (isETHSell===true), (b) there's a taker
         // address present, or (c) it's an indicative quote.
@@ -201,7 +201,7 @@ export class SwapService {
             apiKey !== undefined && (isETHSell || takerAddress !== undefined || (rfqt && rfqt.isIndicative));
         if (shouldEnableRfqt) {
             // tslint:disable-next-line:custom-no-magic-numbers
-            const altRfqtAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
+            const altRfqAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
 
             _rfqt = {
                 ...rfqt,
@@ -212,7 +212,7 @@ export class SwapService {
                 takerAddress: NULL_ADDRESS,
                 txOrigin: takerAddress!,
                 firmQuoteValidator: this._firmQuoteValidator,
-                altRfqtAssetOfferings,
+                altRfqAssetOfferings,
             };
         }
 
@@ -680,9 +680,9 @@ export class SwapService {
         };
     }
 
-    private async _getAltMarketOfferingsAsync(timeoutMs: number): Promise<AltRfqtMakerAssetOfferings> {
+    private async _getAltMarketOfferingsAsync(timeoutMs: number): Promise<AltRfqMakerAssetOfferings> {
         if (!this._altRfqMarketsCache) {
-            this._altRfqMarketsCache = createResultCache<AltRfqtMakerAssetOfferings>(async () => {
+            this._altRfqMarketsCache = createResultCache<AltRfqMakerAssetOfferings>(async () => {
                 if (ALT_RFQ_MM_ENDPOINT === undefined || ALT_RFQ_MM_API_KEY === undefined) {
                     return {};
                 }

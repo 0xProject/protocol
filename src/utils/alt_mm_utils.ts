@@ -1,4 +1,4 @@
-import { AltOffering, AltRfqtMakerAssetOfferings } from '@0x/asset-swapper';
+import { AltOffering, AltRfqMakerAssetOfferings } from '@0x/asset-swapper';
 
 interface AltRfqAsset {
     address: string;
@@ -25,7 +25,7 @@ interface AltRfqMarketsResponse {
 export function altMarketResponseToAltOfferings(
     altRfqMarketsResponse: AltRfqMarketsResponse,
     altRfqUrl: string,
-): AltRfqtMakerAssetOfferings {
+): AltRfqMakerAssetOfferings {
     const offerings: AltOffering[] = altRfqMarketsResponse.items.map(market => {
         return {
             id: market.id,

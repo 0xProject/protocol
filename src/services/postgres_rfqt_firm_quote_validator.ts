@@ -1,4 +1,4 @@
-import { BigNumber, RfqOrderFields, RfqtFirmQuoteValidator } from '@0x/asset-swapper';
+import { BigNumber, RfqFirmQuoteValidator, RfqOrderFields } from '@0x/asset-swapper';
 import * as _ from 'lodash';
 import { Counter, Summary } from 'prom-client';
 import { In } from 'typeorm';
@@ -50,7 +50,7 @@ const PG_LATENCY_READ = new Summary({
     labelNames: ['workerId'],
 });
 
-export class PostgresRfqtFirmQuoteValidator implements RfqtFirmQuoteValidator {
+export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
     private readonly _chainCacheRepository: Repository<MakerBalanceChainCacheEntity>;
     private readonly _cacheExpiryThresholdMs: number;
     private readonly _workerId: string;

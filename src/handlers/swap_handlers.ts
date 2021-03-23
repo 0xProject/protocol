@@ -1,5 +1,5 @@
 // tslint:disable:max-file-line-count
-import { ERC20BridgeSource, RfqtRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
+import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
@@ -393,9 +393,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         apiKey: apiKey || 'N/A',
     });
 
-    const rfqt:
-        | Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'>
-        | undefined = (() => {
+    const rfqt: Pick<RfqRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQ'> | undefined = (() => {
         if (apiKey) {
             if (endpoint === 'quote' && takerAddress) {
                 return {

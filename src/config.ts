@@ -6,12 +6,12 @@ import {
     ERC20BridgeSource,
     LiquidityProviderRegistry,
     OrderPrunerPermittedFeeTypes,
-    RfqtMakerAssetOfferings,
+    RfqMakerAssetOfferings,
     SamplerOverrides,
     SOURCE_FLAGS,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
-    SwapQuoterRfqtOpts,
+    SwapQuoterRfqOpts,
 } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
@@ -223,7 +223,7 @@ export const PLP_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.PLP_API_KEY
     ? []
     : assertEnvVarType('PLP_API_KEY_WHITELIST_JSON', process.env.PLP_API_KEY_WHITELIST_JSON, EnvVarType.JsonStringList);
 
-export const RFQT_MAKER_ASSET_OFFERINGS: RfqtMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
+export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
     ? {}
     : assertEnvVarType(
           'RFQT_MAKER_ASSET_OFFERINGS',
@@ -419,7 +419,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS = [
     getTokenMetadataIfExists('WBTC', CHAIN_ID)?.tokenAddress,
 ].filter(t => t) as string[];
 
-let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqtOpts = {
+let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
     takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
     makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
     txOriginBlacklist: RFQT_TX_ORIGIN_BLACKLIST,
@@ -536,7 +536,7 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             assert.isString(name, value);
             return JSON.parse(value);
         case EnvVarType.RfqtMakerAssetOfferings:
-            const offerings: RfqtMakerAssetOfferings = JSON.parse(value);
+            const offerings: RfqMakerAssetOfferings = JSON.parse(value);
             // tslint:disable-next-line:forin
             for (const makerEndpoint in offerings) {
                 assert.isWebUri('market maker endpoint', makerEndpoint);

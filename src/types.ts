@@ -4,7 +4,7 @@ import {
     ERC20BridgeSource,
     LimitOrderFields,
     QuoteReport,
-    RfqtRequestOpts,
+    RfqRequestOpts,
     Signature,
     SupportedProvider,
 } from '@0x/asset-swapper';
@@ -546,7 +546,7 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     takerAddress?: string;
     apiKey?: string;
     gasPrice?: BigNumber;
-    rfqt?: Pick<RfqtRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQT'>;
+    rfqt?: Pick<RfqRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQ'>;
     skipValidation: boolean;
     shouldSellEntireBalance: boolean;
     isWrap: boolean;
