@@ -21,7 +21,7 @@ import {
     SwapQuoteOrdersBreakdown,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
-    SwapQuoterRfqtOpts,
+    SwapQuoterRfqOpts,
 } from './types';
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
@@ -72,7 +72,7 @@ export class SwapQuoter {
     private readonly _contractAddresses: AssetSwapperContractAddresses;
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
     private readonly _marketOperationUtils: MarketOperationUtils;
-    private readonly _rfqtOptions?: SwapQuoterRfqtOpts;
+    private readonly _rfqtOptions?: SwapQuoterRfqOpts;
     private readonly _quoteRequestorHttpClient: AxiosInstance;
 
     /**

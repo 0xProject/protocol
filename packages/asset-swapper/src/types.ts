@@ -283,7 +283,7 @@ export interface RfqFirmQuoteValidator {
     getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
 }
 
-export interface SwapQuoterRfqtOpts {
+export interface SwapQuoterRfqOpts {
     takerApiKeyWhitelist: string[];
     makerAssetOfferings: RfqMakerAssetOfferings;
     txOriginBlacklist: Set<string>;
@@ -314,7 +314,7 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     samplerGasLimit?: number;
     multiBridgeAddress?: string;
     ethGasStationUrl?: string;
-    rfqt?: SwapQuoterRfqtOpts;
+    rfqt?: SwapQuoterRfqOpts;
     samplerOverrides?: SamplerOverrides;
     tokenAdjacencyGraph?: TokenAdjacencyGraph;
     liquidityProviderRegistry?: LiquidityProviderRegistry;

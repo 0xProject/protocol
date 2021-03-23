@@ -106,7 +106,7 @@ export {
     SwapQuoteRequestOpts,
     SwapQuoterError,
     SwapQuoterOpts,
-    SwapQuoterRfqtOpts,
+    SwapQuoterRfqOpts,
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
