@@ -7,12 +7,12 @@ import axios, { AxiosInstance } from 'axios';
 import { constants } from '../constants';
 import {
     AltQuoteModel,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     LogFunction,
     MarketOperation,
     RfqPairType,
-    RfqtMakerAssetOfferings,
-    RfqtRequestOpts,
+    RfqMakerAssetOfferings,
+    RfqRequestOpts,
     SignedNativeOrder,
     TypedMakerUrl,
 } from '../types';
@@ -125,7 +125,7 @@ export class QuoteRequestor {
     }
 
     constructor(
-        private readonly _rfqtAssetOfferings: RfqtMakerAssetOfferings,
+        private readonly _rfqtAssetOfferings: RfqMakerAssetOfferings,
         private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
@@ -141,9 +141,9 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
     ): Promise<SignedNativeOrder[]> {
-        const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
+        const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         if (!_opts.txOrigin || [undefined, '', '0x', NULL_ADDRESS].includes(_opts.txOrigin)) {
             throw new Error('RFQ-T firm quotes require the presence of a tx origin');
         }
@@ -222,9 +222,9 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
     ): Promise<V4RFQIndicativeQuote[]> {
-        const _opts: RfqtRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
+        const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         // Originally a takerAddress was required for indicative quotes, but
         // now we've eliminated that requirement.  @0x/quote-server, however,
         // is still coded to expect a takerAddress.  So if the client didn't
@@ -317,7 +317,7 @@ export class QuoteRequestor {
         typedMakerUrl: TypedMakerUrl,
         makerToken: string,
         takerToken: string,
-        altMakerAssetOfferings: AltRfqtMakerAssetOfferings | undefined,
+        altMakerAssetOfferings: AltRfqMakerAssetOfferings | undefined,
     ): boolean {
         if (typedMakerUrl.pairType === RfqPairType.Standard) {
             for (const assetPair of this._rfqtAssetOfferings[typedMakerUrl.url]) {
@@ -353,7 +353,7 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
         quoteType: 'firm' | 'indicative',
     ): Promise<Array<RfqQuote<ResponseT>>> {
         const requestParams = QuoteRequestor.makeQueryParameters(
@@ -382,8 +382,8 @@ export class QuoteRequestor {
                 return { pairType: RfqPairType.Standard, url: mm };
             },
         );
-        const altUrls = options.altRfqtAssetOfferings
-            ? Object.keys(options.altRfqtAssetOfferings).map(
+        const altUrls = options.altRfqAssetOfferings
+            ? Object.keys(options.altRfqAssetOfferings).map(
                   (mm: string): TypedMakerUrl => {
                       return { pairType: RfqPairType.Alt, url: mm };
                   },
@@ -410,7 +410,7 @@ export class QuoteRequestor {
             if (isBlacklisted) {
                 this._infoLogger({ rfqtMakerInteraction: { ...partialLogEntry } });
                 return;
-            } else if (!this._makerSupportsPair(typedMakerUrl, makerToken, takerToken, options.altRfqtAssetOfferings)) {
+            } else if (!this._makerSupportsPair(typedMakerUrl, makerToken, takerToken, options.altRfqAssetOfferings)) {
                 return;
             } else {
                 // make request to MM
@@ -452,7 +452,7 @@ export class QuoteRequestor {
                             makerToken,
                             takerToken,
                             timeoutMs,
-                            options.altRfqtAssetOfferings || {},
+                            options.altRfqAssetOfferings || {},
                             requestParams,
                             this._quoteRequestorHttpClient,
                             cancelTokenSource.token,

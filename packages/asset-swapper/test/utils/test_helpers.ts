@@ -4,7 +4,7 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import * as _ from 'lodash';
 
 import { InsufficientAssetLiquidityError } from '../../src/errors';
-import { AltMockedRfqtQuoteResponse, MockedRfqtQuoteResponse } from '../../src/types';
+import { AltMockedRfqQuoteResponse, MockedRfqQuoteResponse } from '../../src/types';
 
 export enum RfqtQuoteEndpoint {
     Indicative = 'price',
@@ -37,8 +37,8 @@ export const testHelpers = {
      * requests to RFQ-t providers
      */
     withMockedRfqtQuotes: async (
-        standardMockedResponses: MockedRfqtQuoteResponse[],
-        altMockedResponses: AltMockedRfqtQuoteResponse[],
+        standardMockedResponses: MockedRfqQuoteResponse[],
+        altMockedResponses: AltMockedRfqQuoteResponse[],
         quoteType: RfqtQuoteEndpoint,
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,

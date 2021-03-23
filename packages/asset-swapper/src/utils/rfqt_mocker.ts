@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 
-import { MockedRfqtQuoteResponse } from '../types';
+import { MockedRfqQuoteResponse } from '../types';
 
 export enum RfqtQuoteEndpoint {
     Indicative = 'price',
@@ -18,7 +18,7 @@ export const rfqtMocker = {
      * requests to RFQ-t providers
      */
     withMockedRfqtQuotes: async (
-        mockedResponses: MockedRfqtQuoteResponse[],
+        mockedResponses: MockedRfqQuoteResponse[],
         quoteType: RfqtQuoteEndpoint,
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,

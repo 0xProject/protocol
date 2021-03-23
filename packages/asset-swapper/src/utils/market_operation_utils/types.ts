@@ -7,7 +7,7 @@ import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { NativeOrderWithFillableAmounts, RfqtFirmQuoteValidator, RfqtRequestOpts } from '../../types';
+import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { QuoteReport } from '../quote_report_generator';
 
@@ -267,9 +267,9 @@ export type OptimizedMarketOrder =
     | OptimizedMarketOrderBase<NativeLimitOrderFillData>
     | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
 
-export interface GetMarketOrdersRfqtOpts extends RfqtRequestOpts {
+export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     quoteRequestor?: QuoteRequestor;
-    firmQuoteValidator?: RfqtFirmQuoteValidator;
+    firmQuoteValidator?: RfqFirmQuoteValidator;
 }
 
 export type FeeEstimate = (fillData: FillData) => number | BigNumber;
@@ -343,7 +343,7 @@ export interface GetMarketOrdersOpts {
     /**
      * Options for RFQT such as takerAddress, intent on filling
      */
-    rfqt?: GetMarketOrdersRfqtOpts;
+    rfqt?: GetMarketOrdersRfqOpts;
     /**
      * Whether to generate a quote report
      */
