@@ -179,7 +179,7 @@ contract MakerPSMSampler is
                 return 0;
             }
 
-            uint256 feeInWad = takerTokenAmountInWad.safeMul(psm.tin());
+            uint256 feeInWad = takerTokenAmountInWad.safeMul(psm.tin()).safeDiv(WAD);
             uint256 daiAmountToReceiveInWad = takerTokenAmountInWad.safeSub(feeInWad);
 
             return daiAmountToReceiveInWad;
