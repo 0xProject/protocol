@@ -1,7 +1,7 @@
 import { Web3Wrapper } from '@0x/dev-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, CancelToken } from 'axios';
 
 import { constants } from '../constants';
 import {
@@ -122,6 +122,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     altRfqAssetOfferings: AltRfqMakerAssetOfferings,
     takerRequestQueryParams: TakerRequestQueryParams,
     axiosInstance: AxiosInstance,
+    cancelToken: CancelToken,
 ): Promise<{ data: ResponseT; status: number }> {
     const altPair = getAltMarketInfo(
         altRfqAssetOfferings[url],
@@ -214,6 +215,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     const response = await axiosInstance.post(`${url}/quotes`, data, {
         headers: { Authorization: `Bearer ${apiKey}` },
         timeout: maxResponseTimeMs,
+        cancelToken,
     });
 
     if (response.data.status === 'rejected') {

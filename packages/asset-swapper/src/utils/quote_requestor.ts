@@ -2,7 +2,7 @@ import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 import { constants } from '../constants';
 import {
@@ -392,6 +392,17 @@ export class QuoteRequestor {
 
         const typedMakerUrls = standardUrls.concat(altUrls);
 
+        const timeoutMs =
+            options.makerEndpointMaxResponseTimeMs ||
+            constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!;
+        const bufferMs = 20;
+
+        // Set Timeout on CancelToken
+        const cancelTokenSource = axios.CancelToken.source();
+        setTimeout(() => {
+            cancelTokenSource.cancel('timeout via cancel token');
+        }, timeoutMs + bufferMs);
+
         const quotePromises = typedMakerUrls.map(async typedMakerUrl => {
             // filter out requests to skip
             const isBlacklisted = rfqMakerBlacklist.isMakerBlacklisted(typedMakerUrl.url);
@@ -404,16 +415,13 @@ export class QuoteRequestor {
             } else {
                 // make request to MM
                 const timeBeforeAwait = Date.now();
-                const maxResponseTimeMs =
-                    options.makerEndpointMaxResponseTimeMs === undefined
-                        ? constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!
-                        : options.makerEndpointMaxResponseTimeMs;
                 try {
                     if (typedMakerUrl.pairType === RfqPairType.Standard) {
                         const response = await this._quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
                             headers: { '0x-api-key': options.apiKey },
                             params: requestParams,
-                            timeout: maxResponseTimeMs,
+                            timeout: timeoutMs,
+                            cancelToken: cancelTokenSource.token,
                         });
                         const latencyMs = Date.now() - timeBeforeAwait;
                         this._infoLogger({
@@ -429,7 +437,7 @@ export class QuoteRequestor {
                                 },
                             },
                         });
-                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
+                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                         return { response: response.data, makerUri: typedMakerUrl.url };
                     } else {
                         if (this._altRfqCreds === undefined) {
@@ -443,10 +451,11 @@ export class QuoteRequestor {
                             quoteType === 'firm' ? AltQuoteModel.Firm : AltQuoteModel.Indicative,
                             makerToken,
                             takerToken,
-                            maxResponseTimeMs,
+                            timeoutMs,
                             options.altRfqAssetOfferings || {},
                             requestParams,
                             this._quoteRequestorHttpClient,
+                            cancelTokenSource.token,
                         );
 
                         const latencyMs = Date.now() - timeBeforeAwait;
@@ -463,7 +472,7 @@ export class QuoteRequestor {
                                 },
                             },
                         });
-                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
+                        rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                         return { response: quote.data, makerUri: typedMakerUrl.url };
                     }
                 } catch (err) {
@@ -482,7 +491,7 @@ export class QuoteRequestor {
                             },
                         },
                     });
-                    rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= maxResponseTimeMs);
+                    rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
                         `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${
@@ -495,6 +504,7 @@ export class QuoteRequestor {
                 }
             }
         });
+
         const results = (await Promise.all(quotePromises)).filter(x => x !== undefined);
         return results as Array<RfqQuote<ResponseT>>;
     }

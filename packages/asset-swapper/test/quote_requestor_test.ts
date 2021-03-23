@@ -3,7 +3,7 @@ import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils
 import { TakerRequestQueryParams, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber, logUtils } from '@0x/utils';
-import Axios, { AxiosInstance } from 'axios';
+import Axios from 'axios';
 import * as chai from 'chai';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
@@ -362,6 +362,93 @@ describe('QuoteRequestor', async () => {
                         },
                     );
                     expect(resp.sort()).to.eql([successfulQuote1, successfulQuote1].sort());
+                },
+                quoteRequestorHttpClient,
+            );
+        });
+        it('should only return RFQT requests that meet the timeout', async () => {
+            const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
+            const apiKey = 'my-ko0l-api-key';
+            const maxTimeoutMs = 10;
+            // tslint:disable-next-line:custom-no-magic-numbers
+            const exceedTimeoutMs = maxTimeoutMs + 50;
+
+            // Set up RFQT responses
+            // tslint:disable-next-line:array-type
+            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const expectedParams: TakerRequestQueryParams = {
+                sellTokenAddress: takerToken,
+                buyTokenAddress: makerToken,
+                sellAmountBaseUnits: '10000',
+                comparisonPrice: undefined,
+                takerAddress,
+                txOrigin: takerAddress,
+                protocolVersion: '4',
+            };
+            const mockedDefaults = {
+                requestApiKey: apiKey,
+                requestParams: expectedParams,
+                responseCode: StatusCodes.Success,
+            };
+
+            // Successful response
+            const successfulQuote1 = {
+                makerToken,
+                takerToken,
+                makerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
+                takerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
+                expiry: makeThreeMinuteExpiry(),
+            };
+
+            // One good request
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://1337.0.0.1',
+                responseData: successfulQuote1,
+            });
+
+            // One request that will timeout
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://420.0.0.1',
+                responseData: successfulQuote1,
+                callback: async () => {
+                    // tslint:disable-next-line:no-inferred-empty-object-type
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve([StatusCodes.Success, successfulQuote1]);
+                        }, exceedTimeoutMs);
+                    });
+                },
+            });
+
+            return testHelpers.withMockedRfqtQuotes(
+                mockedRequests,
+                [],
+                RfqtQuoteEndpoint.Indicative,
+                async () => {
+                    const qr = new QuoteRequestor(
+                        {
+                            'https://1337.0.0.1': [[makerToken, takerToken]],
+                            'https://420.0.0.1': [[makerToken, takerToken]],
+                        },
+                        quoteRequestorHttpClient,
+                    );
+                    const resp = await qr.requestRfqtIndicativeQuotesAsync(
+                        makerToken,
+                        takerToken,
+                        new BigNumber(10000),
+                        MarketOperation.Sell,
+                        undefined,
+                        {
+                            apiKey,
+                            takerAddress,
+                            txOrigin: takerAddress,
+                            intentOnFilling: true,
+                            makerEndpointMaxResponseTimeMs: maxTimeoutMs,
+                        },
+                    );
+                    expect(resp.sort()).to.eql([successfulQuote1].sort()); // notice only one result, despite two requests made
                 },
                 quoteRequestorHttpClient,
             );

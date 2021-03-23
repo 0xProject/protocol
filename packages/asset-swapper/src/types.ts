@@ -368,6 +368,7 @@ export interface MockedRfqQuoteResponse {
     requestParams: TakerRequestQueryParams;
     responseData: any;
     responseCode: number;
+    callback?: (config: any) => Promise<any>;
 }
 
 /**
