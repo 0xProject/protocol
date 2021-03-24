@@ -12,13 +12,13 @@ import 'mocha';
 
 import { constants, KEEP_ALIVE_TTL } from '../src/constants';
 import {
-    AltMockedRfqtQuoteResponse,
+    AltMockedRfqQuoteResponse,
     AltQuoteModel,
     AltQuoteRequestData,
     AltQuoteSide,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     MarketOperation,
-    MockedRfqtQuoteResponse,
+    MockedRfqQuoteResponse,
 } from '../src/types';
 import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor } from '../src/utils/quote_requestor';
@@ -40,6 +40,8 @@ const ALT_RFQ_CREDS = {
     altRfqProfile: ALT_PROFILE,
 };
 
+const CREATED_STATUS_CODE = 201;
+
 function makeThreeMinuteExpiry(): BigNumber {
     const expiry = new Date(Date.now());
     expiry.setMinutes(expiry.getMinutes() + 3);
@@ -50,7 +52,7 @@ describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
-    const altRfqtAssetOfferings: AltRfqtMakerAssetOfferings = {
+    const altRfqAssetOfferings: AltRfqMakerAssetOfferings = {
         'https://132.0.0.1': [
             {
                 id: 'XYZ-123',
@@ -70,8 +72,8 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
-            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
 
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
@@ -188,7 +190,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: altFirmRequestData,
                 responseData: altFirmResponse,
             });
@@ -237,7 +239,7 @@ describe('QuoteRequestor', async () => {
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
-                            altRfqtAssetOfferings,
+                            altRfqAssetOfferings,
                         },
                     );
                     expect(resp).to.deep.eq([
@@ -269,7 +271,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -375,7 +377,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -459,7 +461,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -523,7 +525,7 @@ describe('QuoteRequestor', async () => {
             const quoteToken = takerToken;
 
             // Set up RFQT responses
-            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
             const altScenarios: Array<{
                 successfulQuote: V4RFQIndicativeQuote;
                 requestedMakerToken: string;
@@ -566,7 +568,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: buyAmountAltRequest,
                 responseData: buyAmountAltResponse,
             });
@@ -612,7 +614,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: buyValueAltRequest,
                 responseData: buyValueAltResponse,
             });
@@ -658,7 +660,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: sellAmountAltRequest,
                 responseData: sellAmountAltResponse,
             });
@@ -704,7 +706,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: sellValueAltRequest,
                 responseData: sellValueAltResponse,
             });
@@ -737,7 +739,7 @@ describe('QuoteRequestor', async () => {
                                 takerAddress,
                                 txOrigin,
                                 intentOnFilling: true,
-                                altRfqtAssetOfferings,
+                                altRfqAssetOfferings,
                             },
                         );
                         // hack to get the expiry right, since it's dependent on the current timestamp

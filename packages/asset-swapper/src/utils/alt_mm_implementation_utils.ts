@@ -11,8 +11,11 @@ import {
     AltQuoteModel,
     AltQuoteRequestData,
     AltQuoteSide,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
+    LogFunction,
 } from '../types';
+
+const SUCCESS_CODE = 201;
 
 function getAltMarketInfo(
     offerings: AltOffering[],
@@ -119,13 +122,14 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     makerToken: string,
     takerToken: string,
     maxResponseTimeMs: number,
-    altRfqtAssetOfferings: AltRfqtMakerAssetOfferings,
+    altRfqAssetOfferings: AltRfqMakerAssetOfferings,
     takerRequestQueryParams: TakerRequestQueryParams,
     axiosInstance: AxiosInstance,
+    warningLogger: LogFunction,
     cancelToken: CancelToken,
 ): Promise<{ data: ResponseT; status: number }> {
     const altPair = getAltMarketInfo(
-        altRfqtAssetOfferings[url],
+        altRfqAssetOfferings[url],
         takerRequestQueryParams.buyTokenAddress,
         takerRequestQueryParams.sellTokenAddress,
     );
@@ -212,14 +216,44 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         }
     }
 
-    const response = await axiosInstance.post(`${url}/quotes`, data, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-        timeout: maxResponseTimeMs,
-        cancelToken,
-    });
+    const response = await axiosInstance
+        .post(`${url}/quotes`, data, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+            timeout: maxResponseTimeMs,
+            cancelToken,
+        })
+        .catch(err => {
+            warningLogger(err, `Alt RFQ MM request failed`);
+            throw new Error(`Alt RFQ MM request failed`);
+        });
 
+    // empty response will get filtered out in validation
+    const emptyResponse = {};
+
+    // tslint:disable-next-line:custom-no-magic-numbers
+    if (response.status !== SUCCESS_CODE) {
+        const rejectedRequestInfo = {
+            status: response.status,
+            message: response.data,
+        };
+        warningLogger(rejectedRequestInfo, `Alt RFQ MM did not return a status of ${SUCCESS_CODE}`);
+        return {
+            data: (emptyResponse as unknown) as ResponseT,
+            status: response.status,
+        };
+    }
+    // successful handling but no quote is indicated by status = 'rejected'
     if (response.data.status === 'rejected') {
-        throw new Error('alt MM rejected quote');
+        warningLogger(
+            response.data.id,
+            `Alt RFQ MM handled the request successfully but did not return a quote (status = 'rejected')`,
+        );
+        return {
+            data: (emptyResponse as unknown) as ResponseT,
+            // hack: set the http status to 204 no content so we can more
+            // easily track when no quote is returned
+            status: 204,
+        };
     }
 
     const parsedResponse =
