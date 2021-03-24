@@ -40,6 +40,8 @@ const ALT_RFQ_CREDS = {
     altRfqProfile: ALT_PROFILE,
 };
 
+const CREATED_STATUS_CODE = 201;
+
 function makeThreeMinuteExpiry(): BigNumber {
     const expiry = new Date(Date.now());
     expiry.setMinutes(expiry.getMinutes() + 3);
@@ -188,7 +190,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: altFirmRequestData,
                 responseData: altFirmResponse,
             });
@@ -566,7 +568,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: buyAmountAltRequest,
                 responseData: buyAmountAltResponse,
             });
@@ -612,7 +614,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: buyValueAltRequest,
                 responseData: buyValueAltResponse,
             });
@@ -658,7 +660,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: sellAmountAltRequest,
                 responseData: sellAmountAltResponse,
             });
@@ -704,7 +706,7 @@ describe('QuoteRequestor', async () => {
             altMockedRequests.push({
                 endpoint: 'https://132.0.0.1',
                 mmApiKey: ALT_MM_API_KEY,
-                responseCode: StatusCodes.Success,
+                responseCode: CREATED_STATUS_CODE,
                 requestData: sellValueAltRequest,
                 responseData: sellValueAltResponse,
             });

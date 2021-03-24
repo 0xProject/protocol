@@ -10,8 +10,8 @@ import {
     AltRfqMakerAssetOfferings,
     LogFunction,
     MarketOperation,
-    RfqPairType,
     RfqMakerAssetOfferings,
+    RfqPairType,
     RfqRequestOpts,
     SignedNativeOrder,
     TypedMakerUrl,
@@ -455,6 +455,7 @@ export class QuoteRequestor {
                             options.altRfqAssetOfferings || {},
                             requestParams,
                             this._quoteRequestorHttpClient,
+                            this._warningLogger,
                             cancelTokenSource.token,
                         );
 
