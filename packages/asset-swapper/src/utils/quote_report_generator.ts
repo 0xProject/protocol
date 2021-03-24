@@ -1,4 +1,4 @@
-import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, RfqOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import _ = require('lodash');
 
@@ -44,6 +44,7 @@ export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
     isRfqt: true;
+    nativeOrder: RfqOrderFields;
     makerUri: string;
     comparisonPrice?: number;
 }
@@ -65,24 +66,18 @@ export interface QuoteReport {
  */
 export function generateQuoteReport(
     marketOperation: MarketOperation,
-    dexQuotes: DexSample[],
-    multiHopQuotes: Array<DexSample<MultiHopFillData>>,
+    _dexQuotes: DexSample[],
+    _multiHopQuotes: Array<DexSample<MultiHopFillData>>,
     nativeOrders: NativeOrderWithFillableAmounts[],
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
-    const dexReportSourcesConsidered = dexQuotes.map(quote => _dexSampleToReportSource(quote, marketOperation));
     const nativeOrderSourcesConsidered = nativeOrders.map(order =>
         _nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
     );
-    const multiHopSourcesConsidered = multiHopQuotes.map(quote =>
-        _multiHopSampleToReportSource(quote, marketOperation),
-    );
     const sourcesConsidered = [
-        ...dexReportSourcesConsidered,
-        ...nativeOrderSourcesConsidered,
-        ...multiHopSourcesConsidered,
+        ...nativeOrderSourcesConsidered.filter(order => order.isRfqt === true),
     ];
 
     let sourcesDelivered;
@@ -193,7 +188,6 @@ function _nativeOrderToReportEntry(
     quoteRequestor?: QuoteRequestor,
 ): NativeRfqOrderQuoteReportEntry | NativeLimitOrderQuoteReportEntry {
     const nativeOrderBase = {
-        liquiditySource: ERC20BridgeSource.Native,
         makerAmount: fillData.order.makerAmount,
         takerAmount: fillData.order.takerAmount,
         fillableTakerAmount: fillableAmount,
@@ -204,20 +198,24 @@ function _nativeOrderToReportEntry(
     const rfqtMakerUri = isRfqt ? quoteRequestor!.getMakerUriForSignature(fillData.signature) : undefined;
 
     if (isRfqt) {
+        const nativeOrder = fillData.order as RfqOrderFields;
         // tslint:disable-next-line: no-object-literal-type-assertion
         return {
+            liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
             isRfqt: true,
             makerUri: rfqtMakerUri || '',
             ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
+            nativeOrder,
             fillData,
-        } as NativeRfqOrderQuoteReportEntry;
+        };
     } else {
         // tslint:disable-next-line: no-object-literal-type-assertion
         return {
+            liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
             isRfqt: false,
             fillData,
-        } as NativeLimitOrderQuoteReportEntry;
+        };
     }
 }

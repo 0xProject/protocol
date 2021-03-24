@@ -173,6 +173,7 @@ describe('generateQuoteReport', async () => {
             fillableTakerAmount: rfqtOrder1.fillableTakerAmount,
             isRfqt: true,
             makerUri: 'https://rfqt1.provider.club',
+            nativeOrder: rfqtOrder1.order,
             fillData: {
                 order: rfqtOrder1.order,
             } as NativeRfqOrderFillData,
@@ -184,6 +185,7 @@ describe('generateQuoteReport', async () => {
             fillableTakerAmount: rfqtOrder2.fillableTakerAmount,
             isRfqt: true,
             makerUri: 'https://rfqt2.provider.club',
+            nativeOrder: rfqtOrder2.order,
             fillData: {
                 order: rfqtOrder2.order,
             } as NativeRfqOrderFillData,
