@@ -210,13 +210,8 @@ export class QuoteRequestor {
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
-            txOrigin: constants.METATX_WORKER_REGISTRY,
             isLastLook: true,
         };
-
-        if (!_opts.takerAddress) {
-            _opts.takerAddress = constants.NULL_ADDRESS;
-        }
 
         return this._fetchAndValidateIndicativeQuotes(
             makerToken,
