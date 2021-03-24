@@ -14,7 +14,7 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
-import { MarketOperation, QuoteRequestor, RfqtRequestOpts, SignedNativeOrder } from '../src';
+import { MarketOperation, QuoteRequestor, RfqRequestOpts, SignedNativeOrder } from '../src';
 import { NativeOrderWithFillableAmounts } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import { BalancerPoolsCache } from '../src/utils/market_operation_utils/balancer_utils';
@@ -714,7 +714,7 @@ describe('MarketOperationUtils tests', () => {
                             _assetFillAmount: BigNumber,
                             _marketOperation: MarketOperation,
                             comparisonPrice: BigNumber | undefined,
-                            _options: RfqtRequestOpts,
+                            _options: RfqRequestOpts,
                         ) => {
                             requestedComparisonPrice = comparisonPrice;
                         },

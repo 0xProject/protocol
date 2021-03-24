@@ -75,7 +75,7 @@ export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { SwapQuoter, Orderbook } from './swap_quoter';
 export {
     AltOffering,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     AffiliateFeeType,
     AffiliateFeeAmount,
     AssetSwapperContractAddresses,
@@ -87,11 +87,11 @@ export {
     MarketBuySwapQuote,
     MarketOperation,
     MarketSellSwapQuote,
-    MockedRfqtQuoteResponse,
+    MockedRfqQuoteResponse,
     OrderPrunerPermittedFeeTypes,
-    RfqtMakerAssetOfferings,
-    RfqtFirmQuoteValidator,
-    RfqtRequestOpts,
+    RfqMakerAssetOfferings,
+    RfqFirmQuoteValidator,
+    RfqRequestOpts,
     SamplerOverrides,
     SignedNativeOrder,
     SignedOrder,
@@ -106,7 +106,7 @@ export {
     SwapQuoteRequestOpts,
     SwapQuoterError,
     SwapQuoterOpts,
-    SwapQuoterRfqtOpts,
+    SwapQuoterRfqOpts,
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
@@ -133,7 +133,7 @@ export {
     FeeSchedule,
     Fill,
     FillData,
-    GetMarketOrdersRfqtOpts,
+    GetMarketOrdersRfqOpts,
     KyberFillData,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,

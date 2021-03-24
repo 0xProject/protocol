@@ -5,6 +5,14 @@
             {
                 "note": "Use SOURCE_FLAGS.rfqOrder in comparisonPrice",
                 "pr": 177
+            },
+            {
+                "note": "Add a cancel token to ensure timeouts are respected",
+                "pr": 176
+            },
+            {
+                "note": "Rename {Rfqt=>Rfq} for many types in Asset Swapper",
+                "pr": 179
             }
         ]
     },

@@ -3,7 +3,7 @@ import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils
 import { TakerRequestQueryParams, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber, logUtils } from '@0x/utils';
-import Axios, { AxiosInstance } from 'axios';
+import Axios from 'axios';
 import * as chai from 'chai';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
@@ -12,13 +12,13 @@ import 'mocha';
 
 import { constants, KEEP_ALIVE_TTL } from '../src/constants';
 import {
-    AltMockedRfqtQuoteResponse,
+    AltMockedRfqQuoteResponse,
     AltQuoteModel,
     AltQuoteRequestData,
     AltQuoteSide,
-    AltRfqtMakerAssetOfferings,
+    AltRfqMakerAssetOfferings,
     MarketOperation,
-    MockedRfqtQuoteResponse,
+    MockedRfqQuoteResponse,
 } from '../src/types';
 import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor } from '../src/utils/quote_requestor';
@@ -52,7 +52,7 @@ describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
-    const altRfqtAssetOfferings: AltRfqtMakerAssetOfferings = {
+    const altRfqAssetOfferings: AltRfqMakerAssetOfferings = {
         'https://132.0.0.1': [
             {
                 id: 'XYZ-123',
@@ -72,8 +72,8 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
-            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
 
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
@@ -239,7 +239,7 @@ describe('QuoteRequestor', async () => {
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
-                            altRfqtAssetOfferings,
+                            altRfqAssetOfferings,
                         },
                     );
                     expect(resp).to.deep.eq([
@@ -271,7 +271,7 @@ describe('QuoteRequestor', async () => {
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -368,13 +368,100 @@ describe('QuoteRequestor', async () => {
                 quoteRequestorHttpClient,
             );
         });
+        it('should only return RFQT requests that meet the timeout', async () => {
+            const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
+            const apiKey = 'my-ko0l-api-key';
+            const maxTimeoutMs = 10;
+            // tslint:disable-next-line:custom-no-magic-numbers
+            const exceedTimeoutMs = maxTimeoutMs + 50;
+
+            // Set up RFQT responses
+            // tslint:disable-next-line:array-type
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
+            const expectedParams: TakerRequestQueryParams = {
+                sellTokenAddress: takerToken,
+                buyTokenAddress: makerToken,
+                sellAmountBaseUnits: '10000',
+                comparisonPrice: undefined,
+                takerAddress,
+                txOrigin: takerAddress,
+                protocolVersion: '4',
+            };
+            const mockedDefaults = {
+                requestApiKey: apiKey,
+                requestParams: expectedParams,
+                responseCode: StatusCodes.Success,
+            };
+
+            // Successful response
+            const successfulQuote1 = {
+                makerToken,
+                takerToken,
+                makerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
+                takerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
+                expiry: makeThreeMinuteExpiry(),
+            };
+
+            // One good request
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://1337.0.0.1',
+                responseData: successfulQuote1,
+            });
+
+            // One request that will timeout
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://420.0.0.1',
+                responseData: successfulQuote1,
+                callback: async () => {
+                    // tslint:disable-next-line:no-inferred-empty-object-type
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve([StatusCodes.Success, successfulQuote1]);
+                        }, exceedTimeoutMs);
+                    });
+                },
+            });
+
+            return testHelpers.withMockedRfqtQuotes(
+                mockedRequests,
+                [],
+                RfqtQuoteEndpoint.Indicative,
+                async () => {
+                    const qr = new QuoteRequestor(
+                        {
+                            'https://1337.0.0.1': [[makerToken, takerToken]],
+                            'https://420.0.0.1': [[makerToken, takerToken]],
+                        },
+                        quoteRequestorHttpClient,
+                    );
+                    const resp = await qr.requestRfqtIndicativeQuotesAsync(
+                        makerToken,
+                        takerToken,
+                        new BigNumber(10000),
+                        MarketOperation.Sell,
+                        undefined,
+                        {
+                            apiKey,
+                            takerAddress,
+                            txOrigin: takerAddress,
+                            intentOnFilling: true,
+                            makerEndpointMaxResponseTimeMs: maxTimeoutMs,
+                        },
+                    );
+                    expect(resp.sort()).to.eql([successfulQuote1].sort()); // notice only one result, despite two requests made
+                },
+                quoteRequestorHttpClient,
+            );
+        });
         it('should return successful RFQT indicative quote requests (Buy)', async () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
             const apiKey = 'my-ko0l-api-key';
 
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
-            const mockedRequests: MockedRfqtQuoteResponse[] = [];
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParams = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
@@ -438,7 +525,7 @@ describe('QuoteRequestor', async () => {
             const quoteToken = takerToken;
 
             // Set up RFQT responses
-            const altMockedRequests: AltMockedRfqtQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
             const altScenarios: Array<{
                 successfulQuote: V4RFQIndicativeQuote;
                 requestedMakerToken: string;
@@ -652,7 +739,7 @@ describe('QuoteRequestor', async () => {
                                 takerAddress,
                                 txOrigin,
                                 intentOnFilling: true,
-                                altRfqtAssetOfferings,
+                                altRfqAssetOfferings,
                             },
                         );
                         // hack to get the expiry right, since it's dependent on the current timestamp
