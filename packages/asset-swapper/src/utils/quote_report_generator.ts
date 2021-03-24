@@ -76,9 +76,7 @@ export function generateQuoteReport(
     const nativeOrderSourcesConsidered = nativeOrders.map(order =>
         _nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
     );
-    const sourcesConsidered = [
-        ...nativeOrderSourcesConsidered.filter(order => order.isRfqt === true),
-    ];
+    const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRfqt)];
 
     let sourcesDelivered;
     if (Array.isArray(liquidityDelivered)) {
