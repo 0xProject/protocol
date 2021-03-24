@@ -388,6 +388,7 @@ describe('QuoteRequestor', async () => {
                 takerAddress,
                 txOrigin: takerAddress,
                 protocolVersion: '4',
+                isLastLook: 'false',
             };
             const mockedDefaults = {
                 requestApiKey: apiKey,
@@ -436,6 +437,7 @@ describe('QuoteRequestor', async () => {
                             'https://1337.0.0.1': [[makerToken, takerToken]],
                             'https://420.0.0.1': [[makerToken, takerToken]],
                         },
+                        {},
                         quoteRequestorHttpClient,
                     );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(

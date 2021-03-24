@@ -151,9 +151,9 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
     ): Promise<SignedNativeOrder[]> {
-        const _opts: RfqtRequestOpts = {
+        const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
             txOrigin: constants.METATX_WORKER_REGISTRY,
@@ -205,9 +205,9 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
+        options: RfqRequestOpts,
     ): Promise<V4RFQIndicativeQuote[]> {
-        const _opts: RfqtRequestOpts = {
+        const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
             txOrigin: constants.METATX_WORKER_REGISTRY,
@@ -341,7 +341,7 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqRequestOpts,
         quoteType: 'firm' | 'indicative',
-        assetOfferings: RfqtMakerAssetOfferings,
+        assetOfferings: RfqMakerAssetOfferings,
     ): Promise<Array<RfqQuote<ResponseT>>> {
         const requestParams = QuoteRequestor.makeQueryParameters(
             options.txOrigin,
@@ -502,8 +502,8 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
-        assetOfferings: RfqtMakerAssetOfferings,
+        options: RfqRequestOpts,
+        assetOfferings: RfqMakerAssetOfferings,
     ): Promise<SignedNativeOrder[]> {
         const quotesRaw = await this._getQuotesAsync<V4RFQFirmQuote>(
             makerToken,
@@ -580,8 +580,8 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqtRequestOpts,
-        assetOfferings: RfqtMakerAssetOfferings,
+        options: RfqRequestOpts,
+        assetOfferings: RfqMakerAssetOfferings,
     ): Promise<V4RFQIndicativeQuote[]> {
         // fetch quotes
         const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
