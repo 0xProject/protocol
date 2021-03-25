@@ -103,8 +103,6 @@ contract MakerPSMSampler is
     uint256 constant private RAD = 10 ** 45;
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.m
 
-    uint256 constant private MAX_INT = uint256(-1);
-
     /// @dev Sample sell quotes from Maker PSM
     function sampleSellsFromMakerPsm(
         MakerPsmInfo memory psmInfo,
@@ -152,7 +150,7 @@ contract MakerPSMSampler is
         for (uint256 i = 0; i < numSamples; i++) {
             uint256 sellAmount = _samplePSMBuy(psmInfo, makerToken, takerToken, makerTokenAmounts[i], psm, vat);
 
-            if (sellAmount == MAX_INT) {
+            if (sellAmount == 0) {
                 break;
             }
 
@@ -167,11 +165,14 @@ contract MakerPSMSampler is
         returns (uint256)
     {
         (uint256 totalDebtInWad,,, uint256 debtCeilingInRad, uint256 debtFloorInRad) = vat.ilks(psmInfo.ilkIdentifier);
+        uint256 gemTokenBaseUnit = uint256(1e6);
+
         if (takerToken == psmInfo.gemTokenAddress) {
             // Simulate sellGem
-            // Selling USDC to the PSM, increasing the total debt by takerTokenAmount
+            // Selling USDC to the PSM, increasing the total debt
             // Convert USDC 6 decimals to 18 decimals [wad]
             uint256 takerTokenAmountInWad = takerTokenAmount.safeMul(1e12);
+
             uint256 newTotalDebtInRad = totalDebtInWad.safeAdd(takerTokenAmountInWad).safeMul(RAY);
 
             // PSM is too full to fit
@@ -180,12 +181,12 @@ contract MakerPSMSampler is
             }
 
             uint256 feeInWad = takerTokenAmountInWad.safeMul(psm.tin()).safeDiv(WAD);
-            uint256 daiAmountToReceiveInWad = takerTokenAmountInWad.safeSub(feeInWad);
+            uint256 makerTokenAmountInWad = takerTokenAmountInWad.safeSub(feeInWad);
 
-            return daiAmountToReceiveInWad;
+            return makerTokenAmountInWad;
         } else if (makerToken == psmInfo.gemTokenAddress) {
             // Simulate buyGem
-            // Buying USDC from the PSM, decreasing the total debt by takerTokenAmount
+            // Buying USDC from the PSM, decreasing the total debt
             // Selling DAI for USDC, already in 18 decimals [wad]
             uint256 takerTokenAmountInWad = takerTokenAmount;
             uint256 newTotalDebtInRad = totalDebtInWad.safeSub(takerTokenAmountInWad).safeMul(RAY);
@@ -196,10 +197,9 @@ contract MakerPSMSampler is
             }
 
             uint256 feeDivisorInWad = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
-            uint256 buyTokenBaseUnit = uint256(1e6);
-            uint256 gemAmountToReceive =  takerTokenAmountInWad.safeMul(buyTokenBaseUnit).safeDiv(feeDivisorInWad);
+            uint256 makerTokenAmountInGemTokenBaseUnits =  takerTokenAmountInWad.safeMul(gemTokenBaseUnit).safeDiv(feeDivisorInWad);
 
-            return gemAmountToReceive;
+            return makerTokenAmountInGemTokenBaseUnits;
         }
 
         return 0;
@@ -211,40 +211,41 @@ contract MakerPSMSampler is
         returns (uint256)
     {
         (uint256 totalDebtInWad,,, uint256 debtCeilingInRad, uint256 debtFloorInRad) = vat.ilks(psmInfo.ilkIdentifier);
+
         if (takerToken == psmInfo.gemTokenAddress) {
             // Simulate sellGem
-            // Buying DAI with USDC, increasing the total debt
+            // Selling USDC to the PSM, increasing the total debt
             uint256 makerTokenAmountInWad = makerTokenAmount;
-            uint256 newTotalDebtInRad = totalDebtInWad.safeAdd(makerTokenAmountInWad).safeMul(RAY);
+            uint256 feeDivisorInWad = WAD.safeSub(psm.tin()); // eg. 0.999 * 10 ** 18 with 0.1% tin;
+            uint256 takerTokenAmountInWad = makerTokenAmountInWad.safeMul(WAD).safeDiv(feeDivisorInWad);
+            uint256 newTotalDebtInRad = totalDebtInWad.safeAdd(takerTokenAmountInWad).safeMul(RAY);
 
             // PSM is too full to fit
             if (newTotalDebtInRad >= debtCeilingInRad) {
-                return MAX_INT;
+                return 0;
             }
 
-            uint256 feeDivisorInWad = WAD.safeSub(psm.tin()); // eg. 0.999 * 10 ** 18 with 0.1% tin
+            uint256 takerTokenAmountInGemInGemBaseUnits = (takerTokenAmountInWad.safeDiv(1e12)).safeAdd(1); // Add 1 to deal with cut off decimals converting to lower decimals
 
-            uint256 usdcAmountToPay = makerTokenAmountInWad.safeMul(1e6).safeDiv(feeDivisorInWad);
-            return usdcAmountToPay;
+            return takerTokenAmountInGemInGemBaseUnits;
         } else if (makerToken == psmInfo.gemTokenAddress) {
             // Simulate buyGem
-            // 100 DAI + 1% * 100 DAI = 101
-            uint256 makerTokenAmountInWad =  makerTokenAmount.safeMul(1e12);
-            uint256 newTotalDebtInRad = totalDebtInWad.safeSub(makerTokenAmountInWad).safeMul(RAY);
+            // Buying USDC from the PSM, decreasing the total debt
+            uint256 makerTokenAmountInWad = makerTokenAmount.safeMul(1e12);
+            uint256 feeMultiplierInWad = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
+            uint256 takerTokenAmountInWad =  makerTokenAmountInWad.safeMul(feeMultiplierInWad).safeDiv(WAD);
+            uint256 newTotalDebtInRad = totalDebtInWad.safeSub(takerTokenAmountInWad).safeMul(RAY);
 
-            // PSM is empty, not enough USDC to buy from it
+            // PSM is empty, not enough USDC to buy
             if (newTotalDebtInRad <= debtFloorInRad) {
-                return MAX_INT;
+                return 0;
             }
 
-            uint256 feeMultiplierInWad = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout
 
-            uint256 daiAmountToPay = makerTokenAmountInWad.safeMul(feeMultiplierInWad);
-
-            return daiAmountToPay;
+            return takerTokenAmountInWad;
         }
 
-        return MAX_INT;
+        return 0;
     }
 
 }
