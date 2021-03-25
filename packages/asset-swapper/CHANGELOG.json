@@ -29,6 +29,10 @@
             {
                 "note": "Added PancakeSwap and BakerySwap on Chain 56",
                 "pr": 163
+            },
+            {
+                "note": "Added Nerve and Dodo (v1) to BSC",
+                "pr": 181
             }
         ]
     },

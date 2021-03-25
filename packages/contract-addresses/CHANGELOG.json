@@ -9,6 +9,10 @@
             {
                 "note": "Remove exchangeProxyAllowanceTarget",
                 "pr": 164
+            },
+            {
+                "note": "Redeployed FQT on BSC",
+                "pr": 181
             }
         ]
     },

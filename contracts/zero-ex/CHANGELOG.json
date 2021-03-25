@@ -13,6 +13,10 @@
             {
                 "note": "Remove TokenSpender/AllowanceTarget/greedy tokens stuff",
                 "pr": 164
+            },
+            {
+                "note": "Added Nerve in BridgeAdapter",
+                "pr": 181
             }
         ]
     },
