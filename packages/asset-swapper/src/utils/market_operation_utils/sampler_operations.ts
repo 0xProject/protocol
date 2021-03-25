@@ -870,6 +870,12 @@ export class SamplerOperations {
     ): SourceQuoteOperation<MakerPsmFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.MakerPsm,
+            fillData: {
+                isSellOperation: true,
+                takerToken,
+                makerToken,
+                gemTokenAddresss: psmInfo.gemTokenAddress,
+            },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromMakerPsm,
             params: [psmInfo, takerToken, makerToken, takerFillAmounts],
@@ -884,6 +890,12 @@ export class SamplerOperations {
     ): SourceQuoteOperation<MakerPsmFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.MakerPsm,
+            fillData: {
+                isSellOperation: false,
+                takerToken,
+                makerToken,
+                gemTokenAddresss: psmInfo.gemTokenAddress,
+            },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromMakerPsm,
             params: [psmInfo, takerToken, makerToken, makerFillAmounts],

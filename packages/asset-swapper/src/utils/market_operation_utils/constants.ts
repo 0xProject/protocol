@@ -19,6 +19,7 @@ import {
     KyberSamplerOpts,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
+    MakerPsmFillData,
     MultiHopFillData,
     TokenAdjacencyGraph,
     UniswapV2FillData,
@@ -871,7 +872,16 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
-    [ERC20BridgeSource.MakerPsm]: () => 300e3, // TODO(kimpers): Add correct value here
+    [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
+        const psmFillData = fillData as MakerPsmFillData;
+
+        // TODO(kimpers): update with more accurate numbers after allowances have been set
+        if (psmFillData.takerToken === psmFillData.gemTokenAddresss) {
+            return psmFillData.isSellOperation ? 389e3 : 423e3;
+        } else {
+            return 444e3;
+        }
+    },
     [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
     [ERC20BridgeSource.Nerve]: () => 150e3,

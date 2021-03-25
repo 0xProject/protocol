@@ -16,7 +16,6 @@ import {
     GenericRouterFillData,
     KyberFillData,
     LiquidityProviderFillData,
-    MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
     NativeCollapsedFill,
@@ -220,13 +219,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([mStableFillData.router]);
             break;
         case ERC20BridgeSource.MakerPsm:
-            // const psmFillData = (order as OptimizedMarketBridgeOrder<MakerPsmFillData>).fillData;
-            bridgeData = encoder.encode([
-                MAINNET_MAKER_PSM_CONTRACT,
-                MAINNET_MAKER_PSM_GEM_TOKEN,
-                // TODO(kimpers): Any point in passing this as fill data?
-                // psmFillData.gemTokenAddress,
-            ]);
+            bridgeData = encoder.encode([MAINNET_MAKER_PSM_CONTRACT, MAINNET_MAKER_PSM_GEM_TOKEN]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
