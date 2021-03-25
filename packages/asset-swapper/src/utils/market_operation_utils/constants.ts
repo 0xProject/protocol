@@ -88,6 +88,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Belt,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Ellipsis,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Nerve,
@@ -136,6 +137,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Belt,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Ellipsis,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Nerve,
@@ -558,6 +560,21 @@ export const BELT_BSC_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
+export const ELLIPSIS_BSC_INFOS: { [name: string]: CurveInfo } = {
+    ['0x160caed03795365f3a589f10c379ffa7d75d4e76']: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: '0x160caed03795365f3a589f10c379ffa7d75d4e76',
+        tokens: [
+            '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
+            '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
+            '0x55d398326f99059ff775485246999027b3197955', // BUSD-T
+        ],
+        metaToken: undefined,
+    },
+};
+
 /**
  * Kyber reserve prefixes
  * 0xff Fed price reserve
@@ -900,6 +917,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Belt]: () => 4500e3,
+    [ERC20BridgeSource.Ellipsis]: () => 150e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

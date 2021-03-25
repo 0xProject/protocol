@@ -5,6 +5,7 @@ import {
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
+    ELLIPSIS_BSC_INFOS,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAINNET_CURVE_INFOS,
     MAINNET_SNOWSWAP_INFOS,
@@ -125,6 +126,19 @@ export function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerT
     );
 }
 
+export function getEllipsisInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.BSC) {
+        return [];
+    }
+    return Object.values(ELLIPSIS_BSC_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaToken === undefined) ||
+                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+        ),
+    );
+}
+
 export function getCurveLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
@@ -134,7 +148,8 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Swerve
         | ERC20BridgeSource.SnowSwap
         | ERC20BridgeSource.Nerve
-        | ERC20BridgeSource.Belt,
+        | ERC20BridgeSource.Belt
+        | ERC20BridgeSource.Ellipsis,
 ): CurveInfo[] {
     switch (source) {
         case ERC20BridgeSource.Curve:
@@ -147,6 +162,8 @@ export function getCurveLikeInfosForPair(
             return getNerveInfosForPair(chainId, takerToken, makerToken);
         case ERC20BridgeSource.Belt:
             return getBeltInfosForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.Ellipsis:
+            return getEllipsisInfosForPair(chainId, takerToken, makerToken);
         default:
             throw new Error(`Unknown Curve like source ${source}`);
     }
