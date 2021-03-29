@@ -240,6 +240,7 @@ export interface RfqRequestOpts {
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQ?: boolean;
     altRfqAssetOfferings?: AltRfqMakerAssetOfferings;
+    isLastLook?: boolean;
 }
 
 /**
@@ -257,7 +258,6 @@ export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
 export interface RfqMakerAssetOfferings {
     [endpoint: string]: Array<[string, string]>;
 }
-
 export interface AltOffering {
     id: string;
     baseAsset: string;

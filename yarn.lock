@@ -830,9 +830,10 @@
     typedoc "~0.16.11"
     yargs "^10.0.3"
 
-"@0x/quote-server@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-4.0.1.tgz#05947589bfa7905d274ac3c726cb9918b93b0f9e"
+"@0x/quote-server@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-5.0.0.tgz#15554099bdfdf71e2910430860257d622f24f703"
+  integrity sha512-U14C60RVnILL8n5DwuInG98MnhXbBbiEi8M2ymFGnHO+AjucGfm28BM6/GD59ftiqZmFSkOvBRU94QJ3mSsCQw==
   dependencies:
     "@0x/json-schemas" "^5.0.7"
     "@0x/order-utils" "^10.2.4"
