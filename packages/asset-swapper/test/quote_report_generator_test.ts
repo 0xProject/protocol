@@ -58,20 +58,8 @@ describe('generateQuoteReport', async () => {
     it('should generate report properly for sell', () => {
         const marketOperation: MarketOperation = MarketOperation.Sell;
 
-        const kyberSample1: DexSample = {
-            source: ERC20BridgeSource.Kyber,
-            input: new BigNumber(10000),
-            output: new BigNumber(10001),
-            fillData: {},
-        };
         const kyberSample2: DexSample = {
             source: ERC20BridgeSource.Kyber,
-            input: new BigNumber(10003),
-            output: new BigNumber(10004),
-            fillData: {},
-        };
-        const uniswapSample1: DexSample = {
-            source: ERC20BridgeSource.UniswapV2,
             input: new BigNumber(10003),
             output: new BigNumber(10004),
             fillData: {},
@@ -186,16 +174,6 @@ describe('generateQuoteReport', async () => {
                 order: rfqtOrder2.order,
             } as NativeRfqOrderFillData,
         };
-        const orderbookOrder1Source: NativeLimitOrderQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder1.order.makerAmount,
-            takerAmount: orderbookOrder1.order.takerAmount,
-            fillableTakerAmount: orderbookOrder1.fillableTakerAmount,
-            isRfqt: false,
-            fillData: {
-                order: orderbookOrder1.order,
-            } as NativeLimitOrderFillData,
-        };
         const orderbookOrder2Source: NativeLimitOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
             makerAmount: orderbookOrder2.order.makerAmount,
@@ -206,22 +184,10 @@ describe('generateQuoteReport', async () => {
                 order: orderbookOrder2.order,
             } as NativeLimitOrderFillData,
         };
-        const uniswap1Source: BridgeQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.UniswapV2,
-            makerAmount: uniswapSample1.output,
-            takerAmount: uniswapSample1.input,
-            fillData: {},
-        };
         const uniswap2Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.UniswapV2,
             makerAmount: uniswapSample2.output,
             takerAmount: uniswapSample2.input,
-            fillData: {},
-        };
-        const kyber1Source: BridgeQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.Kyber,
-            makerAmount: kyberSample1.output,
-            takerAmount: kyberSample1.input,
             fillData: {},
         };
         const kyber2Source: BridgeQuoteReportEntry = {
@@ -231,10 +197,7 @@ describe('generateQuoteReport', async () => {
             fillData: {},
         };
 
-        const expectedSourcesConsidered: QuoteReportEntry[] = [
-            rfqtOrder1Source,
-            rfqtOrder2Source,
-        ];
+        const expectedSourcesConsidered: QuoteReportEntry[] = [rfqtOrder1Source, rfqtOrder2Source];
         const expectedSourcesDelivered: QuoteReportEntry[] = [
             rfqtOrder2Source,
             orderbookOrder2Source,
