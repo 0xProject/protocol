@@ -82,8 +82,6 @@ describe('generateQuoteReport', async () => {
             output: new BigNumber(10006),
             fillData: {},
         };
-        const dexQuotes: DexSample[] = [kyberSample1, kyberSample2, uniswapSample1, uniswapSample2];
-
         const orderbookOrder1: NativeOrderWithFillableAmounts = {
             order: new LimitOrder({ takerAmount: new BigNumber(1000) }),
             type: FillQuoteTransformerOrderType.Limit,
@@ -158,8 +156,6 @@ describe('generateQuoteReport', async () => {
 
         const orderReport = generateQuoteReport(
             marketOperation,
-            dexQuotes,
-            [],
             nativeOrders,
             pathGenerated,
             undefined,
@@ -269,7 +265,6 @@ describe('generateQuoteReport', async () => {
             output: new BigNumber(10004),
             fillData: {},
         };
-        const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
         const orderbookOrder1: NativeOrderWithFillableAmounts = {
             order: new LimitOrder({ takerAmount: new BigNumber(1101) }),
             type: FillQuoteTransformerOrderType.Limit,
@@ -304,7 +299,7 @@ describe('generateQuoteReport', async () => {
         };
         const pathGenerated: CollapsedFill[] = [orderbookOrder1Fill, uniswap1Fill, kyber1Fill];
 
-        const orderReport = generateQuoteReport(marketOperation, dexQuotes, [], nativeOrders, pathGenerated);
+        const orderReport = generateQuoteReport(marketOperation, nativeOrders, pathGenerated);
 
         const orderbookOrder1Source: NativeLimitOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
@@ -389,13 +384,7 @@ describe('generateQuoteReport', async () => {
             fillData: twoHopFillData,
         };
 
-        const orderReport = generateQuoteReport(
-            marketOperation,
-            [kyberSample1],
-            [twoHopSample],
-            [orderbookOrder1],
-            twoHopSample,
-        );
+        const orderReport = generateQuoteReport(marketOperation, [orderbookOrder1], twoHopSample);
         const orderbookOrder1Source: NativeLimitOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
             makerAmount: orderbookOrder1.order.makerAmount,

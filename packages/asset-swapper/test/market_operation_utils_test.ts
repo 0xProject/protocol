@@ -697,6 +697,9 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Native]: _.constant(new BigNumber(1)),
                 };
                 mockedQuoteRequestor
+                    .setup(mqr => mqr.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE)))
+                    .returns(() => 'https://foo.bar');
+                mockedQuoteRequestor
                     .setup(mqr =>
                         mqr.requestRfqtFirmQuotesAsync(
                             TypeMoq.It.isAny(),
@@ -799,6 +802,7 @@ describe('MarketOperationUtils tests', () => {
                             intentOnFilling: true,
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: mockedQuoteRequestor.object.requestRfqtFirmQuotesAsync,
+                                getMakerUriForSignature: mockedQuoteRequestor.object.getMakerUriForSignature,
                             } as any,
                         },
                     },

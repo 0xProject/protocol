@@ -66,8 +66,6 @@ export interface QuoteReport {
  */
 export function generateQuoteReport(
     marketOperation: MarketOperation,
-    _dexQuotes: DexSample[],
-    _multiHopQuotes: Array<DexSample<MultiHopFillData>>,
     nativeOrders: NativeOrderWithFillableAmounts[],
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
     comparisonPrice?: BigNumber | undefined,
@@ -193,7 +191,8 @@ function _nativeOrderToReportEntry(
 
     // if we find this is an rfqt order, label it as such and associate makerUri
     const isRfqt = type === FillQuoteTransformerOrderType.Rfq;
-    const rfqtMakerUri = isRfqt ? quoteRequestor!.getMakerUriForSignature(fillData.signature) : undefined;
+    const rfqtMakerUri =
+        isRfqt && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
 
     if (isRfqt) {
         const nativeOrder = fillData.order as RfqOrderFields;
