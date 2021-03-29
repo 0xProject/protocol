@@ -232,14 +232,8 @@ describe('generateQuoteReport', async () => {
         };
 
         const expectedSourcesConsidered: QuoteReportEntry[] = [
-            kyber1Source,
-            kyber2Source,
-            uniswap1Source,
-            uniswap2Source,
-            orderbookOrder1Source,
             rfqtOrder1Source,
             rfqtOrder2Source,
-            orderbookOrder2Source,
         ];
         const expectedSourcesDelivered: QuoteReportEntry[] = [
             rfqtOrder2Source,
