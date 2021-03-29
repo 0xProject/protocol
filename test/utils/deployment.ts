@@ -3,7 +3,7 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { getTestDBConnectionAsync } from './db_connection';
+import { getDBConnectionAsync } from '../../src/db_connection';
 
 // depends on a `docker-compose-test.yml` existing in the api root directory
 const apiRootDir = path.normalize(path.resolve(`${__dirname}/../../../`));
@@ -51,8 +51,6 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
     await waitForDependencyStartupAsync(up);
     await sleepAsync(10); // tslint:disable-line:custom-no-magic-numbers
     await confirmPostgresConnectivityAsync();
-    // Create a test db connection in this instance, and synchronize it
-    await getTestDBConnectionAsync();
 }
 
 /**
@@ -140,7 +138,10 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
         await Promise.all([
             // delay before retrying
             new Promise<void>(resolve => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
-            await getTestDBConnectionAsync(),
+            async () => {
+                const connection = await getDBConnectionAsync();
+                await connection.synchronize(true);
+            },
         ]);
         return;
     } catch (e) {

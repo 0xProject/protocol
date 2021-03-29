@@ -66,6 +66,7 @@ describe(SUITE_NAME, () => {
         );
 
         dbConnection = await getDBConnectionAsync();
+        await dbConnection.synchronize(true);
 
         // save some balance cache entities
         const maker1 = new MakerBalanceChainCacheEntity();

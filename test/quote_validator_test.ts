@@ -7,13 +7,13 @@ import 'mocha';
 import { Connection, Repository } from 'typeorm';
 
 import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../src/constants';
+import { getDBConnectionAsync } from '../src/db_connection';
 import { MakerBalanceChainCacheEntity } from '../src/entities/MakerBalanceChainCacheEntity';
 import { PostgresRfqtFirmQuoteValidator } from '../src/services/postgres_rfqt_firm_quote_validator';
 
-import { getTestDBConnectionAsync } from './utils/db_connection';
 import { setupDependenciesAsync } from './utils/deployment';
 
-const SUITE_NAME = 'PostgresRfqtFirmQuoteValidator';
+const SUITE_NAME = 'Quote Validator Test';
 let connection: Connection;
 let chainCacheRepository: Repository<MakerBalanceChainCacheEntity>;
 
@@ -52,7 +52,8 @@ describe(SUITE_NAME, () => {
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-        connection = await getTestDBConnectionAsync();
+        connection = await getDBConnectionAsync();
+        await connection.synchronize(true);
         chainCacheRepository = connection.getRepository(MakerBalanceChainCacheEntity);
         validator = new PostgresRfqtFirmQuoteValidator(chainCacheRepository);
     });

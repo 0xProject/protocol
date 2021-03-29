@@ -18,6 +18,7 @@ delete require.cache[require.resolve('../src/app')];
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
 import { AFFILIATE_FEE_TRANSFORMER_GAS, GAS_LIMIT_BUFFER_MULTIPLIER, SWAP_PATH } from '../src/constants';
+import { getDBConnectionAsync } from '../src/db_connection';
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
 import { logger } from '../src/logger';
 import { GetSwapQuoteResponse } from '../src/types';
@@ -38,10 +39,9 @@ import {
     WETH_TOKEN_ADDRESS,
     ZRX_TOKEN_ADDRESS,
 } from './constants';
-import { resetState } from './test_setup';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync } from './utils/http_utils';
-import { MAKER_WETH_AMOUNT, MeshTestUtils } from './utils/mesh_test_utils';
+import { MeshClientMock } from './utils/mesh_client_mock';
 import { liquiditySources0xOnly } from './utils/mocks';
 
 const SUITE_NAME = 'Swap API';
@@ -51,14 +51,13 @@ const DEFAULT_QUERY_PARAMS = {
     sellToken: 'WETH',
     excludedSources: EXCLUDED_SOURCES.join(','),
 };
-
+const MAKER_WETH_AMOUNT = new BigNumber('1000000000000000000');
 const ONE_THOUSAND_IN_BASE = new BigNumber('1000000000000000000000');
 
 describe(SUITE_NAME, () => {
     let app: Express.Application;
     let server: Server;
     let dependencies: AppDependencies;
-    let meshUtils: MeshTestUtils;
     let accounts: string[];
     let takerAddress: string;
     let makerAdddress: string;
@@ -67,8 +66,13 @@ describe(SUITE_NAME, () => {
     let blockchainLifecycle: BlockchainLifecycle;
     let provider: Web3ProviderEngine;
 
+    const meshClientMock = new MeshClientMock();
+
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
+        await meshClientMock.setupMockAsync();
+        const connection = await getDBConnectionAsync();
+        await connection.synchronize(true);
         provider = getProvider();
         const web3Wrapper = new Web3Wrapper(provider);
         blockchainLifecycle = new BlockchainLifecycle(web3Wrapper);
@@ -78,8 +82,7 @@ describe(SUITE_NAME, () => {
 
         // Set up liquidity.
         await blockchainLifecycle.startAsync();
-        meshUtils = new MeshTestUtils(provider);
-        await meshUtils.setupUtilsAsync();
+
         const wethToken = new WETH9Contract(CONTRACT_ADDRESSES.etherToken, provider);
         const zrxToken = new DummyERC20TokenContract(CONTRACT_ADDRESSES.zrxToken, provider);
         // EP setup so maker address can take
@@ -100,7 +103,7 @@ describe(SUITE_NAME, () => {
             .approve(CONTRACT_ADDRESSES.exchangeProxy, MAX_INT)
             .awaitTransactionSuccessAsync({ from: makerAdddress });
 
-        await meshUtils.addPartialOrdersAsync([
+        await meshClientMock.addPartialOrdersAsync(provider, [
             {
                 makerToken: ZRX_TOKEN_ADDRESS,
                 takerToken: WETH_TOKEN_ADDRESS,
@@ -153,7 +156,7 @@ describe(SUITE_NAME, () => {
                 resolve();
             });
         });
-        await resetState();
+        meshClientMock.teardownMock();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
