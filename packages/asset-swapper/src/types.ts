@@ -258,12 +258,6 @@ export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
 export interface RfqMakerAssetOfferings {
     [endpoint: string]: Array<[string, string]>;
 }
-
-// TODO: Merge w/RfqtMakerAssetOfferings
-export interface RfqmMakerAssetOfferings {
-    [endpoint: string]: Array<[string, string]>;
-}
-
 export interface AltOffering {
     id: string;
     baseAsset: string;

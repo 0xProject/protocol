@@ -10,7 +10,6 @@ import {
     AltRfqMakerAssetOfferings,
     LogFunction,
     MarketOperation,
-    RfqmMakerAssetOfferings,
     RfqPairType,
     RfqMakerAssetOfferings,
     RfqRequestOpts,
