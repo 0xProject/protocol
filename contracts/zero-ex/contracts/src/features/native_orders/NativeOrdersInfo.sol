@@ -51,12 +51,10 @@ abstract contract NativeOrdersInfo is
     uint256 private constant HIGH_BIT = 1 << 255;
 
     constructor(
-        address zeroExAddress,
-        bytes32 greedyTokensBloomFilter
+        address zeroExAddress
     )
         internal
         FixinEIP712(zeroExAddress)
-        FixinTokenSpender(greedyTokensBloomFilter)
     {
         // solhint-disable no-empty-blocks
     }

@@ -4,7 +4,6 @@
  * -----------------------------------------------------------------------------
  */
 export * from '../test/generated-wrappers/affiliate_fee_transformer';
-export * from '../test/generated-wrappers/allowance_target';
 export * from '../test/generated-wrappers/batch_fill_native_orders_feature';
 export * from '../test/generated-wrappers/bootstrap_feature';
 export * from '../test/generated-wrappers/bridge_adapter';
@@ -41,6 +40,7 @@ export * from '../test/generated-wrappers/i_pancake_swap_feature';
 export * from '../test/generated-wrappers/i_simple_function_registry_feature';
 export * from '../test/generated-wrappers/i_staking';
 export * from '../test/generated-wrappers/i_test_simple_function_registry_feature';
+export * from '../test/generated-wrappers/i_token_spender_feature';
 export * from '../test/generated-wrappers/i_transform_erc20_feature';
 export * from '../test/generated-wrappers/i_uniswap_feature';
 export * from '../test/generated-wrappers/i_uniswap_v2_pair';

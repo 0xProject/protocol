@@ -41,7 +41,6 @@ contract MixinNerve {
 
     function _tradeNerve(
         IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     )

@@ -96,11 +96,10 @@ abstract contract NativeOrdersSettlement is
         IEtherTokenV06 weth,
         IStaking staking,
         FeeCollectorController feeCollectorController,
-        uint32 protocolFeeMultiplier,
-        bytes32 greedyTokensBloomFilter
+        uint32 protocolFeeMultiplier
     )
         public
-        NativeOrdersCancellation(zeroExAddress, greedyTokensBloomFilter)
+        NativeOrdersCancellation(zeroExAddress)
         NativeOrdersProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
     {
         // solhint-disable no-empty-blocks

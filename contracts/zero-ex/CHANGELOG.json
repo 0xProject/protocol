@@ -17,6 +17,10 @@
             {
                 "note": "Added Nerve in BridgeAdapter",
                 "pr": 181
+            },
+            {
+                "note": "Delete TokenSpenderFeature",
+                "pr": 189
             }
         ]
     },

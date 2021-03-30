@@ -6,7 +6,6 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
-import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BatchFillNativeOrdersFeature from '../test/generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
@@ -44,6 +43,7 @@ import * as IPancakeSwapFeature from '../test/generated-artifacts/IPancakeSwapFe
 import * as ISimpleFunctionRegistryFeature from '../test/generated-artifacts/ISimpleFunctionRegistryFeature.json';
 import * as IStaking from '../test/generated-artifacts/IStaking.json';
 import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts/ITestSimpleFunctionRegistryFeature.json';
+import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpenderFeature.json';
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
 import * as IUniswapFeature from '../test/generated-artifacts/IUniswapFeature.json';
 import * as IUniswapV2Pair from '../test/generated-artifacts/IUniswapV2Pair.json';
@@ -180,8 +180,8 @@ export const artifacts = {
     MultiplexFeature: MultiplexFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
+    PancakeSwapFeature: PancakeSwapFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
-    TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
@@ -195,6 +195,7 @@ export const artifacts = {
     IOwnableFeature: IOwnableFeature as ContractArtifact,
     IPancakeSwapFeature: IPancakeSwapFeature as ContractArtifact,
     ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,
+    ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     IUniswapFeature: IUniswapFeature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,

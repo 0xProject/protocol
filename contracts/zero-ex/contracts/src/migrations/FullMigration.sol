@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "../ZeroEx.sol";
-import "../features/IOwnableFeature.sol";
+import "../features/interfaces/IOwnableFeature.sol";
 import "../features/TransformERC20Feature.sol";
 import "../features/MetaTransactionsFeature.sol";
 import "../features/NativeOrdersFeature.sol";

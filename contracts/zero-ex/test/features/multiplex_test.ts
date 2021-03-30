@@ -8,7 +8,8 @@ import {
 } from '@0x/contracts-erc20';
 import { blockchainTests, constants, expect, filterLogsToArguments, toBaseUnitAmount } from '@0x/contracts-test-utils';
 import {
-    BridgeSource,
+    BridgeProtocol,
+    encodeBridgeSourceId,
     encodeFillQuoteTransformerData,
     encodePayTakerTransformerData,
     FillQuoteTransformerOrderType,
@@ -72,8 +73,9 @@ blockchainTests.fork.skip('Multiplex feature', env => {
     const WETH_DAI_PLP_ADDRESS = '0x1db681925786441ba82adefac7bf492089665ca0';
     const WETH_USDC_PLP_ADDRESS = '0x8463c03c0c57ff19fa8b431e0d3a34e2df89888e';
     const USDC_USDT_PLP_ADDRESS = '0xc340ef96449514cea4dfa11d847a06d7f03d437c';
-    const GREEDY_TOKENS_BLOOM_FILTER = '0x0000100800000480002c00401000000820000000000000020000001010800001';
     const BALANCER_WETH_DAI = '0x8b6e6e7b5b3801fed2cafd4b22b8a16c2f2db21a';
+    const CURVE_BRIDGE_SOURCE_ID = encodeBridgeSourceId(BridgeProtocol.Curve, 'Curve');
+    const BALANCER_BRIDGE_SOURCE_ID = encodeBridgeSourceId(BridgeProtocol.Bancor, 'Balancer');
     const fqtNonce = findTransformerNonce(
         '0xfa6282736af206cb4cfc5cb786d82aecdf1186f9',
         '0x39dce47a67ad34344eab877eae3ef1fa2a1d50bb',
@@ -112,7 +114,6 @@ blockchainTests.fork.skip('Multiplex feature', env => {
             zeroEx.address,
             WETH_ADDRESS,
             PLP_SANDBOX_ADDRESS,
-            GREEDY_TOKENS_BLOOM_FILTER,
         );
         await registry
             .extend(multiplex.getSelector('batchFill'), multiplexImpl.address)
@@ -283,7 +284,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 buyToken: WETH_ADDRESS,
                 bridgeOrders: [
                     {
-                        source: BridgeSource.Balancer,
+                        source: BALANCER_BRIDGE_SOURCE_ID,
                         takerTokenAmount: expiredRfqCall.sellAmount,
                         makerTokenAmount: expiredRfqCall.sellAmount,
                         bridgeData: poolEncoder.encode([BALANCER_WETH_DAI]),
@@ -339,7 +340,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 tx.logs,
                 BridgeAdapterEvents.BridgeFill,
             );
-            expect(bridgeFillEvent.source).to.bignumber.equal(BridgeSource.Balancer);
+            expect(bridgeFillEvent.source).to.bignumber.equal(BALANCER_BRIDGE_SOURCE_ID);
             expect(bridgeFillEvent.inputToken).to.equal(DAI_ADDRESS);
             expect(bridgeFillEvent.outputToken).to.equal(WETH_ADDRESS);
             expect(bridgeFillEvent.inputTokenAmount).to.bignumber.equal(expiredRfqCall.sellAmount);
@@ -472,7 +473,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 buyToken: USDC_ADDRESS,
                 bridgeOrders: [
                     {
-                        source: BridgeSource.Curve,
+                        source: CURVE_BRIDGE_SOURCE_ID,
                         takerTokenAmount: sellAmount,
                         makerTokenAmount: sellAmount,
                         bridgeData: curveEncoder.encode([
@@ -531,7 +532,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 tx.logs,
                 BridgeAdapterEvents.BridgeFill,
             );
-            expect(bridgeFillEvent.source).to.bignumber.equal(BridgeSource.Curve);
+            expect(bridgeFillEvent.source).to.bignumber.equal(CURVE_BRIDGE_SOURCE_ID);
             expect(bridgeFillEvent.inputToken).to.equal(DAI_ADDRESS);
             expect(bridgeFillEvent.outputToken).to.equal(USDC_ADDRESS);
             expect(bridgeFillEvent.inputTokenAmount).to.bignumber.equal(sellAmount);
@@ -563,7 +564,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 buyToken: DAI_ADDRESS,
                 bridgeOrders: [
                     {
-                        source: BridgeSource.Curve,
+                        source: CURVE_BRIDGE_SOURCE_ID,
                         takerTokenAmount: constants.MAX_UINT256,
                         makerTokenAmount: constants.MAX_UINT256,
                         bridgeData: curveEncoder.encode([
@@ -640,7 +641,7 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 tx.logs,
                 BridgeAdapterEvents.BridgeFill,
             );
-            expect(bridgeFillEvent.source).to.bignumber.equal(BridgeSource.Curve);
+            expect(bridgeFillEvent.source).to.bignumber.equal(CURVE_BRIDGE_SOURCE_ID);
             expect(bridgeFillEvent.inputToken).to.equal(USDC_ADDRESS);
             expect(bridgeFillEvent.outputToken).to.equal(DAI_ADDRESS);
             expect(bridgeFillEvent.inputTokenAmount).to.bignumber.equal(uniswapOutputAmount);

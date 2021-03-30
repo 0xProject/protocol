@@ -40,11 +40,10 @@ abstract contract NativeOrdersCancellation is
     uint256 private constant HIGH_BIT = 1 << 255;
 
     constructor(
-        address zeroExAddress,
-        bytes32 greedyTokensBloomFilter
+        address zeroExAddress
     )
         internal
-        NativeOrdersInfo(zeroExAddress, greedyTokensBloomFilter)
+        NativeOrdersInfo(zeroExAddress)
     {
         // solhint-disable no-empty-blocks
     }

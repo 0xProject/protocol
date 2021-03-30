@@ -185,7 +185,6 @@ contract BridgeAdapter is
         } else if (protocolId == BridgeProtocols.NERVE) {
             boughtAmount = _tradeNerve(
                 sellToken,
-                buyToken,
                 sellAmount,
                 order.bridgeData
             );

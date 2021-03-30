@@ -34,7 +34,7 @@ contract NativeOrdersFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LimitOrders";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
 
     constructor(
         address zeroExAddress,
@@ -49,8 +49,7 @@ contract NativeOrdersFeature is
             weth,
             staking,
             feeCollectorController,
-            protocolFeeMultiplier,
-            greedyTokensBloomFilter
+            protocolFeeMultiplier
         )
     {
         // solhint-disable no-empty-blocks
