@@ -30,7 +30,8 @@ export const orderUtils = {
         return cancel;
     },
     createOrderWithoutSignature(signedOrder: SignedOrder): Order {
-        return _.omit(signedOrder, ['signature']) as Order;
+        const { signature, ...order } = signedOrder;
+        return order;
     },
     createBatchMatchOrders(signedOrdersLeft: SignedOrder[], signedOrdersRight: SignedOrder[]): BatchMatchOrder {
         return {

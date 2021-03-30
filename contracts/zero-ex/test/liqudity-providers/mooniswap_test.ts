@@ -15,7 +15,6 @@ blockchainTests.resets('MooniswapLiquidityProvider feature', env => {
     let buyToken: TestMintableERC20TokenContract;
     let weth: TestWethContract;
     let testMooniswap: TestMooniswapContract;
-    let owner: string;
     let taker: string;
     let mooniswapData: string;
     const RECIPIENT = hexUtils.random(20);
@@ -25,7 +24,7 @@ blockchainTests.resets('MooniswapLiquidityProvider feature', env => {
     const BUY_AMOUNT = getRandomInteger('1e18', '10e18');
 
     before(async () => {
-        [owner, taker] = await env.getAccountAddressesAsync();
+        [ , taker] = await env.getAccountAddressesAsync();
         [sellToken, buyToken] = await Promise.all(
             new Array(2)
                 .fill(0)

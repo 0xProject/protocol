@@ -61,7 +61,6 @@
         "@0x/base-contract": "^6.2.18",
         "@0x/contract-addresses": "^5.11.0",
         "@0x/contract-wrappers": "^13.14.0",
-        "@0x/contracts-erc20": "^3.3.5",
         "@0x/contracts-zero-ex": "^0.20.0",
         "@0x/dev-utils": "^4.2.1",
         "@0x/json-schemas": "^5.4.1",
@@ -89,7 +88,7 @@
     "devDependencies": {
         "@0x/base-contract": "^6.2.18",
         "@0x/contracts-asset-proxy": "^3.7.8",
-        "@0x/contracts-erc20": "^3.3.4",
+        "@0x/contracts-erc20": "^3.3.5",
         "@0x/contracts-exchange": "^3.2.27",
         "@0x/contracts-exchange-libs": "^4.3.26",
         "@0x/contracts-gen": "^2.0.32",
@@ -118,7 +117,7 @@
         "tslint": "5.11.0",
         "typedoc": "~0.16.11",
         "typemoq": "^2.1.0",
-        "typescript": "3.0.1"
+        "typescript": "4.2.2"
     },
     "publishConfig": {
         "access": "public"

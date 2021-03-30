@@ -18,6 +18,7 @@ import {
     IsolatedExchangeFillEventArgs as FillEventArgs,
 } from '../wrappers';
 
+export { Order } from '@0x/types';
 export interface AssetBalances {
     [assetData: string]: { [address: string]: BigNumber };
 }
@@ -27,7 +28,6 @@ export interface IsolatedExchangeEvents {
     transferFromCalls: DispatchTransferFromCallArgs[];
 }
 
-export type Order = Order;
 export type Numberish = string | number | BigNumber;
 
 export const DEFAULT_GOOD_SIGNATURE = createGoodSignature();

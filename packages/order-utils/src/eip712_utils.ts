@@ -142,7 +142,7 @@ export const eip712Utils = {
                 _.omit(mtx, 'domain'),
                 // tslint:disable-next-line: custom-no-magic-numbers
                 v => (BigNumber.isBigNumber(v) ? v.toString(10) : v),
-            ) as EIP712Object,
+            ) as EIP712Object, // tslint:disable-line:no-unnecessary-type-assertion
             {
                 ...constants.MAINNET_EXCHANGE_PROXY_DOMAIN,
                 ...mtx.domain,

@@ -11,5 +11,5 @@ export abstract class AbstractOrderFilledCancelledFetcher {
      * @param orderHash OrderHash of order we are interested in
      * @return FilledTakerAmount
      */
-    public abstract async getFilledTakerAmountAsync(orderHash: string): Promise<BigNumber>;
+    public abstract getFilledTakerAmountAsync(orderHash: string): Promise<BigNumber>;
 }

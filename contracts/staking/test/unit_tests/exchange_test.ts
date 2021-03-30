@@ -12,7 +12,6 @@ import {
 
 blockchainTests.resets('Exchange Unit Tests', env => {
     // Addresses
-    let nonOwner: string;
     let owner: string;
     let nonExchange: string;
     let exchange: string;
@@ -24,7 +23,7 @@ blockchainTests.resets('Exchange Unit Tests', env => {
 
     before(async () => {
         // Set up addresses for testing.
-        [nonOwner, owner, nonExchange, exchange, nonAuthority, authority] = await env.getAccountAddressesAsync();
+        [ , owner, nonExchange, exchange, nonAuthority, authority] = await env.getAccountAddressesAsync();
 
         // Deploy the Exchange Manager contract.
         exchangeManager = await TestExchangeManagerContract.deployFrom0xArtifactAsync(

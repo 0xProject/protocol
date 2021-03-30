@@ -91,11 +91,12 @@ blockchainTests.resets('DexForwarderBridge unit tests', env => {
             totalFillableOutputAmount = BigNumber.sum(...goodBridgeCalls.map(c => c.outputTokenAmount));
 
             // Grant the taker some output tokens.
+            recipientOutputBalance = getRandomInteger(1, '100e18');
             await testContract.setTokenBalance(
                 outputToken,
                 DEFAULTS.toAddress,
-                (recipientOutputBalance = getRandomInteger(1, '100e18')),
-            );
+                recipientOutputBalance,
+            ).awaitTransactionSuccessAsync();
         });
 
         async function setForwarderInputBalanceAsync(amount: BigNumber): Promise<void> {

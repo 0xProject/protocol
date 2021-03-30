@@ -104,16 +104,14 @@ export const FEE_QUOTE_SOURCES = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.U
 
 // HACK(mzhu25): Limit and RFQ orders need to be treated as different sources
 //               when computing the exchange proxy gas overhead.
-export const SOURCE_FLAGS: { [source in ERC20BridgeSource]: number } & {
+export const SOURCE_FLAGS: { [key in ERC20BridgeSource]: number } & {
     RfqOrder: number;
     LimitOrder: number;
 } = Object.assign(
     {},
-    ...['RfqOrder', 'LimitOrder', ...Object.values(ERC20BridgeSource)].map(
-        (source: ERC20BridgeSource | 'RfqOrder' | 'LimitOrder', index) => ({
-            [source]: source === ERC20BridgeSource.Native ? 0 : 1 << index,
-        }),
-    ),
+    ...['RfqOrder', 'LimitOrder', ...Object.values(ERC20BridgeSource)].map((source, index) => ({
+        [source]: source === ERC20BridgeSource.Native ? 0 : 1 << index,
+    })),
 );
 
 const MIRROR_WRAPPED_TOKENS = {
