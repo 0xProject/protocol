@@ -130,7 +130,7 @@
     "dependencies": {
         "@0x/api-utils": "0xProject/gitpkg-registry#0x-api-utils-v0.0.1-362d82e",
         "@0x/assert": "^3.0.17",
-        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v6.3.0-24397c51a",
+        "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v6.3.0-525bc8197",
         "@0x/contract-addresses": "^5.11.0",
         "@0x/contract-wrappers": "^13.13.0",
         "@0x/json-schemas": "^5.3.1",
