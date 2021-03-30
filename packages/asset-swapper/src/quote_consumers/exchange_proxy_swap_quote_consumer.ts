@@ -1,5 +1,6 @@
 import { ChainId, ContractAddresses } from '@0x/contract-addresses';
-import { IZeroExContract, MultiplexFeatureContract } from '@0x/contract-wrappers';
+import { IZeroExContract, WETH9Contract } from '@0x/contract-wrappers';
+import { MultiplexFeatureContract } from '@0x/contracts-zero-ex';
 import {
     encodeAffiliateFeeTransformerData,
     encodeCurveLiquidityProviderData,
@@ -36,8 +37,6 @@ import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
 import {
-    createBridgeDataForBridgeOrder,
-    erc20BridgeSourceToBridgeSource,
     poolEncoder,
 } from '../utils/market_operation_utils/orders';
 import {
@@ -67,6 +66,7 @@ import {
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 const PANCAKE_SWAP_FORKS = [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.BakerySwap, ERC20BridgeSource.SushiSwap];
+const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, { sendAsync(): void { return; } } as any );
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly provider: ZeroExProvider;
@@ -285,7 +285,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isMultiplexBatchFillCompatible(quote, optsWithDefaults)
+        ) {
             return {
                 calldataHexString: this._encodeMultiplexBatchFillCalldata(quote),
                 ethAmount,
@@ -294,7 +297,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 gasOverhead: ZERO_AMOUNT,
             };
         }
-        if (isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)
+        ) {
             return {
                 calldataHexString: this._encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
                 ethAmount,
@@ -539,39 +545,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             .getABIEncodedTransactionData();
     }
 
-function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
-    return quote.type === MarketOperation.Buy;
-}
-
-function isOptimizedBridgeOrder(x: OptimizedMarketOrder): x is OptimizedMarketBridgeOrder {
-    return x.type === FillQuoteTransformerOrderType.Bridge;
-}
-
-function isOptimizedLimitOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeLimitOrderFillData> {
-    return x.type === FillQuoteTransformerOrderType.Limit;
-}
-
-function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeRfqOrderFillData> {
-    return x.type === FillQuoteTransformerOrderType.Rfq;
-}
-
-function getFQTTransformerDataFromOptimizedOrders(
-    orders: OptimizedMarketOrder[],
-): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
-    const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> = {
-        bridgeOrders: [],
-        limitOrders: [],
-        rfqOrders: [],
-        fillSequence: [],
-    };
-
-    for (const order of orders) {
-        if (isOptimizedBridgeOrder(order)) {
-            fqtData.bridgeOrders.push({
-                bridgeData: createBridgeDataForBridgeOrder(order),
-                makerTokenAmount: order.makerAmount,
-                takerTokenAmount: order.takerAmount,
-                source: erc20BridgeSourceToBridgeSource(order.source),
+    private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
+        const wrappedMultiHopCalls = [];
+        if (opts.isFromETH) {
+            wrappedMultiHopCalls.push({
+                selector: DUMMY_WETH_CONTRACT.getSelector('deposit'),
+                data: NULL_BYTES,
             });
         }
         const [firstHopOrder, secondHopOrder] = quote.orders;
@@ -607,7 +586,7 @@ function getFQTTransformerDataFromOptimizedOrders(
         }
         if (opts.isToETH) {
             wrappedMultiHopCalls.push({
-                selector: weth.getSelector('withdraw'),
+                selector: DUMMY_WETH_CONTRACT.getSelector('withdraw'),
                 data: NULL_BYTES,
             });
         }

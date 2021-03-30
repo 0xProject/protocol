@@ -70,7 +70,7 @@ export function createOrdersFromTwoHopSample(
     ];
 }
 
-export function erc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): string {
+export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): string {
     switch (source) {
         case ERC20BridgeSource.Balancer:
             return encodeBridgeSourceId(BridgeProtocol.Balancer, 'Balancer');

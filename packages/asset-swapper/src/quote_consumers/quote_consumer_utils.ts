@@ -3,7 +3,7 @@ import { FillQuoteTransformerData, FillQuoteTransformerOrderType } from '@0x/pro
 import { AffiliateFeeType, ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
 import {
     createBridgeDataForBridgeOrder,
-    getERC20BridgeSourceToBridgeSource,
+    getErc20BridgeSourceToBridgeSource,
 } from '../utils/market_operation_utils/orders';
 import {
     ERC20BridgeSource,
@@ -128,7 +128,7 @@ export function getFQTTransformerDataFromOptimizedOrders(
                 bridgeData: createBridgeDataForBridgeOrder(order),
                 makerTokenAmount: order.makerAmount,
                 takerTokenAmount: order.takerAmount,
-                source: getERC20BridgeSourceToBridgeSource(order.source),
+                source: getErc20BridgeSourceToBridgeSource(order.source),
             });
         } else if (isOptimizedLimitOrder(order)) {
             fqtData.limitOrders.push({
