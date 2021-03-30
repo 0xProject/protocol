@@ -661,6 +661,6 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
     gasSchedule: DEFAULT_GAS_SCHEDULE,
     exchangeProxyOverhead: () => ZERO_AMOUNT,
     allowFallback: true,
-    shouldGenerateQuoteReport: false,
+    shouldGenerateQuoteReport: true,
     tokenAdjacencyGraph: { default: [] },
 };

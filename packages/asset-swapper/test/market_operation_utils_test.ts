@@ -127,6 +127,9 @@ describe('MarketOperationUtils tests', () => {
             TypeMoq.It.isAny(),
         ];
         const requestor = TypeMoq.Mock.ofType(QuoteRequestor, TypeMoq.MockBehavior.Loose, true);
+        requestor
+            .setup(mqr => mqr.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE)))
+            .returns(() => 'https://foo.bar');
         if (type === 'firm') {
             requestor
                 .setup(r => r.requestRfqtFirmQuotesAsync(...args))
@@ -697,6 +700,9 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Native]: _.constant(new BigNumber(1)),
                 };
                 mockedQuoteRequestor
+                    .setup(mqr => mqr.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE)))
+                    .returns(() => 'https://foo.bar');
+                mockedQuoteRequestor
                     .setup(mqr =>
                         mqr.requestRfqtFirmQuotesAsync(
                             TypeMoq.It.isAny(),
@@ -799,6 +805,7 @@ describe('MarketOperationUtils tests', () => {
                             intentOnFilling: true,
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: mockedQuoteRequestor.object.requestRfqtFirmQuotesAsync,
+                                getMakerUriForSignature: mockedQuoteRequestor.object.getMakerUriForSignature,
                             } as any,
                         },
                     },

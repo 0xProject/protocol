@@ -62,17 +62,8 @@ export class MarketOperationUtils {
         comparisonPrice?: BigNumber | undefined,
     ): QuoteReport {
         const { side, quotes } = marketSideLiquidity;
-        const { dexQuotes, twoHopQuotes, nativeOrders } = quotes;
         const { liquidityDelivered } = optimizerResult;
-        return generateQuoteReport(
-            side,
-            _.flatten(dexQuotes),
-            twoHopQuotes,
-            nativeOrders,
-            liquidityDelivered,
-            comparisonPrice,
-            quoteRequestor,
-        );
+        return generateQuoteReport(side, quotes.nativeOrders, liquidityDelivered, comparisonPrice, quoteRequestor);
     }
 
     constructor(
