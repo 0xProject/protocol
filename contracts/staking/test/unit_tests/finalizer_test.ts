@@ -543,7 +543,7 @@ blockchainTests.resets('Finalizer unit tests', env => {
             const expectedPoolRewards = await calculatePoolRewardsAsync(INITIAL_BALANCE, pools);
             const [pool, reward] = _.sampleSize(shortZip(pools, expectedPoolRewards), 1)[0];
             return assertUnfinalizedPoolRewardsAsync(pool.poolId, {
-                totalReward: (reward as any) as BigNumber,
+                totalReward: reward,
                 membersStake: pool.membersStake,
             });
         });

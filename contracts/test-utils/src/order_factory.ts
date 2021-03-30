@@ -22,14 +22,14 @@ export class OrderFactory {
     ): Promise<SignedOrder> {
         const fifteenMinutesInSeconds = 15 * 60;
         const currentBlockTimestamp = await getLatestBlockTimestampAsync();
-        const order = ({
+        const order = {
             takerAddress: constants.NULL_ADDRESS,
             senderAddress: constants.NULL_ADDRESS,
             expirationTimeSeconds: new BigNumber(currentBlockTimestamp).plus(fifteenMinutesInSeconds),
             salt: generatePseudoRandomSalt(),
             ...this._defaultOrderParams,
             ...customOrderParams,
-        } as any) as Order;
+        } as Order; // tslint:disable-line:no-object-literal-type-assertion
         const orderHashBuff = orderHashUtils.getOrderHashBuffer(order);
         const signature = signingUtils.signMessage(orderHashBuff, this._privateKey, signatureType);
         const signedOrder = {

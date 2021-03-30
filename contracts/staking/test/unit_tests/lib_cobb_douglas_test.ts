@@ -12,17 +12,13 @@ import * as _ from 'lodash';
 import { artifacts } from '../artifacts';
 import { TestCobbDouglasContract } from '../wrappers';
 
-// tslint:disable: no-unnecessary-type-assertion
 blockchainTests('LibCobbDouglas unit tests', env => {
     const FUZZ_COUNT = 1024;
     const PRECISION = 15;
 
     let testContract: TestCobbDouglasContract;
-    let ownerAddress: string;
-    let notOwnerAddress: string;
 
     before(async () => {
-        [ownerAddress, notOwnerAddress] = await env.getAccountAddressesAsync();
         testContract = await TestCobbDouglasContract.deployFrom0xArtifactAsync(
             artifacts.TestCobbDouglas,
             env.provider,
@@ -211,4 +207,3 @@ blockchainTests('LibCobbDouglas unit tests', env => {
         });
     });
 });
-// tslint:enable:no-unnecessary-type-assertion

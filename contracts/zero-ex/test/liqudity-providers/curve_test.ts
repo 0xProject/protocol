@@ -9,7 +9,6 @@ blockchainTests.resets('CurveLiquidityProvider feature', env => {
     let sellToken: TestMintableERC20TokenContract;
     let buyToken: TestMintableERC20TokenContract;
     let testCurve: TestCurveContract;
-    let owner: string;
     let taker: string;
     const RECIPIENT = hexUtils.random(20);
     const SELL_AMOUNT = getRandomInteger('1e6', '1e18');
@@ -24,7 +23,7 @@ blockchainTests.resets('CurveLiquidityProvider feature', env => {
     const { ZERO_AMOUNT } = constants;
 
     before(async () => {
-        [owner, taker] = await env.getAccountAddressesAsync();
+        [, taker] = await env.getAccountAddressesAsync();
         [sellToken, buyToken] = await Promise.all(
             new Array(2)
                 .fill(0)

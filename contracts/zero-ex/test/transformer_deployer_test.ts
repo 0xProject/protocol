@@ -9,13 +9,12 @@ import {
 } from './wrappers';
 
 blockchainTests.resets('TransformerDeployer', env => {
-    let owner: string;
     let authority: string;
     let deployer: TransformerDeployerContract;
     const deployBytes = artifacts.TestTransformerDeployerTransformer.compilerOutput.evm.bytecode.object;
 
     before(async () => {
-        [owner, authority] = await env.getAccountAddressesAsync();
+        [, authority] = await env.getAccountAddressesAsync();
         deployer = await TransformerDeployerContract.deployFrom0xArtifactAsync(
             artifacts.TransformerDeployer,
             env.provider,

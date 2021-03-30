@@ -63,11 +63,9 @@ blockchainTests.fork('DevUtils dydx order validation tests', env => {
     let dai: ERC20TokenContract;
     let usdc: ERC20TokenContract;
     let devUtils: DevUtilsContract;
-    let accountOwner: string;
     let minMarginRatio: number;
 
     before(async () => {
-        [accountOwner] = await env.getAccountAddressesAsync();
         dydx = new IDydxContract(DYDX_ADDRESS, env.provider, env.txDefaults);
         dai = new ERC20TokenContract(DAI_ADDRESS, env.provider, env.txDefaults);
         usdc = new ERC20TokenContract(USDC_ADDRESS, env.provider, env.txDefaults);

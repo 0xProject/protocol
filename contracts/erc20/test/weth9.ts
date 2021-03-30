@@ -39,8 +39,8 @@ describe('EtherToken', () => {
             artifacts.WETH9,
             provider,
             {
-                gasPrice,
                 ...txDefaults,
+                gasPrice,
             },
             artifacts,
         );

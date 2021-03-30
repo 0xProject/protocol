@@ -12,12 +12,12 @@ export abstract class AbstractBalanceAndProxyAllowanceFetcher {
      * @param userAddress Ethereum address for which to fetch the balance
      * @return Balance amount in base units
      */
-    public abstract async getBalanceAsync(assetData: string, userAddress: string): Promise<BigNumber>;
+    public abstract getBalanceAsync(assetData: string, userAddress: string): Promise<BigNumber>;
     /**
      * Get the 0x asset proxy allowance of assetData for userAddress
      * @param assetData AssetData for which to fetch the allowance
      * @param userAddress Ethereum address for which to fetch the allowance
      * @return Allowance amount in base units
      */
-    public abstract async getProxyAllowanceAsync(assetData: string, userAddress: string): Promise<BigNumber>;
+    public abstract getProxyAllowanceAsync(assetData: string, userAddress: string): Promise<BigNumber>;
 }
