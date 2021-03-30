@@ -23,7 +23,7 @@ blockchainTests.resets('Exchange Unit Tests', env => {
 
     before(async () => {
         // Set up addresses for testing.
-        [ , owner, nonExchange, exchange, nonAuthority, authority] = await env.getAccountAddressesAsync();
+        [, owner, nonExchange, exchange, nonAuthority, authority] = await env.getAccountAddressesAsync();
 
         // Deploy the Exchange Manager contract.
         exchangeManager = await TestExchangeManagerContract.deployFrom0xArtifactAsync(

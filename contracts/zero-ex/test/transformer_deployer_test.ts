@@ -14,7 +14,7 @@ blockchainTests.resets('TransformerDeployer', env => {
     const deployBytes = artifacts.TestTransformerDeployerTransformer.compilerOutput.evm.bytecode.object;
 
     before(async () => {
-        [ , authority] = await env.getAccountAddressesAsync();
+        [, authority] = await env.getAccountAddressesAsync();
         deployer = await TransformerDeployerContract.deployFrom0xArtifactAsync(
             artifacts.TransformerDeployer,
             env.provider,

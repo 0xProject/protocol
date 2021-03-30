@@ -23,7 +23,7 @@ blockchainTests.resets('CurveLiquidityProvider feature', env => {
     const { ZERO_AMOUNT } = constants;
 
     before(async () => {
-        [ , taker] = await env.getAccountAddressesAsync();
+        [, taker] = await env.getAccountAddressesAsync();
         [sellToken, buyToken] = await Promise.all(
             new Array(2)
                 .fill(0)

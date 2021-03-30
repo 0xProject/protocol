@@ -24,7 +24,7 @@ blockchainTests.resets('MooniswapLiquidityProvider feature', env => {
     const BUY_AMOUNT = getRandomInteger('1e18', '10e18');
 
     before(async () => {
-        [ , taker] = await env.getAccountAddressesAsync();
+        [, taker] = await env.getAccountAddressesAsync();
         [sellToken, buyToken] = await Promise.all(
             new Array(2)
                 .fill(0)

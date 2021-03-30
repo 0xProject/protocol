@@ -15,7 +15,7 @@ blockchainTests.resets('PermissionlessTransformerDeployer', env => {
     const deployBytes = artifacts.TestPermissionlessTransformerDeployerTransformer.compilerOutput.evm.bytecode.object;
 
     before(async () => {
-        [ , sender] = await env.getAccountAddressesAsync();
+        [, sender] = await env.getAccountAddressesAsync();
         deployer = await PermissionlessTransformerDeployerContract.deployFrom0xArtifactAsync(
             artifacts.PermissionlessTransformerDeployer,
             env.provider,
