@@ -74,7 +74,7 @@ steps:
         from_secret: ecr_registry
       region: us-east-1
       tags:
-        - ${DRONE_BRANCH}-${DRONE_COMMIT_SHA}
+        - ${DRONE_BRANCH##freeze/}-${DRONE_COMMIT_SHA}
 trigger:
   branch:
   - freeze/*
