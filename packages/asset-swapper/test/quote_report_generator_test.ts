@@ -268,16 +268,6 @@ describe('generateQuoteReport', async () => {
                 order: orderbookOrder1.order,
             } as NativeLimitOrderFillData,
         };
-        const orderbookOrder2Source: NativeLimitOrderQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder2.order.makerAmount,
-            takerAmount: orderbookOrder2.order.takerAmount,
-            fillableTakerAmount: orderbookOrder2.fillableTakerAmount,
-            isRfqt: false,
-            fillData: {
-                order: orderbookOrder2.order,
-            } as NativeLimitOrderFillData,
-        };
         const uniswap1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.UniswapV2,
             makerAmount: uniswapSample1.input,
@@ -291,24 +281,14 @@ describe('generateQuoteReport', async () => {
             fillData: {},
         };
 
-        const expectedSourcesConsidered: QuoteReportEntry[] = [
-            kyber1Source,
-            uniswap1Source,
-            orderbookOrder1Source,
-            orderbookOrder2Source,
-        ];
+        // No order is considered here because only Native RFQ orders are considered.
+        const expectedSourcesConsidered: QuoteReportEntry[] = [];
         const expectedSourcesDelivered: QuoteReportEntry[] = [orderbookOrder1Source, uniswap1Source, kyber1Source];
         expectEqualQuoteReportEntries(orderReport.sourcesConsidered, expectedSourcesConsidered, `sourcesConsidered`);
         expectEqualQuoteReportEntries(orderReport.sourcesDelivered, expectedSourcesDelivered, `sourcesDelivered`);
     });
     it('should correctly generate report for a two-hop quote', () => {
         const marketOperation: MarketOperation = MarketOperation.Sell;
-        const kyberSample1: DexSample = {
-            source: ERC20BridgeSource.Kyber,
-            input: new BigNumber(10000),
-            output: new BigNumber(10001),
-            fillData: {},
-        };
         const orderbookOrder1: NativeOrderWithFillableAmounts = {
             order: new LimitOrder({ takerAmount: new BigNumber(1101) }),
             type: FillQuoteTransformerOrderType.Limit,
@@ -342,22 +322,6 @@ describe('generateQuoteReport', async () => {
         };
 
         const orderReport = generateQuoteReport(marketOperation, [orderbookOrder1], twoHopSample);
-        const orderbookOrder1Source: NativeLimitOrderQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.Native,
-            makerAmount: orderbookOrder1.order.makerAmount,
-            takerAmount: orderbookOrder1.order.takerAmount,
-            fillableTakerAmount: orderbookOrder1.fillableTakerAmount,
-            isRfqt: false,
-            fillData: {
-                order: orderbookOrder1.order,
-            } as NativeLimitOrderFillData,
-        };
-        const kyber1Source: BridgeQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.Kyber,
-            makerAmount: kyberSample1.output,
-            takerAmount: kyberSample1.input,
-            fillData: {},
-        };
         const twoHopSource: MultiHopQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.MultiHop,
             makerAmount: twoHopSample.output,
@@ -366,7 +330,8 @@ describe('generateQuoteReport', async () => {
             fillData: twoHopFillData,
         };
 
-        const expectedSourcesConsidered: QuoteReportEntry[] = [kyber1Source, orderbookOrder1Source, twoHopSource];
+        // No entry is present in considered because No RFQ orders were reported.
+        const expectedSourcesConsidered: QuoteReportEntry[] = [];
         expectEqualQuoteReportEntries(orderReport.sourcesConsidered, expectedSourcesConsidered, `sourcesConsidered`);
         expect(orderReport.sourcesDelivered.length).to.eql(1);
         expect(orderReport.sourcesDelivered[0]).to.deep.equal(twoHopSource);
