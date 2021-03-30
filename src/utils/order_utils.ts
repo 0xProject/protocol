@@ -2,40 +2,24 @@ import { assert } from '@0x/assert';
 import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { Signature, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import { Connection } from 'typeorm';
 
 import {
     CHAIN_ID,
     FEE_RECIPIENT_ADDRESS,
     PINNED_MM_ADDRESSES,
-    PINNED_POOL_IDS,
     SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
     TAKER_FEE_UNIT_AMOUNT,
 } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, TEN_MINUTES_MS } from '../constants';
+import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { PersistentSignedOrderV4Entity, SignedOrderV4Entity } from '../entities';
-import { logger } from '../logger';
-import * as queries from '../queries/staking_queries';
 import {
     OrderConfigRequestPayload,
     OrderConfigResponse,
     PinResult,
-    RawPool,
     SignedLimitOrder,
     SRAOrder,
     SRAOrderMetaData,
 } from '../types';
-
-import { createResultCache, ResultCache } from './result_cache';
-
-// Cache the expensive query of current epoch stats
-let PIN_CACHE: ResultCache<any>;
-const getPoolsAsync = async (connection: Connection) => {
-    if (!PIN_CACHE) {
-        PIN_CACHE = createResultCache<any[]>(() => connection.query(queries.stakingPoolsQuery), TEN_MINUTES_MS);
-    }
-    return (await PIN_CACHE.getResultAsync()).result;
-};
 
 export const orderUtils = {
     isIgnoredOrder: (addressesToIgnore: string[], apiOrder: SRAOrder): boolean => {
@@ -223,29 +207,13 @@ export const orderUtils = {
     // splitOrdersByPinning splits the orders into those we wish to pin in our Mesh node and
     // those we wish not to pin. We wish to pin the orders of MMers with a lot of ZRX at stake and
     // who have a track record of acting benevolently.
-    async splitOrdersByPinningAsync(connection: Connection, signedOrders: SignedLimitOrder[]): Promise<PinResult> {
-        let currentPools = [];
-        // HACK(jalextowle): This query will fail when running against Ganache, so we
-        // skip it an only use pinned MMers. A deployed staking system that allows this
-        // functionality to be tested would improve the testing infrastructure.
-        try {
-            currentPools = (await getPoolsAsync(connection)) || [];
-        } catch (error) {
-            logger.warn(`stakingPoolsQuery threw an error: ${error}`);
-        }
-        let makerAddresses: string[] = PINNED_MM_ADDRESSES;
-        currentPools.forEach((poolStats: RawPool) => {
-            if (!PINNED_POOL_IDS.includes(poolStats.pool_id)) {
-                return;
-            }
-            makerAddresses = [...makerAddresses, ...poolStats.maker_addresses];
-        });
+    async splitOrdersByPinningAsync(signedOrders: SignedLimitOrder[]): Promise<PinResult> {
         const pinResult: PinResult = {
             pin: [],
             doNotPin: [],
         };
         signedOrders.forEach(signedOrder => {
-            if (makerAddresses.includes(signedOrder.maker)) {
+            if (PINNED_MM_ADDRESSES.includes(signedOrder.maker)) {
                 pinResult.pin.push(signedOrder);
             } else {
                 pinResult.doNotPin.push(signedOrder);

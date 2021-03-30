@@ -1,3 +1,4 @@
+import { isAPIError, isRevertError } from '@0x/api-utils';
 import { assert } from '@0x/assert';
 import { ERC20BridgeSource, Signature, SwapQuoterError } from '@0x/asset-swapper';
 import { MarketOperation } from '@0x/types';
@@ -11,10 +12,11 @@ import { CHAIN_ID } from '../config';
 import { API_KEY_HEADER, DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
 import { TransactionEntity } from '../entities';
 import {
+    APIErrorCodes,
+    apiErrorCodesToReasons,
     EthSellNotSupportedError,
-    GeneralErrorCodes,
-    generalErrorCodeToReason,
     InternalServerError,
+    InvalidAPIKeyError,
     NotFoundError,
     RevertAPIError,
     ValidationError,
@@ -22,7 +24,6 @@ import {
     ValidationErrorReasons,
 } from '../errors';
 import { logger } from '../logger';
-import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas';
 import { MetaTransactionService } from '../services/meta_transaction_service';
 import {
@@ -57,11 +58,7 @@ export class MetaTransactionHandlers {
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const apiKey = req.header(API_KEY_HEADER);
         if (apiKey !== undefined && !isValidUUID(apiKey)) {
-            res.status(HttpStatus.BAD_REQUEST).send({
-                code: GeneralErrorCodes.InvalidAPIKey,
-                reason: generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey],
-            });
-            return;
+            throw new InvalidAPIKeyError();
         }
         // HACK typescript typing does not allow this valid json-schema
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema as any);
@@ -132,10 +129,7 @@ export class MetaTransactionHandlers {
     public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const apiKey = req.header('0x-api-key');
         if (apiKey !== undefined && !isValidUUID(apiKey)) {
-            res.status(HttpStatus.BAD_REQUEST).send({
-                code: GeneralErrorCodes.InvalidAPIKey,
-                reason: generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey],
-            });
+            throw new InvalidAPIKeyError();
             return;
         }
         // HACK typescript typing does not allow this valid json-schema
@@ -222,10 +216,7 @@ export class MetaTransactionHandlers {
         const apiKey = req.header('0x-api-key');
         const affiliateAddress = req.query.affiliateAddress as string | undefined;
         if (apiKey !== undefined && !isValidUUID(apiKey)) {
-            res.status(HttpStatus.BAD_REQUEST).send({
-                code: GeneralErrorCodes.InvalidAPIKey,
-                reason: generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey],
-            });
+            throw new InvalidAPIKeyError();
             return;
         }
         schemaUtils.validateSchema(req.body, schemas.metaTransactionFillRequestSchema);
@@ -253,8 +244,8 @@ export class MetaTransactionHandlers {
                 const isLive = await this._metaTransactionService.isSignerLiveAsync();
                 if (!isLive) {
                     res.status(HttpStatus.NOT_FOUND).send({
-                        code: GeneralErrorCodes.ServiceDisabled,
-                        reason: generalErrorCodeToReason[GeneralErrorCodes.ServiceDisabled],
+                        code: APIErrorCodes.ServiceDisabled,
+                        reason: apiErrorCodesToReasons[APIErrorCodes.ServiceDisabled],
                     });
                     return;
                 }
@@ -265,7 +256,7 @@ export class MetaTransactionHandlers {
                     });
                     if (isRateLimitedMetaTransactionResponse(rateLimitResponse)) {
                         res.status(HttpStatus.TOO_MANY_REQUESTS).send({
-                            code: GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker,
+                            code: APIErrorCodes.UnableToSubmitOnBehalfOfTaker,
                             reason: rateLimitResponse.reason,
                             ethereumTransaction: {
                                 data: ethTx.data,
@@ -288,8 +279,8 @@ export class MetaTransactionHandlers {
                 res.status(HttpStatus.OK).send(result);
             } else {
                 res.status(HttpStatus.FORBIDDEN).send({
-                    code: GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker,
-                    reason: generalErrorCodeToReason[GeneralErrorCodes.UnableToSubmitOnBehalfOfTaker],
+                    code: APIErrorCodes.UnableToSubmitOnBehalfOfTaker,
+                    reason: apiErrorCodesToReasons[APIErrorCodes.UnableToSubmitOnBehalfOfTaker],
                     ethereumTransaction: {
                         data: ethTx.data,
                         gasPrice: ethTx.gasPrice,

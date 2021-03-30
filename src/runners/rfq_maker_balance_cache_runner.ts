@@ -1,3 +1,4 @@
+import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import { BalanceCheckerContract } from '@0x/asset-swapper';
 import { artifacts } from '@0x/asset-swapper/lib/src/artifacts';
 import { BlockParamLiteral, SupportedProvider, Web3Wrapper } from '@0x/dev-utils';
@@ -13,8 +14,6 @@ import { METRICS_PATH, ONE_SECOND_MS, RFQ_ALLOWANCE_TARGET, RFQ_FIRM_QUOTE_CACHE
 import { getDBConnectionAsync } from '../db_connection';
 import { MakerBalanceChainCacheEntity } from '../entities';
 import { logger } from '../logger';
-import { createMetricsRouter } from '../routers/metrics_router';
-import { MetricsService } from '../services/metrics_service';
 import { providerUtils } from '../utils/provider_utils';
 import { createResultCache, ResultCache } from '../utils/result_cache';
 

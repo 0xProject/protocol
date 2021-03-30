@@ -1,6 +1,7 @@
 /**
  * This module can be used to run the SRA HTTP service standalone
  */
+import { cacheControl, createDefaultServer } from '@0x/api-utils';
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
@@ -8,18 +9,17 @@ import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
 import { defaultHttpServiceWithRateLimiterConfig } from '../config';
-import { SRA_PATH } from '../constants';
+import { DEFAULT_CACHE_AGE_SECONDS, SRA_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
-import { cacheControl } from '../middleware/cache_control';
 import { errorHandler } from '../middleware/error_handling';
 import { createSRARouter } from '../routers/sra_router';
 import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
-import { createDefaultServer } from './utils';
+import { destroyCallback } from './utils';
 
 process.on('uncaughtException', err => {
     logger.error(err);
@@ -47,8 +47,8 @@ async function runHttpServiceAsync(
 ): Promise<Server> {
     const app = _app || express();
     app.use(addressNormalizer);
-    app.use(cacheControl);
-    const server = createDefaultServer(dependencies, config, app);
+    app.use(cacheControl(DEFAULT_CACHE_AGE_SECONDS));
+    const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
 
     app.get('/', rootHandler);
     // SRA http service

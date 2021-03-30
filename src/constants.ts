@@ -48,7 +48,6 @@ export const ONE_GWEI = new BigNumber(1000000000);
 
 // API namespaces
 export const SRA_PATH = '/sra/v4';
-export const STAKING_PATH = '/staking';
 export const SWAP_PATH = '/swap/v1';
 export const META_TRANSACTION_PATH = '/meta_transaction/v1';
 export const METRICS_PATH = '/metrics';
@@ -91,3 +90,6 @@ export const NUMBER_SOURCES_PER_LOG_LINE = 12;
 // RFQ Quote Validator expiration threshold
 export const RFQ_FIRM_QUOTE_CACHE_EXPIRY = ONE_MINUTE_MS * 2;
 export const RFQ_ALLOWANCE_TARGET = '0xdef1c0ded9bec7f1a1670819833240f027b25eff';
+
+// General cache control
+export const DEFAULT_CACHE_AGE_SECONDS = 10;

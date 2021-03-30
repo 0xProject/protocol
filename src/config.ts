@@ -24,6 +24,8 @@ import {
     DEFAULT_LOCAL_POSTGRES_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    HEALTHCHECK_PATH,
+    METRICS_PATH,
     NULL_ADDRESS,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     TX_BASE_GAS,
@@ -451,11 +453,13 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,
     healthcheckHttpPort: HEALTHCHECK_HTTP_PORT,
+    healthcheckPath: HEALTHCHECK_PATH,
     ethereumRpcUrl: ETHEREUM_RPC_URL,
     httpKeepAliveTimeout: HTTP_KEEP_ALIVE_TIMEOUT,
     httpHeadersTimeout: HTTP_HEADERS_TIMEOUT,
     enablePrometheusMetrics: ENABLE_PROMETHEUS_METRICS,
     prometheusPort: PROMETHEUS_PORT,
+    prometheusPath: METRICS_PATH,
     meshWebsocketUri: MESH_WEBSOCKET_URI,
     meshHttpUri: MESH_HTTP_URI,
 };

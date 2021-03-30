@@ -1,3 +1,4 @@
+import { createDefaultServer } from '@0x/api-utils';
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
@@ -13,7 +14,7 @@ import { createMetaTransactionRouter } from '../routers/meta_transaction_router'
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
-import { createDefaultServer } from './utils';
+import { destroyCallback } from './utils';
 
 /**
  * This module can be used to run the Meta Transaction HTTP service standalone
@@ -44,7 +45,7 @@ async function runHttpServiceAsync(
     _app?: core.Express,
 ): Promise<Server> {
     const app = _app || express();
-    const server = createDefaultServer(dependencies, config, app);
+    const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
     app.get('/', rootHandler);
     if (dependencies.metaTransactionService) {
         app.use(

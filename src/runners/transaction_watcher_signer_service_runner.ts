@@ -1,3 +1,4 @@
+import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import * as express from 'express';
 import { Connection } from 'typeorm';
 
@@ -13,8 +14,6 @@ import {
 } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
-import { createMetricsRouter } from '../routers/metrics_router';
-import { MetricsService } from '../services/metrics_service';
 import { TransactionWatcherSignerService } from '../services/transaction_watcher_signer_service';
 import { TransactionWatcherSignerServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';

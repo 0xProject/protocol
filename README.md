@@ -22,7 +22,7 @@
 
 ## Introduction
 
-The 0x API is a collection of services and endpoints that can be run together or separately. In aggregate, the APIs provide interfaces to 0x liquidity, 0x staking data and more.
+The 0x API is a collection of services and endpoints that can be run together or separately. In aggregate, the APIs provide interfaces to 0x liquidity.
 Everything can be run monolithically via `yarn start` and `docker-compose` up as described in [Getting Started](#getting-started).
 
 ## Services
@@ -38,18 +38,16 @@ These are services that handle HTTP requests and responses.
 | All HTTP Services                                   | `/*`                | `yarn start:service:http`                  | Yes                                                       | Yes                                  | Yes                           |
 | [Swap](https://0x.org/docs/api#swap)                | `/swap`             | `yarn start:service:swap_http`             | Yes                                                       | Yes                                  | Yes                           |
 | [Standard Relayer API](https://0x.org/docs/api#sra) | `/sra`              | `yarn start:service:sra_http`              | Yes                                                       | No                                   | Yes                           |
-| Staking (Not Public)                                | `/staking`          | `yarn start:service:staking_http`          | No                                                        | No                                   | Yes                           |
 | Meta Transaction Service                            | `/meta_transaction` | `yarn start:service:meta_transaction_http` | No                                                        | Yes                                  | Yes                           |
 
 ### Data Services
 
-These are services that make sure the data being served is present and up-to-date by keeping the database in sync with [0x Mesh](https://github.com/0xProject/0x-mesh) and Ethereum. With the exception of the Staking HTTP service, which has a hard dependency on the [Staking Event Pipeline](https://github.com/0xProject/0x-event-pipeline), the endpoints above run without these services, but would be providing degraded or non-functional service. There is nothing stateful about 0x API -- all the data comes from [0x Mesh](https://github.com/0xProject/0x-mesh) or the Ethereum blockchain.
+These are services that make sure the data being served is present and up-to-date by keeping the database in sync with [0x Mesh](https://github.com/0xProject/0x-mesh) and Ethereum. The endpoints above run without these services, but would be providing degraded or non-functional service. There is nothing stateful about 0x API -- all the data comes from [0x Mesh](https://github.com/0xProject/0x-mesh) or the Ethereum blockchain.
 
-| Name                                                                     | Run Command                              | Requires [0x Mesh](https://github.com/0xProject/0x-mesh)? | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
-| ------------------------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------------- | ------------------------------------ | ----------------------------- |
-| Order Watcher (keep database in sync with Mesh)                          | `yarn start:service:order_watcher`       | Yes                                                       | No                                   | Yes                           |
-| [Staking Event Pipeline](https://github.com/0xProject/0x-event-pipeline) | `docker run 0xorg/event-pipeline:latest` | No                                                        | Yes                                  | Yes                           |
-| Transaction Watcher (monitor and broadcast meta transactions)            | `yarn start:service:transaction_watcher` | No                                                        | Yes                                  | Yes                           |
+| Name                                                          | Run Command                              | Requires [0x Mesh](https://github.com/0xProject/0x-mesh)? | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
+| ------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------- | ------------------------------------ | ----------------------------- |
+| Order Watcher (keep database in sync with Mesh)               | `yarn start:service:order_watcher`       | Yes                                                       | No                                   | Yes                           |  | Yes |
+| Transaction Watcher (monitor and broadcast meta transactions) | `yarn start:service:transaction_watcher` | No                                                        | Yes                                  | Yes                           |
 
 ## Getting started
 
@@ -106,7 +104,7 @@ To get a local development version of `0x-api` running:
     yarn build
     ```
 
-5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file. On start-up, the [event-pipeline](https://github.com/0xProject/0x-event-pipeline) container will crash and restart until Postgres is up. If you switch `CHAIN_ID` after a prior run, you will have to `rm -rf 0x_mesh postgres` to delete the volumes containing stale data.
+5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file. If you switch `CHAIN_ID` after a prior run, you will have to `rm -rf 0x_mesh postgres` to delete the volumes containing stale data.
 
 6. Run the database migrations:
 
@@ -128,7 +126,7 @@ yarn db:migrate
 
 #### Developing on Ganache
 
-Ganache is supported, but will not contain the same staking data and 0x Mesh liquidity that kovan or mainnet have for example. To use ganache, use the `.env` file below:
+Ganache is supported, but will not contain the same 0x Mesh liquidity that kovan or mainnet have for example. To use ganache, use the `.env` file below:
 
 ```
 CHAIN_ID=1337

@@ -1,3 +1,4 @@
+// import { ErrorUtils } from '@0x/api-utils';
 // import { ERC20BridgeSource } from '@0x/asset-swapper';
 // import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 // import { DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
@@ -14,7 +15,7 @@
 // import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 // import * as config from '../src/config';
 // import { META_TRANSACTION_PATH, ONE_SECOND_MS, TEN_MINUTES_MS } from '../src/constants';
-// import { GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
+// import { GeneralErrorCodes, InvalidAPIKeyError, ValidationErrorCodes } from '../src/errors';
 // import { GetMetaTransactionQuoteResponse, SignedLimitOrder } from '../src/types';
 // import { AddOrdersResultsV4 } from '../src/utils/mesh_client';
 // import { meshUtils } from '../src/utils/mesh_utils';
@@ -539,12 +540,10 @@
 //         context('failure tests', () => {
 //             it('should return InvalidAPIKey error if invalid UUID supplied as API Key', async () => {
 //                 const response = await httpPostAsync({ app, route: requestBase, headers: { '0x-api-key': 'foobar' } });
+//                 const expected = ErrorUtils.generateError(new InvalidAPIKeyError());
 //                 expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
 //                 expect(response.type).to.be.eq('application/json');
-//                 expect(response.body).to.be.deep.eq({
-//                     code: GeneralErrorCodes.InvalidAPIKey,
-//                     reason: generalErrorCodeToReason[GeneralErrorCodes.InvalidAPIKey],
-//                 });
+//                 expect(response.body).to.be.deep.eq(expected);
 //             });
 //         });
 

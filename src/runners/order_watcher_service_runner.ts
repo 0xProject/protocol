@@ -1,13 +1,11 @@
+import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import * as express from 'express';
 import { Connection } from 'typeorm';
 
 import { getDefaultAppDependenciesAsync } from '../app';
 import { defaultHttpServiceConfig } from '../config';
-import { METRICS_PATH } from '../constants';
 import { OrderWatcherSyncError } from '../errors';
 import { logger } from '../logger';
-import { createMetricsRouter } from '../routers/metrics_router';
-import { MetricsService } from '../services/metrics_service';
 import { OrderWatcherService } from '../services/order_watcher_service';
 import { MeshClient } from '../utils/mesh_client';
 import { providerUtils } from '../utils/provider_utils';
@@ -15,17 +13,10 @@ import { providerUtils } from '../utils/provider_utils';
 if (require.main === module) {
     (async () => {
         const provider = providerUtils.createWeb3Provider(defaultHttpServiceConfig.ethereumRpcUrl);
-        const { connection, meshClient, metricsService } = await getDefaultAppDependenciesAsync(
-            provider,
-            defaultHttpServiceConfig,
-        );
+        const { connection, meshClient } = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceConfig);
         if (defaultHttpServiceConfig.enablePrometheusMetrics) {
             const app = express();
-            const metricsRouter =
-                metricsService !== undefined
-                    ? createMetricsRouter(metricsService)
-                    : createMetricsRouter(new MetricsService());
-            app.use(METRICS_PATH, metricsRouter);
+            app.use(defaultHttpServiceConfig.prometheusPath, createMetricsRouter(new MetricsService()));
             const server = app.listen(defaultHttpServiceConfig.prometheusPort, () => {
                 logger.info(`Metrics (HTTP) listening on port ${defaultHttpServiceConfig.prometheusPort}`);
             });

@@ -1,8 +1,6 @@
 import { intervalUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { ObjectMap } from '../types';
-
 export interface JsonRpcResponse {
     error: any;
     id: number;
@@ -10,14 +8,6 @@ export interface JsonRpcResponse {
 }
 
 export const utils = {
-    arrayToMapWithId: <T extends object>(array: T[], idKey: keyof T): ObjectMap<T> => {
-        const initialMap: ObjectMap<T> = {};
-        return array.reduce((acc, val) => {
-            const id = val[idKey] as any;
-            acc[id] = val;
-            return acc;
-        }, initialMap);
-    },
     /**
      * Executes JSON-RPC response validation
      * Copied from https://github.com/ethereum/web3.js/blob/79a165a205074cfdc14f59a61c41ba9ef5d25172/packages/web3-providers/src/validators/JsonRpcResponseValidator.js

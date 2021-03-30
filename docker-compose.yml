@@ -20,15 +20,6 @@ services:
             - ./postgres:/var/lib/postgresql/data
         ports:
             - '5432:5432'
-    events-pipeline:
-        depends_on:
-            - postgres
-        image: 0xorg/event-pipeline@sha256:058e730018a8bdc31b1fdd68935eeb27bc728a0db579b41436c138cf73e830e1
-        restart: always
-        environment:
-            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
-            CHAIN_ID: '${CHAIN_ID}'
-            POSTGRES_URI: 'postgres://api:api@postgres/api'
     mesh:
         image: 0xorg/mesh:11.0.1
         depends_on:

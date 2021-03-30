@@ -38,12 +38,3 @@ services:
             - '60559:60559'
         command: |
             sh -c "waitForGanache () { until printf 'POST /\r\nContent-Length: 26\r\n\r\n{\"method\":\"net_listening\"}' | nc localhost 8545 | grep true; do continue; done }; waitForGanache && ./mesh"
-    events-pipeline:
-        depends_on:
-            - postgres
-        image: 0xorg/event-pipeline@sha256:058e730018a8bdc31b1fdd68935eeb27bc728a0db579b41436c138cf73e830e1
-        restart: 'no'
-        environment:
-            ETHEREUM_RPC_URL: '${ETHEREUM_RPC_URL}'
-            CHAIN_ID: '${CHAIN_ID}'
-            POSTGRES_URI: 'postgres://api:api@postgres/api'

@@ -1,3 +1,4 @@
+import { ErrorBody, GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '@0x/api-utils';
 import { LimitOrder } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, Web3ProviderEngine } from '@0x/dev-utils';
@@ -15,7 +16,6 @@ import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '..
 import * as config from '../src/config';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE, NULL_ADDRESS, ONE_SECOND_MS, SRA_PATH } from '../src/constants';
 import { SignedOrderV4Entity } from '../src/entities';
-import { ErrorBody, GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '../src/errors';
 import { SignedLimitOrder, SRAOrder } from '../src/types';
 import { orderUtils } from '../src/utils/order_utils';
 

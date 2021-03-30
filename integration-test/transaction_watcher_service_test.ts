@@ -28,10 +28,8 @@ import { getDBConnectionAsync } from '../src/db_connection';
 import { TransactionEntity } from '../src/entities';
 import { MakerBalanceChainCacheEntity } from '../src/entities/MakerBalanceChainCacheEntity';
 import { GeneralErrorCodes } from '../src/errors';
-import { MetricsService } from '../src/services/metrics_service';
 import { OrderBookService } from '../src/services/orderbook_service';
 import { PostgresRfqtFirmQuoteValidator } from '../src/services/postgres_rfqt_firm_quote_validator';
-import { StakingDataService } from '../src/services/staking_data_service';
 import { SwapService } from '../src/services/swap_service';
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
 import { ChainId, TransactionStates, TransactionWatcherSignerServiceConfig } from '../src/types';
@@ -92,7 +90,6 @@ describe('Transaction Watcher Service integration test', () => {
         txWatcher = new TransactionWatcherSignerService(connection, txWatcherConfig);
         await txWatcher.syncTransactionStatusAsync();
         const orderBookService = new OrderBookService(connection);
-        const stakingDataService = new StakingDataService(connection);
         const websocketOpts = { path: SRA_PATH };
         const rfqFirmQuoteValidator = new PostgresRfqtFirmQuoteValidator(
             connection.getRepository(MakerBalanceChainCacheEntity),
@@ -114,22 +111,22 @@ describe('Transaction Watcher Service integration test', () => {
             defaultHttpServiceConfig.meshWebsocketUri!,
             defaultHttpServiceConfig.meshHttpUri,
         );
-        const metricsService = new MetricsService();
         metaTxnUser = new TestMetaTxnUser();
         ({ app } = await getAppAsync(
             {
                 contractAddresses,
                 orderBookService,
                 metaTransactionService,
-                stakingDataService,
                 connection,
                 provider,
                 swapService,
                 meshClient,
                 websocketOpts,
-                metricsService,
             },
-            defaultHttpServiceWithRateLimiterConfig,
+            {
+                ...defaultHttpServiceWithRateLimiterConfig,
+                enablePrometheusMetrics: true,
+            },
         ));
     });
     it('sends a signed zeroex transaction correctly', async () => {

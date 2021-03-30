@@ -11,7 +11,7 @@ import { ONE_SECOND_MS } from '../constants';
 import { PersistentSignedOrderV4Entity, SignedOrderV4Entity } from '../entities';
 import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
 import { alertOnExpiredOrders } from '../logger';
-import { OrderbookResponse, PaginatedCollection, PinResult, SignedLimitOrder, SRAOrder } from '../types';
+import { OrderbookResponse, PaginatedCollection, SignedLimitOrder, SRAOrder } from '../types';
 import { MeshClient } from '../utils/mesh_client';
 import { meshUtils } from '../utils/mesh_utils';
 import { orderUtils } from '../utils/order_utils';
@@ -221,9 +221,6 @@ export class OrderBookService {
         await this._connection
             .getRepository(PersistentSignedOrderV4Entity)
             .save(persistentOrders, { chunk: DB_ORDERS_UPDATE_CHUNK_SIZE });
-    }
-    public async splitOrdersByPinningAsync(signedOrders: SignedLimitOrder[]): Promise<PinResult> {
-        return orderUtils.splitOrdersByPinningAsync(this._connection, signedOrders);
     }
     private async _addOrdersAsync(
         signedOrders: SignedLimitOrder[],

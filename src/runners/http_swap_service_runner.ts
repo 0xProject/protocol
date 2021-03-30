@@ -1,7 +1,7 @@
 /**
  * This module can be used to run the Swap HTTP service standalone
  */
-
+import { cacheControl, createDefaultServer } from '@0x/api-utils';
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
@@ -9,21 +9,16 @@ import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
 import { defaultHttpServiceWithRateLimiterConfig } from '../config';
-import { SWAP_PATH } from '../constants';
+import { DEFAULT_CACHE_AGE_SECONDS, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
-import { cacheControl } from '../middleware/cache_control';
 import { errorHandler } from '../middleware/error_handling';
-import { createMetricsRouter } from '../routers/metrics_router';
 import { createSwapRouter } from '../routers/swap_router';
-import { MetricsService } from '../services/metrics_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
-import { createDefaultServer } from './utils';
-
-export const METRICS_PATH = '/metrics';
+import { destroyCallback } from './utils';
 
 process.on('uncaughtException', err => {
     logger.error(err);
@@ -57,8 +52,8 @@ async function runHttpServiceAsync(
 ): Promise<Server> {
     const app = _app || express();
     app.use(addressNormalizer);
-    app.use(cacheControl);
-    const server = createDefaultServer(dependencies, config, app);
+    app.use(cacheControl(DEFAULT_CACHE_AGE_SECONDS));
+    const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
 
     app.get('/', rootHandler);
 
@@ -69,20 +64,6 @@ async function runHttpServiceAsync(
         process.exit(1);
     }
     app.use(errorHandler);
-
-    if (config.enablePrometheusMetrics) {
-        const prometheusApp = express();
-        const metricsRouter = createMetricsRouter(
-            dependencies.metricsService !== undefined ? dependencies.metricsService : new MetricsService(),
-        );
-        prometheusApp.use(METRICS_PATH, metricsRouter);
-        const prometheusServer = prometheusApp.listen(config.prometheusPort, () => {
-            logger.info(`Metrics (HTTP) listening on port ${config.prometheusPort}`);
-        });
-        prometheusServer.on('error', err => {
-            logger.error(err);
-        });
-    }
 
     server.listen(config.httpPort);
     return server;
