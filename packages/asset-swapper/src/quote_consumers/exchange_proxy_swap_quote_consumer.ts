@@ -36,9 +36,7 @@ import {
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
-import {
-    poolEncoder,
-} from '../utils/market_operation_utils/orders';
+import { poolEncoder } from '../utils/market_operation_utils/orders';
 import {
     CurveFillData,
     ERC20BridgeSource,
@@ -66,7 +64,11 @@ import {
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 const PANCAKE_SWAP_FORKS = [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.BakerySwap, ERC20BridgeSource.SushiSwap];
-const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, { sendAsync(): void { return; } } as any );
+const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, {
+    sendAsync(): void {
+        return;
+    },
+} as any);
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly provider: ZeroExProvider;
@@ -285,10 +287,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (
-            this.chainId === ChainId.Mainnet &&
-            isMultiplexBatchFillCompatible(quote, optsWithDefaults)
-        ) {
+        if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
             return {
                 calldataHexString: this._encodeMultiplexBatchFillCalldata(quote),
                 ethAmount,
@@ -297,10 +296,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 gasOverhead: ZERO_AMOUNT,
             };
         }
-        if (
-            this.chainId === ChainId.Mainnet &&
-            isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)
-        ) {
+        if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
             return {
                 calldataHexString: this._encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
                 ethAmount,
