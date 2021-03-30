@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { InsufficientAssetLiquidityError } from '../../src/errors';
 import { AltMockedRfqQuoteResponse, MockedRfqQuoteResponse } from '../../src/types';
 
-export enum RfqtQuoteEndpoint {
+export enum RfqQuoteEndpoint {
     Indicative = 'price',
     Firm = 'quote',
 }
@@ -34,18 +34,18 @@ export const testHelpers = {
     },
     /**
      * A helper utility for testing which mocks out
-     * requests to RFQ-t providers
+     * requests to RFQ-T/M providers
      */
-    withMockedRfqtQuotes: async (
+    withMockedRfqQuotes: async (
         standardMockedResponses: MockedRfqQuoteResponse[],
         altMockedResponses: AltMockedRfqQuoteResponse[],
-        quoteType: RfqtQuoteEndpoint,
+        quoteType: RfqQuoteEndpoint,
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,
     ): Promise<void> => {
         const mockedAxios = new AxiosMockAdapter(axiosClient, { onNoMatch: 'throwException' });
         try {
-            // Mock out Standard RFQT responses
+            // Mock out Standard RFQ-T/M responses
             for (const mockedResponse of standardMockedResponses) {
                 const { endpoint, requestApiKey, requestParams, responseData, responseCode } = mockedResponse;
                 const requestHeaders = { Accept: 'application/json, text/plain, */*', '0x-api-key': requestApiKey };
@@ -59,7 +59,7 @@ export const testHelpers = {
                         .replyOnce(responseCode, responseData);
                 }
             }
-            // Mock out Alt RFQT responses
+            // Mock out Alt RFQ-T/M responses
             for (const mockedResponse of altMockedResponses) {
                 const { endpoint, mmApiKey, requestData, responseData, responseCode } = mockedResponse;
                 const requestHeaders = {
