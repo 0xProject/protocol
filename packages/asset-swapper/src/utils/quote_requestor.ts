@@ -83,7 +83,7 @@ export class QuoteRequestor {
         sellTokenAddress: string, // taker token
         assetFillAmount: BigNumber,
         comparisonPrice?: BigNumber,
-        isLastLook = false,
+        isLastLook: boolean = false,
     ): TakerRequestQueryParams {
         const { buyAmountBaseUnits, sellAmountBaseUnits } =
             marketOperation === MarketOperation.Buy
@@ -132,6 +132,35 @@ export class QuoteRequestor {
         }
     }
 
+    private static _makerSupportsPair(
+        typedMakerUrl: TypedMakerUrl,
+        makerToken: string,
+        takerToken: string,
+        altMakerAssetOfferings: AltRfqMakerAssetOfferings | undefined,
+        assetOfferings: RfqMakerAssetOfferings | undefined,
+    ): boolean {
+        if (typedMakerUrl.pairType === RfqPairType.Standard && assetOfferings) {
+            for (const assetPair of assetOfferings[typedMakerUrl.url]) {
+                if (
+                    (assetPair[0] === makerToken && assetPair[1] === takerToken) ||
+                    (assetPair[0] === takerToken && assetPair[1] === makerToken)
+                ) {
+                    return true;
+                }
+            }
+        } else if (typedMakerUrl.pairType === RfqPairType.Alt && altMakerAssetOfferings) {
+            for (const altAssetPair of altMakerAssetOfferings[typedMakerUrl.url]) {
+                if (
+                    (altAssetPair.baseAsset === makerToken && altAssetPair.quoteAsset === takerToken) ||
+                    (altAssetPair.baseAsset === takerToken && altAssetPair.quoteAsset === makerToken)
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     constructor(
         private readonly _rfqtAssetOfferings: RfqMakerAssetOfferings,
         private readonly _rfqmAssetOfferings: RfqMakerAssetOfferings,
@@ -158,7 +187,7 @@ export class QuoteRequestor {
             isLastLook: true,
         };
 
-        return this._fetchAndValidateFirmQuotes(
+        return this._fetchAndValidateFirmQuotesAsync(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -182,7 +211,7 @@ export class QuoteRequestor {
             throw new Error('RFQ-T firm quotes require the presence of a tx origin');
         }
 
-        return this._fetchAndValidateFirmQuotes(
+        return this._fetchAndValidateFirmQuotesAsync(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -207,7 +236,7 @@ export class QuoteRequestor {
             isLastLook: true,
         };
 
-        return this._fetchAndValidateIndicativeQuotes(
+        return this._fetchAndValidateIndicativeQuotesAsync(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -238,7 +267,7 @@ export class QuoteRequestor {
         if (!_opts.txOrigin) {
             _opts.txOrigin = constants.NULL_ADDRESS;
         }
-        return this._fetchAndValidateIndicativeQuotes(
+        return this._fetchAndValidateIndicativeQuotesAsync(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -286,35 +315,6 @@ export class QuoteRequestor {
             return false;
         }
         return true;
-    }
-
-    private _makerSupportsPair(
-        typedMakerUrl: TypedMakerUrl,
-        makerToken: string,
-        takerToken: string,
-        altMakerAssetOfferings: AltRfqMakerAssetOfferings | undefined,
-        assetOfferings: RfqMakerAssetOfferings | undefined,
-    ): boolean {
-        if (typedMakerUrl.pairType === RfqPairType.Standard && assetOfferings) {
-            for (const assetPair of assetOfferings[typedMakerUrl.url]) {
-                if (
-                    (assetPair[0] === makerToken && assetPair[1] === takerToken) ||
-                    (assetPair[0] === takerToken && assetPair[1] === makerToken)
-                ) {
-                    return true;
-                }
-            }
-        } else if (typedMakerUrl.pairType === RfqPairType.Alt && altMakerAssetOfferings) {
-            for (const altAssetPair of altMakerAssetOfferings[typedMakerUrl.url]) {
-                if (
-                    (altAssetPair.baseAsset === makerToken && altAssetPair.quoteAsset === takerToken) ||
-                    (altAssetPair.baseAsset === takerToken && altAssetPair.quoteAsset === makerToken)
-                ) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private _isExpirationTooSoon(expirationTimeSeconds: BigNumber): boolean {
@@ -389,7 +389,7 @@ export class QuoteRequestor {
                 this._infoLogger({ rfqtMakerInteraction: { ...partialLogEntry } });
                 return;
             } else if (
-                !this._makerSupportsPair(
+                !QuoteRequestor._makerSupportsPair(
                     typedMakerUrl,
                     makerToken,
                     takerToken,
@@ -495,7 +495,7 @@ export class QuoteRequestor {
         const results = (await Promise.all(quotePromises)).filter(x => x !== undefined);
         return results as Array<RfqQuote<ResponseT>>;
     }
-    private async _fetchAndValidateFirmQuotes(
+    private async _fetchAndValidateFirmQuotesAsync(
         makerToken: string,
         takerToken: string,
         assetFillAmount: BigNumber,
@@ -573,7 +573,7 @@ export class QuoteRequestor {
         return rfqQuotes;
     }
 
-    private async _fetchAndValidateIndicativeQuotes(
+    private async _fetchAndValidateIndicativeQuotesAsync(
         makerToken: string,
         takerToken: string,
         assetFillAmount: BigNumber,
