@@ -1142,7 +1142,6 @@ export class SamplerOperations {
                 (source): SourceQuoteOperation | SourceQuoteOperation[] => {
                     switch (source) {
                         case ERC20BridgeSource.Eth2Dai:
-                            // TODO jacob pass in to Sampler
                             return isValidAddress(OASIS_ROUTER_BY_CHAIN_ID[this.chainId])
                                 ? this.getEth2DaiBuyQuotes(
                                       OASIS_ROUTER_BY_CHAIN_ID[this.chainId],
