@@ -67,6 +67,8 @@ contract PancakeSwapFeature is
     uint256 constant private PANCAKESWAP_PAIR_RESERVES_CALL_SELECTOR_32 = 0x0902f1ac00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("swap(uint256,uint256,address,bytes)"))
     uint256 constant private PANCAKESWAP_PAIR_SWAP_CALL_SELECTOR_32 = 0x022c0d9f00000000000000000000000000000000000000000000000000000000;
+    // bytes4(keccak256("swap(uint256,uint256,address)"))
+    uint256 constant private BAKERYSWAP_PAIR_SWAP_CALL_SELECTOR_32 = 0x6d9a640a00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("transferFrom(address,address,uint256)"))
     uint256 constant private TRANSFER_FROM_CALL_SELECTOR_32 = 0x23b872dd00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("allowance(address,address)"))
@@ -256,7 +258,13 @@ contract PancakeSwapFeature is
                     }
 
                 // Call pair.swap()
-                mstore(0xB00, PANCAKESWAP_PAIR_SWAP_CALL_SELECTOR_32)
+                switch mload(0xA20) // fork
+                    case 1 {
+                        mstore(0xB00, BAKERYSWAP_PAIR_SWAP_CALL_SELECTOR_32)
+                    }
+                    default {
+                        mstore(0xB00, PANCAKESWAP_PAIR_SWAP_CALL_SELECTOR_32)
+                    }
                 switch pairOrder
                     case 0 {
                         mstore(0xB04, buyAmount)

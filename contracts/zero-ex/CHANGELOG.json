@@ -21,6 +21,10 @@
             {
                 "note": "Delete TokenSpenderFeature",
                 "pr": 189
+            },
+            {
+                "note": "Fix PancakeSwapFeature BakerySwap swap selector",
+                "pr": 190
             }
         ]
     },
