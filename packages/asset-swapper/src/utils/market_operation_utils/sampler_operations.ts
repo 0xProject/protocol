@@ -1021,7 +1021,6 @@ export class SamplerOperations {
                                 this.getLiquidityProviderSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
                             );
                         case ERC20BridgeSource.MStable:
-                            // TODO jacob pass to the sampler
                             return isValidAddress(MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId])
                                 ? this.getMStableSellQuotes(
                                       MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId],
