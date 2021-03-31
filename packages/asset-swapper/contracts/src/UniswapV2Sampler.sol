@@ -20,12 +20,10 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IUniswapV2Router01.sol";
 
 
-contract UniswapV2Sampler is
-    DeploymentConstants
+contract UniswapV2Sampler
 {
     /// @dev Gas limit for UniswapV2 calls.
     uint256 constant private UNISWAPV2_CALL_GAS = 150e3; // 150k
@@ -55,6 +53,10 @@ contract UniswapV2Sampler is
                 returns (uint256[] memory amounts)
             {
                 makerTokenAmounts[i] = amounts[path.length - 1];
+                // Break early if there are 0 amounts
+                if (makerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
@@ -87,6 +89,10 @@ contract UniswapV2Sampler is
                 returns (uint256[] memory amounts)
             {
                 takerTokenAmounts[i] = amounts[0];
+                // Break early if there are 0 amounts
+                if (takerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;

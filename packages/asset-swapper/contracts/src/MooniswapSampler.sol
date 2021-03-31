@@ -20,14 +20,12 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./interfaces/IMooniswap.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
 
 contract MooniswapSampler is
-    DeploymentConstants,
     SamplerUtils,
     ApproximateBuys
 {
@@ -56,25 +54,22 @@ contract MooniswapSampler is
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
 
-        address mooniswapTakerToken = takerToken == _getWethAddress() ? address(0) : takerToken;
-        address mooniswapMakerToken = makerToken == _getWethAddress() ? address(0) : makerToken;
-
         for (uint256 i = 0; i < numSamples; i++) {
             uint256 buyAmount = sampleSingleSellFromMooniswapPool(
                 registry,
-                mooniswapTakerToken,
-                mooniswapMakerToken,
+                takerToken,
+                makerToken,
                 takerTokenAmounts[i]
             );
-            // Exit early if the amount is too high for the source to serve
-            if (buyAmount == 0) {
+            makerTokenAmounts[i] = buyAmount;
+            // Break early if there are 0 amounts
+            if (makerTokenAmounts[i] == 0) {
                 break;
             }
-            makerTokenAmounts[i] = buyAmount;
         }
 
         pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken)
+            IMooniswapRegistry(registry).pools(takerToken, makerToken)
         );
     }
 
@@ -139,20 +134,17 @@ contract MooniswapSampler is
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
 
-        address mooniswapTakerToken = takerToken == _getWethAddress() ? address(0) : takerToken;
-        address mooniswapMakerToken = makerToken == _getWethAddress() ? address(0) : makerToken;
-
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(registry, mooniswapMakerToken),
-                takerTokenData: abi.encode(registry, mooniswapTakerToken),
+                makerTokenData: abi.encode(registry, makerToken),
+                takerTokenData: abi.encode(registry, takerToken),
                 getSellQuoteCallback: _sampleSellForApproximateBuyFromMooniswap
             }),
             makerTokenAmounts
         );
 
         pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken)
+            IMooniswapRegistry(registry).pools(takerToken, makerToken)
         );
     }
 

@@ -55,7 +55,7 @@ contract MultiplexFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MultiplexFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
 
     /// @dev The WETH token contract.
     IEtherTokenV06 private immutable weth;
@@ -73,12 +73,10 @@ contract MultiplexFeature is
     constructor(
         address zeroExAddress,
         IEtherTokenV06 weth_,
-        ILiquidityProviderSandbox sandbox_,
-        bytes32 greedyTokensBloomFilter
+        ILiquidityProviderSandbox sandbox_
     )
         public
         FixinEIP712(zeroExAddress)
-        FixinTokenSpender(greedyTokensBloomFilter)
     {
         weth = weth_;
         sandbox = sandbox_;

@@ -78,7 +78,7 @@ contract MetaTransactionsFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MetaTransactions";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 1);
     /// @dev EIP712 typehash of the `MetaTransactionData` struct.
     bytes32 public immutable MTX_EIP712_TYPEHASH = keccak256(
         "MetaTransactionData("
@@ -105,11 +105,10 @@ contract MetaTransactionsFeature is
         }
     }
 
-    constructor(address zeroExAddress, bytes32 greedyTokensBloomFilter)
+    constructor(address zeroExAddress)
         public
         FixinCommon()
         FixinEIP712(zeroExAddress)
-        FixinTokenSpender(greedyTokensBloomFilter)
     {
         // solhint-disable-next-line no-empty-blocks
     }

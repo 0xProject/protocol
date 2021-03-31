@@ -93,6 +93,10 @@ contract BalancerSampler {
                 returns (uint256 amount)
             {
                 makerTokenAmounts[i] = amount;
+                // Break early if there are 0 amounts
+                if (makerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
@@ -151,6 +155,10 @@ contract BalancerSampler {
                 returns (uint256 amount)
             {
                 takerTokenAmounts[i] = amount;
+                // Break early if there are 0 amounts
+                if (takerTokenAmounts[i] == 0) {
+                    break;
+                }
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;

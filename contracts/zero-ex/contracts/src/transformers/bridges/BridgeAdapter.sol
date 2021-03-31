@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "./IBridgeAdapter.sol";
-import "./BridgeSource.sol";
+import "./BridgeProtocols.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
@@ -32,9 +32,9 @@ import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyber.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
+import "./mixins/MixinNerve.sol";
 import "./mixins/MixinOasis.sol";
 import "./mixins/MixinShell.sol";
-import "./mixins/MixinSushiswap.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinZeroExBridge.sol";
@@ -51,9 +51,9 @@ contract BridgeAdapter is
     MixinKyber,
     MixinMooniswap,
     MixinMStable,
+    MixinNerve,
     MixinOasis,
     MixinShell,
-    MixinSushiswap,
     MixinUniswap,
     MixinUniswapV2,
     MixinZeroExBridge
@@ -70,9 +70,9 @@ contract BridgeAdapter is
         MixinKyber(weth)
         MixinMooniswap(weth)
         MixinMStable()
+        MixinNerve()
         MixinOasis()
         MixinShell()
-        MixinSushiswap()
         MixinUniswap(weth)
         MixinUniswapV2()
         MixinZeroExBridge()
@@ -88,106 +88,103 @@ contract BridgeAdapter is
         override
         returns (uint256 boughtAmount)
     {
-        if (order.source == BridgeSource.CURVE ||
-            order.source == BridgeSource.SWERVE ||
-            order.source == BridgeSource.SNOWSWAP) {
+        uint128 protocolId = uint128(uint256(order.source) >> 128);
+        if (protocolId == BridgeProtocols.CURVE) {
             boughtAmount = _tradeCurve(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.SUSHISWAP) {
-            boughtAmount = _tradeSushiswap(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (order.source == BridgeSource.UNISWAPV2 ||
-                   order.source == BridgeSource.LINKSWAP) {
+        } else if (protocolId == BridgeProtocols.UNISWAPV2) {
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.UNISWAP) {
+        } else if (protocolId == BridgeProtocols.UNISWAP) {
             boughtAmount = _tradeUniswap(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.BALANCER ||
-                   order.source == BridgeSource.CREAM) {
+        } else if (protocolId == BridgeProtocols.BALANCER) {
             boughtAmount = _tradeBalancer(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.KYBER) {
+        } else if (protocolId == BridgeProtocols.KYBER) {
             boughtAmount = _tradeKyber(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.MOONISWAP) {
+        } else if (protocolId == BridgeProtocols.MOONISWAP) {
             boughtAmount = _tradeMooniswap(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.MSTABLE) {
+        } else if (protocolId == BridgeProtocols.MSTABLE) {
             boughtAmount = _tradeMStable(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.OASIS) {
+        } else if (protocolId == BridgeProtocols.OASIS) {
             boughtAmount = _tradeOasis(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.SHELL) {
+        } else if (protocolId == BridgeProtocols.SHELL) {
             boughtAmount = _tradeShell(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.DODO) {
+        } else if (protocolId == BridgeProtocols.DODO) {
             boughtAmount = _tradeDodo(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.DODOV2) {
+        } else if (protocolId == BridgeProtocols.DODOV2) {
             boughtAmount = _tradeDodoV2(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.CRYPTOCOM) {
+        } else if (protocolId == BridgeProtocols.CRYPTOCOM) {
             boughtAmount = _tradeCryptoCom(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.BANCOR) {
+        } else if (protocolId == BridgeProtocols.BANCOR) {
             boughtAmount = _tradeBancor(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else if (order.source == BridgeSource.COFIX) {
+        } else if (protocolId == BridgeProtocols.COFIX) {
             boughtAmount = _tradeCoFiX(
                 sellToken,
                 buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.NERVE) {
+            boughtAmount = _tradeNerve(
+                sellToken,
                 sellAmount,
                 order.bridgeData
             );

@@ -17,6 +17,22 @@
             {
                 "note": "improve logging for alt RFQ requests",
                 "pr": 158
+            },
+            {
+                "note": "Use new bridge source ID encoding.",
+                "pr": 162
+            },
+            {
+                "note": "Refactor to provide chain id specific addresses",
+                "pr": 163
+            },
+            {
+                "note": "Added PancakeSwap and BakerySwap on Chain 56",
+                "pr": 163
+            },
+            {
+                "note": "Added Nerve and Dodo (v1) to BSC",
+                "pr": 181
             }
         ]
     },

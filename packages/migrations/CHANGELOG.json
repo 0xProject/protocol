@@ -1,5 +1,13 @@
 [
     {
+        "version": "8.0.0",
+        "changes": [
+            {
+                "note": "Remove exchangeProxyAllowanceTarget"
+            }
+        ]
+    },
+    {
         "timestamp": 1616005394,
         "version": "7.0.1",
         "changes": [

@@ -2,7 +2,6 @@ import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contra
 import { blockchainTests, constants, expect, verifyEventsFromLogs } from '@0x/contracts-test-utils';
 import { BigNumber, OwnableRevertErrors, ZeroExRevertErrors } from '@0x/utils';
 
-import { ZERO_BYTES32 } from '../../src/constants';
 import { IOwnableFeatureContract, IZeroExContract, LiquidityProviderFeatureContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
@@ -63,7 +62,6 @@ blockchainTests('LiquidityProvider feature', env => {
             env.txDefaults,
             artifacts,
             sandbox.address,
-            ZERO_BYTES32,
         );
         await new IOwnableFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis)
             .migrate(featureImpl.address, featureImpl.migrate().getABIEncodedTransactionData(), owner)

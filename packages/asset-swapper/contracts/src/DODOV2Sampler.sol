@@ -20,7 +20,6 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
@@ -44,7 +43,6 @@ interface IDODOV2Pool {
 }
 
 contract DODOV2Sampler is
-    DeploymentConstants,
     SamplerUtils,
     ApproximateBuys
 {
@@ -89,11 +87,11 @@ contract DODOV2Sampler is
                 abi.encode(makerToken, pool, sellBase), // maker token data
                 takerTokenAmounts[i]
             );
-            // Exit early if the amount is too high for the source to serve
-            if (buyAmount == 0) {
+            makerTokenAmounts[i] = buyAmount;
+            // Break early if there are 0 amounts
+            if (makerTokenAmounts[i] == 0) {
                 break;
             }
-            makerTokenAmounts[i] = buyAmount;
         }
     }
 

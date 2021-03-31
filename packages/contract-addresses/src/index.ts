@@ -30,7 +30,6 @@ export interface ContractAddresses {
     dexForwarderBridge: string;
     exchangeProxyGovernor: string;
     exchangeProxy: string;
-    exchangeProxyAllowanceTarget: string;
     exchangeProxyTransformerDeployer: string;
     exchangeProxyFlashWallet: string;
     exchangeProxyLiquidityProviderSandbox: string;
@@ -49,6 +48,7 @@ export enum ChainId {
     Rinkeby = 4,
     Kovan = 42,
     Ganache = 1337,
+    BSC = 56,
 }
 
 /**

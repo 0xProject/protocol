@@ -26,6 +26,7 @@ import "./features/interfaces/ITokenSpenderFeature.sol";
 import "./features/interfaces/ITransformERC20Feature.sol";
 import "./features/interfaces/IMetaTransactionsFeature.sol";
 import "./features/interfaces/IUniswapFeature.sol";
+import "./features/interfaces/IPancakeSwapFeature.sol";
 import "./features/interfaces/ILiquidityProviderFeature.sol";
 import "./features/interfaces/INativeOrdersFeature.sol";
 import "./features/interfaces/IBatchFillNativeOrdersFeature.sol";
@@ -36,10 +37,10 @@ import "./features/interfaces/IMultiplexFeature.sol";
 interface IZeroEx is
     IOwnableFeature,
     ISimpleFunctionRegistryFeature,
-    ITokenSpenderFeature,
     ITransformERC20Feature,
     IMetaTransactionsFeature,
     IUniswapFeature,
+    IPancakeSwapFeature,
     ILiquidityProviderFeature,
     INativeOrdersFeature,
     IBatchFillNativeOrdersFeature,

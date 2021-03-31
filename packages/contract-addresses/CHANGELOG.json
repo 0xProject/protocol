@@ -1,5 +1,22 @@
 [
     {
+        "version": "6.0.0-bsc.0",
+        "changes": [
+            {
+                "note": "Add BSC chain addresses",
+                "pr": 164
+            },
+            {
+                "note": "Remove exchangeProxyAllowanceTarget",
+                "pr": 164
+            },
+            {
+                "note": "Redeployed FQT on BSC",
+                "pr": 181
+            }
+        ]
+    },
+    {
         "version": "5.11.0",
         "changes": [
             {

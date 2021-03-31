@@ -6,11 +6,10 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
-import * as AllowanceTarget from '../test/generated-artifacts/AllowanceTarget.json';
 import * as BatchFillNativeOrdersFeature from '../test/generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
-import * as BridgeSource from '../test/generated-artifacts/BridgeSource.json';
+import * as BridgeProtocols from '../test/generated-artifacts/BridgeProtocols.json';
 import * as CurveLiquidityProvider from '../test/generated-artifacts/CurveLiquidityProvider.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
@@ -22,7 +21,6 @@ import * as FixinReentrancyGuard from '../test/generated-artifacts/FixinReentran
 import * as FixinTokenSpender from '../test/generated-artifacts/FixinTokenSpender.json';
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
-import * as IAllowanceTarget from '../test/generated-artifacts/IAllowanceTarget.json';
 import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
@@ -40,6 +38,7 @@ import * as INativeOrdersEvents from '../test/generated-artifacts/INativeOrdersE
 import * as INativeOrdersFeature from '../test/generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../test/generated-artifacts/InitialMigration.json';
 import * as IOwnableFeature from '../test/generated-artifacts/IOwnableFeature.json';
+import * as IPancakeSwapFeature from '../test/generated-artifacts/IPancakeSwapFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../test/generated-artifacts/ISimpleFunctionRegistryFeature.json';
 import * as IStaking from '../test/generated-artifacts/IStaking.json';
 import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts/ITestSimpleFunctionRegistryFeature.json';
@@ -68,9 +67,7 @@ import * as LibSignature from '../test/generated-artifacts/LibSignature.json';
 import * as LibSignatureRichErrors from '../test/generated-artifacts/LibSignatureRichErrors.json';
 import * as LibSimpleFunctionRegistryRichErrors from '../test/generated-artifacts/LibSimpleFunctionRegistryRichErrors.json';
 import * as LibSimpleFunctionRegistryStorage from '../test/generated-artifacts/LibSimpleFunctionRegistryStorage.json';
-import * as LibSpenderRichErrors from '../test/generated-artifacts/LibSpenderRichErrors.json';
 import * as LibStorage from '../test/generated-artifacts/LibStorage.json';
-import * as LibTokenSpenderStorage from '../test/generated-artifacts/LibTokenSpenderStorage.json';
 import * as LibTransformERC20RichErrors from '../test/generated-artifacts/LibTransformERC20RichErrors.json';
 import * as LibTransformERC20Storage from '../test/generated-artifacts/LibTransformERC20Storage.json';
 import * as LibWalletRichErrors from '../test/generated-artifacts/LibWalletRichErrors.json';
@@ -88,9 +85,9 @@ import * as MixinDodoV2 from '../test/generated-artifacts/MixinDodoV2.json';
 import * as MixinKyber from '../test/generated-artifacts/MixinKyber.json';
 import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json';
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
+import * as MixinNerve from '../test/generated-artifacts/MixinNerve.json';
 import * as MixinOasis from '../test/generated-artifacts/MixinOasis.json';
 import * as MixinShell from '../test/generated-artifacts/MixinShell.json';
-import * as MixinSushiswap from '../test/generated-artifacts/MixinSushiswap.json';
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
 import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridge.json';
@@ -102,6 +99,7 @@ import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.
 import * as NativeOrdersProtocolFees from '../test/generated-artifacts/NativeOrdersProtocolFees.json';
 import * as NativeOrdersSettlement from '../test/generated-artifacts/NativeOrdersSettlement.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
+import * as PancakeSwapFeature from '../test/generated-artifacts/PancakeSwapFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
 import * as PositiveSlippageFeeTransformer from '../test/generated-artifacts/PositiveSlippageFeeTransformer.json';
@@ -134,7 +132,6 @@ import * as TestRfqOriginRegistration from '../test/generated-artifacts/TestRfqO
 import * as TestSimpleFunctionRegistryFeatureImpl1 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl1.json';
 import * as TestSimpleFunctionRegistryFeatureImpl2 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl2.json';
 import * as TestStaking from '../test/generated-artifacts/TestStaking.json';
-import * as TestTokenSpender from '../test/generated-artifacts/TestTokenSpender.json';
 import * as TestTokenSpenderERC20Token from '../test/generated-artifacts/TestTokenSpenderERC20Token.json';
 import * as TestTransformerBase from '../test/generated-artifacts/TestTransformerBase.json';
 import * as TestTransformERC20 from '../test/generated-artifacts/TestTransformERC20.json';
@@ -143,7 +140,6 @@ import * as TestTransformerHost from '../test/generated-artifacts/TestTransforme
 import * as TestWeth from '../test/generated-artifacts/TestWeth.json';
 import * as TestWethTransformerHost from '../test/generated-artifacts/TestWethTransformerHost.json';
 import * as TestZeroExFeature from '../test/generated-artifacts/TestZeroExFeature.json';
-import * as TokenSpenderFeature from '../test/generated-artifacts/TokenSpenderFeature.json';
 import * as Transformer from '../test/generated-artifacts/Transformer.json';
 import * as TransformERC20Feature from '../test/generated-artifacts/TransformERC20Feature.json';
 import * as TransformerDeployer from '../test/generated-artifacts/TransformerDeployer.json';
@@ -163,14 +159,11 @@ export const artifacts = {
     LibProxyRichErrors: LibProxyRichErrors as ContractArtifact,
     LibSignatureRichErrors: LibSignatureRichErrors as ContractArtifact,
     LibSimpleFunctionRegistryRichErrors: LibSimpleFunctionRegistryRichErrors as ContractArtifact,
-    LibSpenderRichErrors: LibSpenderRichErrors as ContractArtifact,
     LibTransformERC20RichErrors: LibTransformERC20RichErrors as ContractArtifact,
     LibWalletRichErrors: LibWalletRichErrors as ContractArtifact,
-    AllowanceTarget: AllowanceTarget as ContractArtifact,
     FeeCollector: FeeCollector as ContractArtifact,
     FeeCollectorController: FeeCollectorController as ContractArtifact,
     FlashWallet: FlashWallet as ContractArtifact,
-    IAllowanceTarget: IAllowanceTarget as ContractArtifact,
     IFlashWallet: IFlashWallet as ContractArtifact,
     ILiquidityProviderSandbox: ILiquidityProviderSandbox as ContractArtifact,
     LibFeeCollector: LibFeeCollector as ContractArtifact,
@@ -184,8 +177,8 @@ export const artifacts = {
     MultiplexFeature: MultiplexFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
+    PancakeSwapFeature: PancakeSwapFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
-    TokenSpenderFeature: TokenSpenderFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
@@ -197,6 +190,7 @@ export const artifacts = {
     INativeOrdersEvents: INativeOrdersEvents as ContractArtifact,
     INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
     IOwnableFeature: IOwnableFeature as ContractArtifact,
+    IPancakeSwapFeature: IPancakeSwapFeature as ContractArtifact,
     ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,
     ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
@@ -225,7 +219,6 @@ export const artifacts = {
     LibReentrancyGuardStorage: LibReentrancyGuardStorage as ContractArtifact,
     LibSimpleFunctionRegistryStorage: LibSimpleFunctionRegistryStorage as ContractArtifact,
     LibStorage: LibStorage as ContractArtifact,
-    LibTokenSpenderStorage: LibTokenSpenderStorage as ContractArtifact,
     LibTransformERC20Storage: LibTransformERC20Storage as ContractArtifact,
     AffiliateFeeTransformer: AffiliateFeeTransformer as ContractArtifact,
     FillQuoteTransformer: FillQuoteTransformer as ContractArtifact,
@@ -237,7 +230,7 @@ export const artifacts = {
     Transformer: Transformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     BridgeAdapter: BridgeAdapter as ContractArtifact,
-    BridgeSource: BridgeSource as ContractArtifact,
+    BridgeProtocols: BridgeProtocols as ContractArtifact,
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
@@ -249,9 +242,9 @@ export const artifacts = {
     MixinKyber: MixinKyber as ContractArtifact,
     MixinMStable: MixinMStable as ContractArtifact,
     MixinMooniswap: MixinMooniswap as ContractArtifact,
+    MixinNerve: MixinNerve as ContractArtifact,
     MixinOasis: MixinOasis as ContractArtifact,
     MixinShell: MixinShell as ContractArtifact,
-    MixinSushiswap: MixinSushiswap as ContractArtifact,
     MixinUniswap: MixinUniswap as ContractArtifact,
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
@@ -289,7 +282,6 @@ export const artifacts = {
     TestSimpleFunctionRegistryFeatureImpl1: TestSimpleFunctionRegistryFeatureImpl1 as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl2: TestSimpleFunctionRegistryFeatureImpl2 as ContractArtifact,
     TestStaking: TestStaking as ContractArtifact,
-    TestTokenSpender: TestTokenSpender as ContractArtifact,
     TestTokenSpenderERC20Token: TestTokenSpenderERC20Token as ContractArtifact,
     TestTransformERC20: TestTransformERC20 as ContractArtifact,
     TestTransformerBase: TestTransformerBase as ContractArtifact,

@@ -1,6 +1,6 @@
-import { ContractAddresses } from '@0x/contract-addresses';
-import { WETH9Contract } from '@0x/contracts-erc20';
-import { IZeroExContract, MultiplexFeatureContract } from '@0x/contracts-zero-ex';
+import { ChainId, ContractAddresses } from '@0x/contract-addresses';
+import { IZeroExContract, WETH9Contract } from '@0x/contract-wrappers';
+import { MultiplexFeatureContract } from '@0x/contracts-zero-ex';
 import {
     encodeAffiliateFeeTransformerData,
     encodeCurveLiquidityProviderData,
@@ -34,6 +34,7 @@ import { assert } from '../utils/assert';
 import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
 import { poolEncoder } from '../utils/market_operation_utils/orders';
 import {
@@ -62,10 +63,16 @@ import {
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
+const PANCAKE_SWAP_FORKS = [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.BakerySwap, ERC20BridgeSource.SushiSwap];
+const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, {
+    sendAsync(): void {
+        return;
+    },
+} as any);
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly provider: ZeroExProvider;
-    public readonly chainId: number;
+    public readonly chainId: ChainId;
     public readonly transformerNonces: {
         wethTransformer: number;
         payTakerTransformer: number;
@@ -139,6 +146,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // VIP routes.
         if (
+            this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
         ) {
             const source = quote.orders[0].source;
@@ -167,7 +175,44 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])) {
+        if (
+            this.chainId === ChainId.BSC &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [
+                ERC20BridgeSource.PancakeSwap,
+                ERC20BridgeSource.BakerySwap,
+                ERC20BridgeSource.SushiSwap,
+            ])
+        ) {
+            const source = quote.orders[0].source;
+            const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToPancakeSwap(
+                        fillData.tokenAddressPath.map((a, i) => {
+                            if (i === 0 && isFromETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            if (i === fillData.tokenAddressPath.length - 1 && isToETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            return a;
+                        }),
+                        sellAmount,
+                        minBuyAmount,
+                        PANCAKE_SWAP_FORKS.indexOf(source),
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])
+        ) {
             const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
             const target = fillData.poolAddress;
             return {
@@ -189,7 +234,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])) {
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])
+        ) {
             const fillData = quote.orders[0].fills[0].fillData as CurveFillData;
             return {
                 calldataHexString: this._exchangeProxy
@@ -215,7 +263,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])) {
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
+        ) {
             const fillData = quote.orders[0].fills[0].fillData as MooniswapFillData;
             return {
                 calldataHexString: this._exchangeProxy
@@ -236,7 +287,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
+        if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
             return {
                 calldataHexString: this._encodeMultiplexBatchFillCalldata(quote),
                 ethAmount,
@@ -245,7 +296,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 gasOverhead: ZERO_AMOUNT,
             };
         }
-        if (isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
+        if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
             return {
                 calldataHexString: this._encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
                 ethAmount,
@@ -317,7 +368,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             transforms.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
-                    token: this.contractAddresses.etherToken,
+                    token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
                     amount: MAX_UINT256,
                 }),
             });
@@ -491,11 +542,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     }
 
     private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
-        const weth = new WETH9Contract(NULL_ADDRESS, this.provider);
         const wrappedMultiHopCalls = [];
         if (opts.isFromETH) {
             wrappedMultiHopCalls.push({
-                selector: weth.getSelector('deposit'),
+                selector: DUMMY_WETH_CONTRACT.getSelector('deposit'),
                 data: NULL_BYTES,
             });
         }
@@ -532,7 +582,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
         if (opts.isToETH) {
             wrappedMultiHopCalls.push({
-                selector: weth.getSelector('withdraw'),
+                selector: DUMMY_WETH_CONTRACT.getSelector('withdraw'),
                 data: NULL_BYTES,
             });
         }

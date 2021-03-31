@@ -43,7 +43,7 @@ export const testHelpers = {
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,
     ): Promise<void> => {
-        const mockedAxios = new AxiosMockAdapter(axiosClient, { onNoMatch: 'throwException' });
+        const mockedAxios = new AxiosMockAdapter(axiosClient, { onNoMatch: 'throwException' } as any);
         try {
             // Mock out Standard RFQ-T/M responses
             for (const mockedResponse of standardMockedResponses) {

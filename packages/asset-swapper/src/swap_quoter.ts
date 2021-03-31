@@ -132,6 +132,7 @@ export class SwapQuoter {
 
         this._marketOperationUtils = new MarketOperationUtils(
             new DexOrderSampler(
+                this.chainId,
                 samplerContract,
                 samplerOverrides,
                 undefined, // balancer pool cache
