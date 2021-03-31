@@ -24,7 +24,7 @@ import { NULL_ADDRESS } from '../src/utils/market_operation_utils/constants';
 import { QuoteRequestor } from '../src/utils/quote_requestor';
 
 import { chaiSetup } from './utils/chai_setup';
-import { RfqtQuoteEndpoint, testHelpers } from './utils/test_helpers';
+import { RfqQuoteEndpoint, testHelpers } from './utils/test_helpers';
 
 const quoteRequestorHttpClient = Axios.create({
     httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
@@ -64,6 +64,196 @@ describe('QuoteRequestor', async () => {
         ],
     };
 
+    describe('requestRfqmFirmQuotesAsync for firm quotes', async () => {
+        it('should return successful RFQM requests', async () => {
+            const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
+            const txOrigin = takerAddress;
+            const apiKey = 'my-ko0l-api-key';
+
+            // Set up RFQM responses
+            // tslint:disable-next-line:array-type
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
+            const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
+
+            const expectedParams: TakerRequestQueryParams = {
+                sellTokenAddress: takerToken,
+                buyTokenAddress: makerToken,
+                sellAmountBaseUnits: '10000',
+                comparisonPrice: undefined,
+                takerAddress,
+                txOrigin,
+                isLastLook: 'true', // the major difference between RFQ-T and RFQ-M
+                protocolVersion: '4',
+            };
+            const mockedDefaults = {
+                requestApiKey: apiKey,
+                requestParams: expectedParams,
+                responseCode: StatusCodes.Success,
+            };
+            const validSignedOrder = {
+                makerToken,
+                takerToken,
+                makerAmount: new BigNumber('1000'),
+                takerAmount: new BigNumber('1000'),
+                maker: takerAddress,
+                taker: takerAddress,
+                pool: '0x',
+                salt: '0',
+                chainId: 1,
+                verifyingContract: takerAddress,
+                txOrigin,
+                expiry: makeThreeMinuteExpiry(),
+                signature: validSignature,
+            };
+            // request is to sell 10000 units of the base token
+            // 10 units at 3 decimals
+            const altFirmRequestData = {
+                market: 'XYZ-123',
+                model: AltQuoteModel.Firm,
+                profile: ALT_PROFILE,
+                side: AltQuoteSide.Sell,
+                meta: {
+                    txOrigin,
+                    taker: takerAddress,
+                    client: apiKey,
+                },
+                value: '10',
+            };
+            const altFirmResponse = {
+                ...altFirmRequestData,
+                id: 'random_id',
+                // tslint:disable-next-line:custom-no-magic-numbers
+                price: new BigNumber(10 / 100).toString(),
+                status: 'active',
+                data: {
+                    '0xv4order': validSignedOrder,
+                },
+            };
+
+            // [GOOD] Successful response
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://1337.0.0.1',
+                responseData: {
+                    signedOrder: validSignedOrder,
+                },
+            });
+            // [GOOD] Another Successful response
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://37.0.0.1',
+                responseData: { signedOrder: validSignedOrder },
+            });
+            // [BAD] Test out a bad response code, ensure it doesnt cause throw
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://420.0.0.1',
+                responseData: { error: 'bad request' },
+                responseCode: StatusCodes.InternalError,
+            });
+            // [BAD] Test out a successful response code but a partial order
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://421.0.0.1',
+                responseData: { signedOrder: { makerToken: '123' } },
+            });
+            // [BAD] A successful response code and invalid response data (encoding)
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://421.1.0.1',
+                responseData: 'this is not JSON!',
+            });
+            // [BAD] A successful response code and valid order, but for wrong maker asset data
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://422.0.0.1',
+                responseData: { signedOrder: { ...validSignedOrder, makerToken: '0x1234' } },
+            });
+            // [BAD] A successful response code and valid order, but for wrong taker asset data
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://423.0.0.1',
+                responseData: { signedOrder: { ...validSignedOrder, takerToken: '0x1234' } },
+            });
+            // [BAD] A successful response code and good order but its unsigned
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://424.0.0.1',
+                responseData: { signedOrder: _.omit(validSignedOrder, ['signature']) },
+            });
+            // [BAD] A successful response code and good order but for the wrong txOrigin
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://425.0.0.1',
+                responseData: { signedOrder: { ...validSignedOrder, txOrigin: NULL_ADDRESS } },
+            });
+            // [GOOD] A successful response code and order from an alt RFQ implementation
+            altMockedRequests.push({
+                endpoint: 'https://132.0.0.1',
+                mmApiKey: ALT_MM_API_KEY,
+                responseCode: CREATED_STATUS_CODE,
+                requestData: altFirmRequestData,
+                responseData: altFirmResponse,
+            });
+
+            const normalizedSuccessfulOrder = {
+                order: {
+                    ..._.omit(validSignedOrder, ['signature']),
+                    makerAmount: new BigNumber(validSignedOrder.makerAmount),
+                    takerAmount: new BigNumber(validSignedOrder.takerAmount),
+                    expiry: new BigNumber(validSignedOrder.expiry),
+                    salt: new BigNumber(validSignedOrder.salt),
+                },
+                signature: validSignedOrder.signature,
+                type: FillQuoteTransformerOrderType.Rfq,
+            };
+
+            return testHelpers.withMockedRfqQuotes(
+                mockedRequests,
+                altMockedRequests,
+                RfqQuoteEndpoint.Firm,
+                async () => {
+                    const qr = new QuoteRequestor(
+                        {}, // No RFQ-T asset offerings
+                        {
+                            'https://1337.0.0.1': [[makerToken, takerToken]],
+                            'https://420.0.0.1': [[makerToken, takerToken]],
+                            'https://421.0.0.1': [[makerToken, takerToken]],
+                            'https://421.1.0.1': [[makerToken, takerToken]],
+                            'https://422.0.0.1': [[makerToken, takerToken]],
+                            'https://423.0.0.1': [[makerToken, takerToken]],
+                            'https://424.0.0.1': [[makerToken, takerToken]],
+                            'https://425.0.0.1': [[makerToken, takerToken]],
+                            'https://426.0.0.1': [] /* Shouldn't ping an RFQ provider when they don't support the requested asset pair. */,
+                            'https://37.0.0.1': [[makerToken, takerToken]],
+                        },
+                        quoteRequestorHttpClient,
+                        ALT_RFQ_CREDS,
+                    );
+                    const resp = await qr.requestRfqmFirmQuotesAsync(
+                        makerToken,
+                        takerToken,
+                        new BigNumber(10000),
+                        MarketOperation.Sell,
+                        undefined,
+                        {
+                            apiKey,
+                            takerAddress,
+                            txOrigin: takerAddress,
+                            intentOnFilling: true,
+                            altRfqAssetOfferings,
+                        },
+                    );
+                    expect(resp).to.deep.eq([
+                        normalizedSuccessfulOrder,
+                        normalizedSuccessfulOrder,
+                        normalizedSuccessfulOrder,
+                    ]);
+                },
+                quoteRequestorHttpClient,
+            );
+        });
+    });
     describe('requestRfqtFirmQuotesAsync for firm quotes', async () => {
         it('should return successful RFQT requests', async () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
@@ -82,6 +272,7 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin,
+                isLastLook: 'false',
                 protocolVersion: '4',
             };
             const mockedDefaults = {
@@ -207,10 +398,10 @@ describe('QuoteRequestor', async () => {
                 type: FillQuoteTransformerOrderType.Rfq,
             };
 
-            return testHelpers.withMockedRfqtQuotes(
+            return testHelpers.withMockedRfqQuotes(
                 mockedRequests,
                 altMockedRequests,
-                RfqtQuoteEndpoint.Firm,
+                RfqQuoteEndpoint.Firm,
                 async () => {
                     const qr = new QuoteRequestor(
                         {
@@ -225,6 +416,7 @@ describe('QuoteRequestor', async () => {
                             'https://426.0.0.1': [] /* Shouldn't ping an RFQ-T provider when they don't support the requested asset pair. */,
                             'https://37.0.0.1': [[makerToken, takerToken]],
                         },
+                        {},
                         quoteRequestorHttpClient,
                         ALT_RFQ_CREDS,
                     );
@@ -247,6 +439,114 @@ describe('QuoteRequestor', async () => {
                         normalizedSuccessfulOrder,
                         normalizedSuccessfulOrder,
                     ]);
+                },
+                quoteRequestorHttpClient,
+            );
+        });
+    });
+    describe('requestRfqmIndicativeQuotesAsync for Indicative quotes', async () => {
+        it('should return successful RFQM requests', async () => {
+            const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
+            const apiKey = 'my-ko0l-api-key';
+
+            // Set up RFQ responses
+            // tslint:disable-next-line:array-type
+            const mockedRequests: MockedRfqQuoteResponse[] = [];
+            const expectedParams: TakerRequestQueryParams = {
+                sellTokenAddress: takerToken,
+                buyTokenAddress: makerToken,
+                sellAmountBaseUnits: '10000',
+                comparisonPrice: undefined,
+                takerAddress,
+                txOrigin: takerAddress,
+                isLastLook: 'true', // the major difference between RFQ-T and RFQ-M
+                protocolVersion: '4',
+            };
+            const mockedDefaults = {
+                requestApiKey: apiKey,
+                requestParams: expectedParams,
+                responseCode: StatusCodes.Success,
+            };
+
+            // [GOOD] Successful response
+            const successfulQuote1 = {
+                makerToken,
+                takerToken,
+                makerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
+                takerAmount: new BigNumber(expectedParams.sellAmountBaseUnits),
+                expiry: makeThreeMinuteExpiry(),
+            };
+
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://1337.0.0.1',
+                responseData: successfulQuote1,
+            });
+            // [GOOD] Another Successful response
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://37.0.0.1',
+                responseData: successfulQuote1,
+            });
+
+            // [BAD] Test out a bad response code, ensure it doesnt cause throw
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://420.0.0.1',
+                responseData: { error: 'bad request' },
+                responseCode: StatusCodes.InternalError,
+            });
+            // [BAD] Test out a successful response code but an invalid order
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://421.0.0.1',
+                responseData: { makerToken: '123' },
+            });
+            // [BAD] A successful response code and valid response data, but for wrong maker asset data
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://422.0.0.1',
+                responseData: { ...successfulQuote1, makerToken: otherToken1 },
+            });
+            // [BAD] A successful response code and valid response data, but for wrong taker asset data
+            mockedRequests.push({
+                ...mockedDefaults,
+                endpoint: 'https://423.0.0.1',
+                responseData: { ...successfulQuote1, takerToken: otherToken1 },
+            });
+
+            return testHelpers.withMockedRfqQuotes(
+                mockedRequests,
+                [],
+                RfqQuoteEndpoint.Indicative,
+                async () => {
+                    const qr = new QuoteRequestor(
+                        {}, // No RFQ-T asset offerings
+                        {
+                            'https://1337.0.0.1': [[makerToken, takerToken]],
+                            'https://37.0.0.1': [[makerToken, takerToken]],
+                            'https://420.0.0.1': [[makerToken, takerToken]],
+                            'https://421.0.0.1': [[makerToken, takerToken]],
+                            'https://422.0.0.1': [[makerToken, takerToken]],
+                            'https://423.0.0.1': [[makerToken, takerToken]],
+                            'https://424.0.0.1': [[makerToken, takerToken]],
+                        },
+                        quoteRequestorHttpClient,
+                    );
+                    const resp = await qr.requestRfqmIndicativeQuotesAsync(
+                        makerToken,
+                        takerToken,
+                        new BigNumber(10000),
+                        MarketOperation.Sell,
+                        undefined,
+                        {
+                            apiKey,
+                            takerAddress,
+                            txOrigin: takerAddress,
+                            intentOnFilling: true,
+                        },
+                    );
+                    expect(resp.sort()).to.eql([successfulQuote1, successfulQuote1].sort());
                 },
                 quoteRequestorHttpClient,
             );
@@ -279,6 +579,7 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin: takerAddress,
+                isLastLook: 'false',
                 protocolVersion: '4',
             };
             const mockedDefaults = {
@@ -333,10 +634,10 @@ describe('QuoteRequestor', async () => {
                 responseData: successfulQuote1,
             });
 
-            return testHelpers.withMockedRfqtQuotes(
+            return testHelpers.withMockedRfqQuotes(
                 mockedRequests,
                 [],
-                RfqtQuoteEndpoint.Indicative,
+                RfqQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor(
                         {
@@ -348,6 +649,7 @@ describe('QuoteRequestor', async () => {
                             'https://424.0.0.1': [[makerToken, takerToken]],
                             'https://37.0.0.1': [[makerToken, takerToken]],
                         },
+                        {},
                         quoteRequestorHttpClient,
                     );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
@@ -386,6 +688,7 @@ describe('QuoteRequestor', async () => {
                 takerAddress,
                 txOrigin: takerAddress,
                 protocolVersion: '4',
+                isLastLook: 'false',
             };
             const mockedDefaults = {
                 requestApiKey: apiKey,
@@ -424,16 +727,17 @@ describe('QuoteRequestor', async () => {
                 },
             });
 
-            return testHelpers.withMockedRfqtQuotes(
+            return testHelpers.withMockedRfqQuotes(
                 mockedRequests,
                 [],
-                RfqtQuoteEndpoint.Indicative,
+                RfqQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor(
                         {
                             'https://1337.0.0.1': [[makerToken, takerToken]],
                             'https://420.0.0.1': [[makerToken, takerToken]],
                         },
+                        {},
                         quoteRequestorHttpClient,
                     );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
@@ -469,6 +773,7 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin: takerAddress,
+                isLastLook: 'false',
                 protocolVersion: '4',
             };
             // Successful response
@@ -487,13 +792,14 @@ describe('QuoteRequestor', async () => {
                 responseCode: StatusCodes.Success,
             });
 
-            return testHelpers.withMockedRfqtQuotes(
+            return testHelpers.withMockedRfqQuotes(
                 mockedRequests,
                 [],
-                RfqtQuoteEndpoint.Indicative,
+                RfqQuoteEndpoint.Indicative,
                 async () => {
                     const qr = new QuoteRequestor(
                         { 'https://1337.0.0.1': [[makerToken, takerToken]] },
+                        {},
                         quoteRequestorHttpClient,
                     );
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
@@ -722,12 +1028,12 @@ describe('QuoteRequestor', async () => {
             for (const altScenario of altScenarios) {
                 logUtils.log(`Alt MM indicative scenario ${scenarioCounter}`);
                 scenarioCounter += 1;
-                await testHelpers.withMockedRfqtQuotes(
+                await testHelpers.withMockedRfqQuotes(
                     [],
                     altMockedRequests,
-                    RfqtQuoteEndpoint.Indicative,
+                    RfqQuoteEndpoint.Indicative,
                     async () => {
-                        const qr = new QuoteRequestor({}, quoteRequestorHttpClient, ALT_RFQ_CREDS);
+                        const qr = new QuoteRequestor({}, {}, quoteRequestorHttpClient, ALT_RFQ_CREDS);
                         const resp = await qr.requestRfqtIndicativeQuotesAsync(
                             altScenario.requestedMakerToken,
                             altScenario.requestedTakerToken,
