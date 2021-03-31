@@ -21,7 +21,6 @@ import * as FixinReentrancyGuard from '../test/generated-artifacts/FixinReentran
 import * as FixinTokenSpender from '../test/generated-artifacts/FixinTokenSpender.json';
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
-import * as IAllowanceTarget from '../test/generated-artifacts/IAllowanceTarget.json';
 import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
@@ -69,7 +68,6 @@ import * as LibSignatureRichErrors from '../test/generated-artifacts/LibSignatur
 import * as LibSimpleFunctionRegistryRichErrors from '../test/generated-artifacts/LibSimpleFunctionRegistryRichErrors.json';
 import * as LibSimpleFunctionRegistryStorage from '../test/generated-artifacts/LibSimpleFunctionRegistryStorage.json';
 import * as LibStorage from '../test/generated-artifacts/LibStorage.json';
-import * as LibTokenSpenderStorage from '../test/generated-artifacts/LibTokenSpenderStorage.json';
 import * as LibTransformERC20RichErrors from '../test/generated-artifacts/LibTransformERC20RichErrors.json';
 import * as LibTransformERC20Storage from '../test/generated-artifacts/LibTransformERC20Storage.json';
 import * as LibWalletRichErrors from '../test/generated-artifacts/LibWalletRichErrors.json';
@@ -166,7 +164,6 @@ export const artifacts = {
     FeeCollector: FeeCollector as ContractArtifact,
     FeeCollectorController: FeeCollectorController as ContractArtifact,
     FlashWallet: FlashWallet as ContractArtifact,
-    IAllowanceTarget: IAllowanceTarget as ContractArtifact,
     IFlashWallet: IFlashWallet as ContractArtifact,
     ILiquidityProviderSandbox: ILiquidityProviderSandbox as ContractArtifact,
     LibFeeCollector: LibFeeCollector as ContractArtifact,
@@ -222,7 +219,6 @@ export const artifacts = {
     LibReentrancyGuardStorage: LibReentrancyGuardStorage as ContractArtifact,
     LibSimpleFunctionRegistryStorage: LibSimpleFunctionRegistryStorage as ContractArtifact,
     LibStorage: LibStorage as ContractArtifact,
-    LibTokenSpenderStorage: LibTokenSpenderStorage as ContractArtifact,
     LibTransformERC20Storage: LibTransformERC20Storage as ContractArtifact,
     AffiliateFeeTransformer: AffiliateFeeTransformer as ContractArtifact,
     FillQuoteTransformer: FillQuoteTransformer as ContractArtifact,

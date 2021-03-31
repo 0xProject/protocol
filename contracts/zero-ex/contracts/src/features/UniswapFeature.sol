@@ -23,7 +23,6 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../migrations/LibMigrate.sol";
-import "../external/IAllowanceTarget.sol";
 import "../fixins/FixinCommon.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IUniswapFeature.sol";
@@ -38,7 +37,7 @@ contract UniswapFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "UniswapFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 2);
     /// @dev WETH contract.
     IEtherTokenV06 private immutable WETH;
 

@@ -47,7 +47,7 @@ contract LiquidityProviderFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LiquidityProviderFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 3);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 4);
 
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox public immutable sandbox;
