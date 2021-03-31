@@ -89,7 +89,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
         case ERC20BridgeSource.Kyber:
             return encodeBridgeSourceId(BridgeProtocol.Kyber, 'Kyber');
         case ERC20BridgeSource.LiquidityProvider:
-            return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LiquidityProvider');
+            // "LiquidityProvider" is too long to encode (17 characters).
+            return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LP');
         case ERC20BridgeSource.Mooniswap:
             return encodeBridgeSourceId(BridgeProtocol.Mooniswap, 'Mooniswap');
         case ERC20BridgeSource.MStable:
