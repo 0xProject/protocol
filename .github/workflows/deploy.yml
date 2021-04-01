@@ -8,21 +8,26 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || contains(github.event.comment.body, 'deploy')
         runs-on: ubuntu-latest
         steps:
+            # Grab the PR branch name; workflow sets github.ref to master by default
+            # Short version of branch name is set to ${{ env.trimmed_branch_name }}
+            - id: comment-branch
+              if: github.event.issue.pull_request
+              uses: xt0rted/pull-request-comment-branch@v1
+              with:
+                repo_token: ${{ github.token }}
+            - name: trim branch name
+              run: echo ${{ steps.comment-branch.outputs.head_ref }} | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
+            # Different deploy scenarios
             - name: deploy from master to production
               if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
-              run: echo "folder=prod" >> $GITHUB_ENV
+              run: echo "folder=prod" >> $GITHUB_ENV; echo "trimmed_branch_name=master" >> $GITHUB_ENV
             - name: deploy from branch to staging
               if: github.event.issue.pull_request && github.event.comment.body == 'deploy staging'
               run: echo "folder=staging" >> $GITHUB_ENV
             - name: deploy from branch to production
               if: github.event.issue.pull_request && github.event.comment.body == 'deploy production'
               run: echo "folder=prod" >> $GITHUB_ENV
-            - uses: xt0rted/pull-request-comment-branch@v1
-              id: comment-branch
-              with:
-                repo_token: ${{ github.token }}
-            - name: trim branch name
-              run: echo ${{ steps.comment-branch.outputs.head_ref }} | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
+            # Make the changes to 0x-main-infra
             - name: Checkout 0x-main-infra
               uses: actions/checkout@v2
               with:
@@ -43,7 +48,7 @@ jobs:
                       Triggered by @${{ github.event.sender.login }}
                       PR: [${{ github.event.issue.title }}](${{ github.event.issue.html_url }})
                       SHA: https://github.com/${{ github.repository }}/tree/${{ github.sha }}
-                      Comparison: https://github.com/${{ github.repository }}/compare/master...${{ steps.comment-branch.outputs.head_ref }}
+                      Comparison: https://github.com/${{ github.repository }}/compare/master...refs/heads/${{ env.trimmed_branch_name }}
             - name: Check outputs
               run: |
                   echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
