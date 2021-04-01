@@ -175,12 +175,13 @@ export interface MultiHopFillData extends FillData {
     secondHopSource: SourceQuoteOperation;
     intermediateToken: string;
 }
-export interface MakerPsmFillData extends FillData {
+
+export interface MakerPsmExtendedData {
     isSellOperation: boolean;
     takerToken: string;
-    makerToken: string;
-    gemTokenAddresss: string;
 }
+
+export type MakerPsmFillData = FillData & MakerPsmExtendedData & PsmInfo;
 
 export interface HopInfo {
     sourceIndex: BigNumber;

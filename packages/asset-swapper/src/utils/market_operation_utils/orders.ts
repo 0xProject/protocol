@@ -3,7 +3,7 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
-import { MAINNET_MAKER_PSM_CONTRACT, MAINNET_MAKER_PSM_GEM_TOKEN, MAX_UINT256, ZERO_AMOUNT } from './constants';
+import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
@@ -16,6 +16,7 @@ import {
     GenericRouterFillData,
     KyberFillData,
     LiquidityProviderFillData,
+    MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
     NativeCollapsedFill,
@@ -219,7 +220,8 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([mStableFillData.router]);
             break;
         case ERC20BridgeSource.MakerPsm:
-            bridgeData = encoder.encode([MAINNET_MAKER_PSM_CONTRACT, MAINNET_MAKER_PSM_GEM_TOKEN]);
+            const psmFillData = (order as OptimizedMarketBridgeOrder<MakerPsmFillData>).fillData;
+            bridgeData = encoder.encode([psmFillData.psmAddress, psmFillData.gemTokenAddress]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);

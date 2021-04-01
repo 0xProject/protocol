@@ -20,9 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./DeploymentConstants.sol";
-import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
+import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 
 interface IPSM {
     // @dev Get the fee for selling USDC to DAI in PSM
@@ -39,6 +38,10 @@ interface IPSM {
     // @dev Get the address of the underlying vault powering PSM
     // @return address of gemJoin contract
     function gemJoin() external view returns (address);
+
+    // @dev Get the address of DAI
+    // @return address of DAI contract
+    function dai() external view returns (address);
 
     // @dev Sell USDC for DAI
     // @param usr The address of the account trading USDC for DAI.
@@ -77,9 +80,7 @@ interface IVAT {
 }
 
 contract MakerPSMSampler is
-    DeploymentConstants,
-    SamplerUtils,
-    ApproximateBuys
+    SamplerUtils
 {
     using LibSafeMathV06 for uint256;
 
@@ -118,8 +119,13 @@ contract MakerPSMSampler is
         IPSM psm = IPSM(psmInfo.psmAddress);
         IVAT vat = IVAT(psm.vat());
 
+
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
+
+        if (makerToken != psm.dai() && takerToken != psm.dai()) {
+            return makerTokenAmounts;
+        }
 
         for (uint256 i = 0; i < numSamples; i++) {
             uint256 buyAmount = _samplePSMSell(psmInfo, makerToken, takerToken, takerTokenAmounts[i], psm, vat);
@@ -147,6 +153,10 @@ contract MakerPSMSampler is
 
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
+        if (makerToken != psm.dai() && takerToken != psm.dai()) {
+            return takerTokenAmounts;
+        }
+
         for (uint256 i = 0; i < numSamples; i++) {
             uint256 sellAmount = _samplePSMBuy(psmInfo, makerToken, takerToken, makerTokenAmounts[i], psm, vat);
 

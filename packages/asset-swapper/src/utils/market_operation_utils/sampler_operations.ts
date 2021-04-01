@@ -25,9 +25,7 @@ import {
     KYBER_CONFIG_BY_CHAIN_ID,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY,
-    MAINNET_MAKER_PSM_CONTRACT,
-    MAINNET_MAKER_PSM_GEM_TOKEN,
-    MAINNET_MAKER_PSM_ILK_IDENTIFIER,
+    MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
     MSTABLE_ROUTER_BY_CHAIN_ID,
@@ -874,7 +872,7 @@ export class SamplerOperations {
                 isSellOperation: true,
                 takerToken,
                 makerToken,
-                gemTokenAddresss: psmInfo.gemTokenAddress,
+                ...psmInfo,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromMakerPsm,
@@ -894,7 +892,7 @@ export class SamplerOperations {
                 isSellOperation: false,
                 takerToken,
                 makerToken,
-                gemTokenAddresss: psmInfo.gemTokenAddress,
+                ...psmInfo,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromMakerPsm,
@@ -1164,19 +1162,11 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.MakerPsm:
-                            if (this.chainId !== ChainId.Mainnet) {
+                            const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(psmInfo.psmAddress)) {
                                 return [];
                             }
-                            return this.getMakerPsmSellQuotes(
-                                {
-                                    psmAddress: MAINNET_MAKER_PSM_CONTRACT,
-                                    ilkIdentifier: MAINNET_MAKER_PSM_ILK_IDENTIFIER,
-                                    gemTokenAddress: MAINNET_MAKER_PSM_GEM_TOKEN,
-                                },
-                                makerToken,
-                                takerToken,
-                                takerFillAmounts,
-                            );
+                            return this.getMakerPsmSellQuotes(psmInfo, makerToken, takerToken, takerFillAmounts);
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1358,19 +1348,11 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.MakerPsm:
-                            if (this.chainId !== ChainId.Mainnet) {
+                            const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(psmInfo.psmAddress)) {
                                 return [];
                             }
-                            return this.getMakerPsmBuyQuotes(
-                                {
-                                    psmAddress: MAINNET_MAKER_PSM_CONTRACT,
-                                    ilkIdentifier: MAINNET_MAKER_PSM_ILK_IDENTIFIER,
-                                    gemTokenAddress: MAINNET_MAKER_PSM_GEM_TOKEN,
-                                },
-                                makerToken,
-                                takerToken,
-                                makerFillAmounts,
-                            );
+                            return this.getMakerPsmBuyQuotes(psmInfo, makerToken, takerToken, makerFillAmounts);
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

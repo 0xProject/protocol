@@ -21,6 +21,7 @@ import {
     LiquidityProviderRegistry,
     MakerPsmFillData,
     MultiHopFillData,
+    PsmInfo,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './types';
@@ -708,10 +709,21 @@ export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const MAINNET_MAKER_PSM_CONTRACT = '0x89b78cfa322f6c5de0abceecab66aee45393cc5a';
-export const MAINNET_MAKER_PSM_ILK_IDENTIFIER = formatBytes32String('PSM-USDC-A');
-// Currently only USDC is supported
-export const MAINNET_MAKER_PSM_GEM_TOKEN = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+export const MAKER_PSM_INFO_BY_CHAIN_ID = valueByChainId<PsmInfo>(
+    {
+        [ChainId.Mainnet]: {
+            // Currently only USDC is supported
+            gemTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            ilkIdentifier: formatBytes32String('PSM-USDC-A'),
+            psmAddress: '0x89b78cfa322f6c5de0abceecab66aee45393cc5a',
+        },
+    },
+    {
+        gemTokenAddress: NULL_ADDRESS,
+        ilkIdentifier: NULL_BYTES,
+        psmAddress: NULL_ADDRESS,
+    },
+);
 
 export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -876,7 +888,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         const psmFillData = fillData as MakerPsmFillData;
 
         // TODO(kimpers): update with more accurate numbers after allowances have been set
-        if (psmFillData.takerToken === psmFillData.gemTokenAddresss) {
+        if (psmFillData.takerToken === psmFillData.gemTokenAddress) {
             return psmFillData.isSellOperation ? 389e3 : 423e3;
         } else {
             return 444e3;
