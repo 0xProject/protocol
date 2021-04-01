@@ -39,6 +39,7 @@ export class Path {
     public sourceFlags: number = 0;
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
+    private _firstFill?: Fill;
 
     public static create(
         side: MarketOperation,
@@ -152,6 +153,16 @@ export class Path {
         return getRate(this.side, input, output);
     }
 
+    /**
+     * Returns the first fill rate. The best possible rate this path can offer, given the fills.
+     */
+    public minRate(): BigNumber {
+        if (!this._firstFill) {
+            throw new Error('Unable to calculate minRate');
+        }
+        return getRate(this.side, this._firstFill.input, this._firstFill.output);
+    }
+
     public adjustedSlippage(maxRate: BigNumber): number {
         if (maxRate.eq(0)) {
             return 0;
@@ -248,6 +259,9 @@ export class Path {
     }
 
     private _addFillSize(fill: Fill): void {
+        if (!this._firstFill) {
+            this._firstFill = fill;
+        }
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
