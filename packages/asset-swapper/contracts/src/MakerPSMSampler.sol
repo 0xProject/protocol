@@ -199,6 +199,9 @@ contract MakerPSMSampler is
             // Buying USDC from the PSM, decreasing the total debt
             // Selling DAI for USDC, already in 18 decimals [wad]
             uint256 takerTokenAmountInWad = takerTokenAmount;
+            if (takerTokenAmountInWad > totalDebtInWad) {
+                return 0;
+            }
             uint256 newTotalDebtInRad = totalDebtInWad.safeSub(takerTokenAmountInWad).safeMul(RAY);
 
             // PSM is empty, not enough USDC to buy from it
@@ -244,6 +247,9 @@ contract MakerPSMSampler is
             uint256 makerTokenAmountInWad = makerTokenAmount.safeMul(1e12);
             uint256 feeMultiplierInWad = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
             uint256 takerTokenAmountInWad =  makerTokenAmountInWad.safeMul(feeMultiplierInWad).safeDiv(WAD);
+            if (takerTokenAmountInWad > totalDebtInWad) {
+                return 0;
+            }
             uint256 newTotalDebtInRad = totalDebtInWad.safeSub(takerTokenAmountInWad).safeMul(RAY);
 
             // PSM is empty, not enough USDC to buy

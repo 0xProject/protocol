@@ -703,8 +703,8 @@ export const MAX_DODOV2_POOLS_QUERIED = 3;
 
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
-        [ChainId.Ropsten]: '0xAa213dcDFbF104e08cbAeC3d1628eD197553AfCc',
+        [ChainId.Mainnet]: '0x561b94454b65614ae3db0897b74303f4acf7cc75',
+        [ChainId.Ropsten]: '0xae241c6fc7f28f6dc0cb58b4112ba7f63fcaf5e2',
     },
     NULL_ADDRESS,
 );
