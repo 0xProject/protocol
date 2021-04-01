@@ -5,6 +5,17 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.4.0 - _April 1, 2021_
+
+    * Use SOURCE_FLAGS.rfqOrder in comparisonPrice (#177)
+    * Add a cancel token to ensure timeouts are respected (#176)
+    * Rename {Rfqt=>Rfq} for many types in Asset Swapper (#179)
+    * improve logging for alt RFQ requests (#158)
+    * Use new bridge source ID encoding. (#162)
+    * Refactor to provide chain id specific addresses (#163)
+    * Added PancakeSwap and BakerySwap on Chain 56 (#163)
+    * Added Nerve and Dodo (v1) to BSC (#181)
+
 ## v6.3.0 - _March 17, 2021_
 
     * Add MooniswapLiquidityProvider "direct" route to EP consumer. (#143)

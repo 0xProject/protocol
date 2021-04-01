@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.1.1 - _April 1, 2021_
+
+    * Dependencies updated
+
 ## v1.1.0 - _March 17, 2021_
 
     * Make the proposal/quorum thresholds updatable (#165)

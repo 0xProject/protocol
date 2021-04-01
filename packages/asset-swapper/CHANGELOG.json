@@ -34,7 +34,8 @@
                 "note": "Added Nerve and Dodo (v1) to BSC",
                 "pr": 181
             }
-        ]
+        ],
+        "timestamp": 1617311315
     },
     {
         "version": "6.3.0",

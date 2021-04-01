@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.21.0 - _April 1, 2021_
+
+    * Encoding protocol ID and source name in bridge source ID (#162)
+    * Add PancakeSwapFeature (#164)
+    * Remove TokenSpender/AllowanceTarget/greedy tokens stuff (#164)
+    * Added Nerve in BridgeAdapter (#181)
+    * Delete TokenSpenderFeature (#189)
+    * Fix PancakeSwapFeature BakerySwap swap selector (#190)
+
 ## v0.20.0 - _March 17, 2021_
 
     * Add `MooniswapLiquidityProvider` (#143)

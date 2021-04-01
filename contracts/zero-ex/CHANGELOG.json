@@ -26,7 +26,8 @@
                 "note": "Fix PancakeSwapFeature BakerySwap swap selector",
                 "pr": 190
             }
-        ]
+        ],
+        "timestamp": 1617311315
     },
     {
         "version": "0.20.0",

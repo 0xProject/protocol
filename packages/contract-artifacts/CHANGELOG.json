@@ -6,7 +6,8 @@
                 "note": "Update artifacts",
                 "pr": 164
             }
-        ]
+        ],
+        "timestamp": 1617311315
     },
     {
         "version": "3.13.0",

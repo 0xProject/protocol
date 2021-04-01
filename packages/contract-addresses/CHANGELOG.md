@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.0.0 - _April 1, 2021_
+
+    * Add BSC chain addresses (#164)
+    * Remove exchangeProxyAllowanceTarget (#164)
+    * Redeployed FQT on BSC (#181)
+    * Redeployed FQT on mainnet and ropsten (#150)
+
 ## v5.11.0 - _February 24, 2021_
 
     * Deploy new FQT (#155)
