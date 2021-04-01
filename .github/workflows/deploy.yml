@@ -17,8 +17,12 @@ jobs:
             - name: deploy from branch to production
               if: github.event.issue.pull_request && github.event.comment.body == 'deploy production'
               run: echo "folder=prod" >> $GITHUB_ENV
+            - uses: xt0rted/pull-request-comment-branch@v1
+              id: comment-branch
+              with:
+                repo_token: ${{ github.token }}
             - name: trim branch name
-              run: echo ${{ github.ref }} | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
+              run: echo ${{ steps.comment-branch.outputs.head_ref }} | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             - name: Checkout 0x-main-infra
               uses: actions/checkout@v2
               with:
@@ -37,9 +41,9 @@ jobs:
                   body: |
                       ## Automated deploy action
                       Triggered by @${{ github.event.sender.login }}
-                      PR: ${{ github.event.issue.url }}
+                      PR: [${{ github.event.issue.title }}](${{ github.event.issue.html_url }})
                       SHA: https://github.com/${{ github.repository }}/tree/${{ github.sha }}
-                      Comparison: https://github.com/${{ github.repository }}/compare/master...${{ github.ref}}
+                      Comparison: https://github.com/${{ github.repository }}/compare/master...${{ steps.comment-branch.outputs.head_ref }}
             - name: Check outputs
               run: |
                   echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
