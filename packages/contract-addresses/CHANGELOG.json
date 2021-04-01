@@ -1,6 +1,6 @@
 [
     {
-        "version": "6.0.0-bsc.0",
+        "version": "6.0.0",
         "changes": [
             {
                 "note": "Add BSC chain addresses",
@@ -13,6 +13,10 @@
             {
                 "note": "Redeployed FQT on BSC",
                 "pr": 181
+            },
+            {
+                "note": "Redeployed FQT on mainnet and ropsten",
+                "pr": 150
             }
         ]
     },

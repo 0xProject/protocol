@@ -11,7 +11,6 @@ export * from '../generated-wrappers/fee_collector';
 export * from '../generated-wrappers/fee_collector_controller';
 export * from '../generated-wrappers/fill_quote_transformer';
 export * from '../generated-wrappers/full_migration';
-export * from '../generated-wrappers/i_allowance_target';
 export * from '../generated-wrappers/i_batch_fill_native_orders_feature';
 export * from '../generated-wrappers/i_erc20_transformer';
 export * from '../generated-wrappers/i_flash_wallet';

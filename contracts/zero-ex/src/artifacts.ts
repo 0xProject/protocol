@@ -13,7 +13,6 @@ import * as FeeCollector from '../generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../generated-artifacts/FillQuoteTransformer.json';
 import * as FullMigration from '../generated-artifacts/FullMigration.json';
-import * as IAllowanceTarget from '../generated-artifacts/IAllowanceTarget.json';
 import * as IBatchFillNativeOrdersFeature from '../generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IERC20Transformer from '../generated-artifacts/IERC20Transformer.json';
 import * as IFlashWallet from '../generated-artifacts/IFlashWallet.json';
@@ -43,7 +42,6 @@ export const artifacts = {
     FullMigration: FullMigration as ContractArtifact,
     InitialMigration: InitialMigration as ContractArtifact,
     IFlashWallet: IFlashWallet as ContractArtifact,
-    IAllowanceTarget: IAllowanceTarget as ContractArtifact,
     IERC20Transformer: IERC20Transformer as ContractArtifact,
     IOwnableFeature: IOwnableFeature as ContractArtifact,
     ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,

@@ -1,6 +1,7 @@
 import { ChainId } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import { formatBytes32String } from '@ethersproject/strings';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
@@ -18,7 +19,9 @@ import {
     KyberSamplerOpts,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
+    MakerPsmFillData,
     MultiHopFillData,
+    PsmInfo,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './types';
@@ -78,6 +81,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
+            ERC20BridgeSource.MakerPsm,
         ]),
         [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -127,6 +131,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
+            ERC20BridgeSource.MakerPsm,
         ]),
         [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -698,10 +703,26 @@ export const MAX_DODOV2_POOLS_QUERIED = 3;
 
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x7a6F6a048fE2Dc1397ABa0bf7879d3eacF371C53',
-        [ChainId.Ropsten]: '0xAa213dcDFbF104e08cbAeC3d1628eD197553AfCc',
+        [ChainId.Mainnet]: '0x561b94454b65614ae3db0897b74303f4acf7cc75',
+        [ChainId.Ropsten]: '0xae241c6fc7f28f6dc0cb58b4112ba7f63fcaf5e2',
     },
     NULL_ADDRESS,
+);
+
+export const MAKER_PSM_INFO_BY_CHAIN_ID = valueByChainId<PsmInfo>(
+    {
+        [ChainId.Mainnet]: {
+            // Currently only USDC is supported
+            gemTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            ilkIdentifier: formatBytes32String('PSM-USDC-A'),
+            psmAddress: '0x89b78cfa322f6c5de0abceecab66aee45393cc5a',
+        },
+    },
+    {
+        gemTokenAddress: NULL_ADDRESS,
+        ilkIdentifier: NULL_BYTES,
+        psmAddress: NULL_ADDRESS,
+    },
 );
 
 export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
@@ -776,7 +797,7 @@ export const BAKERYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Native]: fillData => {
         // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
-        const nativeFillData = fillData as ({ type: FillQuoteTransformerOrderType });
+        const nativeFillData = fillData as { type: FillQuoteTransformerOrderType };
         return nativeFillData && nativeFillData.type === FillQuoteTransformerOrderType.Limit
             ? PROTOCOL_FEE_MULTIPLIER.plus(100e3).toNumber()
             : // TODO jacob revisit wth v4 LimitOrders
@@ -863,6 +884,16 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
+    [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
+        const psmFillData = fillData as MakerPsmFillData;
+
+        // TODO(kimpers): update with more accurate numbers after allowances have been set
+        if (psmFillData.takerToken === psmFillData.gemTokenAddress) {
+            return psmFillData.isSellOperation ? 389e3 : 423e3;
+        } else {
+            return 444e3;
+        }
+    },
     [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Swerve]: () => 150e3,
     [ERC20BridgeSource.Nerve]: () => 150e3,

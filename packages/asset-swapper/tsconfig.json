@@ -31,6 +31,7 @@
         "test/generated-artifacts/KyberSampler.json",
         "test/generated-artifacts/LiquidityProviderSampler.json",
         "test/generated-artifacts/MStableSampler.json",
+        "test/generated-artifacts/MakerPSMSampler.json",
         "test/generated-artifacts/MooniswapSampler.json",
         "test/generated-artifacts/MultiBridgeSampler.json",
         "test/generated-artifacts/NativeOrderSampler.json",

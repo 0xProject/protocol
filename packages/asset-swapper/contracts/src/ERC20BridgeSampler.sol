@@ -28,6 +28,7 @@ import "./DODOV2Sampler.sol";
 import "./Eth2DaiSampler.sol";
 import "./KyberSampler.sol";
 import "./LiquidityProviderSampler.sol";
+import "./MakerPSMSampler.sol";
 import "./MultiBridgeSampler.sol";
 import "./MStableSampler.sol";
 import "./MooniswapSampler.sol";
@@ -48,6 +49,7 @@ contract ERC20BridgeSampler is
     Eth2DaiSampler,
     KyberSampler,
     LiquidityProviderSampler,
+    MakerPSMSampler,
     MStableSampler,
     MooniswapSampler,
     MultiBridgeSampler,

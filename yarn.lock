@@ -646,7 +646,6 @@
 "@0x/abi-gen@^5.4.21":
   version "5.4.21"
   resolved "https://registry.yarnpkg.com/@0x/abi-gen/-/abi-gen-5.4.21.tgz#96705962c75e116bd5050784287012ede4607564"
-  integrity sha512-rJPzWUjCeygMC71HfyGQAEeYtfkv5Mi+cjIOrmWfTQmM4SN+6wBraEWKLJHkcFTZ3lmFjkS/ZfbGhQere6/Y4w==
   dependencies:
     "@0x/types" "^3.3.1"
     "@0x/typescript-typings" "^5.1.6"
@@ -712,7 +711,6 @@
 "@0x/contracts-gen@^2.0.32":
   version "2.0.32"
   resolved "https://registry.yarnpkg.com/@0x/contracts-gen/-/contracts-gen-2.0.32.tgz#e4817730685acc0047157e55d58a6cab87596799"
-  integrity sha512-FkdCn9L48u6M2WyyQOWuDFvmqvYIfv1O47Hlwf8MGVJaxGmhDhqJsCr4HlmE4Jg84dK7I7xIeh0MMs8jPNpRUA==
   dependencies:
     "@0x/sol-compiler" "^4.6.1"
     "@0x/sol-resolver" "^3.1.6"
@@ -805,7 +803,6 @@
 "@0x/monorepo-scripts@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@0x/monorepo-scripts/-/monorepo-scripts-3.1.1.tgz#2ded9ef1d4885bbf106612794a331e29f391733a"
-  integrity sha512-thovxmZMivSeESlY+FXLxkf4wrmLe40ZjfGOcJaPhe29me03ddgEtVgToi+k7ZGfTeRWm5gmvlisHak2D6TFwA==
   dependencies:
     "@0x/types" "^3.3.1"
     "@0x/utils" "^6.2.0"
@@ -847,7 +844,6 @@
 "@0x/sol-compiler@^4.6.1":
   version "4.6.1"
   resolved "https://registry.yarnpkg.com/@0x/sol-compiler/-/sol-compiler-4.6.1.tgz#d1f9c1547605ddbd4ad9cc6ebed60b91f5e1ce3d"
-  integrity sha512-iEFcrn+5OSNCD2yr0WjF9h0+0J/0DNNpEuc1yK5OAD6F4X6U/YChYohSx/odWNhYfJODW+dj1SABWxZfybgIwQ==
   dependencies:
     "@0x/assert" "^3.0.21"
     "@0x/json-schemas" "^5.4.1"
@@ -876,7 +872,6 @@
 "@0x/sol-coverage@^4.0.31":
   version "4.0.31"
   resolved "https://registry.yarnpkg.com/@0x/sol-coverage/-/sol-coverage-4.0.31.tgz#ec958d892dce3773059b925e442e21d7c4f9b104"
-  integrity sha512-XcD2MntdpjDAV2KWmZyD6T3dI2sgaXwBXVa/cRtlC0cUAJcXp+tblwvtt1VOxc2J6QFCaTG4UTs9oS2nGbxwbA==
   dependencies:
     "@0x/sol-tracing-utils" "^7.1.21"
     "@0x/subproviders" "^6.4.1"
@@ -891,7 +886,6 @@
 "@0x/sol-profiler@^4.1.21":
   version "4.1.21"
   resolved "https://registry.yarnpkg.com/@0x/sol-profiler/-/sol-profiler-4.1.21.tgz#76f4860b3e0c73b8e11ac56ce25e52164cee1476"
-  integrity sha512-JFDUhFrWJP1WqVIKK1w/2nU/s8g91xNeZW1l4ZydEGhZPsRNgQdk8rFBwGqxPeqMqUY7T+Xm2Y/IVjYvE+Ck3w==
   dependencies:
     "@0x/sol-tracing-utils" "^7.1.21"
     "@0x/subproviders" "^6.4.1"
@@ -915,7 +909,6 @@
 "@0x/sol-trace@^3.0.31":
   version "3.0.31"
   resolved "https://registry.yarnpkg.com/@0x/sol-trace/-/sol-trace-3.0.31.tgz#9ed79139c81ad8953a9947019053ead5a20f9408"
-  integrity sha512-wQjdVc/IOcyzIfDVfurzFQuhkZlnejwNVNWn+9S6uYXteIqgHcJv0WqD5dZNFxcNG4Jn7tXxHJ/AXxXDygM+cw==
   dependencies:
     "@0x/sol-tracing-utils" "^7.1.21"
     "@0x/subproviders" "^6.4.1"
@@ -931,7 +924,6 @@
 "@0x/sol-tracing-utils@^7.1.21":
   version "7.1.21"
   resolved "https://registry.yarnpkg.com/@0x/sol-tracing-utils/-/sol-tracing-utils-7.1.21.tgz#9ffb9f51fdc6bcf0be8f95841563a6ccccbac474"
-  integrity sha512-Y0aYJD1h+0IBZe7A9FKorhf7qtWawftahV61FjPCOaHfvQNfVeza7wm9hdMYOb+B2hbFCDFo06GfZaINw7VFVA==
   dependencies:
     "@0x/dev-utils" "^4.2.1"
     "@0x/sol-compiler" "^4.6.1"
@@ -1311,17 +1303,37 @@
     "@ethersproject/logger" "^5.0.5"
     bn.js "^4.4.0"
 
+"@ethersproject/bignumber@^5.0.13":
+  version "5.0.15"
+  resolved "https://registry.yarnpkg.com/@ethersproject/bignumber/-/bignumber-5.0.15.tgz#b089b3f1e0381338d764ac1c10512f0c93b184ed"
+  dependencies:
+    "@ethersproject/bytes" "^5.0.9"
+    "@ethersproject/logger" "^5.0.8"
+    bn.js "^4.4.0"
+
 "@ethersproject/bytes@>=5.0.0-beta.129", "@ethersproject/bytes@^5.0.4":
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@ethersproject/bytes/-/bytes-5.0.5.tgz#688b70000e550de0c97a151a21f15b87d7f97d7c"
   dependencies:
     "@ethersproject/logger" "^5.0.5"
 
+"@ethersproject/bytes@^5.0.9":
+  version "5.0.11"
+  resolved "https://registry.yarnpkg.com/@ethersproject/bytes/-/bytes-5.0.11.tgz#21118e75b1d00db068984c15530e316021101276"
+  dependencies:
+    "@ethersproject/logger" "^5.0.8"
+
 "@ethersproject/constants@>=5.0.0-beta.128", "@ethersproject/constants@^5.0.4":
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@ethersproject/constants/-/constants-5.0.5.tgz#0ed19b002e8404bdf6d135234dc86a7d9bcf9b71"
   dependencies:
     "@ethersproject/bignumber" "^5.0.7"
+
+"@ethersproject/constants@^5.0.8":
+  version "5.0.10"
+  resolved "https://registry.yarnpkg.com/@ethersproject/constants/-/constants-5.0.10.tgz#eb0c604fbc44c53ba9641eed31a1d0c9e1ebcadc"
+  dependencies:
+    "@ethersproject/bignumber" "^5.0.13"
 
 "@ethersproject/contracts@^5.0.1":
   version "5.0.5"
@@ -1360,6 +1372,10 @@
 "@ethersproject/logger@>=5.0.0-beta.129", "@ethersproject/logger@^5.0.5":
   version "5.0.6"
   resolved "https://registry.yarnpkg.com/@ethersproject/logger/-/logger-5.0.6.tgz#faa484203e86e08be9e07fef826afeef7183fe88"
+
+"@ethersproject/logger@^5.0.8":
+  version "5.0.10"
+  resolved "https://registry.yarnpkg.com/@ethersproject/logger/-/logger-5.0.10.tgz#fd884688b3143253e0356ef92d5f22d109d2e026"
 
 "@ethersproject/networks@^5.0.3":
   version "5.0.4"
@@ -1435,6 +1451,14 @@
     "@ethersproject/bytes" "^5.0.4"
     "@ethersproject/constants" "^5.0.4"
     "@ethersproject/logger" "^5.0.5"
+
+"@ethersproject/strings@^5.0.10":
+  version "5.0.10"
+  resolved "https://registry.yarnpkg.com/@ethersproject/strings/-/strings-5.0.10.tgz#ddce1e9724f4ac4f3f67e0cac0b48748e964bfdb"
+  dependencies:
+    "@ethersproject/bytes" "^5.0.9"
+    "@ethersproject/constants" "^5.0.8"
+    "@ethersproject/logger" "^5.0.8"
 
 "@ethersproject/transactions@^5.0.0-beta.135", "@ethersproject/transactions@^5.0.5":
   version "5.0.6"
@@ -2995,7 +3019,6 @@ aws4@^1.8.0:
 axios-mock-adapter@^1.19.0:
   version "1.19.0"
   resolved "https://registry.yarnpkg.com/axios-mock-adapter/-/axios-mock-adapter-1.19.0.tgz#9d72e321a6c5418e1eff067aa99761a86c5188a4"
-  integrity sha512-D+0U4LNPr7WroiBDvWilzTMYPYTuZlbo6BI8YHZtj7wYQS8NkARlP9KBt8IWWHTQJ0q/8oZ0ClPBtKCCkx8cQg==
   dependencies:
     fast-deep-equal "^3.1.3"
     is-buffer "^2.0.3"
@@ -3003,7 +3026,6 @@ axios-mock-adapter@^1.19.0:
 axios@^0.21.1:
   version "0.21.1"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
-  integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   dependencies:
     follow-redirects "^1.10.0"
 
@@ -6359,7 +6381,6 @@ flush-write-stream@^1.0.0, flush-write-stream@^1.0.2:
 follow-redirects@^1.10.0:
   version "1.13.3"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.3.tgz#e5598ad50174c1bc4e872301e82ac2cd97f90267"
-  integrity sha512-DUgl6+HDzB0iEptNQEXLx/KhTmDb8tZUHSeLqpnjpknR70H0nC2t9N73BK6fN4hOvJ84pKlIQVQ4k5FFlBedKA==
 
 for-each@~0.3.3:
   version "0.3.3"
@@ -11692,7 +11713,6 @@ strip-bom@^3.0.0:
 strip-comments@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-comments/-/strip-comments-2.0.1.tgz#4ad11c3fbcac177a67a40ac224ca339ca1c1ba9b"
-  integrity sha512-ZprKx+bBLXv067WTCALv8SSz5l2+XhpYCsVtSqlMnkAXMWDq+/ekVbl1ghqP9rUHTzv6sm/DwCOiYutU/yp1fw==
 
 strip-dirs@^2.0.0:
   version "2.1.0"
