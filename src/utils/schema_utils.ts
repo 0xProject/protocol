@@ -17,7 +17,7 @@ export const schemaUtils = {
         if (validationResult.errors.length === 0) {
             return;
         } else {
-            const validationErrorItems = validationResult.errors.map(schemaValidationError =>
+            const validationErrorItems = validationResult.errors.map((schemaValidationError) =>
                 schemaValidationErrorToValidationErrorItem(schemaValidationError),
             );
             throw new ValidationError(validationErrorItems);

@@ -8,7 +8,7 @@ const DEFAULT_RETRY_CONFIG: rax.RetryConfig = {
     retry: 3,
     // Retry twice on no response (ETIMEDOUT)
     noResponseRetries: 2,
-    onRetryAttempt: err => {
+    onRetryAttempt: (err) => {
         const cfg = rax.getConfig(err);
         if (cfg) {
             logger.warn(`HTTP retry attempt #${cfg.currentRetryAttempt}. ${err.message}`);

@@ -63,7 +63,7 @@ export class MeshClientMock {
         orders: Partial<LimitOrder>[],
     ): Promise<MeshClientModule.AddOrdersResultsV4> {
         const signedOrders = await Promise.all(
-            orders.map(order =>
+            orders.map((order) =>
                 getRandomSignedLimitOrderAsync(provider, {
                     chainId: CHAIN_ID,
                     ...order,
@@ -134,7 +134,7 @@ export class MockClient {
 
     private readonly _ordersObservable: Observable<MeshGraphQLClientModule.OrderEvent[]> = new Observable<
         MeshGraphQLClientModule.OrderEvent[]
-    >(observer => {
+    >((observer) => {
         this._nextOrderEventsCB = observer.next.bind(observer);
     });
     constructor() {} // tslint:disable-line:no-empty
@@ -198,14 +198,14 @@ export class MockClient {
         this._orders = [...this._orders, ...ordersWithMetadata];
 
         const addedOrdersResult = {
-            accepted: ordersWithMetadata.map(order => ({
+            accepted: ordersWithMetadata.map((order) => ({
                 order,
                 isNew: true,
             })),
             rejected: [],
         };
 
-        const orderEvents = ordersWithMetadata.map<MeshGraphQLClientModule.OrderEvent>(orderv4 => ({
+        const orderEvents = ordersWithMetadata.map<MeshGraphQLClientModule.OrderEvent>((orderv4) => ({
             timestampMs: new Date().getTime(),
             orderv4,
             endState: MeshGraphQLClientModule.OrderEventEndState.Added,

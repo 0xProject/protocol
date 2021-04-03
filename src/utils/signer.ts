@@ -54,10 +54,7 @@ export class Signer {
         });
         // Boost the gas by a small percentage to buffer transactions
         // where the behaviour isn't always deterministic
-        const gas = new BigNumber(estimatedGas)
-            .times(GAS_LIMIT_BUFFER_MULTIPLIER)
-            .integerValue()
-            .toNumber();
+        const gas = new BigNumber(estimatedGas).times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue().toNumber();
         logger.info({
             message: `attempting to sign and broadcast a meta transaction`,
             nonce,

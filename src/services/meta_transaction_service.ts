@@ -391,7 +391,7 @@ export class MetaTransactionService {
         const transformations: Transformation[] = decoded.functionArguments.transformations;
 
         const fillQuoteTransformations = transformations.filter(
-            t => t.deploymentNonce.toString() === this._fillQuoteTransformerDeploymentNonce.toString(),
+            (t) => t.deploymentNonce.toString() === this._fillQuoteTransformerDeploymentNonce.toString(),
         );
 
         if (fillQuoteTransformations.length === 0) {
@@ -432,10 +432,7 @@ export class MetaTransactionService {
 }
 
 function normalizeGasPrice(gasPrice: BigNumber): BigNumber {
-    return gasPrice
-        .div(ONE_GWEI)
-        .integerValue(BigNumber.ROUND_UP)
-        .times(ONE_GWEI);
+    return gasPrice.div(ONE_GWEI).integerValue(BigNumber.ROUND_UP).times(ONE_GWEI);
 }
 
 function createExpirationTime(): BigNumber {
@@ -444,7 +441,7 @@ function createExpirationTime(): BigNumber {
 
 function calculateProtocolFeeRequiredForOrders(gasPrice: BigNumber, orders: (SignedOrder | Order)[]): BigNumber {
     const nativeOrderCount = orders.filter(
-        o => !assetDataUtils.isERC20BridgeAssetData(assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData)),
+        (o) => !assetDataUtils.isERC20BridgeAssetData(assetDataUtils.decodeAssetDataOrThrow(o.makerAssetData)),
     ).length;
     return gasPrice.times(nativeOrderCount).times(PROTOCOL_FEE_MULTIPLIER);
 }

@@ -56,7 +56,7 @@ export const meshUtils = {
         };
     },
     orderInfosToApiOrders: (orders: OrderData[]): SRAOrder[] => {
-        return orders.map(e => meshUtils.orderInfoToSRAOrder(e));
+        return orders.map((e) => meshUtils.orderInfoToSRAOrder(e));
     },
     orderInfoToSRAOrder: (orderData: OrderData): SRAOrder => {
         let order: SignedLimitOrder;

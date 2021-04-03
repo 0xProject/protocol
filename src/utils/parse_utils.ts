@@ -131,18 +131,18 @@ export const parseUtils = {
             Object.assign(
                 {},
                 ...sources
-                    .map(source => (source === '0x' ? 'Native' : source))
-                    .filter(source => Object.values(ERC20BridgeSource).includes(source as ERC20BridgeSource))
-                    .map(s => ({ [s]: s })),
+                    .map((source) => (source === '0x' ? 'Native' : source))
+                    .filter((source) => Object.values(ERC20BridgeSource).includes(source as ERC20BridgeSource))
+                    .map((s) => ({ [s]: s })),
             ),
         ) as ERC20BridgeSource[];
     },
     parseJsonStringForMetaTransactionRateLimitConfigOrThrow(configString: string): MetaTransactionRateLimitConfig {
         const parsedConfig: object = JSON.parse(configString);
-        Object.entries(parsedConfig).forEach(entry => {
+        Object.entries(parsedConfig).forEach((entry) => {
             const [key, value] = entry;
             assert.doesBelongToStringEnum('dbField', key, DatabaseKeysUsedForRateLimiter);
-            Object.entries(value).forEach(configEntry => {
+            Object.entries(value).forEach((configEntry) => {
                 const [rateLimiterType, rateLimiterConfig] = configEntry;
                 switch (rateLimiterType) {
                     case AvailableRateLimiter.Daily:

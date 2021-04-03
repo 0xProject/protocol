@@ -313,7 +313,7 @@ export class SwapService {
             );
         }
         // If any sources can be undeterministic in gas costs, we add a buffer
-        const hasUndeterministicFills = _.flatten(swapQuote.orders.map(order => order.fills)).some(fill =>
+        const hasUndeterministicFills = _.flatten(swapQuote.orders.map((order) => order.fills)).some((fill) =>
             [ERC20BridgeSource.Native, ERC20BridgeSource.MultiBridge].includes(fill.source),
         );
         const undeterministicMultiplier = hasUndeterministicFills ? GAS_LIMIT_BUFFER_MULTIPLIER : 1;
@@ -392,17 +392,17 @@ export class SwapService {
         // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
         // Equivalent to performing multiple swap quotes selling sellToken and buying 1 whole buy token
         const takerToken = sellToken.tokenAddress;
-        const queryTokenData = TokenMetadatasForChains.filter(m => m.symbol !== sellToken.symbol).filter(
-            m => m.tokenAddresses[CHAIN_ID] !== NULL_ADDRESS,
+        const queryTokenData = TokenMetadatasForChains.filter((m) => m.symbol !== sellToken.symbol).filter(
+            (m) => m.tokenAddresses[CHAIN_ID] !== NULL_ADDRESS,
         );
         const paginatedTokens = paginationUtils.paginate(queryTokenData, page, perPage);
         const chunkSize = 20;
         const queryTokenChunks = _.chunk(paginatedTokens.records, chunkSize);
         const allResults = (
             await Promise.all(
-                queryTokenChunks.map(async tokens => {
-                    const makerTokens = tokens.map(t => t.tokenAddresses[CHAIN_ID]);
-                    const amounts = tokens.map(t => Web3Wrapper.toBaseUnitAmount(unitAmount, t.decimals));
+                queryTokenChunks.map(async (tokens) => {
+                    const makerTokens = tokens.map((t) => t.tokenAddresses[CHAIN_ID]);
+                    const amounts = tokens.map((t) => Web3Wrapper.toBaseUnitAmount(unitAmount, t.decimals));
                     const quotes = await this._swapQuoter.getBatchMarketBuySwapQuoteAsync(
                         makerTokens,
                         takerToken,
@@ -418,14 +418,15 @@ export class SwapService {
                 }),
             )
         )
-            .filter(x => x !== undefined)
+            .filter((x) => x !== undefined)
             .reduce((acc, x) => acc.concat(x), []); // flatten
 
         const prices = allResults
             .map((quote, i) => {
                 const buyTokenDecimals = new BigNumber(quote.makerTokenDecimals).toNumber();
                 const sellTokenDecimals = new BigNumber(quote.takerTokenDecimals).toNumber();
-                const symbol = queryTokenData.find(data => data.tokenAddresses[CHAIN_ID] === quote.makerToken)?.symbol;
+                const symbol = queryTokenData.find((data) => data.tokenAddresses[CHAIN_ID] === quote.makerToken)
+                    ?.symbol;
                 const { makerAmount, totalTakerAmount } = quote.bestCaseQuoteInfo;
                 const unitMakerAmount = Web3Wrapper.toUnitAmount(makerAmount, buyTokenDecimals);
                 const unitTakerAmount = Web3Wrapper.toUnitAmount(totalTakerAmount, sellTokenDecimals);
@@ -437,7 +438,7 @@ export class SwapService {
                     price,
                 };
             })
-            .filter(p => p) as Price[];
+            .filter((p) => p) as Price[];
 
         // Add ETH into the prices list as it is not a token
         const wethData = prices.find((p: Price) => p.symbol === 'WETH');
@@ -483,7 +484,7 @@ export class SwapService {
 
         const maxEndSlippagePercentage = 20;
         const scalePriceByDecimals = (priceDepth: BucketedPriceDepth[]) =>
-            priceDepth.map(b => ({
+            priceDepth.map((b) => ({
                 ...b,
                 price: b.price.times(
                     new BigNumber(10).pow(marketDepth.takerTokenDecimals - marketDepth.makerTokenDecimals),
@@ -589,7 +590,9 @@ export class SwapService {
         try {
             // NOTE: Ganache does not support overrides
             if (CHAIN_ID === ChainId.Ganache) {
-                const gas = await this._web3Wrapper.estimateGasAsync(txData).catch(_e => DEFAULT_VALIDATION_GAS_LIMIT);
+                const gas = await this._web3Wrapper
+                    .estimateGasAsync(txData)
+                    .catch((_e) => DEFAULT_VALIDATION_GAS_LIMIT);
                 callResultGanacheRaw = await this._web3Wrapper.callAsync({
                     ...txData,
                     gas,

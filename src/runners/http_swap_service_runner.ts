@@ -20,12 +20,12 @@ import { providerUtils } from '../utils/provider_utils';
 
 import { destroyCallback } from './utils';
 
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
     logger.error(err);
     process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err);
     }
@@ -42,7 +42,7 @@ if (require.main === module) {
         };
         const dependencies = await getDefaultAppDependenciesAsync(provider, config);
         await runHttpServiceAsync(dependencies, config);
-    })().catch(error => logger.error(error.stack));
+    })().catch((error) => logger.error(error.stack));
 }
 
 async function runHttpServiceAsync(

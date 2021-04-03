@@ -20,12 +20,12 @@ import { destroyCallback } from './utils';
  * This module can be used to run the Meta Transaction HTTP service standalone
  */
 
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
     logger.error(err);
     process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err);
     }
@@ -36,7 +36,7 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
         const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
         await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
-    })().catch(error => logger.error(error));
+    })().catch((error) => logger.error(error));
 }
 
 async function runHttpServiceAsync(

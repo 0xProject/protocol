@@ -49,10 +49,10 @@ export class OrderBookService {
             },
         });
         const bidSignedOrderEntities = orderEntities.filter(
-            o => o.takerToken === baseToken && o.makerToken === quoteToken,
+            (o) => o.takerToken === baseToken && o.makerToken === quoteToken,
         );
         const askSignedOrderEntities = orderEntities.filter(
-            o => o.takerToken === quoteToken && o.makerToken === baseToken,
+            (o) => o.takerToken === quoteToken && o.makerToken === baseToken,
         );
         const bidApiOrders: SRAOrder[] = (bidSignedOrderEntities as Required<SignedOrderV4Entity>[])
             .map(orderUtils.deserializeOrderToSRAOrder)
@@ -111,7 +111,7 @@ export class OrderBookService {
 
         // Add an expiry time check to all filters
         const minExpiryTime = Math.floor(Date.now() / ONE_SECOND_MS) + SRA_ORDER_EXPIRATION_BUFFER_SECONDS;
-        const filtersWithExpirationCheck = filters.map(filter => ({
+        const filtersWithExpirationCheck = filters.map((filter) => ({
             ...filter,
             expiry: MoreThanOrEqual(minExpiryTime),
         }));
@@ -144,7 +144,7 @@ export class OrderBookService {
                 OrderEventEndState.StoppedWatching,
                 OrderEventEndState.Unfunded,
             ];
-            const filtersWithoutDuplicateSignedOrders = filters.map(filter => ({
+            const filtersWithoutDuplicateSignedOrders = filters.map((filter) => ({
                 ...filter,
                 orderState: In(removedStates),
             }));
@@ -209,7 +209,7 @@ export class OrderBookService {
     }
     public async addPersistentOrdersAsync(signedOrders: SignedLimitOrder[], pinned: boolean): Promise<void> {
         const accepted = await this._addOrdersAsync(signedOrders, pinned);
-        const persistentOrders = accepted.map(orderInfo => {
+        const persistentOrders = accepted.map((orderInfo) => {
             const apiOrder = meshUtils.orderInfoToSRAOrder({ ...orderInfo, endState: OrderEventEndState.Added });
             return orderUtils.serializePersistentOrder(apiOrder);
         });

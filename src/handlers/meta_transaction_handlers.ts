@@ -86,7 +86,7 @@ export class MetaTransactionHandlers {
                 const marketSide = params.sellAmount !== undefined ? MarketOperation.Sell : MarketOperation.Buy;
                 quoteResponse.priceComparisons = priceComparisonUtils
                     .getPriceComparisonFromQuote(CHAIN_ID, marketSide, metaTransactionQuote)
-                    ?.map(sc => priceComparisonUtils.renameNative(sc));
+                    ?.map((sc) => priceComparisonUtils.renameNative(sc));
             }
 
             res.status(HttpStatus.OK).send(quoteResponse);
@@ -170,7 +170,7 @@ export class MetaTransactionHandlers {
                     marketSide,
                     metaTransactionPriceCalculation,
                 );
-                metaTransactionPriceResponse.priceComparisons = priceComparisons?.map(pc =>
+                metaTransactionPriceResponse.priceComparisons = priceComparisons?.map((pc) =>
                     priceComparisonUtils.renameNative(pc),
                 );
             }

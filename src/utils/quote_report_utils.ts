@@ -40,7 +40,7 @@ export const quoteReportUtils = {
         const qr: QuoteReport = {
             ...logOpts.quoteReport,
             sourcesConsidered: logOpts.quoteReport.sourcesConsidered.map(
-                source => _.omit(source, ['fillData']) as QuoteReportEntry,
+                (source) => _.omit(source, ['fillData']) as QuoteReportEntry,
             ),
         };
 

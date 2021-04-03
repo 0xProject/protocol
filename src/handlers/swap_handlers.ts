@@ -58,13 +58,13 @@ export class SwapHandlers {
     }
     // tslint:disable-next-line:prefer-function-over-method
     public static getTokens(_req: express.Request, res: express.Response): void {
-        const tokens = TokenMetadatasForChains.map(tm => ({
+        const tokens = TokenMetadatasForChains.map((tm) => ({
             symbol: tm.symbol,
             address: tm.tokenAddresses[CHAIN_ID],
             name: tm.name,
             decimals: tm.decimals,
         }));
-        const filteredTokens = tokens.filter(t => t.address !== NULL_ADDRESS);
+        const filteredTokens = tokens.filter((t) => t.address !== NULL_ADDRESS);
         res.status(HttpStatus.OK).send({ records: filteredTokens });
     }
 
@@ -82,9 +82,7 @@ export class SwapHandlers {
         if (!REGISTRY_SET.has(authToken)) {
             return res.status(HttpStatus.UNAUTHORIZED).end();
         }
-        res.status(HttpStatus.OK)
-            .send(RFQT_API_KEY_WHITELIST)
-            .end();
+        res.status(HttpStatus.OK).send(RFQT_API_KEY_WHITELIST).end();
     }
 
     constructor(swapService: SwapService) {
@@ -148,7 +146,7 @@ export class SwapHandlers {
         if (params.includePriceComparisons && quoteReport) {
             const side = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
             const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, side, quote);
-            response.priceComparisons = priceComparisons?.map(sc => priceComparisonUtils.renameNative(sc));
+            response.priceComparisons = priceComparisons?.map((sc) => priceComparisonUtils.renameNative(sc));
         }
         res.status(HttpStatus.OK).send(response);
     }
@@ -192,7 +190,7 @@ export class SwapHandlers {
             const marketSide = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
             response.priceComparisons = priceComparisonUtils
                 .getPriceComparisonFromQuote(CHAIN_ID, marketSide, quote)
-                ?.map(sc => priceComparisonUtils.renameNative(sc));
+                ?.map((sc) => priceComparisonUtils.renameNative(sc));
         }
         res.status(HttpStatus.OK).send(response);
     }
@@ -323,7 +321,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // if token addresses are the same but a unwrap or wrap operation is requested, ignore error
     if (!isUnwrap && !isWrap && sellToken === buyToken) {
         throw new ValidationError(
-            ['buyToken', 'sellToken'].map(field => {
+            ['buyToken', 'sellToken'].map((field) => {
                 return {
                     field,
                     code: ValidationErrorCodes.RequiredField,
@@ -373,7 +371,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         PLP_API_KEY_WHITELIST,
     );
 
-    const isAllExcluded = Object.values(ERC20BridgeSource).every(s => updatedExcludedSources.includes(s));
+    const isAllExcluded = Object.values(ERC20BridgeSource).every((s) => updatedExcludedSources.includes(s));
     if (isAllExcluded) {
         throw new ValidationError([
             {

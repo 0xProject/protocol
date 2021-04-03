@@ -38,8 +38,8 @@ export class AssetSwapperOrderbook extends Orderbook {
         ]);
         const orders = apiOrders.records.map(apiOrderToOrderbookOrder);
         const pruned = pruneFn ? orders.filter(pruneFn) : orders;
-        const groupedByMakerToken: SignedNativeOrder[][] = makerTokens.map(token =>
-            pruned.filter(o => o.order.makerToken === token),
+        const groupedByMakerToken: SignedNativeOrder[][] = makerTokens.map((token) =>
+            pruned.filter((o) => o.order.makerToken === token),
         );
         return groupedByMakerToken;
     }

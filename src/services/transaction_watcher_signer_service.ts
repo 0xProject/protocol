@@ -72,7 +72,7 @@ export class TransactionWatcherSignerService {
             chainId: config.chainId,
             contractAddresses: config.contractAddresses,
         });
-        this._availableSignerPublicAddresses = config.signerPrivateKeys.map(key => {
+        this._availableSignerPublicAddresses = config.signerPrivateKeys.map((key) => {
             const signer = new Signer(key, config.provider);
             this._signers.set(signer.publicAddress, signer);
             return signer.publicAddress;
@@ -334,7 +334,7 @@ export class TransactionWatcherSignerService {
     }
     private async _getSortedSignerPublicAddressesByAvailabilityAsync(): Promise<string[]> {
         const signerMap = new Map<string, { count: number; balance: number }>();
-        this._availableSignerPublicAddresses.forEach(signerAddress => {
+        this._availableSignerPublicAddresses.forEach((signerAddress) => {
             const count = 0;
             const balance = this._signerBalancesEth.get(signerAddress) || 0;
             signerMap.set(signerAddress, { count, balance });
@@ -343,11 +343,11 @@ export class TransactionWatcherSignerService {
         const res: { from: string; count: number }[] = await this._transactionRepository.query(
             `SELECT transactions.from, COUNT(*) FROM transactions WHERE status in ('submitted','mempool','stuck') GROUP BY transactions.from`,
         );
-        res.filter(result => {
+        res.filter((result) => {
             // we exclude from addresses that are not part of the available
             // signer pool
             return this._availableSignerPublicAddresses.includes(result.from);
-        }).forEach(result => {
+        }).forEach((result) => {
             const current = signerMap.get(result.from);
             signerMap.set(result.from, { ...current!, count: result.count });
         });
@@ -513,8 +513,8 @@ export class TransactionWatcherSignerService {
             this._config.maxGasPriceGwei,
         );
         const hasAvailableBalance =
-            Array.from(this._signerBalancesEth.values()).filter(val => val > this._config.minSignerEthBalance).length >
-            0;
+            Array.from(this._signerBalancesEth.values()).filter((val) => val > this._config.minSignerEthBalance)
+                .length > 0;
         return hasAvailableBalance && isCurrentGasPriceBelowMax;
     }
     private async _updateLiveSatusAsync(): Promise<void> {

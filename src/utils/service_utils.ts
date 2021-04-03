@@ -76,7 +76,7 @@ export const serviceUtils = {
     convertSourceBreakdownToArray(sourceBreakdown: SwapQuoteOrdersBreakdown): GetSwapQuoteResponseLiquiditySource[] {
         const defaultSourceBreakdown: SwapQuoteOrdersBreakdown = Object.assign(
             {},
-            ...Object.values(ERC20BridgeSource).map(s => ({ [s]: ZERO })),
+            ...Object.values(ERC20BridgeSource).map((s) => ({ [s]: ZERO })),
         );
 
         return Object.entries({ ...defaultSourceBreakdown, ...sourceBreakdown }).reduce<

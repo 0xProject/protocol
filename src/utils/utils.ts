@@ -64,7 +64,7 @@ export const utils = {
     },
     delayAsync: async (ms: number): Promise<void> => {
         // tslint:disable-next-line:no-inferred-empty-object-type
-        return new Promise<void>(resolve => setTimeout(resolve, ms));
+        return new Promise<void>((resolve) => setTimeout(resolve, ms));
     },
     runWithTimeout: async <T>(fn: () => Promise<T>, timeoutMs: number): Promise<any> => {
         let _timeoutHandle: NodeJS.Timeout;
@@ -72,7 +72,7 @@ export const utils = {
         const timeoutPromise = new Promise((_resolve, reject) => {
             _timeoutHandle = setTimeout(() => reject(new Error('timeout')), timeoutMs);
         });
-        return Promise.race([fn(), timeoutPromise]).then(result => {
+        return Promise.race([fn(), timeoutPromise]).then((result) => {
             clearTimeout(_timeoutHandle);
             return result;
         });

@@ -23,7 +23,7 @@ import {
 
 export const orderUtils = {
     isIgnoredOrder: (addressesToIgnore: string[], apiOrder: SRAOrder): boolean => {
-        return addressesToIgnore.some(addressToIgnore => {
+        return addressesToIgnore.some((addressToIgnore) => {
             const { maker, makerToken, takerToken } = apiOrder.order;
 
             return [maker.toLowerCase(), makerToken.toLowerCase(), takerToken.toLowerCase()].includes(
@@ -212,7 +212,7 @@ export const orderUtils = {
             pin: [],
             doNotPin: [],
         };
-        signedOrders.forEach(signedOrder => {
+        signedOrders.forEach((signedOrder) => {
             if (PINNED_MM_ADDRESSES.includes(signedOrder.maker)) {
                 pinResult.pin.push(signedOrder);
             } else {

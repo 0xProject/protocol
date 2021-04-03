@@ -78,10 +78,10 @@ function directLogs(
     logType?: LogType,
 ): void {
     if (logType === LogType.Console) {
-        stream.stdout.on('data', chunk => {
+        stream.stdout.on('data', (chunk) => {
             neatlyPrintChunk(`[${suiteName}-${command}]`, chunk);
         });
-        stream.stderr.on('data', chunk => {
+        stream.stderr.on('data', (chunk) => {
             neatlyPrintChunk(`[${suiteName}-${command} | error]`, chunk);
         });
     } else if (logType === LogType.File) {
@@ -137,7 +137,7 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
     try {
         await Promise.all([
             // delay before retrying
-            new Promise<void>(resolve => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
+            new Promise<void>((resolve) => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
             async () => {
                 const connection = await getDBConnectionAsync();
                 await connection.synchronize(true);
@@ -154,7 +154,7 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
 }
 
 async function sleepAsync(timeSeconds: number): Promise<void> {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
         const secondsPerMillisecond = 1000;
         setTimeout(resolve, timeSeconds * secondsPerMillisecond);
     });

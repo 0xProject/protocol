@@ -87,12 +87,12 @@ export class WebsocketService {
 
         const subscribeToUpdates = () => {
             this._orderEventsSubscription = this._meshClient.onOrderEvents().subscribe({
-                next: events =>
+                next: (events) =>
                     this.orderUpdate(
                         // NOTE: We only care about V4 order updates
-                        events.filter(e => !!e.orderv4).map(e => meshUtils.orderEventToSRAOrder(e as OrderEventV4)),
+                        events.filter((e) => !!e.orderv4).map((e) => meshUtils.orderEventToSRAOrder(e as OrderEventV4)),
                     ),
-                error: err => {
+                error: (err) => {
                     logger.error(new WebsocketServiceError(err));
                 },
             });
@@ -129,7 +129,7 @@ export class WebsocketService {
             payload: apiOrders,
         };
         const allowedOrders = apiOrders.filter(
-            apiOrder => !orderUtils.isIgnoredOrder(MESH_IGNORED_ADDRESSES, apiOrder),
+            (apiOrder) => !orderUtils.isIgnoredOrder(MESH_IGNORED_ADDRESSES, apiOrder),
         );
         for (const order of allowedOrders) {
             // Future optimisation is to invert this structure so the order isn't duplicated over many request ids

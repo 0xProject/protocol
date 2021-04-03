@@ -15,11 +15,11 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
     let entry: TokenMetadataAndChainAddresses | undefined;
     if (isTokenAddress(tokenAddressOrSymbol)) {
         entry = TokenMetadatasForChains.find(
-            tm => tm.tokenAddresses[chainId].toLowerCase() === tokenAddressOrSymbol.toLowerCase(),
+            (tm) => tm.tokenAddresses[chainId].toLowerCase() === tokenAddressOrSymbol.toLowerCase(),
         );
     } else {
         const normalizedSymbol = tokenAddressOrSymbol.toLowerCase();
-        entry = TokenMetadatasForChains.find(tm => tm.symbol.toLowerCase() === normalizedSymbol);
+        entry = TokenMetadatasForChains.find((tm) => tm.symbol.toLowerCase() === normalizedSymbol);
     }
 
     if (entry) {

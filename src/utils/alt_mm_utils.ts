@@ -26,7 +26,7 @@ export function altMarketResponseToAltOfferings(
     altRfqMarketsResponse: AltRfqMarketsResponse,
     altRfqUrl: string,
 ): AltRfqMakerAssetOfferings {
-    const offerings: AltOffering[] = altRfqMarketsResponse.items.map(market => {
+    const offerings: AltOffering[] = altRfqMarketsResponse.items.map((market) => {
         return {
             id: market.id,
             baseAsset: market.base.address.toLowerCase(),

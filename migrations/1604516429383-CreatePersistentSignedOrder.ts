@@ -14,12 +14,12 @@ export enum OrderEventEndState {
 }
 
 const OrderEventEndStateStrings = Object.keys(OrderEventEndState)
-    .filter(x => isNaN(parseInt(x, 10)))
-    .map(s => s.toUpperCase());
+    .filter((x) => isNaN(parseInt(x, 10)))
+    .map((s) => s.toUpperCase());
 
 export class CreatePersistentSignedOrder1604516429383 implements MigrationInterface {
     public indices = ['maker_address', 'maker_asset_data', 'taker_asset_data', 'fee_recipient_address'].map(
-        colName => new TableIndex({ name: `persistent_signed_orders_${colName}`, columnNames: [colName] }),
+        (colName) => new TableIndex({ name: `persistent_signed_orders_${colName}`, columnNames: [colName] }),
     );
 
     // tslint:disable-next-line

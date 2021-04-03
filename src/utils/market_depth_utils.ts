@@ -33,7 +33,7 @@ export const marketDepthUtils = {
         const distribution = [...Array<BigNumber>(numSamples)].map((_v, i) =>
             new BigNumber(sampleDistributionBase).pow(i).decimalPlaces(MAX_DECIMALS),
         );
-        const stepSizes = distribution.map(d => d.div(BigNumber.sum(...distribution)));
+        const stepSizes = distribution.map((d) => d.div(BigNumber.sum(...distribution)));
         const amounts = stepSizes.map((_s, i) => {
             return amount
                 .times(BigNumber.sum(...[0, ...stepSizes.slice(0, i + 1)]))
@@ -57,16 +57,16 @@ export const marketDepthUtils = {
     },
     getSampleAmountsFromDepthSide: (depthSide: MarketDepthSide): BigNumber[] => {
         // Native is not a "sampled" output, here we convert it to be a accumulated sample output
-        const nativeIndexIfExists = depthSide.findIndex(s => s[0] && s[0].source === ERC20BridgeSource.Native);
+        const nativeIndexIfExists = depthSide.findIndex((s) => s[0] && s[0].source === ERC20BridgeSource.Native);
         // Find an on-chain source which has samples, if possible
-        const nonNativeIndexIfExists = depthSide.findIndex(s => s[0] && s[0].source !== ERC20BridgeSource.Native);
+        const nonNativeIndexIfExists = depthSide.findIndex((s) => s[0] && s[0].source !== ERC20BridgeSource.Native);
         // If we don't have a on-chain samples, just use the native orders inputs for a super rough guide
         const sampleAmounts =
             nonNativeIndexIfExists !== -1
-                ? depthSide[nonNativeIndexIfExists].map(s => s.input)
+                ? depthSide[nonNativeIndexIfExists].map((s) => s.input)
                 : _.uniqBy<BigNumber>(
-                      depthSide[nativeIndexIfExists].map(s => s.input),
-                      a => a.toString(),
+                      depthSide[nativeIndexIfExists].map((s) => s.input),
+                      (a) => a.toString(),
                   );
         return sampleAmounts;
     },
@@ -97,14 +97,14 @@ export const marketDepthUtils = {
     normalizeMarketDepthToSampleOutput: (depthSide: MarketDepthSide, side: MarketOperation): MarketDepthSide => {
         // Native is not a "sampled" output, here we convert it to be a accumulated sample output
         const nativeIndexIfExists = depthSide.findIndex(
-            s => s[0] && s[0].source === ERC20BridgeSource.Native && s[0].output,
+            (s) => s[0] && s[0].source === ERC20BridgeSource.Native && s[0].output,
         );
         if (nativeIndexIfExists === -1) {
-            return depthSide.filter(s => s && s.length > 0);
+            return depthSide.filter((s) => s && s.length > 0);
         }
         // We should now have [1, 10, 100] sample amounts
         const sampleAmounts = marketDepthUtils.getSampleAmountsFromDepthSide(depthSide);
-        const nativeSamples = sampleAmounts.map(a => {
+        const nativeSamples = sampleAmounts.map((a) => {
             const sample = marketDepthUtils.sampleNativeOrders(
                 depthSide[nativeIndexIfExists] as DexSample<NativeFillData>[],
                 a,
@@ -120,9 +120,9 @@ export const marketDepthUtils = {
             };
         });
         const normalizedDepth = [
-            ...depthSide.filter(s => s[0] && s[0].source !== ERC20BridgeSource.Native),
+            ...depthSide.filter((s) => s[0] && s[0].source !== ERC20BridgeSource.Native),
             nativeSamples,
-        ].filter(s => s.length > 0);
+        ].filter((s) => s.length > 0);
         return normalizedDepth;
     },
 
@@ -132,21 +132,21 @@ export const marketDepthUtils = {
         endSlippagePerc = 20,
     ): [BigNumber, BigNumber] => {
         const pricesByAmount = depthSide
-            .map(samples =>
+            .map((samples) =>
                 samples
-                    .map(s => (!s.output.isZero() ? s.output.dividedBy(s.input).decimalPlaces(MAX_DECIMALS) : ZERO))
-                    .filter(s => s.isGreaterThan(ZERO)),
+                    .map((s) => (!s.output.isZero() ? s.output.dividedBy(s.input).decimalPlaces(MAX_DECIMALS) : ZERO))
+                    .filter((s) => s.isGreaterThan(ZERO)),
             )
-            .filter(samples => samples.length > 0);
+            .filter((samples) => samples.length > 0);
         let bestInBracket: BigNumber;
         let worstBestInBracket: BigNumber;
         if (side === MarketOperation.Sell) {
             // Sell we want to sell for a higher price as possible
-            bestInBracket = BigNumber.max(...pricesByAmount.map(s => BigNumber.max(...s)));
+            bestInBracket = BigNumber.max(...pricesByAmount.map((s) => BigNumber.max(...s)));
             worstBestInBracket = bestInBracket.times((ONE_HUNDRED_PERC - endSlippagePerc) / ONE_HUNDRED_PERC);
         } else {
             // Buy we want to buy for the lowest price possible
-            bestInBracket = BigNumber.min(...pricesByAmount.map(s => BigNumber.min(...s)));
+            bestInBracket = BigNumber.min(...pricesByAmount.map((s) => BigNumber.min(...s)));
             worstBestInBracket = bestInBracket.times((ONE_HUNDRED_PERC + endSlippagePerc) / ONE_HUNDRED_PERC);
         }
         return [bestInBracket, worstBestInBracket];
@@ -160,7 +160,7 @@ export const marketDepthUtils = {
             sources: { [key: string]: BigNumber };
         }[] = buckets.map((b, i) => ({ price: b, bucket: i, bucketTotal: ZERO, sources: {} }));
         const getBucketId = (price: BigNumber): number => {
-            return buckets.findIndex(b => {
+            return buckets.findIndex((b) => {
                 return side === MarketOperation.Sell ? price.isGreaterThanOrEqualTo(b) : price.isLessThanOrEqualTo(b);
             });
         };

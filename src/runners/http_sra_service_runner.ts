@@ -21,12 +21,12 @@ import { providerUtils } from '../utils/provider_utils';
 
 import { destroyCallback } from './utils';
 
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
     logger.error(err);
     process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err);
     }
@@ -37,7 +37,7 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
         const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
         await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
-    })().catch(error => logger.error(error.stack));
+    })().catch((error) => logger.error(error.stack));
 }
 
 async function runHttpServiceAsync(

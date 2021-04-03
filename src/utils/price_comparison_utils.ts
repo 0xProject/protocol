@@ -21,7 +21,7 @@ import { getTokenMetadataIfExists } from './token_metadata_utils';
 // Therefore we need to adjust the gas estimates to be representative of using the Uniswap UI.
 const gasScheduleWithOverrides: FeeSchedule = {
     ...DEFAULT_GAS_SCHEDULE,
-    [ERC20BridgeSource.UniswapV2]: fillData => {
+    [ERC20BridgeSource.UniswapV2]: (fillData) => {
         let gas = 1.5e5;
         // tslint:disable-next-line:custom-no-magic-numbers
         if ((fillData as UniswapV2FillData).tokenAddressPath.length > 2) {
@@ -30,7 +30,7 @@ const gasScheduleWithOverrides: FeeSchedule = {
         }
         return gas;
     },
-    [ERC20BridgeSource.SushiSwap]: fillData => {
+    [ERC20BridgeSource.SushiSwap]: (fillData) => {
         let gas = 1.5e5;
         // tslint:disable-next-line:custom-no-magic-numbers
         if ((fillData as SushiSwapFillData).tokenAddressPath.length > 2) {
@@ -101,20 +101,17 @@ function getPriceComparisonFromQuoteOrThrow(
     const quoteTokenToEthRate = isSelling ? quote.buyTokenToEthRate : quote.sellTokenToEthRate;
 
     // Filter out samples with invalid amounts
-    const fullTradeSources = quote.quoteReport.sourcesConsidered.filter(s =>
+    const fullTradeSources = quote.quoteReport.sourcesConsidered.filter((s) =>
         isSelling
             ? s.takerAmount.isEqualTo(quote.sellAmount!) && s.makerAmount.isGreaterThan(ZERO)
             : s.makerAmount.isEqualTo(quote.buyAmount!) && s.takerAmount.isGreaterThan(ZERO),
     );
 
     // Calculate the maker/taker amounts after factoring in gas costs
-    const tradeSourcesWithGas = fullTradeSources.map(source => {
+    const tradeSourcesWithGas = fullTradeSources.map((source) => {
         const gas = new BigNumber(gasScheduleWithOverrides[source.liquiditySource]!(source.fillData));
 
-        const gasCost = gas
-            .times(quote.gasPrice)
-            .dividedBy(ethUnitAmount)
-            .times(quoteTokenToEthRate);
+        const gasCost = gas.times(quote.gasPrice).dividedBy(ethUnitAmount).times(quoteTokenToEthRate);
         const unitMakerAmount = Web3Wrapper.toUnitAmount(source.makerAmount, buyToken.decimals);
         const unitMakerAmountAfterGasCosts = isSelling ? unitMakerAmount.minus(gasCost) : unitMakerAmount;
         const unitTakerAmount = Web3Wrapper.toUnitAmount(source.takerAmount, sellToken.decimals);
@@ -159,7 +156,7 @@ function getPriceComparisonFromQuoteOrThrow(
     const roundingStrategy = isSelling ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL;
 
     // Transform the fields
-    const sourcePrices: SourceComparison[] = bestQuotesFromEverySource.map(source => {
+    const sourcePrices: SourceComparison[] = bestQuotesFromEverySource.map((source) => {
         const { liquiditySource, unitMakerAmount, unitTakerAmount, gas } = source;
 
         // calculate price

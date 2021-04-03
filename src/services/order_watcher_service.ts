@@ -22,9 +22,9 @@ export class OrderWatcherService {
         logger.info('OrderWatcherService syncing orderbook with Mesh');
 
         // 1. Get orders from local cache
-        const signedOrderModels = (await this._connection.manager.find(SignedOrderV4Entity)) as Required<
-            SignedOrderV4Entity
-        >[];
+        const signedOrderModels = (await this._connection.manager.find(
+            SignedOrderV4Entity,
+        )) as Required<SignedOrderV4Entity>[];
         const signedOrders = signedOrderModels.map(orderUtils.deserializeOrder);
 
         // 2. Get orders from Mesh
@@ -38,9 +38,9 @@ export class OrderWatcherService {
         const { accepted, rejected } = await Promise.all([
             this._addOrdersToMeshAsync(pin, true),
             this._addOrdersToMeshAsync(doNotPin, false),
-        ]).then(results => ({
-            accepted: results.map(r => r.accepted).flat(),
-            rejected: results.map(r => r.rejected).flat(),
+        ]).then((results) => ({
+            accepted: results.map((r) => r.accepted).flat(),
+            rejected: results.map((r) => r.rejected).flat(),
         }));
 
         // 4. Notify if any expired orders were accepted by Mesh
@@ -68,10 +68,10 @@ export class OrderWatcherService {
         });
 
         // 7. Update state of persistent orders
-        const excludeHashes = signedOrderModels.map(o => o.hash);
+        const excludeHashes = signedOrderModels.map((o) => o.hash);
         const persistentOrders = (
             await this._connection.manager.find(PersistentSignedOrderV4Entity, { hash: Not(In(excludeHashes)) })
-        ).map(o => orderUtils.deserializeOrder(o as Required<PersistentSignedOrderV4Entity>));
+        ).map((o) => orderUtils.deserializeOrder(o as Required<PersistentSignedOrderV4Entity>));
         logger.info(`Found ${persistentOrders.length} persistent orders, posting to Mesh for validation`);
         const { accepted: persistentAccepted, rejected: persistentRejected } = await this._addOrdersToMeshAsync(
             persistentOrders,
@@ -87,11 +87,11 @@ export class OrderWatcherService {
         this._meshClient = meshClient;
         const subscribeToUpdates = () =>
             this._meshClient.onOrderEvents().subscribe({
-                next: async orders => {
+                next: async (orders) => {
                     // NOTE: We only care about V4 order updates
                     const apiOrders = orders
-                        .filter(o => !!o.orderv4)
-                        .map(e => meshUtils.orderEventToSRAOrder(e as OrderEventV4));
+                        .filter((o) => !!o.orderv4)
+                        .map((e) => meshUtils.orderEventToSRAOrder(e as OrderEventV4));
                     const { added, removed, updated } = meshUtils.calculateOrderLifecycle(apiOrders);
                     await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Removed, removed);
                     await this._onOrderLifeCycleEventAsync(OrderWatcherLifeCycleEvents.Updated, updated);
@@ -101,7 +101,7 @@ export class OrderWatcherService {
                         ...updated,
                     ]);
                 },
-                error: err => {
+                error: (err) => {
                     const logError = new OrderWatcherSyncError(`Error with Mesh client connection: [${err.stack}]`);
                     logger.error(logError);
                 },
@@ -112,7 +112,7 @@ export class OrderWatcherService {
         this._meshClient.onReconnected(() => {
             logger.info('OrderWatcherService reconnected to Mesh. Re-syncing orders');
             subscribeToUpdates();
-            this.syncOrderbookAsync().catch(err => {
+            this.syncOrderbookAsync().catch((err) => {
                 const logError = new OrderWatcherSyncError(`Error on reconnecting Mesh client: [${err.stack}]`);
                 logger.error(logError);
                 throw logError;
@@ -143,9 +143,9 @@ export class OrderWatcherService {
                 // We only add to SignedOrders table, NOT PersistentSignedOrders table.
                 // PersistentSignedOrders should ONLY be added via the POST /orders/persistent endpoint
                 const allowedOrders = orders.filter(
-                    apiOrder => !orderUtils.isIgnoredOrder(MESH_IGNORED_ADDRESSES, apiOrder),
+                    (apiOrder) => !orderUtils.isIgnoredOrder(MESH_IGNORED_ADDRESSES, apiOrder),
                 );
-                const signedOrdersModel = allowedOrders.map(o => orderUtils.serializeOrder(o));
+                const signedOrdersModel = allowedOrders.map((o) => orderUtils.serializeOrder(o));
                 // MAX SQL variable size is 999. This limit is imposed via Sqlite.
                 // The SELECT query is not entirely effecient and pulls in all attributes
                 // so we need to leave space for the attributes on the model represented
@@ -157,7 +157,7 @@ export class OrderWatcherService {
                 break;
             }
             case OrderWatcherLifeCycleEvents.Removed: {
-                const orderHashes = orders.map(o => o.metaData.orderHash);
+                const orderHashes = orders.map((o) => o.metaData.orderHash);
                 await this._removeOrdersByOrderHashAsync(orderHashes);
                 break;
             }
@@ -167,14 +167,14 @@ export class OrderWatcherService {
 
                 // 1. Filter out ignored
                 const filtered = orders.filter(
-                    apiOrder => !orderUtils.isIgnoredOrder(MESH_IGNORED_ADDRESSES, apiOrder),
+                    (apiOrder) => !orderUtils.isIgnoredOrder(MESH_IGNORED_ADDRESSES, apiOrder),
                 );
 
                 // 2. Create the Update queries
                 // Use Update instead of Save to throw an error if the order doesn't already exist in the table
                 // We do this to avoid saving non-persistent orders
                 // tslint:disable-next-line:promise-function-async
-                const updatePromises = filtered.map(apiOrder => {
+                const updatePromises = filtered.map((apiOrder) => {
                     const entity = orderUtils.serializePersistentOrder(apiOrder);
                     // will ignore any orders that don't already exist in this table
                     return this._connection
@@ -183,9 +183,9 @@ export class OrderWatcherService {
                 });
 
                 // 3. Wait for results
-                await Promise.allSettled(updatePromises).then(results => {
+                await Promise.allSettled(updatePromises).then((results) => {
                     let [fulfilled, rejected] = [0, 0];
-                    results.forEach(r =>
+                    results.forEach((r) =>
                         r.status === 'fulfilled' && r.value.affected! > 0 ? fulfilled++ : rejected++,
                     );
                     logger.info('Persistent orders update', {

@@ -171,7 +171,7 @@ function unmarshallOrder(signedOrderRaw: any): SignedLimitOrder {
 
 // As the orders come in as JSON they need to be turned into the correct types such as BigNumber
 function unmarshallOrders(signedOrdersRaw: any[]): SignedLimitOrder[] {
-    return signedOrdersRaw.map(signedOrderRaw => {
+    return signedOrdersRaw.map((signedOrderRaw) => {
         return unmarshallOrder(signedOrderRaw);
     });
 }

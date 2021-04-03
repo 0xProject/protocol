@@ -52,12 +52,12 @@ const MAKER_BALANCE_CACHE_RETRIEVAL_TIME = new Summary({
     labelNames: ['workerId'],
 });
 
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
     logger.error(err);
     process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err);
     }
@@ -82,7 +82,7 @@ if (require.main === module) {
         const balanceCheckerContractInterface = getBalanceCheckerContractInterface(RANDOM_ADDRESS, provider);
 
         await runRfqBalanceCacheAsync(web3Wrapper, connection, balanceCheckerContractInterface);
-    })().catch(error => {
+    })().catch((error) => {
         logger.error(error);
         process.exit(1);
     });
@@ -101,7 +101,7 @@ async function runRfqBalanceCacheAsync(
         const server = app.listen(defaultConfig.PROMETHEUS_PORT, () => {
             logger.info(`Metrics (HTTP) listening on port ${defaultConfig.PROMETHEUS_PORT}`);
         });
-        server.on('error', err => {
+        server.on('error', (err) => {
             logger.error(err);
         });
     }

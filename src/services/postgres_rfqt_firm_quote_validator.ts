@@ -69,21 +69,21 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
         // TODO: Handle error on query
 
         // Ensure that all quotes have the same exact maker token.
-        const uniqueMakerTokens = new Set(quotes.map(quote => quote.makerToken));
+        const uniqueMakerTokens = new Set(quotes.map((quote) => quote.makerToken));
         if (uniqueMakerTokens.size !== 1) {
             logger.error(
                 `Quotes array was empty or found multiple maker token addresses within one single RFQ batch: ${JSON.stringify(
                     Array.from(uniqueMakerTokens),
                 )}. Rejecting the batch`,
             );
-            return quotes.map(_quote => ZERO);
+            return quotes.map((_quote) => ZERO);
         }
         const makerToken: string = uniqueMakerTokens.values().next().value;
 
         // Fetch balances and create a lookup table. In order to fetch all the unique addresses we use a set, but then convert
         // the set to an array so that it can work with TypeORM.
         const makerLookup: { [key: string]: BigNumber } = {};
-        const makerAddresses = Array.from(new Set(quotes.map(quote => quote.maker)));
+        const makerAddresses = Array.from(new Set(quotes.map((quote) => quote.maker)));
         const timeStart = new Date().getTime();
         const cacheResults = await this._chainCacheRepository.find({
             where: [
@@ -116,7 +116,7 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
                 .createQueryBuilder()
                 .insert()
                 .values(
-                    makerAddressesToAddToCache.map(makerAddress => {
+                    makerAddressesToAddToCache.map((makerAddress) => {
                         return {
                             makerAddress,
                             tokenAddress: makerToken,
@@ -135,7 +135,7 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
         makerLookup: { [key: string]: BigNumber },
     ): { makerAddressesToAddToCache: string[]; takerFillableAmounts: BigNumber[] } {
         const makerAddressesToAddToCacheSet: Set<string> = new Set();
-        const takerFillableAmounts = quotes.map(quote => {
+        const takerFillableAmounts = quotes.map((quote) => {
             const makerTokenBalanceForMaker: BigNumber | undefined = makerLookup[quote.maker];
 
             // TODO: Add Prometheus hooks

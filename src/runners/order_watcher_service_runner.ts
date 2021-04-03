@@ -20,7 +20,7 @@ if (require.main === module) {
             const server = app.listen(defaultHttpServiceConfig.prometheusPort, () => {
                 logger.info(`Metrics (HTTP) listening on port ${defaultHttpServiceConfig.prometheusPort}`);
             });
-            server.on('error', err => {
+            server.on('error', (err) => {
                 logger.error(err);
             });
         }
@@ -41,14 +41,14 @@ if (require.main === module) {
             );
             process.exit(1);
         }
-    })().catch(error => logger.error(error.stack));
+    })().catch((error) => logger.error(error.stack));
 }
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
     logger.error(err);
     process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err);
     }

@@ -25,12 +25,12 @@ import { destroyCallback } from './utils';
  * and can be horizontally scaled as needed
  */
 
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
     logger.error(err);
     process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err);
     }
@@ -41,7 +41,7 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
         const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
         await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
-    })().catch(error => logger.error(error.stack));
+    })().catch((error) => logger.error(error.stack));
 }
 
 export interface HttpServices {
@@ -64,7 +64,7 @@ export async function runHttpServiceAsync(
     const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
 
     app.get('/', rootHandler);
-    server.on('error', err => {
+    server.on('error', (err) => {
         logger.error(err);
     });
 
