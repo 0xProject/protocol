@@ -403,6 +403,62 @@ export class SamplerOperations {
         });
     }
 
+    public getSmoothySellQuotes(
+        pool: CurveInfo,
+        fromTokenIdx: number,
+        toTokenIdx: number,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<CurveFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Smoothy,
+            fillData: {
+                pool,
+                fromTokenIdx,
+                toTokenIdx,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromSmoothy,
+            params: [
+                {
+                    poolAddress: pool.poolAddress,
+                    sellQuoteFunctionSelector: pool.sellQuoteFunctionSelector,
+                    buyQuoteFunctionSelector: pool.buyQuoteFunctionSelector,
+                },
+                new BigNumber(fromTokenIdx),
+                new BigNumber(toTokenIdx),
+                takerFillAmounts,
+            ],
+        });
+    }
+
+    public getSmoothyBuyQuotes(
+        pool: CurveInfo,
+        fromTokenIdx: number,
+        toTokenIdx: number,
+        makerFillAmounts: BigNumber[]
+    ): SourceQuoteOperation<CurveFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Smoothy,
+            fillData: {
+                pool,
+                fromTokenIdx,
+                toTokenIdx,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromSmoothy,
+            params: [
+                {
+                    poolAddress: pool.poolAddress,
+                    sellQuoteFunctionSelector: pool.sellQuoteFunctionSelector,
+                    buyQuoteFunctionSelector: pool.buyQuoteFunctionSelector,
+                },
+                new BigNumber(fromTokenIdx),
+                new BigNumber(toTokenIdx),
+                makerFillAmounts,
+            ],
+        });
+    }
+
     public getBalancerSellQuotes(
         poolAddress: string,
         makerToken: string,
@@ -753,7 +809,7 @@ export class SamplerOperations {
         source: ERC20BridgeSource = ERC20BridgeSource.Shell,
     ): SourceQuoteOperation<ShellFillData> {
         return new SamplerContractOperation({
-            source: source,
+            source,
             fillData: { poolAddress },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromShell,
@@ -769,7 +825,7 @@ export class SamplerOperations {
         source: ERC20BridgeSource = ERC20BridgeSource.Shell,
     ): SourceQuoteOperation {
         return new SamplerContractOperation({
-            source: source,
+            source,
             fillData: { poolAddress },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromShell,
@@ -1056,7 +1112,6 @@ export class SamplerOperations {
                         case ERC20BridgeSource.Nerve:
                         case ERC20BridgeSource.Belt:
                         case ERC20BridgeSource.Ellipsis:
-                        case ERC20BridgeSource.Smoothy:
                         case ERC20BridgeSource.Saddle:
                             return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                                 this.getCurveSellQuotes(
@@ -1065,6 +1120,15 @@ export class SamplerOperations {
                                     pool.tokens.indexOf(makerToken),
                                     takerFillAmounts,
                                     source,
+                                ),
+                            );
+                        case ERC20BridgeSource.Smoothy:
+                            return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getSmoothySellQuotes(
+                                    pool,
+                                    pool.tokens.indexOf(takerToken),
+                                    pool.tokens.indexOf(makerToken),
+                                    takerFillAmounts,
                                 ),
                             );
                         case ERC20BridgeSource.Shell:
@@ -1262,7 +1326,6 @@ export class SamplerOperations {
                         case ERC20BridgeSource.Nerve:
                         case ERC20BridgeSource.Belt:
                         case ERC20BridgeSource.Ellipsis:
-                        case ERC20BridgeSource.Smoothy:
                         case ERC20BridgeSource.Saddle:
                             return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                                 this.getCurveBuyQuotes(
@@ -1271,6 +1334,15 @@ export class SamplerOperations {
                                     pool.tokens.indexOf(makerToken),
                                     makerFillAmounts,
                                     source,
+                                ),
+                            );
+                        case ERC20BridgeSource.Smoothy:
+                            return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getSmoothyBuyQuotes(
+                                    pool,
+                                    pool.tokens.indexOf(takerToken),
+                                    pool.tokens.indexOf(makerToken),
+                                    makerFillAmounts,
                                 ),
                             );
                         case ERC20BridgeSource.Shell:
