@@ -827,6 +827,22 @@
     typedoc "~0.16.11"
     yargs "^10.0.3"
 
+"@0x/protocol-utils@0xProject/protocol#0x-protocol-utils-v1.4.0-5a15044ea":
+  version "1.4.0"
+  resolved "https://codeload.github.com/0xProject/protocol/tar.gz/bfa1ead1a16b19cc3d3dea7d3029cb8afd78faac"
+  dependencies:
+    "@0x/assert" "^3.0.21"
+    "@0x/contract-addresses" "^6.0.0"
+    "@0x/contract-wrappers" "^13.15.0"
+    "@0x/json-schemas" "^5.4.1"
+    "@0x/subproviders" "^6.4.1"
+    "@0x/utils" "^6.2.0"
+    "@0x/web3-wrapper" "^7.4.1"
+    chai "^4.0.1"
+    ethereumjs-util "^5.1.1"
+    ethers "~4.0.4"
+    lodash "^4.17.11"
+
 "@0x/quote-server@^5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-5.0.0.tgz#15554099bdfdf71e2910430860257d622f24f703"

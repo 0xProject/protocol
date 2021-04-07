@@ -128,6 +128,7 @@ export * from '../test/generated-wrappers/test_native_orders_feature';
 export * from '../test/generated-wrappers/test_permissionless_transformer_deployer_suicidal';
 export * from '../test/generated-wrappers/test_permissionless_transformer_deployer_transformer';
 export * from '../test/generated-wrappers/test_rfq_origin_registration';
+export * from '../test/generated-wrappers/test_signer_registry_with_contract_wallet';
 export * from '../test/generated-wrappers/test_simple_function_registry_feature_impl1';
 export * from '../test/generated-wrappers/test_simple_function_registry_feature_impl2';
 export * from '../test/generated-wrappers/test_staking';

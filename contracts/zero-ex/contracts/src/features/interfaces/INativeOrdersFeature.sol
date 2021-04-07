@@ -345,4 +345,25 @@ interface INativeOrdersFeature is
             uint128[] memory actualFillableTakerTokenAmounts,
             bool[] memory isSignatureValids
         );
+
+    /// @dev Register a signer who can sign on behalf of msg.sender
+    ///      This allows one to sign on behalf of a contract that calls this function
+    /// @param signer the EOA from which you plan to generate signatures
+    /// @param allowed true to register, false to unregister.
+    function registerAllowedSigner(
+        address signer,
+        bool allowed
+    )
+        external;
+
+    /// @dev checks if a given address is registered to sign on behalf of a maker address
+    /// @param maker the maker address encoded in an order (can be a contract)
+    /// @param signer the address that is providing a signature (an EOA)
+    function isValidSigner(
+        address maker,
+        address signer
+    )
+        external
+        view
+        returns (bool);
 }

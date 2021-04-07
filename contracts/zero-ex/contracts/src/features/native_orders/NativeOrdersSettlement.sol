@@ -370,7 +370,7 @@ abstract contract NativeOrdersSettlement is
                 orderInfo.orderHash,
                 params.signature
             );
-            if (signer != params.order.maker) {
+            if (signer != params.order.maker && !isValidSigner(params.order.maker, signer)) {
                 LibNativeOrdersRichErrors.OrderNotSignedByMakerError(
                     orderInfo.orderHash,
                     signer,
@@ -478,7 +478,7 @@ abstract contract NativeOrdersSettlement is
         // Signature must be valid for the order.
         {
             address signer = LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
-            if (signer != order.maker) {
+            if (signer != order.maker && !isValidSigner(order.maker, signer)) {
                 LibNativeOrdersRichErrors.OrderNotSignedByMakerError(
                     orderInfo.orderHash,
                     signer,
@@ -564,5 +564,22 @@ abstract contract NativeOrdersSettlement is
             settleInfo.taker,
             makerTokenFilledAmount
         );
+    }
+
+    /// @dev register a signer who can sign on behalf of msg.sender
+    /// @param signer the EOA from which you plan to generate signatures
+    /// @param allowed true to register, false to unregister.
+    function registerAllowedSigner(
+        address signer,
+        bool allowed
+    )
+        external
+    {
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
+
+        stor.signerRegistry[msg.sender][signer] = allowed;
+
+        emit SignerRegistered(msg.sender, signer, allowed);
     }
 }

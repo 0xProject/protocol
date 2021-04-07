@@ -55,7 +55,7 @@ abstract contract NativeOrdersCancellation is
         public
     {
         bytes32 orderHash = getLimitOrderHash(order);
-        if (msg.sender != order.maker) {
+        if (msg.sender != order.maker && !isValidSigner(order.maker, msg.sender)) {
             LibNativeOrdersRichErrors.OnlyOrderMakerAllowed(
                 orderHash,
                 msg.sender,
@@ -72,7 +72,7 @@ abstract contract NativeOrdersCancellation is
         public
     {
         bytes32 orderHash = getRfqOrderHash(order);
-        if (msg.sender != order.maker) {
+        if (msg.sender != order.maker && !isValidSigner(order.maker, msg.sender)) {
             LibNativeOrdersRichErrors.OnlyOrderMakerAllowed(
                 orderHash,
                 msg.sender,

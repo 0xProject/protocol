@@ -5,9 +5,10 @@ import {
     expect,
     getRandomPortion,
     randomAddress,
+    txDefaults,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { LimitOrder, LimitOrderFields, OrderStatus, RevertErrors, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
+import { LimitOrder, LimitOrderFields, OrderStatus, RevertErrors, RfqOrder, RfqOrderFields, SignatureType } from '@0x/protocol-utils';
 import { AnyRevertError, BigNumber } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
@@ -25,7 +26,7 @@ import {
     getRandomRfqOrder,
     NativeOrdersTestEnvironment,
 } from '../utils/orders';
-import { TestMintableERC20TokenContract, TestRfqOriginRegistrationContract } from '../wrappers';
+import { TestMintableERC20TokenContract, TestRfqOriginRegistrationContract, TestSignerRegistryWithContractWalletContract } from '../wrappers';
 
 blockchainTests.resets('NativeOrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, NULL_BYTES32, ZERO_AMOUNT } = constants;
@@ -42,6 +43,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     let takerToken: TestMintableERC20TokenContract;
     let wethToken: TestMintableERC20TokenContract;
     let testRfqOriginRegistration: TestRfqOriginRegistrationContract;
+    let contractWallet: TestSignerRegistryWithContractWalletContract;
     let testUtils: NativeOrdersTestEnvironment;
 
     before(async () => {
@@ -82,6 +84,17 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             env.txDefaults,
             artifacts,
         );
+        // contract wallet for signer delegation
+        contractWallet = await TestSignerRegistryWithContractWalletContract.deployFrom0xArtifactAsync(
+            artifacts.TestSignerRegistryWithContractWallet,
+            env.provider,
+            env.txDefaults,
+            artifacts,
+            zeroEx.address,
+        );
+
+        await contractWallet.approveERC20(makerToken.address, zeroEx.address, MAX_UINT256).awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
+
         testUtils = new NativeOrdersTestEnvironment(
             maker,
             taker,
@@ -1567,6 +1580,140 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 expect(fillableTakerAmounts[i]).to.bignumber.eq(orders[i].takerAmount);
                 expect(isSignatureValids[i]).to.eq(true);
             }
+        });
+    });
+
+    describe.only('registerAllowedSigner()', () => {
+        it('allows for fills on orders signed by a approved signer', async () => {
+            const order = getTestRfqOrder({ maker: contractWallet.address });
+            const sig = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, env.txDefaults.from!);
+
+            // covers taker
+            await testUtils.prepareBalancesForOrdersAsync([order]);
+            // need to provide contract wallet with a balance
+            await makerToken
+                .mint(contractWallet.address, order.makerAmount)
+                .awaitTransactionSuccessAsync();
+
+            const receipt = await contractWallet
+                .registerAllowedSigner(env.txDefaults.from!, true)
+                .awaitTransactionSuccessAsync(env.txDefaults);
+
+            verifyEventsFromLogs(
+                receipt.logs,
+                [
+                    {
+                        maker: contractWallet.address,
+                        signer: env.txDefaults.from!,
+                        allowed: true,
+                    },
+                ],
+                IZeroExEvents.SignerRegistered,
+            );
+
+            await zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
+
+            const info = await zeroEx.getRfqOrderInfo(order).callAsync();
+            assertOrderInfoEquals(info, {
+                status: OrderStatus.Filled,
+                orderHash: order.getHash(),
+                takerTokenFilledAmount: order.takerAmount,
+            });
+        });
+
+        it('disallows fills if the signer is revoked', async () => {
+            const order = getTestRfqOrder({ maker: contractWallet.address });
+            const sig = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, env.txDefaults.from!);
+
+            // covers taker
+            await testUtils.prepareBalancesForOrdersAsync([order]);
+            // need to provide contract wallet with a balance
+            await makerToken
+                .mint(contractWallet.address, order.makerAmount)
+                .awaitTransactionSuccessAsync();
+
+            // first allow signer
+            const receiptAllow = await contractWallet
+                .registerAllowedSigner(env.txDefaults.from!, true)
+                .awaitTransactionSuccessAsync(env.txDefaults);
+
+            verifyEventsFromLogs(
+                receiptAllow.logs,
+                [
+                    {
+                        maker: contractWallet.address,
+                        signer: env.txDefaults.from!,
+                        allowed: true,
+                    },
+                ],
+                IZeroExEvents.SignerRegistered,
+            );
+
+            // then disallow signer
+            const receiptDisallow = await contractWallet
+                .registerAllowedSigner(env.txDefaults.from!, false)
+                .awaitTransactionSuccessAsync(env.txDefaults);
+
+            verifyEventsFromLogs(
+                receiptDisallow.logs,
+                [
+                    {
+                        maker: contractWallet.address,
+                        signer: env.txDefaults.from!,
+                        allowed: false,
+                    },
+                ],
+                IZeroExEvents.SignerRegistered,
+            );
+
+            const tx = zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
+            return expect(tx).to.revertWith(
+                new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), env.txDefaults.from!, order.maker),
+            );
+        });
+
+        it(`doesn't allow fills with an unapproved signer`, async () => {
+            const order = getTestRfqOrder({ maker: contractWallet.address });
+            const sig = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+
+            // covers taker
+            await testUtils.prepareBalancesForOrdersAsync([order]);
+            // need to provide contract wallet with a balance
+            await makerToken
+                .mint(contractWallet.address, order.makerAmount)
+                .awaitTransactionSuccessAsync();
+
+            const tx = zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
+            return expect(tx).to.revertWith(
+                new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), maker, order.maker),
+            );
+        });
+
+        it(`allows an approved signer to cancel an order`, async () => {
+            const order = getTestRfqOrder({ maker: contractWallet.address });
+
+            await contractWallet
+                .registerAllowedSigner(env.txDefaults.from!, true)
+                .awaitTransactionSuccessAsync(env.txDefaults);
+
+            await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: txDefaults.from! });
+
+            const info = await zeroEx.getRfqOrderInfo(order).callAsync();
+            assertOrderInfoEquals(info, {
+                status: OrderStatus.Cancelled,
+                orderHash: order.getHash(),
+                takerTokenFilledAmount: new BigNumber(0),
+            });
+        });
+
+        it(`doesn't allow an unapproved signer to cancel an order`, async () => {
+            const order = getTestRfqOrder({ maker: contractWallet.address });
+
+            const tx = zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
+
+            return expect(tx).to.revertWith(
+                new RevertErrors.NativeOrders.OnlyOrderMakerAllowed(order.getHash(), maker, order.maker),
+            );
         });
     });
 });

@@ -25,6 +25,10 @@
             {
                 "note": "Fix PancakeSwapFeature BakerySwap swap selector",
                 "pr": 190
+            },
+            {
+                "note": "Add signer registry",
+                "pr": 999
             }
         ],
         "timestamp": 1617311315

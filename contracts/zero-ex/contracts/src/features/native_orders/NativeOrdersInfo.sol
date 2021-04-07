@@ -168,8 +168,9 @@ abstract contract NativeOrdersInfo is
                 orderInfo: orderInfo
             })
         );
-        isSignatureValid = order.maker ==
-            LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
+        isSignatureValid =
+            (order.maker == LibSignature.getSignerOfHash(orderInfo.orderHash, signature)) ||
+            isValidSigner(order.maker, LibSignature.getSignerOfHash(orderInfo.orderHash, signature));
     }
 
     /// @dev Get order info, fillable amount, and signature validity for an RFQ order.
@@ -202,8 +203,9 @@ abstract contract NativeOrdersInfo is
                 orderInfo: orderInfo
             })
         );
-        isSignatureValid = order.maker ==
-            LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
+        isSignatureValid =
+            (order.maker == LibSignature.getSignerOfHash(orderInfo.orderHash, signature)) ||
+            isValidSigner(order.maker, LibSignature.getSignerOfHash(orderInfo.orderHash, signature));
     }
 
     /// @dev Batch version of `getLimitOrderRelevantState()`, without reverting.
@@ -388,5 +390,24 @@ abstract contract NativeOrdersInfo is
             uint256(params.orderMakerAmount),
             uint256(params.orderTakerAmount)
         ).safeDowncastToUint128();
+    }
+
+    /// @dev checks if a given address is registered to sign on behalf of a maker address
+    /// @param maker the maker address encoded in an order (can be a contract)
+    /// @param signer the address that is providing a signature (an EOA)
+    function isValidSigner(
+        address maker,
+        address signer
+    )
+        public
+        view
+        returns (bool)
+    {
+        // returns false if it the mapping doesn't exist
+        // returns the bool `allowed` if the mapping exists
+        return LibNativeOrdersStorage.getStorage()
+            .signerRegistry
+                [maker]
+                [signer];
     }
 }
