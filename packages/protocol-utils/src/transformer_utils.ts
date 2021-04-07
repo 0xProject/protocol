@@ -128,7 +128,7 @@ export enum BridgeProtocol {
     MakerPsm,
     Smoothy,
     Component,
-    Saddle
+    Saddle,
 }
 // tslint:enable: enum-naming
 

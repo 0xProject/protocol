@@ -160,7 +160,9 @@ export function getSmoothyInfosForPair(chainId: ChainId, takerToken: string, mak
             [makerToken, takerToken].every(
                 t =>
                     (c.tokens.includes(t) && c.metaToken === undefined) ||
-                    (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                    (c.tokens.includes(t) &&
+                        c.metaToken !== undefined &&
+                        [makerToken, takerToken].includes(c.metaToken)),
             ),
         );
     } else if (chainId === ChainId.Mainnet) {
@@ -168,7 +170,9 @@ export function getSmoothyInfosForPair(chainId: ChainId, takerToken: string, mak
             [makerToken, takerToken].every(
                 t =>
                     (c.tokens.includes(t) && c.metaToken === undefined) ||
-                    (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                    (c.tokens.includes(t) &&
+                        c.metaToken !== undefined &&
+                        [makerToken, takerToken].includes(c.metaToken)),
             ),
         );
     } else {
@@ -193,9 +197,7 @@ export function getShellLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
     makerToken: string,
-    source:
-        | ERC20BridgeSource.Shell
-        | ERC20BridgeSource.Component,
+    source: ERC20BridgeSource.Shell | ERC20BridgeSource.Component,
 ): string[] {
     switch (source) {
         case ERC20BridgeSource.Shell:
