@@ -183,7 +183,23 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
-    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      than the value provided. The caller must a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        external;
+
+    /// @dev Cancel all limit orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param makerTokens The maker tokens.
@@ -193,6 +209,22 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
+    )
+        external;
+
+    /// @dev Cancel all limit orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
     )
         external;
 
@@ -211,7 +243,23 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
-    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      than the value provided. The caller must a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        external;
+
+    /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param makerTokens The maker tokens.
@@ -221,6 +269,22 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
+    )
+        external;
+
+    /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
     )
         external;
 

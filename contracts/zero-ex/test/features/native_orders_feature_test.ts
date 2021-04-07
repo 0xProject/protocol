@@ -1597,7 +1597,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         });
     });
 
-    describe.only('registerAllowedSigner()', () => {
+    describe('registerAllowedSigner()', () => {
         it('allows for fills on orders signed by a approved signer', async () => {
             const order = getTestRfqOrder({ maker: contractWallet.address });
             const sig = await order.getSignatureWithProviderAsync(
@@ -1709,7 +1709,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             );
         });
 
-        it(`allows an approved signer to cancel an order`, async () => {
+        it(`allows an approved signer to cancel an RFQ order`, async () => {
             const order = getTestRfqOrder({ maker: contractWallet.address });
 
             await contractWallet
@@ -1726,13 +1726,130 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             });
         });
 
-        it(`doesn't allow an unapproved signer to cancel an order`, async () => {
+        it(`allows an approved signer to cancel a Limit order`, async () => {
+            const order = getTestLimitOrder({ maker: contractWallet.address });
+
+            await contractWallet
+                .registerAllowedSigner(env.txDefaults.from!, true)
+                .awaitTransactionSuccessAsync(env.txDefaults);
+
+            await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: txDefaults.from! });
+
+            const info = await zeroEx.getLimitOrderInfo(order).callAsync();
+            assertOrderInfoEquals(info, {
+                status: OrderStatus.Cancelled,
+                orderHash: order.getHash(),
+                takerTokenFilledAmount: new BigNumber(0),
+            });
+        });
+
+        it(`doesn't allow an unapproved signer to cancel an RFQ order`, async () => {
             const order = getTestRfqOrder({ maker: contractWallet.address });
 
             const tx = zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: maker });
 
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OnlyOrderMakerAllowed(order.getHash(), maker, order.maker),
+            );
+        });
+
+        it(`doesn't allow an unapproved signer to cancel a limit order`, async () => {
+            const order = getTestLimitOrder({ maker: contractWallet.address });
+
+            const tx = zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: maker });
+
+            return expect(tx).to.revertWith(
+                new RevertErrors.NativeOrders.OnlyOrderMakerAllowed(order.getHash(), maker, order.maker),
+            );
+        });
+
+        it(`allows a signer to cancel pair RFQ orders`, async () => {
+            const order = getTestRfqOrder({ maker: contractWallet.address, salt: new BigNumber(1) });
+
+            await contractWallet
+                .registerAllowedSigner(env.txDefaults.from!, true)
+                .awaitTransactionSuccessAsync(env.txDefaults);
+
+            // Cancel salts <= the order's
+            const minValidSalt = order.salt.plus(1);
+
+            await zeroEx
+                .cancelPairRfqOrdersWithSigner(
+                    contractWallet.address,
+                    makerToken.address,
+                    takerToken.address,
+                    minValidSalt,
+                )
+                .awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
+
+            const info = await zeroEx.getRfqOrderInfo(order).callAsync();
+
+            assertOrderInfoEquals(info, {
+                status: OrderStatus.Cancelled,
+                orderHash: order.getHash(),
+                takerTokenFilledAmount: new BigNumber(0),
+            });
+        });
+
+        it(`doesn't allow an unapproved signer to cancel pair RFQ orders`, async () => {
+            const minValidSalt = new BigNumber(2);
+
+            const tx = zeroEx
+                .cancelPairRfqOrdersWithSigner(
+                    contractWallet.address,
+                    makerToken.address,
+                    takerToken.address,
+                    minValidSalt,
+                )
+                .awaitTransactionSuccessAsync({ from: maker });
+
+            return expect(tx).to.revertWith(
+                new RevertErrors.NativeOrders.InvalidSignerError(contractWallet.address, maker),
+            );
+        });
+
+        it(`allows a signer to cancel pair limit orders`, async () => {
+            const order = getTestLimitOrder({ maker: contractWallet.address, salt: new BigNumber(1) });
+
+            await contractWallet
+                .registerAllowedSigner(env.txDefaults.from!, true)
+                .awaitTransactionSuccessAsync(env.txDefaults);
+
+            // Cancel salts <= the order's
+            const minValidSalt = order.salt.plus(1);
+
+            await zeroEx
+                .cancelPairLimitOrdersWithSigner(
+                    contractWallet.address,
+                    makerToken.address,
+                    takerToken.address,
+                    minValidSalt,
+                )
+                .awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
+
+            const info = await zeroEx.getLimitOrderInfo(order).callAsync();
+
+            assertOrderInfoEquals(info, {
+                status: OrderStatus.Cancelled,
+                orderHash: order.getHash(),
+                takerTokenFilledAmount: new BigNumber(0),
+            });
+        });
+
+        it(`doesn't allow an unapproved signer to cancel pair limit orders`, async () => {
+            const minValidSalt = new BigNumber(2);
+
+            const tx = zeroEx
+                .cancelPairLimitOrdersWithSigner(
+                    contractWallet.address,
+                    makerToken.address,
+                    takerToken.address,
+                    minValidSalt,
+                )
+                .awaitTransactionSuccessAsync({ from: maker });
+
+            return expect(tx).to.revertWith(
+                new RevertErrors.NativeOrders.InvalidSignerError(contractWallet.address, maker),
             );
         });
     });

@@ -88,6 +88,21 @@ library LibNativeOrdersRichErrors {
         );
     }
 
+    function InvalidSignerError(
+        address maker,
+        address signer
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("InvalidSignerError(address,address)")),
+            maker,
+            signer
+        );
+    }
+
     function OrderNotFillableBySenderError(
         bytes32 orderHash,
         address sender,
