@@ -284,8 +284,8 @@ export const CURVE_POOLS = {
     compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead
     PAX: '0x06364f10b501e868329afbc005b3492902d6c763', // 2.PAX
-    y: '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51', // 3. y
-    BUSD: '0x79a8c46dea5ada233abaffd40f3a0a2b1e5a4f27', // 4. bUSD
+    // 3.y is dead
+    // 3.bUSD is dead
     sUSD: '0xa5407eae9ba41422680e2e00537571bcc53efbfd', // 5.sUSD
     renBTC: '0x93054188d876f558f4a66b2ef1d97d16edf0895b', // 6.ren
     sBTC: '0x7fc77b5c7614e1533320ea6ddc2eb61fa00a9714', // 7.sbtc
@@ -456,16 +456,6 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT, MAINNET_TOKENS.PAX],
         pool: CURVE_POOLS.PAX,
         gasSchedule: 752e3,
-    }),
-    [CURVE_POOLS.y]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT, MAINNET_TOKENS.TUSD],
-        pool: CURVE_POOLS.y,
-        gasSchedule: 949e3,
-    }),
-    [CURVE_POOLS.BUSD]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT, MAINNET_TOKENS.BUSD],
-        pool: CURVE_POOLS.BUSD,
-        gasSchedule: 976e3,
     }),
     [CURVE_POOLS.sUSD]: createCurveExchangeUnderlyingPool({
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT, MAINNET_TOKENS.sUSD],

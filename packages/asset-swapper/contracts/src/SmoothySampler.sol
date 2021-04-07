@@ -61,8 +61,8 @@ contract SmoothySampler is
         // Smoothy only keep a percentage of its tokens available in reserve
         uint256 poolReserveMakerAmount = ISmoothy(smoothyInfo.poolAddress).getBalance(uint256(toTokenIdx)) -
                                          ISmoothy(smoothyInfo.poolAddress)._yBalances(uint256(toTokenIdx));
-        (uint256 softWeight, uint256 hardWeight, uint256 balance, uint256 decimals) =
-                                         ISmoothy(smoothyInfo.poolAddress).getTokenStats(uint256(toTokenIdx));
+        (, , , uint256 decimals) = ISmoothy(smoothyInfo.poolAddress).getTokenStats(uint256(toTokenIdx));
+        poolReserveMakerAmount = poolReserveMakerAmount/(10**(18-decimals));
 
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -81,10 +81,10 @@ contract SmoothySampler is
             }
 
             // Make sure the quoted buyAmount is available in the pool reserve
-            if (buyAmount*(10**(18-decimals)) >= poolReserveMakerAmount) {
+            if (buyAmount >= poolReserveMakerAmount) {
                 // Assign pool reserve amount for all higher samples to break early
                 for (uint256 j = i; j < numSamples; j++) {
-                    makerTokenAmounts[j] = poolReserveMakerAmount/(10**(18-decimals));
+                    makerTokenAmounts[j] = poolReserveMakerAmount;
                 }
                 break;
             } else {
@@ -115,38 +115,15 @@ contract SmoothySampler is
         view
         returns (uint256[] memory takerTokenAmounts)
     {
-        if (smoothyInfo.buyQuoteFunctionSelector == bytes4(0)) {
-            // Buys not supported on this smoothy, so approximate it.
-            return _sampleApproximateBuys(
-                ApproximateBuyQuoteOpts({
-                    makerTokenData: abi.encode(toTokenIdx, smoothyInfo),
-                    takerTokenData: abi.encode(fromTokenIdx, smoothyInfo),
-                    getSellQuoteCallback: _sampleSellForApproximateBuyFromSmoothy
-                }),
-                makerTokenAmounts
-            );
-        }
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
-        for (uint256 i = 0; i < numSamples; i++) {
-            (bool didSucceed, bytes memory resultData) =
-                smoothyInfo.poolAddress.staticcall.gas(SMOOTHY_CALL_GAS)(
-                    abi.encodeWithSelector(
-                        smoothyInfo.buyQuoteFunctionSelector,
-                        fromTokenIdx,
-                        toTokenIdx,
-                        makerTokenAmounts[i]
-                    ));
-            uint256 sellAmount = 0;
-            if (didSucceed) {
-                sellAmount = abi.decode(resultData, (uint256));
-            }
-            takerTokenAmounts[i] = sellAmount;
-            // Break early if there are 0 amounts
-            if (takerTokenAmounts[i] == 0) {
-                break;
-            }
-        }
+        // Buys not supported so approximate it.
+        return _sampleApproximateBuys(
+            ApproximateBuyQuoteOpts({
+                makerTokenData: abi.encode(toTokenIdx, smoothyInfo),
+                takerTokenData: abi.encode(fromTokenIdx, smoothyInfo),
+                getSellQuoteCallback: _sampleSellForApproximateBuyFromSmoothy
+            }),
+            makerTokenAmounts
+        );
     }
 
     function _sampleSellForApproximateBuyFromSmoothy(
