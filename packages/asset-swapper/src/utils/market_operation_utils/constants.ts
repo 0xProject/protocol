@@ -82,6 +82,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
             ERC20BridgeSource.MakerPsm,
+            ERC20BridgeSource.KyberDmm,
         ]),
         [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -132,6 +133,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
             ERC20BridgeSource.MakerPsm,
+            ERC20BridgeSource.KyberDmm,
         ]),
         [ChainId.Ropsten]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -163,7 +165,7 @@ export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
  */
 export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
-        [ChainId.Mainnet]: [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2],
+        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
     },
     [],
@@ -660,6 +662,13 @@ export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x12807818B584a3Fa65D38B6C25B13983fE888D6E',
+    },
+    NULL_ADDRESS,
+);
+
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: [
@@ -930,6 +939,15 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         const path = (fillData as BancorFillData).path;
         if (path.length > 2) {
             gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.KyberDmm]: (fillData?: FillData) => {
+        // TODO: Different base cost if to/from ETH.
+        let gas = 95e3;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 65e3; // +65k for each hop.
         }
         return gas;
     },

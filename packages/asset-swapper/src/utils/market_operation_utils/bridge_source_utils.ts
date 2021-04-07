@@ -7,6 +7,7 @@ import {
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
+    KYBER_DMM_ROUTER_BY_CHAIN_ID,
     MAINNET_CURVE_INFOS,
     MAINNET_SNOWSWAP_INFOS,
     MAINNET_SWERVE_INFOS,
@@ -176,7 +177,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.SushiSwap
         | ERC20BridgeSource.CryptoCom
         | ERC20BridgeSource.PancakeSwap
-        | ERC20BridgeSource.BakerySwap,
+        | ERC20BridgeSource.BakerySwap
+        | ERC20BridgeSource.KyberDmm,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -189,6 +191,8 @@ export function uniswapV2LikeRouterAddress(
             return PANCAKESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.BakerySwap:
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.KyberDmm:
+            return KYBER_DMM_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }
