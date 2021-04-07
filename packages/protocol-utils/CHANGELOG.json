@@ -3,6 +3,10 @@
         "version": "1.4.0",
         "changes": [
             {
+                "note": "Added Smoothy, Component, Saddle",
+                "pr": 182
+            },
+            {
                 "note": "Added Nerve",
                 "pr": 181
             }

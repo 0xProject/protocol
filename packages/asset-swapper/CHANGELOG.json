@@ -17,6 +17,10 @@
         "version": "6.4.0",
         "changes": [
             {
+                "note": "Added Component, Smoothy, Saddle, Curve open pools, tweeks gas schedule, adding SushiSwap as a fee quote source",
+                "pr": 182
+            },
+            {
                 "note": "Use SOURCE_FLAGS.rfqOrder in comparisonPrice",
                 "pr": 177
             },
