@@ -8,7 +8,15 @@ import {
     txDefaults,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { LimitOrder, LimitOrderFields, OrderStatus, RevertErrors, RfqOrder, RfqOrderFields, SignatureType } from '@0x/protocol-utils';
+import {
+    LimitOrder,
+    LimitOrderFields,
+    OrderStatus,
+    RevertErrors,
+    RfqOrder,
+    RfqOrderFields,
+    SignatureType,
+} from '@0x/protocol-utils';
 import { AnyRevertError, BigNumber } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
@@ -26,7 +34,11 @@ import {
     getRandomRfqOrder,
     NativeOrdersTestEnvironment,
 } from '../utils/orders';
-import { TestMintableERC20TokenContract, TestRfqOriginRegistrationContract, TestSignerRegistryWithContractWalletContract } from '../wrappers';
+import {
+    TestMintableERC20TokenContract,
+    TestRfqOriginRegistrationContract,
+    TestSignerRegistryWithContractWalletContract,
+} from '../wrappers';
 
 blockchainTests.resets('NativeOrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, NULL_BYTES32, ZERO_AMOUNT } = constants;
@@ -93,7 +105,9 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             zeroEx.address,
         );
 
-        await contractWallet.approveERC20(makerToken.address, zeroEx.address, MAX_UINT256).awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
+        await contractWallet
+            .approveERC20(makerToken.address, zeroEx.address, MAX_UINT256)
+            .awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
 
         testUtils = new NativeOrdersTestEnvironment(
             maker,
@@ -1586,14 +1600,16 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     describe.only('registerAllowedSigner()', () => {
         it('allows for fills on orders signed by a approved signer', async () => {
             const order = getTestRfqOrder({ maker: contractWallet.address });
-            const sig = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, env.txDefaults.from!);
+            const sig = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                env.txDefaults.from!,
+            );
 
             // covers taker
             await testUtils.prepareBalancesForOrdersAsync([order]);
             // need to provide contract wallet with a balance
-            await makerToken
-                .mint(contractWallet.address, order.makerAmount)
-                .awaitTransactionSuccessAsync();
+            await makerToken.mint(contractWallet.address, order.makerAmount).awaitTransactionSuccessAsync();
 
             const receipt = await contractWallet
                 .registerAllowedSigner(env.txDefaults.from!, true)
@@ -1623,14 +1639,16 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
         it('disallows fills if the signer is revoked', async () => {
             const order = getTestRfqOrder({ maker: contractWallet.address });
-            const sig = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, env.txDefaults.from!);
+            const sig = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                env.txDefaults.from!,
+            );
 
             // covers taker
             await testUtils.prepareBalancesForOrdersAsync([order]);
             // need to provide contract wallet with a balance
-            await makerToken
-                .mint(contractWallet.address, order.makerAmount)
-                .awaitTransactionSuccessAsync();
+            await makerToken.mint(contractWallet.address, order.makerAmount).awaitTransactionSuccessAsync();
 
             // first allow signer
             const receiptAllow = await contractWallet
@@ -1668,7 +1686,11 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
             const tx = zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
-                new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), env.txDefaults.from!, order.maker),
+                new RevertErrors.NativeOrders.OrderNotSignedByMakerError(
+                    order.getHash(),
+                    env.txDefaults.from!,
+                    order.maker,
+                ),
             );
         });
 
@@ -1679,9 +1701,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             // covers taker
             await testUtils.prepareBalancesForOrdersAsync([order]);
             // need to provide contract wallet with a balance
-            await makerToken
-                .mint(contractWallet.address, order.makerAmount)
-                .awaitTransactionSuccessAsync();
+            await makerToken.mint(contractWallet.address, order.makerAmount).awaitTransactionSuccessAsync();
 
             const tx = zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
