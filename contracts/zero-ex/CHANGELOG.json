@@ -27,8 +27,8 @@
                 "pr": 190
             },
             {
-                "note": "Add signer registry",
-                "pr": 999
+                "note": "Add signer registry to NativeOrdersFeature",
+                "pr": 195
             }
         ],
         "timestamp": 1617311315
