@@ -89,6 +89,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Dodo, 'Dodo');
         case ERC20BridgeSource.Kyber:
             return encodeBridgeSourceId(BridgeProtocol.Kyber, 'Kyber');
+        case ERC20BridgeSource.KyberDmm:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'KyberDmm');
         case ERC20BridgeSource.LiquidityProvider:
             // "LiquidityProvider" is too long to encode (17 characters).
             return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LP');
@@ -176,6 +178,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Linkswap:
         case ERC20BridgeSource.PancakeSwap:
         case ERC20BridgeSource.BakerySwap:
+        case ERC20BridgeSource.KyberDmm:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -305,6 +308,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
     [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.KyberDmm]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,
     [ERC20BridgeSource.Mooniswap]: poolEncoder,
