@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.5.0",
+        "changes": [
+            {
+                "note": "Add Kyber DMM to Ethereum mainnet",
+                "pr": 194
+            }
+        ]
+    },
+    {
         "version": "6.4.0",
         "changes": [
             {
