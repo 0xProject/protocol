@@ -236,6 +236,9 @@ export const TOKENS = {
     sEUR: '0xd71ecff9342a5ced620049e616c5035f1db98620',
     sETH: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
     LINK: '0x514910771af9ca656af840dff83e8264ecf986ca',
+    MANA: '0x0f5d2fb29fb7d3cfee444a200298f468908cc942',
+    KNC: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
+    AAVE: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
     // Mirror Protocol
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
@@ -612,7 +615,30 @@ export const KYBER_CONFIG_BY_CHAIN_ID = valueByChainId<KyberSamplerOpts>(
     },
 );
 
-export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = {};
+export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityProviderRegistry>(
+    {
+        [ChainId.Mainnet]: {
+            ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
+                tokens: [
+                    TOKENS.WETH,
+                    TOKENS.USDC,
+                    TOKENS.USDT,
+                    TOKENS.WBTC,
+                    TOKENS.PAX,
+                    TOKENS.LINK,
+                    TOKENS.KNC,
+                    TOKENS.MANA,
+                    TOKENS.DAI,
+                    TOKENS.BUSD,
+                    TOKENS.AAVE,
+                ],
+                gasCost: (takerToken: string, makerToken: string) =>
+                    [takerToken, makerToken].includes(TOKENS.WETH) ? 160e3 : 280e3,
+            },
+        },
+    },
+    {},
+);
 
 export const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {

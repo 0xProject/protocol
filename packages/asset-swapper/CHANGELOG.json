@@ -5,6 +5,10 @@
             {
                 "note": "Add Kyber DMM to Ethereum mainnet",
                 "pr": 194
+            },
+            {
+                "note": "Add default LiquidityProvider registry and allow LiquidityProvider gasCost to be a function of tokens",
+                "pr": 196
             }
         ]
     },
