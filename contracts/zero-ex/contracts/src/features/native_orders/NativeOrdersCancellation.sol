@@ -169,7 +169,8 @@ abstract contract NativeOrdersCancellation is
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairLimitOrders(
+            _cancelPairLimitOrders(
+                msg.sender,
                 makerTokens[i],
                 takerTokens[i],
                 minValidSalts[i]
@@ -199,8 +200,15 @@ abstract contract NativeOrdersCancellation is
             "NativeOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
         );
 
+        if (!isValidOrderSigner(maker, msg.sender)) {
+            LibNativeOrdersRichErrors.InvalidSignerError(
+                maker,
+                msg.sender
+            ).rrevert();
+        }
+
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairLimitOrdersWithSigner(
+            _cancelPairLimitOrders(
                 maker,
                 makerTokens[i],
                 takerTokens[i],
@@ -273,7 +281,8 @@ abstract contract NativeOrdersCancellation is
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairRfqOrders(
+            _cancelPairRfqOrders(
+                msg.sender,
                 makerTokens[i],
                 takerTokens[i],
                 minValidSalts[i]
@@ -303,8 +312,15 @@ abstract contract NativeOrdersCancellation is
             "NativeOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
         );
 
+        if (!isValidOrderSigner(maker, msg.sender)) {
+            LibNativeOrdersRichErrors.InvalidSignerError(
+                maker,
+                msg.sender
+            ).rrevert();
+        }
+
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairRfqOrdersWithSigner(
+            _cancelPairRfqOrders(
                 maker,
                 makerTokens[i],
                 takerTokens[i],

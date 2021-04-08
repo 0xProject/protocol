@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.5.0",
+        "changes": [
+            {
+                "note": "Add support for orderSignerRegistry in getSignatureWithProviderAsync()",
+                "pr": 195
+            }
+        ]
+    },
+    {
         "version": "1.4.0",
         "changes": [
             {
