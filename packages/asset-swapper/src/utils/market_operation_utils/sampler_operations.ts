@@ -24,7 +24,7 @@ import {
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
-    LIQUIDITY_PROVIDER_REGISTRY,
+    LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
@@ -87,6 +87,7 @@ export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSour
  * for use with `DexOrderSampler.executeAsync()`.
  */
 export class SamplerOperations {
+    public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
@@ -102,9 +103,13 @@ export class SamplerOperations {
         public readonly balancerPoolsCache: BalancerPoolsCache = new BalancerPoolsCache(),
         public readonly creamPoolsCache: CreamPoolsCache = new CreamPoolsCache(),
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
-        public readonly liquidityProviderRegistry: LiquidityProviderRegistry = LIQUIDITY_PROVIDER_REGISTRY,
+        liquidityProviderRegistry: LiquidityProviderRegistry = {},
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
+        this.liquidityProviderRegistry = {
+            ...LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID[chainId],
+            ...liquidityProviderRegistry,
+        };
         // Initialize the Bancor service, fetching paths in the background
         bancorServiceFn()
             .then(service => (this._bancorService = service))
@@ -277,12 +282,13 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
+        gasCost: number,
     ): SourceQuoteOperation<LiquidityProviderFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.LiquidityProvider,
             fillData: {
                 poolAddress: providerAddress,
-                gasCost: this.liquidityProviderRegistry[providerAddress].gasCost,
+                gasCost,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromLiquidityProvider,
@@ -295,12 +301,13 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
+        gasCost: number,
     ): SourceQuoteOperation<LiquidityProviderFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.LiquidityProvider,
             fillData: {
                 poolAddress: providerAddress,
-                gasCost: this.liquidityProviderRegistry[providerAddress].gasCost,
+                gasCost,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromLiquidityProvider,
@@ -1061,8 +1068,14 @@ export class SamplerOperations {
                                 this.liquidityProviderRegistry,
                                 takerToken,
                                 makerToken,
-                            ).map(pool =>
-                                this.getLiquidityProviderSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                            ).map(({ providerAddress, gasCost }) =>
+                                this.getLiquidityProviderSellQuotes(
+                                    providerAddress,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                    gasCost,
+                                ),
                             );
                         case ERC20BridgeSource.MStable:
                             return isValidAddress(MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId])
@@ -1253,8 +1266,14 @@ export class SamplerOperations {
                                 this.liquidityProviderRegistry,
                                 takerToken,
                                 makerToken,
-                            ).map(pool =>
-                                this.getLiquidityProviderBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                            ).map(({ providerAddress, gasCost }) =>
+                                this.getLiquidityProviderBuyQuotes(
+                                    providerAddress,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                    gasCost,
+                                ),
                             );
                         case ERC20BridgeSource.MStable:
                             return isValidAddress(MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId])

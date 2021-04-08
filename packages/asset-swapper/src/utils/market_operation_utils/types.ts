@@ -440,7 +440,7 @@ export interface TokenAdjacencyGraph {
 export interface LiquidityProviderRegistry {
     [address: string]: {
         tokens: string[];
-        gasCost: number;
+        gasCost: number | ((takerToken: string, makerToken: string) => number);
     };
 }
 
