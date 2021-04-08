@@ -701,7 +701,7 @@ export const SMOOTHY_BSC_INFOS: { [name: string]: CurveInfo } = {
         poolAddress: SMOOTHY_POOLS.syUSD,
         tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.USDC, BSC_TOKENS.DAI, BSC_TOKENS.PAX, BSC_TOKENS.UST],
         metaToken: undefined,
-        gasSchedule: 200e3,
+        gasSchedule: 100e3,
     },
 };
 
@@ -994,22 +994,14 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 450e3,
-    [ERC20BridgeSource.Curve]: fillData =>
-        CURVE_MAINNET_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
-    [ERC20BridgeSource.Swerve]: fillData =>
-        SWERVE_MAINNET_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
-    [ERC20BridgeSource.SnowSwap]: fillData =>
-        SNOWSWAP_MAINNET_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
-    [ERC20BridgeSource.Nerve]: fillData =>
-        NERVE_BSC_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
-    [ERC20BridgeSource.Belt]: fillData =>
-        BELT_BSC_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
-    [ERC20BridgeSource.Ellipsis]: fillData =>
-        ELLIPSIS_BSC_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
-    [ERC20BridgeSource.Smoothy]: fillData =>
-        SMOOTHY_MAINNET_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
-    [ERC20BridgeSource.Saddle]: fillData =>
-        SADDLE_MAINNET_INFOS[(fillData as CurveFillData).pool.poolAddress.toLowerCase()].gasSchedule,
+    [ERC20BridgeSource.Curve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Swerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.SnowSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Belt]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Ellipsis]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Smoothy]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Saddle]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
     [ERC20BridgeSource.UniswapV2]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
