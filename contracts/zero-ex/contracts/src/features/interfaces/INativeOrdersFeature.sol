@@ -183,10 +183,10 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
-    ///      than the value provided. The caller must a signer registered to the maker.
-    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
     ///      new salt to be >= the old salt.
-    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param maker The maker for which to cancel.
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
@@ -213,10 +213,10 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all limit orders for a given maker and pairs with salts less
-    ///      than the values provided. The caller must a signer registered to the maker.
-    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      than the values provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
     ///      new salt to be >= the old salt.
-    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param maker The maker for which to cancel.
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
@@ -243,10 +243,10 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
-    ///      than the value provided. The caller must a signer registered to the maker.
-    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
     ///      new salt to be >= the old salt.
-    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param maker The maker for which to cancel.
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
@@ -273,10 +273,10 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
-    ///      than the values provided. The caller must a signer registered to the maker.
-    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      than the values provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
     ///      new salt to be >= the old salt.
-    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param maker The maker for which to cancel.
     /// @param makerTokens The maker tokens.
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
@@ -414,7 +414,7 @@ interface INativeOrdersFeature is
     ///      This allows one to sign on behalf of a contract that calls this function
     /// @param signer the EOA from which you plan to generate signatures
     /// @param allowed true to register, false to unregister.
-    function registerAllowedSigner(
+    function registerAllowedOrderSigner(
         address signer,
         bool allowed
     )
@@ -423,11 +423,11 @@ interface INativeOrdersFeature is
     /// @dev checks if a given address is registered to sign on behalf of a maker address
     /// @param maker the maker address encoded in an order (can be a contract)
     /// @param signer the address that is providing a signature (an EOA)
-    function isValidSigner(
+    function isValidOrderSigner(
         address maker,
         address signer
     )
         external
         view
-        returns (bool);
+        returns (bool isAllowed);
 }

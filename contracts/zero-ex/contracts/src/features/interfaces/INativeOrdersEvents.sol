@@ -114,11 +114,11 @@ interface INativeOrdersEvents {
         bool allowed
     );
 
-    /// @dev Emitted when new signers are registered
+    /// @dev Emitted when new order signers are registered
     /// @param maker The maker address that is registering a designated signer.
     /// @param signer The address that will sign on behalf of maker.
     /// @param allowed Indicates whether the address should be allowed.
-    event SignerRegistered(
+    event OrderSignerRegistered(
         address maker,
         address signer,
         bool allowed

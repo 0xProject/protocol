@@ -24,7 +24,7 @@ import "@0x/contracts-utils/contracts/src/v06/OwnableV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../src/IZeroEx.sol";
 
-contract TestSignerRegistryWithContractWallet is OwnableV06 {
+contract TestOrderSignerRegistryWithContractWallet is OwnableV06 {
 
     IZeroEx immutable zeroex;
 
@@ -32,14 +32,14 @@ contract TestSignerRegistryWithContractWallet is OwnableV06 {
         zeroex = _zeroex;
     }
 
-    function registerAllowedSigner(
+    function registerAllowedOrderSigner(
         address signer,
         bool allowed
     )
         external
         onlyOwner
     {
-        zeroex.registerAllowedSigner(signer, allowed);
+        zeroex.registerAllowedOrderSigner(signer, allowed);
     }
 
     function approveERC20(

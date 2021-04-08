@@ -91,8 +91,8 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.getRfqOrderRelevantState.selector);
         _registerFeatureFunction(this.batchGetLimitOrderRelevantStates.selector);
         _registerFeatureFunction(this.batchGetRfqOrderRelevantStates.selector);
-        _registerFeatureFunction(this.registerAllowedSigner.selector);
-        _registerFeatureFunction(this.isValidSigner.selector);
+        _registerFeatureFunction(this.registerAllowedOrderSigner.selector);
+        _registerFeatureFunction(this.isValidOrderSigner.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 }

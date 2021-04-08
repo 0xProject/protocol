@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.22.0",
+        "changes": [
+            {
+                "note": "Add order signer registry to NativeOrdersFeature",
+                "pr": 195
+            }
+        ]
+    },
+    {
         "version": "0.21.0",
         "changes": [
             {
@@ -25,10 +34,6 @@
             {
                 "note": "Fix PancakeSwapFeature BakerySwap swap selector",
                 "pr": 190
-            },
-            {
-                "note": "Add signer registry to NativeOrdersFeature",
-                "pr": 195
             }
         ],
         "timestamp": 1617311315

@@ -5,7 +5,6 @@ import {
     expect,
     getRandomPortion,
     randomAddress,
-    txDefaults,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
 import {
@@ -36,8 +35,8 @@ import {
 } from '../utils/orders';
 import {
     TestMintableERC20TokenContract,
+    TestOrderSignerRegistryWithContractWalletContract,
     TestRfqOriginRegistrationContract,
-    TestSignerRegistryWithContractWalletContract,
 } from '../wrappers';
 
 blockchainTests.resets('NativeOrdersFeature', env => {
@@ -49,18 +48,28 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     let taker: string;
     let notMaker: string;
     let notTaker: string;
+    let contractWalletOwner: string;
+    let contractWalletSigner: string;
     let zeroEx: IZeroExContract;
     let verifyingContract: string;
     let makerToken: TestMintableERC20TokenContract;
     let takerToken: TestMintableERC20TokenContract;
     let wethToken: TestMintableERC20TokenContract;
     let testRfqOriginRegistration: TestRfqOriginRegistrationContract;
-    let contractWallet: TestSignerRegistryWithContractWalletContract;
+    let contractWallet: TestOrderSignerRegistryWithContractWalletContract;
     let testUtils: NativeOrdersTestEnvironment;
 
     before(async () => {
         let owner;
-        [owner, maker, taker, notMaker, notTaker] = await env.getAccountAddressesAsync();
+        [
+            owner,
+            maker,
+            taker,
+            notMaker,
+            notTaker,
+            contractWalletOwner,
+            contractWalletSigner,
+        ] = await env.getAccountAddressesAsync();
         [makerToken, takerToken, wethToken] = await Promise.all(
             [...new Array(3)].map(async () =>
                 TestMintableERC20TokenContract.deployFrom0xArtifactAsync(
@@ -97,17 +106,19 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             artifacts,
         );
         // contract wallet for signer delegation
-        contractWallet = await TestSignerRegistryWithContractWalletContract.deployFrom0xArtifactAsync(
-            artifacts.TestSignerRegistryWithContractWallet,
+        contractWallet = await TestOrderSignerRegistryWithContractWalletContract.deployFrom0xArtifactAsync(
+            artifacts.TestOrderSignerRegistryWithContractWallet,
             env.provider,
-            env.txDefaults,
+            {
+                from: contractWalletOwner,
+            },
             artifacts,
             zeroEx.address,
         );
 
         await contractWallet
             .approveERC20(makerToken.address, zeroEx.address, MAX_UINT256)
-            .awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
+            .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
         testUtils = new NativeOrdersTestEnvironment(
             maker,
@@ -1598,12 +1609,47 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     });
 
     describe('registerAllowedSigner()', () => {
+        it('fires appropriate events', async () => {
+            const receiptAllow = await contractWallet
+                .registerAllowedOrderSigner(contractWalletSigner, true)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
+
+            verifyEventsFromLogs(
+                receiptAllow.logs,
+                [
+                    {
+                        maker: contractWallet.address,
+                        signer: contractWalletSigner,
+                        allowed: true,
+                    },
+                ],
+                IZeroExEvents.OrderSignerRegistered,
+            );
+
+            // then disallow signer
+            const receiptDisallow = await contractWallet
+                .registerAllowedOrderSigner(contractWalletSigner, false)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
+
+            verifyEventsFromLogs(
+                receiptDisallow.logs,
+                [
+                    {
+                        maker: contractWallet.address,
+                        signer: contractWalletSigner,
+                        allowed: false,
+                    },
+                ],
+                IZeroExEvents.OrderSignerRegistered,
+            );
+        });
+
         it('allows for fills on orders signed by a approved signer', async () => {
             const order = getTestRfqOrder({ maker: contractWallet.address });
             const sig = await order.getSignatureWithProviderAsync(
                 env.provider,
                 SignatureType.EthSign,
-                env.txDefaults.from!,
+                contractWalletSigner,
             );
 
             // covers taker
@@ -1611,21 +1657,9 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             // need to provide contract wallet with a balance
             await makerToken.mint(contractWallet.address, order.makerAmount).awaitTransactionSuccessAsync();
 
-            const receipt = await contractWallet
-                .registerAllowedSigner(env.txDefaults.from!, true)
-                .awaitTransactionSuccessAsync(env.txDefaults);
-
-            verifyEventsFromLogs(
-                receipt.logs,
-                [
-                    {
-                        maker: contractWallet.address,
-                        signer: env.txDefaults.from!,
-                        allowed: true,
-                    },
-                ],
-                IZeroExEvents.SignerRegistered,
-            );
+            await contractWallet
+                .registerAllowedOrderSigner(contractWalletSigner, true)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
             await zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
 
@@ -1642,7 +1676,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const sig = await order.getSignatureWithProviderAsync(
                 env.provider,
                 SignatureType.EthSign,
-                env.txDefaults.from!,
+                contractWalletSigner,
             );
 
             // covers taker
@@ -1651,44 +1685,20 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             await makerToken.mint(contractWallet.address, order.makerAmount).awaitTransactionSuccessAsync();
 
             // first allow signer
-            const receiptAllow = await contractWallet
-                .registerAllowedSigner(env.txDefaults.from!, true)
-                .awaitTransactionSuccessAsync(env.txDefaults);
-
-            verifyEventsFromLogs(
-                receiptAllow.logs,
-                [
-                    {
-                        maker: contractWallet.address,
-                        signer: env.txDefaults.from!,
-                        allowed: true,
-                    },
-                ],
-                IZeroExEvents.SignerRegistered,
-            );
+            await contractWallet
+                .registerAllowedOrderSigner(contractWalletSigner, true)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
             // then disallow signer
-            const receiptDisallow = await contractWallet
-                .registerAllowedSigner(env.txDefaults.from!, false)
-                .awaitTransactionSuccessAsync(env.txDefaults);
-
-            verifyEventsFromLogs(
-                receiptDisallow.logs,
-                [
-                    {
-                        maker: contractWallet.address,
-                        signer: env.txDefaults.from!,
-                        allowed: false,
-                    },
-                ],
-                IZeroExEvents.SignerRegistered,
-            );
+            await contractWallet
+                .registerAllowedOrderSigner(contractWalletSigner, false)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
             const tx = zeroEx.fillRfqOrder(order, sig, order.takerAmount).awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotSignedByMakerError(
                     order.getHash(),
-                    env.txDefaults.from!,
+                    contractWalletSigner,
                     order.maker,
                 ),
             );
@@ -1713,10 +1723,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder({ maker: contractWallet.address });
 
             await contractWallet
-                .registerAllowedSigner(env.txDefaults.from!, true)
-                .awaitTransactionSuccessAsync(env.txDefaults);
+                .registerAllowedOrderSigner(contractWalletSigner, true)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
-            await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: txDefaults.from! });
+            await zeroEx.cancelRfqOrder(order).awaitTransactionSuccessAsync({ from: contractWalletSigner });
 
             const info = await zeroEx.getRfqOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
@@ -1730,10 +1740,10 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder({ maker: contractWallet.address });
 
             await contractWallet
-                .registerAllowedSigner(env.txDefaults.from!, true)
-                .awaitTransactionSuccessAsync(env.txDefaults);
+                .registerAllowedOrderSigner(contractWalletSigner, true)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
-            await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: txDefaults.from! });
+            await zeroEx.cancelLimitOrder(order).awaitTransactionSuccessAsync({ from: contractWalletSigner });
 
             const info = await zeroEx.getLimitOrderInfo(order).callAsync();
             assertOrderInfoEquals(info, {
@@ -1767,8 +1777,8 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder({ maker: contractWallet.address, salt: new BigNumber(1) });
 
             await contractWallet
-                .registerAllowedSigner(env.txDefaults.from!, true)
-                .awaitTransactionSuccessAsync(env.txDefaults);
+                .registerAllowedOrderSigner(contractWalletSigner, true)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
             // Cancel salts <= the order's
             const minValidSalt = order.salt.plus(1);
@@ -1780,7 +1790,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                     takerToken.address,
                     minValidSalt,
                 )
-                .awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
+                .awaitTransactionSuccessAsync({ from: contractWalletSigner });
 
             const info = await zeroEx.getRfqOrderInfo(order).callAsync();
 
@@ -1812,8 +1822,8 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestLimitOrder({ maker: contractWallet.address, salt: new BigNumber(1) });
 
             await contractWallet
-                .registerAllowedSigner(env.txDefaults.from!, true)
-                .awaitTransactionSuccessAsync(env.txDefaults);
+                .registerAllowedOrderSigner(contractWalletSigner, true)
+                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
 
             // Cancel salts <= the order's
             const minValidSalt = order.salt.plus(1);
@@ -1825,7 +1835,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                     takerToken.address,
                     minValidSalt,
                 )
-                .awaitTransactionSuccessAsync({ from: env.txDefaults.from! });
+                .awaitTransactionSuccessAsync({ from: contractWalletSigner });
 
             const info = await zeroEx.getLimitOrderInfo(order).callAsync();
 
