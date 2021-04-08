@@ -10,7 +10,8 @@
                 "note": "Add default LiquidityProvider registry and allow LiquidityProvider gasCost to be a function of tokens",
                 "pr": 196
             }
-        ]
+        ],
+        "timestamp": 1617913615
     },
     {
         "version": "6.4.0",

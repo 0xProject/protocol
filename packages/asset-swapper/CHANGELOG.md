@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.5.0 - _April 8, 2021_
+
+    * Add Kyber DMM to Ethereum mainnet (#194)
+    * Add default LiquidityProvider registry and allow LiquidityProvider gasCost to be a function of tokens (#196)
+
 ## v6.4.0 - _April 1, 2021_
 
     * Use SOURCE_FLAGS.rfqOrder in comparisonPrice (#177)
