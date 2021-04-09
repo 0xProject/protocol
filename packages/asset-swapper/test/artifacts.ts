@@ -25,6 +25,7 @@ import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
 import * as IShell from '../test/generated-artifacts/IShell.json';
+import * as ISmoothy from '../test/generated-artifacts/ISmoothy.json';
 import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExchangeQuotes.json';
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
 import * as KyberSampler from '../test/generated-artifacts/KyberSampler.json';
@@ -36,6 +37,7 @@ import * as MultiBridgeSampler from '../test/generated-artifacts/MultiBridgeSamp
 import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSampler.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
+import * as SmoothySampler from '../test/generated-artifacts/SmoothySampler.json';
 import * as TestERC20BridgeSampler from '../test/generated-artifacts/TestERC20BridgeSampler.json';
 import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
@@ -62,6 +64,7 @@ export const artifacts = {
     NativeOrderSampler: NativeOrderSampler as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
+    SmoothySampler: SmoothySampler as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
@@ -75,6 +78,7 @@ export const artifacts = {
     IMooniswap: IMooniswap as ContractArtifact,
     IMultiBridge: IMultiBridge as ContractArtifact,
     IShell: IShell as ContractArtifact,
+    ISmoothy: ISmoothy as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
     IUniswapV2Router01: IUniswapV2Router01 as ContractArtifact,
     DummyLiquidityProvider: DummyLiquidityProvider as ContractArtifact,

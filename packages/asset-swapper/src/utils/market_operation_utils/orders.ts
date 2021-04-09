@@ -128,6 +128,12 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Belt');
         case ERC20BridgeSource.Ellipsis:
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Ellipsis');
+        case ERC20BridgeSource.Component:
+            return encodeBridgeSourceId(BridgeProtocol.Shell, 'Component');
+        case ERC20BridgeSource.Smoothy:
+            return encodeBridgeSourceId(BridgeProtocol.Curve, 'Smoothy');
+        case ERC20BridgeSource.Saddle:
+            return encodeBridgeSourceId(BridgeProtocol.Nerve, 'Saddle');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -155,6 +161,8 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Nerve:
         case ERC20BridgeSource.Belt:
         case ERC20BridgeSource.Ellipsis:
+        case ERC20BridgeSource.Smoothy:
+        case ERC20BridgeSource.Saddle:
             const curveFillData = (order as OptimizedMarketBridgeOrder<CurveFillData>).fillData;
             bridgeData = encoder.encode([
                 curveFillData.pool.poolAddress,
@@ -203,6 +211,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([dodoV2FillData.poolAddress, dodoV2FillData.isSellBase]);
             break;
         case ERC20BridgeSource.Shell:
+        case ERC20BridgeSource.Component:
             const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
             bridgeData = encoder.encode([shellFillData.poolAddress]);
             break;
@@ -302,6 +311,8 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Nerve]: curveEncoder,
     [ERC20BridgeSource.Belt]: curveEncoder,
     [ERC20BridgeSource.Ellipsis]: curveEncoder,
+    [ERC20BridgeSource.Smoothy]: curveEncoder,
+    [ERC20BridgeSource.Saddle]: curveEncoder,
     // UniswapV2 like, (router, address[])
     [ERC20BridgeSource.Bancor]: routerAddressPathEncoder,
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
@@ -311,6 +322,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.KyberDmm]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,
+    [ERC20BridgeSource.Component]: poolEncoder,
     [ERC20BridgeSource.Mooniswap]: poolEncoder,
     [ERC20BridgeSource.Eth2Dai]: poolEncoder,
     [ERC20BridgeSource.MStable]: poolEncoder,

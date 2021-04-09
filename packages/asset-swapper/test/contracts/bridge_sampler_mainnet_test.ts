@@ -3,7 +3,7 @@ import { blockchainTests, describe, expect, toBaseUnitAmount, Web3ProviderEngine
 import { RPCSubprovider } from '@0x/subproviders';
 import { BigNumber, NULL_BYTES, providerUtils } from '@0x/utils';
 
-import { KYBER_CONFIG_BY_CHAIN_ID, TOKENS } from '../../src/utils/market_operation_utils/constants';
+import { KYBER_CONFIG_BY_CHAIN_ID, MAINNET_TOKENS } from '../../src/utils/market_operation_utils/constants';
 import { artifacts } from '../artifacts';
 import { ERC20BridgeSamplerContract } from '../wrappers';
 
@@ -80,9 +80,9 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
         });
     });
     describe('Kyber', () => {
-        const WETH = TOKENS.WETH;
-        const DAI = TOKENS.DAI;
-        const USDC = TOKENS.USDC;
+        const WETH = MAINNET_TOKENS.WETH;
+        const DAI = MAINNET_TOKENS.DAI;
+        const USDC = MAINNET_TOKENS.USDC;
         const RESERVE_OFFSET = new BigNumber(0);
         const KYBER_OPTS = {
             ...KYBER_CONFIG_BY_CHAIN_ID[ChainId.Mainnet],

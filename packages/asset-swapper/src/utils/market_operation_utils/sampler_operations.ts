@@ -12,7 +12,7 @@ import {
     getCurveLikeInfosForPair,
     getDodoV2Offsets,
     getKyberOffsets,
-    getShellsForPair,
+    getShellLikeInfosForPair,
     isAllowedKyberReserveId,
     isBadTokenForSource,
     isValidAddress,
@@ -25,6 +25,7 @@ import {
     KYBER_CONFIG_BY_CHAIN_ID,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
+    MAINNET_TOKENS,
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
@@ -34,7 +35,6 @@ import {
     NULL_BYTES,
     OASIS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
-    TOKENS,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
@@ -403,6 +403,62 @@ export class SamplerOperations {
         });
     }
 
+    public getSmoothySellQuotes(
+        pool: CurveInfo,
+        fromTokenIdx: number,
+        toTokenIdx: number,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<CurveFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Smoothy,
+            fillData: {
+                pool,
+                fromTokenIdx,
+                toTokenIdx,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromSmoothy,
+            params: [
+                {
+                    poolAddress: pool.poolAddress,
+                    sellQuoteFunctionSelector: pool.sellQuoteFunctionSelector,
+                    buyQuoteFunctionSelector: pool.buyQuoteFunctionSelector,
+                },
+                new BigNumber(fromTokenIdx),
+                new BigNumber(toTokenIdx),
+                takerFillAmounts,
+            ],
+        });
+    }
+
+    public getSmoothyBuyQuotes(
+        pool: CurveInfo,
+        fromTokenIdx: number,
+        toTokenIdx: number,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<CurveFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Smoothy,
+            fillData: {
+                pool,
+                fromTokenIdx,
+                toTokenIdx,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromSmoothy,
+            params: [
+                {
+                    poolAddress: pool.poolAddress,
+                    sellQuoteFunctionSelector: pool.sellQuoteFunctionSelector,
+                    buyQuoteFunctionSelector: pool.buyQuoteFunctionSelector,
+                },
+                new BigNumber(fromTokenIdx),
+                new BigNumber(toTokenIdx),
+                makerFillAmounts,
+            ],
+        });
+    }
+
     public getBalancerSellQuotes(
         poolAddress: string,
         makerToken: string,
@@ -750,9 +806,10 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
+        source: ERC20BridgeSource = ERC20BridgeSource.Shell,
     ): SourceQuoteOperation<ShellFillData> {
         return new SamplerContractOperation({
-            source: ERC20BridgeSource.Shell,
+            source,
             fillData: { poolAddress },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromShell,
@@ -765,9 +822,10 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
+        source: ERC20BridgeSource = ERC20BridgeSource.Shell,
     ): SourceQuoteOperation {
         return new SamplerContractOperation({
-            source: ERC20BridgeSource.Shell,
+            source,
             fillData: { poolAddress },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromShell,
@@ -1054,6 +1112,7 @@ export class SamplerOperations {
                         case ERC20BridgeSource.Nerve:
                         case ERC20BridgeSource.Belt:
                         case ERC20BridgeSource.Ellipsis:
+                        case ERC20BridgeSource.Saddle:
                             return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                                 this.getCurveSellQuotes(
                                     pool,
@@ -1062,6 +1121,20 @@ export class SamplerOperations {
                                     takerFillAmounts,
                                     source,
                                 ),
+                            );
+                        case ERC20BridgeSource.Smoothy:
+                            return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getSmoothySellQuotes(
+                                    pool,
+                                    pool.tokens.indexOf(takerToken),
+                                    pool.tokens.indexOf(makerToken),
+                                    takerFillAmounts,
+                                ),
+                            );
+                        case ERC20BridgeSource.Shell:
+                        case ERC20BridgeSource.Component:
+                            return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts, source),
                             );
                         case ERC20BridgeSource.LiquidityProvider:
                             return getLiquidityProvidersForPair(
@@ -1118,10 +1191,6 @@ export class SamplerOperations {
                                         ERC20BridgeSource.Cream,
                                     ),
                                 );
-                        case ERC20BridgeSource.Shell:
-                            return getShellsForPair(this.chainId, takerToken, makerToken).map(pool =>
-                                this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
-                            );
                         case ERC20BridgeSource.Dodo:
                             if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                                 return [];
@@ -1165,7 +1234,7 @@ export class SamplerOperations {
                             return [
                                 [takerToken, makerToken],
                                 ...getIntermediateTokens(makerToken, takerToken, {
-                                    default: [TOKENS.LINK, TOKENS.WETH],
+                                    default: [MAINNET_TOKENS.LINK, MAINNET_TOKENS.WETH],
                                 }).map(t => [takerToken, t, makerToken]),
                             ].map(path =>
                                 this.getUniswapV2SellQuotes(
@@ -1252,6 +1321,7 @@ export class SamplerOperations {
                         case ERC20BridgeSource.Nerve:
                         case ERC20BridgeSource.Belt:
                         case ERC20BridgeSource.Ellipsis:
+                        case ERC20BridgeSource.Saddle:
                             return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                                 this.getCurveBuyQuotes(
                                     pool,
@@ -1260,6 +1330,20 @@ export class SamplerOperations {
                                     makerFillAmounts,
                                     source,
                                 ),
+                            );
+                        case ERC20BridgeSource.Smoothy:
+                            return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getSmoothyBuyQuotes(
+                                    pool,
+                                    pool.tokens.indexOf(takerToken),
+                                    pool.tokens.indexOf(makerToken),
+                                    makerFillAmounts,
+                                ),
+                            );
+                        case ERC20BridgeSource.Shell:
+                        case ERC20BridgeSource.Component:
+                            return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts, source),
                             );
                         case ERC20BridgeSource.LiquidityProvider:
                             return getLiquidityProvidersForPair(
@@ -1316,10 +1400,6 @@ export class SamplerOperations {
                                         ERC20BridgeSource.Cream,
                                     ),
                                 );
-                        case ERC20BridgeSource.Shell:
-                            return getShellsForPair(this.chainId, takerToken, makerToken).map(pool =>
-                                this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
-                            );
                         case ERC20BridgeSource.Dodo:
                             if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                                 return [];
@@ -1358,7 +1438,7 @@ export class SamplerOperations {
                                 [takerToken, makerToken],
                                 // LINK is the base asset in many of the pools on Linkswap
                                 ...getIntermediateTokens(makerToken, takerToken, {
-                                    default: [TOKENS.LINK, TOKENS.WETH],
+                                    default: [MAINNET_TOKENS.LINK, MAINNET_TOKENS.WETH],
                                 }).map(t => [takerToken, t, makerToken]),
                             ].map(path =>
                                 this.getUniswapV2BuyQuotes(
