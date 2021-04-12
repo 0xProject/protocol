@@ -567,8 +567,8 @@ abstract contract NativeOrdersSettlement is
     }
 
     /// @dev register a signer who can sign on behalf of msg.sender
-    /// @param signer the EOA from which you plan to generate signatures
-    /// @param allowed true to register, false to unregister.
+    /// @param signer The address from which you plan to generate signatures
+    /// @param allowed True to register, false to unregister.
     function registerAllowedOrderSigner(
         address signer,
         bool allowed

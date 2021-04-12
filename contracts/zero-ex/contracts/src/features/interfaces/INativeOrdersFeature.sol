@@ -412,8 +412,8 @@ interface INativeOrdersFeature is
 
     /// @dev Register a signer who can sign on behalf of msg.sender
     ///      This allows one to sign on behalf of a contract that calls this function
-    /// @param signer the EOA from which you plan to generate signatures
-    /// @param allowed true to register, false to unregister.
+    /// @param signer The address from which you plan to generate signatures
+    /// @param allowed True to register, false to unregister.
     function registerAllowedOrderSigner(
         address signer,
         bool allowed
@@ -421,8 +421,8 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev checks if a given address is registered to sign on behalf of a maker address
-    /// @param maker the maker address encoded in an order (can be a contract)
-    /// @param signer the address that is providing a signature (an EOA)
+    /// @param maker The maker address encoded in an order (can be a contract)
+    /// @param signer The address that is providing a signature
     function isValidOrderSigner(
         address maker,
         address signer
