@@ -593,7 +593,10 @@ function calculateTwoHopQuoteInfo(
                 ? firstHopOrder.takerAmount
                 : // tslint:disable-next-line: binary-expression-operand-order
                   firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
-            totalTakerAmount: firstHopOrder.takerAmount,
+            totalTakerAmount: MarketOperation.Sell
+                ? firstHopOrder.takerAmount
+                : // tslint:disable-next-line: binary-expression-operand-order
+                  firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,

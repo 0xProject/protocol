@@ -23,6 +23,7 @@ import {
     CalldataInfo,
     ExchangeProxyContractOpts,
     MarketBuySwapQuote,
+    MarketOperation,
     MarketSellSwapQuote,
     SwapQuote,
     SwapQuoteConsumerBase,
@@ -43,6 +44,7 @@ import {
     LiquidityProviderFillData,
     MooniswapFillData,
     OptimizedMarketBridgeOrder,
+    OptimizedMarketOrder,
     UniswapV2FillData,
 } from '../utils/market_operation_utils/types';
 
@@ -136,7 +138,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         const buyToken = quote.makerToken;
 
         // Take the bounds from the worst case
-        const sellAmount = quote.worstCaseQuoteInfo.totalTakerAmount;
+        const sellAmount = BigNumber.max(
+            quote.bestCaseQuoteInfo.totalTakerAmount,
+            quote.worstCaseQuoteInfo.totalTakerAmount,
+        );
         let minBuyAmount = quote.worstCaseQuoteInfo.makerAmount;
         let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
 
@@ -144,13 +149,15 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             ethAmount = ethAmount.plus(sellAmount);
         }
 
+        const slippedOrders = slipNonNativeOrders(quote);
+
         // VIP routes.
         if (
             this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
         ) {
-            const source = quote.orders[0].source;
-            const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
+            const source = slippedOrders[0].source;
+            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToUniswap(
@@ -183,8 +190,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ERC20BridgeSource.SushiSwap,
             ])
         ) {
-            const source = quote.orders[0].source;
-            const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
+            const source = slippedOrders[0].source;
+            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToPancakeSwap(
@@ -213,7 +220,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])
         ) {
-            const fillData = (quote.orders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
+            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
             const target = fillData.poolAddress;
             return {
                 calldataHexString: this._exchangeProxy
@@ -238,7 +245,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])
         ) {
-            const fillData = quote.orders[0].fills[0].fillData as CurveFillData;
+            const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(
@@ -267,7 +274,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
         ) {
-            const fillData = quote.orders[0].fills[0].fillData as MooniswapFillData;
+            const fillData = slippedOrders[0].fills[0].fillData as MooniswapFillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(
@@ -289,7 +296,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
             return {
-                calldataHexString: this._encodeMultiplexBatchFillCalldata(quote),
+                calldataHexString: this._encodeMultiplexBatchFillCalldata({ ...quote, orders: slippedOrders }),
                 ethAmount,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,
@@ -298,7 +305,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
         if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
             return {
-                calldataHexString: this._encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
+                calldataHexString: this._encodeMultiplexMultiHopFillCalldata(
+                    { ...quote, orders: slippedOrders },
+                    optsWithDefaults,
+                ),
                 ethAmount,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,
@@ -321,10 +331,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // If it's two hop we have an intermediate token this is needed to encode the individual FQT
         // and we also want to ensure no dust amount is left in the flash wallet
-        const intermediateToken = quote.isTwoHop ? quote.orders[0].makerToken : NULL_ADDRESS;
+        const intermediateToken = quote.isTwoHop ? slippedOrders[0].makerToken : NULL_ADDRESS;
         // This transformer will fill the quote.
         if (quote.isTwoHop) {
-            const [firstHopOrder, secondHopOrder] = quote.orders;
+            const [firstHopOrder, secondHopOrder] = slippedOrders;
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
@@ -349,14 +359,13 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         } else {
             const fillAmount = isBuyQuote(quote) ? quote.makerTokenFillAmount : quote.takerTokenFillAmount;
-
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
                     side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
                     sellToken,
                     buyToken,
-                    ...getFQTTransformerDataFromOptimizedOrders(quote.orders),
+                    ...getFQTTransformerDataFromOptimizedOrders(slippedOrders),
                     refundReceiver: refundReceiver || NULL_ADDRESS,
                     fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
                 }),
@@ -597,4 +606,39 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             )
             .getABIEncodedTransactionData();
     }
+}
+
+function slipNonNativeOrders(quote: MarketSellSwapQuote | MarketBuySwapQuote): OptimizedMarketOrder[] {
+    const slippage = getMaxQuoteSlippageRate(quote);
+    if (!slippage) {
+        return quote.orders;
+    }
+    return quote.orders.map(o => {
+        if (o.source === ERC20BridgeSource.Native) {
+            return o;
+        }
+        return {
+            ...o,
+            ...(quote.type === MarketOperation.Sell
+                ? { makerAmount: o.makerAmount.times(1 - slippage).integerValue(BigNumber.ROUND_DOWN) }
+                : { takerAmount: o.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP) }),
+        };
+    });
+}
+
+function getMaxQuoteSlippageRate(quote: MarketBuySwapQuote | MarketSellSwapQuote): number {
+    if (quote.type === MarketOperation.Buy) {
+        // (worstCaseTaker - bestCaseTaker) / bestCaseTaker
+        // where worstCaseTaker >= bestCaseTaker
+        return quote.worstCaseQuoteInfo.takerAmount
+            .minus(quote.bestCaseQuoteInfo.takerAmount)
+            .div(quote.bestCaseQuoteInfo.takerAmount)
+            .toNumber();
+    }
+    // (bestCaseMaker - worstCaseMaker) / bestCaseMaker
+    // where bestCaseMaker >= worstCaseMaker
+    return quote.bestCaseQuoteInfo.makerAmount
+        .minus(quote.worstCaseQuoteInfo.makerAmount)
+        .div(quote.bestCaseQuoteInfo.makerAmount)
+        .toNumber();
 }

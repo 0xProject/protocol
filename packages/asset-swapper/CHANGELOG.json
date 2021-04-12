@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.5.3",
+        "changes": [
+            {
+                "note": "Apply slippage to bridge orders in consumer",
+                "pr": 198
+            }
+        ]
+    },
+    {
         "timestamp": 1618314654,
         "version": "6.5.2",
         "changes": [
