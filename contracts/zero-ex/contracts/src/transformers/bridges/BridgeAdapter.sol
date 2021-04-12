@@ -39,6 +39,7 @@ import "./mixins/MixinOasis.sol";
 import "./mixins/MixinShell.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract BridgeAdapter is
@@ -60,6 +61,7 @@ contract BridgeAdapter is
     MixinShell,
     MixinUniswap,
     MixinUniswapV2,
+    MixinUniswapV3,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
@@ -81,6 +83,7 @@ contract BridgeAdapter is
         MixinShell()
         MixinUniswap(weth)
         MixinUniswapV2()
+        MixinUniswapV3()
         MixinZeroExBridge()
     {}
 
@@ -99,6 +102,12 @@ contract BridgeAdapter is
             boughtAmount = _tradeCurve(
                 sellToken,
                 buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.UNISWAPV3) {
+            boughtAmount = _tradeUniswapV3(
+                sellToken,
                 sellAmount,
                 order.bridgeData
             );
