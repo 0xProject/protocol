@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.5.1 - _April 12, 2021_
+
+    * Dependencies updated
+
 ## v6.5.0 - _April 8, 2021_
 
     * Add Kyber DMM to Ethereum mainnet (#194)
@@ -12,6 +16,7 @@ CHANGELOG
 
 ## v6.4.0 - _April 1, 2021_
 
+    * Added Component, Smoothy, Saddle, Curve open pools, tweeks gas schedule, adding SushiSwap as a fee quote source (#182)
     * Use SOURCE_FLAGS.rfqOrder in comparisonPrice (#177)
     * Add a cancel token to ensure timeouts are respected (#176)
     * Rename {Rfqt=>Rfq} for many types in Asset Swapper (#179)

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.21.1 - _April 12, 2021_
+
+    * Dependencies updated
+
 ## v0.21.0 - _April 1, 2021_
 
     * Encoding protocol ID and source name in bridge source ID (#162)
