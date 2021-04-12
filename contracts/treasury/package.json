@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-treasury",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "engines": {
         "node": ">=6.12"
     },
@@ -73,7 +73,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.2.18",
-        "@0x/protocol-utils": "^1.4.0",
+        "@0x/protocol-utils": "^1.4.1",
         "@0x/subproviders": "^6.4.1",
         "@0x/types": "^3.3.1",
         "@0x/typescript-typings": "^5.1.6",
