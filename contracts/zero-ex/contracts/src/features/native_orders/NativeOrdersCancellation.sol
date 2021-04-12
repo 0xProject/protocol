@@ -122,7 +122,7 @@ abstract contract NativeOrdersCancellation is
     }
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
-    ///      than the value provided. The caller must a be signer registered to the maker.
+    ///      than the value provided. The caller must be a signer registered to the maker.
     ///      Subsequent calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param maker the maker for whom the msg.sender is the signer.
