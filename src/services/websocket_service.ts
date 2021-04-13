@@ -5,7 +5,7 @@ import * as WebSocket from 'ws';
 import { MESH_IGNORED_ADDRESSES } from '../config';
 import { MalformedJSONError, NotImplementedError, WebsocketServiceError } from '../errors';
 import { logger } from '../logger';
-import { generateError } from '../middleware/error_handling';
+import { errorUtils } from '../middleware/error_handling';
 import { schemas } from '../schemas';
 import {
     MessageChannels,
@@ -208,7 +208,7 @@ export class WebsocketService {
     }
     // tslint:disable-next-line:prefer-function-over-method
     private _processError(ws: WrappedWebSocket, err: Error): void {
-        const { errorBody } = generateError(err);
+        const { errorBody } = errorUtils.generateError(err);
         ws.send(JSON.stringify(errorBody));
         ws.terminate();
     }
