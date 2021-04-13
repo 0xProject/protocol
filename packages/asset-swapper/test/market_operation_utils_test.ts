@@ -915,6 +915,7 @@ describe('MarketOperationUtils tests', () => {
                             intentOnFilling: true,
                             quoteRequestor: {
                                 requestRfqtIndicativeQuotesAsync: requestor.object.requestRfqtIndicativeQuotesAsync,
+                                getMakerUriForSignature: requestor.object.getMakerUriForSignature,
                             } as any,
                         },
                     },
