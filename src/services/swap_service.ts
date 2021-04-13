@@ -17,6 +17,7 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
+import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
 import { MarketOperation, PaginatedCollection } from '@0x/types';
@@ -51,7 +52,7 @@ import {
     WRAP_QUOTE_GAS,
     ZERO,
 } from '../constants';
-import { InsufficientFundsError } from '../errors';
+import { GasEstimationError, InsufficientFundsError } from '../errors';
 import { logger } from '../logger';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import {
@@ -296,7 +297,7 @@ export class SwapService {
         // using eth_gasEstimate
         // If an error occurs we attempt to provide a better message then "Transaction Reverted"
         if (takerAddress && !skipValidation) {
-            const estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
+            let estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
                 to,
                 data,
                 from: takerAddress,
@@ -304,7 +305,7 @@ export class SwapService {
                 gasPrice,
             });
             // Add any underterministic gas overhead the encoded transaction has detected
-            estimateGasCallResult.plus(gasOverhead);
+            estimateGasCallResult = estimateGasCallResult.plus(gasOverhead);
             // Take the max of the faux estimate or the real estimate
             conservativeBestCaseGasEstimate = BigNumber.max(
                 // Add a little buffer to eth_estimateGas as it is not always correct
@@ -375,11 +376,11 @@ export class SwapService {
     }
 
     public async getSwapQuoteForWrapAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
-        return this._getSwapQuoteForWethAsync(params, false);
+        return this._getSwapQuoteForNativeWrappedAsync(params, false);
     }
 
     public async getSwapQuoteForUnwrapAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
-        return this._getSwapQuoteForWethAsync(params, true);
+        return this._getSwapQuoteForNativeWrappedAsync(params, true);
     }
 
     public async getTokenPricesAsync(
@@ -526,7 +527,7 @@ export class SwapService {
         };
     }
 
-    private async _getSwapQuoteForWethAsync(
+    private async _getSwapQuoteForNativeWrappedAsync(
         params: GetSwapQuoteParams,
         isUnwrap: boolean,
     ): Promise<GetSwapQuoteResponse> {
@@ -555,7 +556,7 @@ export class SwapService {
         const apiSwapQuote: GetSwapQuoteResponse = {
             price: ONE,
             guaranteedPrice: ONE,
-            to: this._wethContract.address,
+            to: NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID],
             data: attributedCalldata.affiliatedData,
             decodedUniqueId: attributedCalldata.decodedUniqueId,
             value,
@@ -590,13 +591,19 @@ export class SwapService {
         try {
             // NOTE: Ganache does not support overrides
             if (CHAIN_ID === ChainId.Ganache) {
-                const gas = await this._web3Wrapper
-                    .estimateGasAsync(txData)
-                    .catch((_e) => DEFAULT_VALIDATION_GAS_LIMIT);
+                // Default to true as ganache provides us less info and we cannot override
+                callResult.success = true;
+                const gas = await this._web3Wrapper.estimateGasAsync(txData).catch((_e) => {
+                    // If an estimate error happens on ganache we say it failed
+                    callResult.success = false;
+                    return DEFAULT_VALIDATION_GAS_LIMIT;
+                });
                 callResultGanacheRaw = await this._web3Wrapper.callAsync({
                     ...txData,
                     gas,
                 });
+                callResult.resultData = callResultGanacheRaw;
+                callResult.gasUsed = new BigNumber(gas);
                 gasEstimate = new BigNumber(gas);
             } else {
                 // Split out the `to` and `data` so it doesn't override
@@ -614,8 +621,6 @@ export class SwapService {
                         },
                     },
                 });
-
-                gasEstimate = callResult.gasUsed.plus(utils.calculateCallDataGas(data!));
             }
         } catch (e) {
             if (e.message && /insufficient funds/.test(e.message)) {
@@ -632,7 +637,11 @@ export class SwapService {
                     throw new Error(e.message);
                 }
             } else {
-                revertError = decodeThrownErrorAsRevertError(e);
+                try {
+                    revertError = decodeThrownErrorAsRevertError(e);
+                } catch (e) {
+                    // Could not decode the revert error
+                }
             }
             if (revertError) {
                 throw revertError;
@@ -649,6 +658,13 @@ export class SwapService {
         }
         if (revertError) {
             throw revertError;
+        }
+        // Add in the overhead of call data
+        gasEstimate = callResult.gasUsed.plus(utils.calculateCallDataGas(txData.data!));
+        // If there's a revert and we still are unable to decode it, just throw it.
+        // This can happen in VIPs where there are no real revert reasons
+        if (!callResult.success) {
+            throw new GasEstimationError();
         }
         return gasEstimate;
     }

@@ -3,7 +3,6 @@ import {
     ERC20BridgeSource,
     FeeSchedule,
     QuoteReport,
-    SushiSwapFillData,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
 import { MarketOperation } from '@0x/types';
@@ -33,7 +32,7 @@ const gasScheduleWithOverrides: FeeSchedule = {
     [ERC20BridgeSource.SushiSwap]: (fillData) => {
         let gas = 1.5e5;
         // tslint:disable-next-line:custom-no-magic-numbers
-        if ((fillData as SushiSwapFillData).tokenAddressPath.length > 2) {
+        if ((fillData as UniswapV2FillData).tokenAddressPath.length > 2) {
             // tslint:disable-next-line:custom-no-magic-numbers
             gas += 5e4;
         }

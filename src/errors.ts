@@ -30,12 +30,18 @@ export class EthSellNotSupportedError extends BadRequestError<APIErrorCodes> {
     public generalErrorCode = APIErrorCodes.EthSellNotSupported;
 }
 
+export class GasEstimationError extends BadRequestError<APIErrorCodes> {
+    public statusCode = HttpStatus.BAD_REQUEST;
+    public generalErrorCode = APIErrorCodes.GasEstimationFailed;
+}
+
 export enum APIErrorCodes {
     OrderSubmissionDisabled = 102,
     UnableToSubmitOnBehalfOfTaker = 106,
     ServiceDisabled = 108,
     InsufficientFundsError = 109,
     EthSellNotSupported = 110,
+    GasEstimationFailed = 111,
 }
 
 export const apiErrorCodesToReasons: { [key in APIErrorCodes]: string } = {
@@ -45,6 +51,7 @@ export const apiErrorCodesToReasons: { [key in APIErrorCodes]: string } = {
     [APIErrorCodes.ServiceDisabled]: 'Service disabled',
     [APIErrorCodes.InsufficientFundsError]: 'Insufficient funds for transaction',
     [APIErrorCodes.EthSellNotSupported]: 'ETH selling is not supported',
+    [APIErrorCodes.GasEstimationFailed]: 'Gas estimation failed',
 };
 
 export enum ValidationErrorReasons {

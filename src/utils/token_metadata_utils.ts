@@ -1,6 +1,7 @@
 import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
 
-import { ADDRESS_HEX_LENGTH, ETH_SYMBOL, WETH_SYMBOL } from '../constants';
+import { NATIVE_TOKEN_SYMBOL, NATIVE_WRAPPED_TOKEN_SYMBOL } from '../config';
+import { ADDRESS_HEX_LENGTH } from '../constants';
 import { ValidationError, ValidationErrorCodes } from '../errors';
 import { TokenMetadataAndChainAddresses, TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { ChainId, TokenMetadata } from '../types';
@@ -32,28 +33,30 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
 }
 
 /**
- *  Returns true if this symbol or address represents ETH
+ *  Returns true if this symbol or address represents ETH on
  *
  * @param tokenSymbolOrAddress the symbol of the token
  */
-export function isETHSymbolOrAddress(tokenSymbolOrAddress: string): boolean {
+export function isNativeSymbolOrAddress(tokenSymbolOrAddress: string): boolean {
     return (
-        tokenSymbolOrAddress.toLowerCase() === ETH_SYMBOL.toLowerCase() ||
+        tokenSymbolOrAddress.toLowerCase() === NATIVE_TOKEN_SYMBOL.toLowerCase() ||
         tokenSymbolOrAddress.toLowerCase() === ETH_TOKEN_ADDRESS.toLowerCase()
     );
 }
 
 /**
- *  Returns true if this symbol represents WETH
+ *  Returns true if this symbol represents the native token in wrapped form
+ *  e.g  WETH on Ethereum networks
  *
  * @param tokenSymbol the symbol of the token
  */
-export function isWETHSymbolOrAddress(tokenAddressOrSymbol: string, chainId: number): boolean {
+export function isNativeWrappedSymbolOrAddress(tokenAddressOrSymbol: string, chainId: number): boolean {
     // force downcast to TokenMetadata the optional
-    const wethAddress = ((getTokenMetadataIfExists(WETH_SYMBOL, chainId) as any) as TokenMetadata).tokenAddress;
+    const wrappedAddress = ((getTokenMetadataIfExists(NATIVE_WRAPPED_TOKEN_SYMBOL, chainId) as any) as TokenMetadata)
+        .tokenAddress;
     return (
-        tokenAddressOrSymbol.toLowerCase() === WETH_SYMBOL.toLowerCase() ||
-        tokenAddressOrSymbol.toLowerCase() === wethAddress
+        tokenAddressOrSymbol.toLowerCase() === NATIVE_WRAPPED_TOKEN_SYMBOL.toLowerCase() ||
+        tokenAddressOrSymbol.toLowerCase() === wrappedAddress
     );
 }
 

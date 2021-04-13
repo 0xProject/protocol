@@ -5,7 +5,7 @@ services:
         ports:
             - '8545:8545'
         environment:
-            VERSION: 6.6.0
+            VERSION: 8.0.1
     postgres:
         image: postgres:9.6
         environment:
@@ -37,4 +37,3 @@ services:
             - '60559:60559'
         command: |
             sh -c "waitForGanache () { until printf 'POST /\r\nContent-Length: 26\r\n\r\n{\"method\":\"net_listening\"}' | nc localhost 8545 | grep true; do continue; done }; waitForGanache && ./mesh"
-

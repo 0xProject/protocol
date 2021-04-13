@@ -13,6 +13,7 @@
         "typeRoots": ["node_modules/@0x/typescript-typings/types", "node_modules/@types"],
         "noUnusedParameters": false,
         "resolveJsonModule": true,
+        "skipLibCheck": true,
         "allowSyntheticDefaultImports": true
     },
     "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts", "src/schemas/*.json"]

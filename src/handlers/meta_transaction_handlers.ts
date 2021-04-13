@@ -40,7 +40,7 @@ import { schemaUtils } from '../utils/schema_utils';
 import {
     findTokenAddressOrThrowApiError,
     getTokenMetadataIfExists,
-    isETHSymbolOrAddress,
+    isNativeSymbolOrAddress,
 } from '../utils/token_metadata_utils';
 
 export class MetaTransactionHandlers {
@@ -65,10 +65,10 @@ export class MetaTransactionHandlers {
         // parse query params
         const params = parseGetTransactionRequestParams(req);
         const { buyTokenAddress, sellTokenAddress } = params;
-        const isETHBuy = isETHSymbolOrAddress(buyTokenAddress);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress);
 
         // ETH selling isn't supported.
-        if (isETHSymbolOrAddress(sellTokenAddress)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress)) {
             throw new EthSellNotSupportedError();
         }
 
@@ -139,10 +139,10 @@ export class MetaTransactionHandlers {
         const { buyTokenAddress, sellTokenAddress } = params;
 
         // ETH selling isn't supported.
-        if (isETHSymbolOrAddress(sellTokenAddress)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress)) {
             throw new EthSellNotSupportedError();
         }
-        const isETHBuy = isETHSymbolOrAddress(buyTokenAddress);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress);
 
         try {
             const metaTransactionPriceCalculation = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
