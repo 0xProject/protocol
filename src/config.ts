@@ -30,9 +30,11 @@ import {
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     TX_BASE_GAS,
 } from './constants';
+import { schemas } from './schemas';
 import { TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
 import { parseUtils } from './utils/parse_utils';
+import { schemaUtils } from './utils/schema_utils';
 
 // tslint:disable:no-bitwise
 
@@ -57,6 +59,56 @@ enum EnvVarType {
     LiquidityProviderRegistry,
     JsonStringList,
 }
+
+export interface ApiKeyStructure {
+    [key: string]: {
+        label: string;
+        rfqt: boolean;
+        rfqm: boolean;
+        plp: boolean;
+    };
+}
+
+export const getApiKeyWhitelistWithFallback = (
+    legacyEnvKey: string,
+    newEnvKey: string,
+    groupType: 'rfqt' | 'plp' | 'rfqm'
+): string[] => {
+
+    // Try the new path first
+    if (_.isEmpty(process.env[newEnvKey])) {
+        return _.isEmpty(process.env[legacyEnvKey])
+            ? []
+            : assertEnvVarType(legacyEnvKey, process.env[legacyEnvKey], EnvVarType.JsonStringList);
+    }
+
+    let deserialized: ApiKeyStructure;
+    try {
+        deserialized = JSON.parse(process.env[newEnvKey]!);
+        schemaUtils.validateSchema(deserialized, schemas.apiKeySchema as any);
+    } catch (e) {
+        throw new Error(`Key ${newEnvKey} was defined but is not valid JSON`);
+    }
+
+    const result: string[] = [];
+    for (const apiKey of Object.keys(deserialized)) {
+        const keyMeta = deserialized[apiKey];
+        switch (groupType) {
+            case 'plp':
+                if (keyMeta.plp) { result.push(apiKey); }
+                break;
+            case 'rfqm':
+                if (keyMeta.rfqm) { result.push(apiKey); }
+                break;
+            case 'rfqt':
+                if (keyMeta.rfqt) { result.push(apiKey); }
+                break;
+            default:
+                throw new Error(`Unknown group type inputted: ${groupType}`);
+        }
+    }
+    return result.sort();
+};
 
 // Log level for pino.js
 export const LOG_LEVEL: string = _.isEmpty(process.env.LOG_LEVEL)
@@ -192,13 +244,11 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGI
     ? []
     : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
-export const RFQT_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.RFQT_API_KEY_WHITELIST_JSON)
-    ? []
-    : assertEnvVarType(
-          'RFQT_API_KEY_WHITELIST_JSON',
-          process.env.RFQT_API_KEY_WHITELIST_JSON,
-          EnvVarType.JsonStringList,
-      );
+export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistWithFallback(
+    'RFQT_API_KEY_WHITELIST_JSON',
+    'API_KEYS_ACL',
+    'rfqt'
+);
 
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = _.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST)
     ? new Set()
@@ -220,9 +270,11 @@ export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
 
-export const PLP_API_KEY_WHITELIST: string[] = _.isEmpty(process.env.PLP_API_KEY_WHITELIST_JSON)
-    ? []
-    : assertEnvVarType('PLP_API_KEY_WHITELIST_JSON', process.env.PLP_API_KEY_WHITELIST_JSON, EnvVarType.JsonStringList);
+export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistWithFallback(
+    'PLP_API_KEY_WHITELIST_JSON',
+    'API_KEYS_ACL',
+    'plp'
+);
 
 export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
     ? {}

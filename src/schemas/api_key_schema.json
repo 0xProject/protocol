@@ -1,0 +1,22 @@
+{
+    "id": "/apiKeySchema",
+    "type": "object",
+    "additionalProperties": {
+        "type": "object",
+        "required": ["rfqt", "rfqm", "plp", "label"],
+        "properties": {
+            "label": {
+                "type": "string"
+            },
+            "rfqt": {
+                "type": "boolean"
+            },
+            "rfqm": {
+                "type": "boolean"
+            },
+            "plp": {
+                "type": "boolean"
+            }
+        }
+    }
+}
