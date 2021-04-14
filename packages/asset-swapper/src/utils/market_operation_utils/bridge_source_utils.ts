@@ -23,6 +23,7 @@ import {
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
     SWERVE_MAINNET_INFOS,
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
+    XSIGMA_MAINNET_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
 
@@ -193,6 +194,19 @@ export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, make
     );
 }
 
+export function getXSigmaInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.Mainnet) {
+        return [];
+    }
+    return Object.values(XSIGMA_MAINNET_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaToken === undefined) ||
+                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+        ),
+    );
+}
+
 export function getShellLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
@@ -221,7 +235,8 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Belt
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Smoothy
-        | ERC20BridgeSource.Saddle,
+        | ERC20BridgeSource.Saddle
+        | ERC20BridgeSource.xSigma,
 ): CurveInfo[] {
     switch (source) {
         case ERC20BridgeSource.Curve:
@@ -240,6 +255,8 @@ export function getCurveLikeInfosForPair(
             return getSmoothyInfosForPair(chainId, takerToken, makerToken);
         case ERC20BridgeSource.Saddle:
             return getSaddleInfosForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.xSigma:
+            return getXSigmaInfosForPair(chainId, takerToken, makerToken);
         default:
             throw new Error(`Unknown Curve like source ${source}`);
     }

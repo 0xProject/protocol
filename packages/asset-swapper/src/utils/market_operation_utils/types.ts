@@ -63,6 +63,7 @@ export enum ERC20BridgeSource {
     Smoothy = 'Smoothy',
     Component = 'Component',
     Saddle = 'Saddle',
+    xSigma = 'xSigma',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     BakerySwap = 'BakerySwap',
