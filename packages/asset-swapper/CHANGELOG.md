@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.5.3 - _April 14, 2021_
+
+    * Apply slippage to bridge orders in consumer (#198)
+
 ## v6.5.2 - _April 13, 2021_
 
     * Dependencies updated
