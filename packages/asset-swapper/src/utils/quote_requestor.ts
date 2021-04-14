@@ -112,8 +112,10 @@ export class QuoteRequestor {
             sellTokenAddress,
             comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
             protocolVersion: '4',
-            isLastLook: isLastLook?.toString(),
         };
+        if (isLastLook) {
+            requestParamsWithBigNumbers.isLastLook = isLastLook.toString();
+        }
 
         // convert BigNumbers to strings
         // so they are digestible by axios
