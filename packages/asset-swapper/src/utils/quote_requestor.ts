@@ -83,7 +83,7 @@ export class QuoteRequestor {
         sellTokenAddress: string, // taker token
         assetFillAmount: BigNumber,
         comparisonPrice?: BigNumber,
-        isLastLook: boolean = false,
+        isLastLook?: boolean | undefined,
     ): TakerRequestQueryParams {
         const { buyAmountBaseUnits, sellAmountBaseUnits } =
             marketOperation === MarketOperation.Buy
@@ -111,9 +111,11 @@ export class QuoteRequestor {
             buyTokenAddress,
             sellTokenAddress,
             comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
-            isLastLook: isLastLook.toString(),
             protocolVersion: '4',
         };
+        if (isLastLook) {
+            requestParamsWithBigNumbers.isLastLook = isLastLook.toString();
+        }
 
         // convert BigNumbers to strings
         // so they are digestible by axios

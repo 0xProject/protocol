@@ -272,7 +272,6 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin,
-                isLastLook: 'false',
                 protocolVersion: '4',
             };
             const mockedDefaults = {
@@ -579,7 +578,6 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin: takerAddress,
-                isLastLook: 'false',
                 protocolVersion: '4',
             };
             const mockedDefaults = {
@@ -688,7 +686,6 @@ describe('QuoteRequestor', async () => {
                 takerAddress,
                 txOrigin: takerAddress,
                 protocolVersion: '4',
-                isLastLook: 'false',
             };
             const mockedDefaults = {
                 requestApiKey: apiKey,
@@ -773,7 +770,6 @@ describe('QuoteRequestor', async () => {
                 comparisonPrice: undefined,
                 takerAddress,
                 txOrigin: takerAddress,
-                isLastLook: 'false',
                 protocolVersion: '4',
             };
             // Successful response
