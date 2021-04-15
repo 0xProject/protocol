@@ -40,28 +40,28 @@ contract BalancerV2Sampler is SamplerUtils {
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromBalancer(
+    function sampleSellsFromBalancerV2(
         BalancerV2PoolInfo memory poolInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
         public
-        view
         returns (uint256[] memory makerTokenAmounts)
     {
         _assertValidPair(makerToken, takerToken);
         IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vaultAddress);
         // For sells we specify the takerToken which is what the vault will receive from the trade
         IBalancerV2Vault.SwapKind swapKind = IBalancerV2Vault.SwapKind.GIVEN_IN;
-        IAsset[2] memory swapAssets = [IAsset(takerToken), IAsset(makerToken)];
-
+        IAsset[] memory swapAssets = new IAsset[](2);
+        swapAssets[0] = IAsset(takerToken);
+        swapAssets[1] = IAsset(makerToken);
 
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
 
         for (uint256 i = 0; i < numSamples; i++) {
-            IBalancerV2Vault.BatchSwapStep[] memory swapSteps = _createSwapStep(poolInfo, takerTokenAmounts[i], true);
+            IBalancerV2Vault.BatchSwapStep[] memory swapSteps = _createSwapSteps(poolInfo, takerTokenAmounts[i], true);
             IBalancerV2Vault.FundManagement memory swapFunds = _createSwapFunds();
 
             try
@@ -87,60 +87,69 @@ contract BalancerV2Sampler is SamplerUtils {
     }
 
     /// @dev Sample buy quotes from Balancer V2.
-    /// @param poolAddress Address of the Balancer pool to query.
+    /// @param poolInfo Struct with pool related data
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    //function sampleBuysFromBalancerV2(
-        //address poolAddress,
-        //address takerToken,
-        //address makerToken,
-        //uint256[] memory makerTokenAmounts
-    //)
-        //public
-        //view
-        //returns (uint256[] memory takerTokenAmounts)
-    //{
-        //uint256 numSamples = makerTokenAmounts.length;
-        //takerTokenAmounts = new uint256[](numSamples);
+    function sampleBuysFromBalancerV2(
+        BalancerV2PoolInfo memory poolInfo,
+        address takerToken,
+        address makerToken,
+        uint256[] memory makerTokenAmounts
+    )
+        public
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        _assertValidPair(makerToken, takerToken);
+        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vaultAddress);
+        // For buys we specify the makerToken which is what taker will receive from the trade
+        IBalancerV2Vault.SwapKind swapKind = IBalancerV2Vault.SwapKind.GIVEN_OUT;
+        IAsset[] memory swapAssets = new IAsset[](2);
+        swapAssets[0] = IAsset(takerToken);
+        swapAssets[1] = IAsset(makerToken);
 
-        //for (uint256 i = 0; i < numSamples; i++) {
-            //try
-                //pool.calcInGivenOut
-                    //{gas: BALANCER_CALL_GAS}
-                    //(
-                        //poolState.takerTokenBalance,
-                        //poolState.takerTokenWeight,
-                        //poolState.makerTokenBalance,
-                        //poolState.makerTokenWeight,
-                        //makerTokenAmounts[i],
-                        //poolState.swapFee
-                    //)
-                //returns (uint256 amount)
-            //{
-                //takerTokenAmounts[i] = amount;
-                //// Break early if there are 0 amounts
-                //if (takerTokenAmounts[i] == 0) {
-                    //break;
-                //}
-            //} catch (bytes memory) {
-                //// Swallow failures, leaving all results as zero.
-                //break;
-            //}
-        //}
-    //}
+        uint256 numSamples = makerTokenAmounts.length;
+        takerTokenAmounts = new uint256[](numSamples);
 
-    function _createSwapStep(
+        for (uint256 i = 0; i < numSamples; i++) {
+            IBalancerV2Vault.BatchSwapStep[] memory swapSteps = _createSwapSteps(poolInfo, makerTokenAmounts[i], false);
+            IBalancerV2Vault.FundManagement memory swapFunds = _createSwapFunds();
+
+            try
+                vault.queryBatchSwap
+                {gas: BALANCER_CALL_GAS}
+                (
+                    swapKind,
+                    swapSteps,
+                    swapAssets,
+                    swapFunds
+                ) returns (int256[] memory amounts)
+            {
+                // Break early if there are 0 or negative amounts
+                if (amounts[0] <= 0) {
+                    break;
+                }
+                takerTokenAmounts[i] = uint256(amounts[0]);
+            } catch (bytes memory) {
+                // Swallow failures, leaving all results as zero.
+                break;
+            }
+        }
+    }
+
+    function _createSwapSteps(
         BalancerV2PoolInfo memory poolInfo,
         uint256 amount,
         bool isSelling
     )
         private
-        returns (IBalancerV2Vault.BatchSwapStep memory)
+        pure
+        returns (IBalancerV2Vault.BatchSwapStep[] memory)
     {
-        return IBalancerV2Vault.BatchSwapStep({
+        IBalancerV2Vault.BatchSwapStep[] memory swapSteps = new IBalancerV2Vault.BatchSwapStep[](1);
+        swapSteps[0] = IBalancerV2Vault.BatchSwapStep({
             poolId: poolInfo.poolId,
             // TODO(kimpers): Is this correct?
             assetInIndex: isSelling ? uint256(1) : uint256(0),
@@ -148,17 +157,19 @@ contract BalancerV2Sampler is SamplerUtils {
             amount: amount,
             userData: '0x'
         });
+
+        return swapSteps;
     }
 
     function _createSwapFunds()
         private
+        pure
         returns (IBalancerV2Vault.FundManagement memory)
         {
             return IBalancerV2Vault.FundManagement({
-                // TODO(kimpers): Is this correct? Should we be using the simulated account here?
-                sender: address(this),
+                sender: address(0),
                 fromInternalBalance: false,
-                recipient: payable(address(this)),
+                recipient: payable(address(0)),
                 toInternalBalance: false
             });
         }
