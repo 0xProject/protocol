@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.6.0 - _April 16, 2021_
+
+    * Support `Ropsten` network (#203)
+
 ## v6.5.3 - _April 14, 2021_
 
     * Apply slippage to bridge orders in consumer (#198)

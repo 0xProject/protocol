@@ -6,7 +6,8 @@
                 "note": "Support `Ropsten` network",
                 "pr": 203
             }
-        ]
+        ],
+        "timestamp": 1618592834
     },
     {
         "version": "6.5.3",
