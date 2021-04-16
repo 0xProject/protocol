@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.6.0",
+        "changes": [
+            {
+                "note": "Support `Ropsten` network",
+                "pr": 203
+            }
+        ]
+    },
+    {
         "version": "6.5.3",
         "changes": [
             {
