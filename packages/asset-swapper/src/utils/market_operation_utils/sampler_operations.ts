@@ -488,16 +488,38 @@ export class SamplerOperations {
         source: ERC20BridgeSource,
     ): SourceQuoteOperation<BalancerV2FillData> {
         // TODO
+        return new SamplerContractOperation({
+            source,
+            fillData: {
+                poolId: poolIds[0],
+                vault: '',
+                deadline: Math.floor(Date.now() / 1000) + 300,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromBalancer,
+            params: [poolIds[0], makerToken, takerToken, takerFillAmounts],
+        });
     }
 
     public getBalancerV2BuyQuotes(
-        poolId: string,
+        poolIds: string[],
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
         source: ERC20BridgeSource,
     ): SourceQuoteOperation<BalancerV2FillData> {
         // TODO
+        return new SamplerContractOperation({
+            source,
+            fillData: {
+                poolId: poolIds[0],
+                vault: '',
+                deadline: Math.floor(Date.now() / 1000) + 300,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromBalancer,
+            params: [poolIds[0], makerToken, takerToken, makerFillAmounts],
+        });
     }
 
     public getBalancerSellQuotes(
@@ -1400,7 +1422,7 @@ export class SamplerOperations {
                                 poolIds,
                                 makerToken,
                                 takerToken,
-                                takerFillAmounts,
+                                makerFillAmounts,
                                 ERC20BridgeSource.BalancerV2,
                             );
                         case ERC20BridgeSource.Cream:

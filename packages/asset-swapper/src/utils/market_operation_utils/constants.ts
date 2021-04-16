@@ -67,6 +67,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
+            ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.Bancor,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
@@ -134,6 +135,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
+            ERC20BridgeSource.BalancerV2,
             // ERC20BridgeSource.Bancor, // FIXME: Bancor Buys not implemented in Sampler
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
@@ -1040,6 +1042,7 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
+export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-kovan-v2';
 
 //
 // BSC

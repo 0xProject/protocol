@@ -1,5 +1,5 @@
 import { Pool } from '@balancer-labs/sor/dist/types';
-
+export { Pool };
 export interface CacheValue {
     timestamp: number;
     pools: Pool[];

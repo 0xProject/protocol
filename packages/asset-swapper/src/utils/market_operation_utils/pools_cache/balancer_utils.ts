@@ -18,12 +18,12 @@ interface BalancerPoolResponse {
 }
 export class BalancerPoolsCache extends PoolsCache {
     constructor(
-        _cache: { [key: string]: CacheValue } = {},
+        private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL,
+        cache: { [key: string]: CacheValue } = {},
         maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
-        private readonly topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
-        private readonly subgraphUrl: string = BALANCER_SUBGRAPH_URL,
+        private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
     ) {
-        super(_cache, maxPoolsFetched);
+        super(cache, maxPoolsFetched);
         void this._loadTopPoolsAsync();
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
@@ -76,7 +76,7 @@ export class BalancerPoolsCache extends PoolsCache {
         const query = `
       query {
           pools (first: ${
-              this.topPoolsFetched
+              this._topPoolsFetched
           }, where: {publicSwap: true, liquidity_gt: 0}, orderBy: swapsCount, orderDirection: desc) {
             id
             publicSwap
@@ -95,7 +95,7 @@ export class BalancerPoolsCache extends PoolsCache {
         }
     `;
         try {
-            const response = await fetch(this.subgraphUrl, {
+            const response = await fetch(this._subgraphUrl, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',

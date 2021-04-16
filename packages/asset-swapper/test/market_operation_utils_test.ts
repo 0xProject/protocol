@@ -11,6 +11,7 @@ import {
 import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
+import { Pool } from '@balancer-labs/sor/dist/types';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
@@ -24,11 +25,7 @@ import {
     SOURCE_FLAGS,
 } from '../src/utils/market_operation_utils/constants';
 import { createFills } from '../src/utils/market_operation_utils/fills';
-import {
-    BalancerPoolsCache,
-    BalancerV2PoolsCache,
-    CreamPoolsCache,
-} from '../src/utils/market_operation_utils/pools_cache';
+import { PoolsCache } from '../src/utils/market_operation_utils/pools_cache';
 import { DexOrderSampler } from '../src/utils/market_operation_utils/sampler';
 import { BATCH_SOURCE_FILTERS } from '../src/utils/market_operation_utils/sampler_operations';
 import { SourceFilters } from '../src/utils/market_operation_utils/source_filters';
@@ -50,11 +47,32 @@ import {
 const MAKER_TOKEN = randomAddress();
 const TAKER_TOKEN = randomAddress();
 
-const DEFAULT_INCLUDED = [
-    ERC20BridgeSource.Eth2Dai,
-    ERC20BridgeSource.Kyber,
-    ERC20BridgeSource.Native,
-    ERC20BridgeSource.Uniswap,
+const DEFAULT_EXCLUDED = [
+    ERC20BridgeSource.UniswapV2,
+    ERC20BridgeSource.Curve,
+    ERC20BridgeSource.Balancer,
+    ERC20BridgeSource.BalancerV2,
+    ERC20BridgeSource.MStable,
+    ERC20BridgeSource.Mooniswap,
+    ERC20BridgeSource.Bancor,
+    ERC20BridgeSource.Swerve,
+    ERC20BridgeSource.SnowSwap,
+    ERC20BridgeSource.SushiSwap,
+    ERC20BridgeSource.MultiHop,
+    ERC20BridgeSource.Shell,
+    ERC20BridgeSource.Cream,
+    ERC20BridgeSource.Dodo,
+    ERC20BridgeSource.DodoV2,
+    ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.CryptoCom,
+    ERC20BridgeSource.Linkswap,
+    ERC20BridgeSource.PancakeSwap,
+    ERC20BridgeSource.BakerySwap,
+    ERC20BridgeSource.MakerPsm,
+    ERC20BridgeSource.KyberDmm,
+    ERC20BridgeSource.Smoothy,
+    ERC20BridgeSource.Component,
+    ERC20BridgeSource.Saddle,
 ];
 
 const DEFAULT_EXCLUDED = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources.filter(
@@ -99,6 +117,32 @@ async function getMarketBuyOrdersAsync(
 ): Promise<OptimizerResultWithReport> {
     return utils.getOptimizerResultAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
 }
+
+class MockPoolsCache extends PoolsCache {
+    constructor(private readonly _handler: (takerToken: string, makerToken: string) => Pool[]) {
+        super({}, 10);
+    }
+    protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
+        return this._handler(takerToken, makerToken);
+    }
+}
+
+// Return some pool so that sampling functions are called for Balancer, BalancerV2, and Cream
+// tslint:disable:custom-no-magic-numbers
+const mockPoolsCache = new MockPoolsCache((takerToken: string, makerToken: string) => {
+    return [
+        {
+            id: '0xe4b2554b622cc342ac7d6dc19b594553577941df000200000000000000000003',
+            balanceIn: new BigNumber('13655.491506618973154788'),
+            balanceOut: new BigNumber('8217005.926472'),
+            weightIn: new BigNumber('0.5'),
+            weightOut: new BigNumber('0.5'),
+            swapFee: new BigNumber('0.008'),
+            spotPrice: new BigNumber(596.92685),
+        },
+    ];
+});
+// tslint:enable:custom-no-magic-numbers
 
 // tslint:disable: custom-no-magic-numbers promise-function-async
 describe('MarketOperationUtils tests', () => {
@@ -295,6 +339,11 @@ describe('MarketOperationUtils tests', () => {
     const DEFAULT_FILL_DATA: FillDataBySource = {
         [ERC20BridgeSource.UniswapV2]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Balancer]: { poolAddress: randomAddress() },
+        [ERC20BridgeSource.BalancerV2]: {
+            vault: randomAddress(),
+            poolId: randomAddress(),
+            deadline: Math.floor(Date.now() / 1000) + 300,
+        },
         [ERC20BridgeSource.Bancor]: { path: [], networkAddress: randomAddress() },
         [ERC20BridgeSource.Kyber]: { hint: '0x', reserveId: '0x', networkAddress: randomAddress() },
         [ERC20BridgeSource.Curve]: {
@@ -397,9 +446,9 @@ describe('MarketOperationUtils tests', () => {
             return ops;
         },
         poolsCaches: {
-            [ERC20BridgeSource.BalancerV2]: new BalancerV2PoolsCache(),
-            [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
-            [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
+            [ERC20BridgeSource.BalancerV2]: mockPoolsCache,
+            [ERC20BridgeSource.Balancer]: mockPoolsCache,
+            [ERC20BridgeSource.Cream]: mockPoolsCache,
         },
         liquidityProviderRegistry: {},
         chainId: CHAIN_ID,
