@@ -101,12 +101,8 @@ export class MarketOperationUtils {
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Can't sample Balancer or Cream on-chain without the pools cache
-        const needCachedPoolsSources = [
-            ERC20BridgeSource.BalancerV2,
-            ERC20BridgeSource.Balancer,
-            ERC20BridgeSource.Cream,
-        ];
-        const excludeSources: ERC20BridgeSource[] = needCachedPoolsSources.filter(
+        const sourcesWithCaches = [ERC20BridgeSource.BalancerV2, ERC20BridgeSource.Balancer, ERC20BridgeSource.Cream];
+        const excludeSources: ERC20BridgeSource[] = sourcesWithCaches.filter(
             s => !this._sampler.poolsCaches[s]!.isFresh(takerToken, makerToken),
         );
         // tslint:disable-next-line:promise-function-async
@@ -217,12 +213,8 @@ export class MarketOperationUtils {
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Can't sample Balancer or Cream on-chain without the pools cache
-        const needCachedPoolsSources = [
-            ERC20BridgeSource.BalancerV2,
-            ERC20BridgeSource.Balancer,
-            ERC20BridgeSource.Cream,
-        ];
-        const excludeSources: ERC20BridgeSource[] = needCachedPoolsSources.filter(
+        const sourcesWithCaches = [ERC20BridgeSource.BalancerV2, ERC20BridgeSource.Balancer, ERC20BridgeSource.Cream];
+        const excludeSources: ERC20BridgeSource[] = sourcesWithCaches.filter(
             s => !this._sampler.poolsCaches[s]!.isFresh(takerToken, makerToken),
         );
         // tslint:disable-next-line:promise-function-async

@@ -84,6 +84,8 @@
         "decimal.js": "^10.2.0",
         "ethereum-types": "^3.4.0",
         "ethereumjs-util": "^5.1.1",
+        "graphql": "^15.4.0",
+        "graphql-request": "^3.4.0",
         "heartbeats": "^5.0.1",
         "lodash": "^4.17.11"
     },
