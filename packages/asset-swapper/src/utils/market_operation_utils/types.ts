@@ -45,6 +45,7 @@ export enum ERC20BridgeSource {
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
     Balancer = 'Balancer',
+    BalancerV2 = 'Balancer_V2',
     Cream = 'CREAM',
     Bancor = 'Bancor',
     MakerPsm = 'MakerPsm',
@@ -143,6 +144,12 @@ export interface CurveFillData extends FillData {
 
 export interface BalancerFillData extends FillData {
     poolAddress: string;
+}
+
+export interface BalancerV2FillData extends FillData {
+    vault: string;
+    poolId: string;
+    deadline: number;
 }
 
 export interface UniswapV2FillData extends FillData {

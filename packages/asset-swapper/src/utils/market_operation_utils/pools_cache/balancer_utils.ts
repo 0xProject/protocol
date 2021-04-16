@@ -1,19 +1,12 @@
 import { getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
 import { Pool } from '@balancer-labs/sor/dist/types';
 
-import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from './constants';
+import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
-// tslint:disable:boolean-naming
-
-interface CacheValue {
-    timestamp: number;
-    pools: Pool[];
-}
+import { CacheValue, PoolsCache } from './pools_cache';
 
 // tslint:disable:custom-no-magic-numbers
-const FIVE_SECONDS_MS = 5 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_TIMEOUT_MS = 1000;
 // tslint:enable:custom-no-magic-numbers
 
 interface BalancerPoolResponse {
@@ -23,87 +16,17 @@ interface BalancerPoolResponse {
     tokensList: string[];
     totalWeight: string;
 }
-
-export class BalancerPoolsCache {
+export class BalancerPoolsCache extends PoolsCache {
     constructor(
-        private readonly _cache: { [key: string]: CacheValue } = {},
-        private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
-        private readonly subgraphUrl: string = BALANCER_SUBGRAPH_URL,
+        _cache: { [key: string]: CacheValue } = {},
+        maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
+        private readonly subgraphUrl: string = BALANCER_SUBGRAPH_URL,
     ) {
+        super(_cache, maxPoolsFetched);
         void this._loadTopPoolsAsync();
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
-    }
-
-    public async getPoolsForPairAsync(
-        takerToken: string,
-        makerToken: string,
-        timeoutMs: number = DEFAULT_TIMEOUT_MS,
-    ): Promise<Pool[]> {
-        const timeout = new Promise<Pool[]>(resolve => setTimeout(resolve, timeoutMs, []));
-        return Promise.race([this._getPoolsForPairAsync(takerToken, makerToken), timeout]);
-    }
-
-    public getCachedPoolAddressesForPair(
-        takerToken: string,
-        makerToken: string,
-        cacheExpiryMs?: number,
-    ): string[] | undefined {
-        const key = JSON.stringify([takerToken, makerToken]);
-        const value = this._cache[key];
-        if (cacheExpiryMs === undefined) {
-            return value === undefined ? [] : value.pools.map(pool => pool.id);
-        }
-        const minTimestamp = Date.now() - cacheExpiryMs;
-        if (value === undefined || value.timestamp < minTimestamp) {
-            return undefined;
-        } else {
-            return value.pools.map(pool => pool.id);
-        }
-    }
-
-    public howToSampleBalancer(
-        takerToken: string,
-        makerToken: string,
-        isAllowedSource: boolean,
-    ): { onChain: boolean; offChain: boolean } {
-        // If Balancer is excluded as a source, do not sample.
-        if (!isAllowedSource) {
-            return { onChain: false, offChain: false };
-        }
-        const cachedBalancerPools = this.getCachedPoolAddressesForPair(takerToken, makerToken, ONE_DAY_MS);
-        // Sample Balancer on-chain (i.e. via the ERC20BridgeSampler contract) if:
-        // - Cached values are not stale
-        // - There is at least one Balancer pool for this pair
-        const onChain = cachedBalancerPools !== undefined && cachedBalancerPools.length > 0;
-        // Sample Balancer off-chain (i.e. via GraphQL query + `computeBalancerBuy/SellQuote`)
-        // if cached values are stale
-        const offChain = cachedBalancerPools === undefined;
-        return { onChain, offChain };
-    }
-
-    protected async _getPoolsForPairAsync(
-        takerToken: string,
-        makerToken: string,
-        cacheExpiryMs: number = FIVE_SECONDS_MS,
-    ): Promise<Pool[]> {
-        const key = JSON.stringify([takerToken, makerToken]);
-        const value = this._cache[key];
-        const minTimestamp = Date.now() - cacheExpiryMs;
-        if (value === undefined || value.timestamp < minTimestamp) {
-            const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
-            this._cachePoolsForPair(takerToken, makerToken, pools);
-        }
-        return this._cache[key].pools;
-    }
-
-    protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[]): void {
-        const key = JSON.stringify([takerToken, makerToken]);
-        this._cache[key] = {
-            pools,
-            timestamp: Date.now(),
-        };
     }
 
     protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {

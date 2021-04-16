@@ -114,6 +114,7 @@ export enum BridgeProtocol {
     UniswapV2,
     Uniswap,
     Balancer,
+    BalancerV2,
     Kyber,
     Mooniswap,
     MStable,

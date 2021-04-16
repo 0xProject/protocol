@@ -44,4 +44,5 @@ library BridgeProtocols {
     uint128 internal constant COFIX       = 14;
     uint128 internal constant NERVE       = 15;
     uint128 internal constant MAKERPSM    = 16;
+    uint128 internal constant BALANCERV2  = 17;
 }

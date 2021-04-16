@@ -100,28 +100,19 @@ export class MarketOperationUtils {
         const quoteSourceFilters = this._sellSources.merge(requestFilters);
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
-        const {
-            onChain: sampleBalancerOnChain,
-            offChain: sampleBalancerOffChain,
-        } = this._sampler.balancerPoolsCache.howToSampleBalancer(
-            takerToken,
-            makerToken,
-            quoteSourceFilters.isAllowed(ERC20BridgeSource.Balancer),
-        );
-
-        const {
-            onChain: sampleCreamOnChain,
-            offChain: sampleCreamOffChain,
-        } = this._sampler.creamPoolsCache.howToSampleCream(
-            takerToken,
-            makerToken,
-            quoteSourceFilters.isAllowed(ERC20BridgeSource.Cream),
-        );
-
-        const offChainSources = [
-            ...(!sampleCreamOnChain ? [ERC20BridgeSource.Cream] : []),
-            ...(!sampleBalancerOnChain ? [ERC20BridgeSource.Balancer] : []),
+        // Can't sample Balancer or Cream on-chain without the pools cache
+        const needCachedPoolsSources = [
+            ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.Balancer,
+            ERC20BridgeSource.Cream,
         ];
+        const excludeSources: ERC20BridgeSource[] = needCachedPoolsSources.filter(
+            s => !this._sampler.poolsCaches[s]!.isFresh(takerToken, makerToken),
+        );
+        // tslint:disable-next-line:promise-function-async
+        const cacheRefreshPromises: Array<Promise<any[]>> = excludeSources.map(s =>
+            this._sampler.poolsCaches[s]!.getFreshPoolsForPairAsync(takerToken, makerToken),
+        );
 
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
@@ -147,7 +138,7 @@ export class MarketOperationUtils {
             ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
-                quoteSourceFilters.exclude(offChainSources).sources,
+                quoteSourceFilters.exclude(excludeSources).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,
@@ -160,15 +151,6 @@ export class MarketOperationUtils {
             ),
             this._sampler.isAddressContract(txOrigin),
         );
-
-        const offChainBalancerPromise = sampleBalancerOffChain
-            ? this._sampler.getBalancerSellQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
-            : Promise.resolve([]);
-
-        const offChainCreamPromise = sampleCreamOffChain
-            ? this._sampler.getCreamSellQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
-            : Promise.resolve([]);
-
         const [
             [
                 tokenDecimals,
@@ -179,9 +161,7 @@ export class MarketOperationUtils {
                 rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-            offChainBalancerQuotes,
-            offChainCreamQuotes,
-        ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise]);
+        ] = await Promise.all([samplerPromise, cacheRefreshPromises]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
@@ -210,7 +190,7 @@ export class MarketOperationUtils {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
                 twoHopQuotes,
-                dexQuotes: dexQuotes.concat([...offChainBalancerQuotes, ...offChainCreamQuotes]),
+                dexQuotes,
             },
             isRfqSupported,
         };
@@ -236,28 +216,19 @@ export class MarketOperationUtils {
         const quoteSourceFilters = this._buySources.merge(requestFilters);
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
-        const {
-            onChain: sampleBalancerOnChain,
-            offChain: sampleBalancerOffChain,
-        } = this._sampler.balancerPoolsCache.howToSampleBalancer(
-            takerToken,
-            makerToken,
-            quoteSourceFilters.isAllowed(ERC20BridgeSource.Balancer),
-        );
-
-        const {
-            onChain: sampleCreamOnChain,
-            offChain: sampleCreamOffChain,
-        } = this._sampler.creamPoolsCache.howToSampleCream(
-            takerToken,
-            makerToken,
-            quoteSourceFilters.isAllowed(ERC20BridgeSource.Cream),
-        );
-
-        const offChainSources = [
-            ...(!sampleCreamOnChain ? [ERC20BridgeSource.Cream] : []),
-            ...(!sampleBalancerOnChain ? [ERC20BridgeSource.Balancer] : []),
+        // Can't sample Balancer or Cream on-chain without the pools cache
+        const needCachedPoolsSources = [
+            ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.Balancer,
+            ERC20BridgeSource.Cream,
         ];
+        const excludeSources: ERC20BridgeSource[] = needCachedPoolsSources.filter(
+            s => !this._sampler.poolsCaches[s]!.isFresh(takerToken, makerToken),
+        );
+        // tslint:disable-next-line:promise-function-async
+        const cacheRefreshPromises: Array<Promise<any[]>> = excludeSources.map(s =>
+            this._sampler.poolsCaches[s]!.getFreshPoolsForPairAsync(takerToken, makerToken),
+        );
 
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
@@ -283,7 +254,7 @@ export class MarketOperationUtils {
             ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
-                quoteSourceFilters.exclude(offChainSources).sources,
+                quoteSourceFilters.exclude(excludeSources).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,
@@ -297,14 +268,6 @@ export class MarketOperationUtils {
             this._sampler.isAddressContract(txOrigin),
         );
 
-        const offChainBalancerPromise = sampleBalancerOffChain
-            ? this._sampler.getBalancerBuyQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
-            : Promise.resolve([]);
-
-        const offChainCreamPromise = sampleCreamOffChain
-            ? this._sampler.getCreamBuyQuotesOffChainAsync(makerToken, takerToken, sampleAmounts)
-            : Promise.resolve([]);
-
         const [
             [
                 tokenDecimals,
@@ -315,9 +278,7 @@ export class MarketOperationUtils {
                 rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-            offChainBalancerQuotes,
-            offChainCreamQuotes,
-        ] = await Promise.all([samplerPromise, offChainBalancerPromise, offChainCreamPromise]);
+        ] = await Promise.all([samplerPromise, cacheRefreshPromises]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
@@ -346,7 +307,7 @@ export class MarketOperationUtils {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
                 twoHopQuotes,
-                dexQuotes: dexQuotes.concat(offChainBalancerQuotes, offChainCreamQuotes),
+                dexQuotes,
             },
             isRfqSupported,
         };
