@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./IBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinBalancer.sol";
+import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCurve.sol";
@@ -43,6 +44,7 @@ import "./mixins/MixinZeroExBridge.sol";
 contract BridgeAdapter is
     IBridgeAdapter,
     MixinBalancer,
+    MixinBalancerV2,
     MixinBancor,
     MixinCoFiX,
     MixinCurve,
@@ -63,6 +65,7 @@ contract BridgeAdapter is
     constructor(IEtherTokenV06 weth)
         public
         MixinBalancer()
+        MixinBalancerV2()
         MixinBancor(weth)
         MixinCoFiX()
         MixinCurve()
@@ -114,6 +117,13 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.BALANCER) {
             boughtAmount = _tradeBalancer(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.BALANCERV2) {
+            boughtAmount = _tradeBalancerV2(
                 sellToken,
                 buyToken,
                 sellAmount,

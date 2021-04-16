@@ -7,6 +7,7 @@ import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
+    BalancerV2FillData,
     BancorFillData,
     CollapsedFill,
     CurveFillData,
@@ -75,6 +76,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
     switch (source) {
         case ERC20BridgeSource.Balancer:
             return encodeBridgeSourceId(BridgeProtocol.Balancer, 'Balancer');
+        case ERC20BridgeSource.BalancerV2:
+            return encodeBridgeSourceId(BridgeProtocol.BalancerV2, 'BalancerV2');
         case ERC20BridgeSource.Bancor:
             return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
         // case ERC20BridgeSource.CoFiX:
@@ -175,6 +178,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Cream:
             const balancerFillData = (order as OptimizedMarketBridgeOrder<BalancerFillData>).fillData;
             bridgeData = encoder.encode([balancerFillData.poolAddress]);
+            break;
+        case ERC20BridgeSource.BalancerV2:
+            const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2FillData>).fillData;
+            const { vault, poolId, deadline } = balancerV2FillData;
+            bridgeData = encoder.encode([vault, poolId, deadline]);
             break;
         case ERC20BridgeSource.Bancor:
             const bancorFillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
@@ -278,6 +286,7 @@ const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
+const balancerV2Encoder = AbiEncoder.create('(address,bytes32,uint256'); // vault, poolId, deadline timestamp in seconds
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
@@ -331,6 +340,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
+    [ERC20BridgeSource.BalancerV2]: balancerV2Encoder,
     // BSC
     [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.BakerySwap]: routerAddressPathEncoder,

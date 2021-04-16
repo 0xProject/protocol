@@ -135,8 +135,7 @@ export class SwapQuoter {
                 this.chainId,
                 samplerContract,
                 samplerOverrides,
-                undefined, // balancer pool cache
-                undefined, // cream pool cache
+                undefined, // pools caches for balancer and cream
                 tokenAdjacencyGraph,
                 liquidityProviderRegistry,
                 this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet

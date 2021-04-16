@@ -1066,6 +1066,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Balancer]: () => 120e3,
+    [ERC20BridgeSource.BalancerV2]: () => 120e3, // TODO (xianny): is this accurate?
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
