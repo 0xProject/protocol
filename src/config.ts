@@ -110,6 +110,28 @@ export const getApiKeyWhitelistWithFallback = (
     return result.sort();
 };
 
+export const getApiKeyFromLabel = (
+    label: string,
+): string | undefined => {
+    if (process.env.API_KEYS_ACL === undefined) {
+        return undefined;
+    }
+    let deserialized: ApiKeyStructure;
+    try {
+        deserialized = JSON.parse(process.env.API_KEYS_ACL);
+        schemaUtils.validateSchema(deserialized, schemas.apiKeySchema as any);
+    } catch (e) {
+        throw new Error(`API_KEYS_ACL was defined but is not valid JSON`);
+    }
+
+    for (const apiKey of Object.keys(deserialized)) {
+        const keyMeta = deserialized[apiKey];
+        if (keyMeta.label === label) {
+            return apiKey;
+        }
+    }
+};
+
 // Log level for pino.js
 export const LOG_LEVEL: string = _.isEmpty(process.env.LOG_LEVEL)
     ? 'info'
@@ -249,6 +271,8 @@ export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistWithFallback(
     'API_KEYS_ACL',
     'rfqt'
 );
+
+export const MATCHA_KEY: string | undefined = getApiKeyFromLabel('Matcha');
 
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = _.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST)
     ? new Set()

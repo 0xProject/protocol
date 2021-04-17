@@ -10,6 +10,7 @@ import { Counter } from 'prom-client';
 
 import {
     CHAIN_ID,
+    MATCHA_KEY,
     NATIVE_WRAPPED_TOKEN_SYMBOL,
     PLP_API_KEY_WHITELIST,
     RFQT_API_KEY_WHITELIST,
@@ -300,7 +301,11 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
 
     // Parse boolean params and defaults
     // tslint:disable:boolean-naming
-    const skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
+    let skipValidation: boolean;
+    skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
+    if (endpoint === 'quote' && apiKey !== undefined && apiKey === MATCHA_KEY) {
+        skipValidation = false;
+    }
     const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;
     // Whether the entire callers balance should be sold, used for contracts where the
     // amount available is non-deterministic
