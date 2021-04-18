@@ -5,7 +5,7 @@ import {
     getRandomInteger,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { LimitOrder, LimitOrderFields, OrderBase, OrderInfo, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
+import { LimitOrder, LimitOrderFields, OrderBase, OrderInfo, RfqOrder, RfqOrderFields, TakerSignedRfqOrder, TakerSignedRfqOrderFields } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
@@ -71,7 +71,7 @@ export class NativeOrdersTestEnvironment {
     ) {}
 
     public async prepareBalancesForOrdersAsync(
-        orders: LimitOrder[] | RfqOrder[],
+        orders: LimitOrder[] | RfqOrder[] | TakerSignedRfqOrder[],
         taker: string = this.taker,
     ): Promise<void> {
         await this.makerToken
@@ -210,6 +210,24 @@ export function getRandomRfqOrder(fields: Partial<RfqOrderFields> = {}): RfqOrde
         maker: randomAddress(),
         txOrigin: randomAddress(),
         pool: hexUtils.random(),
+        expiry: new BigNumber(Math.floor(Date.now() / 1000 + 60)),
+        salt: new BigNumber(hexUtils.random()),
+        ...fields,
+    });
+}
+
+/**
+ * Generate a random RFQ Lite order.
+ */
+export function getRandomTakerSignedRfqOrder(fields: Partial<TakerSignedRfqOrder> = {}): TakerSignedRfqOrder {
+    return new TakerSignedRfqOrder({
+        makerToken: randomAddress(),
+        takerToken: randomAddress(),
+        makerAmount: getRandomInteger('1e18', '100e18'),
+        takerAmount: getRandomInteger('1e6', '100e6'),
+        maker: randomAddress(),
+        taker: randomAddress(),
+        txOrigin: randomAddress(),
         expiry: new BigNumber(Math.floor(Date.now() / 1000 + 60)),
         salt: new BigNumber(hexUtils.random()),
         ...fields,

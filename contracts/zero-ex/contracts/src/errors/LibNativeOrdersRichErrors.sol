@@ -88,6 +88,23 @@ library LibNativeOrdersRichErrors {
         );
     }
 
+    function OrderNotSignedByTakerError(
+        bytes32 orderHash,
+        address signer,
+        address taker
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("OrderNotSignedByTakerError(bytes32,address,address)")),
+            orderHash,
+            signer,
+            taker
+        );
+    }
+
     function OrderNotFillableBySenderError(
         bytes32 orderHash,
         address sender,

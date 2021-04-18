@@ -68,6 +68,24 @@ abstract contract NativeOrdersSettlement is
         uint128 takerTokenFilledAmount;
     }
 
+    /// @dev Params for `_settleTakerSignedOrder()`.
+    struct SettleTakerSignedOrderInfo {
+        // Order hash.
+        bytes32 orderHash;
+        // Maker of the order.
+        address maker;
+        // Taker of the order.
+        address taker;
+        // Maker token.
+        IERC20TokenV06 makerToken;
+        // Taker token.
+        IERC20TokenV06 takerToken;
+        // Maker token amount.
+        uint128 makerAmount;
+        // Taker token amount.
+        uint128 takerAmount;
+    }
+
     /// @dev Params for `_fillLimitOrderPrivate()`
     struct FillLimitOrderPrivateParams {
         // The limit order.
@@ -159,6 +177,33 @@ abstract contract NativeOrdersSettlement is
                 signature,
                 takerTokenFillAmount,
                 msg.sender
+            );
+        (takerTokenFilledAmount, makerTokenFilledAmount) = (
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount
+        );
+    }
+
+    /// @dev Fill a Taker Signed RFQ order for up to `takerTokenFillAmount` taker tokens.
+    ///      The taker will be the caller.
+    /// @param order The RFQ order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerSignature The order signature from the taker.
+    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function fillTakerSignedRfqOrder(
+        LibNativeOrder.TakerSignedRfqOrder memory order,
+        LibSignature.Signature memory makerSignature,
+        LibSignature.Signature memory takerSignature
+    )
+        public
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+    {
+        FillNativeOrderResults memory results =
+            _fillTakerSignedRfqOrderPrivate(
+                order,
+                makerSignature,
+                takerSignature
             );
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
@@ -514,6 +559,87 @@ abstract contract NativeOrdersSettlement is
         );
     }
 
+    /// @dev Fill an taker signed rfq order. Private variant. Does not refund protocol fees.
+    /// @param order The Taker Signed RFQ order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerSignature The order signature from the taker.
+    /// @return results Results of the fill.
+    function _fillTakerSignedRfqOrderPrivate(
+        LibNativeOrder.TakerSignedRfqOrder memory order,
+        LibSignature.Signature memory makerSignature,
+        LibSignature.Signature memory takerSignature
+    )
+        private
+        returns (FillNativeOrderResults memory results)
+    {
+        LibNativeOrder.TakerSignedOrderInfo memory takerSignedOrderInfo = getTakerSignedRfqOrderInfo(order);
+
+        // Must be fillable.
+        if (takerSignedOrderInfo.status != LibNativeOrder.OrderStatus.FILLABLE) {
+            LibNativeOrdersRichErrors.OrderNotFillableError(
+                takerSignedOrderInfo.orderHash,
+                uint8(takerSignedOrderInfo.status)
+            ).rrevert();
+        }
+
+        {
+            LibNativeOrdersStorage.Storage storage stor =
+                LibNativeOrdersStorage.getStorage();
+
+            // Must be fillable by the tx.origin.
+            if (order.txOrigin != tx.origin && !stor.originRegistry[order.txOrigin][tx.origin]) {
+                LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
+                    takerSignedOrderInfo.orderHash,
+                    tx.origin,
+                    order.txOrigin
+                ).rrevert();
+            }
+        }
+
+        // Signatures must be valid for the order.
+        {
+            address makerSigner = LibSignature.getSignerOfHash(takerSignedOrderInfo.orderHash, makerSignature);
+            if (makerSigner != order.maker) {
+                LibNativeOrdersRichErrors.OrderNotSignedByMakerError(
+                    takerSignedOrderInfo.orderHash,
+                    makerSigner,
+                    order.maker
+                ).rrevert();
+            }
+            address takerSigner = LibSignature.getSignerOfHash(takerSignedOrderInfo.orderHash, takerSignature);
+            if (takerSigner != order.taker) {
+                LibNativeOrdersRichErrors.OrderNotSignedByTakerError(
+                    takerSignedOrderInfo.orderHash,
+                    takerSigner,
+                    order.taker
+                ).rrevert();
+            }
+        }
+
+        // Settle between the maker and taker.
+        (results.takerTokenFilledAmount, results.makerTokenFilledAmount) = _settleTakerSignedOrder(
+            SettleTakerSignedOrderInfo({
+                orderHash: takerSignedOrderInfo.orderHash,
+                maker: order.maker,
+                taker: order.taker,
+                makerToken: IERC20TokenV06(order.makerToken),
+                takerToken: IERC20TokenV06(order.takerToken),
+                makerAmount: order.makerAmount,
+                takerAmount: order.takerAmount
+            })
+        );
+
+        emit TakerSignedRfqOrderFilled(
+            takerSignedOrderInfo.orderHash,
+            order.maker,
+            order.taker,
+            address(order.makerToken),
+            address(order.takerToken),
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount
+        );
+    }
+
     /// @dev Settle the trade between an order's maker and taker.
     /// @param settleInfo Information needed to execute the settlement.
     /// @return takerTokenFilledAmount How much taker token was filled.
@@ -548,6 +674,39 @@ abstract contract NativeOrdersSettlement is
             // OK to overwrite the whole word because we shouldn't get to this
             // function if the order is cancelled.
                 settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
+
+        // Transfer taker -> maker.
+        _transferERC20Tokens(
+            settleInfo.takerToken,
+            settleInfo.taker,
+            settleInfo.maker,
+            takerTokenFilledAmount
+        );
+
+        // Transfer maker -> taker.
+        _transferERC20Tokens(
+            settleInfo.makerToken,
+            settleInfo.maker,
+            settleInfo.taker,
+            makerTokenFilledAmount
+        );
+    }
+
+    /// @dev Settle the trade between an order's maker and taker.
+    /// @param settleInfo Information needed to execute the settlement.
+    /// @return takerTokenFilledAmount How much taker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function _settleTakerSignedOrder(SettleTakerSignedOrderInfo memory settleInfo)
+        private
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+    {
+        // Update filled state for the order.
+        LibNativeOrdersStorage
+            .getStorage()
+            .orderHashToFilledBool[settleInfo.orderHash] = true;
+
+        uint128 takerTokenFilledAmount = settleInfo.takerAmount;
+        uint128 makerTokenFilledAmount = settleInfo.makerAmount;
 
         // Transfer taker -> maker.
         _transferERC20Tokens(

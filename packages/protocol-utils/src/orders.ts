@@ -26,7 +26,6 @@ const COMMON_ORDER_DEFAULT_VALUES = {
     takerAmount: ZERO,
     maker: NULL_ADDRESS,
     taker: NULL_ADDRESS,
-    pool: hexUtils.leftPad(0),
     expiry: ZERO,
     salt: ZERO,
     chainId: 1,
@@ -34,11 +33,17 @@ const COMMON_ORDER_DEFAULT_VALUES = {
 };
 const LIMIT_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
+    pool: hexUtils.leftPad(0),
     takerTokenFeeAmount: ZERO,
     sender: NULL_ADDRESS,
     feeRecipient: NULL_ADDRESS,
 };
 const RFQ_ORDER_DEFAULT_VALUES = {
+    ...COMMON_ORDER_DEFAULT_VALUES,
+    pool: hexUtils.leftPad(0),
+    txOrigin: NULL_ADDRESS,
+};
+const TAKERSIGNED_RFQ_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
     txOrigin: NULL_ADDRESS,
 };
@@ -53,6 +58,7 @@ const BRIDGE_ORDER_DEFAULT_VALUES = {
 export type CommonOrderFields = typeof COMMON_ORDER_DEFAULT_VALUES;
 export type LimitOrderFields = typeof LIMIT_ORDER_DEFAULT_VALUES;
 export type RfqOrderFields = typeof RFQ_ORDER_DEFAULT_VALUES;
+export type TakerSignedRfqOrderFields = typeof TAKERSIGNED_RFQ_ORDER_DEFAULT_VALUES;
 export type BridgeOrderFields = typeof BRIDGE_ORDER_DEFAULT_VALUES;
 export type NativeOrder = RfqOrder | LimitOrder;
 
@@ -76,7 +82,6 @@ export abstract class OrderBase {
     public makerAmount: BigNumber;
     public takerAmount: BigNumber;
     public maker: string;
-    public pool: string;
     public taker: string;
     public expiry: BigNumber;
     public salt: BigNumber;
@@ -91,7 +96,6 @@ export abstract class OrderBase {
         this.takerAmount = _fields.takerAmount;
         this.maker = _fields.maker;
         this.taker = _fields.taker;
-        this.pool = _fields.pool;
         this.expiry = _fields.expiry;
         this.salt = _fields.salt;
         this.chainId = _fields.chainId;
@@ -114,12 +118,13 @@ export abstract class OrderBase {
     public async getSignatureWithProviderAsync(
         provider: SupportedProvider,
         type: SignatureType = SignatureType.EthSign,
+        signer: string = this.maker,
     ): Promise<Signature> {
         switch (type) {
             case SignatureType.EIP712:
                 return eip712SignTypedDataWithProviderAsync(this.getEIP712TypedData(), this.maker, provider);
             case SignatureType.EthSign:
-                return ethSignHashWithProviderAsync(this.getHash(), this.maker, provider);
+                return ethSignHashWithProviderAsync(this.getHash(), signer, provider);
             default:
                 throw new Error(`Cannot sign with signature type: ${type}`);
         }
@@ -155,6 +160,7 @@ export class LimitOrder extends OrderBase {
     ];
     public static readonly TYPE_HASH = getTypeHash(LimitOrder.STRUCT_NAME, LimitOrder.STRUCT_ABI);
 
+    public pool: string;
     public takerTokenFeeAmount: BigNumber;
     public sender: string;
     public feeRecipient: string;
@@ -162,6 +168,7 @@ export class LimitOrder extends OrderBase {
     constructor(fields: Partial<LimitOrderFields> = {}) {
         const _fields = { ...LIMIT_ORDER_DEFAULT_VALUES, ...fields };
         super(_fields);
+        this.pool = _fields.pool;
         this.takerTokenFeeAmount = _fields.takerTokenFeeAmount;
         this.sender = _fields.sender;
         this.feeRecipient = _fields.feeRecipient;
@@ -249,11 +256,13 @@ export class RfqOrder extends OrderBase {
     ];
     public static readonly TYPE_HASH = getTypeHash(RfqOrder.STRUCT_NAME, RfqOrder.STRUCT_ABI);
 
+    public pool: string;
     public txOrigin: string;
 
     constructor(fields: Partial<RfqOrderFields> = {}) {
         const _fields = { ...RFQ_ORDER_DEFAULT_VALUES, ...fields };
         super(_fields);
+        this.pool = _fields.pool;
         this.txOrigin = _fields.txOrigin;
     }
 
@@ -310,6 +319,86 @@ export class RfqOrder extends OrderBase {
                 taker: this.taker,
                 txOrigin: this.txOrigin,
                 pool: this.pool,
+                expiry: this.expiry.toString(10),
+                salt: this.salt.toString(10),
+            },
+        };
+    }
+}
+
+export class TakerSignedRfqOrder extends OrderBase {
+    public static readonly STRUCT_NAME = 'TakerSignedRfqOrder';
+    public static readonly STRUCT_ABI = [
+        { type: 'address', name: 'makerToken' },
+        { type: 'address', name: 'takerToken' },
+        { type: 'uint128', name: 'makerAmount' },
+        { type: 'uint128', name: 'takerAmount' },
+        { type: 'address', name: 'maker' },
+        { type: 'address', name: 'taker' },
+        { type: 'address', name: 'txOrigin' },
+        { type: 'uint64', name: 'expiry' },
+        { type: 'uint256', name: 'salt' },
+    ];
+    public static readonly TYPE_HASH = getTypeHash(TakerSignedRfqOrder.STRUCT_NAME, TakerSignedRfqOrder.STRUCT_ABI);
+
+    public txOrigin: string;
+
+    constructor(fields: Partial<TakerSignedRfqOrderFields> = {}) {
+        const _fields = { ...RFQ_ORDER_DEFAULT_VALUES, ...fields };
+        super(_fields);
+        this.txOrigin = _fields.txOrigin;
+    }
+
+    public clone(fields: Partial<TakerSignedRfqOrder> = {}): TakerSignedRfqOrder {
+        return new TakerSignedRfqOrder({
+            makerToken: this.makerToken,
+            takerToken: this.takerToken,
+            makerAmount: this.makerAmount,
+            takerAmount: this.takerAmount,
+            maker: this.maker,
+            taker: this.taker,
+            txOrigin: this.txOrigin,
+            expiry: this.expiry,
+            salt: this.salt,
+            chainId: this.chainId,
+            verifyingContract: this.verifyingContract,
+            ...fields,
+        });
+    }
+
+    public getStructHash(): string {
+        return hexUtils.hash(
+            hexUtils.concat(
+                hexUtils.leftPad(TakerSignedRfqOrder.TYPE_HASH),
+                hexUtils.leftPad(this.makerToken),
+                hexUtils.leftPad(this.takerToken),
+                hexUtils.leftPad(this.makerAmount),
+                hexUtils.leftPad(this.takerAmount),
+                hexUtils.leftPad(this.maker),
+                hexUtils.leftPad(this.taker),
+                hexUtils.leftPad(this.txOrigin),
+                hexUtils.leftPad(this.expiry),
+                hexUtils.leftPad(this.salt),
+            ),
+        );
+    }
+
+    public getEIP712TypedData(): EIP712TypedData {
+        return {
+            types: {
+                EIP712Domain: EIP712_DOMAIN_PARAMETERS,
+                [TakerSignedRfqOrder.STRUCT_NAME]: TakerSignedRfqOrder.STRUCT_ABI,
+            },
+            domain: createExchangeProxyEIP712Domain(this.chainId, this.verifyingContract) as any,
+            primaryType: TakerSignedRfqOrder.STRUCT_NAME,
+            message: {
+                makerToken: this.makerToken,
+                takerToken: this.takerToken,
+                makerAmount: this.makerAmount.toString(10),
+                takerAmount: this.takerAmount.toString(10),
+                maker: this.maker,
+                taker: this.maker,
+                txOrigin: this.txOrigin,
                 expiry: this.expiry.toString(10),
                 salt: this.salt.toString(10),
             },

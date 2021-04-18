@@ -65,6 +65,7 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.transferProtocolFeesForPools.selector);
         _registerFeatureFunction(this.fillLimitOrder.selector);
         _registerFeatureFunction(this.fillRfqOrder.selector);
+        _registerFeatureFunction(this.fillTakerSignedRfqOrder.selector);
         _registerFeatureFunction(this.fillOrKillLimitOrder.selector);
         _registerFeatureFunction(this.fillOrKillRfqOrder.selector);
         _registerFeatureFunction(this._fillLimitOrder.selector);
@@ -79,12 +80,15 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.batchCancelPairRfqOrders.selector);
         _registerFeatureFunction(this.getLimitOrderInfo.selector);
         _registerFeatureFunction(this.getRfqOrderInfo.selector);
+        _registerFeatureFunction(this.getTakerSignedRfqOrderInfo.selector);
         _registerFeatureFunction(this.getLimitOrderHash.selector);
         _registerFeatureFunction(this.getRfqOrderHash.selector);
+        _registerFeatureFunction(this.getTakerSignedRfqOrderHash.selector);
         _registerFeatureFunction(this.getProtocolFeeMultiplier.selector);
         _registerFeatureFunction(this.registerAllowedRfqOrigins.selector);
         _registerFeatureFunction(this.getLimitOrderRelevantState.selector);
         _registerFeatureFunction(this.getRfqOrderRelevantState.selector);
+        _registerFeatureFunction(this.getTakerSignedRfqOrderRelevantState.selector);
         _registerFeatureFunction(this.batchGetLimitOrderRelevantStates.selector);
         _registerFeatureFunction(this.batchGetRfqOrderRelevantStates.selector);
         return LibMigrate.MIGRATE_SUCCESS;

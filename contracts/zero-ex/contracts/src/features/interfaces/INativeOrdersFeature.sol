@@ -69,6 +69,21 @@ interface INativeOrdersFeature is
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
+    /// @dev Fill a Taker Signed RFQ order for up to `takerTokenFillAmount` taker tokens.
+    ///      The taker will be the caller.
+    /// @param order The RFQ order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerSignature The order signature from the taker.
+    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function fillTakerSignedRfqOrder(
+        LibNativeOrder.TakerSignedRfqOrder calldata order,
+        LibSignature.Signature calldata makerSignature,
+        LibSignature.Signature calldata takerSignature
+    )
+        external
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller. ETH protocol fees can be
     ///      attached to this call. Any unspent ETH will be refunded to
@@ -240,6 +255,14 @@ interface INativeOrdersFeature is
         view
         returns (LibNativeOrder.OrderInfo memory orderInfo);
 
+    /// @dev Get the order info for a Taker Signed RFQ order.
+    /// @param order The Taker Signed RFQ order.
+    /// @return orderInfo Info about the order.
+    function getTakerSignedRfqOrderInfo(LibNativeOrder.TakerSignedRfqOrder calldata order)
+        external
+        view
+        returns (LibNativeOrder.OrderInfo memory orderInfo);
+
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
     /// @return orderHash The order hash.
@@ -252,6 +275,14 @@ interface INativeOrdersFeature is
     /// @param order The RFQ order.
     /// @return orderHash The order hash.
     function getRfqOrderHash(LibNativeOrder.RfqOrder calldata order)
+        external
+        view
+        returns (bytes32 orderHash);
+
+    /// @dev Get the canonical hash of a Taker Signed RFQ order.
+    /// @param order The Taker Signed RFQ order.
+    /// @return orderHash The order hash.
+    function getTakerSignedRfqOrderHash(LibNativeOrder.TakerSignedRfqOrder calldata order)
         external
         view
         returns (bytes32 orderHash);
@@ -302,6 +333,29 @@ interface INativeOrdersFeature is
             LibNativeOrder.OrderInfo memory orderInfo,
             uint128 actualFillableTakerTokenAmount,
             bool isSignatureValid
+        );
+
+    /// @dev Get order info, fillable amount, and signature validity for an Taker Signed RFQ order.
+    ///      Fillable amount is determined using balances and allowances of the maker.
+    /// @param order The Taker Signed RFQ order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerSignature The order signature from the taker.
+    /// @return orderInfo Info about the order.
+    /// @return fillable Bool
+    /// @return isMakerSignatureValid Whether the maker signature is valid.
+    /// @return isTakerSignatureValid Whether the taker signature is valid.
+    function getTakerSignedRfqOrderRelevantState(
+        LibNativeOrder.TakerSignedRfqOrder calldata order,
+        LibSignature.Signature calldata makerSignature,
+        LibSignature.Signature calldata takerSignature
+    )
+        external
+        view
+        returns (
+            LibNativeOrder.TakerSignedOrderInfo memory orderInfo,
+            bool fillable,
+            bool isMakerSignatureValid,
+            bool isTakerSignatureValid
         );
 
     /// @dev Batch version of `getLimitOrderRelevantState()`, without reverting.

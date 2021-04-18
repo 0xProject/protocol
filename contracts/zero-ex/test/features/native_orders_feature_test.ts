@@ -7,8 +7,8 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { LimitOrder, LimitOrderFields, OrderStatus, RevertErrors, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
-import { AnyRevertError, BigNumber } from '@0x/utils';
+import { LimitOrder, LimitOrderFields, OrderStatus, RevertErrors, RfqOrder, RfqOrderFields, SignatureType, TakerSignedRfqOrder, TakerSignedRfqOrderFields } from '@0x/protocol-utils';
+import { AnyRevertError, BigNumber, logUtils } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
 import { IZeroExContract, IZeroExEvents } from '../../src/wrappers';
@@ -23,9 +23,10 @@ import {
     getFillableMakerTokenAmount,
     getRandomLimitOrder,
     getRandomRfqOrder,
+    getRandomTakerSignedRfqOrder,
     NativeOrdersTestEnvironment,
 } from '../utils/orders';
-import { TestMintableERC20TokenContract, TestRfqOriginRegistrationContract } from '../wrappers';
+import { GetTypeHashContract, TestMintableERC20TokenContract, TestRfqOriginRegistrationContract } from '../wrappers';
 
 blockchainTests.resets('NativeOrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, NULL_BYTES32, ZERO_AMOUNT } = constants;
@@ -36,6 +37,7 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     let taker: string;
     let notMaker: string;
     let notTaker: string;
+    let takerSignedRfqSender: string;
     let zeroEx: IZeroExContract;
     let verifyingContract: string;
     let makerToken: TestMintableERC20TokenContract;
@@ -43,10 +45,11 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     let wethToken: TestMintableERC20TokenContract;
     let testRfqOriginRegistration: TestRfqOriginRegistrationContract;
     let testUtils: NativeOrdersTestEnvironment;
+    let getTypeHash: GetTypeHashContract;
 
     before(async () => {
         let owner;
-        [owner, maker, taker, notMaker, notTaker] = await env.getAccountAddressesAsync();
+        [owner, maker, taker, notMaker, notTaker, takerSignedRfqSender] = await env.getAccountAddressesAsync();
         [makerToken, takerToken, wethToken] = await Promise.all(
             [...new Array(3)].map(async () =>
                 TestMintableERC20TokenContract.deployFrom0xArtifactAsync(
@@ -92,6 +95,13 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             SINGLE_PROTOCOL_FEE,
             env,
         );
+
+        getTypeHash = await GetTypeHashContract.deployFrom0xArtifactAsync(
+            artifacts.GetTypeHash,
+            env.provider,
+            env.txDefaults,
+            artifacts,
+        );
     });
 
     function getTestLimitOrder(fields: Partial<LimitOrderFields> = {}): LimitOrder {
@@ -114,6 +124,19 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             chainId: 1337,
             takerToken: takerToken.address,
             makerToken: makerToken.address,
+            txOrigin: taker,
+            ...fields,
+        });
+    }
+
+    function getTestTakerSignedRfqOrder(fields: Partial<TakerSignedRfqOrderFields> = {}): TakerSignedRfqOrder {
+        return getRandomTakerSignedRfqOrder({
+            maker,
+            verifyingContract,
+            chainId: 1337,
+            takerToken: takerToken.address,
+            makerToken: makerToken.address,
+            taker,
             txOrigin: taker,
             ...fields,
         });
@@ -956,6 +979,9 @@ blockchainTests.resets('NativeOrdersFeature', env => {
         it('can fully fill an order', async () => {
             const order = getTestRfqOrder();
             const receipt = await testUtils.fillRfqOrderAsync(order);
+
+            logUtils.log(`RFQ Order Gas Usage:`);
+            logUtils.log(receipt.gasUsed);
             verifyEventsFromLogs(
                 receipt.logs,
                 [testUtils.createRfqOrderFilledEventArgs(order)],
@@ -1567,6 +1593,25 @@ blockchainTests.resets('NativeOrdersFeature', env => {
                 expect(fillableTakerAmounts[i]).to.bignumber.eq(orders[i].takerAmount);
                 expect(isSignatureValids[i]).to.eq(true);
             }
+        });
+    });
+
+    describe.only('fillTakerSignedRfqOrder', () => {
+        it('can fill an order when signed by both parties', async () => {
+            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+
+            // get maker signature
+            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            // get taker signature
+            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+
+            logUtils.log(`Order hash:`);
+            logUtils.log(order.getHash());
+            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+
+            logUtils.log(`Gas Used:`);
+            logUtils.log(receipt.gasUsed);
+
         });
     });
 });

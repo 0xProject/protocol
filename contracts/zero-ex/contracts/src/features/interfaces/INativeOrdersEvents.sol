@@ -69,6 +69,22 @@ interface INativeOrdersEvents {
         bytes32 pool
     );
 
+    /// @dev Emitted whenever a `TakerSignedRfqOrder` is filled.
+    /// @param orderHash The canonical hash of the order.
+    /// @param maker The maker of the order.
+    /// @param taker The taker of the order.
+    /// @param takerTokenFilledAmount How much taker token was filled.
+    /// @param makerTokenFilledAmount How much maker token was filled.
+    event TakerSignedRfqOrderFilled(
+        bytes32 orderHash,
+        address maker,
+        address taker,
+        address makerToken,
+        address takerToken,
+        uint128 takerTokenFilledAmount,
+        uint128 makerTokenFilledAmount
+    );
+
     /// @dev Emitted whenever a limit or RFQ order is cancelled.
     /// @param orderHash The canonical hash of the order.
     /// @param maker The order maker.

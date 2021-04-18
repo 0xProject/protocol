@@ -43,6 +43,8 @@ library LibNativeOrdersStorage {
         // For a given order origin, which tx.origin addresses are allowed to
         // fill the order.
         mapping(address => mapping(address => bool)) originRegistry;
+        // Whether or not the order has been filled
+        mapping(bytes32 => bool) orderHashToFilledBool;
     }
 
     /// @dev Get the storage bucket for this contract.

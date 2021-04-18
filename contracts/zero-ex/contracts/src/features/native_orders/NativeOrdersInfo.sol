@@ -47,6 +47,17 @@ abstract contract NativeOrdersInfo is
         LibNativeOrder.OrderInfo orderInfo;
     }
 
+    // @dev Params for `_getTakerSignedOrderActualFillability()`.
+    struct GetTakerSignedOrderActualFillabilityParams {
+        address maker;
+        address taker;
+        IERC20TokenV06 makerToken;
+        IERC20TokenV06 takerToken;
+        uint128 orderMakerAmount;
+        uint128 orderTakerAmount;
+        LibNativeOrder.TakerSignedOrderInfo takerSignedOrderInfo;
+    }
+
     /// @dev Highest bit of a uint256, used to flag cancelled orders.
     uint256 private constant HIGH_BIT = 1 << 255;
 
@@ -112,6 +123,31 @@ abstract contract NativeOrdersInfo is
         }
     }
 
+    /// @dev Get the order info for a Taker Signed RFQ order.
+    /// @param order The RFQ order.
+    /// @return takerSignedOrderInfo Info about the order.
+    function getTakerSignedRfqOrderInfo(LibNativeOrder.TakerSignedRfqOrder memory order)
+        public
+        view
+        returns (LibNativeOrder.TakerSignedOrderInfo memory takerSignedOrderInfo)
+    {
+        // Recover maker and compute order hash.
+        takerSignedOrderInfo.orderHash = getTakerSignedRfqOrderHash(order);
+        _populateTakerSignedOrderInfoFields(
+            takerSignedOrderInfo,
+            order.expiry
+        );
+
+        // Check for missing taker.
+        if (order.taker == address(0)) {
+            takerSignedOrderInfo.status = LibNativeOrder.OrderStatus.INVALID;
+        }
+        // Check for missing txOrigin.
+        if (order.txOrigin == address(0)) {
+            takerSignedOrderInfo.status = LibNativeOrder.OrderStatus.INVALID;
+        }
+    }
+
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
     /// @return orderHash The order hash.
@@ -135,6 +171,19 @@ abstract contract NativeOrdersInfo is
     {
         return _getEIP712Hash(
             LibNativeOrder.getRfqOrderStructHash(order)
+        );
+    }
+
+    /// @dev Get the canonical hash of a Taker Signed RFQ order.
+    /// @param order The taker signed RFQ order.
+    /// @return orderHash The order hash.
+    function getTakerSignedRfqOrderHash(LibNativeOrder.TakerSignedRfqOrder memory order)
+        public
+        view
+        returns (bytes32 orderHash)
+    {
+        return _getEIP712Hash(
+            LibNativeOrder.getTakerSignedRfqOrderStructHash(order)
         );
     }
 
@@ -204,6 +253,47 @@ abstract contract NativeOrdersInfo is
         );
         isSignatureValid = order.maker ==
             LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
+    }
+
+    /// @dev Get order fillability and signature validity for a Taker Signed RFQ order.
+    ///      Fillable amount is determined using balances and allowances of the maker.
+    /// @param order The RFQ order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerSignature The order signature from the taker.
+    /// @return takerSignedOrderInfo Info about the order.
+    /// @return fillable Bool
+    /// @return isMakerSignatureValid Whether the maker signature is valid.
+    /// @return isTakerSignatureValid Whether the taker signature is valid.
+    function getTakerSignedRfqOrderRelevantState(
+        LibNativeOrder.TakerSignedRfqOrder memory order,
+        LibSignature.Signature memory makerSignature,
+        LibSignature.Signature memory takerSignature
+    )
+        public
+        view
+        returns (
+            LibNativeOrder.TakerSignedOrderInfo memory takerSignedOrderInfo,
+            bool fillable,
+            bool isMakerSignatureValid,
+            bool isTakerSignatureValid
+        )
+    {
+        takerSignedOrderInfo = getTakerSignedRfqOrderInfo(order);
+        fillable = _getTakerSignedOrderActualFillability(
+            GetTakerSignedOrderActualFillabilityParams({
+                maker: order.maker,
+                taker: order.maker,
+                makerToken: order.makerToken,
+                takerToken: order.takerToken,
+                orderMakerAmount: order.makerAmount,
+                orderTakerAmount: order.takerAmount,
+                takerSignedOrderInfo: takerSignedOrderInfo
+            })
+        );
+        isMakerSignatureValid = order.maker ==
+            LibSignature.getSignerOfHash(takerSignedOrderInfo.orderHash, makerSignature);
+        isTakerSignatureValid = order.taker ==
+            LibSignature.getSignerOfHash(takerSignedOrderInfo.orderHash, takerSignature);
     }
 
     /// @dev Batch version of `getLimitOrderRelevantState()`, without reverting.
@@ -348,6 +438,35 @@ abstract contract NativeOrdersInfo is
         orderInfo.status = LibNativeOrder.OrderStatus.FILLABLE;
     }
 
+    /// @dev Populate `status` and `takerTokenFilledAmount` fields in
+    ///      `orderInfo`.
+    /// @param takerSignedOrderInfo `OrderInfo` with `orderHash` and `maker` filled.
+    /// @param expiry The order's expiry.
+    function _populateTakerSignedOrderInfoFields(
+        LibNativeOrder.TakerSignedOrderInfo memory takerSignedOrderInfo,
+        uint64 expiry
+    )
+        private
+        view
+    {
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
+
+        // Get the filled state.
+        if (stor.orderHashToFilledBool[takerSignedOrderInfo.orderHash]) {
+            takerSignedOrderInfo.status = LibNativeOrder.OrderStatus.FILLED;
+            return;
+        }
+
+        // Check for expiration.
+        if (expiry <= uint64(block.timestamp)) {
+            takerSignedOrderInfo.status = LibNativeOrder.OrderStatus.EXPIRED;
+            return;
+        }
+
+        takerSignedOrderInfo.status = LibNativeOrder.OrderStatus.FILLABLE;
+    }
+
     /// @dev Calculate the actual fillable taker token amount of an order
     ///      based on maker allowance and balances.
     function _getActualFillableTakerTokenAmount(
@@ -389,4 +508,27 @@ abstract contract NativeOrdersInfo is
             uint256(params.orderTakerAmount)
         ).safeDowncastToUint128();
     }
+
+    /// @dev Calculate fillability based on actual maker/taker allowance
+    ///      and balances.
+    function _getTakerSignedOrderActualFillability(
+        GetTakerSignedOrderActualFillabilityParams memory params
+    )
+        private
+        view
+        returns (bool fillable)
+    {
+        if (params.orderMakerAmount == 0 || params.orderTakerAmount == 0) {
+            // Empty order.
+            return false;
+        }
+        if (params.takerSignedOrderInfo.status != LibNativeOrder.OrderStatus.FILLABLE) {
+            // Not fillable.
+            return false;
+        }
+
+        uint256 makerSpendableAmount = _getSpendableERC20BalanceOf(params.makerToken, params.maker);
+        uint256 takerSpendableAmount = _getSpendableERC20BalanceOf(params.takerToken, params.taker);
+        return (makerSpendableAmount >= params.orderMakerAmount && takerSpendableAmount >= params.orderTakerAmount);
+    } 
 }
