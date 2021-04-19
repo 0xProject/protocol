@@ -137,13 +137,13 @@ interface INativeOrdersFeature is
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
-    /// @dev Cancel a single limit order. The caller must be the maker.
+    /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
     function cancelLimitOrder(LibNativeOrder.LimitOrder calldata order)
         external;
 
-    /// @dev Cancel a single RFQ order. The caller must be the maker.
+    /// @dev Cancel a single RFQ order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
     function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order)
@@ -156,13 +156,13 @@ interface INativeOrdersFeature is
     function registerAllowedRfqOrigins(address[] memory origins, bool allowed)
         external;
 
-    /// @dev Cancel multiple limit orders. The caller must be the maker.
+    /// @dev Cancel multiple limit orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
     function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] calldata orders)
         external;
 
-    /// @dev Cancel multiple RFQ orders. The caller must be the maker.
+    /// @dev Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
     function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] calldata orders)

@@ -229,7 +229,7 @@ PairCancelledLimitOrders
     );
 
 PairCancelledRfqOrders
-------------------------
+----------------------
 
 .. code-block:: solidity
 

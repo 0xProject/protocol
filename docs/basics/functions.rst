@@ -146,7 +146,7 @@ This function cancels a single limit order created by the caller:
     )
         external;
 
-This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker`` or `!isValidOrderSigner(maker, msg.sender)`.
+This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker`` or ``!isValidOrderSigner(maker, msg.sender)``.
 
 batchCancelLimitOrders
 ----------------------
@@ -431,7 +431,7 @@ Similar to limit orders, RFQ orders can be cancelled on-chain through a variety 
     )
         external;
 
-This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker`` or `!isValidOrderSigner(maker, msg.sender)`.
+This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker`` or ``!isValidOrderSigner(maker, msg.sender)``.
 
 batchCancelRfqOrders
 --------------------

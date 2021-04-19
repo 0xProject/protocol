@@ -48,7 +48,7 @@ abstract contract NativeOrdersCancellation is
         // solhint-disable no-empty-blocks
     }
 
-    /// @dev Cancel a single limit order. The caller must be the maker.
+    /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
     function cancelLimitOrder(LibNativeOrder.LimitOrder memory order)
@@ -65,7 +65,7 @@ abstract contract NativeOrdersCancellation is
         _cancelOrderHash(orderHash, order.maker);
     }
 
-    /// @dev Cancel a single RFQ order. The caller must be the maker.
+    /// @dev Cancel a single RFQ order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
     function cancelRfqOrder(LibNativeOrder.RfqOrder memory order)
@@ -82,7 +82,7 @@ abstract contract NativeOrdersCancellation is
         _cancelOrderHash(orderHash, order.maker);
     }
 
-    /// @dev Cancel multiple limit orders. The caller must be the maker.
+    /// @dev Cancel multiple limit orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
     function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] memory orders)
@@ -93,7 +93,7 @@ abstract contract NativeOrdersCancellation is
         }
     }
 
-    /// @dev Cancel multiple RFQ orders. The caller must be the maker.
+    /// @dev Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
     function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] memory orders)
