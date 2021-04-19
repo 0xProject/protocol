@@ -25,9 +25,6 @@ import "./interfaces/IBalancerV2Vault.sol";
 
 
 contract BalancerV2Sampler is SamplerUtils {
-    /// @dev Base gas limit for Balancer calls.
-    uint256 constant private BALANCER_CALL_GAS = 300e3; // 300k
-
     struct BalancerV2PoolInfo {
         bytes32 poolId;
         address vaultAddress;
@@ -61,24 +58,21 @@ contract BalancerV2Sampler is SamplerUtils {
         makerTokenAmounts = new uint256[](numSamples);
 
         for (uint256 i = 0; i < numSamples; i++) {
-            IBalancerV2Vault.BatchSwapStep[] memory swapSteps = _createSwapSteps(poolInfo, takerTokenAmounts[i], true);
-            IBalancerV2Vault.FundManagement memory swapFunds = _createSwapFunds();
+            IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
+                _createSwapSteps(poolInfo, takerTokenAmounts[i]);
+            IBalancerV2Vault.FundManagement memory swapFunds =
+                _createSwapFunds();
 
             try
-                vault.queryBatchSwap
-                {gas: BALANCER_CALL_GAS}
-                (
-                    swapKind,
-                    swapSteps,
-                    swapAssets,
-                    swapFunds
-                ) returns (int256[] memory amounts)
-            {
-                // Break early if there are 0 or negative amounts
-                if (amounts[0] <= 0) {
+                vault.queryBatchSwap(swapKind, swapSteps, swapAssets, swapFunds)
+            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
+            returns (int256[] memory amounts) {
+                // Outgoing balance is negative so we need to flip the sign
+                int256 amountOutFromPool = amounts[1] * -1;
+                if (amountOutFromPool <= 0) {
                     break;
                 }
-                makerTokenAmounts[i] = uint256(amounts[0]);
+                makerTokenAmounts[i] = uint256(amountOutFromPool);
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
@@ -105,7 +99,8 @@ contract BalancerV2Sampler is SamplerUtils {
         _assertValidPair(makerToken, takerToken);
         IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vaultAddress);
         // For buys we specify the makerToken which is what taker will receive from the trade
-        IBalancerV2Vault.SwapKind swapKind = IBalancerV2Vault.SwapKind.GIVEN_OUT;
+        IBalancerV2Vault.SwapKind swapKind =
+            IBalancerV2Vault.SwapKind.GIVEN_OUT;
         IAsset[] memory swapAssets = new IAsset[](2);
         swapAssets[0] = IAsset(takerToken);
         swapAssets[1] = IAsset(makerToken);
@@ -114,24 +109,19 @@ contract BalancerV2Sampler is SamplerUtils {
         takerTokenAmounts = new uint256[](numSamples);
 
         for (uint256 i = 0; i < numSamples; i++) {
-            IBalancerV2Vault.BatchSwapStep[] memory swapSteps = _createSwapSteps(poolInfo, makerTokenAmounts[i], false);
-            IBalancerV2Vault.FundManagement memory swapFunds = _createSwapFunds();
+            IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
+                _createSwapSteps(poolInfo, makerTokenAmounts[i]);
+            IBalancerV2Vault.FundManagement memory swapFunds =
+                _createSwapFunds();
 
             try
-                vault.queryBatchSwap
-                {gas: BALANCER_CALL_GAS}
-                (
-                    swapKind,
-                    swapSteps,
-                    swapAssets,
-                    swapFunds
-                ) returns (int256[] memory amounts)
-            {
-                // Break early if there are 0 or negative amounts
-                if (amounts[0] <= 0) {
+                vault.queryBatchSwap(swapKind, swapSteps, swapAssets, swapFunds)
+            returns (int256[] memory amounts) {
+                int256 amountIntoPool = amounts[0];
+                if (amountIntoPool <= 0) {
                     break;
                 }
-                takerTokenAmounts[i] = uint256(amounts[0]);
+                takerTokenAmounts[i] = uint256(amountIntoPool);
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
@@ -141,21 +131,16 @@ contract BalancerV2Sampler is SamplerUtils {
 
     function _createSwapSteps(
         BalancerV2PoolInfo memory poolInfo,
-        uint256 amount,
-        bool isSelling
-    )
-        private
-        pure
-        returns (IBalancerV2Vault.BatchSwapStep[] memory)
-    {
-        IBalancerV2Vault.BatchSwapStep[] memory swapSteps = new IBalancerV2Vault.BatchSwapStep[](1);
+        uint256 amount
+    ) private pure returns (IBalancerV2Vault.BatchSwapStep[] memory) {
+        IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
+            new IBalancerV2Vault.BatchSwapStep[](1);
         swapSteps[0] = IBalancerV2Vault.BatchSwapStep({
             poolId: poolInfo.poolId,
-            // TODO(kimpers): Is this correct?
-            assetInIndex: isSelling ? uint256(1) : uint256(0),
-            assetOutIndex: isSelling ? uint256(0) : uint256(1),
+            assetInIndex: 0,
+            assetOutIndex: 1,
             amount: amount,
-            userData: '0x'
+            userData: "0x"
         });
 
         return swapSteps;
@@ -163,14 +148,15 @@ contract BalancerV2Sampler is SamplerUtils {
 
     function _createSwapFunds()
         private
-        pure
+        view
         returns (IBalancerV2Vault.FundManagement memory)
-        {
-            return IBalancerV2Vault.FundManagement({
-                sender: address(0),
+    {
+        return
+            IBalancerV2Vault.FundManagement({
+                sender: address(this),
                 fromInternalBalance: false,
-                recipient: payable(address(0)),
+                recipient: payable(address(this)),
                 toInternalBalance: false
             });
-        }
+    }
 }
