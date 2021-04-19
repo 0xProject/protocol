@@ -7,7 +7,17 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { LimitOrder, LimitOrderFields, OrderStatus, RevertErrors, RfqOrder, RfqOrderFields, SignatureType, TakerSignedRfqOrder, TakerSignedRfqOrderFields } from '@0x/protocol-utils';
+import {
+    LimitOrder,
+    LimitOrderFields,
+    OrderStatus,
+    RevertErrors,
+    RfqOrder,
+    RfqOrderFields,
+    SignatureType,
+    TakerSignedRfqOrder,
+    TakerSignedRfqOrderFields,
+} from '@0x/protocol-utils';
 import { AnyRevertError, BigNumber, logUtils } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
@@ -1588,12 +1598,20 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
     describe.only('fillTakerSignedRfqOrder', () => {
         it('gas cost if if there is no balance is fully sold, new tokens after trade for both parties', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             // await testUtils.prepareBalancesForOrdersAsync([order]);
 
@@ -1609,18 +1627,28 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
         });
         it('gas cost if there is both balances is fully sold, existing tokens after trade for both parties', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             // await testUtils.prepareBalancesForOrdersAsync([order]);
 
@@ -1639,18 +1667,28 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
         });
         it('gas cost if maker has balance of taker token', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             await makerToken.mint(maker, order.makerAmount.plus(1)).awaitTransactionSuccessAsync();
             await takerToken.mint(taker, order.takerAmount.plus(1)).awaitTransactionSuccessAsync();
@@ -1666,18 +1704,28 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
         });
         it('gas cost if maker has balance of taker token and taker has balance of maker token', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             await makerToken.mint(maker, order.makerAmount.plus(1)).awaitTransactionSuccessAsync();
             await takerToken.mint(taker, order.takerAmount.plus(1)).awaitTransactionSuccessAsync();
@@ -1694,19 +1742,29 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
         });
 
         it('gas cost if maker has balance of taker token and taker spends entire balance', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             await makerToken.mint(maker, order.makerAmount.plus(1)).awaitTransactionSuccessAsync();
             await takerToken.mint(taker, order.takerAmount).awaitTransactionSuccessAsync();
@@ -1722,19 +1780,29 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
         });
 
         it('both spend all of their token balance, maker has prior balance', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             await makerToken.mint(maker, order.makerAmount).awaitTransactionSuccessAsync();
             await takerToken.mint(taker, order.takerAmount).awaitTransactionSuccessAsync();
@@ -1750,19 +1818,29 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
         });
 
         it('both have prior balance, taker spends all', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             await makerToken.mint(maker, order.makerAmount.plus(1)).awaitTransactionSuccessAsync();
             await takerToken.mint(taker, order.takerAmount).awaitTransactionSuccessAsync();
@@ -1779,19 +1857,29 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
         });
 
         it('neither have prior balance, taker spends all', async () => {
-            const order = getTestTakerSignedRfqOrder({txOrigin: takerSignedRfqSender});
+            const order = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender });
 
             // get maker signature
-            const makerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, maker);
+            const makerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                maker,
+            );
             // get taker signature
-            const takerSignature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker);
+            const takerSignature = await order.getSignatureWithProviderAsync(
+                env.provider,
+                SignatureType.EthSign,
+                taker,
+            );
 
             await makerToken.mint(maker, order.makerAmount.plus(1)).awaitTransactionSuccessAsync();
             await takerToken.mint(taker, order.takerAmount).awaitTransactionSuccessAsync();
@@ -1805,7 +1893,9 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             logUtils.log(`taker balance`);
             logUtils.log(await takerToken.balanceOf(taker).callAsync());
 
-            const receipt = await zeroEx.fillTakerSignedRfqOrder(order, makerSignature, takerSignature).awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
+            const receipt = await zeroEx
+                .fillTakerSignedRfqOrder(order, makerSignature, takerSignature)
+                .awaitTransactionSuccessAsync({ from: takerSignedRfqSender });
 
             logUtils.log(`Gas Used:`);
             logUtils.log(receipt.gasUsed);
