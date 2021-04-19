@@ -827,9 +827,9 @@
     typedoc "~0.16.11"
     yargs "^10.0.3"
 
-"@0x/protocol-utils@0xProject/protocol#0x-protocol-utils-v1.4.1-74313d96d":
+"@0x/protocol-utils@0xProject/protocol#0x-protocol-utils-v1.4.1-2e57fd74a":
   version "1.4.1"
-  resolved "https://codeload.github.com/0xProject/protocol/tar.gz/11833acd711f99511b4f71e05c915579cab06f3a"
+  resolved "https://codeload.github.com/0xProject/protocol/tar.gz/8433bd606eb5f635906906cf85a04a3294589912"
   dependencies:
     "@0x/assert" "^3.0.21"
     "@0x/contract-addresses" "^6.0.0"
