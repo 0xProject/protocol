@@ -1039,6 +1039,13 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
     },
 );
 
+export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xba1222227c37746ada22d10da6265e02e44400dd', // TODO(kimpers): verify that this is correct for mainnet
+    },
+    NULL_ADDRESS,
+);
+
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;

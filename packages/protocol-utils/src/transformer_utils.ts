@@ -130,6 +130,7 @@ export enum BridgeProtocol {
     Smoothy,
     Component,
     Saddle,
+    BalancerV2,
 }
 // tslint:enable: enum-naming
 
