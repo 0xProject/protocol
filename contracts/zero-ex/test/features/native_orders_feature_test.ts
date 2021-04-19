@@ -972,8 +972,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             const order = getTestRfqOrder();
             const receipt = await testUtils.fillRfqOrderAsync(order);
 
-            logUtils.log(`RFQ Order Gas Usage:`);
-            logUtils.log(receipt.gasUsed);
             verifyEventsFromLogs(
                 receipt.logs,
                 [testUtils.createRfqOrderFilledEventArgs(order)],
