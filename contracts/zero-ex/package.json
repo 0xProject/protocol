@@ -83,7 +83,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.2.18",
-        "@0x/protocol-utils": "0xProject/protocol#0x-protocol-utils-v1.4.1-de5a86b03",
+        "@0x/protocol-utils": "0xProject/protocol#0x-protocol-utils-v1.4.1-2e57fd74a",
         "@0x/subproviders": "^6.4.1",
         "@0x/types": "^3.3.1",
         "@0x/typescript-typings": "^5.1.6",
