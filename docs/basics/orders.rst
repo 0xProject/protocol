@@ -92,7 +92,7 @@ The ``RFQOrder`` struct has the following fields:
 How To Sign
 ==============
 
-Both Limit & RFQ orders must be signed by the `maker`. This signature is needed to fill an order, see `Basic Functionality <./functions.html>`_.
+Both Limit & RFQ orders must be signed by the `maker` or a registered order signer (`registerAllowedOrderSigner <./functions.html#registerallowedrfqorigins>`_). This signature is needed to fill an order, see `Basic Functionality <./functions.html>`_.
 
 The protocol accepts signatures defined by the following struct:
 
