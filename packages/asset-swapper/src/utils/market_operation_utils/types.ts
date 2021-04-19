@@ -115,6 +115,14 @@ export interface PsmInfo {
     gemTokenAddress: string;
 }
 
+/**
+ * Configration info for a Balancer V2 pool.
+ */
+export interface BalancerV2PoolInfo {
+    poolId: string;
+    vaultAddress: string;
+}
+
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
 
