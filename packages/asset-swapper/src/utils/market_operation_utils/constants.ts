@@ -980,7 +980,7 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
 
 export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0xba1222227c37746ada22d10da6265e02e44400dd', // TODO(kimpers): verify that this is correct for mainnet
+        [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
     },
     NULL_ADDRESS,
 );
