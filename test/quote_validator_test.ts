@@ -66,7 +66,7 @@ describe(SUITE_NAME, () => {
         it('should fail gracefully and mark orders as fully fillable if no entries are found', async () => {
             const beforefilter = await chainCacheRepository.count();
             expect(beforefilter).to.eql(0);
-            const orders = [800, 801, 802].map(takerAmount => {
+            const orders = [800, 801, 802].map((takerAmount) => {
                 return createRfqOrder(
                     MAKER1_ADDRESS,
                     DAI_TOKEN,
@@ -77,7 +77,7 @@ describe(SUITE_NAME, () => {
             });
             const results = await validator.getRfqtTakerFillableAmountsAsync(orders);
             expect(results.length).to.eql(3);
-            expect(results.map(r => r.toString())).to.eql(['800000000', '801000000', '802000000']);
+            expect(results.map((r) => r.toString())).to.eql(['800000000', '801000000', '802000000']);
 
             const afterFilter = await chainCacheRepository.count();
             expect(afterFilter).to.eql(1);
@@ -101,7 +101,42 @@ describe(SUITE_NAME, () => {
             );
             const results = await validator.getRfqtTakerFillableAmountsAsync([orderToValidate]);
             expect(results.length).to.eql(1);
-            expect(results.map(r => r.toString())).to.eql([
+            expect(results.map((r) => r.toString())).to.eql([
+                '342857142', // 342.857142
+            ]);
+        });
+
+        it('should be case insensitive to maker token addresses', async () => {
+            const makerToken = DAI_TOKEN;
+            const takerToken = USDC_TOKEN;
+
+            await chainCacheRepository.insert({
+                tokenAddress: makerToken,
+                makerAddress: MAKER1_ADDRESS,
+                balance: Web3Wrapper.toBaseUnitAmount(300, 18),
+                timeFirstSeen: 'NOW()',
+                timeOfSample: 'NOW()',
+            });
+
+            const order1 = createRfqOrder(
+                MAKER1_ADDRESS,
+                makerToken.toUpperCase(),
+                takerToken,
+                Web3Wrapper.toBaseUnitAmount(700, 18),
+                Web3Wrapper.toBaseUnitAmount(800, 6),
+            );
+
+            const order2 = createRfqOrder(
+                MAKER1_ADDRESS,
+                makerToken.toLowerCase(),
+                takerToken,
+                Web3Wrapper.toBaseUnitAmount(700, 18),
+                Web3Wrapper.toBaseUnitAmount(800, 6),
+            );
+            const results = await validator.getRfqtTakerFillableAmountsAsync([order1, order2]);
+            expect(results.length).to.eql(2);
+            expect(results.map((r) => r.toString())).to.eql([
+                '342857142', // 342.857142
                 '342857142', // 342.857142
             ]);
         });
@@ -126,7 +161,7 @@ describe(SUITE_NAME, () => {
                 timeFirstSeen: new Date(new Date().getTime() - ONE_SECOND_MS * 30),
             });
 
-            const orders = [MAKER1_ADDRESS, MAKER2_ADDRESS, MAKER3_ADDRESS].map(makerAddress => {
+            const orders = [MAKER1_ADDRESS, MAKER2_ADDRESS, MAKER3_ADDRESS].map((makerAddress) => {
                 return createRfqOrder(
                     makerAddress,
                     DAI_TOKEN,
@@ -137,7 +172,7 @@ describe(SUITE_NAME, () => {
             });
             const results = await validator.getRfqtTakerFillableAmountsAsync(orders);
             expect(results.length).to.eql(3);
-            expect(results.map(r => r.toString())).to.eql([
+            expect(results.map((r) => r.toString())).to.eql([
                 '0', // order maker has a cache entry which is too old
                 '0', // order maker never had a cache entry and was first seen 5 minutes ago - not fillable
                 '800000000', // order maker has a cache entry and was seen 30 seconds ago - fully fillable
@@ -173,7 +208,7 @@ describe(SUITE_NAME, () => {
                 timeFirstSeen: 'NOW()',
             });
 
-            const orders = [MAKER1_ADDRESS, MAKER2_ADDRESS, MAKER3_ADDRESS, MAKER4_ADDRESS].map(address => {
+            const orders = [MAKER1_ADDRESS, MAKER2_ADDRESS, MAKER3_ADDRESS, MAKER4_ADDRESS].map((address) => {
                 return createRfqOrder(
                     address,
                     DAI_TOKEN,
@@ -186,7 +221,7 @@ describe(SUITE_NAME, () => {
             const now = new Date();
             const results = await validator.getRfqtTakerFillableAmountsAsync(orders);
             expect(results.length).to.eql(4);
-            expect(results.map(r => r.toString())).to.eql(['0', '120000000', '1000000000', '1000000000']);
+            expect(results.map((r) => r.toString())).to.eql(['0', '120000000', '1000000000', '1000000000']);
 
             // MAKER4 did not exist in the cache, so check to ensure it's been added.
             const maker4Entry = await chainCacheRepository.findOneOrFail({

@@ -49,6 +49,11 @@ const PG_LATENCY_READ = new Summary({
     help: 'Query latency',
     labelNames: ['workerId'],
 });
+const MAKER_TOKEN_NOT_UNIQUE = new Counter({
+    name: 'rfqtv_rejected_maker_token_not_unique',
+    help: 'RFQ batch was requested because not all orders return the same token',
+    labelNames: ['workerId'],
+});
 
 export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
     private readonly _chainCacheRepository: Repository<MakerBalanceChainCacheEntity>;
@@ -69,13 +74,14 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
         // TODO: Handle error on query
 
         // Ensure that all quotes have the same exact maker token.
-        const uniqueMakerTokens = new Set(quotes.map((quote) => quote.makerToken));
+        const uniqueMakerTokens = new Set(quotes.map((quote) => quote.makerToken.toLowerCase()));
         if (uniqueMakerTokens.size !== 1) {
             logger.error(
                 `Quotes array was empty or found multiple maker token addresses within one single RFQ batch: ${JSON.stringify(
                     Array.from(uniqueMakerTokens),
                 )}. Rejecting the batch`,
             );
+            MAKER_TOKEN_NOT_UNIQUE.labels(this._workerId).inc(quotes.length);
             return quotes.map((_quote) => ZERO);
         }
         const makerToken: string = uniqueMakerTokens.values().next().value;
@@ -83,7 +89,7 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
         // Fetch balances and create a lookup table. In order to fetch all the unique addresses we use a set, but then convert
         // the set to an array so that it can work with TypeORM.
         const makerLookup: { [key: string]: BigNumber } = {};
-        const makerAddresses = Array.from(new Set(quotes.map((quote) => quote.maker)));
+        const makerAddresses = Array.from(new Set(quotes.map((quote) => quote.maker.toLowerCase())));
         const timeStart = new Date().getTime();
         const cacheResults = await this._chainCacheRepository.find({
             where: [
@@ -118,8 +124,8 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
                 .values(
                     makerAddressesToAddToCache.map((makerAddress) => {
                         return {
-                            makerAddress,
-                            tokenAddress: makerToken,
+                            makerAddress: makerAddress.toLowerCase(),
+                            tokenAddress: makerToken.toLowerCase(),
                             timeFirstSeen: 'NOW()',
                         };
                     }),
