@@ -397,7 +397,7 @@ export class TakerSignedRfqOrder extends OrderBase {
                 makerAmount: this.makerAmount.toString(10),
                 takerAmount: this.takerAmount.toString(10),
                 maker: this.maker,
-                taker: this.maker,
+                taker: this.taker,
                 txOrigin: this.txOrigin,
                 expiry: this.expiry.toString(10),
                 salt: this.salt.toString(10),
