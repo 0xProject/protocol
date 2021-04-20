@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import { MarketOperation } from '../../types';
 
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
-import { Fill } from './types';
+import { ERC20BridgeSource, Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -23,7 +23,7 @@ export async function findOptimalPathAsync(
 ): Promise<Path | undefined> {
     // Sort fill arrays by descending adjusted completed rate.
     // Remove any paths which cannot impact the optimal path
-    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts));
+    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts), side);
     if (sortedPaths.length === 0) {
         return undefined;
     }
@@ -45,18 +45,31 @@ export function fillsToSortedPaths(
     opts: PathPenaltyOpts,
 ): Path[] {
     const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
-    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
+    const sortedPaths = paths
+        .sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()))
+        .filter(a => a.adjustedCompleteRate().isGreaterThanOrEqualTo(0));
     return sortedPaths;
 }
 
 // Remove paths which have no impact on the optimal path
-export function reducePaths(sortedPaths: Path[]): Path[] {
-    if (sortedPaths.length === 0) {
-        return sortedPaths;
-    }
+export function reducePaths(sortedPaths: Path[], side: MarketOperation): Path[] {
     // Any path which has a min rate that is less than the best adjusted completed rate has no chance of improving
     // the overall route.
-    return sortedPaths.filter(p => p.minRate().isGreaterThanOrEqualTo(sortedPaths[0].adjustedCompleteRate()));
+    const bestNonNativeCompletePath = sortedPaths.filter(
+        p => p.isComplete() && p.fills[0].source !== ERC20BridgeSource.Native,
+    )[0];
+
+    // If there is no complete path then just go ahead with the sorted paths
+    // I.e if the token only exists on sources which cannot sell to infinity
+    // or buys where X is greater than all the tokens available in the pools
+    if (!bestNonNativeCompletePath) {
+        return sortedPaths;
+    }
+
+    const filteredPaths = sortedPaths.filter(p =>
+        p.bestRate().isGreaterThanOrEqualTo(bestNonNativeCompletePath.adjustedCompleteRate()),
+    );
+    return filteredPaths;
 }
 
 function mixPaths(

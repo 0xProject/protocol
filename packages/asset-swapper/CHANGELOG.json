@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.8.0",
+        "changes": [
+            {
+                "note": "Prune paths which cannot improve the best path",
+                "pr": 183
+            }
+        ]
+    },
+    {
         "version": "6.7.0",
         "changes": [
             {

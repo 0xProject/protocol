@@ -39,7 +39,7 @@ export class Path {
     public sourceFlags: number = 0;
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
-    private _firstFill?: Fill;
+    private _bestFill?: Fill;
 
     public static create(
         side: MarketOperation,
@@ -154,13 +154,13 @@ export class Path {
     }
 
     /**
-     * Returns the first fill rate. The best possible rate this path can offer, given the fills.
+     * Returns the best possible rate this path can offer, given the fills.
      */
-    public minRate(): BigNumber {
-        if (!this._firstFill) {
+    public bestRate(): BigNumber {
+        if (!this._bestFill) {
             throw new Error('Unable to calculate minRate');
         }
-        return getRate(this.side, this._firstFill.input, this._firstFill.output);
+        return getRate(this.side, this._bestFill.input, this._bestFill.output);
     }
 
     public adjustedSlippage(maxRate: BigNumber): number {
@@ -259,9 +259,6 @@ export class Path {
     }
 
     private _addFillSize(fill: Fill): void {
-        if (!this._firstFill) {
-            this._firstFill = fill;
-        }
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
@@ -276,6 +273,15 @@ export class Path {
             this._size.output = this._size.output.plus(fill.output);
             this._adjustedSize.input = this._adjustedSize.input.plus(fill.input);
             this._adjustedSize.output = this._adjustedSize.output.plus(fill.adjustedOutput);
+        }
+
+        if (
+            this._bestFill === undefined ||
+            getRate(this.side, this._bestFill.input, this._bestFill.output).isLessThan(
+                getRate(this.side, fill.input, fill.output),
+            )
+        ) {
+            this._bestFill = fill;
         }
     }
 }
