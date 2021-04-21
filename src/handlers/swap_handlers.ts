@@ -139,6 +139,7 @@ export class SwapHandlers {
                         sellTokenAddress: quote.sellTokenAddress,
                         buyAmount: params.buyAmount,
                         sellAmount: params.sellAmount,
+                        apiKey: params.apiKey,
                     },
                     req.log,
                 );

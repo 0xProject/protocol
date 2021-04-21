@@ -10,6 +10,7 @@ interface QuoteReportLogOptionsBase {
     buyAmount?: BigNumber;
     buyTokenAddress: string;
     sellTokenAddress: string;
+    apiKey?: string;
 }
 interface QuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
     quoteReport: QuoteReport;
@@ -53,6 +54,7 @@ export const quoteReportUtils = {
             sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,
             buyTokenAddress: logOpts.buyTokenAddress,
             sellTokenAddress: logOpts.sellTokenAddress,
+            apiKey: logOpts.apiKey,
         };
         if (logOpts.submissionBy === 'metaTxn') {
             logBase = { ...logBase, zeroExTransactionHash: logOpts.zeroExTransactionHash };
