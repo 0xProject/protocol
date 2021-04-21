@@ -18,6 +18,7 @@ import {
     uniswapV2LikeRouterAddress,
 } from './bridge_source_utils';
 import {
+    BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
     DODO_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
@@ -45,6 +46,7 @@ import { SourceFilters } from './source_filters';
 import {
     BalancerFillData,
     BalancerV2FillData,
+    BalancerV2PoolInfo,
     BancorFillData,
     BatchedOperation,
     CurveFillData,
@@ -467,44 +469,44 @@ export class SamplerOperations {
     }
 
     public getBalancerV2SellQuotes(
-        poolIds: string[],
+        poolInfo: BalancerV2PoolInfo,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
         source: ERC20BridgeSource,
     ): SourceQuoteOperation<BalancerV2FillData> {
-        // TODO
         return new SamplerContractOperation({
             source,
             fillData: {
-                poolId: poolIds[0],
-                vault: '',
+                poolId: poolInfo.poolId,
+                vault: poolInfo.vaultAddress,
+                // tslint:disable-next-line:custom-no-magic-numbers
                 deadline: Math.floor(Date.now() / 1000) + 300,
             },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromBalancer,
-            params: [poolIds[0], makerToken, takerToken, takerFillAmounts],
+            function: this._samplerContract.sampleSellsFromBalancerV2,
+            params: [poolInfo, takerToken, makerToken, takerFillAmounts],
         });
     }
 
     public getBalancerV2BuyQuotes(
-        poolIds: string[],
+        poolInfo: BalancerV2PoolInfo,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
         source: ERC20BridgeSource,
     ): SourceQuoteOperation<BalancerV2FillData> {
-        // TODO
         return new SamplerContractOperation({
             source,
             fillData: {
-                poolId: poolIds[0],
-                vault: '',
+                poolId: poolInfo.poolId,
+                vault: poolInfo.vaultAddress,
+                // tslint:disable-next-line:custom-no-magic-numbers
                 deadline: Math.floor(Date.now() / 1000) + 300,
             },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromBalancer,
-            params: [poolIds[0], makerToken, takerToken, makerFillAmounts],
+            function: this._samplerContract.sampleBuysFromBalancerV2,
+            params: [poolInfo, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1164,13 +1166,21 @@ export class SamplerOperations {
                                     takerToken,
                                     makerToken,
                                 ) || [];
-                            return this.getBalancerV2SellQuotes(
-                                poolIds,
-                                makerToken,
-                                takerToken,
-                                takerFillAmounts,
-                                ERC20BridgeSource.BalancerV2,
+
+                            const vaultAddress = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                            if (vaultAddress === NULL_ADDRESS) {
+                                return [];
+                            }
+                            return poolIds.map(poolId =>
+                                this.getBalancerV2SellQuotes(
+                                    { poolId, vaultAddress },
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                    ERC20BridgeSource.BalancerV2,
+                                ),
                             );
+
                         case ERC20BridgeSource.Cream:
                             return (
                                 this.poolsCaches[ERC20BridgeSource.Cream]!.getCachedPoolAddressesForPair(
@@ -1392,12 +1402,19 @@ export class SamplerOperations {
                                     takerToken,
                                     makerToken,
                                 ) || [];
-                            return this.getBalancerV2BuyQuotes(
-                                poolIds,
-                                makerToken,
-                                takerToken,
-                                makerFillAmounts,
-                                ERC20BridgeSource.BalancerV2,
+
+                            const vaultAddress = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                            if (vaultAddress === NULL_ADDRESS) {
+                                return [];
+                            }
+                            return poolIds.map(poolId =>
+                                this.getBalancerV2BuyQuotes(
+                                    { poolId, vaultAddress },
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                    ERC20BridgeSource.BalancerV2,
+                                ),
                             );
                         case ERC20BridgeSource.Cream:
                             return (
