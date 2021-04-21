@@ -1,4 +1,5 @@
 // tslint:disable:max-file-line-count
+import { isAPIError, isRevertError } from '@0x/api-utils';
 import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
 import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { MarketOperation } from '@0x/types';
@@ -29,8 +30,6 @@ import {
     ValidationErrorCodes,
     ValidationErrorReasons,
 } from '../errors';
-import { logger } from '../logger';
-import { isAPIError, isRevertError } from '../middleware/error_handling';
 import { schemas } from '../schemas';
 import { SwapService } from '../services/swap_service';
 import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
@@ -117,9 +116,9 @@ export class SwapHandlers {
 
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseSwapQuoteRequestParams(req, 'quote');
-        const quote = await this._getSwapQuoteAsync(params);
+        const quote = await this._getSwapQuoteAsync(params, req);
         if (params.rfqt !== undefined) {
-            logger.info({
+            req.log.info({
                 firmQuoteServed: {
                     taker: params.takerAddress,
                     apiKey: params.apiKey,
@@ -131,15 +130,18 @@ export class SwapHandlers {
                 },
             });
             if (quote.quoteReport && params.rfqt && params.rfqt.intentOnFilling) {
-                quoteReportUtils.logQuoteReport({
-                    quoteReport: quote.quoteReport,
-                    submissionBy: 'taker',
-                    decodedUniqueId: quote.decodedUniqueId,
-                    buyTokenAddress: quote.buyTokenAddress,
-                    sellTokenAddress: quote.sellTokenAddress,
-                    buyAmount: params.buyAmount,
-                    sellAmount: params.sellAmount,
-                });
+                quoteReportUtils.logQuoteReport(
+                    {
+                        quoteReport: quote.quoteReport,
+                        submissionBy: 'taker',
+                        decodedUniqueId: quote.decodedUniqueId,
+                        buyTokenAddress: quote.buyTokenAddress,
+                        sellTokenAddress: quote.sellTokenAddress,
+                        buyAmount: params.buyAmount,
+                        sellAmount: params.sellAmount,
+                    },
+                    req.log,
+                );
             }
         }
         const response = _.omit(
@@ -162,8 +164,8 @@ export class SwapHandlers {
     // tslint:disable-next-line:prefer-function-over-method
     public async getQuotePriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseSwapQuoteRequestParams(req, 'price');
-        const quote = await this._getSwapQuoteAsync({ ...params, skipValidation: true });
-        logger.info({
+        const quote = await this._getSwapQuoteAsync({ ...params, skipValidation: true }, req);
+        req.log.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
                 apiKey: params.apiKey,
@@ -242,7 +244,7 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send(response);
     }
 
-    private async _getSwapQuoteAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
+    private async _getSwapQuoteAsync(params: GetSwapQuoteParams, req: express.Request): Promise<GetSwapQuoteResponse> {
         try {
             let swapQuote: GetSwapQuoteResponse;
             if (params.isUnwrap) {
@@ -285,7 +287,7 @@ export class SwapHandlers {
                     },
                 ]);
             }
-            logger.info('Uncaught error', e.message, e.stack);
+            req.log.info('Uncaught error', e.message, e.stack);
             throw new InternalServerError(e.message);
         }
     }
@@ -407,7 +409,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     }
 
     // Log the request if it passes all validations
-    logger.info({
+    req.log.info({
         type: 'swapRequest',
         endpoint,
         updatedExcludedSources,

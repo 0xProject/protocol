@@ -1,3 +1,4 @@
+import type { PinoLogger } from '@0x/api-utils';
 import { BigNumber, QuoteReport, QuoteReportEntry } from '@0x/asset-swapper';
 import _ = require('lodash');
 
@@ -35,7 +36,8 @@ const omitFillData = (source: QuoteReportEntry) => {
 };
 
 export const quoteReportUtils = {
-    logQuoteReport(logOpts: QuoteReportLogOptions): void {
+    logQuoteReport(logOpts: QuoteReportLogOptions, contextLogger?: PinoLogger): void {
+        const _logger = contextLogger ? contextLogger : logger;
         // NOTE: Removes bridge report fillData which we do not want to log to Kibana
         const qr: QuoteReport = {
             ...logOpts.quoteReport,
@@ -61,7 +63,7 @@ export const quoteReportUtils = {
         // Deliver in chunks since Kibana can't handle logs large requests
         const sourcesConsideredChunks = _.chunk(qr.sourcesConsidered.map(omitFillData), NUMBER_SOURCES_PER_LOG_LINE);
         sourcesConsideredChunks.forEach((chunk, i) => {
-            logger.info({
+            _logger.info({
                 ...logBase,
                 sourcesConsidered: chunk,
                 sourcesConsideredChunkIndex: i,
@@ -70,7 +72,7 @@ export const quoteReportUtils = {
         });
         const sourcesDeliveredChunks = _.chunk(qr.sourcesDelivered.map(omitFillData), NUMBER_SOURCES_PER_LOG_LINE);
         sourcesDeliveredChunks.forEach((chunk, i) => {
-            logger.info({
+            _logger.info({
                 ...logBase,
                 sourcesDelivered: chunk,
                 sourcesDeliveredChunkIndex: i,

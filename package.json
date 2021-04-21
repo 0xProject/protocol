@@ -101,7 +101,6 @@
         "@types/lodash": "^4.14.137",
         "@types/mocha": "^5.2.7",
         "@types/node-fetch": "^2.5.8",
-        "@types/pino": "^5.8.13",
         "@types/rimraf": "^3.0.0",
         "@types/sinon": "^9.0.8",
         "@types/supertest": "^2.0.8",
@@ -128,7 +127,7 @@
         "typescript": "^4.0.3"
     },
     "dependencies": {
-        "@0x/api-utils": "0xProject/gitpkg-registry#0x-api-utils-v0.0.1-362d82e",
+        "@0x/api-utils": "^0.0.1",
         "@0x/asset-swapper": "0xProject/gitpkg-registry#0x-asset-swapper-v6.5.3-a019bb913",
         "@0x/assert": "^3.0.17",
         "@0x/contract-addresses": "^6.0.0",
@@ -156,7 +155,6 @@
         "lodash": "^4.17.15",
         "node-fetch": "^2.6.1",
         "pg": "^8.5.0",
-        "pino": "^5.13.5",
         "prom-client": "^12.0.0",
         "retry-axios": "^2.1.2",
         "typeorm": "0.2.29",
