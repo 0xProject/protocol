@@ -19,7 +19,6 @@
         "test/generated-artifacts/Eth2DaiSampler.json",
         "test/generated-artifacts/FakeTaker.json",
         "test/generated-artifacts/IBalancer.json",
-        "test/generated-artifacts/IBalancerV2Vault.json",
         "test/generated-artifacts/IBancor.json",
         "test/generated-artifacts/ICurve.json",
         "test/generated-artifacts/IEth2Dai.json",
