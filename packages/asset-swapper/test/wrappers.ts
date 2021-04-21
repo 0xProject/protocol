@@ -16,7 +16,6 @@ export * from '../test/generated-wrappers/erc20_bridge_sampler';
 export * from '../test/generated-wrappers/eth2_dai_sampler';
 export * from '../test/generated-wrappers/fake_taker';
 export * from '../test/generated-wrappers/i_balancer';
-export * from '../test/generated-wrappers/i_balancer_v2_vault';
 export * from '../test/generated-wrappers/i_bancor';
 export * from '../test/generated-wrappers/i_curve';
 export * from '../test/generated-wrappers/i_eth2_dai';
