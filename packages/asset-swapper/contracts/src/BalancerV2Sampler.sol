@@ -21,10 +21,40 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
-import "./interfaces/IBalancerV2Vault.sol";
 
+/// @dev Minimal Balancer V2 Vault interface
+///      for documentation refer to https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
+interface IBalancerV2Vault {
+    enum SwapKind { GIVEN_IN, GIVEN_OUT }
+
+    struct BatchSwapStep {
+        bytes32 poolId;
+        uint256 assetInIndex;
+        uint256 assetOutIndex;
+        uint256 amount;
+        bytes userData;
+    }
+
+    struct FundManagement {
+        address sender;
+        bool fromInternalBalance;
+        address payable recipient;
+        bool toInternalBalance;
+    }
+
+    function queryBatchSwap(
+        SwapKind kind,
+        BatchSwapStep[] memory swaps,
+        IAsset[] memory assets,
+        FundManagement memory funds
+    ) external returns (int256[] memory assetDeltas);
+}
+interface IAsset {
+    // solhint-disable-previous-line no-empty-blocks
+}
 
 contract BalancerV2Sampler is SamplerUtils {
+
     struct BalancerV2PoolInfo {
         bytes32 poolId;
         address vaultAddress;

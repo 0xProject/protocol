@@ -120,6 +120,7 @@ async function getMarketBuyOrdersAsync(
 
 class MockPoolsCache extends PoolsCache {
     constructor(private readonly _handler: (takerToken: string, makerToken: string) => Pool[]) {
+        // tslint:disable-next-line:custom-no-magic-numbers
         super({}, 10);
     }
     protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
