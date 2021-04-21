@@ -128,6 +128,9 @@ export class SwapQuoter {
             {
                 gas: samplerGasLimit,
             },
+            {},
+            undefined,
+            { shouldOptimize: false },
         );
 
         this._marketOperationUtils = new MarketOperationUtils(
