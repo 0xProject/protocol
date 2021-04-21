@@ -126,7 +126,6 @@ export enum BridgeProtocol {
     CoFiX,
     Nerve,
     MakerPsm,
-    BalancerV2,
     Smoothy,
     Component,
     Saddle,
