@@ -479,9 +479,7 @@ export class SamplerOperations {
             source,
             fillData: {
                 poolId: poolInfo.poolId,
-                vault: poolInfo.vaultAddress,
-                // tslint:disable-next-line:custom-no-magic-numbers
-                deadline: Math.floor(Date.now() / 1000) + 300,
+                vault: poolInfo.vault,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromBalancerV2,
@@ -500,9 +498,7 @@ export class SamplerOperations {
             source,
             fillData: {
                 poolId: poolInfo.poolId,
-                vault: poolInfo.vaultAddress,
-                // tslint:disable-next-line:custom-no-magic-numbers
-                deadline: Math.floor(Date.now() / 1000) + 300,
+                vault: poolInfo.vault,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBalancerV2,
@@ -1167,13 +1163,13 @@ export class SamplerOperations {
                                     makerToken,
                                 ) || [];
 
-                            const vaultAddress = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
-                            if (vaultAddress === NULL_ADDRESS) {
+                            const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                            if (vault === NULL_ADDRESS) {
                                 return [];
                             }
                             return poolIds.map(poolId =>
                                 this.getBalancerV2SellQuotes(
-                                    { poolId, vaultAddress },
+                                    { poolId, vault },
                                     makerToken,
                                     takerToken,
                                     takerFillAmounts,
@@ -1403,13 +1399,13 @@ export class SamplerOperations {
                                     makerToken,
                                 ) || [];
 
-                            const vaultAddress = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
-                            if (vaultAddress === NULL_ADDRESS) {
+                            const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                            if (vault === NULL_ADDRESS) {
                                 return [];
                             }
                             return poolIds.map(poolId =>
                                 this.getBalancerV2BuyQuotes(
-                                    { poolId, vaultAddress },
+                                    { poolId, vault },
                                     makerToken,
                                     takerToken,
                                     makerFillAmounts,

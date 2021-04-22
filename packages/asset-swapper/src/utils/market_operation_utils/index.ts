@@ -214,11 +214,11 @@ export class MarketOperationUtils {
 
         // Can't sample Balancer or Cream on-chain without the pools cache
         const sourcesWithCaches = [ERC20BridgeSource.BalancerV2, ERC20BridgeSource.Balancer, ERC20BridgeSource.Cream];
-        const excludeSources: ERC20BridgeSource[] = sourcesWithCaches.filter(
+        const excludeCacheSources: ERC20BridgeSource[] = sourcesWithCaches.filter(
             s => !this._sampler.poolsCaches[s]!.isFresh(takerToken, makerToken),
         );
         // tslint:disable-next-line:promise-function-async
-        const cacheRefreshPromises: Array<Promise<any[]>> = excludeSources.map(s =>
+        const cacheRefreshPromises: Array<Promise<any[]>> = excludeCacheSources.map(s =>
             this._sampler.poolsCaches[s]!.getFreshPoolsForPairAsync(takerToken, makerToken),
         );
 
@@ -246,7 +246,7 @@ export class MarketOperationUtils {
             ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
-                quoteSourceFilters.exclude(excludeSources).sources,
+                quoteSourceFilters.exclude(excludeCacheSources).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,

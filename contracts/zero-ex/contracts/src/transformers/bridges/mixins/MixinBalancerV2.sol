@@ -39,6 +39,7 @@ interface IBalancerV2Vault {
      * Internal Balance usage and the recipient are determined by the `funds` struct.
      *
      * Emits a `Swap` event.
+     * For full documentation see https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
      */
     function swap(
         SingleSwap calldata request,
@@ -50,19 +51,11 @@ interface IBalancerV2Vault {
     struct SingleSwap {
         bytes32 poolId;
         SwapKind kind;
-        address assetIn;
-        address assetOut;
+        IERC20TokenV06 assetIn;
+        IERC20TokenV06 assetOut;
         uint256 amount;
         bytes userData;
     }
-
-    event Swap(
-        bytes32 indexed poolId,
-        IERC20TokenV06 indexed tokenIn,
-        IERC20TokenV06 indexed tokenOut,
-        uint256 tokensIn,
-        uint256 tokensOut
-    );
 
     struct FundManagement {
         address sender;
@@ -86,33 +79,36 @@ contract MixinBalancerV2 {
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.
-        (IBalancerV2Vault vault, bytes32 poolId, uint256 deadline) = abi.decode(
+        (IBalancerV2Vault vault, bytes32 poolId) = abi.decode(
             bridgeData,
-            (IBalancerV2Vault, bytes32, uint256)
+            (IBalancerV2Vault, bytes32)
         );
 
         // Grant an allowance to the exchange to spend `fromTokenAddress` token.
         sellToken.approveIfBelow(address(vault), sellAmount);
 
         // Sell the entire sellAmount
-        IBalancerV2Vault.SingleSwap memory request;
-        request.poolId = poolId;
-        request.kind = IBalancerV2Vault.SwapKind.GIVEN_IN;
-        request.assetIn = address(sellToken);
-        request.assetOut = address(buyToken);
-        request.amount = sellAmount; // amount in
+        IBalancerV2Vault.SingleSwap memory request = IBalancerV2Vault.SingleSwap({
+            poolId: poolId,
+            kind: IBalancerV2Vault.SwapKind.GIVEN_IN,
+            assetIn: sellToken,
+            assetOut: buyToken,
+            amount: sellAmount, // amount in
+            userData: ""
+        });
 
-        IBalancerV2Vault.FundManagement memory funds;
-        funds.sender = address(this);
-        funds.fromInternalBalance = false;
-        funds.recipient = payable(address(this));
-        funds.toInternalBalance= false;
+        IBalancerV2Vault.FundManagement memory funds = IBalancerV2Vault.FundManagement({
+            sender: address(this),
+            fromInternalBalance: false,
+            recipient: payable(address(this)),
+            toInternalBalance: false
+        });
 
         (boughtAmount) = vault.swap(
             request,
             funds,
             1, // min amount out
-            deadline
+            block.timestamp
         );
         return boughtAmount;
     }

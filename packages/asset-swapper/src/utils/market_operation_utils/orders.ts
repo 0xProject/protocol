@@ -181,8 +181,8 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.BalancerV2:
             const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2FillData>).fillData;
-            const { vault, poolId, deadline } = balancerV2FillData;
-            bridgeData = encoder.encode([vault, poolId, deadline]);
+            const { vault, poolId } = balancerV2FillData;
+            bridgeData = encoder.encode([vault, poolId]);
             break;
         case ERC20BridgeSource.Bancor:
             const bancorFillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
@@ -286,7 +286,7 @@ const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
-const balancerV2Encoder = AbiEncoder.create('(address,bytes32,uint256'); // vault, poolId, deadline timestamp in seconds
+const balancerV2Encoder = AbiEncoder.create('(address,bytes32'); // vault, poolId
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
