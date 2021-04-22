@@ -59,6 +59,10 @@ export class BalancerV2PoolsCache extends PoolsCache {
         return pools.map((pool: any) => {
             const tToken = pool.tokens.find((t: any) => t.address === takerToken);
             const mToken = pool.tokens.find((t: any) => t.address === makerToken);
+            const tokenAmountOut = pool.swaps[0]?.tokenAmountOut;
+            const tokenAmountIn = pool.swaps[0]?.tokenAmountIn
+            const spotPrice = tokenAmountOut && tokenAmountIn ? new BigNumber(tokenAmountOut).div(tokenAmountIn) : undefined // TODO: xianny check
+
             return {
                 id: pool.id,
                 balanceIn: new BigNumber(tToken.balance),
@@ -66,7 +70,7 @@ export class BalancerV2PoolsCache extends PoolsCache {
                 weightIn: new BigNumber(tToken.weight),
                 weightOut: new BigNumber(mToken.weight),
                 swapFee: new BigNumber(pool.swapFee),
-                spotPrice: new BigNumber(pool.swaps[0].tokenAmountOut / pool.swaps[0].tokenAmountIn), // TODO: xianny check
+                spotPrice,
             };
         });
     }
