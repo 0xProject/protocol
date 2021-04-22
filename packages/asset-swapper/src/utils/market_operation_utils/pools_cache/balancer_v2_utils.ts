@@ -10,10 +10,10 @@ import { CacheValue, PoolsCache } from './pools_cache';
 export class BalancerV2PoolsCache extends PoolsCache {
     constructor(
         private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL,
+        private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         cache: { [key: string]: CacheValue } = {},
-        maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
     ) {
-        super(cache, maxPoolsFetched);
+        super(cache);
     }
 
     // protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
@@ -32,9 +32,12 @@ export class BalancerV2PoolsCache extends PoolsCache {
     protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         const query = `
         query getPools {
-            pools(where: {
-              tokensList_contains: ["${takerToken}", "${makerToken}"]
-            }) {
+            pools(
+              first: ${this.maxPoolsFetched},
+              where: {
+                tokensList_contains: ["${takerToken}", "${makerToken}"]
+              }
+            ) {
                 id
                 tokens {
                     address
@@ -60,8 +63,8 @@ export class BalancerV2PoolsCache extends PoolsCache {
             const tToken = pool.tokens.find((t: any) => t.address === takerToken);
             const mToken = pool.tokens.find((t: any) => t.address === makerToken);
             const tokenAmountOut = pool.swaps[0]?.tokenAmountOut;
-            const tokenAmountIn = pool.swaps[0]?.tokenAmountIn
-            const spotPrice = tokenAmountOut && tokenAmountIn ? new BigNumber(tokenAmountOut).div(tokenAmountIn) : undefined // TODO: xianny check
+            const tokenAmountIn = pool.swaps[0]?.tokenAmountIn;
+            const spotPrice = tokenAmountOut && tokenAmountIn ? new BigNumber(tokenAmountOut).div(tokenAmountIn) : undefined; // TODO: xianny check
 
             return {
                 id: pool.id,

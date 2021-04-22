@@ -77,6 +77,7 @@ export enum ERC20BridgeSource {
     CheeseSwap = 'CheeseSwap',
     JulSwap = 'JulSwap',
 }
+export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
 // tslint:disable: enum-naming
 /**

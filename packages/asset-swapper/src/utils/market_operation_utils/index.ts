@@ -46,6 +46,7 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
+    SourcesWithPoolsCache,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -101,13 +102,12 @@ export class MarketOperationUtils {
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Can't sample Balancer or Cream on-chain without the pools cache
-        const sourcesWithCaches = [ERC20BridgeSource.BalancerV2, ERC20BridgeSource.Balancer, ERC20BridgeSource.Cream];
-        const excludeSources: ERC20BridgeSource[] = sourcesWithCaches.filter(
-            s => !this._sampler.poolsCaches[s]!.isFresh(takerToken, makerToken),
-        );
+        const sourcesWithStaleCaches: SourcesWithPoolsCache[] = (Object.keys(
+            this._sampler.poolsCaches,
+        ) as SourcesWithPoolsCache[]).filter(s => !this._sampler.poolsCaches[s].isFresh(takerToken, makerToken));
         // tslint:disable-next-line:promise-function-async
-        const cacheRefreshPromises: Array<Promise<any[]>> = excludeSources.map(s =>
-            this._sampler.poolsCaches[s]!.getFreshPoolsForPairAsync(takerToken, makerToken),
+        const cacheRefreshPromises: Array<Promise<any[]>> = sourcesWithStaleCaches.map(s =>
+            this._sampler.poolsCaches[s].getFreshPoolsForPairAsync(takerToken, makerToken),
         );
 
         // Used to determine whether the tx origin is an EOA or a contract
@@ -134,7 +134,7 @@ export class MarketOperationUtils {
             ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(
-                quoteSourceFilters.exclude(excludeSources).sources,
+                quoteSourceFilters.exclude(sourcesWithStaleCaches).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,
@@ -213,13 +213,12 @@ export class MarketOperationUtils {
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Can't sample Balancer or Cream on-chain without the pools cache
-        const sourcesWithCaches = [ERC20BridgeSource.BalancerV2, ERC20BridgeSource.Balancer, ERC20BridgeSource.Cream];
-        const excludeCacheSources: ERC20BridgeSource[] = sourcesWithCaches.filter(
-            s => !this._sampler.poolsCaches[s]!.isFresh(takerToken, makerToken),
-        );
+        const sourcesWithStaleCaches: SourcesWithPoolsCache[] = (Object.keys(
+            this._sampler.poolsCaches,
+        ) as SourcesWithPoolsCache[]).filter(s => !this._sampler.poolsCaches[s].isFresh(takerToken, makerToken));
         // tslint:disable-next-line:promise-function-async
-        const cacheRefreshPromises: Array<Promise<any[]>> = excludeCacheSources.map(s =>
-            this._sampler.poolsCaches[s]!.getFreshPoolsForPairAsync(takerToken, makerToken),
+        const cacheRefreshPromises: Array<Promise<any[]>> = sourcesWithStaleCaches.map(s =>
+            this._sampler.poolsCaches[s].getFreshPoolsForPairAsync(takerToken, makerToken),
         );
 
         // Used to determine whether the tx origin is an EOA or a contract
@@ -246,7 +245,7 @@ export class MarketOperationUtils {
             ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(
-                quoteSourceFilters.exclude(excludeCacheSources).sources,
+                quoteSourceFilters.exclude(sourcesWithStaleCaches).sources,
                 makerToken,
                 takerToken,
                 sampleAmounts,

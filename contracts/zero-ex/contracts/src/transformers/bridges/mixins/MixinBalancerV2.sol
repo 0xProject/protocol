@@ -104,7 +104,7 @@ contract MixinBalancerV2 {
             toInternalBalance: false
         });
 
-        (boughtAmount) = vault.swap(
+        boughtAmount = vault.swap(
             request,
             funds,
             1, // min amount out
