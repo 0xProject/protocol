@@ -44,9 +44,9 @@ interface IBalancerV2Vault {
 
     function queryBatchSwap(
         SwapKind kind,
-        BatchSwapStep[] memory swaps,
-        IAsset[] memory assets,
-        FundManagement memory funds
+        BatchSwapStep[] calldata swaps,
+        IAsset[] calldata assets,
+        FundManagement calldata funds
     ) external returns (int256[] memory assetDeltas);
 }
 interface IAsset {

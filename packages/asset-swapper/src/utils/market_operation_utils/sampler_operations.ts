@@ -477,10 +477,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<BalancerV2FillData> {
         return new SamplerContractOperation({
             source,
-            fillData: {
-                poolId: poolInfo.poolId,
-                vault: poolInfo.vault,
-            },
+            fillData: poolInfo,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromBalancerV2,
             params: [poolInfo, takerToken, makerToken, takerFillAmounts],
@@ -496,10 +493,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<BalancerV2FillData> {
         return new SamplerContractOperation({
             source,
-            fillData: {
-                poolId: poolInfo.poolId,
-                vault: poolInfo.vault,
-            },
+            fillData: poolInfo,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBalancerV2,
             params: [poolInfo, takerToken, makerToken, makerFillAmounts],
