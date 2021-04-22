@@ -122,11 +122,11 @@ export interface PsmInfo {
 }
 
 /**
- * Configration info for a Balancer V2 pool.
+ * Configuration info for a Balancer V2 pool.
  */
 export interface BalancerV2PoolInfo {
     poolId: string;
-    vaultAddress: string;
+    vault: string;
 }
 
 // Internal `fillData` field for `Fill` objects.
@@ -157,7 +157,6 @@ export interface BalancerFillData extends FillData {
 export interface BalancerV2FillData extends FillData {
     vault: string;
     poolId: string;
-    deadline: number;
 }
 
 export interface UniswapV2FillData extends FillData {

@@ -57,7 +57,7 @@ contract BalancerV2Sampler is SamplerUtils {
 
     struct BalancerV2PoolInfo {
         bytes32 poolId;
-        address vaultAddress;
+        address vault;
     }
 
     /// @dev Sample sell quotes from Balancer V2.
@@ -77,24 +77,23 @@ contract BalancerV2Sampler is SamplerUtils {
         returns (uint256[] memory makerTokenAmounts)
     {
         _assertValidPair(makerToken, takerToken);
-        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vaultAddress);
-        // For sells we specify the takerToken which is what the vault will receive from the trade
-        IBalancerV2Vault.SwapKind swapKind = IBalancerV2Vault.SwapKind.GIVEN_IN;
+        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
         IAsset[] memory swapAssets = new IAsset[](2);
         swapAssets[0] = IAsset(takerToken);
         swapAssets[1] = IAsset(makerToken);
 
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
+        IBalancerV2Vault.FundManagement memory swapFunds =
+            _createSwapFunds();
 
         for (uint256 i = 0; i < numSamples; i++) {
             IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
                 _createSwapSteps(poolInfo, takerTokenAmounts[i]);
-            IBalancerV2Vault.FundManagement memory swapFunds =
-                _createSwapFunds();
 
             try
-                vault.queryBatchSwap(swapKind, swapSteps, swapAssets, swapFunds)
+                // For sells we specify the takerToken which is what the vault will receive from the trade
+                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_IN, swapSteps, swapAssets, swapFunds)
             // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
             returns (int256[] memory amounts) {
                 // Outgoing balance is negative so we need to flip the sign
@@ -127,25 +126,23 @@ contract BalancerV2Sampler is SamplerUtils {
         returns (uint256[] memory takerTokenAmounts)
     {
         _assertValidPair(makerToken, takerToken);
-        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vaultAddress);
-        // For buys we specify the makerToken which is what taker will receive from the trade
-        IBalancerV2Vault.SwapKind swapKind =
-            IBalancerV2Vault.SwapKind.GIVEN_OUT;
+        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
         IAsset[] memory swapAssets = new IAsset[](2);
         swapAssets[0] = IAsset(takerToken);
         swapAssets[1] = IAsset(makerToken);
 
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
+        IBalancerV2Vault.FundManagement memory swapFunds =
+            _createSwapFunds();
 
         for (uint256 i = 0; i < numSamples; i++) {
             IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
                 _createSwapSteps(poolInfo, makerTokenAmounts[i]);
-            IBalancerV2Vault.FundManagement memory swapFunds =
-                _createSwapFunds();
 
             try
-                vault.queryBatchSwap(swapKind, swapSteps, swapAssets, swapFunds)
+                // For buys we specify the makerToken which is what taker will receive from the trade
+                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_OUT, swapSteps, swapAssets, swapFunds)
             returns (int256[] memory amounts) {
                 int256 amountIntoPool = amounts[0];
                 if (amountIntoPool <= 0) {
@@ -170,7 +167,7 @@ contract BalancerV2Sampler is SamplerUtils {
             assetInIndex: 0,
             assetOutIndex: 1,
             amount: amount,
-            userData: "0x"
+            userData: ""
         });
 
         return swapSteps;
