@@ -21,7 +21,6 @@ import * as FixinReentrancyGuard from '../test/generated-artifacts/FixinReentran
 import * as FixinTokenSpender from '../test/generated-artifacts/FixinTokenSpender.json';
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
-import * as GetTypeHash from '../test/generated-artifacts/GetTypeHash.json';
 import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
@@ -256,7 +255,6 @@ export const artifacts = {
     IUniswapV2Pair: IUniswapV2Pair as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
-    GetTypeHash: GetTypeHash as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
     TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,

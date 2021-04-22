@@ -705,8 +705,8 @@ abstract contract NativeOrdersSettlement is
             .getStorage()
             .orderHashToFilledBool[settleInfo.orderHash] = true;
 
-        uint128 takerTokenFilledAmount = settleInfo.takerAmount;
-        uint128 makerTokenFilledAmount = settleInfo.makerAmount;
+        takerTokenFilledAmount = settleInfo.takerAmount;
+        makerTokenFilledAmount = settleInfo.makerAmount;
 
         // Transfer taker -> maker.
         _transferERC20Tokens(
