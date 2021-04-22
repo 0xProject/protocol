@@ -20,10 +20,10 @@ export class BalancerPoolsCache extends PoolsCache {
     constructor(
         private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL,
         cache: { [key: string]: CacheValue } = {},
-        maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
+        private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
     ) {
-        super(cache, maxPoolsFetched);
+        super(cache);
         void this._loadTopPoolsAsync();
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);

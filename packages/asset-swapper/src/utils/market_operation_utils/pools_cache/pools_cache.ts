@@ -12,7 +12,7 @@ const DEFAULT_TIMEOUT_MS = 1000;
 // tslint:enable:custom-no-magic-numbers
 
 export abstract class PoolsCache {
-    constructor(protected readonly _cache: { [key: string]: CacheValue }, protected readonly maxPoolsFetched: number) {}
+    constructor(protected readonly _cache: { [key: string]: CacheValue }) {}
 
     public async getFreshPoolsForPairAsync(
         takerToken: string,

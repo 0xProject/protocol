@@ -66,6 +66,7 @@ import {
     PsmInfo,
     ShellFillData,
     SourceQuoteOperation,
+    SourcesWithPoolsCache,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './types';
@@ -90,7 +91,7 @@ export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSour
  */
 export class SamplerOperations {
     public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
-    public readonly poolsCaches: { [key in ERC20BridgeSource]?: PoolsCache };
+    public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
@@ -103,7 +104,7 @@ export class SamplerOperations {
     constructor(
         public readonly chainId: ChainId,
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
-        poolsCaches?: { [key in ERC20BridgeSource]?: PoolsCache },
+        poolsCaches?: { [key in SourcesWithPoolsCache]: PoolsCache },
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         liquidityProviderRegistry: LiquidityProviderRegistry = {},
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
@@ -1137,7 +1138,7 @@ export class SamplerOperations {
                             ];
                         case ERC20BridgeSource.Balancer:
                             return (
-                                this.poolsCaches[ERC20BridgeSource.Balancer]!.getCachedPoolAddressesForPair(
+                                this.poolsCaches[ERC20BridgeSource.Balancer].getCachedPoolAddressesForPair(
                                     takerToken,
                                     makerToken,
                                 ) || []
@@ -1152,7 +1153,7 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.BalancerV2:
                             const poolIds =
-                                this.poolsCaches[ERC20BridgeSource.BalancerV2]!.getCachedPoolAddressesForPair(
+                                this.poolsCaches[ERC20BridgeSource.BalancerV2].getCachedPoolAddressesForPair(
                                     takerToken,
                                     makerToken,
                                 ) || [];
@@ -1173,7 +1174,7 @@ export class SamplerOperations {
 
                         case ERC20BridgeSource.Cream:
                             return (
-                                this.poolsCaches[ERC20BridgeSource.Cream]!.getCachedPoolAddressesForPair(
+                                this.poolsCaches[ERC20BridgeSource.Cream].getCachedPoolAddressesForPair(
                                     takerToken,
                                     makerToken,
                                 ) || []
@@ -1373,7 +1374,7 @@ export class SamplerOperations {
                             ];
                         case ERC20BridgeSource.Balancer:
                             return (
-                                this.poolsCaches[ERC20BridgeSource.Balancer]!.getCachedPoolAddressesForPair(
+                                this.poolsCaches[ERC20BridgeSource.Balancer].getCachedPoolAddressesForPair(
                                     takerToken,
                                     makerToken,
                                 ) || []
@@ -1388,7 +1389,7 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.BalancerV2:
                             const poolIds =
-                                this.poolsCaches[ERC20BridgeSource.BalancerV2]!.getCachedPoolAddressesForPair(
+                                this.poolsCaches[ERC20BridgeSource.BalancerV2].getCachedPoolAddressesForPair(
                                     takerToken,
                                     makerToken,
                                 ) || [];
@@ -1408,7 +1409,7 @@ export class SamplerOperations {
                             );
                         case ERC20BridgeSource.Cream:
                             return (
-                                this.poolsCaches[ERC20BridgeSource.Cream]!.getCachedPoolAddressesForPair(
+                                this.poolsCaches[ERC20BridgeSource.Cream].getCachedPoolAddressesForPair(
                                     takerToken,
                                     makerToken,
                                 ) || []
