@@ -2,6 +2,13 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
 import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
 import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
+import {
+    findTokenAddressOrThrow,
+    getTokenMetadataIfExists,
+    isNativeSymbolOrAddress,
+    isNativeWrappedSymbolOrAddress,
+    TokenMetadatasForChains,
+} from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
@@ -32,22 +39,14 @@ import {
 } from '../errors';
 import { schemas } from '../schemas';
 import { SwapService } from '../services/swap_service';
-import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import { GetSwapPriceResponse, GetSwapQuoteParams, GetSwapQuoteResponse } from '../types';
+import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
+import { quoteReportUtils } from '../utils/quote_report_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { serviceUtils } from '../utils/service_utils';
-import {
-    findTokenAddressOrThrow,
-    findTokenAddressOrThrowApiError,
-    getTokenMetadataIfExists,
-    isNativeSymbolOrAddress,
-    isNativeWrappedSymbolOrAddress,
-} from '../utils/token_metadata_utils';
-
-import { quoteReportUtils } from './../utils/quote_report_utils';
 
 const BEARER_REGEX = /^Bearer\s(.{36})$/;
 const REGISTRY_SET: Set<string> = new Set(RFQT_REGISTRY_PASSWORDS);
@@ -208,10 +207,10 @@ export class SwapHandlers {
 
     public async getMarketDepthAsync(req: express.Request, res: express.Response): Promise<void> {
         // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-        const buyTokenSymbolOrAddress = isNativeSymbolOrAddress(req.query.buyToken as string)
+        const buyTokenSymbolOrAddress = isNativeSymbolOrAddress(req.query.buyToken as string, CHAIN_ID)
             ? NATIVE_WRAPPED_TOKEN_SYMBOL
             : (req.query.buyToken as string);
-        const sellTokenSymbolOrAddress = isNativeSymbolOrAddress(req.query.sellToken as string)
+        const sellTokenSymbolOrAddress = isNativeSymbolOrAddress(req.query.sellToken as string, CHAIN_ID)
             ? NATIVE_WRAPPED_TOKEN_SYMBOL
             : (req.query.sellToken as string);
 
@@ -318,8 +317,8 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // Parse tokens and eth wrap/unwraps
     const sellTokenRaw = req.query.sellToken as string;
     const buyTokenRaw = req.query.buyToken as string;
-    const isNativeSell = isNativeSymbolOrAddress(sellTokenRaw);
-    const isNativeBuy = isNativeSymbolOrAddress(buyTokenRaw);
+    const isNativeSell = isNativeSymbolOrAddress(sellTokenRaw, CHAIN_ID);
+    const isNativeBuy = isNativeSymbolOrAddress(buyTokenRaw, CHAIN_ID);
     // NOTE: Internally all Native token (like ETH) trades are for their wrapped equivalent (ie WETH), we just wrap/unwrap automatically
     const sellToken = findTokenAddressOrThrowApiError(
         isNativeSell ? NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID] : sellTokenRaw,

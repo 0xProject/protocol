@@ -5,6 +5,7 @@ import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { assertRoughlyEquals, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, Web3ProviderEngine } from '@0x/dev-utils';
+import { isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -22,9 +23,9 @@ import { getDBConnectionAsync } from '../src/db_connection';
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
 import { logger } from '../src/logger';
 import { GetSwapQuoteResponse } from '../src/types';
-import { isNativeSymbolOrAddress } from '../src/utils/token_metadata_utils';
 
 import {
+    CHAIN_ID,
     CONTRACT_ADDRESSES,
     ETHEREUM_RPC_URL,
     ETH_TOKEN_ADDRESS,
@@ -184,7 +185,7 @@ describe(SUITE_NAME, () => {
                     buyTokenAddress: parameters.buyToken.startsWith('0x')
                         ? parameters.buyToken
                         : SYMBOL_TO_ADDRESS[parameters.buyToken],
-                    allowanceTarget: isNativeSymbolOrAddress(parameters.sellToken)
+                    allowanceTarget: isNativeSymbolOrAddress(parameters.sellToken, CHAIN_ID)
                         ? NULL_ADDRESS
                         : CONTRACT_ADDRESSES.exchangeProxy,
                 });

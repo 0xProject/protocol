@@ -1,6 +1,7 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
 import { assert } from '@0x/assert';
 import { ERC20BridgeSource, Signature, SwapQuoterError } from '@0x/asset-swapper';
+import { getTokenMetadataIfExists, isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
@@ -33,15 +34,11 @@ import {
     GetMetaTransactionStatusResponse,
     GetTransactionRequestParams,
 } from '../types';
+import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { isRateLimitedMetaTransactionResponse, MetaTransactionRateLimiter } from '../utils/rate-limiters';
 import { schemaUtils } from '../utils/schema_utils';
-import {
-    findTokenAddressOrThrowApiError,
-    getTokenMetadataIfExists,
-    isNativeSymbolOrAddress,
-} from '../utils/token_metadata_utils';
 
 export class MetaTransactionHandlers {
     private readonly _metaTransactionService: MetaTransactionService;
@@ -65,10 +62,10 @@ export class MetaTransactionHandlers {
         // parse query params
         const params = parseGetTransactionRequestParams(req);
         const { buyTokenAddress, sellTokenAddress } = params;
-        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
 
         // ETH selling isn't supported.
-        if (isNativeSymbolOrAddress(sellTokenAddress)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID)) {
             throw new EthSellNotSupportedError();
         }
 
@@ -139,10 +136,10 @@ export class MetaTransactionHandlers {
         const { buyTokenAddress, sellTokenAddress } = params;
 
         // ETH selling isn't supported.
-        if (isNativeSymbolOrAddress(sellTokenAddress)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID)) {
             throw new EthSellNotSupportedError();
         }
-        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
 
         try {
             const metaTransactionPriceCalculation = await this._metaTransactionService.calculateMetaTransactionPriceAsync(

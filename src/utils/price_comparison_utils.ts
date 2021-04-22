@@ -5,6 +5,7 @@ import {
     QuoteReport,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
+import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -13,8 +14,6 @@ import * as _ from 'lodash';
 import { ZERO } from '../constants';
 import { logger } from '../logger';
 import { ChainId, SourceComparison } from '../types';
-
-import { getTokenMetadataIfExists } from './token_metadata_utils';
 
 // NOTE: Our internal Uniswap gas usage may be lower than the Uniswap UI usage
 // Therefore we need to adjust the gas estimates to be representative of using the Uniswap UI.

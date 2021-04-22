@@ -20,6 +20,7 @@ import {
 import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
+import { getTokenMetadataIfExists, TokenMetadatasForChains } from '@0x/token-metadata';
 import { MarketOperation, PaginatedCollection } from '@0x/types';
 import { BigNumber, decodeThrownErrorAsRevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
@@ -54,7 +55,6 @@ import {
 } from '../constants';
 import { GasEstimationError, InsufficientFundsError } from '../errors';
 import { logger } from '../logger';
-import { TokenMetadatasForChains } from '../token_metadatas_for_networks';
 import {
     AffiliateFee,
     BucketedPriceDepth,
@@ -72,7 +72,6 @@ import { marketDepthUtils } from '../utils/market_depth_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { createResultCache } from '../utils/result_cache';
 import { serviceUtils } from '../utils/service_utils';
-import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
 import { utils } from '../utils/utils';
 
 export class SwapService {

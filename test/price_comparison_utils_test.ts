@@ -4,13 +4,13 @@
 
 import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
+import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { ZERO } from '../src/constants';
 import { ChainId } from '../src/types';
 import { priceComparisonUtils } from '../src/utils/price_comparison_utils';
-import { getTokenMetadataIfExists } from '../src/utils/token_metadata_utils';
 
 const WETH = getTokenMetadataIfExists('WETH', ChainId.Mainnet)!;
 const DAI = getTokenMetadataIfExists('DAI', ChainId.Mainnet)!;

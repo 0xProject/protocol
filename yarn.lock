@@ -764,6 +764,14 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
+"@0x/token-metadata@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.0.9.tgz#7ba895a47c2fdd3ef57cdcf1877a26fe736a49a4"
+  integrity sha512-o+bAdkqbDLJi/tfJSGchmbPH2A8G/qBpgGXqaXEcGcmP73EGW4rImqgxMP4d1XgQ9K7gRDB45VkObvGMKKDsIQ==
+  dependencies:
+    "@0x/contract-addresses" "^6.0.0"
+    typescript "^4.2.4"
+
 "@0x/tslint-config@^4.0.0":
   version "4.1.3"
   resolved "https://registry.yarnpkg.com/@0x/tslint-config/-/tslint-config-4.1.3.tgz#3ad1b6f0b429c6dfa438fb12249453691039e48c"
@@ -9134,6 +9142,11 @@ typescript@^3.8.3:
 typescript@^4.0.3:
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"
+
+typescript@^4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"
+  integrity sha512-V+evlYHZnQkaz8TRBuxTA92yZBPotr5H+WhQ7bD3hZUndx5tGOa1fuCgeSjxAzM1RiN5IzvadIXTVefuuwZCRg==
 
 typewise-core@^1.2, typewise-core@^1.2.0:
   version "1.2.0"

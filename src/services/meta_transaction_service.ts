@@ -9,6 +9,7 @@ import {
     SupportedProvider,
 } from '@0x/order-utils';
 import { PartialTxParams } from '@0x/subproviders';
+import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { ExchangeProxyMetaTransaction, Order, SignedOrder } from '@0x/types';
 import { BigNumber, RevertError } from '@0x/utils';
 import * as _ from 'lodash';
@@ -49,7 +50,6 @@ import {
 import { ethGasStationUtils } from '../utils/gas_station_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { serviceUtils } from '../utils/service_utils';
-import { getTokenMetadataIfExists } from '../utils/token_metadata_utils';
 import { utils } from '../utils/utils';
 
 const WETHToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;

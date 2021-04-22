@@ -13,6 +13,7 @@ import {
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
 } from '@0x/asset-swapper';
+import { TokenMetadatasForChains } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
@@ -31,7 +32,6 @@ import {
     TX_BASE_GAS,
 } from './constants';
 import { schemas } from './schemas';
-import { TokenMetadatasForChains } from './token_metadatas_for_networks';
 import { ChainId, HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
 import { parseUtils } from './utils/parse_utils';
 import { schemaUtils } from './utils/schema_utils';
@@ -471,15 +471,6 @@ export const NATIVE_WRAPPED_TOKEN_SYMBOL = (() => {
             return 'WBNB';
         default:
             return 'WETH';
-    }
-})();
-
-export const NATIVE_TOKEN_SYMBOL = (() => {
-    switch (CHAIN_ID) {
-        case ChainId.BSC:
-            return 'BNB';
-        default:
-            return 'ETH';
     }
 })();
 
