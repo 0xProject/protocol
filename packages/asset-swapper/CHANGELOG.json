@@ -5,6 +5,10 @@
             {
                 "note": "Support `Ropsten` network",
                 "pr": 203
+            },
+            {
+                "note": "BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap), Saddle BTC pool, Curve gas schedule",
+                "pr": 208
             }
         ],
         "timestamp": 1618592834

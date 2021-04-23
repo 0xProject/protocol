@@ -134,6 +134,14 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Smoothy');
         case ERC20BridgeSource.Saddle:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'Saddle');
+        case ERC20BridgeSource.ApeSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'ApeSwap');
+        case ERC20BridgeSource.CafeSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'CafeSwap');
+        case ERC20BridgeSource.CheeseSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'CheeseSwap');
+        case ERC20BridgeSource.JulSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'JulSwap');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -187,6 +195,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.PancakeSwap:
         case ERC20BridgeSource.BakerySwap:
         case ERC20BridgeSource.KyberDmm:
+        case ERC20BridgeSource.ApeSwap:
+        case ERC20BridgeSource.CafeSwap:
+        case ERC20BridgeSource.CheeseSwap:
+        case ERC20BridgeSource.JulSwap:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -320,6 +332,13 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
     [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
     [ERC20BridgeSource.KyberDmm]: routerAddressPathEncoder,
+    // BSC
+    [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.BakerySwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.ApeSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.CafeSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.CheeseSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.JulSwap]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,
     [ERC20BridgeSource.Component]: poolEncoder,
@@ -331,9 +350,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
-    // BSC
-    [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
-    [ERC20BridgeSource.BakerySwap]: routerAddressPathEncoder,
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

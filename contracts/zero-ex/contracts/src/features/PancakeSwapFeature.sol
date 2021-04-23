@@ -37,7 +37,7 @@ contract PancakeSwapFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "PancakeSwapFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 2);
     /// @dev WBNB contract.
     IEtherTokenV06 private immutable WBNB;
 
@@ -47,12 +47,30 @@ contract PancakeSwapFeature is
     uint256 constant private FF_BAKERYSWAP_FACTORY = 0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
     // 0xFF + address of the SushiSwap factory contract.
     uint256 constant private FF_SUSHISWAP_FACTORY = 0xffc35DADB65012eC5796536bD9864eD8773aBc74C40000000000000000000000;
+    // 0xFF + address of the ApeSwap factory contract.
+    uint256 constant private FF_APESWAP_FACTORY = 0xff0841bd0b734e4f5853f0dd8d7ea041c241fb0da60000000000000000000000;
+    // 0xFF + address of the CafeSwap factory contract.
+    uint256 constant private FF_CAFESWAP_FACTORY = 0xff3e708fdbe3ada63fc94f8f61811196f1302137ad0000000000000000000000;
+    // 0xFF + address of the CheeseSwap factory contract.
+    uint256 constant private FF_CHEESESWAP_FACTORY = 0xffdd538e4fd1b69b7863e1f741213276a6cf1efb3b0000000000000000000000;
+    // 0xFF + address of the JulSwap factory contract.
+    uint256 constant private FF_JULSWAP_FACTORY = 0xff553990f2cba90272390f62c5bdb1681ffc8996750000000000000000000000;
+
     // Init code hash of the PancakeSwap pair contract.
     uint256 constant private PANCAKESWAP_PAIR_INIT_CODE_HASH = 0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66;
     // Init code hash of the BakerySwap pair contract.
     uint256 constant private BAKERYSWAP_PAIR_INIT_CODE_HASH = 0xe2e87433120e32c4738a7d8f3271f3d872cbe16241d67537139158d90bac61d3;
     // Init code hash of the SushiSwap pair contract.
     uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
+    // Init code hash of the ApeSwap pair contract.
+    uint256 constant private APESWAP_PAIR_INIT_CODE_HASH = 0xf4ccce374816856d11f00e4069e7cada164065686fbef53c6167a63ec2fd8c5b;
+    // Init code hash of the CafeSwap pair contract.
+    uint256 constant private CAFESWAP_PAIR_INIT_CODE_HASH = 0x90bcdb5d0bf0e8db3852b0b7d7e05cc8f7c6eb6d511213c5ba02d1d1dbeda8d3;
+    // Init code hash of the CheeseSwap pair contract.
+    uint256 constant private CHEESESWAP_PAIR_INIT_CODE_HASH = 0xf52c5189a89e7ca2ef4f19f2798e3900fba7a316de7cef6c5a9446621ba86286;
+    // Init code hash of the JulSwap pair contract.
+    uint256 constant private JULSWAP_PAIR_INIT_CODE_HASH = 0xb1e98e21a5335633815a8cfb3b580071c2e4561c50afd57a8746def9ed890b18;
+
     // Mask of the lower 20 bytes of a bytes32.
     uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
     // BNB pseudo-token address.
@@ -356,10 +374,30 @@ contract PancakeSwapFeature is
                         mstore(0xB15, salt)
                         mstore(0xB35, BAKERYSWAP_PAIR_INIT_CODE_HASH)
                     }
-                    default {
+                    case 2 {
                         mstore(0xB00, FF_SUSHISWAP_FACTORY)
                         mstore(0xB15, salt)
                         mstore(0xB35, SUSHISWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    case 3 {
+                        mstore(0xB00, FF_APESWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, APESWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    case 4 {
+                        mstore(0xB00, FF_CAFESWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, CAFESWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    case 5 {
+                        mstore(0xB00, FF_CHEESESWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, CHEESESWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    default {
+                        mstore(0xB00, FF_JULSWAP_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, JULSWAP_PAIR_INIT_CODE_HASH)
                     }
                 pair := and(ADDRESS_MASK, keccak256(0xB00, 0x55))
             }
