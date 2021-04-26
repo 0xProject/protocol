@@ -49,6 +49,15 @@ export class OrderNotSignedByMakerError extends RevertError {
     }
 }
 
+export class InvalidSignerError extends RevertError {
+    constructor(maker?: string, signer?: string) {
+        super('InvalidSignerError', 'InvalidSignerError(address maker, address signer)', {
+            maker,
+            signer,
+        });
+    }
+}
+
 export class OrderNotFillableBySenderError extends RevertError {
     constructor(orderHash?: string, sender?: string, orderSender?: string) {
         super(
@@ -135,6 +144,7 @@ const types = [
     FillOrKillFailedError,
     OnlyOrderMakerAllowed,
     BatchFillIncompleteError,
+    InvalidSignerError,
 ];
 
 // Register the types we've defined.

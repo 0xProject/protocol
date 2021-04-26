@@ -127,6 +127,7 @@ import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintabl
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
 import * as TestMooniswap from '../test/generated-artifacts/TestMooniswap.json';
 import * as TestNativeOrdersFeature from '../test/generated-artifacts/TestNativeOrdersFeature.json';
+import * as TestOrderSignerRegistryWithContractWallet from '../test/generated-artifacts/TestOrderSignerRegistryWithContractWallet.json';
 import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
 import * as TestPermissionlessTransformerDeployerTransformer from '../test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json';
 import * as TestRfqOriginRegistration from '../test/generated-artifacts/TestRfqOriginRegistration.json';
@@ -278,6 +279,7 @@ export const artifacts = {
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
     TestMooniswap: TestMooniswap as ContractArtifact,
     TestNativeOrdersFeature: TestNativeOrdersFeature as ContractArtifact,
+    TestOrderSignerRegistryWithContractWallet: TestOrderSignerRegistryWithContractWallet as ContractArtifact,
     TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
     TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
     TestRfqOriginRegistration: TestRfqOriginRegistration as ContractArtifact,
