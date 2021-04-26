@@ -1,6 +1,6 @@
 import { FillQuoteTransformerData, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 
-import { AffiliateFeeType, ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
+import { ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
 import {
     createBridgeDataForBridgeOrder,
     getErc20BridgeSourceToBridgeSource,
@@ -70,6 +70,7 @@ export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: Exchan
 /**
  * Returns true iff a quote can be filled via a VIP feature.
  */
+
 export function isDirectSwapCompatible(
     quote: SwapQuote,
     opts: ExchangeProxyContractOpts,
@@ -161,10 +162,6 @@ export function requiresTransformERC20(opts: ExchangeProxyContractOpts): boolean
     }
     // Has an affiliate fee.
     if (!opts.affiliateFee.buyTokenFeeAmount.eq(0) || !opts.affiliateFee.sellTokenFeeAmount.eq(0)) {
-        return true;
-    }
-    // Has a positive slippage fee.
-    if (opts.affiliateFee.feeType === AffiliateFeeType.PositiveSlippageFee) {
         return true;
     }
     // VIP does not support selling the entire balance
