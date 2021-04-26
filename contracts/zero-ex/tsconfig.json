@@ -156,6 +156,7 @@
         "test/generated-artifacts/TestMintableERC20Token.json",
         "test/generated-artifacts/TestMooniswap.json",
         "test/generated-artifacts/TestNativeOrdersFeature.json",
+        "test/generated-artifacts/TestOrderSignerRegistryWithContractWallet.json",
         "test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json",
         "test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json",
         "test/generated-artifacts/TestRfqOriginRegistration.json",

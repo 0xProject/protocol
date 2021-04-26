@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.22.0",
+        "changes": [
+            {
+                "note": "Add order signer registry to NativeOrdersFeature",
+                "pr": 195
+            }
+        ]
+    },
+    {
         "timestamp": 1618259868,
         "version": "0.21.1",
         "changes": [
