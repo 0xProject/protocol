@@ -19,7 +19,6 @@ export * from '../test/generated-wrappers/fixin_reentrancy_guard';
 export * from '../test/generated-wrappers/fixin_token_spender';
 export * from '../test/generated-wrappers/flash_wallet';
 export * from '../test/generated-wrappers/full_migration';
-export * from '../test/generated-wrappers/get_type_hash';
 export * from '../test/generated-wrappers/i_batch_fill_native_orders_feature';
 export * from '../test/generated-wrappers/i_bootstrap_feature';
 export * from '../test/generated-wrappers/i_bridge_adapter';

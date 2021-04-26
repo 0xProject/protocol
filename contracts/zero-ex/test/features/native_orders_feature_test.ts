@@ -55,7 +55,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
     let wethToken: TestMintableERC20TokenContract;
     let testRfqOriginRegistration: TestRfqOriginRegistrationContract;
     let testUtils: NativeOrdersTestEnvironment;
-    let getTypeHash: GetTypeHashContract;
 
     before(async () => {
         let owner;
@@ -105,13 +104,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             SINGLE_PROTOCOL_FEE,
             env,
         );
-
-        getTypeHash = await GetTypeHashContract.deployFrom0xArtifactAsync(
-            artifacts.GetTypeHash,
-            env.provider,
-            env.txDefaults,
-            {},
-            );
     });
 
     function getTestLimitOrder(fields: Partial<LimitOrderFields> = {}): LimitOrder {
@@ -1606,12 +1598,6 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
     describe.only('fillTakerSignedRfqOrder', () => {
         it('gas cost if if there is no balance is fully sold, new tokens after trade for both parties', async () => {
-
-            logUtils.log('RFQ Order typehash:');
-            logUtils.log(await getTypeHash.getRfqOrderTypehash().callAsync());
-            logUtils.log('Taker Signed RFQ Order typehash:');
-            logUtils.log(await getTypeHash.getTakerSignedRfqOrderTypehash().callAsync());
-
             const order1 = getTestTakerSignedRfqOrder({ txOrigin: takerSignedRfqSender, txOriginNonce: new BigNumber(1) });
 
             // get maker signature

@@ -50,7 +50,6 @@
         "test/generated-artifacts/FixinTokenSpender.json",
         "test/generated-artifacts/FlashWallet.json",
         "test/generated-artifacts/FullMigration.json",
-        "test/generated-artifacts/GetTypeHash.json",
         "test/generated-artifacts/IBatchFillNativeOrdersFeature.json",
         "test/generated-artifacts/IBootstrapFeature.json",
         "test/generated-artifacts/IBridgeAdapter.json",
