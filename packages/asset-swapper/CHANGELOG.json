@@ -1,7 +1,63 @@
 [
     {
+        "version": "6.6.0",
+        "changes": [
+            {
+                "note": "Support `Ropsten` network",
+                "pr": 203
+            }
+        ],
+        "timestamp": 1618592834
+    },
+    {
+        "version": "6.5.3",
+        "changes": [
+            {
+                "note": "Apply slippage to bridge orders in consumer",
+                "pr": 198
+            }
+        ],
+        "timestamp": 1618433771
+    },
+    {
+        "timestamp": 1618314654,
+        "version": "6.5.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1618259868,
+        "version": "6.5.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "6.5.0",
+        "changes": [
+            {
+                "note": "Add Kyber DMM to Ethereum mainnet",
+                "pr": 194
+            },
+            {
+                "note": "Add default LiquidityProvider registry and allow LiquidityProvider gasCost to be a function of tokens",
+                "pr": 196
+            }
+        ],
+        "timestamp": 1617913615
+    },
+    {
         "version": "6.4.0",
         "changes": [
+            {
+                "note": "Added Component, Smoothy, Saddle, Curve open pools, tweeks gas schedule, adding SushiSwap as a fee quote source",
+                "pr": 182
+            },
             {
                 "note": "Use SOURCE_FLAGS.rfqOrder in comparisonPrice",
                 "pr": 177

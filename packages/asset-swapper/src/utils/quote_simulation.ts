@@ -129,11 +129,10 @@ export function simulateWorstCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult
     };
     // Adjust the output by 1-slippage for the worst case if it is a sell
     // Adjust the output by 1+slippage for the worst case if it is a buy
-    const outputMultiplier =
+    result.output =
         quoteInfo.side === MarketOperation.Sell
-            ? new BigNumber(1).minus(opts.slippage)
-            : new BigNumber(1).plus(opts.slippage);
-    result.output = result.output.times(outputMultiplier).integerValue();
+            ? result.output.times(1 - opts.slippage).integerValue(BigNumber.ROUND_DOWN)
+            : result.output.times(1 + opts.slippage).integerValue(BigNumber.ROUND_UP);
     return fromIntermediateQuoteFillResult(result, quoteInfo);
 }
 

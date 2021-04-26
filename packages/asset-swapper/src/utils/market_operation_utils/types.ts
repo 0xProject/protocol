@@ -59,7 +59,11 @@ export enum ERC20BridgeSource {
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
     Linkswap = 'Linkswap',
-    // Other
+    KyberDmm = 'KyberDMM',
+    Smoothy = 'Smoothy',
+    Component = 'Component',
+    Saddle = 'Saddle',
+    // BSC only
     PancakeSwap = 'PancakeSwap',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
@@ -79,9 +83,12 @@ export enum CurveFunctionSelectors {
     get_dx_underlying = '0x0e71d1b9',
     get_dy = '0x5e0d443f',
     get_dx = '0x67df02ca',
-    // Nerve BSC
-    swap = '0x91695586',
-    calculateSwap = '0xa95b089f',
+    // Smoothy
+    swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
+    get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
+    // Nerve BSC, Saddle Mainnet
+    swap = '0x91695586', // swap(uint8,uint8,uint256,uint256,uint256)
+    calculateSwap = '0xa95b089f', // calculateSwap(uint8,uint8,uint256)
 }
 // tslint:enable: enum-naming
 
@@ -95,6 +102,7 @@ export interface CurveInfo {
     poolAddress: string;
     tokens: string[];
     metaToken: string | undefined;
+    gasSchedule: number;
 }
 
 /**
@@ -439,7 +447,7 @@ export interface TokenAdjacencyGraph {
 export interface LiquidityProviderRegistry {
     [address: string]: {
         tokens: string[];
-        gasCost: number;
+        gasCost: number | ((takerToken: string, makerToken: string) => number);
     };
 }
 

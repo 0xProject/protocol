@@ -3,11 +3,11 @@ import { SDK } from '@bancor/sdk';
 import { Ethereum } from '@bancor/sdk/dist/blockchains/ethereum';
 import { BlockchainType } from '@bancor/sdk/dist/types';
 
-import { TOKENS } from './constants';
+import { MAINNET_TOKENS } from './constants';
 
 const findToken = (tokenAddress: string, graph: object): string =>
     // If we're looking for WETH it is stored by Bancor as the 0xeee address
-    tokenAddress.toLowerCase() === TOKENS.WETH.toLowerCase()
+    tokenAddress.toLowerCase() === MAINNET_TOKENS.WETH.toLowerCase()
         ? '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
         : Object.keys(graph).filter(k => k.toLowerCase() === tokenAddress.toLowerCase())[0];
 

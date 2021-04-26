@@ -68,6 +68,10 @@ const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.PancakeSwap,
     ERC20BridgeSource.BakerySwap,
     ERC20BridgeSource.MakerPsm,
+    ERC20BridgeSource.KyberDmm,
+    ERC20BridgeSource.Smoothy,
+    ERC20BridgeSource.Component,
+    ERC20BridgeSource.Saddle,
 ];
 const BUY_SOURCES = BUY_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
@@ -282,32 +286,12 @@ describe('MarketOperationUtils tests', () => {
         [source: string]: Numberish[];
     }
 
-    const ZERO_RATES: RatesBySource = {
-        [ERC20BridgeSource.Native]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Eth2Dai]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Uniswap]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Kyber]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.UniswapV2]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Balancer]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Bancor]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Curve]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.LiquidityProvider]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.MStable]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Mooniswap]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Swerve]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.SnowSwap]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.SushiSwap]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.MultiHop]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Shell]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Cream]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Dodo]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.DodoV2]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.CryptoCom]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.Linkswap]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.PancakeSwap]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.BakerySwap]: _.times(NUM_SAMPLES, () => 0),
-        [ERC20BridgeSource.MakerPsm]: _.times(NUM_SAMPLES, () => 0),
-    };
+    const ZERO_RATES: RatesBySource = Object.assign(
+        {},
+        ...Object.values(ERC20BridgeSource).map(source => ({
+            [source]: _.times(NUM_SAMPLES, () => 0),
+        })),
+    );
 
     const DEFAULT_RATES: RatesBySource = {
         ...ZERO_RATES,
@@ -358,12 +342,35 @@ describe('MarketOperationUtils tests', () => {
             fromTokenIdx: 0,
             toTokenIdx: 1,
         },
+        [ERC20BridgeSource.Smoothy]: {
+            pool: {
+                poolAddress: randomAddress(),
+                tokens: [TAKER_TOKEN, MAKER_TOKEN],
+                exchangeFunctionSelector: hexUtils.random(4),
+                sellQuoteFunctionSelector: hexUtils.random(4),
+                buyQuoteFunctionSelector: hexUtils.random(4),
+            },
+            fromTokenIdx: 0,
+            toTokenIdx: 1,
+        },
+        [ERC20BridgeSource.Saddle]: {
+            pool: {
+                poolAddress: randomAddress(),
+                tokens: [TAKER_TOKEN, MAKER_TOKEN],
+                exchangeFunctionSelector: hexUtils.random(4),
+                sellQuoteFunctionSelector: hexUtils.random(4),
+                buyQuoteFunctionSelector: hexUtils.random(4),
+            },
+            fromTokenIdx: 0,
+            toTokenIdx: 1,
+        },
         [ERC20BridgeSource.LiquidityProvider]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.SushiSwap]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Mooniswap]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Native]: { order: new LimitOrder() },
         [ERC20BridgeSource.MultiHop]: {},
         [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
+        [ERC20BridgeSource.Component]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Dodo]: {},
         [ERC20BridgeSource.DodoV2]: {},
@@ -372,6 +379,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.Eth2Dai]: { router: randomAddress() },
         [ERC20BridgeSource.MakerPsm]: {},
+        [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [] },
     };
 
     const DEFAULT_OPS = {
@@ -907,6 +915,7 @@ describe('MarketOperationUtils tests', () => {
                             intentOnFilling: true,
                             quoteRequestor: {
                                 requestRfqtIndicativeQuotesAsync: requestor.object.requestRfqtIndicativeQuotesAsync,
+                                getMakerUriForSignature: requestor.object.getMakerUriForSignature,
                             } as any,
                         },
                     },

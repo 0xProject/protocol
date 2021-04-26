@@ -1,7 +1,8 @@
 {
     "extends": ["@0x/tslint-config"],
     "rules": {
-        "max-file-line-count": false
+        "max-file-line-count": false,
+        "binary-expression-operand-order": false
     },
     "linterOptions": {
         "exclude": ["src/artifacts.ts", "test/artifacts.ts"]

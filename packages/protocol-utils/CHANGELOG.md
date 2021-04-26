@@ -5,8 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.4.1 - _April 12, 2021_
+
+    * Dependencies updated
+
 ## v1.4.0 - _April 1, 2021_
 
+    * Added Smoothy, Component, Saddle (#182)
     * Added Nerve (#181)
 
 ## v1.3.1 - _March 17, 2021_

@@ -5,8 +5,30 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.6.0 - _April 16, 2021_
+
+    * Support `Ropsten` network (#203)
+
+## v6.5.3 - _April 14, 2021_
+
+    * Apply slippage to bridge orders in consumer (#198)
+
+## v6.5.2 - _April 13, 2021_
+
+    * Dependencies updated
+
+## v6.5.1 - _April 12, 2021_
+
+    * Dependencies updated
+
+## v6.5.0 - _April 8, 2021_
+
+    * Add Kyber DMM to Ethereum mainnet (#194)
+    * Add default LiquidityProvider registry and allow LiquidityProvider gasCost to be a function of tokens (#196)
+
 ## v6.4.0 - _April 1, 2021_
 
+    * Added Component, Smoothy, Saddle, Curve open pools, tweeks gas schedule, adding SushiSwap as a fee quote source (#182)
     * Use SOURCE_FLAGS.rfqOrder in comparisonPrice (#177)
     * Add a cancel token to ensure timeouts are respected (#176)
     * Rename {Rfqt=>Rfq} for many types in Asset Swapper (#179)

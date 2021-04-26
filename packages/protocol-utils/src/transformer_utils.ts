@@ -126,6 +126,9 @@ export enum BridgeProtocol {
     CoFiX,
     Nerve,
     MakerPsm,
+    Smoothy,
+    Component,
+    Saddle,
 }
 // tslint:enable: enum-naming
 

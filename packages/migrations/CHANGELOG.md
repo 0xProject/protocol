@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.0.1 - _April 12, 2021_
+
+    * Dependencies updated
+
 ## v8.0.0 - _April 1, 2021_
 
     * Remove exchangeProxyAllowanceTarget
