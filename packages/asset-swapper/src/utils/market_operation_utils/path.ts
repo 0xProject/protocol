@@ -39,7 +39,6 @@ export class Path {
     public sourceFlags: number = 0;
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
-    private readonly _bestFill?: Fill;
 
     public static create(
         side: MarketOperation,
