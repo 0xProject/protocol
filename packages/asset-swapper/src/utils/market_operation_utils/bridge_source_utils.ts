@@ -19,6 +19,7 @@ import {
     NERVE_BSC_INFOS,
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
+    PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
     SMOOTHY_BSC_INFOS,
@@ -261,7 +262,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.ApeSwap
         | ERC20BridgeSource.CafeSwap
         | ERC20BridgeSource.CheeseSwap
-        | ERC20BridgeSource.JulSwap,
+        | ERC20BridgeSource.JulSwap
+        | ERC20BridgeSource.PancakeSwapV2,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -284,6 +286,8 @@ export function uniswapV2LikeRouterAddress(
             return CHEESESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.JulSwap:
             return JULSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.PancakeSwapV2:
+            return PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

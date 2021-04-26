@@ -142,6 +142,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'CheeseSwap');
         case ERC20BridgeSource.JulSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'JulSwap');
+        case ERC20BridgeSource.PancakeSwapV2:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'PancakeSwapV2');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -199,6 +201,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.CafeSwap:
         case ERC20BridgeSource.CheeseSwap:
         case ERC20BridgeSource.JulSwap:
+        case ERC20BridgeSource.PancakeSwapV2:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -339,6 +342,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.CafeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CheeseSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.JulSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.PancakeSwapV2]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,
     [ERC20BridgeSource.Component]: poolEncoder,

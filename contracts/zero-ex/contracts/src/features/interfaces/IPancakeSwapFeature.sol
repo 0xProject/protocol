@@ -33,7 +33,8 @@ interface IPancakeSwapFeature {
         ApeSwap,
         CafeSwap,
         CheeseSwap,
-        JulSwap
+        JulSwap,
+        PancakeSwapV2
     }
 
     /// @dev Efficiently sell directly to PancakeSwap (and clones).

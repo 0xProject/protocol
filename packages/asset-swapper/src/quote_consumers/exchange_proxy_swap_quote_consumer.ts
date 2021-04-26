@@ -72,6 +72,7 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.ApeSwap,
     ERC20BridgeSource.JulSwap,
     ERC20BridgeSource.CafeSwap,
+    ERC20BridgeSource.PancakeSwapV2,
 ];
 const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, {
     sendAsync(): void {
@@ -199,6 +200,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ERC20BridgeSource.CafeSwap,
                 ERC20BridgeSource.CheeseSwap,
                 ERC20BridgeSource.JulSwap,
+                ERC20BridgeSource.PancakeSwapV2,
             ])
         ) {
             const source = slippedOrders[0].source;

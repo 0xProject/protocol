@@ -43,6 +43,8 @@ contract PancakeSwapFeature is
 
     // 0xFF + address of the PancakeSwap factory contract.
     uint256 constant private FF_PANCAKESWAP_FACTORY = 0xffbcfccbde45ce874adcb698cc183debcf179528120000000000000000000000;
+    // 0xFF + address of the PancakeSwap V2 factory contract.
+    uint256 constant private FF_PANCAKESWAP_V2_FACTORY = 0xffca143ce32fe78f1f7019d7d551a6402fc5350c730000000000000000000000;
     // 0xFF + address of the BakerySwap factory contract.
     uint256 constant private FF_BAKERYSWAP_FACTORY = 0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
     // 0xFF + address of the SushiSwap factory contract.
@@ -58,6 +60,8 @@ contract PancakeSwapFeature is
 
     // Init code hash of the PancakeSwap pair contract.
     uint256 constant private PANCAKESWAP_PAIR_INIT_CODE_HASH = 0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66;
+    // Init code hash of the PancakeSwap V2 pair contract.
+    uint256 constant private PANCAKESWAP_V2_PAIR_INIT_CODE_HASH = 0x00fb7f630766e6a796048ea87d01acd3068e8ff67d078148a3fa3f4a84f69bd5;
     // Init code hash of the BakerySwap pair contract.
     uint256 constant private BAKERYSWAP_PAIR_INIT_CODE_HASH = 0xe2e87433120e32c4738a7d8f3271f3d872cbe16241d67537139158d90bac61d3;
     // Init code hash of the SushiSwap pair contract.
@@ -394,10 +398,15 @@ contract PancakeSwapFeature is
                         mstore(0xB15, salt)
                         mstore(0xB35, CHEESESWAP_PAIR_INIT_CODE_HASH)
                     }
-                    default {
+                    case 6 {
                         mstore(0xB00, FF_JULSWAP_FACTORY)
                         mstore(0xB15, salt)
                         mstore(0xB35, JULSWAP_PAIR_INIT_CODE_HASH)
+                    }
+                    default {
+                        mstore(0xB00, FF_PANCAKESWAP_V2_FACTORY)
+                        mstore(0xB15, salt)
+                        mstore(0xB35, PANCAKESWAP_V2_PAIR_INIT_CODE_HASH)
                     }
                 pair := and(ADDRESS_MASK, keccak256(0xB00, 0x55))
             }

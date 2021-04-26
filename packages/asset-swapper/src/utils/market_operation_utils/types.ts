@@ -73,6 +73,7 @@ export enum ERC20BridgeSource {
     CafeSwap = 'CafeSwap',
     CheeseSwap = 'CheeseSwap',
     JulSwap = 'JulSwap',
+    PancakeSwapV2 = 'PancakeSwap_V2',
 }
 
 // tslint:disable: enum-naming

@@ -7,7 +7,7 @@
                 "note": "Dependencies updated"
             },
             {
-                "note": "BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap)",
+                "note": "BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap, PancakeSwap V2)",
                 "pr": 208
             }
         ]
