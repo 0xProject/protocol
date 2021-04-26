@@ -5,6 +5,10 @@
             {
                 "note": "Prune paths which cannot improve the best path",
                 "pr": 183
+            },
+            {
+                "note": "Disable ABI encode optimization for the Sampler contract",
+                "pr": 183
             }
         ]
     },

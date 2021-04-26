@@ -88,6 +88,7 @@
         "lodash": "^4.17.11"
     },
     "devDependencies": {
+        "@0x/abi-gen": "^5.5.0",
         "@0x/base-contract": "^6.3.2",
         "@0x/contracts-asset-proxy": "^3.7.9",
         "@0x/contracts-exchange": "^3.2.28",

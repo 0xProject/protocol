@@ -666,6 +666,28 @@
     toposort "^2.0.2"
     yargs "^10.0.3"
 
+"@0x/abi-gen@^5.5.0":
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/@0x/abi-gen/-/abi-gen-5.5.0.tgz#21d15b79e0d8e3377e8b06ce440fea0528d8f021"
+  dependencies:
+    "@0x/types" "^3.3.3"
+    "@0x/typescript-typings" "^5.2.0"
+    "@0x/utils" "^6.4.0"
+    "@types/node" "12.12.54"
+    "@types/toposort" "^2.0.1"
+    chalk "^2.3.0"
+    change-case "^3.0.2"
+    cli-format "^3.0.9"
+    ethereum-types "^3.5.0"
+    glob "^7.1.2"
+    handlebars "^4.1.2"
+    lodash "^4.17.11"
+    mkdirp "^0.5.1"
+    tmp "^0.0.33"
+    to-snake-case "^1.0.0"
+    toposort "^2.0.2"
+    yargs "^10.0.3"
+
 "@0x/assert@^3.0.1", "@0x/assert@^3.0.17":
   version "3.0.17"
   resolved "https://registry.yarnpkg.com/@0x/assert/-/assert-3.0.17.tgz#dc15d038ed085744cb375044218285368f0cbfa8"
@@ -700,10 +722,20 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^6.7.0":
-  version "6.7.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-6.7.0.tgz#c57747cd8fc2de853ddd75592b98ca0c4ba5bd2d"
-  integrity sha512-CJeQohcb493MgO39BpnXWMYnhnvA2r8Q711Nso6VHQDi/wKSAnn5UqJXyq7CxGzS2qyyagUBX3xeuNfM+EkxbQ==
+"@0x/assert@^3.0.24":
+  version "3.0.24"
+  resolved "https://registry.yarnpkg.com/@0x/assert/-/assert-3.0.24.tgz#e1153b0c156ed8f7caec6b221f9d7a5997bdcae1"
+  dependencies:
+    "@0x/json-schemas" "^6.1.0"
+    "@0x/typescript-typings" "^5.2.0"
+    "@0x/utils" "^6.4.0"
+    "@types/node" "12.12.54"
+    lodash "^4.17.11"
+    valid-url "^1.0.9"
+
+"@0x/base-contract@^6.2.18":
+  version "6.2.18"
+  resolved "https://registry.yarnpkg.com/@0x/base-contract/-/base-contract-6.2.18.tgz#d092de93d52d8cf8e5d4600d9ca852421322ab38"
   dependencies:
     "@0x/assert" "^3.0.21"
     "@0x/base-contract" "^6.2.18"
@@ -744,6 +776,23 @@
     "@0x/json-schemas" "^6.1.2"
     "@0x/utils" "^6.4.2"
     "@0x/web3-wrapper" "^7.5.2"
+    "@types/node" "12.12.54"
+    ethereumjs-account "^3.0.0"
+    ethereumjs-blockstream "^7.0.0"
+    ethereumjs-util "^7.0.10"
+    ethereumjs-vm "^4.2.0"
+    ethers "~4.0.4"
+    js-sha3 "^0.7.0"
+    uuid "^3.3.2"
+
+"@0x/base-contract@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@0x/base-contract/-/base-contract-6.3.0.tgz#dfa9205761580e5b5f4c3db8f74ecaa7606b58af"
+  dependencies:
+    "@0x/assert" "^3.0.24"
+    "@0x/json-schemas" "^6.1.0"
+    "@0x/utils" "^6.4.0"
+    "@0x/web3-wrapper" "^7.5.0"
     "@types/node" "12.12.54"
     ethereumjs-account "^3.0.0"
     ethereumjs-blockstream "^7.0.0"
@@ -854,10 +903,9 @@
     jsonschema "^1.2.0"
     lodash.values "^4.3.0"
 
-"@0x/json-schemas@^6.1.2":
-  version "6.1.2"
-  resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-6.1.2.tgz#e25c8ba453128a529bb95973a631714ec9127356"
-  integrity sha512-sjoVBVhpsPKR/hKoXw/P/YwB7pIm3KpDd7piBiPbTrRlNeE6NKClR+/nGMkpGYiY8rMm3pklxx4wvsLOB4g7og==
+"@0x/json-schemas@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-6.1.0.tgz#5b238bc4e3da06638534e5e5f53ab89a41913a71"
   dependencies:
     "@0x/typescript-typings" "^5.2.0"
     "@types/node" "12.12.54"
@@ -957,7 +1005,6 @@
 "@0x/quote-server@^5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-5.0.0.tgz#15554099bdfdf71e2910430860257d622f24f703"
-  integrity sha512-U14C60RVnILL8n5DwuInG98MnhXbBbiEi8M2ymFGnHO+AjucGfm28BM6/GD59ftiqZmFSkOvBRU94QJ3mSsCQw==
   dependencies:
     "@0x/json-schemas" "^5.0.7"
     "@0x/order-utils" "^10.2.4"
@@ -1183,7 +1230,6 @@
 "@0x/types@^3.3.3":
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/@0x/types/-/types-3.3.3.tgz#5df4ec381bba9f62441474b0e54309ddb2fccd17"
-  integrity sha512-pImq1ukZl+YN64ZKQqNPTOK8noNw4rHMksEEPzFGM26x7Utovf8Py+VFqbZrn1TMw/9WWGeZg8lPxs+LUYxayw==
   dependencies:
     "@types/node" "12.12.54"
     bignumber.js "~9.0.0"
@@ -1214,7 +1260,6 @@
 "@0x/typescript-typings@^5.2.0":
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/@0x/typescript-typings/-/typescript-typings-5.2.0.tgz#3eba353a27a83697f6f4f6d65ce14506687f52b7"
-  integrity sha512-8Gk0riQ37HTv3bNe/iWsb9mcJuRCMk/16PZTzA3IUauNQajcJgTD601pHbmBF57SJDpFhJIRg2Crcf6hePlzBA==
   dependencies:
     "@types/bn.js" "^4.11.0"
     "@types/node" "12.12.54"
@@ -1277,10 +1322,9 @@
     js-sha3 "^0.7.0"
     lodash "^4.17.11"
 
-"@0x/utils@^6.4.2":
-  version "6.4.2"
-  resolved "https://registry.yarnpkg.com/@0x/utils/-/utils-6.4.2.tgz#b5d86854383bfe4a3fccdcb8e70aad2efde58250"
-  integrity sha512-dcWhhySAa8rZ7AGlu4ETacEPkXEsj6Rg8qMWJX69SNwjb3ZHsuEIVzt8KsFKLTGgx9sgzqyF+qqlKD2oFFiqiw==
+"@0x/utils@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@0x/utils/-/utils-6.4.0.tgz#942505ae628e00ba865ecf65885f3cecc293fde9"
   dependencies:
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
@@ -1320,6 +1364,20 @@
     "@0x/json-schemas" "^6.1.2"
     "@0x/typescript-typings" "^5.2.0"
     "@0x/utils" "^6.4.2"
+    "@types/node" "12.12.54"
+    ethereum-types "^3.5.0"
+    ethereumjs-util "^7.0.10"
+    ethers "~4.0.4"
+    lodash "^4.17.11"
+
+"@0x/web3-wrapper@^7.5.0":
+  version "7.5.0"
+  resolved "https://registry.yarnpkg.com/@0x/web3-wrapper/-/web3-wrapper-7.5.0.tgz#e33a4400fb511389b2e67e6ffb9df290f6842ec4"
+  dependencies:
+    "@0x/assert" "^3.0.24"
+    "@0x/json-schemas" "^6.1.0"
+    "@0x/typescript-typings" "^5.2.0"
+    "@0x/utils" "^6.4.0"
     "@types/node" "12.12.54"
     ethereum-types "^3.5.0"
     ethereumjs-util "^7.0.10"
@@ -2618,7 +2676,6 @@
 "@types/bn.js@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.0.tgz#32c5d271503a12653c62cf4d2b45e6eab8cebc68"
-  integrity sha512-QSSVYj7pYFN49kW77o2s9xTCwZ8F2xLbjLLSEVh8D2F4JUhZtPAGOFLTD+ffqksBx/u4cE/KImFjyhqCjn/LIA==
   dependencies:
     "@types/node" "*"
 
@@ -5940,7 +5997,6 @@ ethereum-types@^3.4.0:
 ethereum-types@^3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/ethereum-types/-/ethereum-types-3.5.0.tgz#27393f0d86f55bb1dcbff8a6af55a39c1f751c0d"
-  integrity sha512-vTGJl45DxOK21w3rzlqV8KrfcdIJC+4ZqxFkjNf1aw2GBMXZy2MxiibUqBth2M823d98WgOuFpVHobOfa7ejDw==
   dependencies:
     "@types/node" "12.12.54"
     bignumber.js "~9.0.0"
@@ -6086,10 +6142,9 @@ ethereumjs-util@^5.0.0, ethereumjs-util@^5.0.1, ethereumjs-util@^5.1.1, ethereum
     rlp "^2.0.0"
     safe-buffer "^5.1.1"
 
-ethereumjs-util@^7.0.10, ethereumjs-util@^7.0.9:
+ethereumjs-util@^7.0.10:
   version "7.0.10"
   resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-7.0.10.tgz#5fb7b69fa1fda0acc59634cf39d6b0291180fc1f"
-  integrity sha512-c/xThw6A+EAnej5Xk5kOzFzyoSnw0WX0tSlZ6pAsfGVvQj3TItaDg9b1+Fz1RJXA+y2YksKwQnuzgt1eY6LKzw==
   dependencies:
     "@types/bn.js" "^5.1.0"
     bn.js "^5.1.2"
@@ -12605,7 +12660,6 @@ typescript@3.7.x:
 typescript@4.2.2:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.2.tgz#1450f020618f872db0ea17317d16d8da8ddb8c4c"
-  integrity sha512-tbb+NVrLfnsJy3M59lsDgrzWIflR4d4TIUjz+heUnHZwdF7YsrMTKoRERiIvI2lvBG95dfpLxB21WZhys1bgaQ==
 
 typescript@^3.8.3:
   version "3.9.7"
