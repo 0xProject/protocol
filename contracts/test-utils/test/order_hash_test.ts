@@ -57,9 +57,7 @@ describe('Order hashing', () => {
                 ...order,
                 takerAddress: (null as any) as string,
             };
-            const expectedErrorMessage = `Order taker must be of type string. If you want anyone to be able to fill an order - pass ${
-                constants.NULL_ADDRESS
-            }`;
+            const expectedErrorMessage = `Expected order to conform to schema`;
             expect(() => orderHashUtils.getOrderHashHex(orderWithInvalidtakerFormat)).to.throw(expectedErrorMessage);
         });
     });

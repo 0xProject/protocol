@@ -2,7 +2,6 @@ import { chaiSetup, constants, provider, txDefaults, web3Wrapper } from '@0x/con
 import { BlockchainLifecycle } from '@0x/dev-utils';
 import { BigNumber, hexUtils, signTypedDataUtils } from '@0x/utils';
 import * as chai from 'chai';
-import * as ethUtil from 'ethereumjs-util';
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
@@ -78,7 +77,7 @@ describe('LibEIP712', () => {
 
         // Hash the provided input to get the expected hash
         const input = '0x1901'.concat(unprefixedDomainHash.concat(unprefixedHashStruct));
-        const expectedHash = '0x'.concat(ethUtil.sha3(input).toString('hex'));
+        const expectedHash = hexUtils.hash(input);
 
         // Get the actual hash by calling the smart contract
         const actualHash = await lib.externalHashEIP712Message(domainHash, hashStruct).callAsync();
