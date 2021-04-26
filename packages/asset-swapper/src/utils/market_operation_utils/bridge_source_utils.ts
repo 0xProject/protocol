@@ -15,6 +15,7 @@ import {
     NERVE_BSC_INFOS,
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
+    PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
     SMOOTHY_BSC_INFOS,
@@ -253,7 +254,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.CryptoCom
         | ERC20BridgeSource.PancakeSwap
         | ERC20BridgeSource.BakerySwap
-        | ERC20BridgeSource.KyberDmm,
+        | ERC20BridgeSource.KyberDmm
+        | ERC20BridgeSource.PancakeSwapV2,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -268,6 +270,8 @@ export function uniswapV2LikeRouterAddress(
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.KyberDmm:
             return KYBER_DMM_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.PancakeSwapV2:
+            return PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }
