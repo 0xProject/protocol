@@ -108,7 +108,7 @@ contract MixinBalancerV2 {
             request,
             funds,
             1, // min amount out
-            block.timestamp
+            block.timestamp // expires after this block
         );
         return boughtAmount;
     }

@@ -36,7 +36,7 @@ export class DexOrderSampler extends SamplerOperations {
         public readonly chainId: ChainId,
         _samplerContract: ERC20BridgeSamplerContract,
         private readonly _samplerOverrides?: SamplerOverrides,
-        poolsCaches?: { [key in ERC20BridgeSource]?: PoolsCache },
+        poolsCaches?: { [key in ERC20BridgeSource]: PoolsCache },
         tokenAdjacencyGraph?: TokenAdjacencyGraph,
         liquidityProviderRegistry?: LiquidityProviderRegistry,
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,

@@ -116,8 +116,7 @@ async function getMarketBuyOrdersAsync(
 
 class MockPoolsCache extends PoolsCache {
     constructor(private readonly _handler: (takerToken: string, makerToken: string) => Pool[]) {
-        // tslint:disable-next-line:custom-no-magic-numbers
-        super({}, 10);
+        super({});
     }
     protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         return this._handler(takerToken, makerToken);
@@ -126,7 +125,7 @@ class MockPoolsCache extends PoolsCache {
 
 // Return some pool so that sampling functions are called for Balancer, BalancerV2, and Cream
 // tslint:disable:custom-no-magic-numbers
-const mockPoolsCache = new MockPoolsCache((takerToken: string, makerToken: string) => {
+const mockPoolsCache = new MockPoolsCache((_takerToken: string, _makerToken: string) => {
     return [
         {
             id: '0xe4b2554b622cc342ac7d6dc19b594553577941df000200000000000000000003',
