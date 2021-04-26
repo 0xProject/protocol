@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.7.0",
+        "changes": [
+            {
+                "note": "Support PancakeSwap V2",
+                "pr": 211
+            }
+        ]
+    },
+    {
         "version": "6.6.0",
         "changes": [
             {
