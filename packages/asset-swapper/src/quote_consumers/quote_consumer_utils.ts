@@ -1,6 +1,6 @@
 import { FillQuoteTransformerData, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 
-import { AffiliateFeeType, ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
+import { ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
 import {
     createBridgeDataForBridgeOrder,
     getErc20BridgeSourceToBridgeSource,
@@ -70,6 +70,7 @@ export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: Exchan
 /**
  * Returns true iff a quote can be filled via a VIP feature.
  */
+
 export function isDirectSwapCompatible(
     quote: SwapQuote,
     opts: ExchangeProxyContractOpts,
