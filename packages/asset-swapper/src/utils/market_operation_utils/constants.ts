@@ -109,6 +109,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Smoothy,
+            ERC20BridgeSource.PancakeSwapV2,
         ]),
     },
 
@@ -170,6 +171,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Smoothy,
+            ERC20BridgeSource.PancakeSwapV2,
         ]),
     },
     new SourceFilters([]),
@@ -990,6 +992,13 @@ export const PANCAKESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0x10ed43c718714eb63d5aa57b78b54704e256024e',
+    },
+    NULL_ADDRESS,
+);
+
 export const BAKERYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0xcde540d7eafe93ac5fe6233bee57e1270d3e330f',
@@ -1128,6 +1137,15 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.BakerySwap]: (fillData?: FillData) => {
+        // TODO: Different base cost if to/from ETH.
+        let gas = 90e3;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.PancakeSwapV2]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
         let gas = 90e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;

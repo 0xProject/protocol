@@ -134,6 +134,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Smoothy');
         case ERC20BridgeSource.Saddle:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'Saddle');
+        case ERC20BridgeSource.PancakeSwapV2:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'PancakeSwapV2');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -187,6 +189,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.PancakeSwap:
         case ERC20BridgeSource.BakerySwap:
         case ERC20BridgeSource.KyberDmm:
+        case ERC20BridgeSource.PancakeSwapV2:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -334,6 +337,7 @@ export const BRIDGE_ENCODERS: {
     // BSC
     [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.BakerySwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.PancakeSwapV2]: routerAddressPathEncoder,
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
