@@ -27,7 +27,6 @@ const COMMON_ORDER_DEFAULT_VALUES = {
     maker: NULL_ADDRESS,
     taker: NULL_ADDRESS,
     expiry: ZERO,
-    salt: ZERO,
     chainId: 1,
     verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
 };
@@ -37,15 +36,18 @@ const LIMIT_ORDER_DEFAULT_VALUES = {
     takerTokenFeeAmount: ZERO,
     sender: NULL_ADDRESS,
     feeRecipient: NULL_ADDRESS,
+    salt: ZERO,
 };
 const RFQ_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
     pool: hexUtils.leftPad(0),
     txOrigin: NULL_ADDRESS,
+    salt: ZERO,
 };
 const TAKERSIGNED_RFQ_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
     txOrigin: NULL_ADDRESS,
+    txOriginNonce: ZERO,
 };
 
 const BRIDGE_ORDER_DEFAULT_VALUES = {
@@ -84,7 +86,6 @@ export abstract class OrderBase {
     public maker: string;
     public taker: string;
     public expiry: BigNumber;
-    public salt: BigNumber;
     public chainId: number;
     public verifyingContract: string;
 
@@ -97,7 +98,6 @@ export abstract class OrderBase {
         this.maker = _fields.maker;
         this.taker = _fields.taker;
         this.expiry = _fields.expiry;
-        this.salt = _fields.salt;
         this.chainId = _fields.chainId;
         this.verifyingContract = _fields.verifyingContract;
     }
@@ -164,6 +164,7 @@ export class LimitOrder extends OrderBase {
     public takerTokenFeeAmount: BigNumber;
     public sender: string;
     public feeRecipient: string;
+    public salt: BigNumber;
 
     constructor(fields: Partial<LimitOrderFields> = {}) {
         const _fields = { ...LIMIT_ORDER_DEFAULT_VALUES, ...fields };
@@ -172,6 +173,7 @@ export class LimitOrder extends OrderBase {
         this.takerTokenFeeAmount = _fields.takerTokenFeeAmount;
         this.sender = _fields.sender;
         this.feeRecipient = _fields.feeRecipient;
+        this.salt = _fields.salt;
     }
 
     public clone(fields: Partial<LimitOrderFields> = {}): LimitOrder {
@@ -258,12 +260,14 @@ export class RfqOrder extends OrderBase {
 
     public pool: string;
     public txOrigin: string;
+    public salt: BigNumber;
 
     constructor(fields: Partial<RfqOrderFields> = {}) {
         const _fields = { ...RFQ_ORDER_DEFAULT_VALUES, ...fields };
         super(_fields);
         this.pool = _fields.pool;
         this.txOrigin = _fields.txOrigin;
+        this.salt = _fields.salt;
     }
 
     public clone(fields: Partial<RfqOrderFields> = {}): RfqOrder {
@@ -337,16 +341,18 @@ export class TakerSignedRfqOrder extends OrderBase {
         { type: 'address', name: 'taker' },
         { type: 'address', name: 'txOrigin' },
         { type: 'uint64', name: 'expiry' },
-        { type: 'uint256', name: 'salt' },
+        { type: 'uint256', name: 'txOriginNonce' },
     ];
     public static readonly TYPE_HASH = getTypeHash(TakerSignedRfqOrder.STRUCT_NAME, TakerSignedRfqOrder.STRUCT_ABI);
 
     public txOrigin: string;
+    public txOriginNonce: BigNumber;
 
     constructor(fields: Partial<TakerSignedRfqOrderFields> = {}) {
-        const _fields = { ...RFQ_ORDER_DEFAULT_VALUES, ...fields };
+        const _fields = { ...TAKERSIGNED_RFQ_ORDER_DEFAULT_VALUES, ...fields };
         super(_fields);
         this.txOrigin = _fields.txOrigin;
+        this.txOriginNonce = _fields.txOriginNonce;
     }
 
     public clone(fields: Partial<TakerSignedRfqOrder> = {}): TakerSignedRfqOrder {
@@ -359,7 +365,7 @@ export class TakerSignedRfqOrder extends OrderBase {
             taker: this.taker,
             txOrigin: this.txOrigin,
             expiry: this.expiry,
-            salt: this.salt,
+            txOriginNonce: this.txOriginNonce,
             chainId: this.chainId,
             verifyingContract: this.verifyingContract,
             ...fields,
@@ -378,7 +384,7 @@ export class TakerSignedRfqOrder extends OrderBase {
                 hexUtils.leftPad(this.taker),
                 hexUtils.leftPad(this.txOrigin),
                 hexUtils.leftPad(this.expiry),
-                hexUtils.leftPad(this.salt),
+                hexUtils.leftPad(this.txOriginNonce),
             ),
         );
     }
@@ -400,7 +406,7 @@ export class TakerSignedRfqOrder extends OrderBase {
                 taker: this.taker,
                 txOrigin: this.txOrigin,
                 expiry: this.expiry.toString(10),
-                salt: this.salt.toString(10),
+                txOriginNonce: this.txOriginNonce.toString(10),
             },
         };
     }

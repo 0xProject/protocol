@@ -79,7 +79,7 @@ library LibNativeOrder {
         address taker;
         address txOrigin;
         uint64 expiry;
-        uint256 salt;
+        uint256 txOriginNonce;
     }
 
     /// @dev Info on a limit or RFQ order.
@@ -152,7 +152,7 @@ library LibNativeOrder {
     //     ")"
     // ))
     uint256 private constant _TAKERSIGNED_RFQ_ORDER_TYPEHASH =
-        0x8c10c21ce6d32011699a2ddf3d24cc28bcc574cd51a8af7227dd618baf8f1c17;
+        0x89b66154a5e6a39f742f1f7e8f597c38f808ae2b6edd018468ab9a1dbe2cfd36;
 
     /// @dev Get the struct hash of a limit order.
     /// @param order The limit order.
@@ -278,7 +278,7 @@ library LibNativeOrder {
         //   order.taker,
         //   order.txOrigin,
         //   order.expiry,
-        //   order.salt,
+        //   order.txOriginNonce,
         // ))
         assembly {
             let mem := mload(0x40)
@@ -299,7 +299,7 @@ library LibNativeOrder {
             mstore(add(mem, 0xE0), and(ADDRESS_MASK, mload(add(order, 0xC0))))
             // order.expiry;
             mstore(add(mem, 0x100), and(UINT_64_MASK, mload(add(order, 0xE0))))
-            // order.salt;
+            // order.txOriginNonce;
             mstore(add(mem, 0x120), mload(add(order, 0x100)))
             structHash := keccak256(mem, 0x140)
         }

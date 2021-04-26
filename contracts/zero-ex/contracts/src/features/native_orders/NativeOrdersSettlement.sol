@@ -84,6 +84,10 @@ abstract contract NativeOrdersSettlement is
         uint128 makerAmount;
         // Taker token amount.
         uint128 takerAmount;
+        // tx origin address
+        address txOrigin;
+        // tx origin nonce in the order
+        uint256 txOriginNonce;
     }
 
     /// @dev Params for `_fillLimitOrderPrivate()`
@@ -587,7 +591,7 @@ abstract contract NativeOrdersSettlement is
                 LibNativeOrdersStorage.getStorage();
 
             // Must be fillable by the tx.origin.
-            if (order.txOrigin != tx.origin && !stor.originRegistry[order.txOrigin][tx.origin]) {
+            if (order.txOrigin != tx.origin) {
                 LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
                     takerSignedOrderInfo.orderHash,
                     tx.origin,
@@ -625,7 +629,9 @@ abstract contract NativeOrdersSettlement is
                 makerToken: IERC20TokenV06(order.makerToken),
                 takerToken: IERC20TokenV06(order.takerToken),
                 makerAmount: order.makerAmount,
-                takerAmount: order.takerAmount
+                takerAmount: order.takerAmount,
+                txOrigin: order.txOrigin,
+                txOriginNonce: order.txOriginNonce
             })
         );
 
@@ -700,10 +706,10 @@ abstract contract NativeOrdersSettlement is
         private
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        // Update filled state for the order.
+        // Update tx origin nonce for the order.
         LibNativeOrdersStorage
             .getStorage()
-            .orderHashToFilledBool[settleInfo.orderHash] = true;
+            .txOriginToNonce[settleInfo.txOrigin] = settleInfo.txOriginNonce;
 
         takerTokenFilledAmount = settleInfo.takerAmount;
         makerTokenFilledAmount = settleInfo.makerAmount;

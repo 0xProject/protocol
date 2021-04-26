@@ -88,7 +88,6 @@ contract NativeOrdersFeature is
         _registerFeatureFunction(this.registerAllowedRfqOrigins.selector);
         _registerFeatureFunction(this.getLimitOrderRelevantState.selector);
         _registerFeatureFunction(this.getRfqOrderRelevantState.selector);
-        _registerFeatureFunction(this.getTakerSignedRfqOrderRelevantState.selector);
         _registerFeatureFunction(this.batchGetLimitOrderRelevantStates.selector);
         _registerFeatureFunction(this.batchGetRfqOrderRelevantStates.selector);
         return LibMigrate.MIGRATE_SUCCESS;

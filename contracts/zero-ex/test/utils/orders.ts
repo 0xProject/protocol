@@ -13,7 +13,6 @@ import {
     RfqOrder,
     RfqOrderFields,
     TakerSignedRfqOrder,
-    TakerSignedRfqOrderFields,
 } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
@@ -226,7 +225,7 @@ export function getRandomRfqOrder(fields: Partial<RfqOrderFields> = {}): RfqOrde
 }
 
 /**
- * Generate a random RFQ Lite order.
+ * Generate a random Taker Signed RFQ Order
  */
 export function getRandomTakerSignedRfqOrder(fields: Partial<TakerSignedRfqOrder> = {}): TakerSignedRfqOrder {
     return new TakerSignedRfqOrder({
@@ -238,7 +237,7 @@ export function getRandomTakerSignedRfqOrder(fields: Partial<TakerSignedRfqOrder
         taker: randomAddress(),
         txOrigin: randomAddress(),
         expiry: new BigNumber(Math.floor(Date.now() / 1000 + 60)),
-        salt: new BigNumber(hexUtils.random()),
+        txOriginNonce: new BigNumber(hexUtils.random()),
         ...fields,
     });
 }
