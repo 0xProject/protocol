@@ -28,7 +28,7 @@ export async function findOptimalPathAsync(
         return undefined;
     }
     let optimalPath = sortedPaths[0];
-    const rates = rateBySourcePathId(side, fills, targetInput);
+    const rates = rateBySourcePathId(side, sortedPaths, targetInput);
     for (const [i, path] of sortedPaths.slice(1).entries()) {
         optimalPath = mixPaths(side, optimalPath, path, targetInput, runLimit * RUN_LIMIT_DECAY_FACTOR ** i, rates);
         // Yield to event loop.
@@ -123,16 +123,9 @@ function mixPaths(
 }
 
 function rateBySourcePathId(
-    side: MarketOperation,
-    fills: Fill[][],
-    targetInput: BigNumber,
+    _side: MarketOperation,
+    paths: Path[],
+    _targetInput: BigNumber,
 ): { [id: string]: BigNumber } {
-    const flattenedFills = _.flatten(fills);
-    const sourcePathIds = flattenedFills.filter(f => f.index === 0).map(f => f.sourcePathId);
-    return Object.assign(
-        {},
-        ...sourcePathIds.map(s => ({
-            [s]: Path.create(side, flattenedFills.filter(f => f.sourcePathId === s), targetInput).adjustedRate(),
-        })),
-    );
+    return _.fromPairs(paths.map(p => [p.fills[0].sourcePathId, p.adjustedRate()]));
 }

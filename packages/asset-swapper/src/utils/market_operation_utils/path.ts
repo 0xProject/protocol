@@ -39,7 +39,7 @@ export class Path {
     public sourceFlags: number = 0;
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
-    private _bestFill?: Fill;
+    private readonly _bestFill?: Fill;
 
     public static create(
         side: MarketOperation,
@@ -157,10 +157,11 @@ export class Path {
      * Returns the best possible rate this path can offer, given the fills.
      */
     public bestRate(): BigNumber {
-        if (!this._bestFill) {
-            throw new Error('Unable to calculate minRate');
-        }
-        return getRate(this.side, this._bestFill.input, this._bestFill.output);
+        const best = this.fills.reduce((prevRate, curr) => {
+            const currRate = getRate(this.side, curr.input, curr.output);
+            return prevRate.isLessThan(currRate) ? currRate : prevRate;
+        }, new BigNumber(0));
+        return best;
     }
 
     public adjustedSlippage(maxRate: BigNumber): number {
@@ -273,15 +274,6 @@ export class Path {
             this._size.output = this._size.output.plus(fill.output);
             this._adjustedSize.input = this._adjustedSize.input.plus(fill.input);
             this._adjustedSize.output = this._adjustedSize.output.plus(fill.adjustedOutput);
-        }
-
-        if (
-            this._bestFill === undefined ||
-            getRate(this.side, this._bestFill.input, this._bestFill.output).isLessThan(
-                getRate(this.side, fill.input, fill.output),
-            )
-        ) {
-            this._bestFill = fill;
         }
     }
 }
