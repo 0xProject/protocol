@@ -163,10 +163,6 @@ export function requiresTransformERC20(opts: ExchangeProxyContractOpts): boolean
     if (!opts.affiliateFee.buyTokenFeeAmount.eq(0) || !opts.affiliateFee.sellTokenFeeAmount.eq(0)) {
         return true;
     }
-    // Has a positive slippage fee.
-    if (opts.affiliateFee.feeType === AffiliateFeeType.PositiveSlippageFee) {
-        return true;
-    }
     // VIP does not support selling the entire balance
     if (opts.shouldSellEntireBalance) {
         return true;
