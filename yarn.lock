@@ -643,13 +643,13 @@
     npmlog "^4.1.2"
     write-file-atomic "^2.3.0"
 
-"@0x/abi-gen@0xProject/gitpkg-registry#0x-abi-gen-v5.5.1-b78b5e2d4":
-  version "5.5.1"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/53209a8160f78212e54977d9cbc56a340f698907"
+"@0x/abi-gen@0xProject/gitpkg-registry#0x-abi-gen-v5.5.2-e38f67b9c":
+  version "5.5.2"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/4afe7e79f22c42c606f88e5e80dadf695c4018e7"
   dependencies:
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
-    "@0x/utils" "^6.4.1"
+    "@0x/utils" "^6.4.2"
     "@types/node" "12.12.54"
     "@types/toposort" "^2.0.1"
     chalk "^2.3.0"
@@ -721,25 +721,25 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/assert@^3.0.25":
-  version "3.0.25"
-  resolved "https://registry.yarnpkg.com/@0x/assert/-/assert-3.0.25.tgz#19bb7633ea88c7c3aeff37e84c664916f2c5095b"
+"@0x/assert@^3.0.26":
+  version "3.0.26"
+  resolved "https://registry.yarnpkg.com/@0x/assert/-/assert-3.0.26.tgz#c9c3209e093c5fcbb5ff8d3b8f767d35c87195fc"
   dependencies:
-    "@0x/json-schemas" "^6.1.1"
+    "@0x/json-schemas" "^6.1.2"
     "@0x/typescript-typings" "^5.2.0"
-    "@0x/utils" "^6.4.1"
+    "@0x/utils" "^6.4.2"
     "@types/node" "12.12.54"
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/base-contract@0xProject/gitpkg-registry#0x-base-contract-v6.3.1-b78b5e2d4":
-  version "6.3.1"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/9ca089aa99c91335eb66fa59fffafbb12228dc2a"
+"@0x/base-contract@0xProject/gitpkg-registry#0x-base-contract-v6.3.2-e38f67b9c":
+  version "6.3.2"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/91f7a5eb72e1c8607d766bcea6394d04ce71015c"
   dependencies:
-    "@0x/assert" "^3.0.25"
-    "@0x/json-schemas" "^6.1.1"
-    "@0x/utils" "^6.4.1"
-    "@0x/web3-wrapper" "^7.5.1"
+    "@0x/assert" "^3.0.26"
+    "@0x/json-schemas" "^6.1.2"
+    "@0x/utils" "^6.4.2"
+    "@0x/web3-wrapper" "^7.5.2"
     "@types/node" "12.12.54"
     ethereumjs-account "^3.0.0"
     ethereumjs-blockstream "^7.0.0"
@@ -867,9 +867,9 @@
     jsonschema "^1.2.0"
     lodash.values "^4.3.0"
 
-"@0x/json-schemas@^6.1.1":
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-6.1.1.tgz#4311a4d546c315ff2a8ade9f9482c3a6cb0a0d90"
+"@0x/json-schemas@^6.1.2":
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-6.1.2.tgz#e25c8ba453128a529bb95973a631714ec9127356"
   dependencies:
     "@0x/typescript-typings" "^5.2.0"
     "@types/node" "12.12.54"
@@ -1286,28 +1286,9 @@
     js-sha3 "^0.7.0"
     lodash "^4.17.11"
 
-"@0x/utils@^6.4.0":
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/@0x/utils/-/utils-6.4.0.tgz#942505ae628e00ba865ecf65885f3cecc293fde9"
-  dependencies:
-    "@0x/types" "^3.3.3"
-    "@0x/typescript-typings" "^5.2.0"
-    "@types/mocha" "^5.2.7"
-    "@types/node" "12.12.54"
-    abortcontroller-polyfill "^1.1.9"
-    bignumber.js "~9.0.0"
-    chalk "^2.3.0"
-    detect-node "2.0.3"
-    ethereum-types "^3.5.0"
-    ethereumjs-util "^7.0.10"
-    ethers "~4.0.4"
-    isomorphic-fetch "2.2.1"
-    js-sha3 "^0.7.0"
-    lodash "^4.17.11"
-
-"@0x/utils@^6.4.1":
-  version "6.4.1"
-  resolved "https://registry.yarnpkg.com/@0x/utils/-/utils-6.4.1.tgz#f194164c8f6ab514978415eec4d28bfcffa99281"
+"@0x/utils@^6.4.2":
+  version "6.4.2"
+  resolved "https://registry.yarnpkg.com/@0x/utils/-/utils-6.4.2.tgz#b5d86854383bfe4a3fccdcb8e70aad2efde58250"
   dependencies:
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
@@ -1353,14 +1334,14 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/web3-wrapper@^7.5.1":
-  version "7.5.1"
-  resolved "https://registry.yarnpkg.com/@0x/web3-wrapper/-/web3-wrapper-7.5.1.tgz#e2714ff643be8acaf3a6468f3bc734dde793ce8d"
+"@0x/web3-wrapper@^7.5.2":
+  version "7.5.2"
+  resolved "https://registry.yarnpkg.com/@0x/web3-wrapper/-/web3-wrapper-7.5.2.tgz#135a1bc6a5cc4e3841bb11d8e82c3ee9db82dd10"
   dependencies:
-    "@0x/assert" "^3.0.25"
-    "@0x/json-schemas" "^6.1.1"
+    "@0x/assert" "^3.0.26"
+    "@0x/json-schemas" "^6.1.2"
     "@0x/typescript-typings" "^5.2.0"
-    "@0x/utils" "^6.4.1"
+    "@0x/utils" "^6.4.2"
     "@types/node" "12.12.54"
     ethereum-types "^3.5.0"
     ethereumjs-util "^7.0.10"
