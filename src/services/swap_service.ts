@@ -222,6 +222,7 @@ export class SwapService {
         let swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts>;
         if (
             isMetaTransaction ||
+            shouldSellEntireBalance ||
             // Note: We allow VIP to continue ahead when positive slippage fee is enabled
             affiliateFee.feeType === AffiliateFeeType.PercentageFee
         ) {
