@@ -62,9 +62,11 @@ export class BalancerV2PoolsCache extends PoolsCache {
         return pools.map((pool: any) => {
             const tToken = pool.tokens.find((t: any) => t.address === takerToken);
             const mToken = pool.tokens.find((t: any) => t.address === makerToken);
-            const tokenAmountOut = pool.swaps[0]?.tokenAmountOut;
-            const tokenAmountIn = pool.swaps[0]?.tokenAmountIn;
-            const spotPrice = tokenAmountOut && tokenAmountIn ? new BigNumber(tokenAmountOut).div(tokenAmountIn) : undefined; // TODO: xianny check
+            const swap = pool.swaps[0];
+            const tokenAmountOut = swap ? swap.tokenAmountOut : undefined;
+            const tokenAmountIn = swap ? swap.tokenAmountIn : undefined;
+            const spotPrice =
+                tokenAmountOut && tokenAmountIn ? new BigNumber(tokenAmountOut).div(tokenAmountIn) : undefined; // TODO: xianny check
 
             return {
                 id: pool.id,
