@@ -275,7 +275,7 @@ export function uniswapV2LikeRouterAddress(
         case ERC20BridgeSource.PancakeSwap:
             return PANCAKESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.PancakeSwapV2:
-            return PANCAKESWAPV2_ROUTER_BY_CHAIN_ID[chainId];    
+            return PANCAKESWAPV2_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.BakerySwap:
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.KyberDmm:
