@@ -45,7 +45,19 @@ export function fillsToSortedPaths(
     opts: PathPenaltyOpts,
 ): Path[] {
     const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
-    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
+    const sortedPaths = paths.sort((a, b) => {
+        const aRate = a.adjustedCompleteRate();
+        const bRate = b.adjustedCompleteRate();
+        // There is a case where the adjusted completed rate isn't sufficient for the desired amount
+        // resulting in a NaN div by 0 (output)
+        if (bRate.isNaN()) {
+            return -1;
+        }
+        if (aRate.isNaN()) {
+            return 1;
+        }
+        return bRate.comparedTo(aRate);
+    });
     return sortedPaths;
 }
 
@@ -63,11 +75,13 @@ export function reducePaths(sortedPaths: Path[], side: MarketOperation): Path[] 
     if (!bestNonNativeCompletePath) {
         return sortedPaths;
     }
+    const bestNonNativeCompletePathAdjustedRate = bestNonNativeCompletePath.adjustedCompleteRate();
+    if (!bestNonNativeCompletePathAdjustedRate.isGreaterThan(0)) {
+        return sortedPaths;
+    }
 
-    const filteredPaths = sortedPaths.filter(
-        p =>
-            p.bestRate().isGreaterThanOrEqualTo(bestNonNativeCompletePath.adjustedCompleteRate()) &&
-            p.adjustedCompleteRate().isGreaterThan(0),
+    const filteredPaths = sortedPaths.filter(p =>
+        p.bestRate().isGreaterThanOrEqualTo(bestNonNativeCompletePathAdjustedRate),
     );
     return filteredPaths;
 }
