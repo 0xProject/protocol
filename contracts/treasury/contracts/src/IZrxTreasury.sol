@@ -30,6 +30,7 @@ interface IZrxTreasury {
         uint256 votingPeriod;
         uint256 proposalThreshold;
         uint256 quorumThreshold;
+        bytes32 defaultPoolId;
     }
 
     struct ProposedAction {
