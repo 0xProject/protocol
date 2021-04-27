@@ -7,7 +7,7 @@
                 "pr": 183
             },
             {
-                "note": "Disable ABI encode optimization for the Sampler contract",
+                "note": "Use FastABI for Sampler ABI encoding and decoding",
                 "pr": 183
             }
         ]

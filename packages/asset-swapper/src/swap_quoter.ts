@@ -1,8 +1,10 @@
+import { EncoderOverrides } from '@0x/base-contract';
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
-import { BlockParamLiteral, SupportedProvider, ZeroExProvider } from 'ethereum-types';
+import { BlockParamLiteral, MethodAbi, SupportedProvider, ZeroExProvider } from 'ethereum-types';
+import { FastABI } from 'fast-abi';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
@@ -122,6 +124,7 @@ export class SwapQuoter {
             { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
             options.samplerOverrides,
         );
+        const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[]);
         const samplerContract = new ERC20BridgeSamplerContract(
             this._contractAddresses.erc20BridgeSampler,
             this.provider,
@@ -130,7 +133,10 @@ export class SwapQuoter {
             },
             {},
             undefined,
-            { shouldOptimize: false, shouldAnnotate: false },
+            {
+                encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
+                decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
+            },
         );
 
         this._marketOperationUtils = new MarketOperationUtils(

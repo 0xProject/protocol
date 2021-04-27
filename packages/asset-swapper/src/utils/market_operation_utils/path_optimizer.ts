@@ -27,8 +27,8 @@ export async function findOptimalPathAsync(
     if (sortedPaths.length === 0) {
         return undefined;
     }
+    const rates = rateBySourcePathId(sortedPaths);
     let optimalPath = sortedPaths[0];
-    const rates = rateBySourcePathId(side, sortedPaths, targetInput);
     for (const [i, path] of sortedPaths.slice(1).entries()) {
         optimalPath = mixPaths(side, optimalPath, path, targetInput, runLimit * RUN_LIMIT_DECAY_FACTOR ** i, rates);
         // Yield to event loop.
@@ -45,9 +45,7 @@ export function fillsToSortedPaths(
     opts: PathPenaltyOpts,
 ): Path[] {
     const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
-    const sortedPaths = paths
-        .sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()))
-        .filter(a => a.adjustedCompleteRate().isGreaterThanOrEqualTo(0));
+    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
     return sortedPaths;
 }
 
@@ -66,8 +64,10 @@ export function reducePaths(sortedPaths: Path[], side: MarketOperation): Path[] 
         return sortedPaths;
     }
 
-    const filteredPaths = sortedPaths.filter(p =>
-        p.bestRate().isGreaterThanOrEqualTo(bestNonNativeCompletePath.adjustedCompleteRate()),
+    const filteredPaths = sortedPaths.filter(
+        p =>
+            p.bestRate().isGreaterThanOrEqualTo(bestNonNativeCompletePath.adjustedCompleteRate()) &&
+            p.adjustedCompleteRate().isGreaterThan(0),
     );
     return filteredPaths;
 }
@@ -122,10 +122,6 @@ function mixPaths(
     return bestPath;
 }
 
-function rateBySourcePathId(
-    _side: MarketOperation,
-    paths: Path[],
-    _targetInput: BigNumber,
-): { [id: string]: BigNumber } {
+function rateBySourcePathId(paths: Path[]): { [id: string]: BigNumber } {
     return _.fromPairs(paths.map(p => [p.fills[0].sourcePathId, p.adjustedRate()]));
 }
