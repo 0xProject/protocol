@@ -29,6 +29,7 @@ import {
     OrderDomain,
     ShellFillData,
     UniswapV2FillData,
+    UniswapV3FillData,
 } from './types';
 
 // tslint:disable completed-docs
@@ -149,6 +150,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'CheeseSwap');
         case ERC20BridgeSource.JulSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'JulSwap');
+        case ERC20BridgeSource.UniswapV3:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV3, 'UniswapV3');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -261,6 +264,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const psmFillData = (order as OptimizedMarketBridgeOrder<MakerPsmFillData>).fillData;
             bridgeData = encoder.encode([psmFillData.psmAddress, psmFillData.gemTokenAddress]);
             break;
+        case ERC20BridgeSource.UniswapV3:
+            const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<UniswapV3FillData>).fillData;
+            bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.uniswapPath]);
+            break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -368,6 +375,10 @@ export const BRIDGE_ENCODERS: {
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
     [ERC20BridgeSource.BalancerV2]: balancerV2Encoder,
+    [ERC20BridgeSource.UniswapV3]: AbiEncoder.create([
+        { name: 'router', type: 'address' },
+        { name: 'path', type: 'bytes' },
+    ]),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

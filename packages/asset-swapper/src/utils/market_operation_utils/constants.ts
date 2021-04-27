@@ -88,6 +88,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
+            ERC20BridgeSource.UniswapV3,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -156,6 +157,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
+            ERC20BridgeSource.UniswapV3,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -1051,6 +1053,20 @@ export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
 export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2';
 
+export const UNISWAPV3_QUOTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Ropsten]: '0xB1c59e8Ae4B72f63a5a9CB9c25A9253096A4b126',
+    },
+    NULL_ADDRESS,
+);
+
+export const UNISWAPV3_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Ropsten]: '0x71bB3d0e63f2Fa2A5d04d54267211f4Caef7062e',
+    },
+    NULL_ADDRESS,
+);
+
 //
 // BSC
 //
@@ -1276,6 +1292,14 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.JulSwap]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
+        let gas = 90e3;
+        const path = (fillData as UniswapV2FillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 60e3; // +60k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
         let gas = 90e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;
         if (path.length > 2) {

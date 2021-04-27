@@ -66,7 +66,10 @@ contract UniswapV3Sampler
         uint256[] memory takerTokenAmounts
     )
         public
-        returns (uint256[] memory makerTokenAmounts, bytes[] memory uniswapPaths)
+        returns (
+            uint256[] memory makerTokenAmounts,
+            bytes[] memory uniswapPaths
+        )
     {
         IUniswapV3Pool[][] memory poolPaths =
             _getValidPoolPaths(quoter.factory(), path, 0);
@@ -115,7 +118,10 @@ contract UniswapV3Sampler
         uint256[] memory makerTokenAmounts
     )
         public
-        returns (uint256[] memory takerTokenAmounts, bytes[] memory uniswapPaths)
+        returns (
+            uint256[] memory takerTokenAmounts,
+            bytes[] memory uniswapPaths
+        )
     {
         IUniswapV3Pool[][] memory poolPaths =
             _getValidPoolPaths(quoter.factory(), path, 0);

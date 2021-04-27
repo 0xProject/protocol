@@ -121,6 +121,7 @@
         "test/generated-artifacts/MixinShell.json",
         "test/generated-artifacts/MixinUniswap.json",
         "test/generated-artifacts/MixinUniswapV2.json",
+        "test/generated-artifacts/MixinUniswapV3.json",
         "test/generated-artifacts/MixinZeroExBridge.json",
         "test/generated-artifacts/MooniswapLiquidityProvider.json",
         "test/generated-artifacts/MultiplexFeature.json",

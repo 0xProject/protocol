@@ -45,6 +45,7 @@
         "test/generated-artifacts/TwoHopSampler.json",
         "test/generated-artifacts/UniswapSampler.json",
         "test/generated-artifacts/UniswapV2Sampler.json",
+        "test/generated-artifacts/UniswapV3Sampler.json",
         "test/generated-artifacts/UtilitySampler.json"
     ]
 }
