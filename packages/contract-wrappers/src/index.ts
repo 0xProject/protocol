@@ -16,7 +16,7 @@ export {
     SimpleEvmOutput,
     SimpleStandardContractOutput,
 } from '@0x/types';
-export { AbiDecoder, AbiEncoder, DecodedCalldata } from '@0x/utils';
+export { AbiDecoder, AbiEncoder, DecodedCalldata, EncodingRules } from '@0x/utils';
 export {
     AbiDefinition,
     BlockParam,

@@ -29,7 +29,7 @@ import {
     TxAccessListWithGas,
     SupportedProvider,
 } from 'ethereum-types';
-import { AbiEncoder, BigNumber, classUtils, hexUtils, logUtils, providerUtils } from '@0x/utils';
+import { AbiEncoder, BigNumber, classUtils, EncodingRules, hexUtils, logUtils, providerUtils } from '@0x/utils';
 import { EventCallback, IndexedFilterValues, SimpleContractArtifact } from '@0x/types';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { assert } from '@0x/assert';
@@ -1589,7 +1589,7 @@ export class ForwarderContract extends BaseContract {
         txDefaults?: Partial<TxData>,
         logDecodeDependencies?: { [contractName: string]: ContractAbi },
         deployedBytecode: string | undefined = ForwarderContract.deployedBytecode,
-        encodingRules?: AbiEncoder.EncodingRules,
+        encodingRules?: EncodingRules,
     ) {
         super(
             'Forwarder',
