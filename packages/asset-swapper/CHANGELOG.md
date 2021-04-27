@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.7.0 - _April 26, 2021_
+
+    * Support PancakeSwap V2 (#211)
+
+## v6.6.1 - _Invalid date_
+
+    * Fixing Positive Slippage logic to not force the EP route (#209)
+
 ## v6.6.0 - _April 16, 2021_
 
     * Support `Ropsten` network (#203)

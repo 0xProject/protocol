@@ -53,6 +53,8 @@ illustrates how events are emitted when trading through the Exchange Proxy.
 +-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
 | `RfqOrderOriginsAllowed`_     | Emitted when a tx.origin is added/removed for RFQ, via `registerAllowedRfqOrigins <./functions.html#registerallowedrfqorigins>`_                          | ExchangeProxy       |
 +-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
+| `OrderSignerRegistered`_      | Emitted when an order signer is added/removed for a maker, via `registerAllowedOrderSigner <./functions.html#registerallowedordersigner>`_                | ExchangeProxy       |
++-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
 | `TransformedERC20`_           | Emitted when an `ERC20 Transformation <../advanced/erc20_transformations.html>`_ completes.                                                               | ExchangeProxy       |
 +-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
 | `TransformerDeployerUpdated`_ | Emitted when the Transformer Deployer is upgraded.                                                                                                        | ExchangeProxy       |
@@ -227,7 +229,7 @@ PairCancelledLimitOrders
     );
 
 PairCancelledRfqOrders
-------------------------
+----------------------
 
 .. code-block:: solidity
 
@@ -308,6 +310,21 @@ RfqOrderOriginsAllowed
     event RfqOrderOriginsAllowed(
         address origin,
         address[] addrs,
+        bool allowed
+    );
+
+OrderSignerRegistered
+-------------------------
+
+.. code-block:: solidity
+
+    /// @dev Emitted when new order signers are registered
+    /// @param maker The maker address that is registering a designated signer.
+    /// @param signer The address that will sign on behalf of maker.
+    /// @param allowed Indicates whether the address should be allowed.
+    event OrderSignerRegistered(
+        address maker,
+        address signer,
         bool allowed
     );
 

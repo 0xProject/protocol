@@ -114,12 +114,13 @@ export abstract class OrderBase {
     public async getSignatureWithProviderAsync(
         provider: SupportedProvider,
         type: SignatureType = SignatureType.EthSign,
+        signer: string = this.maker,
     ): Promise<Signature> {
         switch (type) {
             case SignatureType.EIP712:
-                return eip712SignTypedDataWithProviderAsync(this.getEIP712TypedData(), this.maker, provider);
+                return eip712SignTypedDataWithProviderAsync(this.getEIP712TypedData(), signer, provider);
             case SignatureType.EthSign:
-                return ethSignHashWithProviderAsync(this.getHash(), this.maker, provider);
+                return ethSignHashWithProviderAsync(this.getHash(), signer, provider);
             default:
                 throw new Error(`Cannot sign with signature type: ${type}`);
         }

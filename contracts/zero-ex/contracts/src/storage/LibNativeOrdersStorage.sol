@@ -43,6 +43,9 @@ library LibNativeOrdersStorage {
         // For a given order origin, which tx.origin addresses are allowed to
         // fill the order.
         mapping(address => mapping(address => bool)) originRegistry;
+        // For a given maker address, which addresses are allowed to
+        // sign on its behalf.
+        mapping(address => mapping(address => bool)) orderSignerRegistry;
     }
 
     /// @dev Get the storage bucket for this contract.

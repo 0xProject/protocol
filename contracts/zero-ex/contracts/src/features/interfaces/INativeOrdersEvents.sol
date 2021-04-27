@@ -113,4 +113,14 @@ interface INativeOrdersEvents {
         address[] addrs,
         bool allowed
     );
+
+    /// @dev Emitted when new order signers are registered
+    /// @param maker The maker address that is registering a designated signer.
+    /// @param signer The address that will sign on behalf of maker.
+    /// @param allowed Indicates whether the address should be allowed.
+    event OrderSignerRegistered(
+        address maker,
+        address signer,
+        bool allowed
+    );
 }

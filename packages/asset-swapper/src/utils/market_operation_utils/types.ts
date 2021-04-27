@@ -70,6 +70,7 @@ export enum ERC20BridgeSource {
     Nerve = 'Nerve',
     Belt = 'Belt',
     Ellipsis = 'Ellipsis',
+    PancakeSwapV2 = 'PancakeSwap_V2',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 

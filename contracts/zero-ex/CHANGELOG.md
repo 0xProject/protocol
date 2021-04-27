@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.22.0 - _April 26, 2021_
+
+    * Add order signer registry to NativeOrdersFeature (#195)
+
 ## v0.21.1 - _April 12, 2021_
 
     * Dependencies updated
