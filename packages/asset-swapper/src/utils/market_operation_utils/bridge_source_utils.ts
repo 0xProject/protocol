@@ -19,7 +19,7 @@ import {
     NERVE_BSC_INFOS,
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
-    PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID,
+    PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
     SMOOTHY_BSC_INFOS,
@@ -275,7 +275,7 @@ export function uniswapV2LikeRouterAddress(
         case ERC20BridgeSource.PancakeSwap:
             return PANCAKESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.PancakeSwapV2:
-            return PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID[chainId];    
+            return PANCAKESWAPV2_ROUTER_BY_CHAIN_ID[chainId];    
         case ERC20BridgeSource.BakerySwap:
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.KyberDmm:

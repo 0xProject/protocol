@@ -999,7 +999,7 @@ export const PANCAKESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const PANCAKESWAP_V2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+export const PANCAKESWAPV2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0x10ed43c718714eb63d5aa57b78b54704e256024e',
     },
