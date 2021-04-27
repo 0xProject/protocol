@@ -6,7 +6,8 @@
                 "note": "Support PancakeSwap V2",
                 "pr": 211
             }
-        ]
+        ],
+        "timestamp": 1619481586
     },
     {
         "version": "6.6.1",

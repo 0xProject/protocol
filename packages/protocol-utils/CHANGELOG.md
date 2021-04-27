@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.5.0 - _April 26, 2021_
+
+    * Add support for orderSignerRegistry in getSignatureWithProviderAsync() (#195)
+
 ## v1.4.1 - _April 12, 2021_
 
     * Dependencies updated

@@ -6,7 +6,8 @@
                 "note": "Add order signer registry to NativeOrdersFeature",
                 "pr": 195
             }
-        ]
+        ],
+        "timestamp": 1619481586
     },
     {
         "timestamp": 1618259868,
