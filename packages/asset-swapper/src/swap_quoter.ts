@@ -1,4 +1,3 @@
-import { EncoderOverrides } from '@0x/base-contract';
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
