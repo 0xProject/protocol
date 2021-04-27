@@ -24,9 +24,10 @@ import {
     TransactionReceiptWithDecodedLogs,
     TxData,
     TxDataPayable,
+    TxAccessListWithGas,
     SupportedProvider,
 } from 'ethereum-types';
-import { BigNumber, classUtils, hexUtils, logUtils, providerUtils } from '@0x/utils';
+import { AbiEncoder, BigNumber, classUtils, EncodingRules, hexUtils, logUtils, providerUtils } from '@0x/utils';
 import { EventCallback, IndexedFilterValues, SimpleContractArtifact } from '@0x/types';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { assert } from '@0x/assert';
@@ -54,11 +55,7 @@ export class DevUtilsContract extends BaseContract {
         chaiBridge_: string,
         dydxBridge_: string,
     ): Promise<DevUtilsContract> {
-        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema, [
-            schemas.addressSchema,
-            schemas.numberSchema,
-            schemas.jsNumber,
-        ]);
+        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema);
         if (artifact.compilerOutput === undefined) {
             throw new Error('Compiler output not found in the artifact file');
         }
@@ -93,11 +90,7 @@ export class DevUtilsContract extends BaseContract {
         chaiBridge_: string,
         dydxBridge_: string,
     ): Promise<DevUtilsContract> {
-        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema, [
-            schemas.addressSchema,
-            schemas.numberSchema,
-            schemas.jsNumber,
-        ]);
+        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema);
         if (artifact.compilerOutput === undefined) {
             throw new Error('Compiler output not found in the artifact file');
         }
@@ -139,11 +132,7 @@ export class DevUtilsContract extends BaseContract {
         dydxBridge_: string,
     ): Promise<DevUtilsContract> {
         assert.isHexString('bytecode', bytecode);
-        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema, [
-            schemas.addressSchema,
-            schemas.numberSchema,
-            schemas.jsNumber,
-        ]);
+        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema);
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         const constructorAbi = BaseContract._lookupConstructorAbi(abi);
         [exchange_, chaiBridge_, dydxBridge_] = BaseContract._formatABIDataItemList(
@@ -2312,6 +2301,16 @@ export class DevUtilsContract extends BaseContract {
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
             },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2366,6 +2365,16 @@ export class DevUtilsContract extends BaseContract {
                     ...txData,
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
             },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -2425,6 +2434,16 @@ export class DevUtilsContract extends BaseContract {
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
             },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -2483,6 +2502,16 @@ export class DevUtilsContract extends BaseContract {
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
             },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber[]> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2537,6 +2566,16 @@ export class DevUtilsContract extends BaseContract {
                     ...txData,
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
             },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber[]> {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -2595,6 +2634,16 @@ export class DevUtilsContract extends BaseContract {
                     ...txData,
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
             },
             async callAsync(
                 callData: Partial<CallData> = {},
@@ -2750,6 +2799,16 @@ export class DevUtilsContract extends BaseContract {
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
             },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -2841,6 +2900,16 @@ export class DevUtilsContract extends BaseContract {
                     ...txData,
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
             },
             async callAsync(
                 callData: Partial<CallData> = {},
@@ -2934,6 +3003,16 @@ export class DevUtilsContract extends BaseContract {
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
             },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<number> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -3014,6 +3093,16 @@ export class DevUtilsContract extends BaseContract {
                     ...txData,
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
             },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<number> {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -3096,6 +3185,16 @@ export class DevUtilsContract extends BaseContract {
                     ...txData,
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
             },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<number[]> {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -3190,6 +3289,16 @@ export class DevUtilsContract extends BaseContract {
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
             },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -3262,6 +3371,7 @@ export class DevUtilsContract extends BaseContract {
         txDefaults?: Partial<TxData>,
         logDecodeDependencies?: { [contractName: string]: ContractAbi },
         deployedBytecode: string | undefined = DevUtilsContract.deployedBytecode,
+        encodingRules?: EncodingRules,
     ) {
         super(
             'DevUtils',
@@ -3271,6 +3381,7 @@ export class DevUtilsContract extends BaseContract {
             txDefaults,
             logDecodeDependencies,
             deployedBytecode,
+            encodingRules,
         );
         classUtils.bindAll(this, ['_abiEncoderByFunctionSignature', 'address', '_web3Wrapper']);
         DevUtilsContract.ABI().forEach((item, index) => {

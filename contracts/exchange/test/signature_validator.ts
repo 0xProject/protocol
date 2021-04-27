@@ -86,7 +86,7 @@ blockchainTests.resets('MixinSignatureValidator', env => {
 
     const SIGNATURE_LENGTH = 65;
     const generateRandomSignature = (): string => hexUtils.random(SIGNATURE_LENGTH);
-    const hashBytes = (bytesHex: string): string => ethUtil.bufferToHex(ethUtil.sha3(ethUtil.toBuffer(bytesHex)));
+    const hashBytes = (bytesHex: string): string => hexUtils.hash(bytesHex);
     const signDataHex = (dataHex: string, privateKey: Buffer): string => {
         const ecSignature = ethUtil.ecsign(ethUtil.toBuffer(dataHex), privateKey);
         return hexUtils.concat(ecSignature.v, ecSignature.r, ecSignature.s);

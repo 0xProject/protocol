@@ -30,7 +30,7 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-artifacts",
     "devDependencies": {
-        "@0x/utils": "^6.2.0",
+        "@0x/utils": "^6.4.2",
         "@types/mocha": "^5.2.7",
         "chai": "^4.0.1",
         "lodash": "^4.17.11",

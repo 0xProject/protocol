@@ -1,5 +1,14 @@
 [
     {
+        "version": "13.16.0",
+        "changes": [
+            {
+                "note": "Regenerate wrappers with new abi-gen",
+                "pr": 212
+            }
+        ]
+    },
+    {
         "version": "13.15.0",
         "changes": [
             {

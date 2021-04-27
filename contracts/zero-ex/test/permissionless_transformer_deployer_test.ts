@@ -1,6 +1,5 @@
 import { blockchainTests, expect, verifyEventsFromLogs } from '@0x/contracts-test-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
-import * as ethjs from 'ethereumjs-util';
 
 import { artifacts } from './artifacts';
 import {
@@ -41,9 +40,9 @@ blockchainTests.resets('PermissionlessTransformerDeployer', env => {
         it('deploys at predictable address', async () => {
             const salt = hexUtils.random();
             const targetAddress = await deployer.deploy(deployBytes, salt).callAsync();
-            const initCodeHash = hexUtils.toHex(ethjs.sha3(deployBytes));
+            const initCodeHash = hexUtils.hash(deployBytes);
             const expectedAddress = hexUtils.slice(
-                hexUtils.toHex(ethjs.sha3(hexUtils.concat('0xFF', deployer.address, salt, initCodeHash))),
+                hexUtils.hash(hexUtils.concat('0xFF', deployer.address, salt, initCodeHash)),
                 12,
             );
 
@@ -94,7 +93,7 @@ blockchainTests.resets('PermissionlessTransformerDeployer', env => {
             const targetAddress = await deployer.deploy(deployBytes, salt).callAsync({ from: sender });
             await deployer.deploy(deployBytes, salt).awaitTransactionSuccessAsync({ from: sender });
             expect(hexUtils.toHex(await deployer.toInitCodeHash(targetAddress).callAsync())).to.eq(
-                hexUtils.toHex(ethjs.sha3(deployBytes)),
+                hexUtils.hash(deployBytes),
             );
         });
     });
