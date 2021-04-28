@@ -3,6 +3,7 @@
 // tslint:disable:no-unused-variable
 import {
     AwaitTransactionSuccessOpts,
+    EncoderOverrides,
     ContractFunctionObj,
     ContractTxFunctionObj,
     SendTransactionOpts,
@@ -524,6 +525,9 @@ export class WETH9Contract extends BaseContract {
     }
 
     public getABIDecodedReturnData<T>(methodName: string, callData: string): T {
+        if (this._encoderOverrides.decodeOutput) {
+            return this._encoderOverrides.decodeOutput(methodName, callData);
+        }
         const functionSignature = this.getFunctionSignature(methodName);
         const self = (this as any) as WETH9Contract;
         const abiEncoder = self._lookupAbiEncoder(functionSignature);
@@ -1028,7 +1032,7 @@ export class WETH9Contract extends BaseContract {
         txDefaults?: Partial<TxData>,
         logDecodeDependencies?: { [contractName: string]: ContractAbi },
         deployedBytecode: string | undefined = WETH9Contract.deployedBytecode,
-        encodingRules?: EncodingRules,
+        encoderOverrides?: Partial<EncoderOverrides>,
     ) {
         super(
             'WETH9',
@@ -1038,7 +1042,7 @@ export class WETH9Contract extends BaseContract {
             txDefaults,
             logDecodeDependencies,
             deployedBytecode,
-            encodingRules,
+            encoderOverrides,
         );
         classUtils.bindAll(this, ['_abiEncoderByFunctionSignature', 'address', '_web3Wrapper']);
         this._subscriptionManager = new SubscriptionManager<WETH9EventArgs, WETH9Events>(

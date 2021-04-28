@@ -643,7 +643,7 @@
     npmlog "^4.1.2"
     write-file-atomic "^2.3.0"
 
-"@0x/abi-gen@^5.5.0", "@0x/abi-gen@^5.5.2":
+"@0x/abi-gen@^5.5.2", "@0x/abi-gen@^5.6.0":
   version "5.6.0"
   resolved "https://registry.yarnpkg.com/@0x/abi-gen/-/abi-gen-5.6.0.tgz#2b022efe77a35f5589624633d880d794d0a16bde"
   dependencies:
