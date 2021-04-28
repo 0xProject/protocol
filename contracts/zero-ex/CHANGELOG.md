@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.22.1 - _April 28, 2021_
+
+    * bump feature version to 1.2 (#213)
+
 ## v0.22.0 - _April 26, 2021_
 
     * Add order signer registry to NativeOrdersFeature (#195)

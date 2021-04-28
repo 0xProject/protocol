@@ -326,6 +326,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Native]: createDecreasingRates(NUM_SAMPLES),
         [ERC20BridgeSource.Eth2Dai]: createDecreasingRates(NUM_SAMPLES),
         [ERC20BridgeSource.Uniswap]: createDecreasingRates(NUM_SAMPLES),
+        [ERC20BridgeSource.Kyber]: createDecreasingRates(NUM_SAMPLES),
     };
 
     interface FillDataBySource {

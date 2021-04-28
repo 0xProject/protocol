@@ -1035,7 +1035,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
-        return (fillData as LiquidityProviderFillData).gasCost;
+        return (fillData as LiquidityProviderFillData).gasCost || 100e3;
     },
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 450e3,

@@ -20,6 +20,7 @@ export function rlpEncodeNonce(nonce: number): string {
         return ethjs.bufferToHex(ethjs.toBuffer(nonce));
     } else {
         const rlpNonce = ethjs.toBuffer(nonce);
+        // tslint:disable-next-line: restrict-plus-operands
         return hexUtils.concat(rlpNonce.length + 0x80, ethjs.bufferToHex(rlpNonce));
     }
 }
