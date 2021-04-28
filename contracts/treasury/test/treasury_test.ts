@@ -28,6 +28,7 @@ blockchainTests.resets('Treasury governance', env => {
         votingPeriod: new BigNumber(3).times(stakingConstants.ONE_DAY_IN_SECONDS),
         proposalThreshold: new BigNumber(100),
         quorumThreshold: new BigNumber(1000),
+        defaultPoolId: stakingConstants.INITIAL_POOL_ID,
     };
     const PROPOSAL_DESCRIPTION = 'A very compelling proposal!';
     const TREASURY_BALANCE = constants.INITIAL_ERC20_BALANCE;
@@ -135,6 +136,16 @@ blockchainTests.resets('Treasury governance', env => {
             .approve(erc20ProxyContract.address, constants.INITIAL_ERC20_ALLOWANCE)
             .awaitTransactionSuccessAsync({ from: delegator });
 
+        defaultPoolOperator = await DefaultPoolOperatorContract.deployFrom0xArtifactAsync(
+            artifacts.DefaultPoolOperator,
+            env.provider,
+            env.txDefaults,
+            { ...artifacts, ...erc20Artifacts },
+            staking.address,
+            weth.address,
+        );
+        defaultPoolId = stakingConstants.INITIAL_POOL_ID;
+
         const createStakingPoolTx = staking.createStakingPool(stakingConstants.PPM, false);
         nonDefaultPoolId = await createStakingPoolTx.callAsync({ from: poolOperator });
         await createStakingPoolTx.awaitTransactionSuccessAsync({ from: poolOperator });
@@ -145,9 +156,9 @@ blockchainTests.resets('Treasury governance', env => {
             env.txDefaults,
             { ...artifacts, ...erc20Artifacts },
             staking.address,
-            weth.address,
             TREASURY_PARAMS,
         );
+
         await zrx.mint(TREASURY_BALANCE).awaitTransactionSuccessAsync();
         await zrx.transfer(treasury.address, TREASURY_BALANCE).awaitTransactionSuccessAsync();
         actions = [
@@ -166,10 +177,6 @@ blockchainTests.resets('Treasury governance', env => {
                 value: constants.ZERO_AMOUNT,
             },
         ];
-
-        defaultPoolId = await treasury.defaultPoolId().callAsync();
-        const defaultPoolOperatorAddress = await treasury.defaultPoolOperator().callAsync();
-        defaultPoolOperator = new DefaultPoolOperatorContract(defaultPoolOperatorAddress, env.provider, env.txDefaults);
     });
     describe('getVotingPower()', () => {
         it('Unstaked ZRX has no voting power', async () => {
@@ -221,6 +228,19 @@ blockchainTests.resets('Treasury governance', env => {
             expect(delegatorVotingPower).to.bignumber.equal(TREASURY_PARAMS.proposalThreshold.dividedBy(2));
             const operatorVotingPower = await treasury.getVotingPower(poolOperator, [nonDefaultPoolId]).callAsync();
             expect(operatorVotingPower).to.bignumber.equal(TREASURY_PARAMS.proposalThreshold.dividedBy(2));
+        });
+        it('Reverts if given duplicate pool IDs', async () => {
+            await staking.stake(TREASURY_PARAMS.proposalThreshold).awaitTransactionSuccessAsync({ from: delegator });
+            await staking
+                .moveStake(
+                    new StakeInfo(StakeStatus.Undelegated),
+                    new StakeInfo(StakeStatus.Delegated, nonDefaultPoolId),
+                    TREASURY_PARAMS.proposalThreshold,
+                )
+                .awaitTransactionSuccessAsync({ from: delegator });
+            await fastForwardToNextEpochAsync();
+            const tx = treasury.getVotingPower(poolOperator, [nonDefaultPoolId, nonDefaultPoolId]).callAsync();
+            return expect(tx).to.revertWith('getVotingPower/DUPLICATE_POOL_ID');
         });
         it('Correctly sums voting power delegated to multiple pools', async () => {
             await staking
