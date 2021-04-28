@@ -25,7 +25,7 @@ export class RPCSubprovider extends Subprovider {
     constructor(rpcUrl: string | string[], requestTimeoutMs: number = 5000) {
         super();
         this._rpcUrls = Array.isArray(rpcUrl) ? rpcUrl : [rpcUrl];
-        this._rpcUrls.forEach(url => assert.isString('rpcUrl', url));
+        this._rpcUrls.forEach((url) => assert.isString('rpcUrl', url));
         assert.isNumber('requestTimeoutMs', requestTimeoutMs);
         this._requestTimeoutMs = requestTimeoutMs;
     }
@@ -55,6 +55,7 @@ export class RPCSubprovider extends Subprovider {
                 headers,
                 body: JSON.stringify(finalPayload),
                 timeout: this._requestTimeoutMs,
+                compress: true,
                 agent,
             });
         } catch (err) {
