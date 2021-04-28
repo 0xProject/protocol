@@ -304,7 +304,7 @@ const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
-const balancerV2Encoder = AbiEncoder.create('(address,bytes32'); // vault, poolId
+const balancerV2Encoder = AbiEncoder.create([{ name: 'vault', type: 'address' }, { name: 'poolId', type: 'bytes32' }]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
