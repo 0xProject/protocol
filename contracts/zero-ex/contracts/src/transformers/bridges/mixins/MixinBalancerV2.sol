@@ -69,6 +69,11 @@ contract MixinBalancerV2 {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 
+    struct BalancerV2BridgeData {
+        IBalancerV2Vault vault;
+        bytes32 poolId;
+    }
+
     function _tradeBalancerV2(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
@@ -79,17 +84,14 @@ contract MixinBalancerV2 {
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.
-        (IBalancerV2Vault vault, bytes32 poolId) = abi.decode(
-            bridgeData,
-            (IBalancerV2Vault, bytes32)
-        );
+        BalancerV2BridgeData memory data = abi.decode(bridgeData, (BalancerV2BridgeData));
 
         // Grant an allowance to the exchange to spend `fromTokenAddress` token.
-        sellToken.approveIfBelow(address(vault), sellAmount);
+        sellToken.approveIfBelow(address(data.vault), sellAmount);
 
         // Sell the entire sellAmount
         IBalancerV2Vault.SingleSwap memory request = IBalancerV2Vault.SingleSwap({
-            poolId: poolId,
+            poolId: data.poolId,
             kind: IBalancerV2Vault.SwapKind.GIVEN_IN,
             assetIn: sellToken,
             assetOut: buyToken,
@@ -104,7 +106,7 @@ contract MixinBalancerV2 {
             toInternalBalance: false
         });
 
-        boughtAmount = vault.swap(
+        boughtAmount = data.vault.swap(
             request,
             funds,
             1, // min amount out
