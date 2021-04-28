@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.8.0 - _April 28, 2021_
+
+    * Prune paths which cannot improve the best path (#183)
+    * Use FastABI for Sampler ABI encoding and decoding (#183)
+
 ## v6.7.0 - _April 26, 2021_
 
     * Support PancakeSwap V2 (#211)

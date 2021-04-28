@@ -10,7 +10,8 @@
                 "note": "Use FastABI for Sampler ABI encoding and decoding",
                 "pr": 183
             }
-        ]
+        ],
+        "timestamp": 1619596077
     },
     {
         "version": "6.7.0",
