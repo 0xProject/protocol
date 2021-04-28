@@ -152,7 +152,7 @@ function dexSamplesToFills(
         const { source, fillData } = sample;
         const input = sample.input.minus(prevSample ? prevSample.input : 0);
         const output = sample.output.minus(prevSample ? prevSample.output : 0);
-        const fee = fees[source] === undefined ? 0 : fees[source]!(sample.fillData);
+        const fee = fees[source] === undefined ? 0 : fees[source]!(sample.fillData) || 0;
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
             // Only the first fill in a DEX path incurs a penalty.

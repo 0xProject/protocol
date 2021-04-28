@@ -3,6 +3,7 @@ export {
     ContractEvent,
     ContractFunctionObj,
     ContractTxFunctionObj,
+    EncoderOverrides,
     SendTransactionOpts,
     SubscriptionErrors,
 } from '@0x/base-contract';

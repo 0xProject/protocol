@@ -152,6 +152,17 @@ export class Path {
         return getRate(this.side, input, output);
     }
 
+    /**
+     * Returns the best possible rate this path can offer, given the fills.
+     */
+    public bestRate(): BigNumber {
+        const best = this.fills.reduce((prevRate, curr) => {
+            const currRate = getRate(this.side, curr.input, curr.output);
+            return prevRate.isLessThan(currRate) ? currRate : prevRate;
+        }, new BigNumber(0));
+        return best;
+    }
+
     public adjustedSlippage(maxRate: BigNumber): number {
         if (maxRate.eq(0)) {
             return 0;
