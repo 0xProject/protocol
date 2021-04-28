@@ -563,6 +563,7 @@ export class MarketOperationUtils {
             const nonNativeOptimalPath = await findOptimalPathAsync(side, nonNativeFills, inputAmount, opts.runLimit, {
                 ...penaltyOpts,
                 exchangeProxyOverhead: (sourceFlags: number) =>
+                    // tslint:disable-next-line: no-bitwise
                     penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
             });
             // Calculate the slippage of on-chain sources compared to the most optimal path
