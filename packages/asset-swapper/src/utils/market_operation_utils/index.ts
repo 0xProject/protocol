@@ -560,7 +560,11 @@ export class MarketOperationUtils {
             // We create a fallback path that is exclusive of Native liquidity
             // This is the optimal on-chain path for the entire input amount
             const nonNativeFills = fills.filter(p => p.length > 0 && p[0].source !== ERC20BridgeSource.Native);
-            const nonNativeOptimalPath = await findOptimalPathAsync(side, nonNativeFills, inputAmount, opts.runLimit);
+            const nonNativeOptimalPath = await findOptimalPathAsync(side, nonNativeFills, inputAmount, opts.runLimit, {
+                ...penaltyOpts,
+                exchangeProxyOverhead: (sourceFlags: number) =>
+                    penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
+            });
             // Calculate the slippage of on-chain sources compared to the most optimal path
             if (
                 nonNativeOptimalPath !== undefined &&
