@@ -54,7 +54,7 @@ enum EnvVarType {
     NonEmptyString,
     APIKeys,
     PrivateKeys,
-    RfqtMakerAssetOfferings,
+    RfqMakerAssetOfferings,
     RateLimitConfig,
     LiquidityProviderRegistry,
     JsonStringList,
@@ -308,8 +308,12 @@ export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(proc
     : assertEnvVarType(
           'RFQT_MAKER_ASSET_OFFERINGS',
           process.env.RFQT_MAKER_ASSET_OFFERINGS,
-          EnvVarType.RfqtMakerAssetOfferings,
+          EnvVarType.RfqMakerAssetOfferings,
       );
+
+export const META_TX_WORKER_REGISTRY: string | undefined = _.isEmpty(process.env.META_TX_WORKER_REGISTRY)
+    ? undefined
+    : assertEnvVarType('META_TX_WORKER_REGISTRY', process.env.META_TX_WORKER_REGISTRY, EnvVarType.ETHAddressHex);
 
 // tslint:disable-next-line:boolean-naming
 export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
@@ -625,7 +629,7 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
         case EnvVarType.JsonStringList:
             assert.isString(name, value);
             return JSON.parse(value);
-        case EnvVarType.RfqtMakerAssetOfferings:
+        case EnvVarType.RfqMakerAssetOfferings:
             const offerings: RfqMakerAssetOfferings = JSON.parse(value);
             // tslint:disable-next-line:forin
             for (const makerEndpoint in offerings) {
