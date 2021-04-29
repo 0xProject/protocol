@@ -12,6 +12,7 @@ import {
     CURVE_MAINNET_INFOS,
     ELLIPSIS_BSC_INFOS,
     JULSWAP_ROUTER_BY_CHAIN_ID,
+    KYBER_BANNED_RESERVES,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     MAX_DODOV2_POOLS_QUERIED,
@@ -36,7 +37,11 @@ import { CurveInfo, ERC20BridgeSource } from './types';
  * @param reserveId Kyber reserveId
  */
 export function isAllowedKyberReserveId(reserveId: string): boolean {
-    return reserveId !== NULL_BYTES && !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX);
+    return (
+        reserveId !== NULL_BYTES &&
+        !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX) &&
+        !KYBER_BANNED_RESERVES.includes(reserveId)
+    );
 }
 
 // tslint:disable-next-line: completed-docs ban-types

@@ -1,5 +1,28 @@
 [
     {
+        "version": "6.9.0",
+        "changes": [
+            {
+                "note": "Remove conflicting Kyber reserve",
+                "pr": 216
+            }
+        ]
+    },
+    {
+        "version": "6.8.0",
+        "changes": [
+            {
+                "note": "Prune paths which cannot improve the best path",
+                "pr": 183
+            },
+            {
+                "note": "Use FastABI for Sampler ABI encoding and decoding",
+                "pr": 183
+            }
+        ],
+        "timestamp": 1619596077
+    },
+    {
         "version": "6.7.0",
         "changes": [
             {

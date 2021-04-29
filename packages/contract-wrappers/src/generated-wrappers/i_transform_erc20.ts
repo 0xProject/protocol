@@ -3,6 +3,7 @@
 // tslint:disable:no-unused-variable
 import {
     AwaitTransactionSuccessOpts,
+    EncoderOverrides,
     ContractFunctionObj,
     ContractTxFunctionObj,
     SendTransactionOpts,
@@ -468,6 +469,9 @@ export class ITransformERC20Contract extends BaseContract {
     }
 
     public getABIDecodedReturnData<T>(methodName: string, callData: string): T {
+        if (this._encoderOverrides.decodeOutput) {
+            return this._encoderOverrides.decodeOutput(methodName, callData);
+        }
         const functionSignature = this.getFunctionSignature(methodName);
         const self = (this as any) as ITransformERC20Contract;
         const abiEncoder = self._lookupAbiEncoder(functionSignature);
@@ -1082,7 +1086,7 @@ export class ITransformERC20Contract extends BaseContract {
         txDefaults?: Partial<TxData>,
         logDecodeDependencies?: { [contractName: string]: ContractAbi },
         deployedBytecode: string | undefined = ITransformERC20Contract.deployedBytecode,
-        encodingRules?: EncodingRules,
+        encoderOverrides?: Partial<EncoderOverrides>,
     ) {
         super(
             'ITransformERC20',
@@ -1092,7 +1096,7 @@ export class ITransformERC20Contract extends BaseContract {
             txDefaults,
             logDecodeDependencies,
             deployedBytecode,
-            encodingRules,
+            encoderOverrides,
         );
         classUtils.bindAll(this, ['_abiEncoderByFunctionSignature', 'address', '_web3Wrapper']);
         this._subscriptionManager = new SubscriptionManager<ITransformERC20EventArgs, ITransformERC20Events>(

@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import { MarketOperation } from '../../types';
 
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
-import { Fill } from './types';
+import { ERC20BridgeSource, Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -22,12 +22,13 @@ export async function findOptimalPathAsync(
     opts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
 ): Promise<Path | undefined> {
     // Sort fill arrays by descending adjusted completed rate.
-    const sortedPaths = fillsToSortedPaths(fills, side, targetInput, opts);
+    // Remove any paths which cannot impact the optimal path
+    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts), side);
     if (sortedPaths.length === 0) {
         return undefined;
     }
+    const rates = rateBySourcePathId(sortedPaths);
     let optimalPath = sortedPaths[0];
-    const rates = rateBySourcePathId(side, fills, targetInput);
     for (const [i, path] of sortedPaths.slice(1).entries()) {
         optimalPath = mixPaths(side, optimalPath, path, targetInput, runLimit * RUN_LIMIT_DECAY_FACTOR ** i, rates);
         // Yield to event loop.
@@ -44,8 +45,45 @@ export function fillsToSortedPaths(
     opts: PathPenaltyOpts,
 ): Path[] {
     const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
-    const sortedPaths = paths.sort((a, b) => b.adjustedCompleteRate().comparedTo(a.adjustedCompleteRate()));
+    const sortedPaths = paths.sort((a, b) => {
+        const aRate = a.adjustedCompleteRate();
+        const bRate = b.adjustedCompleteRate();
+        // There is a case where the adjusted completed rate isn't sufficient for the desired amount
+        // resulting in a NaN div by 0 (output)
+        if (bRate.isNaN()) {
+            return -1;
+        }
+        if (aRate.isNaN()) {
+            return 1;
+        }
+        return bRate.comparedTo(aRate);
+    });
     return sortedPaths;
+}
+
+// Remove paths which have no impact on the optimal path
+export function reducePaths(sortedPaths: Path[], side: MarketOperation): Path[] {
+    // Any path which has a min rate that is less than the best adjusted completed rate has no chance of improving
+    // the overall route.
+    const bestNonNativeCompletePath = sortedPaths.filter(
+        p => p.isComplete() && p.fills[0].source !== ERC20BridgeSource.Native,
+    )[0];
+
+    // If there is no complete path then just go ahead with the sorted paths
+    // I.e if the token only exists on sources which cannot sell to infinity
+    // or buys where X is greater than all the tokens available in the pools
+    if (!bestNonNativeCompletePath) {
+        return sortedPaths;
+    }
+    const bestNonNativeCompletePathAdjustedRate = bestNonNativeCompletePath.adjustedCompleteRate();
+    if (!bestNonNativeCompletePathAdjustedRate.isGreaterThan(0)) {
+        return sortedPaths;
+    }
+
+    const filteredPaths = sortedPaths.filter(p =>
+        p.bestRate().isGreaterThanOrEqualTo(bestNonNativeCompletePathAdjustedRate),
+    );
+    return filteredPaths;
 }
 
 function mixPaths(
@@ -98,17 +136,6 @@ function mixPaths(
     return bestPath;
 }
 
-function rateBySourcePathId(
-    side: MarketOperation,
-    fills: Fill[][],
-    targetInput: BigNumber,
-): { [id: string]: BigNumber } {
-    const flattenedFills = _.flatten(fills);
-    const sourcePathIds = flattenedFills.filter(f => f.index === 0).map(f => f.sourcePathId);
-    return Object.assign(
-        {},
-        ...sourcePathIds.map(s => ({
-            [s]: Path.create(side, flattenedFills.filter(f => f.sourcePathId === s), targetInput).adjustedRate(),
-        })),
-    );
+function rateBySourcePathId(paths: Path[]): { [id: string]: BigNumber } {
+    return _.fromPairs(paths.map(p => [p.fills[0].sourcePathId, p.adjustedRate()]));
 }

@@ -3,6 +3,7 @@
 // tslint:disable:no-unused-variable
 import {
     AwaitTransactionSuccessOpts,
+    EncoderOverrides,
     ContractFunctionObj,
     ContractTxFunctionObj,
     SendTransactionOpts,
@@ -752,6 +753,9 @@ export class ForwarderContract extends BaseContract {
     }
 
     public getABIDecodedReturnData<T>(methodName: string, callData: string): T {
+        if (this._encoderOverrides.decodeOutput) {
+            return this._encoderOverrides.decodeOutput(methodName, callData);
+        }
         const functionSignature = this.getFunctionSignature(methodName);
         const self = (this as any) as ForwarderContract;
         const abiEncoder = self._lookupAbiEncoder(functionSignature);
@@ -1589,7 +1593,7 @@ export class ForwarderContract extends BaseContract {
         txDefaults?: Partial<TxData>,
         logDecodeDependencies?: { [contractName: string]: ContractAbi },
         deployedBytecode: string | undefined = ForwarderContract.deployedBytecode,
-        encodingRules?: EncodingRules,
+        encoderOverrides?: Partial<EncoderOverrides>,
     ) {
         super(
             'Forwarder',
@@ -1599,7 +1603,7 @@ export class ForwarderContract extends BaseContract {
             txDefaults,
             logDecodeDependencies,
             deployedBytecode,
-            encodingRules,
+            encoderOverrides,
         );
         classUtils.bindAll(this, ['_abiEncoderByFunctionSignature', 'address', '_web3Wrapper']);
         this._subscriptionManager = new SubscriptionManager<ForwarderEventArgs, ForwarderEvents>(

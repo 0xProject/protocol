@@ -3,6 +3,7 @@
 // tslint:disable:no-unused-variable
 import {
     AwaitTransactionSuccessOpts,
+    EncoderOverrides,
     ContractFunctionObj,
     ContractTxFunctionObj,
     SendTransactionOpts,
@@ -304,6 +305,9 @@ export class ILiquidityProviderContract extends BaseContract {
     }
 
     public getABIDecodedReturnData<T>(methodName: string, callData: string): T {
+        if (this._encoderOverrides.decodeOutput) {
+            return this._encoderOverrides.decodeOutput(methodName, callData);
+        }
         const functionSignature = this.getFunctionSignature(methodName);
         const self = (this as any) as ILiquidityProviderContract;
         const abiEncoder = self._lookupAbiEncoder(functionSignature);
@@ -477,7 +481,7 @@ export class ILiquidityProviderContract extends BaseContract {
         txDefaults?: Partial<TxData>,
         logDecodeDependencies?: { [contractName: string]: ContractAbi },
         deployedBytecode: string | undefined = ILiquidityProviderContract.deployedBytecode,
-        encodingRules?: EncodingRules,
+        encoderOverrides?: Partial<EncoderOverrides>,
     ) {
         super(
             'ILiquidityProvider',
@@ -487,7 +491,7 @@ export class ILiquidityProviderContract extends BaseContract {
             txDefaults,
             logDecodeDependencies,
             deployedBytecode,
-            encodingRules,
+            encoderOverrides,
         );
         classUtils.bindAll(this, ['_abiEncoderByFunctionSignature', 'address', '_web3Wrapper']);
         ILiquidityProviderContract.ABI().forEach((item, index) => {

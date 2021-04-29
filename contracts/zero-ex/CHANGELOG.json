@@ -6,7 +6,8 @@
                 "note": "bump feature version to 1.2",
                 "pr": 213
             }
-        ]
+        ],
+        "timestamp": 1619596077
     },
     {
         "version": "0.22.0",
