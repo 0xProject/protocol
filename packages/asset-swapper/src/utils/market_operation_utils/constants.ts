@@ -744,6 +744,7 @@ export const NERVE_BSC_INFOS: { [name: string]: CurveInfo } = {
  * 0xbb Bridged price reserve (i.e Uniswap/Curve)
  */
 export const KYBER_BRIDGED_LIQUIDITY_PREFIX = '0xbb';
+export const KYBER_BANNED_RESERVES = ['0xff4f6e65426974205175616e7400000000000000000000000000000000000000'];
 export const MAX_KYBER_RESERVES_QUERIED = 5;
 export const KYBER_CONFIG_BY_CHAIN_ID = valueByChainId<KyberSamplerOpts>(
     {
