@@ -6,7 +6,8 @@
                 "note": "Remove conflicting Kyber reserve",
                 "pr": 216
             }
-        ]
+        ],
+        "timestamp": 1619825976
     },
     {
         "version": "6.8.0",

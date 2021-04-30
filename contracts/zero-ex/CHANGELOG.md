@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.22.2 - _April 30, 2021_
+
+    * Dependencies updated
+
 ## v0.22.1 - _April 28, 2021_
 
     * bump feature version to 1.2 (#213)
@@ -16,6 +20,7 @@ CHANGELOG
 ## v0.21.1 - _April 12, 2021_
 
     * Dependencies updated
+    * BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap) (#208)
 
 ## v0.21.0 - _April 1, 2021_
 
