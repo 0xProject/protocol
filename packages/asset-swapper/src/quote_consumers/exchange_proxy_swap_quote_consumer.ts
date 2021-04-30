@@ -65,7 +65,18 @@ import {
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
-const PANCAKE_SWAP_FORKS = [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.BakerySwap, ERC20BridgeSource.SushiSwap];
+
+// use the same order in IPancakeSwapFeature.sol
+const PANCAKE_SWAP_FORKS = [
+    ERC20BridgeSource.PancakeSwap,
+    ERC20BridgeSource.PancakeSwapV2,
+    ERC20BridgeSource.BakerySwap,
+    ERC20BridgeSource.SushiSwap,
+    ERC20BridgeSource.ApeSwap,
+    ERC20BridgeSource.CafeSwap,
+    ERC20BridgeSource.CheeseSwap,
+    ERC20BridgeSource.JulSwap,
+];
 const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, {
     sendAsync(): void {
         return;
@@ -186,8 +197,13 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             this.chainId === ChainId.BSC &&
             isDirectSwapCompatible(quote, optsWithDefaults, [
                 ERC20BridgeSource.PancakeSwap,
+                ERC20BridgeSource.PancakeSwapV2,
                 ERC20BridgeSource.BakerySwap,
                 ERC20BridgeSource.SushiSwap,
+                ERC20BridgeSource.ApeSwap,
+                ERC20BridgeSource.CafeSwap,
+                ERC20BridgeSource.CheeseSwap,
+                ERC20BridgeSource.JulSwap,
             ])
         ) {
             const source = slippedOrders[0].source;
