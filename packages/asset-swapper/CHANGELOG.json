@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.9.1",
+        "changes": [
+            {
+                "note": "Temporarily remove PancakeV2 and BakerySwap from VIP"
+            }
+        ]
+    },
+    {
         "version": "6.9.0",
         "changes": [
             {

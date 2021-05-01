@@ -280,7 +280,7 @@ contract PancakeSwapFeature is
 
                 // Call pair.swap()
                 switch mload(0xA20) // fork
-                    case 1 {
+                    case 2 {
                         mstore(0xB00, BAKERYSWAP_PAIR_SWAP_CALL_SELECTOR_32)
                     }
                     default {
