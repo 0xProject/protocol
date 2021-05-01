@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.9.1 - _May 1, 2021_
+
+    * Temporarily remove PancakeV2 and BakerySwap from VIP
+
 ## v6.9.0 - _April 30, 2021_
 
     * Remove conflicting Kyber reserve (#216)
