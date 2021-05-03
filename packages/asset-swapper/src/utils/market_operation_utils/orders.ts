@@ -14,6 +14,7 @@ import {
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    FillData,
     GenericRouterFillData,
     KyberFillData,
     LiquidityProviderFillData,
@@ -41,6 +42,11 @@ export interface CreateOrderFromPathOpts {
     orderDomain: OrderDomain;
     contractAddresses: AssetSwapperContractAddresses;
     bridgeSlippage: number;
+}
+
+interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
+    // The uniswap-encoded path that can fll the maximum input amount.
+    uniswapPath: string;
 }
 
 export function createOrdersFromTwoHopSample(
@@ -265,7 +271,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([psmFillData.psmAddress, psmFillData.gemTokenAddress]);
             break;
         case ERC20BridgeSource.UniswapV3:
-            const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<UniswapV3FillData>).fillData;
+            const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
             bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.uniswapPath]);
             break;
         default:
@@ -286,12 +292,43 @@ export function createBridgeOrder(
         takerToken,
         makerAmount,
         takerAmount,
-        fillData: fill.fillData,
+        fillData: createFinalBridgeOrderFillDataFromCollapsedFill(fill),
         source: fill.source,
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
         fills: [fill],
     };
+}
+
+function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): FillData {
+    switch (fill.source) {
+        case ERC20BridgeSource.UniswapV3:
+        {
+            const fd = fill.fillData as UniswapV3FillData;
+            return {
+                router: fd.router,
+                tokenAddressPath: fd.tokenAddressPath,
+                uniswapPath: getBestUniswapV3PathForInputAmount(fd, fill.input),
+            };
+        }
+        default:
+        break;
+    }
+    return fill.fillData;
+}
+
+function getBestUniswapV3PathForInputAmount(fillData: UniswapV3FillData, inputAmount: BigNumber): string {
+    if (fillData.pathAmounts.length === 0) {
+        throw new Error(`No Uniswap V3 paths`);
+    }
+    // Find the best path that can satisfy `inputAmount`.
+    // Assumes `fillData.pathAmounts` is sorted ascending.
+    for (const { inputAmount: pathInputAmount, uniswapPath } of fillData.pathAmounts) {
+        if (pathInputAmount.gte(inputAmount)) {
+            return uniswapPath;
+        }
+    }
+    return fillData.pathAmounts[fillData.pathAmounts.length - 1].uniswapPath;
 }
 
 export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, string] {

@@ -699,9 +699,12 @@ export class SamplerOperations {
                 );
                 fillData.router = router;
                 fillData.tokenAddressPath = tokenAddressPath;
-                fillData.uniswapPath = paths;
+                fillData.pathAmounts = paths.map((uniswapPath, i) => ({
+                    uniswapPath,
+                    inputAmount: takerFillAmounts[i],
+                }));
                 return samples;
-            }
+            },
         });
     }
 
@@ -724,9 +727,12 @@ export class SamplerOperations {
                 );
                 fillData.router = router;
                 fillData.tokenAddressPath = tokenAddressPath;
-                fillData.uniswapPath = paths;
+                fillData.pathAmounts = paths.map((uniswapPath, i) => ({
+                    uniswapPath,
+                    inputAmount: makerFillAmounts[i],
+                }));
                 return samples;
-            }
+            },
         });
     }
 
@@ -1566,6 +1572,17 @@ export class SamplerOperations {
                                 return [];
                             }
                             return this.getMakerPsmBuyQuotes(psmInfo, makerToken, takerToken, makerFillAmounts);
+                        case ERC20BridgeSource.UniswapV3: {
+                                const quoter = UNISWAPV3_QUOTER_BY_CHAIN_ID[this.chainId];
+                                const router = UNISWAPV3_ROUTER_BY_CHAIN_ID[this.chainId];
+                                if (!isValidAddress(router) || !isValidAddress(quoter)) {
+                                    return [];
+                                }
+                                return [
+                                    [takerToken, makerToken],
+                                    ...intermediateTokens.map(t => [takerToken, t, makerToken]),
+                                ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
+                            }
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

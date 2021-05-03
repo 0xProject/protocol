@@ -39,6 +39,7 @@ export const ONE_HOUR_IN_SECONDS = 60 * 60;
 export const ONE_SECOND_MS = 1000;
 export const NULL_BYTES = '0x';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const SAMPLER_ADDRESS = '0x5555555555555555555555555555555555555555';
 export const COMPARISON_PRICE_DECIMALS = 10;
 
 function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue: T): { [key in ChainId]: T } {

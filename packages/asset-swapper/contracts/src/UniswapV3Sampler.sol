@@ -138,7 +138,7 @@ contract UniswapV3Sampler
                 bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
                 try
                     quoter.quoteExactOutput
-                        { gas: QUOTE_GAS}
+                        { gas: QUOTE_GAS }
                         (uniswapPath, makerTokenAmounts[i])
                         returns (uint256 sellAmount)
                 {
@@ -210,7 +210,7 @@ contract UniswapV3Sampler
         }
         // Combine our pools with the next hop paths.
         poolPaths = new IUniswapV3Pool[][](
-            validPools.length * subsequentPoolPaths.length
+            numValidPools * subsequentPoolPaths.length
         );
         for (uint256 i = 0; i < numValidPools; ++i) {
             for (uint256 j = 0; j < subsequentPoolPaths.length; ++j) {
@@ -261,7 +261,7 @@ contract UniswapV3Sampler
         returns (bytes memory uniswapPath)
     {
         require(
-            tokenPath.length >= 2 && poolPath.length == tokenPath.length - 1,
+            tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1,
             "UniswapV3Sampler/invalid path lengths"
         );
         // Uniswap paths are tightly packed as:
@@ -269,16 +269,17 @@ contract UniswapV3Sampler
         uniswapPath = new bytes(tokenPath.length * 20 + poolPath.length * 3);
         uint256 o;
         assembly { o := add(uniswapPath, 32) }
-        for (uint256 i = 0; i < tokenPath.length - 1; ++i) {
-            IERC20TokenV06 inputToken = tokenPath[i];
-            IERC20TokenV06 outputToken = tokenPath[i+1];
-            uint24 poolFee = poolPath[i].fee();
+        for (uint256 i = 0; i < tokenPath.length; ++i) {
+            if (i > 0) {
+                uint24 poolFee = poolPath[i - 1].fee();
+                assembly {
+                    mstore(o, shl(232, poolFee))
+                    o := add(o, 3)
+                }
+            }
+            IERC20TokenV06 token = tokenPath[i];
             assembly {
-                mstore(o, shl(96, inputToken))
-                o := add(o, 20)
-                mstore(o, shl(232, poolFee))
-                o := add(o, 3)
-                mstore(o, shl(96, outputToken))
+                mstore(o, shl(96, token))
                 o := add(o, 20)
             }
         }

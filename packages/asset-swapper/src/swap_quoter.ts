@@ -27,7 +27,7 @@ import {
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
+import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
@@ -93,7 +93,7 @@ export class SwapQuoter {
             rfqt,
             tokenAdjacencyGraph,
             liquidityProviderRegistry,
-        } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
+        } = { ...constants.DEFAULT_SWAP_QUOTER_OPTS, ...options };
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
         assert.isNumber('chainId', chainId);
@@ -116,7 +116,7 @@ export class SwapQuoter {
         const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
         const defaultCodeOverrides = samplerBytecode
             ? {
-                  [this._contractAddresses.erc20BridgeSampler]: { code: samplerBytecode },
+                  [SAMPLER_ADDRESS]: { code: samplerBytecode },
               }
             : {};
         const samplerOverrides = _.assign(
@@ -125,7 +125,7 @@ export class SwapQuoter {
         );
         const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[]);
         const samplerContract = new ERC20BridgeSamplerContract(
-            this._contractAddresses.erc20BridgeSampler,
+            SAMPLER_ADDRESS,
             this.provider,
             {
                 gas: samplerGasLimit,

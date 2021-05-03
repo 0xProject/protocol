@@ -65,7 +65,7 @@ export enum ERC20BridgeSource {
     Component = 'Component',
     Saddle = 'Saddle',
     XSigma = 'xSigma',
-    UniswapV3 = 'UniswapV3',
+    UniswapV3 = 'Uniswap_V3',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -220,8 +220,8 @@ export interface HopInfo {
 
 export interface UniswapV3FillData extends FillData {
     tokenAddressPath: string[];
-    uniswapPath: string[];
     router: string;
+    pathAmounts: Array<{uniswapPath: string; inputAmount: BigNumber}>;
 }
 
 /**
