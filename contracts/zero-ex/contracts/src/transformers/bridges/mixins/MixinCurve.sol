@@ -21,6 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
@@ -30,6 +31,15 @@ contract MixinCurve {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
+
+    /// @dev Mainnet address of the WETH contract.
+    IEtherTokenV06 private immutable WETH;
+
+    constructor(IEtherTokenV06 weth)
+        public
+    {
+        WETH = weth;
+    }
 
 
     struct CurveBridgeData {
@@ -50,10 +60,17 @@ contract MixinCurve {
     {
         // Decode the bridge data to get the Curve metadata.
         CurveBridgeData memory data = abi.decode(bridgeData, (CurveBridgeData));
-        sellToken.approveIfBelow(data.curveAddress, sellAmount);
+        uint256 payableAmount;
+        if (sellToken == WETH) {
+            payableAmount = sellAmount;
+            WETH.withdraw(sellAmount);
+        } else {
+            sellToken.approveIfBelow(data.curveAddress, sellAmount);
+        }
+
         uint256 beforeBalance = buyToken.balanceOf(address(this));
         (bool success, bytes memory resultData) =
-            data.curveAddress.call(abi.encodeWithSelector(
+            data.curveAddress.call{value: payableAmount}(abi.encodeWithSelector(
                 data.exchangeFunctionSelector,
                 data.fromCoinIdx,
                 data.toCoinIdx,
@@ -65,6 +82,12 @@ contract MixinCurve {
         if (!success) {
             resultData.rrevert();
         }
+
+        if (buyToken == WETH) {
+            boughtAmount = address(this).balance;
+            WETH.deposit{ value: boughtAmount }();
+        }
+
         return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
 }

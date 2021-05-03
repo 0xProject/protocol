@@ -5,6 +5,9 @@
             {
                 "note": "Add LUSD Curve pool",
                 "pr": 218
+            },
+            {
+                "note": "Enable ETH based Curve pools"
             }
         ]
     },
