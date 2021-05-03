@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.10.0",
+        "changes": [
+            {
+                "note": "Add Balancer V2 integration",
+                "pr": 206
+            }
+        ]
+    },
+    {
         "version": "6.9.1",
         "changes": [
             {
