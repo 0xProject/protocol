@@ -334,7 +334,7 @@ export const CURVE_POOLS = {
     eurs: '0x0ce6a5ff5217e38315f87032cf90686c96627caa', // 23.eurs
     // seth: '0xc5424b857f758e906013f3555dad202e4bdb4567', // 24.seth
     aave: '0xdebf20617708857ebe4f679508e7b7863a8a8eee', // 25.aave
-    // curve steth: '0xdc24316b9ae028f1497c275eb9192a3ea0f67022' // 26.stETH
+    steth: '0xdc24316b9ae028f1497c275eb9192a3ea0f67022', // 26.stETH
     saave: '0xeb16ae0052ed37f479f7fe63849198df1765a733', // saave
     // ankreth: '0xa96a65c051bf88b4095ee1f2451c2a9d43f53ae2', // ankreth
     USDP: '0x42d7025938bec20b69cbae5a77421082407f053a', // usdp
@@ -639,6 +639,12 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.LUSD]: createCurveMetaTriPool({
         token: MAINNET_TOKENS.LUSD,
         pool: CURVE_POOLS.LUSD,
+        gasSchedule: 387e3,
+    }),
+    [CURVE_POOLS.steth]: createCurveExchangePool({
+        // This pool uses ETH
+        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.stETH],
+        pool: CURVE_POOLS.steth,
         gasSchedule: 387e3,
     }),
 };

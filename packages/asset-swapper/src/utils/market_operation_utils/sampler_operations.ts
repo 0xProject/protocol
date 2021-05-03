@@ -1136,8 +1136,8 @@ export class SamplerOperations {
                             return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                                 this.getCurveSellQuotes(
                                     pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
+                                    pool.takerTokenIdx,
+                                    pool.makerTokenIdx,
                                     takerFillAmounts,
                                     source,
                                 ),
@@ -1351,8 +1351,8 @@ export class SamplerOperations {
                             return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                                 this.getCurveBuyQuotes(
                                     pool,
-                                    pool.tokens.indexOf(takerToken),
-                                    pool.tokens.indexOf(makerToken),
+                                    pool.takerTokenIdx,
+                                    pool.makerTokenIdx,
                                     makerFillAmounts,
                                     source,
                                 ),
