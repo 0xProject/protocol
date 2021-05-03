@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.6.0",
+        "changes": [
+            {
+                "note": "Add BalancerV2, remove Smoothy, Component and Saddle in BridgeProtocol enum",
+                "pr": 206
+            }
+        ]
+    },
+    {
         "timestamp": 1619596077,
         "version": "1.5.1",
         "changes": [
