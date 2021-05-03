@@ -3,7 +3,8 @@
         "version": "6.10.0",
         "changes": [
             {
-                "note": "Add LUSD Curve pool"
+                "note": "Add LUSD Curve pool",
+                "pr": 218
             }
         ]
     },
