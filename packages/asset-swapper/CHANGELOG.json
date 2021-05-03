@@ -1,5 +1,24 @@
 [
     {
+        "version": "6.9.1",
+        "changes": [
+            {
+                "note": "Temporarily remove PancakeV2 and BakerySwap from VIP"
+            }
+        ],
+        "timestamp": 1619830995
+    },
+    {
+        "version": "6.9.0",
+        "changes": [
+            {
+                "note": "Remove conflicting Kyber reserve",
+                "pr": 216
+            }
+        ],
+        "timestamp": 1619825976
+    },
+    {
         "version": "6.8.0",
         "changes": [
             {
@@ -38,6 +57,10 @@
             {
                 "note": "Support `Ropsten` network",
                 "pr": 203
+            },
+            {
+                "note": "BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap), Saddle BTC pool, Curve gas schedule",
+                "pr": 208
             }
         ],
         "timestamp": 1618592834

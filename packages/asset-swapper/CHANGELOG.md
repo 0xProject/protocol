@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.9.1 - _May 1, 2021_
+
+    * Temporarily remove PancakeV2 and BakerySwap from VIP
+
+## v6.9.0 - _April 30, 2021_
+
+    * Remove conflicting Kyber reserve (#216)
+
 ## v6.8.0 - _April 28, 2021_
 
     * Prune paths which cannot improve the best path (#183)
@@ -21,6 +29,7 @@ CHANGELOG
 ## v6.6.0 - _April 16, 2021_
 
     * Support `Ropsten` network (#203)
+    * BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap), Saddle BTC pool, Curve gas schedule (#208)
 
 ## v6.5.3 - _April 14, 2021_
 

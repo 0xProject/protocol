@@ -66,11 +66,15 @@ export enum ERC20BridgeSource {
     Saddle = 'Saddle',
     // BSC only
     PancakeSwap = 'PancakeSwap',
+    PancakeSwapV2 = 'PancakeSwap_V2',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
     Belt = 'Belt',
     Ellipsis = 'Ellipsis',
-    PancakeSwapV2 = 'PancakeSwap_V2',
+    ApeSwap = 'ApeSwap',
+    CafeSwap = 'CafeSwap',
+    CheeseSwap = 'CheeseSwap',
+    JulSwap = 'JulSwap',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
