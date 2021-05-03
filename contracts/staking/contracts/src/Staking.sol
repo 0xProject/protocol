@@ -38,9 +38,18 @@ contract Staking is
         public
         onlyAuthorized
     {
-        // DANGER! When performing upgrades, take care to modify this logic
-        // to prevent accidentally clearing prior state.
-        _initMixinScheduler();
-        _initMixinParams();
+        uint256 currentEpoch_ = currentEpoch;
+        uint256 prevEpoch = currentEpoch_.safeSub(1);
+
+        // Patch corrupted state
+        aggregatedStatsByEpoch[prevEpoch].numPoolsToFinalize = 0;
+        this.endEpoch();
+
+        uint256 lastPoolId_ = uint256(lastPoolId);
+        for (uint256 i = 1; i <= lastPoolId_; i++) {
+            this.finalizePool(bytes32(i));
+        }
+        // Ensure that current epoch's state is not corrupted
+        aggregatedStatsByEpoch[currentEpoch_].numPoolsToFinalize = 0;
     }
 }
