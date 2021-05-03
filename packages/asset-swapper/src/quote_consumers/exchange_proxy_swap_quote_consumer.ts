@@ -259,7 +259,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (
             this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve])
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve]) &&
+            // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
+            // into WETH prior/post the trade.
+            // ETH buy/sell is supported
+            ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
         ) {
             const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
             return {
