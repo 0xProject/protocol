@@ -15,7 +15,7 @@ blockchainTests.configure({
     },
 });
 
-blockchainTests.fork.only('Staking patch mainnet fork tests', env => {
+blockchainTests.fork('Staking patch mainnet fork tests', env => {
     let stakingProxyContract: StakingProxyContract;
     let patchedStakingContract: StakingContract;
 
