@@ -293,6 +293,7 @@ export const MAINNET_TOKENS = {
     STABLEx: '0xcd91538b91b4ba7797d39a2f66e63810b50a33d0',
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
+    LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
 };
 
 export const BSC_TOKENS = {
@@ -342,6 +343,7 @@ export const CURVE_POOLS = {
     STABLEx: '0x3252efd4ea2d6c78091a1f43982ee2c3659cc3d1',
     alUSD: '0x43b4fdfd4ff969587185cdb6f0bd875c5fc83f8c',
     FRAX: '0xd632f22692fac7611d2aa1c0d552930d43caed3b',
+    LUSD: '0xed279fdd11ca84beef15af5d39bb4d4bee23f0ca',
 };
 
 export const SWERVE_POOLS = {
@@ -626,6 +628,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.FRAX]: createCurveMetaTriPool({
         token: MAINNET_TOKENS.FRAX,
         pool: CURVE_POOLS.FRAX,
+        gasSchedule: 387e3,
+    }),
+    [CURVE_POOLS.LUSD]: createCurveMetaTriPool({
+        token: MAINNET_TOKENS.LUSD,
+        pool: CURVE_POOLS.LUSD,
         gasSchedule: 387e3,
     }),
 };
