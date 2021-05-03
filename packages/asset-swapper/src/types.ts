@@ -18,7 +18,7 @@ import {
     OptimizedMarketOrder,
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
-import { QuoteReport } from './utils/quote_report_generator';
+import { PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
 
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).
@@ -169,6 +169,7 @@ export interface SwapQuoteBase {
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
+    priceComparisonsReport?: PriceComparisonsReport;
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;

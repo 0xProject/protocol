@@ -16,7 +16,14 @@ import {
     getNativeAdjustedMakerFillAmount,
 } from '../utils';
 
-import { generateQuoteReport, QuoteReport } from './../quote_report_generator';
+import {
+    dexSampleToReportSource,
+    generateQuoteReport,
+    multiHopSampleToReportSource,
+    nativeOrderToReportEntry,
+    PriceComparisonsReport,
+    QuoteReport,
+} from './../quote_report_generator';
 import { getComparisonPrices } from './comparison_price';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
@@ -677,7 +684,25 @@ export class MarketOperationUtils {
                 wholeOrderPrice,
             );
         }
-        return { ...optimizerResult, quoteReport };
+
+        let priceComparisonsReport: PriceComparisonsReport | undefined;
+        if (_opts.shouldIncludePriceComparisonsReport) {
+            const { quotes } = marketSideLiquidity;
+            const dexSources = _.flatten(quotes.dexQuotes).map(quote => dexSampleToReportSource(quote, side));
+            const multiHopSources = quotes.twoHopQuotes.map(quote => multiHopSampleToReportSource(quote, side));
+            const nativeSources = quotes.nativeOrders.map(order =>
+                nativeOrderToReportEntry(
+                    order.type,
+                    order as any,
+                    order.fillableTakerAmount,
+                    wholeOrderPrice,
+                    _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+                ),
+            );
+
+            priceComparisonsReport = { dexSources, multiHopSources, nativeSources };
+        }
+        return { ...optimizerResult, quoteReport, priceComparisonsReport };
     }
 
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {

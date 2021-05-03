@@ -9,7 +9,7 @@ import { BigNumber } from '@0x/utils';
 
 import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
-import { QuoteReport } from '../quote_report_generator';
+import { PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
@@ -401,6 +401,11 @@ export interface GetMarketOrdersOpts {
      * Whether to generate a quote report
      */
     shouldGenerateQuoteReport: boolean;
+
+    /**
+     * Whether to include price comparison data in the quote
+     */
+    shouldIncludePriceComparisonsReport: boolean;
     /**
      * Token addresses with a list of adjacent intermediary tokens to consider
      * hopping to. E.g DAI->USDC via an adjacent token WETH
@@ -435,6 +440,7 @@ export interface OptimizerResult {
 
 export interface OptimizerResultWithReport extends OptimizerResult {
     quoteReport?: QuoteReport;
+    priceComparisonsReport?: PriceComparisonsReport;
 }
 
 export type MarketDepthSide = Array<Array<DexSample<FillData>>>;
