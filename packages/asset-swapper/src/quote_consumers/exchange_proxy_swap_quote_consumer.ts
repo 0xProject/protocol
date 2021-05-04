@@ -197,9 +197,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             this.chainId === ChainId.BSC &&
             isDirectSwapCompatible(quote, optsWithDefaults, [
                 ERC20BridgeSource.PancakeSwap,
-                // Temporarily removed until latest PancakeSwap VIP has been deployed
-                // ERC20BridgeSource.PancakeSwapV2,
-                // ERC20BridgeSource.BakerySwap,
+                ERC20BridgeSource.PancakeSwapV2,
+                ERC20BridgeSource.BakerySwap,
                 ERC20BridgeSource.SushiSwap,
                 ERC20BridgeSource.ApeSwap,
                 ERC20BridgeSource.CafeSwap,
