@@ -1300,7 +1300,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
-        let gas = 260e3;
+        let gas = 160e3;
         const path = (fillData as UniswapV3FillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 117e3; // +117k for each hop.
