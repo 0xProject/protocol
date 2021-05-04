@@ -86,6 +86,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
+            ERC20BridgeSource.XSigma,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -152,6 +153,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
+            ERC20BridgeSource.XSigma,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -375,6 +377,10 @@ export const BELT_POOLS = {
 
 export const ELLIPSIS_POOLS = {
     threePool: '0x160caed03795365f3a589f10c379ffa7d75d4e76',
+};
+
+export const XSIGMA_POOLS = {
+    stable: '0x3333333ACdEdBbC9Ad7bda0876e60714195681c5',
 };
 
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
@@ -681,6 +687,14 @@ export const ELLIPSIS_BSC_INFOS: { [name: string]: CurveInfo } = {
         tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDC, BSC_TOKENS.USDT],
         pool: ELLIPSIS_POOLS.threePool,
         gasSchedule: 140e3,
+    }),
+};
+
+export const XSIGMA_MAINNET_INFOS: { [name: string]: CurveInfo } = {
+    [XSIGMA_POOLS.stable]: createCurveExchangePool({
+        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+        pool: XSIGMA_POOLS.stable,
+        gasSchedule: 150e3,
     }),
 };
 
@@ -1080,6 +1094,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Ellipsis]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Smoothy]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Saddle]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
     [ERC20BridgeSource.UniswapV2]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
