@@ -1173,18 +1173,12 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Balancer]: () => 120e3,
-    [ERC20BridgeSource.BalancerV2]: () => 120e3, // TODO (xianny): is this accurate?
+    [ERC20BridgeSource.BalancerV2]: () => 100e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
         const psmFillData = fillData as MakerPsmFillData;
-
-        // TODO(kimpers): update with more accurate numbers after allowances have been set
-        if (psmFillData.takerToken === psmFillData.gemTokenAddress) {
-            return psmFillData.isSellOperation ? 389e3 : 423e3;
-        } else {
-            return 444e3;
-        }
+        return psmFillData.takerToken === psmFillData.gemTokenAddress ? 210e3 : 290e3;
     },
     [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Shell]: () => 170e3,
