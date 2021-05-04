@@ -21,6 +21,10 @@
             {
                 "note": "Disable WETH based SnowSwap pools",
                 "pr": 220
+            },
+            {
+                "note": "PLP now includes a fallback due to observed collisions",
+                "pr": 223
             }
         ]
     },

@@ -554,25 +554,29 @@ export class MarketOperationUtils {
             throw new Error(AggregationError.NoOptimalPath);
         }
 
-        // Generate a fallback path if native orders are in the optimal path.
-        const nativeFills = optimalPath.fills.filter(f => f.source === ERC20BridgeSource.Native);
-        if (opts.allowFallback && nativeFills.length !== 0) {
+        // Generate a fallback path if sources requiring a fallback (fragile) are in the optimal path.
+        // Native is relatively fragile (limit order collision, expiry, or lack of available maker balance)
+        // LiquidityProvider is relatively fragile (collision)
+        const fragileSources = [ERC20BridgeSource.Native, ERC20BridgeSource.LiquidityProvider];
+        const fragileFills = optimalPath.fills.filter(f => fragileSources.includes(f.source));
+        if (opts.allowFallback && fragileFills.length !== 0) {
             // We create a fallback path that is exclusive of Native liquidity
             // This is the optimal on-chain path for the entire input amount
-            const nonNativeFills = fills.filter(p => p.length > 0 && p[0].source !== ERC20BridgeSource.Native);
-            const nonNativeOptimalPath = await findOptimalPathAsync(side, nonNativeFills, inputAmount, opts.runLimit, {
+            const sturdyFills = fills.filter(p => p.length > 0 && p[0].source !== ERC20BridgeSource.Native);
+            const sturdyOptimalPath = await findOptimalPathAsync(side, sturdyFills, inputAmount, opts.runLimit, {
                 ...penaltyOpts,
                 exchangeProxyOverhead: (sourceFlags: number) =>
                     // tslint:disable-next-line: no-bitwise
                     penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
             });
             // Calculate the slippage of on-chain sources compared to the most optimal path
+            // if within an acceptable threshold we enable a fallback to prevent reverts
             if (
-                nonNativeOptimalPath !== undefined &&
-                (nativeFills.length === optimalPath.fills.length ||
-                    nonNativeOptimalPath.adjustedSlippage(optimalPathRate) <= maxFallbackSlippage)
+                sturdyOptimalPath !== undefined &&
+                (fragileFills.length === optimalPath.fills.length ||
+                    sturdyOptimalPath.adjustedSlippage(optimalPathRate) <= maxFallbackSlippage)
             ) {
-                optimalPath.addFallback(nonNativeOptimalPath);
+                optimalPath.addFallback(sturdyOptimalPath);
             }
         }
         const collapsedPath = optimalPath.collapse(orderOpts);
