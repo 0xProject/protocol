@@ -3,6 +3,10 @@
         "version": "6.10.0",
         "changes": [
             {
+                "note": "Reactivate PancakeSwapV2 and BakerySwap VIP on BSC",
+                "pr": 222
+            },
+            {
                 "note": "Add LUSD Curve pool",
                 "pr": 218
             },
