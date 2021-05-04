@@ -330,11 +330,11 @@ export const CURVE_POOLS = {
     oBTC: '0xd81da8d904b52208541bade1bd6595d8a251f8dd', // 21.obtc
     UST: '0x890f4e345b1daed0367a877a1612f86a1f86985f', // 22.ust
     eurs: '0x0ce6a5ff5217e38315f87032cf90686c96627caa', // 23.eurs
-    // seth: '0xc5424b857f758e906013f3555dad202e4bdb4567', // 24.seth
+    seth: '0xc5424b857f758e906013f3555dad202e4bdb4567', // 24.seth
     aave: '0xdebf20617708857ebe4f679508e7b7863a8a8eee', // 25.aave
     steth: '0xdc24316b9ae028f1497c275eb9192a3ea0f67022', // 26.stETH
     saave: '0xeb16ae0052ed37f479f7fe63849198df1765a733', // saave
-    // ankreth: '0xa96a65c051bf88b4095ee1f2451c2a9d43f53ae2', // ankreth
+    ankreth: '0xa96a65c051bf88b4095ee1f2451c2a9d43f53ae2', // ankreth
     USDP: '0x42d7025938bec20b69cbae5a77421082407f053a', // usdp
     ib: '0x2dded6da1bf5dbdf597c45fcfaa3194e53ecfeaf', // iron bank
     link: '0xf178c0b5bb7e7abf4e12a4838c7b7c5ba2c623c0', // link
@@ -639,7 +639,19 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         // This pool uses ETH
         tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.stETH],
         pool: CURVE_POOLS.steth,
-        gasSchedule: 387e3,
+        gasSchedule: 151e3,
+    }),
+    [CURVE_POOLS.seth]: createCurveExchangePool({
+        // This pool uses ETH
+        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.sETH],
+        pool: CURVE_POOLS.seth,
+        gasSchedule: 187e3,
+    }),
+    [CURVE_POOLS.ankreth]: createCurveExchangePool({
+        // This pool uses ETH
+        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.ankrETH],
+        pool: CURVE_POOLS.ankreth,
+        gasSchedule: 125e3,
     }),
 };
 
