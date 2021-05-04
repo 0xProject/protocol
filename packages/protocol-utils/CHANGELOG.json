@@ -1,5 +1,24 @@
 [
     {
+        "timestamp": 1619596077,
+        "version": "1.5.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "1.5.0",
+        "changes": [
+            {
+                "note": "Add support for orderSignerRegistry in getSignatureWithProviderAsync()",
+                "pr": 195
+            }
+        ],
+        "timestamp": 1619481586
+    },
+    {
         "timestamp": 1618259868,
         "version": "1.4.1",
         "changes": [

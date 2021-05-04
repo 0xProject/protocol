@@ -3,6 +3,7 @@
 // tslint:disable:no-unused-variable
 import {
     AwaitTransactionSuccessOpts,
+    EncoderOverrides,
     ContractFunctionObj,
     ContractTxFunctionObj,
     SendTransactionOpts,
@@ -24,9 +25,10 @@ import {
     TransactionReceiptWithDecodedLogs,
     TxData,
     TxDataPayable,
+    TxAccessListWithGas,
     SupportedProvider,
 } from 'ethereum-types';
-import { BigNumber, classUtils, hexUtils, logUtils, providerUtils } from '@0x/utils';
+import { AbiEncoder, BigNumber, classUtils, EncodingRules, hexUtils, logUtils, providerUtils } from '@0x/utils';
 import { EventCallback, IndexedFilterValues, SimpleContractArtifact } from '@0x/types';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { assert } from '@0x/assert';
@@ -50,11 +52,7 @@ export class ILiquidityProviderContract extends BaseContract {
         txDefaults: Partial<TxData>,
         logDecodeDependencies: { [contractName: string]: ContractArtifact | SimpleContractArtifact },
     ): Promise<ILiquidityProviderContract> {
-        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema, [
-            schemas.addressSchema,
-            schemas.numberSchema,
-            schemas.jsNumber,
-        ]);
+        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema);
         if (artifact.compilerOutput === undefined) {
             throw new Error('Compiler output not found in the artifact file');
         }
@@ -83,11 +81,7 @@ export class ILiquidityProviderContract extends BaseContract {
         txDefaults: Partial<TxData>,
         logDecodeDependencies: { [contractName: string]: ContractArtifact | SimpleContractArtifact },
     ): Promise<ILiquidityProviderContract> {
-        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema, [
-            schemas.addressSchema,
-            schemas.numberSchema,
-            schemas.jsNumber,
-        ]);
+        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema);
         if (artifact.compilerOutput === undefined) {
             throw new Error('Compiler output not found in the artifact file');
         }
@@ -123,11 +117,7 @@ export class ILiquidityProviderContract extends BaseContract {
         logDecodeDependencies: { [contractName: string]: ContractAbi },
     ): Promise<ILiquidityProviderContract> {
         assert.isHexString('bytecode', bytecode);
-        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema, [
-            schemas.addressSchema,
-            schemas.numberSchema,
-            schemas.jsNumber,
-        ]);
+        assert.doesConformToSchema('txDefaults', txDefaults, schemas.txDataSchema);
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         const constructorAbi = BaseContract._lookupConstructorAbi(abi);
         [] = BaseContract._formatABIDataItemList(constructorAbi.inputs, [], BaseContract._bigNumberToString);
@@ -315,6 +305,9 @@ export class ILiquidityProviderContract extends BaseContract {
     }
 
     public getABIDecodedReturnData<T>(methodName: string, callData: string): T {
+        if (this._encoderOverrides.decodeOutput) {
+            return this._encoderOverrides.decodeOutput(methodName, callData);
+        }
         const functionSignature = this.getFunctionSignature(methodName);
         const self = (this as any) as ILiquidityProviderContract;
         const abiEncoder = self._lookupAbiEncoder(functionSignature);
@@ -379,6 +372,16 @@ export class ILiquidityProviderContract extends BaseContract {
                     ...txData,
                 });
                 return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
             },
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -478,6 +481,7 @@ export class ILiquidityProviderContract extends BaseContract {
         txDefaults?: Partial<TxData>,
         logDecodeDependencies?: { [contractName: string]: ContractAbi },
         deployedBytecode: string | undefined = ILiquidityProviderContract.deployedBytecode,
+        encoderOverrides?: Partial<EncoderOverrides>,
     ) {
         super(
             'ILiquidityProvider',
@@ -487,6 +491,7 @@ export class ILiquidityProviderContract extends BaseContract {
             txDefaults,
             logDecodeDependencies,
             deployedBytecode,
+            encoderOverrides,
         );
         classUtils.bindAll(this, ['_abiEncoderByFunctionSignature', 'address', '_web3Wrapper']);
         ILiquidityProviderContract.ABI().forEach((item, index) => {

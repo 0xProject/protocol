@@ -61,7 +61,7 @@ export async function ethSignHashWithProviderAsync(
  */
 export function ethSignHashWithKey(hash: string, key: string): Signature {
     const ethHash = hexUtils.toHex(
-        ethjs.sha3(hexUtils.concat(ethjs.toBuffer('\x19Ethereum Signed Message:\n32'), hash)),
+        ethjs.keccak256(ethjs.toBuffer(hexUtils.concat(Buffer.from('\x19Ethereum Signed Message:\n32'), hash))),
     );
     return {
         ...ecSignHashWithKey(ethHash, key),

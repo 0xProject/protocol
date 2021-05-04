@@ -1,10 +1,75 @@
 [
     {
+        "version": "6.10.0",
+        "changes": [
+            {
+                "note": "Add LUSD Curve pool",
+                "pr": 218
+            }
+        ]
+    },
+    {
+        "version": "6.9.1",
+        "changes": [
+            {
+                "note": "Temporarily remove PancakeV2 and BakerySwap from VIP"
+            }
+        ],
+        "timestamp": 1619830995
+    },
+    {
+        "version": "6.9.0",
+        "changes": [
+            {
+                "note": "Remove conflicting Kyber reserve",
+                "pr": 216
+            }
+        ],
+        "timestamp": 1619825976
+    },
+    {
+        "version": "6.8.0",
+        "changes": [
+            {
+                "note": "Prune paths which cannot improve the best path",
+                "pr": 183
+            },
+            {
+                "note": "Use FastABI for Sampler ABI encoding and decoding",
+                "pr": 183
+            }
+        ],
+        "timestamp": 1619596077
+    },
+    {
+        "version": "6.7.0",
+        "changes": [
+            {
+                "note": "Support PancakeSwap V2",
+                "pr": 211
+            }
+        ],
+        "timestamp": 1619481586
+    },
+    {
+        "version": "6.6.1",
+        "changes": [
+            {
+                "note": "Fixing Positive Slippage logic to not force the EP route",
+                "pr": 209
+            }
+        ]
+    },
+    {
         "version": "6.6.0",
         "changes": [
             {
                 "note": "Support `Ropsten` network",
                 "pr": 203
+            },
+            {
+                "note": "BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap), Saddle BTC pool, Curve gas schedule",
+                "pr": 208
             }
         ],
         "timestamp": 1618592834

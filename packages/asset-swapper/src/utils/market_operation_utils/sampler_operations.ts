@@ -141,6 +141,13 @@ export class SamplerOperations {
         orders: SignedNativeOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
+        // Skip checking empty or invalid orders on-chain, returning a constant
+        if (orders.length === 0) {
+            return SamplerOperations.constant<BigNumber[]>([]);
+        }
+        if (orders.length === 1 && orders[0].order.maker === NULL_ADDRESS) {
+            return SamplerOperations.constant<BigNumber[]>([ZERO_AMOUNT]);
+        }
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
@@ -154,6 +161,13 @@ export class SamplerOperations {
         orders: SignedNativeOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
+        // Skip checking empty or invalid orders on-chain, returning a constant
+        if (orders.length === 0) {
+            return SamplerOperations.constant<BigNumber[]>([]);
+        }
+        if (orders.length === 1 && orders[0].order.maker === NULL_ADDRESS) {
+            return SamplerOperations.constant<BigNumber[]>([ZERO_AMOUNT]);
+        }
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
@@ -1086,8 +1100,13 @@ export class SamplerOperations {
                         case ERC20BridgeSource.SushiSwap:
                         case ERC20BridgeSource.CryptoCom:
                         case ERC20BridgeSource.PancakeSwap:
+                        case ERC20BridgeSource.PancakeSwapV2:
                         case ERC20BridgeSource.BakerySwap:
                         case ERC20BridgeSource.KyberDmm:
+                        case ERC20BridgeSource.ApeSwap:
+                        case ERC20BridgeSource.CafeSwap:
+                        case ERC20BridgeSource.CheeseSwap:
+                        case ERC20BridgeSource.JulSwap:
                             const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                             if (!isValidAddress(uniLikeRouter)) {
                                 return [];
@@ -1296,8 +1315,13 @@ export class SamplerOperations {
                         case ERC20BridgeSource.SushiSwap:
                         case ERC20BridgeSource.CryptoCom:
                         case ERC20BridgeSource.PancakeSwap:
+                        case ERC20BridgeSource.PancakeSwapV2:
                         case ERC20BridgeSource.BakerySwap:
                         case ERC20BridgeSource.KyberDmm:
+                        case ERC20BridgeSource.ApeSwap:
+                        case ERC20BridgeSource.CafeSwap:
+                        case ERC20BridgeSource.CheeseSwap:
+                        case ERC20BridgeSource.JulSwap:
                             const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                             if (!isValidAddress(uniLikeRouter)) {
                                 return [];

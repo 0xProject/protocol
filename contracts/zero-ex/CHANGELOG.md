@@ -5,9 +5,26 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.22.3 - _May 1, 2021_
+
+    * Dependencies updated
+
+## v0.22.2 - _April 30, 2021_
+
+    * Dependencies updated
+
+## v0.22.1 - _April 28, 2021_
+
+    * bump feature version to 1.2 (#213)
+
+## v0.22.0 - _April 26, 2021_
+
+    * Add order signer registry to NativeOrdersFeature (#195)
+
 ## v0.21.1 - _April 12, 2021_
 
     * Dependencies updated
+    * BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap) (#208)
 
 ## v0.21.0 - _April 1, 2021_
 

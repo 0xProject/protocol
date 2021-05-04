@@ -4,54 +4,69 @@ Basic Functionality
 
 Below is a catalog of basic Exchange functionality. For more advanced usage, like meta-transactions and dex aggregation, see the Advanced section.
 
-+---------------------------------+--------------------------------------------------------------------------+
-| **Limit Orders**                | **Overview**                                                             |
-+---------------------------------+--------------------------------------------------------------------------+
-| `fillLimitOrder`_               | Fills a Limit Order up to the amount requested.                          |
-+---------------------------------+--------------------------------------------------------------------------+
-| `fillOrKillLimitOrder`_         | Fills exactly the amount requested or reverts.                           |
-+---------------------------------+--------------------------------------------------------------------------+
-| `cancelLimitOrder`_             | Cancels an order so that it can no longer be filled.                     |
-+---------------------------------+--------------------------------------------------------------------------+
-| `batchCancelLimitOrders`_       | A batch call to `cancelLimitOrder`.                                      |
-+---------------------------------+--------------------------------------------------------------------------+
-| `cancelPairLimitOrders`_        | Cancels Limit orders in a specific market pair.                          |
-|                                 | Ex: Cancel all Limit Orders selling WETH for USDC.                       |
-+---------------------------------+--------------------------------------------------------------------------+
-| `batchCancelPairLimitOrders`_   | A batch call to `cancelPairLimitOrders`.                                 |
-+---------------------------------+--------------------------------------------------------------------------+
-| `getLimitOrderInfo`_            | Returns the state of a given order.                                      |
-+---------------------------------+--------------------------------------------------------------------------+
-| `getLimitOrderHash`_            | Returns the EIP-712 hash for an order.                                   |
-+---------------------------------+--------------------------------------------------------------------------+
-| **RFQ Orders**                  | **Overview**                                                             |
-+---------------------------------+--------------------------------------------------------------------------+
-| `fillRfqOrder`_                 | These are analogous to the above LimitOrder functions.                   |
-+---------------------------------+                                                                          |
-| `fillOrKillRfqOrder`_           |                                                                          |
-+---------------------------------+                                                                          |
-| `cancelRfqOrder`_               |                                                                          |
-+---------------------------------+                                                                          |
-| `batchCancelRfqOrders`_         |                                                                          |
-+---------------------------------+                                                                          |
-| `cancelPairRfqOrders`_          |                                                                          |
-+---------------------------------+                                                                          |
-| `batchCancelPairRfqOrders`_     |                                                                          |
-+---------------------------------+                                                                          |
-| `getRfqOrderInfo`_              |                                                                          |
-+---------------------------------+                                                                          |
-| `getRfqOrderHash`_              |                                                                          |
-+---------------------------------+--------------------------------------------------------------------------+
-| `registerAllowedRfqOrigins`_    | Register tx.origin addresses that are allowed to fill an RFQ order.      |
-+---------------------------------+--------------------------------------------------------------------------+
-| **Protocol Fees**               | **Overview**                                                             |
-+---------------------------------+--------------------------------------------------------------------------+
-| `getProtocolFeeMultiplier`_     | Takers of limit orders pay a protocol fee of `Multiplier * tx.gasprice`. |
-|                                 | This returns the `Multiplier`.                                           |
-+---------------------------------+--------------------------------------------------------------------------+
-| `transferProtocolFeesForPools`_ | Transfers protocol fees from escrow to the 0x Staking System.            |
-|                                 | This should be called near the end of each epoch.                        |
-+---------------------------------+--------------------------------------------------------------------------+
++-----------------------------------------+--------------------------------------------------------------------------+
+| **Limit Orders**                        | **Overview**                                                             |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `fillLimitOrder`_                       | Fills a Limit Order up to the amount requested.                          |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `fillOrKillLimitOrder`_                 | Fills exactly the amount requested or reverts.                           |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `cancelLimitOrder`_                     | Cancels an order so that it can no longer be filled.                     |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `batchCancelLimitOrders`_               | A batch call to `cancelLimitOrder`.                                      |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `cancelPairLimitOrders`_                | Cancels Limit orders in a specific market pair.                          |
+|                                         | Ex: Cancel all Limit Orders selling WETH for USDC.                       |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `cancelPairLimitOrdersWithSigner`_      | Same functionality to ``cancelPairLimitOrders`` but called by a          |
+|                                         | registered order signer instead of the maker itself.                     |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `batchCancelPairLimitOrders`_           | A batch call to `cancelPairLimitOrders`.                                 |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `batchCancelPairLimitOrdersWithSigner`_ | Same functionality to ``cancelPairLimitOrders`` but called by a          |
+|                                         | registered order signer instead of the maker itself.                     |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `getLimitOrderInfo`_                    | Returns the state of a given order.                                      |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `getLimitOrderHash`_                    | Returns the EIP-712 hash for an order.                                   |
++-----------------------------------------+--------------------------------------------------------------------------+
+| **RFQ Orders**                          | **Overview**                                                             |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `fillRfqOrder`_                         | These are analogous to the above LimitOrder functions.                   |
++-----------------------------------------+                                                                          |
+| `fillOrKillRfqOrder`_                   |                                                                          |
++-----------------------------------------+                                                                          |
+| `cancelRfqOrder`_                       |                                                                          |
++-----------------------------------------+                                                                          |
+| `batchCancelRfqOrders`_                 |                                                                          |
++-----------------------------------------+                                                                          |
+| `cancelPairRfqOrders`_                  |                                                                          |
++-----------------------------------------+                                                                          |
+| `cancelPairRfqOrdersWithSigner`_        |                                                                          |
++-----------------------------------------+                                                                          |
+| `batchCancelPairRfqOrders`_             |                                                                          |
++-----------------------------------------+                                                                          |
+| `batchCancelPairRfqOrdersWithSigner`_   |                                                                          |
++-----------------------------------------+                                                                          |
+| `getRfqOrderInfo`_                      |                                                                          |
++-----------------------------------------+                                                                          |
+| `getRfqOrderHash`_                      |                                                                          |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `registerAllowedRfqOrigins`_            | Register tx.origin addresses that are allowed to fill an RFQ order.      |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `registerAllowedOrderSigner`_           | Register addresses that can sign orders on behalf of ``msg.sender``.     |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `isValidOrderSigner`_                   | Returns whether a given address is allowed to sign orders for a given    |
+|                                         | maker address.                                                           |
++-----------------------------------------+--------------------------------------------------------------------------+
+| **Protocol Fees**                       | **Overview**                                                             |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `getProtocolFeeMultiplier`_             | Takers of limit orders pay a protocol fee of `Multiplier * tx.gasprice`. |
+|                                         | This returns the `Multiplier`.                                           |
++-----------------------------------------+--------------------------------------------------------------------------+
+| `transferProtocolFeesForPools`_         | Transfers protocol fees from escrow to the 0x Staking System.            |
+|                                         | This should be called near the end of each epoch.                        |
++-----------------------------------------+--------------------------------------------------------------------------+
 
 
 Limit Orders
@@ -131,7 +146,7 @@ This function cancels a single limit order created by the caller:
     )
         external;
 
-This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker``.
+This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker`` or ``!isValidOrderSigner(maker, msg.sender)``.
 
 batchCancelLimitOrders
 ----------------------
@@ -146,7 +161,7 @@ This function cancels multiple limit orders created by the caller:
     )
         external;
 
-This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event for each order it cancels. The call will revert if ``msg.sender != order.maker`` for any of the orders.
+This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event for each order it cancels. The call will revert if ``msg.sender != order.maker`` or ``!isValidOrderSigner(maker, msg.sender)`` for any of the orders.
 
 cancelPairLimitOrders
 ---------------------
@@ -162,10 +177,32 @@ This function cancels all limit orders created by the caller with with a maker a
     )
         external;
 
-This function emits a `PairCancelledLimitOrders <../basics/events.html#paircancelledlimitorders>`_ event, or reverts in one of the following scenarios:
+This function emits a `PairCancelledLimitOrders <../basics/events.html#paircancelledlimitorders>`_ event, or reverts if the ``salt`` parameter is ≤ to a previous ``salt``.
 
-- ``msg.sender != order.maker``
-- The ``salt`` parameter is ≤ to a previous ``salt``.
+cancelPairLimitOrdersWithSigner
+-------------------------------
+
+Same functionality as ``cancelPairLimitOrders`` but ``msg.sender`` is a registered order signer instead of the maker itself.
+
+.. code-block:: solidity
+
+    /// @dev Cancel all limit orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        external;
+
+Reverts if ``!isValidOrderSigner(maker, msg.sender)``.
 
 batchCancelPairLimitOrders
 --------------------------
@@ -182,6 +219,31 @@ This function performs multiple ``cancelPairLimitOrders()`` at once. Each respec
         external;
 
 This function emits a `PairCancelledLimitOrders <../basics/events.html#paircancelledlimitorders>`_ event for each market pair it cancels. It reverts if any of the individual cancellations revert.
+
+batchCancelPairLimitOrdersWithSigner
+------------------------------------
+
+Same functionality as ``batchCancelPairLimitOrders`` but ``msg.sender`` is a registered order signer instead of the maker itself.
+
+.. code-block:: solidity
+
+    /// @dev Cancel all limit orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
+    )
+        external;
+
+Reverts if ``!isValidOrderSigner(maker, msg.sender)``.
 
 getLimitOrderInfo
 -----------------
@@ -369,7 +431,7 @@ Similar to limit orders, RFQ orders can be cancelled on-chain through a variety 
     )
         external;
 
-This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker``.
+This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event if the cancellation is successful. The call will revert if ``msg.sender != order.maker`` or ``!isValidOrderSigner(maker, msg.sender)``.
 
 batchCancelRfqOrders
 --------------------
@@ -384,7 +446,7 @@ This function cancels multiple RFQ orders created by the caller:
     )
         external;
 
-This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event for each order it cancels. The call will revert if ``msg.sender != order.maker`` for any of the orders.
+This function emits an `OrderCancelled <../basics/events.html#ordercancelled>`_ event for each order it cancels. The call will revert if ``msg.sender != order.maker`` or ``!isValidOrderSigner(maker, msg.sender)`` for any orders for any of the orders.
 
 cancelPairRfqOrders
 -------------------
@@ -400,10 +462,32 @@ This function cancels all RFQ orders created by the caller with with a maker and
     )
         external;
 
-This function emits a `PairCancelledRfqOrders <../basics/events.html#paircancelledrfqorders>`_ event, or reverts in one of the following scenarios:
+This function emits a `PairCancelledRfqOrders <../basics/events.html#paircancelledrfqorders>`_ event, or reverts if the ``salt`` parameter is ≤ to a previous ``salt``.
 
-- ``msg.sender != order.maker``
-- The ``salt`` parameter is ≤ to a previous ``salt``.
+cancelPairRfqOrdersWithSigner
+-----------------------------
+
+Same functionality as ``cancelPairRfqOrders`` but ``msg.sender`` is a registered order signer instead of the maker itself.
+
+.. code-block:: solidity
+
+    /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        external;
+
+Reverts if ``!isValidOrderSigner(maker, msg.sender)``.
 
 batchCancelPairRfqOrders
 ------------------------
@@ -420,6 +504,31 @@ batchCancelPairRfqOrders
         external;
 
 This function emits a `PairCancelledRfqOrders <../basics/events.html#paircancelledrfqorders>`_  event for each market pair it cancels. It reverts if any of the individual cancellations revert.
+
+batchCancelPairRfqOrdersWithSigner
+----------------------------------
+
+Same functionality as ``batchCancelPairRfqOrders`` but ``msg.sender`` is a registered order signer instead of the maker itself.
+
+.. code-block:: solidity
+
+    /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
+    )
+        external;
+
+Reverts if ``!isValidOrderSigner(maker, msg.sender)``.
 
 getRfqOrderInfo
 ---------------
@@ -548,6 +657,47 @@ Looking at the 2nd use case, a maker can register valid tx origins using this fu
         external;
 
 This function emits a `RfqOrderOriginsAllowed <../basics/events.html#rfqorderoriginsallowed>`_ event.
+
+registerAllowedOrderSigner
+--------------------------
+
+Calls to fill functions require a signature provided by the maker. In cases where the signer can't be the maker itself (e.g. a contract wallet), the maker can delegate signing to another address.
+
+To register a new delegated order signer, the maker can call ``registerAllowedOrderSigner`` with ``allowed == true``.
+
+To revoke permission to a signer, the maker can call ``registerAllowedOrderSigner`` with ``allowed == false``.
+
+.. code-block:: solidity
+
+    /// @dev Register a signer who can sign on behalf of msg.sender
+    ///      This allows one to sign on behalf of a contract that calls this function
+    /// @param signer The address from which you plan to generate signatures
+    /// @param allowed True to register, false to unregister.
+    function registerAllowedOrderSigner(
+        address signer,
+        bool allowed
+    )
+        external;
+
+This function emits an `OrderSignerRegistered <../basics/events.html#ordersignerregistered>`_ event.
+
+isValidOrderSigner
+------------------
+
+Returns whether the ``signer`` is allowed to sign orders on behalf of the ``maker``.
+
+.. code-block:: solidity
+
+    /// @dev checks if a given address is registered to sign on behalf of a maker address
+    /// @param maker The maker address encoded in an order (can be a contract)
+    /// @param signer The address that is providing a signature
+    function isValidOrderSigner(
+        address maker,
+        address signer
+    )
+        external
+        view
+        returns (bool isAllowed);
 
 
 Protocol Fees

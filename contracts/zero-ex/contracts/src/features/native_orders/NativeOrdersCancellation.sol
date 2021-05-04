@@ -48,14 +48,14 @@ abstract contract NativeOrdersCancellation is
         // solhint-disable no-empty-blocks
     }
 
-    /// @dev Cancel a single limit order. The caller must be the maker.
+    /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
     function cancelLimitOrder(LibNativeOrder.LimitOrder memory order)
         public
     {
         bytes32 orderHash = getLimitOrderHash(order);
-        if (msg.sender != order.maker) {
+        if (msg.sender != order.maker && !isValidOrderSigner(order.maker, msg.sender)) {
             LibNativeOrdersRichErrors.OnlyOrderMakerAllowed(
                 orderHash,
                 msg.sender,
@@ -65,14 +65,14 @@ abstract contract NativeOrdersCancellation is
         _cancelOrderHash(orderHash, order.maker);
     }
 
-    /// @dev Cancel a single RFQ order. The caller must be the maker.
+    /// @dev Cancel a single RFQ order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
     function cancelRfqOrder(LibNativeOrder.RfqOrder memory order)
         public
     {
         bytes32 orderHash = getRfqOrderHash(order);
-        if (msg.sender != order.maker) {
+        if (msg.sender != order.maker && !isValidOrderSigner(order.maker, msg.sender)) {
             LibNativeOrdersRichErrors.OnlyOrderMakerAllowed(
                 orderHash,
                 msg.sender,
@@ -82,7 +82,7 @@ abstract contract NativeOrdersCancellation is
         _cancelOrderHash(orderHash, order.maker);
     }
 
-    /// @dev Cancel multiple limit orders. The caller must be the maker.
+    /// @dev Cancel multiple limit orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
     function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] memory orders)
@@ -93,7 +93,7 @@ abstract contract NativeOrdersCancellation is
         }
     }
 
-    /// @dev Cancel multiple RFQ orders. The caller must be the maker.
+    /// @dev Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
     function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] memory orders)
@@ -118,33 +118,34 @@ abstract contract NativeOrdersCancellation is
     )
         public
     {
-        LibNativeOrdersStorage.Storage storage stor =
-            LibNativeOrdersStorage.getStorage();
+        _cancelPairLimitOrders(msg.sender, makerToken, takerToken, minValidSalt);
+    }
 
-        uint256 oldMinValidSalt =
-            stor.limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
-                [msg.sender]
-                [address(makerToken)]
-                [address(takerToken)];
-
-        // New min salt must >= the old one.
-        if (oldMinValidSalt > minValidSalt) {
-            LibNativeOrdersRichErrors.
-                CancelSaltTooLowError(minValidSalt, oldMinValidSalt)
-                    .rrevert();
+    /// @dev Cancel all limit orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        public
+    {
+        // verify that the signer is authorized for the maker
+        if (!isValidOrderSigner(maker, msg.sender)) {
+            LibNativeOrdersRichErrors.InvalidSignerError(
+                maker,
+                msg.sender
+            ).rrevert();
         }
 
-        stor.limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
-            [msg.sender]
-            [address(makerToken)]
-            [address(takerToken)] = minValidSalt;
-
-        emit PairCancelledLimitOrders(
-            msg.sender,
-            address(makerToken),
-            address(takerToken),
-            minValidSalt
-        );
+        _cancelPairLimitOrders(maker, makerToken, takerToken, minValidSalt);
     }
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
@@ -168,7 +169,47 @@ abstract contract NativeOrdersCancellation is
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairLimitOrders(
+            _cancelPairLimitOrders(
+                msg.sender,
+                makerTokens[i],
+                takerTokens[i],
+                minValidSalts[i]
+            );
+        }
+    }
+
+    /// @dev Cancel all limit orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
+    )
+        public
+    {
+        require(
+            makerTokens.length == takerTokens.length &&
+            makerTokens.length == minValidSalts.length,
+            "NativeOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
+        );
+
+        if (!isValidOrderSigner(maker, msg.sender)) {
+            LibNativeOrdersRichErrors.InvalidSignerError(
+                maker,
+                msg.sender
+            ).rrevert();
+        }
+
+        for (uint256 i = 0; i < makerTokens.length; ++i) {
+            _cancelPairLimitOrders(
+                maker,
                 makerTokens[i],
                 takerTokens[i],
                 minValidSalts[i]
@@ -190,33 +231,33 @@ abstract contract NativeOrdersCancellation is
     )
         public
     {
-        LibNativeOrdersStorage.Storage storage stor =
-            LibNativeOrdersStorage.getStorage();
+        _cancelPairRfqOrders(msg.sender, makerToken, takerToken, minValidSalt);
+    }
 
-        uint256 oldMinValidSalt =
-            stor.rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
-                [msg.sender]
-                [address(makerToken)]
-                [address(takerToken)];
-
-        // New min salt must >= the old one.
-        if (oldMinValidSalt > minValidSalt) {
-            LibNativeOrdersRichErrors.
-                CancelSaltTooLowError(minValidSalt, oldMinValidSalt)
-                    .rrevert();
+    /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        public
+    {
+        if (!isValidOrderSigner(maker, msg.sender)) {
+            LibNativeOrdersRichErrors.InvalidSignerError(
+                maker,
+                msg.sender
+            ).rrevert();
         }
 
-        stor.rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
-            [msg.sender]
-            [address(makerToken)]
-            [address(takerToken)] = minValidSalt;
-
-        emit PairCancelledRfqOrders(
-            msg.sender,
-            address(makerToken),
-            address(takerToken),
-            minValidSalt
-        );
+        _cancelPairRfqOrders(maker, makerToken, takerToken, minValidSalt);
     }
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
@@ -240,7 +281,47 @@ abstract contract NativeOrdersCancellation is
         );
 
         for (uint256 i = 0; i < makerTokens.length; ++i) {
-            cancelPairRfqOrders(
+            _cancelPairRfqOrders(
+                msg.sender,
+                makerTokens[i],
+                takerTokens[i],
+                minValidSalts[i]
+            );
+        }
+    }
+
+    /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same caller and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker the maker for whom the msg.sender is the signer.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
+    )
+        public
+    {
+        require(
+            makerTokens.length == takerTokens.length &&
+            makerTokens.length == minValidSalts.length,
+            "NativeOrdersFeature/MISMATCHED_PAIR_ORDERS_ARRAY_LENGTHS"
+        );
+
+        if (!isValidOrderSigner(maker, msg.sender)) {
+            LibNativeOrdersRichErrors.InvalidSignerError(
+                maker,
+                msg.sender
+            ).rrevert();
+        }
+
+        for (uint256 i = 0; i < makerTokens.length; ++i) {
+            _cancelPairRfqOrders(
+                maker,
                 makerTokens[i],
                 takerTokens[i],
                 minValidSalts[i]
@@ -261,5 +342,91 @@ abstract contract NativeOrdersCancellation is
         stor.orderHashToTakerTokenFilledAmount[orderHash] |= HIGH_BIT;
 
         emit OrderCancelled(orderHash, maker);
+    }
+
+    /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
+    ///      than the value provided.
+    /// @param maker The target maker address
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function _cancelPairRfqOrders(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        private
+    {
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
+
+        uint256 oldMinValidSalt =
+            stor.rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+                [maker]
+                [address(makerToken)]
+                [address(takerToken)];
+
+        // New min salt must >= the old one.
+        if (oldMinValidSalt > minValidSalt) {
+            LibNativeOrdersRichErrors.
+                CancelSaltTooLowError(minValidSalt, oldMinValidSalt)
+                    .rrevert();
+        }
+
+        stor.rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+            [maker]
+            [address(makerToken)]
+            [address(takerToken)] = minValidSalt;
+
+        emit PairCancelledRfqOrders(
+            maker,
+            address(makerToken),
+            address(takerToken),
+            minValidSalt
+        );
+    }
+
+    /// @dev Cancel all limit orders for a given maker and pair with a salt less
+    ///      than the value provided.
+    /// @param maker The target maker address
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function _cancelPairLimitOrders(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        private
+    {
+        LibNativeOrdersStorage.Storage storage stor =
+            LibNativeOrdersStorage.getStorage();
+
+        uint256 oldMinValidSalt =
+            stor.limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+                [maker]
+                [address(makerToken)]
+                [address(takerToken)];
+
+        // New min salt must >= the old one.
+        if (oldMinValidSalt > minValidSalt) {
+            LibNativeOrdersRichErrors.
+                CancelSaltTooLowError(minValidSalt, oldMinValidSalt)
+                    .rrevert();
+        }
+
+        stor.limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
+            [maker]
+            [address(makerToken)]
+            [address(takerToken)] = minValidSalt;
+
+        emit PairCancelledLimitOrders(
+            maker,
+            address(makerToken),
+            address(takerToken),
+            minValidSalt
+        );
     }
 }

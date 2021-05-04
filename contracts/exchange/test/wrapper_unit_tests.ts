@@ -12,7 +12,6 @@ import { ReferenceFunctions as UtilReferenceFunctions, SafeMathRevertErrors } fr
 import { FillResults, Order } from '@0x/types';
 import { AnyRevertError, BigNumber, ExchangeRevertErrors, hexUtils, StringRevertError } from '@0x/utils';
 import { LogEntry, LogWithDecodedArgs } from 'ethereum-types';
-import * as ethjs from 'ethereumjs-util';
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
@@ -104,7 +103,7 @@ blockchainTests('Exchange wrapper functions unit tests.', env => {
     // Creates a deterministic order signature, even though no signature validation
     // actually occurs in the test contract.
     function createOrderSignature(order: Order): string {
-        return ethjs.bufferToHex(ethjs.sha3(ethjs.toBuffer(orderHashUtils.getOrderHashHex(order))));
+        return hexUtils.hash(orderHashUtils.getOrderHashHex(order));
     }
 
     // Asserts that `_fillOrder()` was called in the same order and with the same

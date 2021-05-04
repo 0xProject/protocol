@@ -1,10 +1,52 @@
 [
     {
+        "timestamp": 1619830995,
+        "version": "0.22.3",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1619825976,
+        "version": "0.22.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "0.22.1",
+        "changes": [
+            {
+                "note": "bump feature version to 1.2",
+                "pr": 213
+            }
+        ],
+        "timestamp": 1619596077
+    },
+    {
+        "version": "0.22.0",
+        "changes": [
+            {
+                "note": "Add order signer registry to NativeOrdersFeature",
+                "pr": 195
+            }
+        ],
+        "timestamp": 1619481586
+    },
+    {
         "timestamp": 1618259868,
         "version": "0.21.1",
         "changes": [
             {
                 "note": "Dependencies updated"
+            },
+            {
+                "note": "BSC Uniswap clones (ApeSwap, CafeSwap, CheeseSwap, JulSwap)",
+                "pr": 208
             }
         ]
     },

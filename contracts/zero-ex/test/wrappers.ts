@@ -125,6 +125,7 @@ export * from '../test/generated-wrappers/test_mint_token_erc20_transformer';
 export * from '../test/generated-wrappers/test_mintable_erc20_token';
 export * from '../test/generated-wrappers/test_mooniswap';
 export * from '../test/generated-wrappers/test_native_orders_feature';
+export * from '../test/generated-wrappers/test_order_signer_registry_with_contract_wallet';
 export * from '../test/generated-wrappers/test_permissionless_transformer_deployer_suicidal';
 export * from '../test/generated-wrappers/test_permissionless_transformer_deployer_transformer';
 export * from '../test/generated-wrappers/test_rfq_origin_registration';

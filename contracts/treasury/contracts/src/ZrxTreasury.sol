@@ -20,8 +20,6 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -32,7 +30,6 @@ import "./IZrxTreasury.sol";
 contract ZrxTreasury is
     IZrxTreasury
 {
-    using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
     using LibBytesV06 for bytes;
@@ -52,11 +49,9 @@ contract ZrxTreasury is
     /// @dev Initializes the ZRX treasury and creates the default
     ///      staking pool.
     /// @param stakingProxy_ The 0x staking proxy contract.
-    /// @param weth_ The WETH token contract.
     /// @param params Immutable treasury parameters.
     constructor(
         IStaking stakingProxy_,
-        IERC20TokenV06 weth_,
         TreasuryParameters memory params
     )
         public
@@ -66,15 +61,12 @@ contract ZrxTreasury is
             "VOTING_PERIOD_TOO_LONG"
         );
         stakingProxy = stakingProxy_;
-        DefaultPoolOperator defaultPoolOperator_ = new DefaultPoolOperator(
-            stakingProxy_,
-            weth_
-        );
-        defaultPoolOperator = defaultPoolOperator_;
-        defaultPoolId = defaultPoolOperator_.poolId();
         votingPeriod = params.votingPeriod;
         proposalThreshold = params.proposalThreshold;
         quorumThreshold = params.quorumThreshold;
+        defaultPoolId = params.defaultPoolId;
+        IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(params.defaultPoolId);
+        defaultPoolOperator = DefaultPoolOperator(defaultPool.operator);
     }
 
     // solhint-disable
@@ -286,6 +278,12 @@ contract ZrxTreasury is
 
         // Add voting power for operated staking pools.
         for (uint256 i = 0; i != operatedPoolIds.length; i++) {
+            for (uint256 j = 0; j != i; j++) {
+                require(
+                    operatedPoolIds[i] != operatedPoolIds[j],
+                    "getVotingPower/DUPLICATE_POOL_ID"
+                );
+            }
             IStaking.Pool memory pool = stakingProxy.getStakingPool(operatedPoolIds[i]);
             require(
                 pool.operator == account,

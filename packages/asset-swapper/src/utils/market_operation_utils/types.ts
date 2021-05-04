@@ -66,10 +66,15 @@ export enum ERC20BridgeSource {
     xSigma = 'xSigma',
     // BSC only
     PancakeSwap = 'PancakeSwap',
+    PancakeSwapV2 = 'PancakeSwap_V2',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
     Belt = 'Belt',
     Ellipsis = 'Ellipsis',
+    ApeSwap = 'ApeSwap',
+    CafeSwap = 'CafeSwap',
+    CheeseSwap = 'CheeseSwap',
+    JulSwap = 'JulSwap',
 }
 
 // tslint:disable: enum-naming

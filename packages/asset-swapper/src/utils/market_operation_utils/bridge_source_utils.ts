@@ -2,12 +2,17 @@ import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
+    APESWAP_ROUTER_BY_CHAIN_ID,
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
+    CAFESWAP_ROUTER_BY_CHAIN_ID,
+    CHEESESWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_MAINNET_INFOS,
     ELLIPSIS_BSC_INFOS,
+    JULSWAP_ROUTER_BY_CHAIN_ID,
+    KYBER_BANNED_RESERVES,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     MAX_DODOV2_POOLS_QUERIED,
@@ -15,6 +20,7 @@ import {
     NERVE_BSC_INFOS,
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
+    PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
     SMOOTHY_BSC_INFOS,
@@ -32,7 +38,11 @@ import { CurveInfo, ERC20BridgeSource } from './types';
  * @param reserveId Kyber reserveId
  */
 export function isAllowedKyberReserveId(reserveId: string): boolean {
-    return reserveId !== NULL_BYTES && !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX);
+    return (
+        reserveId !== NULL_BYTES &&
+        !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX) &&
+        !KYBER_BANNED_RESERVES.includes(reserveId)
+    );
 }
 
 // tslint:disable-next-line: completed-docs ban-types
@@ -269,8 +279,13 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.SushiSwap
         | ERC20BridgeSource.CryptoCom
         | ERC20BridgeSource.PancakeSwap
+        | ERC20BridgeSource.PancakeSwapV2
         | ERC20BridgeSource.BakerySwap
-        | ERC20BridgeSource.KyberDmm,
+        | ERC20BridgeSource.KyberDmm
+        | ERC20BridgeSource.ApeSwap
+        | ERC20BridgeSource.CafeSwap
+        | ERC20BridgeSource.CheeseSwap
+        | ERC20BridgeSource.JulSwap,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -281,10 +296,20 @@ export function uniswapV2LikeRouterAddress(
             return CRYPTO_COM_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.PancakeSwap:
             return PANCAKESWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.PancakeSwapV2:
+            return PANCAKESWAPV2_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.BakerySwap:
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.KyberDmm:
             return KYBER_DMM_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.ApeSwap:
+            return APESWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.CafeSwap:
+            return CAFESWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.CheeseSwap:
+            return CHEESESWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.JulSwap:
+            return JULSWAP_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

@@ -137,13 +137,13 @@ interface INativeOrdersFeature is
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
-    /// @dev Cancel a single limit order. The caller must be the maker.
+    /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
     function cancelLimitOrder(LibNativeOrder.LimitOrder calldata order)
         external;
 
-    /// @dev Cancel a single RFQ order. The caller must be the maker.
+    /// @dev Cancel a single RFQ order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
     function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order)
@@ -156,13 +156,13 @@ interface INativeOrdersFeature is
     function registerAllowedRfqOrigins(address[] memory origins, bool allowed)
         external;
 
-    /// @dev Cancel multiple limit orders. The caller must be the maker.
+    /// @dev Cancel multiple limit orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
     function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] calldata orders)
         external;
 
-    /// @dev Cancel multiple RFQ orders. The caller must be the maker.
+    /// @dev Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
     function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] calldata orders)
@@ -183,7 +183,23 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
-    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        external;
+
+    /// @dev Cancel all limit orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param makerTokens The maker tokens.
@@ -193,6 +209,22 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
+    )
+        external;
+
+    /// @dev Cancel all limit orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairLimitOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
     )
         external;
 
@@ -211,7 +243,23 @@ interface INativeOrdersFeature is
         external;
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
-    ///      than the value provided. The caller must be the maker. Subsequent
+    ///      than the value provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerToken The maker token.
+    /// @param takerToken The taker token.
+    /// @param minValidSalt The new minimum valid salt.
+    function cancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken,
+        uint256 minValidSalt
+    )
+        external;
+
+    /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be the maker. Subsequent
     ///      calls to this function with the same caller and pair require the
     ///      new salt to be >= the old salt.
     /// @param makerTokens The maker tokens.
@@ -221,6 +269,22 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
+    )
+        external;
+
+    /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
+    ///      than the values provided. The caller must be a signer registered to the maker.
+    ///      Subsequent calls to this function with the same maker and pair require the
+    ///      new salt to be >= the old salt.
+    /// @param maker The maker for which to cancel.
+    /// @param makerTokens The maker tokens.
+    /// @param takerTokens The taker tokens.
+    /// @param minValidSalts The new minimum valid salts.
+    function batchCancelPairRfqOrdersWithSigner(
+        address maker,
+        IERC20TokenV06[] memory makerTokens,
+        IERC20TokenV06[] memory takerTokens,
+        uint256[] memory minValidSalts
     )
         external;
 
@@ -345,4 +409,25 @@ interface INativeOrdersFeature is
             uint128[] memory actualFillableTakerTokenAmounts,
             bool[] memory isSignatureValids
         );
+
+    /// @dev Register a signer who can sign on behalf of msg.sender
+    ///      This allows one to sign on behalf of a contract that calls this function
+    /// @param signer The address from which you plan to generate signatures
+    /// @param allowed True to register, false to unregister.
+    function registerAllowedOrderSigner(
+        address signer,
+        bool allowed
+    )
+        external;
+
+    /// @dev checks if a given address is registered to sign on behalf of a maker address
+    /// @param maker The maker address encoded in an order (can be a contract)
+    /// @param signer The address that is providing a signature
+    function isValidOrderSigner(
+        address maker,
+        address signer
+    )
+        external
+        view
+        returns (bool isAllowed);
 }

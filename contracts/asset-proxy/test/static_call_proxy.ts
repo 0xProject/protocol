@@ -168,7 +168,7 @@ describe('StaticCallProxy', () => {
         it('should revert if the hash of the output is different than expected expected', async () => {
             const staticCallData = staticCallTarget.isOddNumber(new BigNumber(0)).getABIEncodedTransactionData();
             const trueAsBuffer = ethUtil.toBuffer('0x0000000000000000000000000000000000000000000000000000000000000001');
-            const expectedResultHash = ethUtil.bufferToHex(ethUtil.sha3(trueAsBuffer));
+            const expectedResultHash = ethUtil.bufferToHex(ethUtil.keccak256(trueAsBuffer));
             const assetData = assetDataInterface
                 .StaticCall(staticCallTarget.address, staticCallData, expectedResultHash)
                 .getABIEncodedTransactionData();
@@ -199,7 +199,7 @@ describe('StaticCallProxy', () => {
         it('should be successful if a function call with one static input returns the correct value', async () => {
             const staticCallData = staticCallTarget.isOddNumber(new BigNumber(1)).getABIEncodedTransactionData();
             const trueAsBuffer = ethUtil.toBuffer('0x0000000000000000000000000000000000000000000000000000000000000001');
-            const expectedResultHash = ethUtil.bufferToHex(ethUtil.sha3(trueAsBuffer));
+            const expectedResultHash = ethUtil.bufferToHex(ethUtil.keccak256(trueAsBuffer));
             const assetData = assetDataInterface
                 .StaticCall(staticCallTarget.address, staticCallData, expectedResultHash)
                 .getABIEncodedTransactionData();
@@ -232,7 +232,7 @@ describe('StaticCallProxy', () => {
             const offset = '0000000000000000000000000000000000000000000000000000000000000020';
             const encodedExpectedResultWithOffset = `0x${offset}${abiEncoder.encode(expectedResults).slice(2)}`;
             const expectedResultHash = ethUtil.bufferToHex(
-                ethUtil.sha3(ethUtil.toBuffer(encodedExpectedResultWithOffset)),
+                ethUtil.keccak256(ethUtil.toBuffer(encodedExpectedResultWithOffset)),
             );
             const assetData = assetDataInterface
                 .StaticCall(staticCallTarget.address, staticCallData, expectedResultHash)

@@ -72,6 +72,7 @@ const DEFAULT_EXCLUDED = [
     ERC20BridgeSource.Smoothy,
     ERC20BridgeSource.Component,
     ERC20BridgeSource.Saddle,
+    ERC20BridgeSource.PancakeSwapV2,
 ];
 const BUY_SOURCES = BUY_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
@@ -298,6 +299,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Native]: createDecreasingRates(NUM_SAMPLES),
         [ERC20BridgeSource.Eth2Dai]: createDecreasingRates(NUM_SAMPLES),
         [ERC20BridgeSource.Uniswap]: createDecreasingRates(NUM_SAMPLES),
+        [ERC20BridgeSource.Kyber]: createDecreasingRates(NUM_SAMPLES),
     };
 
     interface FillDataBySource {
