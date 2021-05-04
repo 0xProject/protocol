@@ -3,6 +3,10 @@
         "version": "6.10.0",
         "changes": [
             {
+                "note": "Reactivate PancakeSwapV2 and BakerySwap VIP on BSC",
+                "pr": 222
+            },
+            {
                 "note": "Add LUSD Curve pool",
                 "pr": 218
             },
@@ -21,6 +25,10 @@
             {
                 "note": "Disable WETH based SnowSwap pools",
                 "pr": 220
+            },
+            {
+                "note": "PLP now includes a fallback due to observed collisions",
+                "pr": 223
             }
         ]
     },
