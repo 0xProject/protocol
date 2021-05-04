@@ -133,12 +133,7 @@ export class MarketOperationUtils {
                 this._nativeFeeTokenAmount,
             ),
             // Get sell quotes for taker -> maker.
-            this._sampler.getSellQuotes(
-                quoteSourceFilters.exclude(sourcesWithStaleCaches).sources,
-                makerToken,
-                takerToken,
-                sampleAmounts,
-            ),
+            this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
             this._sampler.getTwoHopSellQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
@@ -157,7 +152,7 @@ export class MarketOperationUtils {
                 rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-        ] = await Promise.all([samplerPromise, cacheRefreshPromises]);
+        ] = await Promise.all([samplerPromise, Promise.all(cacheRefreshPromises)]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
@@ -244,12 +239,7 @@ export class MarketOperationUtils {
                 this._nativeFeeTokenAmount,
             ),
             // Get buy quotes for taker -> maker.
-            this._sampler.getBuyQuotes(
-                quoteSourceFilters.exclude(sourcesWithStaleCaches).sources,
-                makerToken,
-                takerToken,
-                sampleAmounts,
-            ),
+            this._sampler.getBuyQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
             this._sampler.getTwoHopBuyQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
@@ -269,7 +259,7 @@ export class MarketOperationUtils {
                 rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-        ] = await Promise.all([samplerPromise, cacheRefreshPromises]);
+        ] = await Promise.all([samplerPromise, Promise.all(cacheRefreshPromises)]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
