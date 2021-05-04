@@ -7,7 +7,12 @@
                 "pr": 218
             },
             {
-                "note": "Enable ETH based Curve pools"
+                "note": "Enable ETH based Curve pools",
+                "pr": 220
+            },
+            {
+                "note": "Disable WETH based SnowSwap pools",
+                "pr": 220
             }
         ]
     },

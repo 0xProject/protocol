@@ -353,7 +353,12 @@ export const SWERVE_POOLS = {
 export const SNOWSWAP_POOLS = {
     yUSD: '0xbf7ccd6c446acfcc5df023043f2167b62e81899b',
     yVault: '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b',
-    eth: '0x16bea2e63adade5984298d53a4d4d9c09e278192',
+    // POOL Disabled as it uses WETH over ETH
+    // There is a conflict with Curve and SnowSwap
+    // where Curve uses ETH and SnowSwap uses WETH
+    // To re-enable this we need to flag an WETH
+    // unwrap or not
+    // eth: '0x16bea2e63adade5984298d53a4d4d9c09e278192',
 };
 
 export const SMOOTHY_POOLS = {
@@ -679,11 +684,12 @@ export const SNOWSWAP_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: SNOWSWAP_POOLS.yVault,
         gasSchedule: 1490e3,
     }),
-    [SNOWSWAP_POOLS.eth]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.vETH, MAINNET_TOKENS.ankrETH, MAINNET_TOKENS.crETH],
-        pool: SNOWSWAP_POOLS.eth,
-        gasSchedule: 990e3,
-    }),
+    // Unsupported due to collision with WETH and ETH with execution using MixinCurve
+    // [SNOWSWAP_POOLS.eth]: createCurveExchangePool({
+    //     tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.vETH, MAINNET_TOKENS.ankrETH, MAINNET_TOKENS.crETH],
+    //     pool: SNOWSWAP_POOLS.eth,
+    //     gasSchedule: 990e3,
+    // }),
 };
 
 export const BELT_BSC_INFOS: { [name: string]: CurveInfo } = {
