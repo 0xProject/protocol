@@ -45,7 +45,7 @@ contract Staking is
         aggregatedStatsByEpoch[prevEpoch].numPoolsToFinalize = 0;
         this.endEpoch();
 
-        uint256 lastPoolId_ = uint256(lastPoolId);
+        uint256 lastPoolId_ = 57;
         for (uint256 i = 1; i <= lastPoolId_; i++) {
             this.finalizePool(bytes32(i));
         }
