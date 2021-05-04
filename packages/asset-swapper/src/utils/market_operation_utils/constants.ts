@@ -346,6 +346,7 @@ export const CURVE_POOLS = {
     alUSD: '0x43b4fdfd4ff969587185cdb6f0bd875c5fc83f8c',
     FRAX: '0xd632f22692fac7611d2aa1c0d552930d43caed3b',
     LUSD: '0xed279fdd11ca84beef15af5d39bb4d4bee23f0ca',
+    BUSD: '0x4807862aa8b2bf68830e4c8dc86d0e9a998e085a',
 };
 
 export const SWERVE_POOLS = {
@@ -644,6 +645,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.LUSD]: createCurveMetaTriPool({
         token: MAINNET_TOKENS.LUSD,
         pool: CURVE_POOLS.LUSD,
+        gasSchedule: 387e3,
+    }),
+    [CURVE_POOLS.BUSD]: createCurveMetaTriPool({
+        token: MAINNET_TOKENS.BUSD,
+        pool: CURVE_POOLS.BUSD,
         gasSchedule: 387e3,
     }),
     [CURVE_POOLS.steth]: createCurveExchangePool({
