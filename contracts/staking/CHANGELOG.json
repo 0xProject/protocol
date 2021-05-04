@@ -1,5 +1,14 @@
 [
     {
+        "version": "2.0.37",
+        "changes": [
+            {
+                "note": "Patch epoch finalization issue",
+                "pr": 221
+            }
+        ]
+    },
+    {
         "timestamp": 1619596077,
         "version": "2.0.36",
         "changes": [

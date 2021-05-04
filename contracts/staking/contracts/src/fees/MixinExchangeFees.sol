@@ -53,6 +53,10 @@ contract MixinExchangeFees is
     {
         _assertValidProtocolFee(protocolFee);
 
+        if (protocolFee == 0) {
+            return;
+        }
+
         // Transfer the protocol fee to this address if it should be paid in
         // WETH.
         if (msg.value == 0) {
