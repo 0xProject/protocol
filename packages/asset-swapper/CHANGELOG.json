@@ -5,6 +5,18 @@
             {
                 "note": "Add Balancer V2 integration",
                 "pr": 206
+            },
+            {
+                "note": "Add LUSD Curve pool",
+                "pr": 218
+            },
+            {
+                "note": "Enable ETH based Curve pools",
+                "pr": 220
+            },
+            {
+                "note": "Disable WETH based SnowSwap pools",
+                "pr": 220
             }
         ]
     },

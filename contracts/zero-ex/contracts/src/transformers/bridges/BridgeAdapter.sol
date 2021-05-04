@@ -68,7 +68,7 @@ contract BridgeAdapter is
         MixinBalancerV2()
         MixinBancor(weth)
         MixinCoFiX()
-        MixinCurve()
+        MixinCurve(weth)
         MixinCryptoCom()
         MixinDodo()
         MixinDodoV2()

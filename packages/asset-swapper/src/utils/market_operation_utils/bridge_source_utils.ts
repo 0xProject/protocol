@@ -219,6 +219,11 @@ export function getShellLikeInfosForPair(
     }
 }
 
+export interface CurveDetailedInfo extends CurveInfo {
+    makerTokenIdx: number;
+    takerTokenIdx: number;
+}
+
 export function getCurveLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
@@ -232,27 +237,41 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Smoothy
         | ERC20BridgeSource.Saddle,
-): CurveInfo[] {
+): CurveDetailedInfo[] {
+    let pools: CurveInfo[] = [];
     switch (source) {
         case ERC20BridgeSource.Curve:
-            return getCurveInfosForPair(chainId, takerToken, makerToken);
+            pools = getCurveInfosForPair(chainId, takerToken, makerToken);
+            break;
         case ERC20BridgeSource.Swerve:
-            return getSwerveInfosForPair(chainId, takerToken, makerToken);
+            pools = getSwerveInfosForPair(chainId, takerToken, makerToken);
+            break;
         case ERC20BridgeSource.SnowSwap:
-            return getSnowSwapInfosForPair(chainId, takerToken, makerToken);
+            pools = getSnowSwapInfosForPair(chainId, takerToken, makerToken);
+            break;
         case ERC20BridgeSource.Nerve:
-            return getNerveInfosForPair(chainId, takerToken, makerToken);
+            pools = getNerveInfosForPair(chainId, takerToken, makerToken);
+            break;
         case ERC20BridgeSource.Belt:
-            return getBeltInfosForPair(chainId, takerToken, makerToken);
+            pools = getBeltInfosForPair(chainId, takerToken, makerToken);
+            break;
         case ERC20BridgeSource.Ellipsis:
-            return getEllipsisInfosForPair(chainId, takerToken, makerToken);
+            pools = getEllipsisInfosForPair(chainId, takerToken, makerToken);
+            break;
         case ERC20BridgeSource.Smoothy:
-            return getSmoothyInfosForPair(chainId, takerToken, makerToken);
+            pools = getSmoothyInfosForPair(chainId, takerToken, makerToken);
+            break;
         case ERC20BridgeSource.Saddle:
-            return getSaddleInfosForPair(chainId, takerToken, makerToken);
+            pools = getSaddleInfosForPair(chainId, takerToken, makerToken);
+            break;
         default:
             throw new Error(`Unknown Curve like source ${source}`);
     }
+    return pools.map(pool => ({
+        ...pool,
+        makerTokenIdx: pool.tokens.indexOf(makerToken),
+        takerTokenIdx: pool.tokens.indexOf(takerToken),
+    }));
 }
 
 export function uniswapV2LikeRouterAddress(

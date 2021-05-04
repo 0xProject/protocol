@@ -5,6 +5,9 @@
             {
                 "note": "Add Balancer V2 integration",
                 "pr": 206
+            },
+            {
+                "note": "Added ETH support to `MixinCurve`"
             }
         ]
     },
