@@ -17,6 +17,10 @@
             {
                 "note": "Reactivate PancakeSwapV2 and BakerySwap VIP on BSC",
                 "pr": 222
+            },
+            {
+                "note": "Disable WETH based SnowSwap pools",
+                "pr": 220
             }
         ]
     },
