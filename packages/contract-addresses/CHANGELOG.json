@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.1.0",
+        "changes": [
+            {
+                "note": "Deployed FQT on mainnet and ropsten for `Balancer_V2`"
+            }
+        ]
+    },
+    {
         "version": "6.0.0",
         "changes": [
             {
