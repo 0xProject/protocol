@@ -246,7 +246,7 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Smoothy
         | ERC20BridgeSource.Saddle
-        | ERC20BridgeSource.xSigma,
+        | ERC20BridgeSource.XSigma,
 ): CurveInfo[] {
     switch (source) {
         case ERC20BridgeSource.Curve:
@@ -265,7 +265,7 @@ export function getCurveLikeInfosForPair(
             return getSmoothyInfosForPair(chainId, takerToken, makerToken);
         case ERC20BridgeSource.Saddle:
             return getSaddleInfosForPair(chainId, takerToken, makerToken);
-        case ERC20BridgeSource.xSigma:
+        case ERC20BridgeSource.XSigma:
             return getXSigmaInfosForPair(chainId, takerToken, makerToken);
         default:
             throw new Error(`Unknown Curve like source ${source}`);

@@ -86,7 +86,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
-            ERC20BridgeSource.xSigma,
+            ERC20BridgeSource.XSigma,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -153,7 +153,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
-            ERC20BridgeSource.xSigma,
+            ERC20BridgeSource.XSigma,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -1094,7 +1094,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Ellipsis]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Smoothy]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Saddle]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.xSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
     [ERC20BridgeSource.UniswapV2]: (fillData?: FillData) => {
         // TODO: Different base cost if to/from ETH.
