@@ -3,7 +3,8 @@
         "version": "0.23.0",
         "changes": [
             {
-                "note": "Added ETH support to `MixinCurve`"
+                "note": "Added ETH support to `MixinCurve`",
+                "pr": 220
             }
         ]
     },
