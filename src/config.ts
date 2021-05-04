@@ -436,6 +436,9 @@ const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD
 const EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX = (sourceFlags: number) => {
     if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
         return TX_BASE_GAS;
+    } else if (SOURCE_FLAGS.Curve === sourceFlags) {
+        // Curve pseudo-VIP
+        return TX_BASE_GAS.plus(40e3);
     } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
         return TX_BASE_GAS.plus(10e3);
     } else {
@@ -455,6 +458,9 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: number) => {
         CHAIN_ID === ChainId.BSC
     ) {
         return TX_BASE_GAS;
+    } else if (SOURCE_FLAGS.Curve === sourceFlags) {
+        // Curve pseudo-VIP
+        return TX_BASE_GAS.plus(40e3);
     } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
         // PLP VIP
         return TX_BASE_GAS.plus(10e3);
