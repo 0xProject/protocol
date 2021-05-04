@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.23.0",
+        "changes": [
+            {
+                "note": "Added ETH support to `MixinCurve`",
+                "pr": 220
+            }
+        ]
+    },
+    {
         "timestamp": 1619830995,
         "version": "0.22.3",
         "changes": [
