@@ -14,6 +14,10 @@
             {
                 "note": "Add LUSD Curve pool",
                 "pr": 218
+            },
+            {
+                "note": "Fix exchangeProxyGasOverhead for fallback path",
+                "pr": 215
             }
         ]
     },
