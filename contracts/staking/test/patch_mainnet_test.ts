@@ -3,7 +3,7 @@ import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
-import { StakingContract, StakingEvents, StakingProxyContract, StakingProxyEvents } from './wrappers';
+import { StakingEvents, StakingPatchContract, StakingProxyContract, StakingProxyEvents } from './wrappers';
 
 const abis = _.mapValues(artifacts, v => v.compilerOutput.abi);
 const STAKING_PROXY = '0xa26e80e7dea86279c6d778d702cc413e6cffa777';
@@ -17,11 +17,11 @@ blockchainTests.configure({
 
 blockchainTests.fork('Staking patch mainnet fork tests', env => {
     let stakingProxyContract: StakingProxyContract;
-    let patchedStakingContract: StakingContract;
+    let patchedStakingPatchContract: StakingPatchContract;
 
     before(async () => {
         stakingProxyContract = new StakingProxyContract(STAKING_PROXY, env.provider, undefined, abis);
-        patchedStakingContract = await StakingContract.deployFrom0xArtifactAsync(
+        patchedStakingPatchContract = await StakingPatchContract.deployFrom0xArtifactAsync(
             artifacts.Staking,
             env.provider,
             env.txDefaults,
@@ -31,11 +31,11 @@ blockchainTests.fork('Staking patch mainnet fork tests', env => {
 
     it('Staking proxy successfully attaches to patched logic', async () => {
         const tx = await stakingProxyContract
-            .attachStakingContract(patchedStakingContract.address)
+            .attachStakingContract(patchedStakingPatchContract.address)
             .awaitTransactionSuccessAsync({ from: STAKING_OWNER, gasPrice: 0 }, { shouldValidate: false });
         expect(filterLogsToArguments(tx.logs, StakingProxyEvents.StakingContractAttachedToProxy)).to.deep.equal([
             {
-                newStakingContractAddress: patchedStakingContract.address,
+                newStakingPatchContractAddress: patchedStakingPatchContract.address,
             },
         ]);
         expect(filterLogsToArguments(tx.logs, StakingEvents.EpochEnded).length).to.equal(1);
@@ -44,7 +44,7 @@ blockchainTests.fork('Staking patch mainnet fork tests', env => {
     });
 
     it('Patched staking handles 0 gas protocol fees', async () => {
-        const staking = new StakingContract(STAKING_PROXY, env.provider, undefined, abis);
+        const staking = new StakingPatchContract(STAKING_PROXY, env.provider, undefined, abis);
         const maker = '0x7b1886e49ab5433bb46f7258548092dc8cdca28b';
         const zeroFeeTx = await staking
             .payProtocolFee(maker, constants.NULL_ADDRESS, constants.ZERO_AMOUNT)
