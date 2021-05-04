@@ -562,7 +562,7 @@ export class MarketOperationUtils {
         if (opts.allowFallback && fragileFills.length !== 0) {
             // We create a fallback path that is exclusive of Native liquidity
             // This is the optimal on-chain path for the entire input amount
-            const sturdyFills = fills.filter(p => p.length > 0 && p[0].source !== ERC20BridgeSource.Native);
+            const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
             const sturdyOptimalPath = await findOptimalPathAsync(side, sturdyFills, inputAmount, opts.runLimit, {
                 ...penaltyOpts,
                 exchangeProxyOverhead: (sourceFlags: number) =>
