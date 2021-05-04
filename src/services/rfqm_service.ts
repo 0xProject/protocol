@@ -11,6 +11,7 @@ export interface FetchIndicativeQuoteParams {
     buyAmount?: BigNumber;
     buyToken: string;
     buyTokenDecimals: number;
+    gasPrice?: BigNumber;
     sellAmount?: BigNumber;
     sellToken: string;
     sellTokenDecimals: number;
@@ -65,6 +66,7 @@ export class RfqmService {
             buyToken: makerToken,
             sellTokenDecimals: takerTokenDecimals,
             buyTokenDecimals: makerTokenDecimals,
+            gasPrice: inputGasPrice,
             apiKey,
         } = params;
 
@@ -74,7 +76,10 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Prepare gas estimate
-        const gas = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gas: BigNumber =
+            inputGasPrice !== undefined
+                ? inputGasPrice
+                : await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
         // Fetch quotes
         const opts = {

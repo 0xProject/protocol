@@ -46,11 +46,15 @@ export const AFFILIATE_FEE_TRANSFORMER_GAS = new BigNumber(15000);
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 export const ONE_GWEI = new BigNumber(1000000000);
 
+// RFQM Service
+export const KEEP_ALIVE_TTL = ONE_MINUTE_MS * 5;
+
 // API namespaces
 export const SRA_PATH = '/sra/v4';
 export const SWAP_PATH = '/swap/v1';
 export const META_TRANSACTION_PATH = '/meta_transaction/v1';
 export const METRICS_PATH = '/metrics';
+export const RFQM_PATH = '/rfqm/v1';
 export const API_KEY_HEADER = '0x-api-key';
 export const HEALTHCHECK_PATH = '/healthz';
 

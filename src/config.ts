@@ -275,6 +275,10 @@ export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistWithFallback(
     'rfqt',
 );
 
+export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(
+    getApiKeyWhitelistWithFallback('RFQM_API_KEY_WHITELIST_JSON', 'API_KEYS_ACL', 'rfqm'),
+);
+
 export const MATCHA_KEY: string | undefined = getApiKeyFromLabel('Matcha');
 
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = _.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST)
@@ -308,6 +312,14 @@ export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(proc
     : assertEnvVarType(
           'RFQT_MAKER_ASSET_OFFERINGS',
           process.env.RFQT_MAKER_ASSET_OFFERINGS,
+          EnvVarType.RfqMakerAssetOfferings,
+      );
+
+export const RFQM_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQM_MAKER_ASSET_OFFERINGS)
+    ? {}
+    : assertEnvVarType(
+          'RFQM_MAKER_ASSET_OFFERINGS',
+          process.env.RFQM_MAKER_ASSET_OFFERINGS,
           EnvVarType.RfqMakerAssetOfferings,
       );
 

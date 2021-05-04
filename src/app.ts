@@ -176,6 +176,7 @@ export async function getDefaultAppDependenciesAsync(
         rateLimiter,
     };
 }
+
 /**
  * starts the app with dependencies injected. This entry-point is used when running a single instance 0x API
  * deployment and in tests. It is not used in production deployments where scaling is required.
@@ -215,10 +216,10 @@ function createMetaTransactionRateLimiterFromConfig(
 ): MetaTransactionRateLimiter {
     const rateLimiterConfigEntries = Object.entries(config.metaTxnRateLimiters!);
     const configuredRateLimiters = rateLimiterConfigEntries
-        .map(entries => {
+        .map((entries) => {
             const [dbField, rateLimiters] = entries;
 
-            return Object.entries(rateLimiters!).map(rateLimiterEntry => {
+            return Object.entries(rateLimiters!).map((rateLimiterEntry) => {
                 const [limiterType, value] = rateLimiterEntry;
                 switch (limiterType) {
                     case AvailableRateLimiter.Daily: {
