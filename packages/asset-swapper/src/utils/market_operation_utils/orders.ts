@@ -302,8 +302,7 @@ export function createBridgeOrder(
 
 function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): FillData {
     switch (fill.source) {
-        case ERC20BridgeSource.UniswapV3:
-        {
+        case ERC20BridgeSource.UniswapV3: {
             const fd = fill.fillData as UniswapV3FillData;
             return {
                 router: fd.router,
@@ -312,7 +311,7 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): F
             };
         }
         default:
-        break;
+            break;
     }
     return fill.fillData;
 }

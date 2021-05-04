@@ -125,6 +125,7 @@ contract UniswapV3Sampler
     {
         IUniswapV3Pool[][] memory poolPaths =
             _getValidPoolPaths(quoter.factory(), path, 0);
+        IERC20TokenV06[] memory reversedPath = _reverseTokenPath(path);
 
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
@@ -135,18 +136,23 @@ contract UniswapV3Sampler
             bytes memory topUniswapPath;
             uint256 topSellAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
-                bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
+                // quoter requires path to be reversed for buys.
+                bytes memory uniswapPath = _toUniswapPath(
+                    reversedPath,
+                    _reversePoolPath(poolPaths[j])
+                );
                 try
                     quoter.quoteExactOutput
                         { gas: QUOTE_GAS }
                         (uniswapPath, makerTokenAmounts[i])
                         returns (uint256 sellAmount)
                 {
-                    if (topSellAmount >= sellAmount) {
+                    if (topSellAmount == 0 || topSellAmount >= sellAmount) {
                         topSellAmount = sellAmount;
-                        topUniswapPath = uniswapPath;
+                        // But the output path should still be encoded for sells.
+                        topUniswapPath = _toUniswapPath(path, poolPaths[j]);
                     }
-                } catch { }
+                } catch {}
             }
             // Break early if we can't complete the buys.
             if (topSellAmount == 0) {
@@ -225,6 +231,26 @@ contract UniswapV3Sampler
             }
         }
         return poolPaths;
+    }
+
+    function _reverseTokenPath(IERC20TokenV06[] memory tokenPath)
+        private
+        returns (IERC20TokenV06[] memory reversed)
+    {
+        reversed = new IERC20TokenV06[](tokenPath.length);
+        for (uint256 i = 0; i < tokenPath.length; ++i) {
+            reversed[i] = tokenPath[tokenPath.length - i - 1];
+        }
+    }
+
+    function _reversePoolPath(IUniswapV3Pool[] memory poolPath)
+        private
+        returns (IUniswapV3Pool[] memory reversed)
+    {
+        reversed = new IUniswapV3Pool[](poolPath.length);
+        for (uint256 i = 0; i < poolPath.length; ++i) {
+            reversed[i] = poolPath[poolPath.length - i - 1];
+        }
     }
 
     function _isValidPool(IUniswapV3Pool pool)

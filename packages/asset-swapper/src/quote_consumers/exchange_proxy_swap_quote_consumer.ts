@@ -96,10 +96,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _multiplex: MultiplexFeatureContract;
 
-    constructor(
-        public readonly contractAddresses: ContractAddresses,
-        options: Partial<SwapQuoteConsumerOpts> = {},
-    ) {
+    constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> = {}) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         assert.isNumber('chainId', chainId);
         this.chainId = chainId;

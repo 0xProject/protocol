@@ -20,9 +20,7 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _contractAddresses: ContractAddresses;
     private readonly _exchangeProxyConsumer: ExchangeProxySwapQuoteConsumer;
 
-    public static getSwapQuoteConsumer(
-        options: Partial<SwapQuoteConsumerOpts> = {},
-    ): SwapQuoteConsumer {
+    public static getSwapQuoteConsumer(options: Partial<SwapQuoteConsumerOpts> = {}): SwapQuoteConsumer {
         return new SwapQuoteConsumer(options);
     }
 
@@ -32,10 +30,7 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         this.chainId = chainId;
         this._contractAddresses = options.contractAddresses || getContractAddressesForChainOrThrow(chainId);
-        this._exchangeProxyConsumer = new ExchangeProxySwapQuoteConsumer(
-            this._contractAddresses,
-            options,
-        );
+        this._exchangeProxyConsumer = new ExchangeProxySwapQuoteConsumer(this._contractAddresses, options);
     }
 
     /**

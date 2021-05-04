@@ -24,6 +24,7 @@ import {
     PsmInfo,
     TokenAdjacencyGraph,
     UniswapV2FillData,
+    UniswapV3FillData,
 } from './types';
 
 // tslint:disable: custom-no-magic-numbers no-bitwise
@@ -1056,18 +1057,14 @@ export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
 export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2';
 
-export const UNISWAPV3_QUOTER_BY_CHAIN_ID = valueByChainId<string>(
+export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
-        [ChainId.Ropsten]: '0xB1c59e8Ae4B72f63a5a9CB9c25A9253096A4b126',
+        [ChainId.Ropsten]: {
+            quoter: '0x2F9e608FD881861B8916257B76613Cb22EE0652c',
+            router: '0x03782388516e94FcD4c18666303601A12Aa729Ea',
+        },
     },
-    NULL_ADDRESS,
-);
-
-export const UNISWAPV3_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Ropsten]: '0x71bB3d0e63f2Fa2A5d04d54267211f4Caef7062e',
-    },
-    NULL_ADDRESS,
+    { quoter: NULL_ADDRESS, router: NULL_ADDRESS },
 );
 
 //
@@ -1303,10 +1300,10 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
+        let gas = 260e3;
+        const path = (fillData as UniswapV3FillData).tokenAddressPath;
         if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
+            gas += (path.length - 2) * 117e3; // +117k for each hop.
         }
         return gas;
     },

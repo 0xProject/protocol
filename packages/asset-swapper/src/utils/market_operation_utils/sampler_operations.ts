@@ -36,8 +36,7 @@ import {
     OASIS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
-    UNISWAPV3_QUOTER_BY_CHAIN_ID,
-    UNISWAPV3_ROUTER_BY_CHAIN_ID,
+    UNISWAPV3_CONFIG_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
@@ -1326,16 +1325,15 @@ export class SamplerOperations {
                             }
                             return this.getMakerPsmSellQuotes(psmInfo, makerToken, takerToken, takerFillAmounts);
                         case ERC20BridgeSource.UniswapV3: {
-                                const quoter = UNISWAPV3_QUOTER_BY_CHAIN_ID[this.chainId];
-                                const router = UNISWAPV3_ROUTER_BY_CHAIN_ID[this.chainId];
-                                if (!isValidAddress(router) || !isValidAddress(quoter)) {
-                                    return [];
-                                }
-                                return [
-                                    [takerToken, makerToken],
-                                    ...intermediateTokens.map(t => [takerToken, t, makerToken]),
-                                ].map(path => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
+                            const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(router) || !isValidAddress(quoter)) {
+                                return [];
                             }
+                            return [
+                                [takerToken, makerToken],
+                                ...intermediateTokens.map(t => [takerToken, t, makerToken]),
+                            ].map(path => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
+                        }
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1573,16 +1571,15 @@ export class SamplerOperations {
                             }
                             return this.getMakerPsmBuyQuotes(psmInfo, makerToken, takerToken, makerFillAmounts);
                         case ERC20BridgeSource.UniswapV3: {
-                                const quoter = UNISWAPV3_QUOTER_BY_CHAIN_ID[this.chainId];
-                                const router = UNISWAPV3_ROUTER_BY_CHAIN_ID[this.chainId];
-                                if (!isValidAddress(router) || !isValidAddress(quoter)) {
-                                    return [];
-                                }
-                                return [
-                                    [takerToken, makerToken],
-                                    ...intermediateTokens.map(t => [takerToken, t, makerToken]),
-                                ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
+                            const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(router) || !isValidAddress(quoter)) {
+                                return [];
                             }
+                            return [
+                                [takerToken, makerToken],
+                                ...intermediateTokens.map(t => [takerToken, t, makerToken]),
+                            ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
+                        }
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

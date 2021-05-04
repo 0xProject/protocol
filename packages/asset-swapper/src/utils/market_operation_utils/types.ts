@@ -221,7 +221,7 @@ export interface HopInfo {
 export interface UniswapV3FillData extends FillData {
     tokenAddressPath: string[];
     router: string;
-    pathAmounts: Array<{uniswapPath: string; inputAmount: BigNumber}>;
+    pathAmounts: Array<{ uniswapPath: string; inputAmount: BigNumber }>;
 }
 
 /**
