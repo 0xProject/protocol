@@ -160,7 +160,7 @@ export class SwapService {
             contractAddresses,
         };
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
-        this._swapQuoteConsumer = new SwapQuoteConsumer(this._provider, swapQuoterOpts);
+        this._swapQuoteConsumer = new SwapQuoteConsumer(swapQuoterOpts);
         this._web3Wrapper = new Web3Wrapper(this._provider);
 
         this._contractAddresses = contractAddresses;
