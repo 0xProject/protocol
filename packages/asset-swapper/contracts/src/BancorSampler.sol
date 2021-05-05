@@ -22,16 +22,13 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IBancor.sol";
 
-contract DeploymentConstants {}
-
-contract BancorSampler is DeploymentConstants
-{
+contract BancorSampler {
 
     /// @dev Base gas limit for Bancor calls.
     uint256 constant private BANCOR_CALL_GAS = 300e3; // 300k
 
     struct BancorSamplerOpts {
-        address registry;
+        IBancorRegistry registry;
         address[][] paths;
     }
 
@@ -112,7 +109,7 @@ contract BancorSampler is DeploymentConstants
         view
         returns (address bancorNetwork, address[] memory path)
     {
-        bancorNetwork = _getBancorNetwork(opts.registry);
+        bancorNetwork = opts.registry.getAddress(opts.registry.BANCOR_NETWORK());
         if (opts.paths.length == 0) {
             return (bancorNetwork, path);
         }
@@ -139,14 +136,5 @@ contract BancorSampler is DeploymentConstants
                 continue;
             }
         }
-    }
-
-    function _getBancorNetwork(address registry)
-        private
-        view
-        returns (address)
-    {
-        IBancorRegistry registry = IBancorRegistry(registry);
-        return registry.getAddress(registry.BANCOR_NETWORK());
     }
 }

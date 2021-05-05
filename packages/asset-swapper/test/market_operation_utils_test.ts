@@ -47,32 +47,11 @@ import {
 const MAKER_TOKEN = randomAddress();
 const TAKER_TOKEN = randomAddress();
 
-const DEFAULT_EXCLUDED = [
-    ERC20BridgeSource.UniswapV2,
-    ERC20BridgeSource.Curve,
-    ERC20BridgeSource.Balancer,
-    ERC20BridgeSource.BalancerV2,
-    ERC20BridgeSource.MStable,
-    ERC20BridgeSource.Mooniswap,
-    ERC20BridgeSource.Bancor,
-    ERC20BridgeSource.Swerve,
-    ERC20BridgeSource.SnowSwap,
-    ERC20BridgeSource.SushiSwap,
-    ERC20BridgeSource.MultiHop,
-    ERC20BridgeSource.Shell,
-    ERC20BridgeSource.Cream,
-    ERC20BridgeSource.Dodo,
-    ERC20BridgeSource.DodoV2,
-    ERC20BridgeSource.LiquidityProvider,
-    ERC20BridgeSource.CryptoCom,
-    ERC20BridgeSource.Linkswap,
-    ERC20BridgeSource.PancakeSwap,
-    ERC20BridgeSource.BakerySwap,
-    ERC20BridgeSource.MakerPsm,
-    ERC20BridgeSource.KyberDmm,
-    ERC20BridgeSource.Smoothy,
-    ERC20BridgeSource.Component,
-    ERC20BridgeSource.Saddle,
+const DEFAULT_INCLUDED = [
+    ERC20BridgeSource.Eth2Dai,
+    ERC20BridgeSource.Kyber,
+    ERC20BridgeSource.Native,
+    ERC20BridgeSource.Uniswap,
 ];
 
 const DEFAULT_EXCLUDED = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources.filter(
