@@ -1,5 +1,14 @@
 [
     {
+        "version": "5.4.0",
+        "changes": [
+            {
+                "note": "Set default ganache gas limit to 100e6",
+                "pr": 197
+            }
+        ]
+    },
+    {
         "timestamp": 1619596077,
         "version": "5.3.25",
         "changes": [
