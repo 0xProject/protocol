@@ -15,12 +15,14 @@ jobs:
               uses: xt0rted/pull-request-comment-branch@v1
               with:
                 repo_token: ${{ github.token }}
-            - name: trim branch name
+            - name: trim and save branch name
               run: echo ${{ steps.comment-branch.outputs.head_ref }} | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
+            - name: save branch sha
+              run: echo ${{ steps.comment-branch.outputs.head_sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             # Different deploy scenarios
             - name: deploy from master to production
               if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
-              run: echo "folder=prod" >> $GITHUB_ENV; echo "trimmed_branch_name=master" >> $GITHUB_ENV
+              run: echo "folder=prod" >> $GITHUB_ENV; echo "trimmed_branch_name=master" >> $GITHUB_ENV; echo ${{ github.sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             - name: deploy from branch to staging
               if: github.event.issue.pull_request && github.event.comment.body == 'deploy staging'
               run: echo "folder=staging" >> $GITHUB_ENV
@@ -34,7 +36,7 @@ jobs:
                   token: ${{ secrets.PAT }}
                   repository: 0xProject/0x-main-infra
             - name: Update API configs
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ github.sha }}"/g' env/0x-api/${{ env.folder }}/common/*.yml env/0x-api/${{ env.folder }}/apis/*.yml
+              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder }}/common/*.yml env/0x-api/${{ env.folder }}/apis/*.yml
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v3.5.0
               with:
@@ -47,7 +49,7 @@ jobs:
                       ## Automated deploy action
                       Triggered by @${{ github.event.sender.login }}
                       PR: [${{ github.event.issue.title }}](${{ github.event.issue.html_url }})
-                      SHA: https://github.com/${{ github.repository }}/tree/${{ github.sha }}
+                      SHA: https://github.com/${{ github.repository }}/tree/${{ env.branch_sha }}
                       Comparison: https://github.com/${{ github.repository }}/compare/master...refs/heads/${{ env.trimmed_branch_name }}
             - name: Check outputs
               run: |
