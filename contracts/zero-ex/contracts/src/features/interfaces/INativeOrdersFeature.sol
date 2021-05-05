@@ -137,6 +137,24 @@ interface INativeOrdersFeature is
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
+    /// @dev Fill an RFQ order using ETH. Taker token must be WETH.
+    ///      Internal variant.
+    /// @param order The RFQ order.
+    /// @param signature The order signature.
+    /// @param takerTokenFillAmount Maximum taker token to fill this order with.
+    /// @param taker The order taker.
+    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function _fillRfqOrderWithEth(
+        LibNativeOrder.RfqOrder calldata order,
+        LibSignature.Signature calldata signature,
+        uint128 takerTokenFillAmount,
+        address taker
+    )
+        external
+        payable
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+
     /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.

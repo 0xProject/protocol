@@ -32,12 +32,12 @@ abstract contract FixinProtocolFees {
 
     /// @dev The protocol fee multiplier.
     uint32 public immutable PROTOCOL_FEE_MULTIPLIER;
+    /// @dev The WETH token contract.
+    IEtherTokenV06 internal immutable WETH;    
     /// @dev The `FeeCollectorController` contract.
     FeeCollectorController private immutable FEE_COLLECTOR_CONTROLLER;
     /// @dev Hash of the fee collector init code.
     bytes32 private immutable FEE_COLLECTOR_INIT_CODE_HASH;
-    /// @dev The WETH token contract.
-    IEtherTokenV06 private immutable WETH;
     /// @dev The staking contract.
     IStaking private immutable STAKING;
 

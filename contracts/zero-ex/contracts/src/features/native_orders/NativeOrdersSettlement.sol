@@ -66,6 +66,8 @@ abstract contract NativeOrdersSettlement is
         uint128 takerTokenFillAmount;
         // How much taker token amount has already been filled in this order.
         uint128 takerTokenFilledAmount;
+
+        bool useEthBalance;
     }
 
     /// @dev Params for `_fillLimitOrderPrivate()`
@@ -158,7 +160,8 @@ abstract contract NativeOrdersSettlement is
                 order,
                 signature,
                 takerTokenFillAmount,
-                msg.sender
+                msg.sender,
+                false
             );
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
@@ -224,7 +227,8 @@ abstract contract NativeOrdersSettlement is
                 order,
                 signature,
                 takerTokenFillAmount,
-                msg.sender
+                msg.sender,
+                false
             );
         // Must have filled exactly the amount requested.
         if (results.takerTokenFilledAmount < takerTokenFillAmount) {
@@ -273,9 +277,7 @@ abstract contract NativeOrdersSettlement is
         );
     }
 
-    /// @dev Fill an RFQ order. Internal variant. ETH protocol fees can be
-    ///      attached to this call. Any unspent ETH will be refunded to
-    ///      `msg.sender` (not `sender`).
+    /// @dev Fill an RFQ order. Internal variant.
     /// @param order The RFQ order.
     /// @param signature The order signature.
     /// @param takerTokenFillAmount Maximum taker token to fill this order with.
@@ -298,12 +300,56 @@ abstract contract NativeOrdersSettlement is
                 order,
                 signature,
                 takerTokenFillAmount,
-                taker
+                taker,
+                false
             );
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount
         );
+    }
+
+    /// @dev Fill an RFQ order using ETH. Taker token must be WETH.
+    ///      Internal variant.
+    /// @param order The RFQ order.
+    /// @param signature The order signature.
+    /// @param takerTokenFillAmount Maximum taker token to fill this order with.
+    /// @param taker The order taker.
+    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function _fillRfqOrderWithEth(
+        LibNativeOrder.RfqOrder memory order,
+        LibSignature.Signature memory signature,
+        uint128 takerTokenFillAmount,
+        address taker
+    )
+        public
+        virtual
+        payable
+        onlySelf
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+    {
+        require(
+            msg.value == takerTokenFillAmount,
+            "NativeOrdersFeature/ETH_FILL_AMOUNT_MISMATCH"
+        );
+        FillNativeOrderResults memory results =
+            _fillRfqOrderPrivate(
+                order,
+                signature,
+                takerTokenFillAmount,
+                taker,
+                true
+            );
+        (takerTokenFilledAmount, makerTokenFilledAmount) = (
+            results.takerTokenFilledAmount,
+            results.makerTokenFilledAmount
+        );
+        if (takerTokenFilledAmount < msg.value) {
+            uint256 refundAmount = msg.value.safeSub(takerTokenFilledAmount);
+            (bool success,) = msg.sender.call{value: refundAmount}("");
+            require(success, "NativeOrdersFeature/ETH_REFUND_FAILED");
+        }
     }
 
     /// @dev Mark what tx.origin addresses are allowed to fill an order that
@@ -393,7 +439,8 @@ abstract contract NativeOrdersSettlement is
                 makerAmount: params.order.makerAmount,
                 takerAmount: params.order.takerAmount,
                 takerTokenFillAmount: params.takerTokenFillAmount,
-                takerTokenFilledAmount: orderInfo.takerTokenFilledAmount
+                takerTokenFilledAmount: orderInfo.takerTokenFilledAmount,
+                useEthBalance: false
             })
         );
 
@@ -437,7 +484,8 @@ abstract contract NativeOrdersSettlement is
         LibNativeOrder.RfqOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
-        address taker
+        address taker,
+        bool useEthBalance
     )
         private
         returns (FillNativeOrderResults memory results)
@@ -498,7 +546,8 @@ abstract contract NativeOrdersSettlement is
                 makerAmount: order.makerAmount,
                 takerAmount: order.takerAmount,
                 takerTokenFillAmount: takerTokenFillAmount,
-                takerTokenFilledAmount: orderInfo.takerTokenFilledAmount
+                takerTokenFilledAmount: orderInfo.takerTokenFilledAmount,
+                useEthBalance: useEthBalance
             })
         );
 
@@ -549,13 +598,22 @@ abstract contract NativeOrdersSettlement is
             // function if the order is cancelled.
                 settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
 
-        // Transfer taker -> maker.
-        _transferERC20Tokens(
-            settleInfo.takerToken,
-            settleInfo.taker,
-            settleInfo.maker,
-            takerTokenFilledAmount
-        );
+        if (settleInfo.useEthBalance) {
+            require(
+                settleInfo.takerToken == WETH,
+                "NativeOrdersFeature/USE_ETH_BALANCE_INVALID"
+            );
+            WETH.deposit{value: takerTokenFilledAmount}();
+            WETH.transfer(settleInfo.maker, takerTokenFilledAmount);
+        } else {
+            // Transfer taker -> maker.
+            _transferERC20Tokens(
+                settleInfo.takerToken,
+                settleInfo.taker,
+                settleInfo.maker,
+                takerTokenFilledAmount
+            );
+        }
 
         // Transfer maker -> taker.
         _transferERC20Tokens(

@@ -55,7 +55,7 @@ contract MultiplexFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MultiplexFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
 
     /// @dev The WETH token contract.
     IEtherTokenV06 private immutable weth;
@@ -231,26 +231,55 @@ contract MultiplexFeature is
                     );
                     continue;
                 }
-                require(
-                    order.takerToken == fillData.inputToken &&
-                    order.makerToken == fillData.outputToken,
-                    "MultiplexFeature::_batchFill/RFQ_ORDER_INVALID_TOKENS"
-                );
-                // Try filling the RFQ order. Swallows reverts.
-                try
-                    INativeOrdersFeature(address(this))._fillRfqOrder
-                        (
-                            order,
-                            signature,
-                            inputTokenAmount.safeDowncastToUint128(),
-                            msg.sender
-                        )
-                    returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-                {
-                    // Increment the sold and bought amounts.
-                    soldAmount = soldAmount.safeAdd(takerTokenFilledAmount);
-                    outputTokenAmount = outputTokenAmount.safeAdd(makerTokenFilledAmount);
-                } catch {}
+                if (fillData.inputToken.isTokenETH()) {
+                    require(
+                        order.takerToken == weth &&
+                        order.makerToken == fillData.outputToken,
+                        "MultiplexFeature::_batchFill/RFQ_ORDER_INVALID_TOKENS"
+                    );
+                    inputTokenAmount = LibSafeMathV06.min256(
+                        inputTokenAmount,
+                        remainingEth
+                    );
+                    // Try filling the RFQ order. Swallows reverts.
+                    try
+                        INativeOrdersFeature(address(this))._fillRfqOrderWithEth
+                            {value: inputTokenAmount}
+                            (
+                                order,
+                                signature,
+                                inputTokenAmount.safeDowncastToUint128(),
+                                msg.sender
+                            )
+                        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+                    {
+                        // Increment the sold and bought amounts.
+                        soldAmount = soldAmount.safeAdd(takerTokenFilledAmount);
+                        outputTokenAmount = outputTokenAmount.safeAdd(makerTokenFilledAmount);
+                        remainingEth = remainingEth.safeSub(takerTokenFilledAmount);
+                    } catch {}
+                } else {
+                    require(
+                        order.takerToken == fillData.inputToken &&
+                        order.makerToken == fillData.outputToken,
+                        "MultiplexFeature::_batchFill/RFQ_ORDER_INVALID_TOKENS"
+                    );
+                    // Try filling the RFQ order. Swallows reverts.
+                    try
+                        INativeOrdersFeature(address(this))._fillRfqOrder
+                            (
+                                order,
+                                signature,
+                                inputTokenAmount.safeDowncastToUint128(),
+                                msg.sender
+                            )
+                        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+                    {
+                        // Increment the sold and bought amounts.
+                        soldAmount = soldAmount.safeAdd(takerTokenFilledAmount);
+                        outputTokenAmount = outputTokenAmount.safeAdd(makerTokenFilledAmount);
+                    } catch {}
+                }
             } else if (wrappedCall.selector == this._sellToUniswap.selector) {
                 (address[] memory tokens, bool isSushi) = abi.decode(
                     wrappedCall.data,
