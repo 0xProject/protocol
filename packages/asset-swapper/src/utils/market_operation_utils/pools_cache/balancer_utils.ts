@@ -16,6 +16,7 @@ interface BalancerPoolResponse {
     tokensList: string[];
     totalWeight: string;
 }
+
 export class BalancerPoolsCache extends PoolsCache {
     constructor(
         private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL,
@@ -63,7 +64,8 @@ export class BalancerPoolsCache extends PoolsCache {
                         const poolData = parsePoolData([pool], from, to);
                         fromToPools[from][to].push(poolData[0]);
                         // Cache this as we progress through
-                        this._cachePoolsForPair(from, to, fromToPools[from][to]);
+                        const expiresAt = Date.now() + this._cacheTimeMs;
+                        this._cachePoolsForPair(from, to, fromToPools[from][to], expiresAt);
                     } catch {
                         // soldier on
                     }

@@ -33,6 +33,10 @@
             {
                 "note": "Add Balancer V2 integration",
                 "pr": 206
+            },
+            {
+                "note": "Re-work the PoolCache for Balancer et al",
+                "pr": 226
             }
         ]
     },
