@@ -6,7 +6,7 @@
     "shouldSaveStandardInput": true,
     "compilerSettings": {
         "evmVersion": "istanbul",
-        "optimizer": { "enabled": true, "runs": 200 },
+        "optimizer": { "enabled": false, "runs": 200, "details": { "yul": true } },
         "outputSelection": {
             "*": {
                 "*": [

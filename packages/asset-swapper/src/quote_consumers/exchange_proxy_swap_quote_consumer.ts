@@ -13,8 +13,7 @@ import {
     FillQuoteTransformerSide,
     findTransformerNonce,
 } from '@0x/protocol-utils';
-import { BigNumber, providerUtils } from '@0x/utils';
-import { SupportedProvider, ZeroExProvider } from '@0x/web3-wrapper';
+import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
@@ -77,14 +76,14 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.CheeseSwap,
     ERC20BridgeSource.JulSwap,
 ];
-const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, {
+const FAKE_PROVIDER: any = {
     sendAsync(): void {
         return;
     },
-} as any);
+};
+const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, FAKE_PROVIDER);
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
-    public readonly provider: ZeroExProvider;
     public readonly chainId: ChainId;
     public readonly transformerNonces: {
         wethTransformer: number;
@@ -97,19 +96,13 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _multiplex: MultiplexFeatureContract;
 
-    constructor(
-        supportedProvider: SupportedProvider,
-        public readonly contractAddresses: ContractAddresses,
-        options: Partial<SwapQuoteConsumerOpts> = {},
-    ) {
+    constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> = {}) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         assert.isNumber('chainId', chainId);
-        const provider = providerUtils.standardizeOrThrow(supportedProvider);
-        this.provider = provider;
         this.chainId = chainId;
         this.contractAddresses = contractAddresses;
-        this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, supportedProvider);
-        this._multiplex = new MultiplexFeatureContract(contractAddresses.exchangeProxy, supportedProvider);
+        this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
+        this._multiplex = new MultiplexFeatureContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
         this.transformerNonces = {
             wethTransformer: findTransformerNonce(
                 contractAddresses.transformers.wethTransformer,

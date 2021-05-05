@@ -60,12 +60,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
     let consumer: ExchangeProxySwapQuoteConsumer;
 
     before(async () => {
-        const fakeProvider = {
-            async sendAsync(): Promise<void> {
-                /* noop */
-            },
-        };
-        consumer = new ExchangeProxySwapQuoteConsumer(fakeProvider, contractAddresses, { chainId: CHAIN_ID });
+        consumer = new ExchangeProxySwapQuoteConsumer(contractAddresses, { chainId: CHAIN_ID });
     });
 
     function getRandomOrder(orderFields?: Partial<LimitOrderFields>): LimitOrderFields {

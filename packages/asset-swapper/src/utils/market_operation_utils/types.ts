@@ -65,6 +65,7 @@ export enum ERC20BridgeSource {
     Component = 'Component',
     Saddle = 'Saddle',
     XSigma = 'xSigma',
+    UniswapV3 = 'Uniswap_V3',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -215,6 +216,12 @@ export type MakerPsmFillData = FillData & MakerPsmExtendedData & PsmInfo;
 export interface HopInfo {
     sourceIndex: BigNumber;
     returnData: string;
+}
+
+export interface UniswapV3FillData extends FillData {
+    tokenAddressPath: string[];
+    router: string;
+    pathAmounts: Array<{ uniswapPath: string; inputAmount: BigNumber }>;
 }
 
 /**

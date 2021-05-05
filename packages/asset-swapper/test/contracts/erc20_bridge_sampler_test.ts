@@ -18,7 +18,6 @@ import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '
 // tslint:disable: custom-no-magic-numbers
 
 const { NULL_ADDRESS } = constants;
-
 blockchainTests('erc20-bridge-sampler', env => {
     let testContract: TestERC20BridgeSamplerContract;
     const RATE_DENOMINATOR = constants.ONE_ETHER;
@@ -45,7 +44,7 @@ blockchainTests('erc20-bridge-sampler', env => {
         testContract = await TestERC20BridgeSamplerContract.deployFrom0xArtifactAsync(
             artifacts.TestERC20BridgeSampler,
             env.provider,
-            env.txDefaults,
+            { ...env.txDefaults, gas: 100e6 },
             {},
         );
         UNISWAP_V2_ROUTER = await testContract.uniswapV2Router().callAsync();

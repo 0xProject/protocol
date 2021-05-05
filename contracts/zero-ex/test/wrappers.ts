@@ -90,6 +90,7 @@ export * from '../test/generated-wrappers/mixin_oasis';
 export * from '../test/generated-wrappers/mixin_shell';
 export * from '../test/generated-wrappers/mixin_uniswap';
 export * from '../test/generated-wrappers/mixin_uniswap_v2';
+export * from '../test/generated-wrappers/mixin_uniswap_v3';
 export * from '../test/generated-wrappers/mixin_zero_ex_bridge';
 export * from '../test/generated-wrappers/mooniswap_liquidity_provider';
 export * from '../test/generated-wrappers/multiplex_feature';

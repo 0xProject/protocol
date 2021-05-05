@@ -1,6 +1,4 @@
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { providerUtils } from '@0x/utils';
-import { SupportedProvider, ZeroExProvider } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
 import { constants } from '../constants';
@@ -17,32 +15,22 @@ import { assert } from '../utils/assert';
 import { ExchangeProxySwapQuoteConsumer } from './exchange_proxy_swap_quote_consumer';
 
 export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
-    public readonly provider: ZeroExProvider;
     public readonly chainId: number;
 
     private readonly _contractAddresses: ContractAddresses;
     private readonly _exchangeProxyConsumer: ExchangeProxySwapQuoteConsumer;
 
-    public static getSwapQuoteConsumer(
-        supportedProvider: SupportedProvider,
-        options: Partial<SwapQuoteConsumerOpts> = {},
-    ): SwapQuoteConsumer {
-        return new SwapQuoteConsumer(supportedProvider, options);
+    public static getSwapQuoteConsumer(options: Partial<SwapQuoteConsumerOpts> = {}): SwapQuoteConsumer {
+        return new SwapQuoteConsumer(options);
     }
 
-    constructor(supportedProvider: SupportedProvider, options: Partial<SwapQuoteConsumerOpts> = {}) {
+    constructor(options: Partial<SwapQuoteConsumerOpts> = {}) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         assert.isNumber('chainId', chainId);
 
-        const provider = providerUtils.standardizeOrThrow(supportedProvider);
-        this.provider = provider;
         this.chainId = chainId;
         this._contractAddresses = options.contractAddresses || getContractAddressesForChainOrThrow(chainId);
-        this._exchangeProxyConsumer = new ExchangeProxySwapQuoteConsumer(
-            supportedProvider,
-            this._contractAddresses,
-            options,
-        );
+        this._exchangeProxyConsumer = new ExchangeProxySwapQuoteConsumer(this._contractAddresses, options);
     }
 
     /**

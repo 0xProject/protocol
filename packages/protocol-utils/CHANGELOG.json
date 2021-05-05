@@ -5,6 +5,10 @@
             {
                 "note": "Add BalancerV2, remove Smoothy, Component and Saddle in BridgeProtocol enum",
                 "pr": 206
+            },
+            {
+                "note": "Add UniswapV3 bridge protocol IDs and remove invalid ones",
+                "pr": 197
             }
         ]
     },

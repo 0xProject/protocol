@@ -41,17 +41,17 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/dev-utils",
     "devDependencies": {
-        "@0x/abi-gen": "^5.5.2",
-        "@0x/assert": "^3.0.26",
+        "@0x/abi-gen": "^5.6.0",
+        "@0x/assert": "^3.0.27",
         "@0x/contracts-asset-proxy": "^3.7.10",
         "@0x/contracts-erc20": "^3.3.7",
-        "@0x/contracts-gen": "^2.0.37",
+        "@0x/contracts-gen": "^2.0.38",
         "@0x/contracts-test-utils": "^5.3.25",
-        "@0x/sol-compiler": "^4.7.2",
+        "@0x/sol-compiler": "^4.7.3",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.4",
         "@0x/types": "^3.3.3",
-        "@0x/utils": "^6.4.2",
+        "@0x/utils": "^6.4.3",
         "ethereum-types": "^3.5.0",
         "ethers": "~4.0.4",
         "npm-run-all": "^4.1.2",
@@ -63,7 +63,7 @@
         "typescript": "4.2.2"
     },
     "dependencies": {
-        "@0x/base-contract": "^6.3.2",
+        "@0x/base-contract": "^6.4.0",
         "@types/node": "12.12.54"
     },
     "publishConfig": {

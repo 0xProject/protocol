@@ -36,6 +36,7 @@ import {
     OASIS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
+    UNISWAPV3_CONFIG_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
@@ -69,6 +70,7 @@ import {
     SourcesWithPoolsCache,
     TokenAdjacencyGraph,
     UniswapV2FillData,
+    UniswapV3FillData,
 } from './types';
 
 /**
@@ -677,6 +679,62 @@ export class SamplerOperations {
         });
     }
 
+    public getUniswapV3SellQuotes(
+        router: string,
+        quoter: string,
+        tokenAddressPath: string[],
+        takerFillAmounts: BigNumber[],
+        source: ERC20BridgeSource = ERC20BridgeSource.UniswapV3,
+    ): SourceQuoteOperation<UniswapV3FillData> {
+        return new SamplerContractOperation({
+            source,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromUniswapV3,
+            params: [quoter, tokenAddressPath, takerFillAmounts],
+            callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
+                const [samples, paths] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], string[]]>(
+                    'sampleSellsFromUniswapV3',
+                    callResults,
+                );
+                fillData.router = router;
+                fillData.tokenAddressPath = tokenAddressPath;
+                fillData.pathAmounts = paths.map((uniswapPath, i) => ({
+                    uniswapPath,
+                    inputAmount: takerFillAmounts[i],
+                }));
+                return samples;
+            },
+        });
+    }
+
+    public getUniswapV3BuyQuotes(
+        router: string,
+        quoter: string,
+        tokenAddressPath: string[],
+        makerFillAmounts: BigNumber[],
+        source: ERC20BridgeSource = ERC20BridgeSource.UniswapV3,
+    ): SourceQuoteOperation<UniswapV3FillData> {
+        return new SamplerContractOperation({
+            source,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromUniswapV3,
+            params: [quoter, tokenAddressPath, makerFillAmounts],
+            callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
+                const [samples, paths] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], string[]]>(
+                    'sampleBuysFromUniswapV3',
+                    callResults,
+                );
+                fillData.router = router;
+                fillData.tokenAddressPath = tokenAddressPath;
+                fillData.pathAmounts = paths.map((uniswapPath, i) => ({
+                    uniswapPath,
+                    inputAmount: makerFillAmounts[i],
+                }));
+                return samples;
+            },
+        });
+    }
+
     public getTwoHopSellQuotes(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1266,6 +1324,16 @@ export class SamplerOperations {
                                 return [];
                             }
                             return this.getMakerPsmSellQuotes(psmInfo, makerToken, takerToken, takerFillAmounts);
+                        case ERC20BridgeSource.UniswapV3: {
+                            const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(router) || !isValidAddress(quoter)) {
+                                return [];
+                            }
+                            return [
+                                [takerToken, makerToken],
+                                ...intermediateTokens.map(t => [takerToken, t, makerToken]),
+                            ].map(path => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
+                        }
                         default:
                             throw new Error(`Unsupported sell sample source: ${source}`);
                     }
@@ -1502,6 +1570,16 @@ export class SamplerOperations {
                                 return [];
                             }
                             return this.getMakerPsmBuyQuotes(psmInfo, makerToken, takerToken, makerFillAmounts);
+                        case ERC20BridgeSource.UniswapV3: {
+                            const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(router) || !isValidAddress(quoter)) {
+                                return [];
+                            }
+                            return [
+                                [takerToken, makerToken],
+                                ...intermediateTokens.map(t => [takerToken, t, makerToken]),
+                            ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
+                        }
                         default:
                             throw new Error(`Unsupported buy sample source: ${source}`);
                     }

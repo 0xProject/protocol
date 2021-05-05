@@ -127,6 +127,7 @@ export enum BridgeProtocol {
     Nerve,
     MakerPsm,
     BalancerV2,
+    UniswapV3,
 }
 // tslint:enable: enum-naming
 
