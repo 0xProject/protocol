@@ -90,7 +90,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
-            // ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.UniswapV3,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -160,7 +160,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
-            // ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.UniswapV3,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -1059,9 +1059,14 @@ export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name
 
 export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
+        // Unconfirmed Mainnet contracts, please confirm
+        [ChainId.Mainnet]: {
+            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
         [ChainId.Ropsten]: {
-            quoter: '0x2F9e608FD881861B8916257B76613Cb22EE0652c',
-            router: '0x03782388516e94FcD4c18666303601A12Aa729Ea',
+            quoter: '0x2f9e608fd881861b8916257b76613cb22ee0652c',
+            router: '0x03782388516e94fcd4c18666303601a12aa729ea',
         },
     },
     { quoter: NULL_ADDRESS, router: NULL_ADDRESS },
