@@ -3,7 +3,12 @@
         "version": "6.1.0",
         "changes": [
             {
-                "note": "Deployed FQT on mainnet and ropsten for `Balancer_V2`"
+                "note": "Deployed FQT on mainnet and ropsten for `Balancer_V2`",
+                "pr": 225
+            },
+            {
+                "note": "Deployed FQT on mainnet and ropsten for `Uniswap_V3`",
+                "pr": 227
             }
         ]
     },

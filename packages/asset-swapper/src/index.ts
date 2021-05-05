@@ -115,6 +115,7 @@ export {
     SOURCE_FLAGS,
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
 export {
     Parameters,
