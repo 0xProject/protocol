@@ -1,18 +1,26 @@
 import { Pool } from '@balancer-labs/sor/dist/types';
+
+import { ONE_HOUR_IN_SECONDS, ONE_SECOND_MS } from '../constants';
 export { Pool };
 export interface CacheValue {
-    timestamp: number;
+    expiresAt: number;
     pools: Pool[];
 }
 
 // tslint:disable:custom-no-magic-numbers
-const FIVE_SECONDS_MS = 5 * 1000;
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+// Cache results for 30mins
+const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
 const DEFAULT_TIMEOUT_MS = 1000;
 // tslint:enable:custom-no-magic-numbers
 
 export abstract class PoolsCache {
-    constructor(protected readonly _cache: { [key: string]: CacheValue }) {}
+    protected static _isExpired(value: CacheValue): boolean {
+        return Date.now() >= value.expiresAt;
+    }
+    constructor(
+        protected readonly _cache: { [key: string]: CacheValue },
+        protected readonly _cacheTimeMs: number = DEFAULT_CACHE_TIME_MS,
+    ) {}
 
     public async getFreshPoolsForPairAsync(
         takerToken: string,
@@ -26,46 +34,43 @@ export abstract class PoolsCache {
     public getCachedPoolAddressesForPair(
         takerToken: string,
         makerToken: string,
-        cacheExpiryMs?: number,
+        ignoreExpired: boolean = true,
     ): string[] | undefined {
         const key = JSON.stringify([takerToken, makerToken]);
         const value = this._cache[key];
-        if (cacheExpiryMs === undefined) {
+        if (ignoreExpired) {
             return value === undefined ? [] : value.pools.map(pool => pool.id);
         }
-        const minTimestamp = Date.now() - cacheExpiryMs;
-        if (value === undefined || value.timestamp < minTimestamp) {
+        if (!value) {
             return undefined;
-        } else {
-            return value.pools.map(pool => pool.id);
         }
+        if (PoolsCache._isExpired(value)) {
+            return undefined;
+        }
+        return (value || []).pools.map(pool => pool.id);
     }
 
     public isFresh(takerToken: string, makerToken: string): boolean {
-        const cached = this.getCachedPoolAddressesForPair(takerToken, makerToken, ONE_DAY_MS);
-        return cached !== undefined && cached.length > 0;
+        const cached = this.getCachedPoolAddressesForPair(takerToken, makerToken, false);
+        return cached !== undefined;
     }
 
-    protected async _getAndSaveFreshPoolsForPairAsync(
-        takerToken: string,
-        makerToken: string,
-        cacheExpiryMs: number = FIVE_SECONDS_MS,
-    ): Promise<Pool[]> {
+    protected async _getAndSaveFreshPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         const key = JSON.stringify([takerToken, makerToken]);
         const value = this._cache[key];
-        const minTimestamp = Date.now() - cacheExpiryMs;
-        if (value === undefined || value.timestamp < minTimestamp) {
+        if (value === undefined || value.expiresAt >= Date.now()) {
             const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
-            this._cachePoolsForPair(takerToken, makerToken, pools);
+            const expiresAt = Date.now() + this._cacheTimeMs;
+            this._cachePoolsForPair(takerToken, makerToken, pools, expiresAt);
         }
         return this._cache[key].pools;
     }
 
-    protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[]): void {
+    protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[], expiresAt: number): void {
         const key = JSON.stringify([takerToken, makerToken]);
         this._cache[key] = {
             pools,
-            timestamp: Date.now(),
+            expiresAt,
         };
     }
 

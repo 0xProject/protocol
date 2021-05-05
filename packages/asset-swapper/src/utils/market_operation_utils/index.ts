@@ -46,7 +46,6 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
-    SourcesWithPoolsCache,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -101,15 +100,6 @@ export class MarketOperationUtils {
         const quoteSourceFilters = this._sellSources.merge(requestFilters);
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
-        // Can't sample Balancer or Cream on-chain without the pools cache
-        const sourcesWithStaleCaches: SourcesWithPoolsCache[] = (Object.keys(
-            this._sampler.poolsCaches,
-        ) as SourcesWithPoolsCache[]).filter(s => !this._sampler.poolsCaches[s].isFresh(takerToken, makerToken));
-        // tslint:disable-next-line:promise-function-async
-        const cacheRefreshPromises: Array<Promise<any[]>> = sourcesWithStaleCaches.map(s =>
-            this._sampler.poolsCaches[s].getFreshPoolsForPairAsync(takerToken, makerToken),
-        );
-
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
@@ -142,6 +132,10 @@ export class MarketOperationUtils {
             ),
             this._sampler.isAddressContract(txOrigin),
         );
+
+        // Refresh the cached pools asynchronously if required
+        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
+
         const [
             [
                 tokenDecimals,
@@ -152,7 +146,7 @@ export class MarketOperationUtils {
                 rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-        ] = await Promise.all([samplerPromise, Promise.all(cacheRefreshPromises)]);
+        ] = await Promise.all([samplerPromise]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
@@ -207,15 +201,6 @@ export class MarketOperationUtils {
         const quoteSourceFilters = this._buySources.merge(requestFilters);
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
-        // Can't sample Balancer or Cream on-chain without the pools cache
-        const sourcesWithStaleCaches: SourcesWithPoolsCache[] = (Object.keys(
-            this._sampler.poolsCaches,
-        ) as SourcesWithPoolsCache[]).filter(s => !this._sampler.poolsCaches[s].isFresh(takerToken, makerToken));
-        // tslint:disable-next-line:promise-function-async
-        const cacheRefreshPromises: Array<Promise<any[]>> = sourcesWithStaleCaches.map(s =>
-            this._sampler.poolsCaches[s].getFreshPoolsForPairAsync(takerToken, makerToken),
-        );
-
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
@@ -249,6 +234,9 @@ export class MarketOperationUtils {
             this._sampler.isAddressContract(txOrigin),
         );
 
+        // Refresh the cached pools asynchronously if required
+        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
+
         const [
             [
                 tokenDecimals,
@@ -259,7 +247,7 @@ export class MarketOperationUtils {
                 rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-        ] = await Promise.all([samplerPromise, Promise.all(cacheRefreshPromises)]);
+        ] = await Promise.all([samplerPromise]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
@@ -690,6 +678,17 @@ export class MarketOperationUtils {
             );
         }
         return { ...optimizerResult, quoteReport };
+    }
+
+    private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
+        void Promise.all(
+            Object.values(this._sampler.poolsCaches).map(async cache => {
+                if (cache.isFresh(takerToken, makerToken)) {
+                    return Promise.resolve([]);
+                }
+                return cache.getFreshPoolsForPairAsync(takerToken, makerToken);
+            }),
+        );
     }
 }
 
