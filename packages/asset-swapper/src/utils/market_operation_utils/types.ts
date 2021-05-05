@@ -45,6 +45,7 @@ export enum ERC20BridgeSource {
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
     Balancer = 'Balancer',
+    BalancerV2 = 'Balancer_V2',
     Cream = 'CREAM',
     Bancor = 'Bancor',
     MakerPsm = 'MakerPsm',
@@ -76,6 +77,7 @@ export enum ERC20BridgeSource {
     CheeseSwap = 'CheeseSwap',
     JulSwap = 'JulSwap',
 }
+export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
 // tslint:disable: enum-naming
 /**
@@ -120,6 +122,14 @@ export interface PsmInfo {
     gemTokenAddress: string;
 }
 
+/**
+ * Configuration info for a Balancer V2 pool.
+ */
+export interface BalancerV2PoolInfo {
+    poolId: string;
+    vault: string;
+}
+
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
 
@@ -143,6 +153,11 @@ export interface CurveFillData extends FillData {
 
 export interface BalancerFillData extends FillData {
     poolAddress: string;
+}
+
+export interface BalancerV2FillData extends FillData {
+    vault: string;
+    poolId: string;
 }
 
 export interface UniswapV2FillData extends FillData {

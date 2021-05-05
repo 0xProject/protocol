@@ -4,11 +4,10 @@ import { BigNumber, NULL_BYTES } from '@0x/utils';
 import { SamplerOverrides } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
-import { BalancerPoolsCache } from './balancer_utils';
 import { BancorService } from './bancor_service';
-import { CreamPoolsCache } from './cream_utils';
+import { PoolsCache } from './pools_cache';
 import { SamplerOperations } from './sampler_operations';
-import { BatchedOperation, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
+import { BatchedOperation, ERC20BridgeSource, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
 
 /**
  * Generate sample amounts up to `maxFillAmount`.
@@ -37,21 +36,12 @@ export class DexOrderSampler extends SamplerOperations {
         public readonly chainId: ChainId,
         _samplerContract: ERC20BridgeSamplerContract,
         private readonly _samplerOverrides?: SamplerOverrides,
-        balancerPoolsCache?: BalancerPoolsCache,
-        creamPoolsCache?: CreamPoolsCache,
+        poolsCaches?: { [key in ERC20BridgeSource]: PoolsCache },
         tokenAdjacencyGraph?: TokenAdjacencyGraph,
         liquidityProviderRegistry?: LiquidityProviderRegistry,
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
-        super(
-            chainId,
-            _samplerContract,
-            balancerPoolsCache,
-            creamPoolsCache,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistry,
-            bancorServiceFn,
-        );
+        super(chainId, _samplerContract, poolsCaches, tokenAdjacencyGraph, liquidityProviderRegistry, bancorServiceFn);
     }
 
     /* Type overloads for `executeAsync()`. Could skip this if we would upgrade TS. */

@@ -7,6 +7,7 @@ import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
+    BalancerV2FillData,
     BancorFillData,
     CollapsedFill,
     CurveFillData,
@@ -75,6 +76,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
     switch (source) {
         case ERC20BridgeSource.Balancer:
             return encodeBridgeSourceId(BridgeProtocol.Balancer, 'Balancer');
+        case ERC20BridgeSource.BalancerV2:
+            return encodeBridgeSourceId(BridgeProtocol.BalancerV2, 'BalancerV2');
         case ERC20BridgeSource.Bancor:
             return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
         // case ERC20BridgeSource.CoFiX:
@@ -189,6 +192,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const balancerFillData = (order as OptimizedMarketBridgeOrder<BalancerFillData>).fillData;
             bridgeData = encoder.encode([balancerFillData.poolAddress]);
             break;
+        case ERC20BridgeSource.BalancerV2:
+            const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2FillData>).fillData;
+            const { vault, poolId } = balancerV2FillData;
+            bridgeData = encoder.encode([vault, poolId]);
+            break;
         case ERC20BridgeSource.Bancor:
             const bancorFillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
             bridgeData = encoder.encode([bancorFillData.networkAddress, bancorFillData.path]);
@@ -296,6 +304,7 @@ const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
+const balancerV2Encoder = AbiEncoder.create([{ name: 'vault', type: 'address' }, { name: 'poolId', type: 'bytes32' }]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
@@ -358,6 +367,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
+    [ERC20BridgeSource.BalancerV2]: balancerV2Encoder,
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

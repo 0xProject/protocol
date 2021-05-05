@@ -29,6 +29,10 @@
             {
                 "note": "PLP now includes a fallback due to observed collisions",
                 "pr": 223
+            },
+            {
+                "note": "Add Balancer V2 integration",
+                "pr": 206
             }
         ]
     },

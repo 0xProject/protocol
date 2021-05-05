@@ -67,6 +67,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
+            ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.Bancor,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
@@ -134,6 +135,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
+            ERC20BridgeSource.BalancerV2,
             // ERC20BridgeSource.Bancor, // FIXME: Bancor Buys not implemented in Sampler
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
@@ -1037,9 +1039,17 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
     },
 );
 
+export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+    },
+    NULL_ADDRESS,
+);
+
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
+export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2';
 
 //
 // BSC
@@ -1163,17 +1173,12 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Balancer]: () => 120e3,
+    [ERC20BridgeSource.BalancerV2]: () => 100e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 700e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
         const psmFillData = fillData as MakerPsmFillData;
-
-        // TODO(kimpers): update with more accurate numbers after allowances have been set
-        if (psmFillData.takerToken === psmFillData.gemTokenAddress) {
-            return psmFillData.isSellOperation ? 389e3 : 423e3;
-        } else {
-            return 444e3;
-        }
+        return psmFillData.takerToken === psmFillData.gemTokenAddress ? 210e3 : 290e3;
     },
     [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Shell]: () => 170e3,

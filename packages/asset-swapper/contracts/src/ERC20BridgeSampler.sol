@@ -21,6 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./BalancerSampler.sol";
+import "./BalancerV2Sampler.sol";
 import "./BancorSampler.sol";
 import "./CurveSampler.sol";
 import "./DODOSampler.sol";
@@ -43,6 +44,7 @@ import "./UtilitySampler.sol";
 
 contract ERC20BridgeSampler is
     BalancerSampler,
+    BalancerV2Sampler,
     BancorSampler,
     CurveSampler,
     DODOSampler,
@@ -73,7 +75,6 @@ contract ERC20BridgeSampler is
     /// @return callResults ABI-encoded results data for each call.
     function batchCall(bytes[] calldata callDatas)
         external
-        view
         returns (CallResults[] memory callResults)
     {
         callResults = new CallResults[](callDatas.length);
@@ -82,7 +83,7 @@ contract ERC20BridgeSampler is
             if (callDatas[i].length == 0) {
                 continue;
             }
-            (callResults[i].success, callResults[i].data) = address(this).staticcall(callDatas[i]);
+            (callResults[i].success, callResults[i].data) = address(this).call(callDatas[i]);
         }
     }
 }
