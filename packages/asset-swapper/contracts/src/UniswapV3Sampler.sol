@@ -74,11 +74,10 @@ contract UniswapV3Sampler
         IUniswapV3Pool[][] memory poolPaths =
             _getValidPoolPaths(quoter.factory(), path, 0);
 
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
-        uniswapPaths = new bytes[](numSamples);
+        makerTokenAmounts = new uint256[](takerTokenAmounts.length);
+        uniswapPaths = new bytes[](takerTokenAmounts.length);
 
-        for (uint256 i = 0; i < numSamples; ++i) {
+        for (uint256 i = 0; i < takerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
             bytes memory topUniswapPath;
             uint256 topBuyAmount = 0;
@@ -127,11 +126,10 @@ contract UniswapV3Sampler
             _getValidPoolPaths(quoter.factory(), path, 0);
         IERC20TokenV06[] memory reversedPath = _reverseTokenPath(path);
 
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
-        uniswapPaths = new bytes[](numSamples);
+        takerTokenAmounts = new uint256[](makerTokenAmounts.length);
+        uniswapPaths = new bytes[](makerTokenAmounts.length);
 
-        for (uint256 i = 0; i < numSamples; ++i) {
+        for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
             bytes memory topUniswapPath;
             uint256 topSellAmount = 0;
@@ -182,16 +180,18 @@ contract UniswapV3Sampler
             uint24(0.003e6),
             uint24(0.01e6)
         ];
-        IERC20TokenV06 inputToken = tokenPath[startIndex];
-        IERC20TokenV06 outputToken = tokenPath[startIndex + 1];
         IUniswapV3Pool[] memory validPools =
             new IUniswapV3Pool[](validPoolFees.length);
         uint256 numValidPools = 0;
-        for (uint256 i = 0; i < validPoolFees.length; ++i) {
-            IUniswapV3Pool pool =
+        {
+            IERC20TokenV06 inputToken = tokenPath[startIndex];
+            IERC20TokenV06 outputToken = tokenPath[startIndex + 1];
+            for (uint256 i = 0; i < validPoolFees.length; ++i) {
+                IUniswapV3Pool pool =
                 factory.getPool(inputToken, outputToken, validPoolFees[i]);
-            if (_isValidPool(pool)) {
-                validPools[numValidPools++] = pool;
+                if (_isValidPool(pool)) {
+                    validPools[numValidPools++] = pool;
+                }
             }
         }
         if (numValidPools == 0) {

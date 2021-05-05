@@ -51,13 +51,13 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/protocol",
     "devDependencies": {
-        "@0x/abi-gen": "^5.5.2",
+        "@0x/abi-gen": "^5.6.0",
         "@0x/contract-wrappers": "^13.16.0",
-        "@0x/contracts-gen": "^2.0.37",
+        "@0x/contracts-gen": "^2.0.38",
         "@0x/contracts-test-utils": "^5.3.25",
         "@0x/contracts-utils": "^4.7.7",
-        "@0x/dev-utils": "^4.2.6",
-        "@0x/sol-compiler": "^4.7.2",
+        "@0x/dev-utils": "^4.2.7",
+        "@0x/sol-compiler": "^4.7.3",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.4",
         "@types/lodash": "4.14.104",
@@ -79,7 +79,7 @@
         "typescript": "4.2.2"
     },
     "dependencies": {
-        "@0x/base-contract": "^6.3.2",
+        "@0x/base-contract": "^6.4.0",
         "@0x/contracts-erc1155": "^2.1.28",
         "@0x/contracts-erc20": "^3.3.7",
         "@0x/contracts-erc721": "^3.1.28",
@@ -87,8 +87,8 @@
         "@0x/order-utils": "^10.4.20",
         "@0x/types": "^3.3.3",
         "@0x/typescript-typings": "^5.2.0",
-        "@0x/utils": "^6.4.2",
-        "@0x/web3-wrapper": "^7.5.2",
+        "@0x/utils": "^6.4.3",
+        "@0x/web3-wrapper": "^7.5.3",
         "ethereum-types": "^3.5.0",
         "lodash": "^4.17.11"
     },
