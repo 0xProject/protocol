@@ -79,7 +79,9 @@ jobs:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
             - run: yarn wsrun -p @0x/contracts-multisig -p @0x/contracts-utils -p @0x/contracts-exchange-libs -p  @0x/contracts-erc20 -p @0x/contracts-erc721 -p @0x/contracts-erc1155 -p @0x/contracts-asset-proxy -p @0x/contracts-broker -p @0x/contracts-zero-ex -m --serial -c test:circleci
     test-publish:
-        resource_class: medium+
+        resource_class: large
+        environment:
+            NODE_OPTIONS: '--max-old-space-size=6442'
         docker:
             - image: node:12
             - image: 0xorg/verdaccio
