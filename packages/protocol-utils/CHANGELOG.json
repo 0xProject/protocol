@@ -10,7 +10,8 @@
                 "note": "Add UniswapV3 bridge protocol IDs and remove invalid ones",
                 "pr": 197
             }
-        ]
+        ],
+        "timestamp": 1620214333
     },
     {
         "timestamp": 1619596077,

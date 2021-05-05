@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.1.6 - _May 5, 2021_
+
+    * Dependencies updated
+
 ## v1.1.5 - _April 30, 2021_
 
     * Patched votingPower logic (#214)

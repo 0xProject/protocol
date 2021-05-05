@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.23.0 - _May 5, 2021_
+
+    * Added ETH support to `MixinCurve` (#220)
+    * Add Balancer V2 integration (#206)
+
 ## v0.22.3 - _May 1, 2021_
 
     * Dependencies updated

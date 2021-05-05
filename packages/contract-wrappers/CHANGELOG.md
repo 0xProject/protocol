@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.16.1 - _May 5, 2021_
+
+    * Dependencies updated
+
 ## v13.16.0 - _April 28, 2021_
 
     * Regenerate wrappers with new abi-gen (#212)

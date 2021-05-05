@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v2.0.37 - _May 5, 2021_
+
+    * Patch epoch finalization issue (#221)
+
 ## v2.0.36 - _April 28, 2021_
 
     * Dependencies updated

@@ -6,7 +6,8 @@
                 "note": "Set default ganache gas limit to 100e6",
                 "pr": 197
             }
-        ]
+        ],
+        "timestamp": 1620214333
     },
     {
         "timestamp": 1619596077,

@@ -5,6 +5,18 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.10.0 - _May 5, 2021_
+
+    * Reactivate PancakeSwapV2 and BakerySwap VIP on BSC (#222)
+    * Add LUSD Curve pool (#218)
+    * Fix exchangeProxyGasOverhead for fallback path (#215)
+    * Enable ETH based Curve pools (#220)
+    * Reactivate PancakeSwapV2 and BakerySwap VIP on BSC (#222)
+    * Disable WETH based SnowSwap pools (#220)
+    * PLP now includes a fallback due to observed collisions (#223)
+    * Add Balancer V2 integration (#206)
+    * Re-work the PoolCache for Balancer et al (#226)
+
 ## v6.9.1 - _May 1, 2021_
 
     * Temporarily remove PancakeV2 and BakerySwap from VIP

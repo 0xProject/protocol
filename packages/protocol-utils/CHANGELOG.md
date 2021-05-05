@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.6.0 - _May 5, 2021_
+
+    * Add BalancerV2, remove Smoothy, Component and Saddle in BridgeProtocol enum (#206)
+    * Add UniswapV3 bridge protocol IDs and remove invalid ones (#197)
+
 ## v1.5.1 - _April 28, 2021_
 
     * Dependencies updated

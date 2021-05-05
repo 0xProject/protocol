@@ -10,7 +10,8 @@
                 "note": "Deployed FQT on mainnet and ropsten for `Uniswap_V3`",
                 "pr": 227
             }
-        ]
+        ],
+        "timestamp": 1620214333
     },
     {
         "version": "6.0.0",
