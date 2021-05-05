@@ -33,7 +33,8 @@
         "generate_contract_wrappers": "abi-gen --debug --abis  ${npm_package_config_abis} --output test/generated-wrappers --backend ethers",
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
-        "publish:private": "yarn build && gitpkg publish"
+        "publish:private": "yarn build && gitpkg publish",
+        "sampler-size": "jq .compilerOutput.evm.deployedBytecode.object  -- test/generated-artifacts/ERC20BridgeSampler.json | echo $(( $(wc -c) / 2 - 1 ))"
     },
     "config": {
         "publicInterfaceContracts": "ERC20BridgeSampler,BalanceChecker,FakeTaker",
