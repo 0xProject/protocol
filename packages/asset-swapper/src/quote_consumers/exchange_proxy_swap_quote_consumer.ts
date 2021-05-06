@@ -565,14 +565,17 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
     private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
         const wrappedMultiHopCalls = [];
+        const tokens: string[] = [];
         if (opts.isFromETH) {
             wrappedMultiHopCalls.push({
                 selector: DUMMY_WETH_CONTRACT.getSelector('deposit'),
                 data: NULL_BYTES,
             });
+            tokens.push(ETH_TOKEN_ADDRESS);
         }
         const [firstHopOrder, secondHopOrder] = quote.orders;
         const intermediateToken = firstHopOrder.makerToken;
+        tokens.push(quote.takerToken, intermediateToken, quote.makerToken);
         for (const order of [firstHopOrder, secondHopOrder]) {
             switch (order.source) {
                 case ERC20BridgeSource.UniswapV2:
@@ -607,11 +610,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 selector: DUMMY_WETH_CONTRACT.getSelector('withdraw'),
                 data: NULL_BYTES,
             });
+            tokens.push(ETH_TOKEN_ADDRESS);
         }
         return this._exchangeProxy
             .multiHopFill(
                 {
-                    tokens: [quote.takerToken, intermediateToken, quote.makerToken],
+                    tokens,
                     sellAmount: quote.worstCaseQuoteInfo.totalTakerAmount,
                     calls: wrappedMultiHopCalls,
                 },
