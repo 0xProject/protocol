@@ -45,8 +45,7 @@ const ONE_THOUSAND_IN_BASE = new BigNumber('1000000000000000000000');
 const NOW = Math.floor(Date.now() / ONE_SECOND_MS);
 const TOMORROW = new BigNumber(NOW + 24 * 3600); // tslint:disable-line:custom-no-magic-numbers
 
-// TODO: Tests currently failing because EtherGasStation is down. Reintroduce tests when resolved
-describe.skip(SUITE_NAME, () => {
+describe(SUITE_NAME, () => {
     let app: Express.Application;
     let server: Server;
     let dependencies: AppDependencies;
