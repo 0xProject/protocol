@@ -161,6 +161,7 @@ export {
     NativeRfqOrderQuoteReportEntry,
     QuoteReport,
     QuoteReportEntry,
+    PriceComparisonsReport,
 } from './utils/quote_report_generator';
 export { QuoteRequestor } from './utils/quote_requestor';
 export { ERC20BridgeSamplerContract, BalanceCheckerContract, FakeTakerContract } from './wrappers';

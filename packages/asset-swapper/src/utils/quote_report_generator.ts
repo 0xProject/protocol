@@ -60,6 +60,12 @@ export interface QuoteReport {
     sourcesDelivered: QuoteReportEntry[];
 }
 
+export interface PriceComparisonsReport {
+    dexSources: BridgeQuoteReportEntry[];
+    multiHopSources: MultiHopQuoteReportEntry[];
+    nativeSources: Array<NativeLimitOrderQuoteReportEntry | NativeRfqOrderQuoteReportEntry>;
+}
+
 /**
  * Generates a report of sources considered while computing the optimized
  * swap quote, and the sources ultimately included in the computed quote.
@@ -72,7 +78,7 @@ export function generateQuoteReport(
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
     const nativeOrderSourcesConsidered = nativeOrders.map(order =>
-        _nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
+        nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
     );
     const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRfqt)];
 
@@ -87,7 +93,7 @@ export function generateQuoteReport(
         // map sources delivered
         sourcesDelivered = liquidityDelivered.map(collapsedFill => {
             if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
-                return _nativeOrderToReportEntry(
+                return nativeOrderToReportEntry(
                     collapsedFill.type,
                     collapsedFill.fillData,
                     nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
@@ -95,13 +101,13 @@ export function generateQuoteReport(
                     quoteRequestor,
                 );
             } else {
-                return _dexSampleToReportSource(collapsedFill, marketOperation);
+                return dexSampleToReportSource(collapsedFill, marketOperation);
             }
         });
     } else {
         sourcesDelivered = [
             // tslint:disable-next-line: no-unnecessary-type-assertion
-            _multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+            multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
         ];
     }
     return {
@@ -115,7 +121,11 @@ function _nativeDataToId(data: { signature: Signature }): string {
     return `${v}${r}${s}`;
 }
 
-function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
+/**
+ * Generates a report sample for a DEX source
+ * NOTE: this is used for the QuoteReport and quote price comparison data
+ */
+export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
     const liquiditySource = ds.source;
 
     if (liquiditySource === ERC20BridgeSource.Native) {
@@ -143,7 +153,11 @@ function _dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperatio
     }
 }
 
-function _multiHopSampleToReportSource(
+/**
+ * Generates a report sample for a MultiHop source
+ * NOTE: this is used for the QuoteReport and quote price comparison data
+ */
+export function multiHopSampleToReportSource(
     ds: DexSample<MultiHopFillData>,
     marketOperation: MarketOperation,
 ): MultiHopQuoteReportEntry {
@@ -176,7 +190,11 @@ function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollaps
     return type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq;
 }
 
-function _nativeOrderToReportEntry(
+/**
+ * Generates a report entry for a native order
+ * NOTE: this is used for the QuoteReport and quote price comparison data
+ */
+export function nativeOrderToReportEntry(
     type: FillQuoteTransformerOrderType,
     fillData: NativeLimitOrderFillData | NativeRfqOrderFillData,
     fillableAmount: BigNumber,
