@@ -109,16 +109,13 @@ export class BalancerV2PoolsCache extends PoolsCache {
         } = {};
 
         const pools = await this._fetchTopPoolsAsync();
-        pools.forEach(pool => {
+        for (const pool of pools) {
             const { tokensList } = pool;
             for (const from of tokensList) {
                 for (const to of tokensList.filter(t => t.toLowerCase() !== from.toLowerCase())) {
-                    if (!fromToPools[from]) {
-                        fromToPools[from] = {};
-                    }
-                    if (!fromToPools[from][to]) {
-                        fromToPools[from][to] = [];
-                    }
+                    fromToPools[from] = fromToPools[from] || {};
+                    fromToPools[from][to] = fromToPools[from][to] || [];
+
                     try {
                         // The list of pools must be relevant to `from` and `to`  for `parsePoolData`
                         const [poolData] = parsePoolData({ [pool.id]: pool as any }, from, to);
@@ -134,7 +131,7 @@ export class BalancerV2PoolsCache extends PoolsCache {
                     }
                 }
             }
-        });
+        }
     }
     protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         const query = gql`
