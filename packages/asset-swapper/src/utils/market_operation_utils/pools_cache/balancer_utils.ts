@@ -1,5 +1,6 @@
 import { getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
 import { Pool } from '@balancer-labs/sor/dist/types';
+import { gql, request } from 'graphql-request';
 
 import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
@@ -49,16 +50,13 @@ export class BalancerPoolsCache extends PoolsCache {
         } = {};
 
         const pools = await this._fetchTopPoolsAsync();
-        pools.forEach(pool => {
+        for (const pool of pools) {
             const { tokensList } = pool;
             for (const from of tokensList) {
                 for (const to of tokensList.filter(t => t.toLowerCase() !== from.toLowerCase())) {
-                    if (!fromToPools[from]) {
-                        fromToPools[from] = {};
-                    }
-                    if (!fromToPools[from][to]) {
-                        fromToPools[from][to] = [];
-                    }
+                    fromToPools[from] = fromToPools[from] || {};
+                    fromToPools[from][to] = fromToPools[from][to] || [];
+
                     try {
                         // The list of pools must be relevant to `from` and `to`  for `parsePoolData`
                         const poolData = parsePoolData([pool], from, to);
@@ -71,45 +69,37 @@ export class BalancerPoolsCache extends PoolsCache {
                     }
                 }
             }
-        });
+        }
     }
 
     protected async _fetchTopPoolsAsync(): Promise<BalancerPoolResponse[]> {
-        const query = `
-      query {
-          pools (first: ${
-              this._topPoolsFetched
-          }, where: {publicSwap: true, liquidity_gt: 0}, orderBy: swapsCount, orderDirection: desc) {
-            id
-            publicSwap
-            swapFee
-            totalWeight
-            tokensList
-            tokens {
-              id
-              address
-              balance
-              decimals
-              symbol
-              denormWeight
+        const query = gql`
+            query fetchTopPools($topPoolsFetched: Int!) {
+                pools(
+                    first: $topPoolsFetched
+                    where: { publicSwap: true, liquidity_gt: 0 }
+                    orderBy: swapsCount
+                    orderDirection: desc
+                ) {
+                    id
+                    publicSwap
+                    swapFee
+                    totalWeight
+                    tokensList
+                    tokens {
+                        id
+                        address
+                        balance
+                        decimals
+                        symbol
+                        denormWeight
+                    }
+                }
             }
-          }
-        }
-    `;
+        `;
         try {
-            const response = await fetch(this._subgraphUrl, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    query,
-                }),
-            });
-
-            const { data } = await response.json();
-            return data.pools;
+            const { pools } = await request(this._subgraphUrl, query, { topPoolsFetched: this._topPoolsFetched });
+            return pools;
         } catch (err) {
             return [];
         }

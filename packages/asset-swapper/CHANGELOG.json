@@ -3,6 +3,10 @@
         "version": "6.11.0",
         "changes": [
             {
+                "note": "Add caching for top Balancer V2 pools on startup and during regular intervals",
+                "pr": "228"
+            },
+            {
                 "note": "Tweak compiler settings for smaller sampler bytecode",
                 "pr": 229
             },
