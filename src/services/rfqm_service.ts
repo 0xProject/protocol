@@ -4,7 +4,8 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { META_TX_WORKER_REGISTRY, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINUMUM_EXPIRY_DURATION_MS } from '../constants';
+import { NULL_ADDRESS, RFQM_MINUMUM_EXPIRY_DURATION_MS } from '../constants';
+import { getBestQuote } from '../utils/quote_comparison_utils';
 
 export interface FetchIndicativeQuoteParams {
     apiKey: string;
@@ -98,35 +99,20 @@ export class RfqmService {
             opts,
         );
 
-        // Filter out quotes that:
-        // - are for the wrong pair
-        // - cannot fill 100 % of the requested amount
-        // - expire in less than 3 minutes
-        //
-        // And sort by best price
-        const now = new BigNumber(Date.now());
-        const expirationCutoff = now.plus(RFQM_MINUMUM_EXPIRY_DURATION_MS).div(ONE_SECOND_MS);
-        const sortedQuotes = indicativeQuotes
-            .filter((q) => q.takerToken === takerToken && q.makerToken === makerToken)
-            .filter((q) => {
-                const requestedAmount = isSelling ? q.takerAmount : q.makerAmount;
-                return requestedAmount.gte(assetFillAmount);
-            })
-            .filter((q) => q.expiry.gte(expirationCutoff))
-            .sort((a, b) => {
-                // Want the most amount of maker tokens for each taker token
-                const aPrice = a.makerAmount.div(a.takerAmount);
-                const bPrice = b.makerAmount.div(b.takerAmount);
-                return bPrice.minus(aPrice).toNumber();
-            });
+        // Get the best quote
+        const bestQuote = getBestQuote(
+            indicativeQuotes,
+            isSelling,
+            takerToken,
+            makerToken,
+            assetFillAmount,
+            RFQM_MINUMUM_EXPIRY_DURATION_MS,
+        );
 
         // No quotes found
-        if (sortedQuotes.length === 0) {
+        if (bestQuote === null) {
             return null;
         }
-
-        // Get the best quote
-        const bestQuote = sortedQuotes[0];
 
         // Prepare the price
         const makerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.makerAmount, makerTokenDecimals);
