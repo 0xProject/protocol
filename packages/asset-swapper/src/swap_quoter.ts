@@ -114,9 +114,11 @@ export class SwapQuoter {
         );
         // Allow the sampler bytecode to be overwritten using geths override functionality
         const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
+        // Allow address of the Sampler to be overridden, i.e in Ganache where overrides do not work
+        const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
         const defaultCodeOverrides = samplerBytecode
             ? {
-                  [SAMPLER_ADDRESS]: { code: samplerBytecode },
+                  [samplerAddress]: { code: samplerBytecode },
               }
             : {};
         const samplerOverrides = _.assign(
@@ -125,7 +127,7 @@ export class SwapQuoter {
         );
         const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[]);
         const samplerContract = new ERC20BridgeSamplerContract(
-            SAMPLER_ADDRESS,
+            samplerAddress,
             this.provider,
             {
                 gas: samplerGasLimit,
