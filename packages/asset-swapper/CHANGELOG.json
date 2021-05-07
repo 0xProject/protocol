@@ -22,7 +22,8 @@
                 "note": "Fix Sampler address override for Ganache",
                 "pr": 232
             }
-        ]
+        ],
+        "timestamp": 1620362129
     },
     {
         "version": "6.10.0",

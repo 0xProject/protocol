@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.11.0 - _May 7, 2021_
+
+    * Add price comparisons data separate from the quote report (#219)
+    * Add caching for top Balancer V2 pools on startup and during regular intervals (#228)
+    * Tweak compiler settings for smaller sampler bytecode (#229)
+    * Fix Multiplex multihop encoding for ETH buys/sells (#230)
+    * Fix Sampler address override for Ganache (#232)
+
 ## v6.10.0 - _May 5, 2021_
 
     * Reactivate PancakeSwapV2 and BakerySwap VIP on BSC (#222)
