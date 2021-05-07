@@ -4,6 +4,7 @@ import {
     AltRfqMakerAssetOfferings,
     artifacts,
     AssetSwapperContractAddresses,
+    BlockParamLiteral,
     ContractAddresses,
     ERC20BridgeSource,
     FakeTakerContract,
@@ -159,6 +160,14 @@ export class SwapService {
             },
             contractAddresses,
         };
+        if (CHAIN_ID === ChainId.Ganache) {
+            swapQuoterOpts.samplerOverrides = {
+                block: BlockParamLiteral.Latest,
+                overrides: {},
+                to: contractAddresses.erc20BridgeSampler,
+                ...(swapQuoterOpts.samplerOverrides || {}),
+            };
+        }
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
         this._swapQuoteConsumer = new SwapQuoteConsumer(swapQuoterOpts);
         this._web3Wrapper = new Web3Wrapper(this._provider);
