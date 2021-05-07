@@ -386,6 +386,7 @@ export interface AltMockedRfqQuoteResponse {
 export interface SamplerOverrides {
     overrides: GethCallOverrides;
     block: BlockParam;
+    to?: string;
 }
 
 export interface SamplerCallResult {

@@ -17,6 +17,9 @@
             {
                 "note": "Fix Multiplex multihop encoding for ETH buys/sells",
                 "pr": 230
+            },
+            {
+                "note": "Fix Sampler address override for Ganache"
             }
         ]
     },
