@@ -19,7 +19,8 @@
                 "pr": 230
             },
             {
-                "note": "Fix Sampler address override for Ganache"
+                "note": "Fix Sampler address override for Ganache",
+                "pr": 232
             }
         ]
     },
