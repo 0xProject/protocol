@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.12.0 - _May 10, 2021_
+
+    * `TwoHopSampler` to use `call` over `staticcall` in order to support sources like `Uniswap_V3` and `Balancer_V2` (#233)
+
 ## v6.11.0 - _May 7, 2021_
 
     * Add price comparisons data separate from the quote report (#219)

@@ -6,7 +6,8 @@
                 "note": "`TwoHopSampler` to use `call` over `staticcall` in order to support sources like `Uniswap_V3` and `Balancer_V2`",
                 "pr": 233
             }
-        ]
+        ],
+        "timestamp": 1620610602
     },
     {
         "version": "6.11.0",
