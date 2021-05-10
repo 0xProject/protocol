@@ -37,7 +37,6 @@ contract TwoHopSampler {
         uint256 sellAmount
     )
         public
-        view
         returns (
             HopInfo memory firstHop,
             HopInfo memory secondHop,
@@ -47,7 +46,7 @@ contract TwoHopSampler {
         uint256 intermediateAssetAmount = 0;
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
             firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, sellAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).staticcall(firstHopCalls[i]);
+            (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (amount > intermediateAssetAmount) {
@@ -62,7 +61,7 @@ contract TwoHopSampler {
         }
         for (uint256 j = 0; j != secondHopCalls.length; ++j) {
             secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, intermediateAssetAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).staticcall(secondHopCalls[j]);
+            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (amount > buyAmount) {
@@ -80,7 +79,6 @@ contract TwoHopSampler {
         uint256 buyAmount
     )
         public
-        view
         returns (
             HopInfo memory firstHop,
             HopInfo memory secondHop,
@@ -91,7 +89,7 @@ contract TwoHopSampler {
         uint256 intermediateAssetAmount = uint256(-1);
         for (uint256 j = 0; j != secondHopCalls.length; ++j) {
             secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, buyAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).staticcall(secondHopCalls[j]);
+            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (
@@ -109,7 +107,7 @@ contract TwoHopSampler {
         }
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
             firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, intermediateAssetAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).staticcall(firstHopCalls[i]);
+            (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (
