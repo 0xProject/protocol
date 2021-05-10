@@ -453,7 +453,10 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID = valueByChainId({}, ONE_ETHER);
+export const NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID = valueByChainId(
+    { [ChainId.Mainnet]: ONE_ETHER.times(0.1) },
+    ONE_ETHER,
+);
 
 // Order dependent
 const CURVE_TRI_POOL_MAINNET_TOKENS = [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT];

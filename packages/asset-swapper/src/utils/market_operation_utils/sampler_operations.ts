@@ -1,6 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { LimitOrderFields } from '@0x/protocol-utils';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
@@ -692,7 +692,7 @@ export class SamplerOperations {
             function: this._samplerContract.sampleSellsFromUniswapV3,
             params: [quoter, tokenAddressPath, takerFillAmounts],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [samples, paths] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], string[]]>(
+                const [paths, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
                     'sampleSellsFromUniswapV3',
                     callResults,
                 );
@@ -720,7 +720,7 @@ export class SamplerOperations {
             function: this._samplerContract.sampleBuysFromUniswapV3,
             params: [quoter, tokenAddressPath, makerFillAmounts],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [samples, paths] = this._samplerContract.getABIDecodedReturnData<[BigNumber[], string[]]>(
+                const [paths, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
                     'sampleBuysFromUniswapV3',
                     callResults,
                 );
@@ -783,7 +783,10 @@ export class SamplerOperations {
                     };
                 });
             },
-            () => [],
+            () => {
+                logUtils.warn('SamplerContractOperation: Two hop sampler reverted');
+                return [];
+            },
         );
     }
 
@@ -838,7 +841,10 @@ export class SamplerOperations {
                     };
                 });
             },
-            () => [],
+            () => {
+                logUtils.warn('SamplerContractOperation: Two hop sampler reverted');
+                return [];
+            },
         );
     }
 

@@ -57,9 +57,9 @@ contract UniswapV3Sampler
     /// @param quoter UniswapV3 Quoter contract.
     /// @param path Token route. Should be takerToken -> makerToken
     /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return uniswapPaths The encoded uniswap path for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    /// @return uniswapPaths The encoded uniswap path for each sample.
     function sampleSellsFromUniswapV3(
         IUniswapV3Quoter quoter,
         IERC20TokenV06[] memory path,
@@ -67,8 +67,8 @@ contract UniswapV3Sampler
     )
         public
         returns (
-            uint256[] memory makerTokenAmounts,
-            bytes[] memory uniswapPaths
+            bytes[] memory uniswapPaths,
+            uint256[] memory makerTokenAmounts
         )
     {
         IUniswapV3Pool[][] memory poolPaths =
@@ -108,9 +108,9 @@ contract UniswapV3Sampler
     /// @param quoter UniswapV3 Quoter contract.
     /// @param path Token route. Should be takerToken -> makerToken.
     /// @param makerTokenAmounts Maker token buy amount for each sample.
+    /// @return uniswapPaths The encoded uniswap path for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    /// @return uniswapPaths The encoded uniswap path for each sample.
     function sampleBuysFromUniswapV3(
         IUniswapV3Quoter quoter,
         IERC20TokenV06[] memory path,
@@ -118,8 +118,8 @@ contract UniswapV3Sampler
     )
         public
         returns (
-            uint256[] memory takerTokenAmounts,
-            bytes[] memory uniswapPaths
+            bytes[] memory uniswapPaths,
+            uint256[] memory takerTokenAmounts
         )
     {
         IUniswapV3Pool[][] memory poolPaths =
