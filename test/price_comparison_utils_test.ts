@@ -44,9 +44,8 @@ describe(SUITE_NAME, () => {
                 MarketOperation.Sell,
                 {
                     ...daiWethQuoteBase,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: buyAmount,
                                 takerAmount: sellAmount,
@@ -54,6 +53,8 @@ describe(SUITE_NAME, () => {
                                 fillData: {},
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -72,6 +73,7 @@ describe(SUITE_NAME, () => {
                     name: ERC20BridgeSource.Kyber,
                     price: null,
                     gas: null,
+                    savingsInEth: null,
                 },
             ]);
         });
@@ -81,9 +83,8 @@ describe(SUITE_NAME, () => {
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
                 ...daiWethQuoteBase,
-                quoteReport: {
-                    sourcesDelivered: [],
-                    sourcesConsidered: [
+                priceComparisonsReport: {
+                    dexSources: [
                         {
                             makerAmount: buyAmount,
                             takerAmount: sellAmount,
@@ -91,6 +92,8 @@ describe(SUITE_NAME, () => {
                             fillData: {},
                         },
                     ],
+                    multiHopSources: [],
+                    nativeSources: [],
                 },
             });
 
@@ -108,6 +111,7 @@ describe(SUITE_NAME, () => {
                     name: ERC20BridgeSource.Balancer,
                     price: null,
                     gas: null,
+                    savingsInEth: null,
                 },
             ]);
         });
@@ -120,9 +124,8 @@ describe(SUITE_NAME, () => {
                 MarketOperation.Sell,
                 {
                     ...daiWethQuoteBase,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: buyAmount,
                                 takerAmount: sellAmount,
@@ -136,6 +139,8 @@ describe(SUITE_NAME, () => {
                                 fillData: {},
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -154,6 +159,7 @@ describe(SUITE_NAME, () => {
                     name: ERC20BridgeSource.MStable,
                     price: null,
                     gas: null,
+                    savingsInEth: null,
                 },
             ]);
         });
@@ -163,9 +169,8 @@ describe(SUITE_NAME, () => {
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
                 ...daiWethQuoteBase,
-                quoteReport: {
-                    sourcesDelivered: [],
-                    sourcesConsidered: [
+                priceComparisonsReport: {
+                    dexSources: [
                         {
                             makerAmount: buyAmount,
                             takerAmount: sellAmount,
@@ -179,6 +184,8 @@ describe(SUITE_NAME, () => {
                             fillData: {},
                         },
                     ],
+                    multiHopSources: [],
+                    nativeSources: [],
                 },
             });
 
@@ -196,6 +203,7 @@ describe(SUITE_NAME, () => {
                     name: ERC20BridgeSource.MStable,
                     price: null,
                     gas: null,
+                    savingsInEth: null,
                 },
             ]);
         });
@@ -210,9 +218,8 @@ describe(SUITE_NAME, () => {
                 {
                     ...daiWethQuoteBase,
                     buyAmount: higherBuyAmount,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: buyAmount,
                                 takerAmount: sellAmount,
@@ -226,6 +233,8 @@ describe(SUITE_NAME, () => {
                                 fillData: {},
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -247,9 +256,8 @@ describe(SUITE_NAME, () => {
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
                 ...daiWethQuoteBase,
                 sellAmount: lowerSellAmount,
-                quoteReport: {
-                    sourcesDelivered: [],
-                    sourcesConsidered: [
+                priceComparisonsReport: {
+                    dexSources: [
                         {
                             makerAmount: buyAmount,
                             takerAmount: sellAmount,
@@ -263,6 +271,8 @@ describe(SUITE_NAME, () => {
                             fillData: {},
                         },
                     ],
+                    multiHopSources: [],
+                    nativeSources: [],
                 },
             });
 
@@ -280,10 +290,7 @@ describe(SUITE_NAME, () => {
             const wethAmount = new BigNumber(1 / 3).times(1e18).decimalPlaces(0, BigNumber.ROUND_FLOOR);
             const usdcAmount = new BigNumber(100e6);
 
-            const price = wethAmount
-                .div(usdcAmount)
-                .div(1e12)
-                .decimalPlaces(18);
+            const price = wethAmount.div(usdcAmount).div(1e12).decimalPlaces(18);
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
                 ChainId.Mainnet,
@@ -297,9 +304,8 @@ describe(SUITE_NAME, () => {
                     buyTokenToEthRate: ethToDaiRate,
                     gasPrice,
                     estimatedGas,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: wethAmount,
                                 takerAmount: usdcAmount,
@@ -307,6 +313,8 @@ describe(SUITE_NAME, () => {
                                 fillData: {},
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -326,10 +334,7 @@ describe(SUITE_NAME, () => {
             const usdcAmount = new BigNumber(100e6);
             const wethAmount = new BigNumber(7 / 3).times(1e18).decimalPlaces(0, BigNumber.ROUND_FLOOR);
 
-            const price = usdcAmount
-                .div(wethAmount)
-                .times(1e12)
-                .decimalPlaces(6);
+            const price = usdcAmount.div(wethAmount).times(1e12).decimalPlaces(6);
 
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
                 buyTokenAddress: WETH.tokenAddress,
@@ -340,9 +345,8 @@ describe(SUITE_NAME, () => {
                 buyTokenToEthRate: ethToDaiRate,
                 gasPrice,
                 estimatedGas,
-                quoteReport: {
-                    sourcesDelivered: [],
-                    sourcesConsidered: [
+                priceComparisonsReport: {
+                    dexSources: [
                         {
                             makerAmount: wethAmount,
                             takerAmount: usdcAmount,
@@ -350,6 +354,8 @@ describe(SUITE_NAME, () => {
                             fillData: {},
                         },
                     ],
+                    multiHopSources: [],
+                    nativeSources: [],
                 },
             });
 
@@ -381,9 +387,8 @@ describe(SUITE_NAME, () => {
                     buyTokenToEthRate: ethToDaiRate,
                     gasPrice,
                     estimatedGas,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: daiAmount,
                                 takerAmount: usdcAmount,
@@ -391,6 +396,8 @@ describe(SUITE_NAME, () => {
                                 fillData: {},
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -410,9 +417,8 @@ describe(SUITE_NAME, () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
                 ...daiWethQuoteBase,
-                quoteReport: {
-                    sourcesDelivered: [],
-                    sourcesConsidered: [
+                priceComparisonsReport: {
+                    dexSources: [
                         {
                             makerAmount: buyAmount,
                             takerAmount: sellAmount,
@@ -440,6 +446,8 @@ describe(SUITE_NAME, () => {
                             },
                         },
                     ],
+                    multiHopSources: [],
+                    nativeSources: [],
                 },
             });
 
@@ -461,9 +469,8 @@ describe(SUITE_NAME, () => {
                 MarketOperation.Sell,
                 {
                     ...daiWethQuoteBase,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: buyAmount,
                                 takerAmount: sellAmount,
@@ -491,6 +498,8 @@ describe(SUITE_NAME, () => {
                                 },
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -512,9 +521,8 @@ describe(SUITE_NAME, () => {
                 MarketOperation.Sell,
                 {
                     ...daiWethQuoteBase,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: buyAmount.plus(1e18), // $1 more received but roughly $1.66 higher gas costs
                                 takerAmount: sellAmount,
@@ -533,6 +541,8 @@ describe(SUITE_NAME, () => {
                                 },
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -551,9 +561,8 @@ describe(SUITE_NAME, () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
                 ...daiWethQuoteBase,
-                quoteReport: {
-                    sourcesDelivered: [],
-                    sourcesConsidered: [
+                priceComparisonsReport: {
+                    dexSources: [
                         {
                             makerAmount: buyAmount,
                             takerAmount: sellAmount.minus(0.004e18), // Taker needs to sell $1.33 less but $1.66 higher gas costs
@@ -572,6 +581,8 @@ describe(SUITE_NAME, () => {
                             },
                         },
                     ],
+                    multiHopSources: [],
+                    nativeSources: [],
                 },
             });
 
@@ -586,19 +597,15 @@ describe(SUITE_NAME, () => {
         });
 
         it('ignores gas cost when buyTokenToEthRate is 0 for sellAmount quotes', () => {
-            const price = buyAmount
-                .plus(1e18)
-                .div(sellAmount)
-                .decimalPlaces(18, BigNumber.ROUND_FLOOR);
+            const price = buyAmount.plus(1e18).div(sellAmount).decimalPlaces(18, BigNumber.ROUND_FLOOR);
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
                 ChainId.Mainnet,
                 MarketOperation.Sell,
                 {
                     ...daiWethQuoteBase,
                     buyTokenToEthRate: ZERO,
-                    quoteReport: {
-                        sourcesDelivered: [],
-                        sourcesConsidered: [
+                    priceComparisonsReport: {
+                        dexSources: [
                             {
                                 makerAmount: buyAmount.plus(1e18), // $1 more received but roughly $1.66 higher gas costs
                                 takerAmount: sellAmount,
@@ -617,6 +624,8 @@ describe(SUITE_NAME, () => {
                                 },
                             },
                         ],
+                        multiHopSources: [],
+                        nativeSources: [],
                     },
                 },
             );
@@ -632,16 +641,12 @@ describe(SUITE_NAME, () => {
         });
 
         it('ignores gas cost when sellTokenToEthRate is 0 for buyAmount quotes', () => {
-            const price = sellAmount
-                .minus(0.004e18)
-                .div(buyAmount)
-                .decimalPlaces(18, BigNumber.ROUND_CEIL);
+            const price = sellAmount.minus(0.004e18).div(buyAmount).decimalPlaces(18, BigNumber.ROUND_CEIL);
             const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
                 ...daiWethQuoteBase,
                 sellTokenToEthRate: ZERO,
-                quoteReport: {
-                    sourcesDelivered: [],
-                    sourcesConsidered: [
+                priceComparisonsReport: {
+                    dexSources: [
                         {
                             makerAmount: buyAmount,
                             takerAmount: sellAmount.minus(0.004e18), // Taker needs to sell $1.33 less but $1.66 higher gas costs
@@ -660,6 +665,8 @@ describe(SUITE_NAME, () => {
                             },
                         },
                     ],
+                    multiHopSources: [],
+                    nativeSources: [],
                 },
             });
 

@@ -2,7 +2,7 @@ import {
     DEFAULT_GAS_SCHEDULE,
     ERC20BridgeSource,
     FeeSchedule,
-    QuoteReport,
+    PriceComparisonsReport,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
@@ -44,6 +44,7 @@ const NULL_SOURCE_COMPARISONS = Object.values(ERC20BridgeSource).reduce<SourceCo
         name: liquiditySource,
         price: null,
         gas: null,
+        savingsInEth: null,
     });
 
     return memo;
@@ -79,7 +80,7 @@ interface PartialQuote {
     buyTokenToEthRate: BigNumber;
     gasPrice: BigNumber;
     estimatedGas: BigNumber;
-    quoteReport?: QuoteReport;
+    priceComparisonsReport?: PriceComparisonsReport;
 }
 
 function getPriceComparisonFromQuoteOrThrow(
@@ -92,14 +93,22 @@ function getPriceComparisonFromQuoteOrThrow(
     const sellToken = getTokenMetadataIfExists(quote.sellTokenAddress, chainId);
     const ethToken = getTokenMetadataIfExists('WETH', chainId)!;
     const ethUnitAmount = new BigNumber(10).pow(ethToken.decimals);
-    if (!buyToken || !sellToken || !quote.buyAmount || !quote.sellAmount || !quote.quoteReport) {
+    if (!buyToken || !sellToken || !quote.buyAmount || !quote.sellAmount || !quote.priceComparisonsReport) {
+        logger.warn('Missing data to generate price comparisons');
         return undefined;
     }
     const isSelling = side === MarketOperation.Sell;
     const quoteTokenToEthRate = isSelling ? quote.buyTokenToEthRate : quote.sellTokenToEthRate;
 
+    const { priceComparisonsReport } = quote;
     // Filter out samples with invalid amounts
-    const fullTradeSources = quote.quoteReport.sourcesConsidered.filter((s) =>
+
+    const allSources = [
+        ...priceComparisonsReport.dexSources,
+        ...priceComparisonsReport.multiHopSources,
+        ...priceComparisonsReport.nativeSources,
+    ];
+    const fullTradeSources = allSources.filter((s) =>
         isSelling
             ? s.takerAmount.isEqualTo(quote.sellAmount!) && s.makerAmount.isGreaterThan(ZERO)
             : s.makerAmount.isEqualTo(quote.buyAmount!) && s.takerAmount.isGreaterThan(ZERO),

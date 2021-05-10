@@ -150,10 +150,10 @@ export class SwapHandlers {
                 orders: quote.orders.map((o: any) => _.omit(o, 'fills')),
             },
             'quoteReport',
+            'priceComparisonsReport',
             'decodedUniqueId',
         );
-        const { quoteReport } = quote;
-        if (params.includePriceComparisons && quoteReport) {
+        if (params.includePriceComparisons && quote.priceComparisonsReport) {
             const side = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
             const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, side, quote);
             response.priceComparisons = priceComparisons?.map((sc) => priceComparisonUtils.renameNative(sc));
@@ -195,8 +195,8 @@ export class SwapHandlers {
             'sellTokenToEthRate',
             'buyTokenToEthRate',
         );
-        const { quoteReport } = quote;
-        if (params.includePriceComparisons && quoteReport) {
+
+        if (params.includePriceComparisons && quote.priceComparisonsReport) {
             const marketSide = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
             response.priceComparisons = priceComparisonUtils
                 .getPriceComparisonFromQuote(CHAIN_ID, marketSide, quote)

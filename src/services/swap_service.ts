@@ -225,8 +225,8 @@ export class SwapService {
             };
         }
 
-        // only generate quote reports for rfqt firm quotes or when price comparison is requested
-        const shouldGenerateQuoteReport = includePriceComparisons || (rfqt && rfqt.intentOnFilling);
+        // only generate quote reports for rfqt firm quotes
+        const shouldGenerateQuoteReport = rfqt && rfqt.intentOnFilling;
 
         let swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts>;
         if (
@@ -250,6 +250,7 @@ export class SwapService {
             includedSources,
             rfqt: _rfqt,
             shouldGenerateQuoteReport,
+            shouldIncludePriceComparisonsReport: !!includePriceComparisons,
         };
 
         const marketSide = sellAmount !== undefined ? MarketOperation.Sell : MarketOperation.Buy;
@@ -273,7 +274,7 @@ export class SwapService {
             protocolFeeInWeiAmount: bestCaseProtocolFee,
         } = swapQuote.bestCaseQuoteInfo;
         const { protocolFeeInWeiAmount: protocolFee, gas: worstCaseGas } = swapQuote.worstCaseQuoteInfo;
-        const { gasPrice, sourceBreakdown, quoteReport } = swapQuote;
+        const { gasPrice, sourceBreakdown, quoteReport, priceComparisonsReport } = swapQuote;
 
         const {
             gasCost: affiliateFeeGasCost,
@@ -380,6 +381,7 @@ export class SwapService {
             sellTokenToEthRate,
             buyTokenToEthRate,
             quoteReport,
+            priceComparisonsReport,
         };
         return apiSwapQuote;
     }
