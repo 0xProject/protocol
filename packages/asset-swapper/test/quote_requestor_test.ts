@@ -245,6 +245,7 @@ describe('QuoteRequestor', async () => {
                             txOrigin: takerAddress,
                             intentOnFilling: true,
                             altRfqAssetOfferings,
+                            isLastLook: true,
                             fee: {
                                 amount: new BigNumber('1000000000'),
                                 token: ETH_TOKEN_ADDRESS,
@@ -554,6 +555,7 @@ describe('QuoteRequestor', async () => {
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
+                            isLastLook: true,
                             fee: {
                                 type: 'fixed',
                                 token: ETH_TOKEN_ADDRESS,

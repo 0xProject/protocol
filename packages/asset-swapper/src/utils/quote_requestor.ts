@@ -12,6 +12,7 @@ import {
     LogFunction,
     MarketOperation,
     RfqMakerAssetOfferings,
+    RfqmRequestOptions,
     RfqPairType,
     RfqRequestOpts,
     SignedNativeOrder,
@@ -192,15 +193,11 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqRequestOpts,
+        options: RfqmRequestOptions,
     ): Promise<SignedNativeOrder[]> {
-        if (options.fee === undefined) {
-            throw new Error('When isLastLook is set, a fee must always be present');
-        }
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
-            isLastLook: true,
         };
 
         return this._fetchAndValidateFirmQuotesAsync(
@@ -244,16 +241,11 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqRequestOpts,
+        options: RfqmRequestOptions,
     ): Promise<V4RFQIndicativeQuote[]> {
-        if (options.fee === undefined) {
-            throw new Error('When isLastLook is set, a fee must always be present');
-        }
-
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
-            isLastLook: true,
         };
 
         return this._fetchAndValidateIndicativeQuotesAsync(
