@@ -1,6 +1,12 @@
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
-import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
+import {
+    TakerRequestQueryParamsUnnested,
+    V4RFQFirmQuote,
+    V4RFQIndicativeQuote,
+    V4SignedRfqOrder,
+} from '@0x/quote-server';
+import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 
@@ -11,6 +17,7 @@ import {
     LogFunction,
     MarketOperation,
     RfqMakerAssetOfferings,
+    RfqmRequestOptions,
     RfqPairType,
     RfqRequestOpts,
     SignedNativeOrder,
@@ -84,7 +91,8 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         comparisonPrice?: BigNumber,
         isLastLook?: boolean | undefined,
-    ): TakerRequestQueryParams {
+        fee?: Fee | undefined,
+    ): TakerRequestQueryParamsUnnested {
         const { buyAmountBaseUnits, sellAmountBaseUnits } =
             marketOperation === MarketOperation.Buy
                 ? {
@@ -97,7 +105,7 @@ export class QuoteRequestor {
                   };
 
         const requestParamsWithBigNumbers: Pick<
-            TakerRequestQueryParams,
+            TakerRequestQueryParamsUnnested,
             | 'txOrigin'
             | 'takerAddress'
             | 'buyTokenAddress'
@@ -105,6 +113,9 @@ export class QuoteRequestor {
             | 'comparisonPrice'
             | 'isLastLook'
             | 'protocolVersion'
+            | 'feeAmount'
+            | 'feeToken'
+            | 'feeType'
         > = {
             txOrigin,
             takerAddress,
@@ -114,7 +125,13 @@ export class QuoteRequestor {
             protocolVersion: '4',
         };
         if (isLastLook) {
+            if (fee === undefined) {
+                throw new Error(`isLastLook cannot be passed without a fee parameter`);
+            }
             requestParamsWithBigNumbers.isLastLook = isLastLook.toString();
+            requestParamsWithBigNumbers.feeAmount = fee.amount.toString();
+            requestParamsWithBigNumbers.feeToken = fee.token;
+            requestParamsWithBigNumbers.feeType = fee.type;
         }
 
         // convert BigNumbers to strings
@@ -181,12 +198,11 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqRequestOpts,
+        options: RfqmRequestOptions,
     ): Promise<SignedNativeOrder[]> {
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
-            isLastLook: true,
         };
 
         return this._fetchAndValidateFirmQuotesAsync(
@@ -230,12 +246,11 @@ export class QuoteRequestor {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
-        options: RfqRequestOpts,
+        options: RfqmRequestOptions,
     ): Promise<V4RFQIndicativeQuote[]> {
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
-            isLastLook: true,
         };
 
         return this._fetchAndValidateIndicativeQuotesAsync(
@@ -344,6 +359,7 @@ export class QuoteRequestor {
             assetFillAmount,
             comparisonPrice,
             options.isLastLook,
+            options.fee,
         );
 
         const quotePath = (() => {

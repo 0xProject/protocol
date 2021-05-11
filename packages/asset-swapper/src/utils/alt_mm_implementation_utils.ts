@@ -1,5 +1,5 @@
 import { Web3Wrapper } from '@0x/dev-utils';
-import { TakerRequestQueryParams, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@0x/quote-server';
+import { TakerRequestQueryParamsUnnested, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance, CancelToken } from 'axios';
 
@@ -123,7 +123,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     takerToken: string,
     maxResponseTimeMs: number,
     altRfqAssetOfferings: AltRfqMakerAssetOfferings,
-    takerRequestQueryParams: TakerRequestQueryParams,
+    takerRequestQueryParams: TakerRequestQueryParamsUnnested,
     axiosInstance: AxiosInstance,
     warningLogger: LogFunction,
     cancelToken: CancelToken,
