@@ -6,7 +6,8 @@
                 "note": "Add LiquidityProvider to BSC sources",
                 "pr": 234
             }
-        ]
+        ],
+        "timestamp": 1620703098
     },
     {
         "version": "6.12.0",

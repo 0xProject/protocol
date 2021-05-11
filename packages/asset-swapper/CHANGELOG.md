@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.13.0 - _May 11, 2021_
+
+    * Add LiquidityProvider to BSC sources (#234)
+
 ## v6.12.0 - _May 10, 2021_
 
     * `TwoHopSampler` to use `call` over `staticcall` in order to support sources like `Uniswap_V3` and `Balancer_V2` (#233)
