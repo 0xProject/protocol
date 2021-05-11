@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.14.0",
+        "changes": [
+            {
+                "note": "Add support for additional sources and intermediate tokens on Ropsten",
+                "pr": 231
+            }
+        ]
+    },
+    {
         "version": "6.13.0",
         "changes": [
             {

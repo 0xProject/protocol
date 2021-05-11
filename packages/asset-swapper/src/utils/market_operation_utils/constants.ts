@@ -99,6 +99,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.Mooniswap,
         ]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -170,6 +172,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.Mooniswap,
         ]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -416,7 +420,11 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             '0x2170ed0880ac9a755fd29b2688956bd959f933f8', // ETH
             '0x55d398326f99059ff775485246999027b3197955', // BUSD-T
         ],
-        [ChainId.Ropsten]: [getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken],
+        [ChainId.Ropsten]: [
+            getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
+            '0xad6d458402f60fd3bd25163575031acdce07538d', // DAI
+            '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
+        ],
     },
     [],
 );
