@@ -69,10 +69,10 @@ contract MixinKyberDmm {
 
         require(pools.length >= 1, "MixinKyberDmm/POOLS_LENGTH_MUST_BE_AT_LEAST_ONE");
         require(path.length >= 2, "MixinKyberDmm/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
-        // require(
-        //     path[path.length - 1] == address(buyToken),
-        //     "MixinKyberDmm/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        // );
+         require(
+             path[path.length - 1] == address(buyToken),
+             "MixinKyberDmm/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+         );
         // Grant the KyberDmm router an allowance to sell the first token.
         IERC20TokenV06(path[0]).approveIfBelow(address(router), sellAmount);
 

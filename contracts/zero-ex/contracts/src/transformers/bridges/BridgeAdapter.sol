@@ -221,7 +221,7 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.KYBERDMM) {
             boughtAmount = _tradeKyberDmm(
-                sellToken,
+                buyToken,
                 sellAmount,
                 order.bridgeData
             );
