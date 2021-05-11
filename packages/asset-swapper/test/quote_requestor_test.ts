@@ -1,6 +1,6 @@
 import { tokenUtils } from '@0x/dev-utils';
-import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
-import { TakerRequestQueryParams, V4RFQIndicativeQuote } from '@0x/quote-server';
+import { ETH_TOKEN_ADDRESS, FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
+import { TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber, logUtils } from '@0x/utils';
 import Axios from 'axios';
@@ -75,7 +75,7 @@ describe('QuoteRequestor', async () => {
             const mockedRequests: MockedRfqQuoteResponse[] = [];
             const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
 
-            const expectedParams: TakerRequestQueryParams = {
+            const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
                 sellAmountBaseUnits: '10000',
@@ -84,6 +84,9 @@ describe('QuoteRequestor', async () => {
                 txOrigin,
                 isLastLook: 'true', // the major difference between RFQ-T and RFQ-M
                 protocolVersion: '4',
+                feeAmount: '1000000000',
+                feeToken: ETH_TOKEN_ADDRESS,
+                feeType: 'fixed',
             };
             const mockedDefaults = {
                 requestApiKey: apiKey,
@@ -242,6 +245,11 @@ describe('QuoteRequestor', async () => {
                             txOrigin: takerAddress,
                             intentOnFilling: true,
                             altRfqAssetOfferings,
+                            fee: {
+                                amount: new BigNumber('1000000000'),
+                                token: ETH_TOKEN_ADDRESS,
+                                type: 'fixed',
+                            }
                         },
                     );
                     expect(resp).to.deep.eq([
@@ -265,7 +273,7 @@ describe('QuoteRequestor', async () => {
             const mockedRequests: MockedRfqQuoteResponse[] = [];
             const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
 
-            const expectedParams: TakerRequestQueryParams = {
+            const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
                 sellAmountBaseUnits: '10000',
@@ -451,7 +459,7 @@ describe('QuoteRequestor', async () => {
             // Set up RFQ responses
             // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
-            const expectedParams: TakerRequestQueryParams = {
+            const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
                 sellAmountBaseUnits: '10000',
@@ -460,6 +468,9 @@ describe('QuoteRequestor', async () => {
                 txOrigin: takerAddress,
                 isLastLook: 'true', // the major difference between RFQ-T and RFQ-M
                 protocolVersion: '4',
+                feeAmount: '1000000000',
+                feeToken: ETH_TOKEN_ADDRESS,
+                feeType: 'fixed',
             };
             const mockedDefaults = {
                 requestApiKey: apiKey,
@@ -543,6 +554,11 @@ describe('QuoteRequestor', async () => {
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
+                            fee: {
+                                type: 'fixed',
+                                token: ETH_TOKEN_ADDRESS,
+                                amount: new BigNumber('1000000000'),
+                            }
                         },
                     );
                     expect(resp.sort()).to.eql([successfulQuote1, successfulQuote1].sort());
@@ -571,7 +587,7 @@ describe('QuoteRequestor', async () => {
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
-            const expectedParams: TakerRequestQueryParams = {
+            const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
                 sellAmountBaseUnits: '10000',
@@ -678,7 +694,7 @@ describe('QuoteRequestor', async () => {
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
-            const expectedParams: TakerRequestQueryParams = {
+            const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
                 sellAmountBaseUnits: '10000',
@@ -763,7 +779,7 @@ describe('QuoteRequestor', async () => {
             // Set up RFQT responses
             // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
-            const expectedParams: TakerRequestQueryParams = {
+            const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
                 buyTokenAddress: makerToken,
                 buyAmountBaseUnits: '10000',

@@ -7,7 +7,8 @@ import {
     RfqOrderFields,
     Signature,
 } from '@0x/protocol-utils';
-import { TakerRequestQueryParams, V4SignedRfqOrder } from '@0x/quote-server';
+import { TakerRequestQueryParamsUnnested, V4SignedRfqOrder } from '@0x/quote-server';
+import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosRequestConfig } from 'axios';
 
@@ -242,6 +243,7 @@ export interface RfqRequestOpts {
     nativeExclusivelyRFQ?: boolean;
     altRfqAssetOfferings?: AltRfqMakerAssetOfferings;
     isLastLook?: boolean;
+    fee?: Fee,
 }
 
 /**
@@ -366,7 +368,7 @@ export enum OrderPrunerPermittedFeeTypes {
 export interface MockedRfqQuoteResponse {
     endpoint: string;
     requestApiKey: string;
-    requestParams: TakerRequestQueryParams;
+    requestParams: TakerRequestQueryParamsUnnested;
     responseData: any;
     responseCode: number;
     callback?: (config: any) => Promise<any>;
