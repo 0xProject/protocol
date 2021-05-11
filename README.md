@@ -180,6 +180,12 @@ They can also be triggered manually by using `yarn release`, which requires a [G
 
 This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it easier for anyone to switch out the backing database used by this project. By default, this project uses a [PostgreSQL](https://www.postgresql.org/) database.
 
+To add a migration, you may use the following command:
+
+```
+yarn db:migration:generate -n myMigration
+```
+
 ## Legal Disclaimer
 
 The laws and regulations applicable to the use and exchange of digital assets and blockchain-native tokens, including through any software developed using the licensed work created by ZeroEx Intl. as described here (the “Work”), vary by jurisdiction. As set forth in the Apache License, Version 2.0 applicable to the Work, developers are “solely responsible for determining the appropriateness of using or redistributing the Work,” which includes responsibility for ensuring compliance with any such applicable laws and regulations.
