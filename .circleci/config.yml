@@ -2,11 +2,11 @@ version: 2.1
 
 jobs:
     build:
-        resource_class: large
+        resource_class: xlarge
         docker:
             - image: node:12
         environment:
-            NODE_OPTIONS: '--max-old-space-size=6442'
+            NODE_OPTIONS: '--max-old-space-size=16384'
         working_directory: ~/repo
         steps:
             - checkout
