@@ -90,9 +90,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^6.12.0":
-  version "6.12.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-6.12.0.tgz#b8a202f34aba65697b8a82aa23a21759c147c2a6"
+"@0x/asset-swapper@^6.13.0":
+  version "6.13.0"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-6.13.0.tgz#aaeaeaebca342880c052ec699d3c7c9a17f8325c"
+  integrity sha512-GkGVaxgPK9hBqzjqOmvAnU/p1rfa2kFCgDLykb41JlcrZdhJvggA9B9Ynu/2G6trbfDqK8VKIErYL0OdTf52pg==
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
