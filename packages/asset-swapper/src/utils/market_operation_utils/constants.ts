@@ -120,6 +120,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
+            ERC20BridgeSource.LiquidityProvider,
         ]),
     },
 
@@ -190,6 +191,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
+            ERC20BridgeSource.LiquidityProvider,
         ]),
     },
     new SourceFilters([]),

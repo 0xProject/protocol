@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.13.0",
+        "changes": [
+            {
+                "note": "Add LiquidityProvider to BSC sources",
+                "pr": 234
+            }
+        ]
+    },
+    {
         "version": "6.12.0",
         "changes": [
             {
