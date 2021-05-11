@@ -31,6 +31,7 @@ import {
     ShellFillData,
     UniswapV2FillData,
     UniswapV3FillData,
+    FinalUniswapV3FillData,
 } from './types';
 
 // tslint:disable completed-docs
@@ -42,11 +43,6 @@ export interface CreateOrderFromPathOpts {
     orderDomain: OrderDomain;
     contractAddresses: AssetSwapperContractAddresses;
     bridgeSlippage: number;
-}
-
-interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
-    // The uniswap-encoded path that can fll the maximum input amount.
-    uniswapPath: string;
 }
 
 export function createOrdersFromTwoHopSample(

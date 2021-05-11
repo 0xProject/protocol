@@ -45,6 +45,7 @@ import {
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
     UniswapV2FillData,
+    FinalUniswapV3FillData,
 } from '../utils/market_operation_utils/types';
 
 import {
@@ -179,6 +180,34 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         source === ERC20BridgeSource.SushiSwap,
                     )
                     .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV3])
+        ) {
+            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
+            let calldataHexString;
+            if (isFromETH) {
+                calldataHexString = this._exchangeProxy
+                    .sellEthForTokenToUniswapV3(fillData.uniswapPath, minBuyAmount, NULL_ADDRESS)
+                    .getABIEncodedTransactionData();
+            } else if (isToETH) {
+                calldataHexString = this._exchangeProxy
+                    .sellTokenForEthToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
+                    .getABIEncodedTransactionData();
+            } else {
+                calldataHexString = this._exchangeProxy
+                    .sellTokenForTokenToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
+                    .getABIEncodedTransactionData();
+            }
+            return {
+                calldataHexString,
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,

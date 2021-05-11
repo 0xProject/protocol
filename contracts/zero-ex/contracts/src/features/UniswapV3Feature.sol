@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -22,29 +22,45 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "../../vendor/UniswapV3.sol";
+import "../vendor/IUniswapV3Pool.sol";
 import "../migrations/LibMigrate.sol";
 import "../fixins/FixinCommon.sol";
+import "../fixins/FixinTokenSpender.sol";
 import "./interfaces/IFeature.sol";
-import "./interfaces/IUniswapFeature.sol";
+import "./interfaces/IUniswapV3Feature.sol";
 
 
 /// @dev VIP uniswap fill functions.
 contract UniswapV3Feature is
     IFeature,
-    IUniswapFeature,
-    FixinCommon
+    IUniswapV3Feature,
+    FixinCommon,
+    FixinTokenSpender
 {
     /// @dev Name of this feature.
-    string public constant override FEATURE_NAME = "UniswapFeature";
+    string public constant override FEATURE_NAME = "UniswapV3Feature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    /// @dev The deployed address of this contract.
+    address private immutable IMPLEMENTATION;
     /// @dev WETH contract.
     IEtherTokenV06 private immutable WETH;
-    /// @dev UniswapV3 Factory contract.
-    IUniswapV3Factory private immutable UNI_FACTORY;
+    /// @dev UniswapV3 Factory contract address.
+    address private immutable UNI_FACTORY_ADDRESS;
     /// @dev UniswapV3 pool init code hash.
     bytes32 private immutable UNI_POOL_INIT_CODE_HASH;
+    /// @dev Minimum size of an encoded swap path:
+    ///      sizeof(address(inputToken) | uint24(fee) | address(outputToken))
+    uint256 private constant SINGLE_HOP_PATH_SIZE = 20 + 3 + 20;
+    /// @dev How many bytes to skip ahead in an encoded path to start at the next hop:
+    ///      sizeof(address(inputToken) | uint24(fee))
+    uint256 private constant PATH_SKIP_HOP_SIZE = 20 + 3;
+    /// @dev The size of the swap callback data.
+    uint256 private constant SWAP_CALLBACK_DATA_SIZE = 128;
+    /// @dev Minimum tick price sqrt ratio.
+    uint160 internal constant MIN_PRICE_SQRT_RATIO = 4295128739;
+    /// @dev Minimum tick price sqrt ratio.
+    uint160 internal constant MAX_PRICE_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
     /// @dev Construct this contract.
     /// @param weth The WETH contract.
@@ -52,11 +68,12 @@ contract UniswapV3Feature is
     /// @param poolInitCodeHash The UniswapV3 pool init code hash.
     constructor(
         IEtherTokenV06 weth,
-        IUniswapV3Factory uniFactory,
+        address uniFactory,
         bytes32 poolInitCodeHash
     ) public {
+        IMPLEMENTATION = address(this);
         WETH = weth;
-        UNI_FACTORY = uniFactory;
+        UNI_FACTORY_ADDRESS = uniFactory;
         UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;
     }
 
@@ -67,321 +84,331 @@ contract UniswapV3Feature is
         external
         returns (bytes4 success)
     {
-        _registerFeatureFunction(this.sellToUniswap.selector);
+        _registerFeatureFunction(this.sellEthForTokenToUniswapV3.selector);
+        _registerFeatureFunction(this.sellTokenForEthToUniswapV3.selector);
+        _registerFeatureFunction(this.sellTokenForTokenToUniswapV3.selector);
+        _registerFeatureFunction(this.uniswapV3SwapCallback.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
-    /// @dev Efficiently sell directly to uniswap/sushiswap.
-    /// @param tokens Sell path.
-    /// @param sellAmount of `tokens[0]` Amount to sell.
-    /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
-    /// @param isSushi Use sushiswap if true.
-    /// @return buyAmount Amount of `tokens[-1]` bought.
-    function sellToUniswap(
-        IERC20TokenV06[] calldata tokens,
-        uint256 sellAmount,
+    /// @dev Sell attached ETH directly against uniswap v3.
+    /// @param encodedPath Uniswap-encoded path, where the first token is WETH.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @return buyAmount Amount of the last token in the path bought.
+    function sellEthForTokenToUniswapV3(
+        bytes memory encodedPath,
         uint256 minBuyAmount,
-        bool isSushi
+        address recipient
     )
-        external
+        public
         payable
         override
         returns (uint256 buyAmount)
     {
-        require(tokens.length > 1, "UniswapFeature/InvalidTokensLength");
+        // Wrap ETH.
+        WETH.deposit{ value: msg.value }();
+        return _swap(
+            encodedPath,
+            msg.value,
+            minBuyAmount,
+            address(this), // we are payer because we hold the WETH
+            _normalizeRecipient(recipient)
+        );
+    }
+
+    /// @dev Sell a token for ETH directly against uniswap v3.
+    /// @param encodedPath Uniswap-encoded path, where the last token is WETH.
+    /// @param sellAmount amount of the first token in the path to sell.
+    /// @param minBuyAmount Minimum amount of ETH to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @return buyAmount Amount of ETH bought.
+    function sellTokenForEthToUniswapV3(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address payable recipient
+    )
+        public
+        override
+        returns (uint256 buyAmount)
+    {
+        buyAmount = _swap(
+            encodedPath,
+            sellAmount,
+            minBuyAmount,
+            msg.sender,
+            address(this) // we are recipient because we need to unwrap WETH
+        );
+        WETH.withdraw(buyAmount);
+        // Transfer ETH to recipient.
+        _normalizeRecipient(recipient).call{ value: buyAmount }("");
+    }
+
+    /// @dev Sell a token for another token directly against uniswap v3.
+    /// @param encodedPath Uniswap-encoded path.
+    /// @param sellAmount amount of the first token in the path to sell.
+    /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @return buyAmount Amount of the last token in the path bought.
+    function sellTokenForTokenToUniswapV3(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address recipient
+    )
+        public
+        override
+        returns (uint256 buyAmount)
+    {
+        buyAmount = _swap(
+            encodedPath,
+            sellAmount,
+            minBuyAmount,
+            msg.sender,
+            _normalizeRecipient(recipient)
+        );
+    }
+
+    /// @dev The UniswapV3 pool swap callback which pays the funds requested
+    ///      by the caller/pool to the pool. Can only be called by a valid
+    ///      UniswapV3 pool.
+    /// @param amount0Delta Token0 amount owed.
+    /// @param amount1Delta Token1 amount owed.
+    /// @param data Arbitrary data forwarded from swap() caller. An ABI-encoded
+    ///        struct of: inputToken, outputToken, fee, payer
+    function uniswapV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes calldata data
+    )
+        external
+        override
+    {
+        IERC20TokenV06 token0;
+        IERC20TokenV06 token1;
+        address payer;
         {
-            // Load immutables onto the stack.
-            IEtherTokenV06 weth = WETH;
-
-            // Store some vars in memory to get around stack limits.
+            uint24 fee;
+            // Decode the data.
+            require(data.length == SWAP_CALLBACK_DATA_SIZE, "UniswapFeature/INVALID_SWAP_CALLBACK_DATA");
             assembly {
-                // calldataload(mload(0xA00)) == first element of `tokens` array
-                mstore(0xA00, add(calldataload(0x04), 0x24))
-                // mload(0xA20) == isSushi
-                mstore(0xA20, isSushi)
-                // mload(0xA40) == WETH
-                mstore(0xA40, weth)
+                let p := add(36, calldataload(68))
+                token0 := calldataload(p)
+                token1 := calldataload(add(p, 32))
+                fee := calldataload(add(p, 64))
+                payer := calldataload(add(p, 96))
             }
+            (token0, token1) = token0 < token1
+                ? (token0, token1)
+                : (token1, token0);
+            // Only a valid pool contract can call this function.
+            require(
+                msg.sender == address(_toPool(token0, fee, token1)),
+                "UniswapV3Feature/INVALID_SWAP_CALLBACK_CALLER"
+            );
         }
+        // Pay the amount owed to the pool.
+        if (amount0Delta > 0) {
+            _pay(token0, payer, msg.sender, uint256(amount0Delta));
+        } else if (amount1Delta > 0) {
+            _pay(token1, payer, msg.sender, uint256(amount1Delta));
+        } else {
+            revert("UniswapV3Feature/INVALID_SWAP_AMOUNTS");
+        }
+    }
 
-        assembly {
-            // numPairs == tokens.length - 1
-            let numPairs := sub(calldataload(add(calldataload(0x04), 0x4)), 1)
-            // We use the previous buy amount as the sell amount for the next
-            // pair in a path. So for the first swap we want to set it to `sellAmount`.
-            buyAmount := sellAmount
-            let buyToken
-            let nextPair := 0
-
-            for {let i := 0} lt(i, numPairs) {i := add(i, 1)} {
-                // sellToken = tokens[i]
-                let sellToken := loadTokenAddress(i)
-                // buyToken = tokens[i+1]
-                buyToken := loadTokenAddress(add(i, 1))
-                // The canonical ordering of this token pair.
-                let pairOrder := lt(normalizeToken(sellToken), normalizeToken(buyToken))
-
-                // Compute the pair address if it hasn't already been computed
-                // from the last iteration.
-                let pair := nextPair
-                if iszero(pair) {
-                    pair := computePairAddress(sellToken, buyToken)
-                    nextPair := 0
-                }
-
-                if iszero(i) {
-                    // This is the first token in the path.
-                    switch eq(sellToken, ETH_TOKEN_ADDRESS_32)
-                        case 0 { // Not selling ETH. Selling an ERC20 instead.
-                            // Make sure ETH was not attached to the call.
-                            if gt(callvalue(), 0) {
-                                revert(0, 0)
-                            }
-                            // For the first pair we need to transfer sellTokens into the
-                            // pair contract.
-                            moveTakerTokensTo(sellToken, pair, sellAmount)
-                        }
-                        default {
-                            // If selling ETH, we need to wrap it to WETH and transfer to the
-                            // pair contract.
-                            if iszero(eq(callvalue(), sellAmount)) {
-                                revert(0, 0)
-                            }
-                            sellToken := mload(0xA40)// Re-assign to WETH
-                            // Call `WETH.deposit{value: sellAmount}()`
-                            mstore(0xB00, WETH_DEPOSIT_CALL_SELECTOR_32)
-                            if iszero(call(gas(), sellToken, sellAmount, 0xB00, 0x4, 0x00, 0x0)) {
-                                bubbleRevert()
-                            }
-                            // Call `WETH.transfer(pair, sellAmount)`
-                            mstore(0xB00, ERC20_TRANSFER_CALL_SELECTOR_32)
-                            mstore(0xB04, pair)
-                            mstore(0xB24, sellAmount)
-                            if iszero(call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)) {
-                                bubbleRevert()
-                            }
-                        }
-                    // No need to check results, if deposit/transfers failed the UniswapV2Pair will
-                    // reject our trade (or it may succeed if somehow the reserve was out of sync)
-                    // this is fine for the taker.
-                }
-
-                // Call pair.getReserves(), store the results at `0xC00`
-                mstore(0xB00, UNISWAP_PAIR_RESERVES_CALL_SELECTOR_32)
-                if iszero(staticcall(gas(), pair, 0xB00, 0x4, 0xC00, 0x40)) {
-                    bubbleRevert()
-                }
-                // Revert if the pair contract does not return at least two words.
-                if lt(returndatasize(), 0x40) {
-                    revert(0,0)
-                }
-
-                // Sell amount for this hop is the previous buy amount.
-                let pairSellAmount := buyAmount
-                // Compute the buy amount based on the pair reserves.
+    // Executes successive swaps against along an encoded uniswap path.
+    function _swap(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address payer,
+        address recipient
+    )
+        private
+        returns (uint256 buyAmount)
+    {
+        if (sellAmount != 0) {
+            // Perform a swap for each hop in the path.
+            bytes memory swapCallbackData = new bytes(SWAP_CALLBACK_DATA_SIZE);
+            while (true) {
+                bool isPathMultiHop = _isPathMultiHop(encodedPath);
+                bool zeroForOne;
+                IUniswapV3Pool pool;
                 {
-                    let sellReserve
-                    let buyReserve
-                    switch iszero(pairOrder)
-                        case 0 {
-                            // Transpose if pair order is different.
-                            sellReserve := mload(0xC00)
-                            buyReserve := mload(0xC20)
-                        }
-                        default {
-                            sellReserve := mload(0xC20)
-                            buyReserve := mload(0xC00)
-                        }
-                    // Ensure that the sellAmount is < 2¹¹².
-                    if gt(pairSellAmount, MAX_SWAP_AMOUNT) {
-                        revert(0, 0)
-                    }
-                    // Pairs are in the range (0, 2¹¹²) so this shouldn't overflow.
-                    // buyAmount = (pairSellAmount * 997 * buyReserve) /
-                    //     (pairSellAmount * 997 + sellReserve * 1000);
-                    let sellAmountWithFee := mul(pairSellAmount, 997)
-                    buyAmount := div(
-                        mul(sellAmountWithFee, buyReserve),
-                        add(sellAmountWithFee, mul(sellReserve, 1000))
-                    )
+                    (
+                        IERC20TokenV06 inputToken,
+                        uint24 fee,
+                        IERC20TokenV06 outputToken
+                    ) = _decodeFirstPoolInfoFromPath(encodedPath);
+                    pool = _toPool(inputToken, fee, outputToken);
+                    zeroForOne = inputToken < outputToken;
+                    _updateSwapCallbackData(
+                        swapCallbackData,
+                        inputToken,
+                        outputToken,
+                        fee,
+                        payer
+                    );
                 }
-
-                let receiver
-                // Is this the last pair contract?
-                switch eq(add(i, 1), numPairs)
-                    case 0 {
-                        // Not the last pair contract, so forward bought tokens to
-                        // the next pair contract.
-                        nextPair := computePairAddress(
-                            buyToken,
-                            loadTokenAddress(add(i, 2))
-                        )
-                        receiver := nextPair
-                    }
-                    default {
-                        // The last pair contract.
-                        // Forward directly to taker UNLESS they want ETH back.
-                        switch eq(buyToken, ETH_TOKEN_ADDRESS_32)
-                            case 0 {
-                                receiver := caller()
-                            }
-                            default {
-                                receiver := address()
-                            }
-                    }
-
-                // Call pair.swap()
-                mstore(0xB00, UNISWAP_PAIR_SWAP_CALL_SELECTOR_32)
-                switch pairOrder
-                    case 0 {
-                        mstore(0xB04, buyAmount)
-                        mstore(0xB24, 0)
-                    }
-                    default {
-                        mstore(0xB04, 0)
-                        mstore(0xB24, buyAmount)
-                    }
-                mstore(0xB44, receiver)
-                mstore(0xB64, 0x80)
-                mstore(0xB84, 0)
-                if iszero(call(gas(), pair, 0, 0xB00, 0xA4, 0, 0)) {
-                    bubbleRevert()
+                (int256 amount0, int256 amount1) = pool.swap(
+                    // Intermediate tokens go to this contract.
+                    isPathMultiHop ? address(this) : recipient,
+                    zeroForOne,
+                    int256(sellAmount),
+                    zeroForOne
+                        ? MIN_PRICE_SQRT_RATIO + 1
+                        : MAX_PRICE_SQRT_RATIO - 1,
+                    swapCallbackData
+                );
+                {
+                    int256 _buyAmount = -(zeroForOne ? amount1 : amount0);
+                    require(_buyAmount >= 0, "UniswapV3Feature/INVALID_BUY_AMOUNT");
+                    buyAmount = uint256(_buyAmount);
                 }
-            } // End for-loop.
-
-            // If buying ETH, unwrap the WETH first
-            if eq(buyToken, ETH_TOKEN_ADDRESS_32) {
-                // Call `WETH.withdraw(buyAmount)`
-                mstore(0xB00, WETH_WITHDRAW_CALL_SELECTOR_32)
-                mstore(0xB04, buyAmount)
-                if iszero(call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)) {
-                    bubbleRevert()
+                if (!isPathMultiHop) {
+                    // Done.
+                    break;
                 }
-                // Transfer ETH to the caller.
-                if iszero(call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)) {
-                    bubbleRevert()
-                }
-            }
-
-            // Functions ///////////////////////////////////////////////////////
-
-            // Load a token address from the `tokens` calldata argument.
-            function loadTokenAddress(idx) -> addr {
-                addr := and(ADDRESS_MASK, calldataload(add(mload(0xA00), mul(idx, 0x20))))
-            }
-
-            // Convert ETH pseudo-token addresses to WETH.
-            function normalizeToken(token) -> normalized {
-                normalized := token
-                // Translate ETH pseudo-tokens to WETH.
-                if eq(token, ETH_TOKEN_ADDRESS_32) {
-                    normalized := mload(0xA40)
-                }
-            }
-
-            // Compute the address of the UniswapV2Pair contract given two
-            // tokens.
-            function computePairAddress(tokenA, tokenB) -> pair {
-                // Convert ETH pseudo-token addresses to WETH.
-                tokenA := normalizeToken(tokenA)
-                tokenB := normalizeToken(tokenB)
-                // There is one contract for every combination of tokens,
-                // which is deployed using CREATE2.
-                // The derivation of this address is given by:
-                //   address(keccak256(abi.encodePacked(
-                //       bytes(0xFF),
-                //       address(UNISWAP_FACTORY_ADDRESS),
-                //       keccak256(abi.encodePacked(
-                //           tokenA < tokenB ? tokenA : tokenB,
-                //           tokenA < tokenB ? tokenB : tokenA,
-                //       )),
-                //       bytes32(UNISWAP_PAIR_INIT_CODE_HASH),
-                //   )));
-
-                // Compute the salt (the hash of the sorted tokens).
-                // Tokens are written in reverse memory order to packed encode
-                // them as two 20-byte values in a 40-byte chunk of memory
-                // starting at 0xB0C.
-                switch lt(tokenA, tokenB)
-                    case 0 {
-                        mstore(0xB14, tokenA)
-                        mstore(0xB00, tokenB)
-                    }
-                    default {
-                        mstore(0xB14, tokenB)
-                        mstore(0xB00, tokenA)
-                    }
-                let salt := keccak256(0xB0C, 0x28)
-                // Compute the pair address by hashing all the components together.
-                switch mload(0xA20) // isSushi
-                    case 0 {
-                        mstore(0xB00, FF_UNISWAP_FACTORY)
-                        mstore(0xB15, salt)
-                        mstore(0xB35, UNISWAP_PAIR_INIT_CODE_HASH)
-                    }
-                    default {
-                        mstore(0xB00, FF_SUSHISWAP_FACTORY)
-                        mstore(0xB15, salt)
-                        mstore(0xB35, SUSHISWAP_PAIR_INIT_CODE_HASH)
-                    }
-                pair := and(ADDRESS_MASK, keccak256(0xB00, 0x55))
-            }
-
-            // Revert with the return data from the most recent call.
-            function bubbleRevert() {
-                returndatacopy(0, 0, returndatasize())
-                revert(0, returndatasize())
-            }
-
-            // Move `amount` tokens from the taker/caller to `to`.
-            function moveTakerTokensTo(token, to, amount) {
-                // Perform a `transferFrom()`
-                mstore(0xB00, TRANSFER_FROM_CALL_SELECTOR_32)
-                mstore(0xB04, caller())
-                mstore(0xB24, to)
-                mstore(0xB44, amount)
-
-                let success := call(
-                    gas(),
-                    token,
-                    0,
-                    0xB00,
-                    0x64,
-                    0xC00,
-                    // Copy only the first 32 bytes of return data. We
-                    // only care about reading a boolean in the success
-                    // case. We will use returndatacopy() in the failure case.
-                    0x20
-                )
-
-                let rdsize := returndatasize()
-
-                // Check for ERC20 success. ERC20 tokens should
-                // return a boolean, but some return nothing or
-                // extra data. We accept 0-length return data as
-                // success, or at least 32 bytes that starts with
-                // a 32-byte boolean true.
-                success := and(
-                    success,                         // call itself succeeded
-                    or(
-                        iszero(rdsize),              // no return data, or
-                        and(
-                            iszero(lt(rdsize, 32)),  // at least 32 bytes
-                            eq(mload(0xC00), 1)      // starts with uint256(1)
-                        )
-                    )
-                )
-
-                if iszero(success) {
-                    // Revert with the data returned from the transferFrom call.
-                    returndatacopy(0, 0, rdsize)
-                    revert(0, rdsize)
-                }
+                // Continue with next hop.
+                payer = address(this); // Subsequent hops are paid for by us.
+                sellAmount = buyAmount;
+                // Skip to next hop along path.
+                encodedPath = _shiftHopFromPathInPlace(encodedPath);
             }
         }
+        require(minBuyAmount <= buyAmount, "UniswapV3Feature/UNDERBOUGHT");
+    }
 
-        // Revert if we bought too little.
-        // TODO: replace with rich revert?
-        require(buyAmount >= minBuyAmount, "UniswapFeature/UnderBought");
+    // Pay tokens from `payer` to `to`, using `transferFrom()` if
+    // `payer` != this contract.
+    function _pay(
+        IERC20TokenV06 token,
+        address payer,
+        address to,
+        uint256 amount
+    )
+        private
+    {
+        if (payer != address(this)) {
+            _transferERC20Tokens(token, payer, to, amount);
+        } else {
+            _transferERC20Tokens(token, to, amount);
+        }
+    }
+
+    // Update `swapCallbackData` in place with new values.
+    function _updateSwapCallbackData(
+        bytes memory swapCallbackData,
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint24 fee,
+        address payer
+    )
+        private
+        pure
+    {
+        assembly {
+            let p := add(swapCallbackData, 32)
+            mstore(p, inputToken)
+            mstore(add(p, 32), outputToken)
+            mstore(add(p, 64), and(0xffffff, fee))
+            mstore(add(p, 96), and(0xffffffffffffffffffffffffffffffffffffffff, payer))
+        }
+    }
+
+    // Compute the pool address given two tokens and a fee.
+    function _toPool(
+        IERC20TokenV06 inputToken,
+        uint24 fee,
+        IERC20TokenV06 outputToken
+    )
+        private
+        view
+        returns (IUniswapV3Pool pool)
+    {
+        // address(keccak256(abi.encodePacked(
+        //     hex"ff",
+        //     UNI_FACTORY_ADDRESS,
+        //     keccak256(abi.encode(inputToken, outputToken, fee)),
+        //     UNI_POOL_INIT_CODE_HASH
+        // )))
+        address factoryAddress = UNI_FACTORY_ADDRESS;
+        bytes32 poolInitCodeHash = UNI_POOL_INIT_CODE_HASH;
+        (IERC20TokenV06 token0, IERC20TokenV06 token1) = inputToken < outputToken
+            ? (inputToken, outputToken)
+            : (outputToken, inputToken);
+        assembly {
+            let s := mload(0x40)
+            let p := s
+            mstore(p, 0xff00000000000000000000000000000000000000000000000000000000000000)
+            p := add(p, 1)
+            mstore(p, shl(96, factoryAddress))
+            p := add(p, 20)
+            // Compute the inner hash in-place
+                mstore(p, token0)
+                mstore(add(p, 32), token1)
+                mstore(add(p, 64), and(0xffffff, fee))
+                mstore(p, keccak256(p, 96))
+            p := add(p, 32)
+            mstore(p, poolInitCodeHash)
+            pool := and(0xffffffffffffffffffffffffffffffffffffffff, keccak256(s, 85))
+        }
+    }
+
+    // Return whether or not an encoded uniswap path contains more than one hop.
+    function _isPathMultiHop(bytes memory encodedPath)
+        private
+        pure
+        returns (bool isMultiHop)
+    {
+        return encodedPath.length > SINGLE_HOP_PATH_SIZE;
+    }
+
+
+    // Return the first input token, output token, and fee of an encoded uniswap path.
+    function _decodeFirstPoolInfoFromPath(bytes memory encodedPath)
+        private
+        pure
+        returns (
+            IERC20TokenV06 inputToken,
+            uint24 fee,
+            IERC20TokenV06 outputToken
+        )
+    {
+        require(encodedPath.length >= SINGLE_HOP_PATH_SIZE, "UniswapV3Feature/BAD_PATH_ENCODING");
+        assembly {
+            let p := add(encodedPath, 32)
+            inputToken := shr(96, mload(p))
+            p := add(p, 20)
+            fee := shr(232, mload(p))
+            p := add(p, 3)
+            outputToken := shr(96, mload(p))
+        }
+    }
+
+    // Skip past the first hop of an encoded uniswap path in-place.
+    function _shiftHopFromPathInPlace(bytes memory encodedPath)
+        private
+        pure
+        returns (bytes memory shiftedEncodedPath)
+    {
+        require(encodedPath.length >= PATH_SKIP_HOP_SIZE, "UniswapV3Feature/BAD_PATH_ENCODING");
+        uint256 shiftSize = PATH_SKIP_HOP_SIZE;
+        uint256 newSize = encodedPath.length - shiftSize;
+        assembly {
+            shiftedEncodedPath := add(encodedPath, shiftSize)
+            mstore(shiftedEncodedPath, newSize)
+        }
+    }
+
+    // Convert null address values to msg.sender.
+    function _normalizeRecipient(address recipient)
+        private
+        view
+        returns (address payable normalizedRecipient)
+    {
+        return recipient == address(0) ? msg.sender : payable(recipient);
     }
 }

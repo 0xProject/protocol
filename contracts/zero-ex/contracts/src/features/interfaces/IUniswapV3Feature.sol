@@ -23,22 +23,64 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 
-/// @dev VIP uniswap fill functions.
+/// @dev VIP uniswap v3 fill functions.
 interface IUniswapV3Feature {
 
-    /// @dev Efficiently sell directly to uniswap/sushiswap.
-    /// @param tokens Sell path.
-    /// @param sellAmount of `tokens[0]` Amount to sell.
-    /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
-    /// @param isSushi Use sushiswap if true.
-    /// @return buyAmount Amount of `tokens[-1]` bought.
-    function sellToUniswapV3(
-        IERC20TokenV06[] calldata tokens,
-        uint256 sellAmount,
+    /// @dev Sell attached ETH directly against uniswap v3.
+    /// @param encodedPath Uniswap-encoded path, where the first token is WETH.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @return buyAmount Amount of the last token in the path bought.
+    function sellEthForTokenToUniswapV3(
+        bytes memory encodedPath,
         uint256 minBuyAmount,
-        bool isSushi
+        address recipient
     )
         external
         payable
         returns (uint256 buyAmount);
+
+    /// @dev Sell a token for ETH directly against uniswap v3.
+    /// @param encodedPath Uniswap-encoded path, where the last token is WETH.
+    /// @param sellAmount amount of the first token in the path to sell.
+    /// @param minBuyAmount Minimum amount of ETH to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @return buyAmount Amount of ETH bought.
+    function sellTokenForEthToUniswapV3(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address payable recipient
+    )
+        external
+        returns (uint256 buyAmount);
+
+    /// @dev Sell a token for another token directly against uniswap v3.
+    /// @param encodedPath Uniswap-encoded path.
+    /// @param sellAmount amount of the first token in the path to sell.
+    /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @return buyAmount Amount of the last token in the path bought.
+    function sellTokenForTokenToUniswapV3(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address recipient
+    )
+        external
+        returns (uint256 buyAmount);
+
+    /// @dev The UniswapV3 pool swap callback which pays the funds requested
+    ///      by the caller/pool to the pool. Can only be called by a valid
+    ///      UniswapV3 pool.
+    /// @param amount0Delta Token0 amount owed.
+    /// @param amount1Delta Token1 amount owed.
+    /// @param data Arbitrary data forwarded from swap() caller. An ABI-encoded
+    ///        struct of: inputToken, outputToken, fee, payer
+    function uniswapV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes calldata data
+    )
+        external;
 }

@@ -46,6 +46,8 @@ import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpender
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
 import * as IUniswapFeature from '../test/generated-artifacts/IUniswapFeature.json';
 import * as IUniswapV2Pair from '../test/generated-artifacts/IUniswapV2Pair.json';
+import * as IUniswapV3Feature from '../test/generated-artifacts/IUniswapV3Feature.json';
+import * as IUniswapV3Pool from '../test/generated-artifacts/IUniswapV3Pool.json';
 import * as IZeroEx from '../test/generated-artifacts/IZeroEx.json';
 import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
@@ -148,6 +150,7 @@ import * as Transformer from '../test/generated-artifacts/Transformer.json';
 import * as TransformERC20Feature from '../test/generated-artifacts/TransformERC20Feature.json';
 import * as TransformerDeployer from '../test/generated-artifacts/TransformerDeployer.json';
 import * as UniswapFeature from '../test/generated-artifacts/UniswapFeature.json';
+import * as UniswapV3Feature from '../test/generated-artifacts/UniswapV3Feature.json';
 import * as WethTransformer from '../test/generated-artifacts/WethTransformer.json';
 import * as ZeroEx from '../test/generated-artifacts/ZeroEx.json';
 import * as ZeroExOptimized from '../test/generated-artifacts/ZeroExOptimized.json';
@@ -185,6 +188,7 @@ export const artifacts = {
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
+    UniswapV3Feature: UniswapV3Feature as ContractArtifact,
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
     IFeature: IFeature as ContractArtifact,
@@ -199,6 +203,7 @@ export const artifacts = {
     ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     IUniswapFeature: IUniswapFeature as ContractArtifact,
+    IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
     NativeOrdersCancellation: NativeOrdersCancellation as ContractArtifact,
@@ -258,6 +263,7 @@ export const artifacts = {
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IMooniswapPool: IMooniswapPool as ContractArtifact,
     IUniswapV2Pair: IUniswapV2Pair as ContractArtifact,
+    IUniswapV3Pool: IUniswapV3Pool as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
