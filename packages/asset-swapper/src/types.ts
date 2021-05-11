@@ -243,7 +243,7 @@ export interface RfqRequestOpts {
     nativeExclusivelyRFQ?: boolean;
     altRfqAssetOfferings?: AltRfqMakerAssetOfferings;
     isLastLook?: boolean;
-    fee?: Fee,
+    fee?: Fee;
 }
 
 /**

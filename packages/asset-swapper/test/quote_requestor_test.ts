@@ -249,7 +249,7 @@ describe('QuoteRequestor', async () => {
                                 amount: new BigNumber('1000000000'),
                                 token: ETH_TOKEN_ADDRESS,
                                 type: 'fixed',
-                            }
+                            },
                         },
                     );
                     expect(resp).to.deep.eq([
@@ -558,7 +558,7 @@ describe('QuoteRequestor', async () => {
                                 type: 'fixed',
                                 token: ETH_TOKEN_ADDRESS,
                                 amount: new BigNumber('1000000000'),
-                            }
+                            },
                         },
                     );
                     expect(resp.sort()).to.eql([successfulQuote1, successfulQuote1].sort());

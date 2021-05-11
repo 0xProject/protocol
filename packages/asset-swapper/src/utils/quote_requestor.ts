@@ -195,7 +195,7 @@ export class QuoteRequestor {
         options: RfqRequestOpts,
     ): Promise<SignedNativeOrder[]> {
         if (options.fee === undefined) {
-            throw new Error("When isLastLook is set, a fee must always be present");
+            throw new Error('When isLastLook is set, a fee must always be present');
         }
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
@@ -247,7 +247,7 @@ export class QuoteRequestor {
         options: RfqRequestOpts,
     ): Promise<V4RFQIndicativeQuote[]> {
         if (options.fee === undefined) {
-            throw new Error("When isLastLook is set, a fee must always be present");
+            throw new Error('When isLastLook is set, a fee must always be present');
         }
 
         const _opts: RfqRequestOpts = {
