@@ -1,6 +1,11 @@
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
-import { TakerRequestQueryParamsUnnested, V4RFQFirmQuote, V4RFQIndicativeQuote, V4SignedRfqOrder } from '@0x/quote-server';
+import {
+    TakerRequestQueryParamsUnnested,
+    V4RFQFirmQuote,
+    V4RFQIndicativeQuote,
+    V4SignedRfqOrder,
+} from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
