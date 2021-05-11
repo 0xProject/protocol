@@ -31,6 +31,7 @@ import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyber.sol";
+import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinMakerPSM.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
@@ -53,6 +54,7 @@ contract BridgeAdapter is
     MixinDodo,
     MixinDodoV2,
     MixinKyber,
+    MixinKyberDmm,
     MixinMakerPSM,
     MixinMooniswap,
     MixinMStable,
@@ -213,6 +215,12 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.NERVE) {
             boughtAmount = _tradeNerve(
+                sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.KYBERDMM) {
+            boughtAmount = _tradeKyberDmm(
                 sellToken,
                 sellAmount,
                 order.bridgeData

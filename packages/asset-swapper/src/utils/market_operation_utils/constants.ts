@@ -85,7 +85,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
             ERC20BridgeSource.MakerPsm,
-            ERC20BridgeSource.KyberDmm,
+            // ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
@@ -158,7 +158,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
             ERC20BridgeSource.MakerPsm,
-            ERC20BridgeSource.KyberDmm,
+            // ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
@@ -941,7 +941,7 @@ export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x12807818B584a3Fa65D38B6C25B13983fE888D6E',
+        [ChainId.Mainnet]: '0x12807818b584a3fa65d38b6c25b13983fe888d6e',
     },
     NULL_ADDRESS,
 );

@@ -23,6 +23,7 @@ import {
     DODO_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
+    KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
     MAINNET_TOKENS,
@@ -56,6 +57,7 @@ import {
     ERC20BridgeSource,
     GenericRouterFillData,
     HopInfo,
+    KyberDmmFillData,
     KyberFillData,
     KyberSamplerOpts,
     LiquidityProviderFillData,
@@ -232,6 +234,52 @@ export class SamplerOperations {
                 fillData.reserveId = reserveId;
                 fillData.networkProxy = kyberOpts.networkProxy;
                 return isAllowedKyberReserveId(reserveId) ? samples : [];
+            },
+        });
+    }
+
+    public getKyberDmmSellQuotes(
+        router: string,
+        tokenAddressPath: string[],
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<KyberDmmFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.KyberDmm,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromKyberDmm,
+            params: [router, tokenAddressPath, takerFillAmounts],
+            callback: (callResults: string, fillData: KyberDmmFillData): BigNumber[] => {
+                const [pools, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
+                    'sampleSellsFromKyberDmm',
+                    callResults,
+                );
+                fillData.poolsPath = pools;
+                fillData.router = router;
+                fillData.tokenAddressPath = tokenAddressPath;
+                return samples;
+            },
+        });
+    }
+
+    public getKyberDmmBuyQuotes(
+        router: string,
+        tokenAddressPath: string[],
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<KyberDmmFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.KyberDmm,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromKyberDmm,
+            params: [router, tokenAddressPath, makerFillAmounts],
+            callback: (callResults: string, fillData: KyberDmmFillData): BigNumber[] => {
+                const [pools, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
+                    'sampleBuysFromKyberDmm',
+                    callResults,
+                );
+                fillData.poolsPath = pools;
+                fillData.router = router;
+                fillData.tokenAddressPath = tokenAddressPath;
+                return samples;
             },
         });
     }
@@ -1134,7 +1182,6 @@ export class SamplerOperations {
                         case ERC20BridgeSource.PancakeSwap:
                         case ERC20BridgeSource.PancakeSwapV2:
                         case ERC20BridgeSource.BakerySwap:
-                        case ERC20BridgeSource.KyberDmm:
                         case ERC20BridgeSource.ApeSwap:
                         case ERC20BridgeSource.CafeSwap:
                         case ERC20BridgeSource.CheeseSwap:
@@ -1147,6 +1194,16 @@ export class SamplerOperations {
                                 [takerToken, makerToken],
                                 ...intermediateTokens.map(t => [takerToken, t, makerToken]),
                             ].map(path => this.getUniswapV2SellQuotes(uniLikeRouter, path, takerFillAmounts, source));
+                        case ERC20BridgeSource.KyberDmm:
+                            const kyberDmmRouter = KYBER_DMM_ROUTER_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(kyberDmmRouter)) {
+                                return [];
+                            }
+                            return this.getKyberDmmSellQuotes(
+                                kyberDmmRouter,
+                                [takerToken, makerToken],
+                                takerFillAmounts,
+                            );
                         case ERC20BridgeSource.Kyber:
                             return getKyberOffsets().map(offset =>
                                 this.getKyberSellQuotes(
@@ -1381,7 +1438,6 @@ export class SamplerOperations {
                         case ERC20BridgeSource.PancakeSwap:
                         case ERC20BridgeSource.PancakeSwapV2:
                         case ERC20BridgeSource.BakerySwap:
-                        case ERC20BridgeSource.KyberDmm:
                         case ERC20BridgeSource.ApeSwap:
                         case ERC20BridgeSource.CafeSwap:
                         case ERC20BridgeSource.CheeseSwap:
@@ -1394,6 +1450,16 @@ export class SamplerOperations {
                                 [takerToken, makerToken],
                                 ...intermediateTokens.map(t => [takerToken, t, makerToken]),
                             ].map(path => this.getUniswapV2BuyQuotes(uniLikeRouter, path, makerFillAmounts, source));
+                        case ERC20BridgeSource.KyberDmm:
+                            const kyberDmmRouter = KYBER_DMM_ROUTER_BY_CHAIN_ID[this.chainId];
+                            if (!isValidAddress(kyberDmmRouter)) {
+                                return [];
+                            }
+                            return this.getKyberDmmBuyQuotes(
+                                kyberDmmRouter,
+                                [takerToken, makerToken],
+                                makerFillAmounts,
+                            );
                         case ERC20BridgeSource.Kyber:
                             return getKyberOffsets().map(offset =>
                                 this.getKyberBuyQuotes(

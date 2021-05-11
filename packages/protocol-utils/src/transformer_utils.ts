@@ -128,6 +128,7 @@ export enum BridgeProtocol {
     MakerPsm,
     BalancerV2,
     UniswapV3,
+    KyberDmm,
 }
 // tslint:enable: enum-naming
 
