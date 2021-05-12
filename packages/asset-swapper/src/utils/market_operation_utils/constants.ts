@@ -1208,7 +1208,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: () => 100e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
-    [ERC20BridgeSource.MStable]: () => 700e3,
+    [ERC20BridgeSource.MStable]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
         const psmFillData = fillData as MakerPsmFillData;
         return psmFillData.takerToken === psmFillData.gemTokenAddress ? 210e3 : 290e3;

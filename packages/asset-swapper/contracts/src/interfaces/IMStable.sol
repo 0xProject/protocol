@@ -29,5 +29,5 @@ interface IMStable {
     )
         external
         view
-        returns (bool, string memory, uint256 output);
+        returns (uint256 swapOutput);
 }
