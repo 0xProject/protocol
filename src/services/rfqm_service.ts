@@ -1,10 +1,12 @@
 // tslint:disable:max-file-line-count
 import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
+import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
+import { ETH_TOKEN_ADDRESS } from '@0x/order-utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { META_TX_WORKER_REGISTRY, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
-import { NULL_ADDRESS, RFQM_MINUMUM_EXPIRY_DURATION_MS } from '../constants';
+import { NULL_ADDRESS, RFQM_MINUMUM_EXPIRY_DURATION_MS, ZERO } from '../constants';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 
 export interface FetchIndicativeQuoteParams {
@@ -83,12 +85,18 @@ export class RfqmService {
                 : await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
         // Fetch quotes
-        const opts = {
+        const opts: RfqmRequestOptions = {
             ...RFQM_DEFAULT_OPTS,
             txOrigin: this._registryAddress,
             apiKey,
             intentOnFilling: false,
             isIndicative: true,
+            isLastLook: true,
+            fee: {
+                amount: ZERO,
+                token: ETH_TOKEN_ADDRESS,
+                type: 'fixed',
+            },
         };
         const indicativeQuotes = await this._quoteRequestor.requestRfqmIndicativeQuotesAsync(
             makerToken,

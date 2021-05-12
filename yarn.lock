@@ -90,10 +90,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^6.13.0":
-  version "6.13.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-6.13.0.tgz#aaeaeaebca342880c052ec699d3c7c9a17f8325c"
-  integrity sha512-GkGVaxgPK9hBqzjqOmvAnU/p1rfa2kFCgDLykb41JlcrZdhJvggA9B9Ynu/2G6trbfDqK8VKIErYL0OdTf52pg==
+"@0x/asset-swapper@^6.14.0":
+  version "6.14.0"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-6.14.0.tgz#8aa4aa33b5341cc799794f0c26092a5495de9ee7"
+  integrity sha512-q50qmBVGFZsXWWWxL+P+D207QMom5CYbpmVJK+HF1CQRvB6mKeBdBUUDV0BA0QbRkv0tCMcvnhSby/ZvIhr7TQ==
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
@@ -104,7 +104,7 @@
     "@0x/dev-utils" "^4.2.7"
     "@0x/json-schemas" "^6.1.3"
     "@0x/protocol-utils" "^1.6.0"
-    "@0x/quote-server" "^5.0.0"
+    "@0x/quote-server" "^6.0.2"
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
     "@0x/utils" "^6.4.3"
@@ -483,7 +483,7 @@
     lodash "^4.17.11"
     web3-provider-engine "14.0.6"
 
-"@0x/json-schemas@^5.0.7", "@0x/json-schemas@^5.1.0":
+"@0x/json-schemas@^5.1.0":
   version "5.2.3"
   resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-5.2.3.tgz#22125f36fb23ffe757009feb2329aaca88bce982"
   dependencies:
@@ -528,7 +528,7 @@
     ajv "^6.12.5"
     lodash.values "^4.3.0"
 
-"@0x/json-schemas@^6.1.3":
+"@0x/json-schemas@^6.0.1", "@0x/json-schemas@^6.1.3":
   version "6.1.3"
   resolved "https://registry.yarnpkg.com/@0x/json-schemas/-/json-schemas-6.1.3.tgz#da71ed2e50ae6813a6d4d0fe5f8ad69b8e6a7435"
   dependencies:
@@ -701,11 +701,12 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/quote-server@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-5.0.0.tgz#15554099bdfdf71e2910430860257d622f24f703"
+"@0x/quote-server@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-6.0.2.tgz#cb99e00c737e0f97a2a32bc7e7be6db65243c3af"
+  integrity sha512-SS5LfAgKSRjEszWVZl5UtRDBkrsqAvYn/lPB4hxtKky8XitClUYFQ2pSnrFuyQSVft3tFxH4p7eC65YQN5wkcA==
   dependencies:
-    "@0x/json-schemas" "^5.0.7"
+    "@0x/json-schemas" "^6.0.1"
     "@0x/order-utils" "^10.2.4"
     "@0x/protocol-utils" "^1.0.1"
     "@0x/utils" "^5.4.1"

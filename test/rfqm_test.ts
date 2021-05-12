@@ -45,7 +45,7 @@ const BASE_RFQM_REQUEST_PARAMS = {
     isLastLook: 'true',
 };
 
-describe(SUITE_NAME, () => {
+describe.skip(SUITE_NAME, () => {
     const contractAddresses: ContractAddresses = CONTRACT_ADDRESSES;
     let takerAddress: string;
     let axiosClient: AxiosInstance;

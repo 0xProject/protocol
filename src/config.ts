@@ -424,6 +424,18 @@ const EXCLUDED_SOURCES = (() => {
             return allERC20BridgeSources.filter(
                 (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
             );
+        case ChainId.Ropsten:
+            const supportedRopstenSources = new Set([
+                ERC20BridgeSource.Kyber,
+                ERC20BridgeSource.Native,
+                ERC20BridgeSource.SushiSwap,
+                ERC20BridgeSource.Uniswap,
+                ERC20BridgeSource.UniswapV2,
+                ERC20BridgeSource.UniswapV3,
+                ERC20BridgeSource.Curve,
+                ERC20BridgeSource.Mooniswap,
+            ]);
+            return allERC20BridgeSources.filter((s) => !supportedRopstenSources.has(s));
         case ChainId.BSC:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         default:
@@ -437,6 +449,8 @@ const EXCLUDED_FEE_SOURCES = (() => {
             return [];
         case ChainId.Kovan:
             return [ERC20BridgeSource.Uniswap];
+        case ChainId.Ropsten:
+            return [];
         case ChainId.BSC:
             return [ERC20BridgeSource.Uniswap];
         default:
