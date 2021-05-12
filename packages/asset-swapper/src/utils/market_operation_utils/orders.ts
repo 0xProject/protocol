@@ -15,6 +15,7 @@ import {
     DODOFillData,
     ERC20BridgeSource,
     FillData,
+    FinalUniswapV3FillData,
     GenericRouterFillData,
     KyberFillData,
     LiquidityProviderFillData,
@@ -31,7 +32,6 @@ import {
     ShellFillData,
     UniswapV2FillData,
     UniswapV3FillData,
-    FinalUniswapV3FillData,
 } from './types';
 
 // tslint:disable completed-docs

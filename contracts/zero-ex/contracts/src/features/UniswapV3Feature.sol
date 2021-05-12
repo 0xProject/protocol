@@ -41,12 +41,10 @@ contract UniswapV3Feature is
     string public constant override FEATURE_NAME = "UniswapV3Feature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
-    /// @dev The deployed address of this contract.
-    address private immutable IMPLEMENTATION;
     /// @dev WETH contract.
     IEtherTokenV06 private immutable WETH;
-    /// @dev UniswapV3 Factory contract address.
-    address private immutable UNI_FACTORY_ADDRESS;
+    /// @dev UniswapV3 Factory contract address prepended with '0xff' and left-aligned.
+    bytes32 private immutable UNI_FF_FACTORY_ADDRESS;
     /// @dev UniswapV3 pool init code hash.
     bytes32 private immutable UNI_POOL_INIT_CODE_HASH;
     /// @dev Minimum size of an encoded swap path:
@@ -61,6 +59,10 @@ contract UniswapV3Feature is
     uint160 internal constant MIN_PRICE_SQRT_RATIO = 4295128739;
     /// @dev Minimum tick price sqrt ratio.
     uint160 internal constant MAX_PRICE_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
+    /// @dev Mask of lower 20 bytes.
+    uint256 private constant ADDRESS_MASK = 0x00ffffffffffffffffffffffffffffffffffffffff;
+    /// @dev Mask of lower 3 bytes.
+    uint256 private constant UINT24_MASK = 0xffffff;
 
     /// @dev Construct this contract.
     /// @param weth The WETH contract.
@@ -71,9 +73,8 @@ contract UniswapV3Feature is
         address uniFactory,
         bytes32 poolInitCodeHash
     ) public {
-        IMPLEMENTATION = address(this);
         WETH = weth;
-        UNI_FACTORY_ADDRESS = uniFactory;
+        UNI_FF_FACTORY_ADDRESS = bytes32((uint256(0xff) << 248) | (uint256(uniFactory) << 88));
         UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;
     }
 
@@ -142,7 +143,11 @@ contract UniswapV3Feature is
         );
         WETH.withdraw(buyAmount);
         // Transfer ETH to recipient.
-        _normalizeRecipient(recipient).call{ value: buyAmount }("");
+        (bool success, bytes memory revertData) =
+            _normalizeRecipient(recipient).call{ value: buyAmount }("");
+        if (!success) {
+            revertData.rrevert();
+        }
     }
 
     /// @dev Sell a token for another token directly against uniswap v3.
@@ -218,7 +223,7 @@ contract UniswapV3Feature is
         }
     }
 
-    // Executes successive swaps against along an encoded uniswap path.
+    // Executes successive swaps along an encoded uniswap path.
     function _swap(
         bytes memory encodedPath,
         uint256 sellAmount,
@@ -313,8 +318,8 @@ contract UniswapV3Feature is
             let p := add(swapCallbackData, 32)
             mstore(p, inputToken)
             mstore(add(p, 32), outputToken)
-            mstore(add(p, 64), and(0xffffff, fee))
-            mstore(add(p, 96), and(0xffffffffffffffffffffffffffffffffffffffff, payer))
+            mstore(add(p, 64), and(UINT24_MASK, fee))
+            mstore(add(p, 96), and(ADDRESS_MASK, payer))
         }
     }
 
@@ -334,7 +339,7 @@ contract UniswapV3Feature is
         //     keccak256(abi.encode(inputToken, outputToken, fee)),
         //     UNI_POOL_INIT_CODE_HASH
         // )))
-        address factoryAddress = UNI_FACTORY_ADDRESS;
+        bytes32 ffFactoryAddress = UNI_FF_FACTORY_ADDRESS;
         bytes32 poolInitCodeHash = UNI_POOL_INIT_CODE_HASH;
         (IERC20TokenV06 token0, IERC20TokenV06 token1) = inputToken < outputToken
             ? (inputToken, outputToken)
@@ -342,18 +347,16 @@ contract UniswapV3Feature is
         assembly {
             let s := mload(0x40)
             let p := s
-            mstore(p, 0xff00000000000000000000000000000000000000000000000000000000000000)
-            p := add(p, 1)
-            mstore(p, shl(96, factoryAddress))
-            p := add(p, 20)
+            mstore(p, ffFactoryAddress)
+            p := add(p, 21)
             // Compute the inner hash in-place
                 mstore(p, token0)
                 mstore(add(p, 32), token1)
-                mstore(add(p, 64), and(0xffffff, fee))
+                mstore(add(p, 64), and(UINT24_MASK, fee))
                 mstore(p, keccak256(p, 96))
             p := add(p, 32)
             mstore(p, poolInitCodeHash)
-            pool := and(0xffffffffffffffffffffffffffffffffffffffff, keccak256(s, 85))
+            pool := and(ADDRESS_MASK, keccak256(s, 85))
         }
     }
 

@@ -28,8 +28,8 @@ interface IUniswapV3Feature {
 
     /// @dev Sell attached ETH directly against uniswap v3.
     /// @param encodedPath Uniswap-encoded path, where the first token is WETH.
-    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
     /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
     /// @return buyAmount Amount of the last token in the path bought.
     function sellEthForTokenToUniswapV3(
         bytes memory encodedPath,
