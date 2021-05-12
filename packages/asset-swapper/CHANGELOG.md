@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.14.0 - _May 12, 2021_
+
+    * Add support for additional sources and intermediate tokens on Ropsten (#231)
+
 ## v6.13.0 - _May 11, 2021_
 
     * Add LiquidityProvider to BSC sources (#234)

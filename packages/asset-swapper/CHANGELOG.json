@@ -6,7 +6,8 @@
                 "note": "Add support for additional sources and intermediate tokens on Ropsten",
                 "pr": 231
             }
-        ]
+        ],
+        "timestamp": 1620810800
     },
     {
         "version": "6.13.0",
