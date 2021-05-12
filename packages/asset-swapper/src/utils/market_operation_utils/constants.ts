@@ -52,6 +52,8 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Kovan]: defaultValue,
         [ChainId.Ganache]: defaultValue,
         [ChainId.BSC]: defaultValue,
+        [ChainId.Polygon]: defaultValue,
+        [ChainId.PolygonMumbai]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -124,6 +126,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
         ]),
+        [ChainId.Polygon]: new SourceFilters([ERC20BridgeSource.SushiSwap]),
     },
 
     new SourceFilters([]),
@@ -197,6 +200,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
         ]),
+        [ChainId.Polygon]: new SourceFilters([ERC20BridgeSource.SushiSwap]),
     },
     new SourceFilters([]),
 );
@@ -214,6 +218,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
+        [ChainId.Polygon]: [ERC20BridgeSource.SushiSwap],
     },
     [],
 );
@@ -896,6 +901,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Mainnet]: '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f',
         [ChainId.BSC]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Ropsten]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
+        [ChainId.Polygon]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
     },
     NULL_ADDRESS,
 );
