@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.2.0",
+        "changes": [
+            {
+                "note": "Deployed contracts on `Polygon`"
+            }
+        ]
+    },
+    {
         "version": "6.1.0",
         "changes": [
             {
