@@ -131,6 +131,7 @@ import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintabl
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
 import * as TestMooniswap from '../test/generated-artifacts/TestMooniswap.json';
 import * as TestNativeOrdersFeature from '../test/generated-artifacts/TestNativeOrdersFeature.json';
+import * as TestNoEthRecipient from '../test/generated-artifacts/TestNoEthRecipient.json';
 import * as TestOrderSignerRegistryWithContractWallet from '../test/generated-artifacts/TestOrderSignerRegistryWithContractWallet.json';
 import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
 import * as TestPermissionlessTransformerDeployerTransformer from '../test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json';
@@ -143,6 +144,9 @@ import * as TestTransformerBase from '../test/generated-artifacts/TestTransforme
 import * as TestTransformERC20 from '../test/generated-artifacts/TestTransformERC20.json';
 import * as TestTransformerDeployerTransformer from '../test/generated-artifacts/TestTransformerDeployerTransformer.json';
 import * as TestTransformerHost from '../test/generated-artifacts/TestTransformerHost.json';
+import * as TestUniswapV3Factory from '../test/generated-artifacts/TestUniswapV3Factory.json';
+import * as TestUniswapV3Feature from '../test/generated-artifacts/TestUniswapV3Feature.json';
+import * as TestUniswapV3Pool from '../test/generated-artifacts/TestUniswapV3Pool.json';
 import * as TestWeth from '../test/generated-artifacts/TestWeth.json';
 import * as TestWethTransformerHost from '../test/generated-artifacts/TestWethTransformerHost.json';
 import * as TestZeroExFeature from '../test/generated-artifacts/TestZeroExFeature.json';
@@ -289,6 +293,7 @@ export const artifacts = {
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
     TestMooniswap: TestMooniswap as ContractArtifact,
     TestNativeOrdersFeature: TestNativeOrdersFeature as ContractArtifact,
+    TestNoEthRecipient: TestNoEthRecipient as ContractArtifact,
     TestOrderSignerRegistryWithContractWallet: TestOrderSignerRegistryWithContractWallet as ContractArtifact,
     TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
     TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
@@ -301,6 +306,9 @@ export const artifacts = {
     TestTransformerBase: TestTransformerBase as ContractArtifact,
     TestTransformerDeployerTransformer: TestTransformerDeployerTransformer as ContractArtifact,
     TestTransformerHost: TestTransformerHost as ContractArtifact,
+    TestUniswapV3Factory: TestUniswapV3Factory as ContractArtifact,
+    TestUniswapV3Feature: TestUniswapV3Feature as ContractArtifact,
+    TestUniswapV3Pool: TestUniswapV3Pool as ContractArtifact,
     TestWeth: TestWeth as ContractArtifact,
     TestWethTransformerHost: TestWethTransformerHost as ContractArtifact,
     TestZeroExFeature: TestZeroExFeature as ContractArtifact,
