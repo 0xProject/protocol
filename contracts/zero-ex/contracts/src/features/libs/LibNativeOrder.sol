@@ -69,11 +69,31 @@ library LibNativeOrder {
         uint256 salt;
     }
 
+    /// @dev An OTC limit order.
+    struct OtcOrder {
+        IERC20TokenV06 makerToken;
+        IERC20TokenV06 takerToken;
+        uint128 makerAmount;
+        uint128 takerAmount;
+        address maker;
+        address taker;
+        address txOrigin;
+        bytes32 pool;
+        uint64 expiry;
+        uint256 txOriginNonce;
+    }
+
     /// @dev Info on a limit or RFQ order.
     struct OrderInfo {
         bytes32 orderHash;
         OrderStatus status;
         uint128 takerTokenFilledAmount;
+    }
+
+    /// @dev Info on an OTC order.
+    struct OtcOrderInfo {
+        bytes32 orderHash;
+        OrderStatus status;
     }
 
     uint256 private constant UINT_128_MASK = (1 << 128) - 1;
@@ -117,6 +137,24 @@ library LibNativeOrder {
     // ))
     uint256 private constant _RFQ_ORDER_TYPEHASH =
         0xe593d3fdfa8b60e5e17a1b2204662ecbe15c23f2084b9ad5bae40359540a7da9;
+
+    // The type hash for OTC orders, which is:
+    // keccak256(abi.encodePacked(
+    //     "OtcOrder(",
+    //       "address makerToken,",
+    //       "address takerToken,",
+    //       "uint128 makerAmount,",
+    //       "uint128 takerAmount,",
+    //       "address maker,",
+    //       "address taker,",
+    //       "address txOrigin,",
+    //       "bytes32 pool,",
+    //       "uint64 expiry,",
+    //       "uint256 txOriginNonce"
+    //     ")"
+    // ))
+    uint256 private constant _OTC_ORDER_TYPEHASH =
+        0x04517ba2903b90285dbd94d6b20e29823d227a476f0ecac7067007e9bf35c14e;
 
     /// @dev Get the struct hash of a limit order.
     /// @param order The limit order.
@@ -217,6 +255,55 @@ library LibNativeOrder {
             // order.expiry;
             mstore(add(mem, 0x120), and(UINT_64_MASK, mload(add(order, 0x100))))
             // order.salt;
+            mstore(add(mem, 0x140), mload(add(order, 0x120)))
+            structHash := keccak256(mem, 0x160)
+        }
+    }
+
+    /// @dev Get the struct hash of an OTC order.
+    /// @param order The OTC order.
+    /// @return structHash The struct hash of the order.
+    function getOtcOrderStructHash(OtcOrder memory order)
+        internal
+        pure
+        returns (bytes32 structHash)
+    {
+        // The struct hash is:
+        // keccak256(abi.encode(
+        //   TYPE_HASH,
+        //   order.makerToken,
+        //   order.takerToken,
+        //   order.makerAmount,
+        //   order.takerAmount,
+        //   order.maker,
+        //   order.taker,
+        //   order.txOrigin,
+        //   order.pool,
+        //   order.expiry,
+        //   order.txOriginNonce,
+        // ))
+        assembly {
+            let mem := mload(0x40)
+            mstore(mem, _OTC_ORDER_TYPEHASH)
+            // order.makerToken;
+            mstore(add(mem, 0x20), and(ADDRESS_MASK, mload(order)))
+            // order.takerToken;
+            mstore(add(mem, 0x40), and(ADDRESS_MASK, mload(add(order, 0x20))))
+            // order.makerAmount;
+            mstore(add(mem, 0x60), and(UINT_128_MASK, mload(add(order, 0x40))))
+            // order.takerAmount;
+            mstore(add(mem, 0x80), and(UINT_128_MASK, mload(add(order, 0x60))))
+            // order.maker;
+            mstore(add(mem, 0xA0), and(ADDRESS_MASK, mload(add(order, 0x80))))
+            // order.taker;
+            mstore(add(mem, 0xC0), and(ADDRESS_MASK, mload(add(order, 0xA0))))
+            // order.txOrigin;
+            mstore(add(mem, 0xE0), and(ADDRESS_MASK, mload(add(order, 0xC0))))
+            // order.pool;
+            mstore(add(mem, 0x100), mload(add(order, 0xE0)))
+            // order.expiry;
+            mstore(add(mem, 0x120), and(UINT_64_MASK, mload(add(order, 0x100))))
+            // order.txOriginNonce;
             mstore(add(mem, 0x140), mload(add(order, 0x120)))
             structHash := keccak256(mem, 0x160)
         }
