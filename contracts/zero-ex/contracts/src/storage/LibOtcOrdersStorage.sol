@@ -29,7 +29,7 @@ library LibOtcOrdersStorage {
     /// @dev Storage bucket for this feature.
     struct Storage {
         // tx origin => nonce buckets => min nonce
-        mapping(address => mapping(uint256 => uint256)) txOriginNonces;
+        mapping(address => mapping(uint64 => uint128)) txOriginNonces;
     }
 
     /// @dev Get the storage bucket for this contract.

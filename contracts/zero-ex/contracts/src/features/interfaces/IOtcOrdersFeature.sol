@@ -126,8 +126,8 @@ interface IOtcOrdersFeature {
     /// @param txOrigin The address.
     /// @param nonceBucket The nonce bucket index.
     /// @return minNonce The minimum valid nonce value.
-    function minTxOriginNonce(address txOrigin, uint256 nonceBucket)
+    function minTxOriginNonce(address txOrigin, uint64 nonceBucket)
         external
         view
-        returns (uint256 minNonce);
+        returns (uint128 minNonce);
 }

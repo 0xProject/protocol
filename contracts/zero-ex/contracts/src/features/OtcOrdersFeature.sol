@@ -45,6 +45,7 @@ contract OtcOrdersFeature is
     FixinTokenSpender
 {
     using LibSafeMathV06 for uint256;
+    using LibSafeMathV06 for uint128;
 
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "OtcOrders";
@@ -282,9 +283,13 @@ contract OtcOrdersFeature is
         private
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        // Update tx origin nonce for the order.
-        LibOtcOrdersStorage.getStorage().txOriginNonces
-            [order.txOrigin][order.txOriginNonceBucket] = order.txOriginNonce;
+        {
+            // Update tx origin nonce for the order.
+            uint64 nonceBucket = uint64(order.expiryAndNonce >> 128);
+            uint128 nonce = uint128(order.expiryAndNonce);
+            LibOtcOrdersStorage.getStorage().txOriginNonces
+                [order.txOrigin][nonceBucket] = nonce;
+        }
 
         // Clamp the taker token fill amount to the fillable amount.
         takerTokenFilledAmount = LibSafeMathV06.min128(
@@ -368,18 +373,22 @@ contract OtcOrdersFeature is
         LibOtcOrdersStorage.Storage storage stor =
             LibOtcOrdersStorage.getStorage();
 
-        // check tx origin nonce
-        uint256 lastNonce = stor.txOriginNonces
-            [order.txOrigin]
-            [order.txOriginNonceBucket];
+        uint64 expiry = uint64(order.expiryAndNonce >> 192);
+        uint64 nonceBucket = uint64(order.expiryAndNonce >> 128);
+        uint128 nonce = uint128(order.expiryAndNonce);
 
-        if (order.txOriginNonce <= lastNonce) {
+        // check tx origin nonce
+        uint128 lastNonce = stor.txOriginNonces
+            [order.txOrigin]
+            [nonceBucket];
+
+        if (nonce <= lastNonce) {
             orderInfo.status = LibNativeOrder.OrderStatus.INVALID;
             return orderInfo;
         }
 
         // Check for expiration.
-        if (order.expiry <= uint64(block.timestamp)) {
+        if (expiry <= uint64(block.timestamp)) {
             orderInfo.status = LibNativeOrder.OrderStatus.EXPIRED;
             return orderInfo;
         }
@@ -407,18 +416,18 @@ contract OtcOrdersFeature is
     /// @param txOrigin The address.
     /// @param nonceBucket The nonce bucket index.
     /// @return minNonce The minimum valid nonce value.
-    function minTxOriginNonce(address txOrigin, uint256 nonceBucket)
+    function minTxOriginNonce(address txOrigin, uint64 nonceBucket)
         public
         override
         view
-        returns (uint256 minNonce)
+        returns (uint128 minNonce)
     {
         LibOtcOrdersStorage.Storage storage stor =
             LibOtcOrdersStorage.getStorage();
-        uint256 lastNonce = stor.txOriginNonces
+        uint128 lastNonce = stor.txOriginNonces
             [txOrigin]
             [nonceBucket];
-        return lastNonce.safeAdd(1);
+        return lastNonce.safeAdd128(1);
     }
 
     function _transferEth(address recipient, uint256 amount)
