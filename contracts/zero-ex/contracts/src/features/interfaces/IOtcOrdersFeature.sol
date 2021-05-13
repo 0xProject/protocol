@@ -90,4 +90,14 @@ interface IOtcOrdersFeature {
         external
         view
         returns (bytes32 orderHash);
+
+    /// @dev Get the minimum valid nonce for a particular
+    ///      tx.origin address and nonce bucket.
+    /// @param txOrigin The address.
+    /// @param nonceBucket The nonce bucket index.
+    /// @return minNonce The minimum valid nonce value.
+    function minTxOriginNonce(address txOrigin, uint256 nonceBucket)
+        external
+        view
+        returns (uint256 minNonce);
 }

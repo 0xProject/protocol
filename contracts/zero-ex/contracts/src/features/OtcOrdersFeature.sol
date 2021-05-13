@@ -43,6 +43,8 @@ contract OtcOrdersFeature is
     FixinEIP712,
     FixinTokenSpender
 {
+    using LibSafeMathV06 for uint256;
+
     /// @dev Emitted whenever an `OtcOrder` is filled.
     /// @param orderHash The canonical hash of the order.
     /// @param maker The maker of the order.
@@ -84,6 +86,7 @@ contract OtcOrdersFeature is
         _registerFeatureFunction(this.fillTakerSignedOtcOrder.selector);
         _registerFeatureFunction(this.getOtcOrderInfo.selector);
         _registerFeatureFunction(this.getOtcOrderHash.selector);
+        _registerFeatureFunction(this.minTxOriginNonce.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -300,11 +303,11 @@ contract OtcOrdersFeature is
             LibOtcOrdersStorage.getStorage();
 
         // check tx origin nonce
-        uint256 minNonce = stor.txOriginNonces
+        uint256 lastNonce = stor.txOriginNonces
             [order.txOrigin]
             [order.txOriginNonceBucket];
 
-        if (order.txOriginNonce <= minNonce) {
+        if (order.txOriginNonce <= lastNonce) {
             orderInfo.status = LibNativeOrder.OrderStatus.INVALID;
             return orderInfo;
         }
@@ -331,5 +334,24 @@ contract OtcOrdersFeature is
         return _getEIP712Hash(
             LibNativeOrder.getOtcOrderStructHash(order)
         );
+    }
+
+    /// @dev Get the minimum valid nonce for a particular
+    ///      tx.origin address and nonce bucket.
+    /// @param txOrigin The address.
+    /// @param nonceBucket The nonce bucket index.
+    /// @return minNonce The minimum valid nonce value.
+    function minTxOriginNonce(address txOrigin, uint256 nonceBucket)
+        public
+        override
+        view
+        returns (uint256 minNonce)
+    {
+        LibOtcOrdersStorage.Storage storage stor =
+            LibOtcOrdersStorage.getStorage();
+        uint256 lastNonce = stor.txOriginNonces
+            [txOrigin]
+            [nonceBucket];
+        return lastNonce.safeAdd(1);
     }
 }
