@@ -907,11 +907,29 @@ export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const MSTABLE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+export const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
     {
-        [ChainId.Mainnet]: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+        [ChainId.Mainnet]: {
+            mUSD: {
+                poolAddress: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+                tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+            },
+            mBTC: {
+                poolAddress: '0x945facb997494cc2570096c74b5f66a3507330a1',
+                tokens: [MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+            },
+        },
     },
-    NULL_ADDRESS,
+    {
+        mUSD: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        mBTC: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+    },
 );
 
 export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
