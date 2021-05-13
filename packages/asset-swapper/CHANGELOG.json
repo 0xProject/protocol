@@ -46,6 +46,10 @@
             {
                 "note": "Add support for additional sources and intermediate tokens on Ropsten",
                 "pr": 231
+            },
+            {
+                "note": "Add UniswapV3 VIP support",
+                "pr": 237
             }
         ],
         "timestamp": 1620810800

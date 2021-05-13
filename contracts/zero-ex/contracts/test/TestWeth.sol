@@ -33,6 +33,13 @@ contract TestWeth is
         this.mint(msg.sender, msg.value);
     }
 
+    function depositTo(address owner)
+        external
+        payable
+    {
+        this.mint(owner, msg.value);
+    }
+
     function withdraw(uint256 amount)
         external
     {

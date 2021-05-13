@@ -19,6 +19,7 @@ const MULTIPLEX_BATCH_FILL_SOURCES = [
     ERC20BridgeSource.SushiSwap,
     ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.Native,
+    ERC20BridgeSource.UniswapV3,
 ];
 
 /**
@@ -39,7 +40,7 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
         return false;
     }
     // Use Multiplex if the non-fallback sources are a subset of
-    // {Uniswap, Sushiswap, RFQ, PLP}
+    // {UniswapV2, Sushiswap, RFQ, PLP, UniswapV3}
     const nonFallbackSources = Object.keys(quote.sourceBreakdown);
     return nonFallbackSources.every(source => MULTIPLEX_BATCH_FILL_SOURCES.includes(source as ERC20BridgeSource));
 }

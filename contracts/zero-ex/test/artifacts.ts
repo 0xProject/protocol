@@ -46,6 +46,8 @@ import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpender
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
 import * as IUniswapFeature from '../test/generated-artifacts/IUniswapFeature.json';
 import * as IUniswapV2Pair from '../test/generated-artifacts/IUniswapV2Pair.json';
+import * as IUniswapV3Feature from '../test/generated-artifacts/IUniswapV3Feature.json';
+import * as IUniswapV3Pool from '../test/generated-artifacts/IUniswapV3Pool.json';
 import * as IZeroEx from '../test/generated-artifacts/IZeroEx.json';
 import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
@@ -130,6 +132,7 @@ import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintabl
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
 import * as TestMooniswap from '../test/generated-artifacts/TestMooniswap.json';
 import * as TestNativeOrdersFeature from '../test/generated-artifacts/TestNativeOrdersFeature.json';
+import * as TestNoEthRecipient from '../test/generated-artifacts/TestNoEthRecipient.json';
 import * as TestOrderSignerRegistryWithContractWallet from '../test/generated-artifacts/TestOrderSignerRegistryWithContractWallet.json';
 import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
 import * as TestPermissionlessTransformerDeployerTransformer from '../test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json';
@@ -142,6 +145,9 @@ import * as TestTransformerBase from '../test/generated-artifacts/TestTransforme
 import * as TestTransformERC20 from '../test/generated-artifacts/TestTransformERC20.json';
 import * as TestTransformerDeployerTransformer from '../test/generated-artifacts/TestTransformerDeployerTransformer.json';
 import * as TestTransformerHost from '../test/generated-artifacts/TestTransformerHost.json';
+import * as TestUniswapV3Factory from '../test/generated-artifacts/TestUniswapV3Factory.json';
+import * as TestUniswapV3Feature from '../test/generated-artifacts/TestUniswapV3Feature.json';
+import * as TestUniswapV3Pool from '../test/generated-artifacts/TestUniswapV3Pool.json';
 import * as TestWeth from '../test/generated-artifacts/TestWeth.json';
 import * as TestWethTransformerHost from '../test/generated-artifacts/TestWethTransformerHost.json';
 import * as TestZeroExFeature from '../test/generated-artifacts/TestZeroExFeature.json';
@@ -149,6 +155,7 @@ import * as Transformer from '../test/generated-artifacts/Transformer.json';
 import * as TransformERC20Feature from '../test/generated-artifacts/TransformERC20Feature.json';
 import * as TransformerDeployer from '../test/generated-artifacts/TransformerDeployer.json';
 import * as UniswapFeature from '../test/generated-artifacts/UniswapFeature.json';
+import * as UniswapV3Feature from '../test/generated-artifacts/UniswapV3Feature.json';
 import * as WethTransformer from '../test/generated-artifacts/WethTransformer.json';
 import * as ZeroEx from '../test/generated-artifacts/ZeroEx.json';
 import * as ZeroExOptimized from '../test/generated-artifacts/ZeroExOptimized.json';
@@ -186,6 +193,7 @@ export const artifacts = {
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
+    UniswapV3Feature: UniswapV3Feature as ContractArtifact,
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
     IFeature: IFeature as ContractArtifact,
@@ -200,6 +208,7 @@ export const artifacts = {
     ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     IUniswapFeature: IUniswapFeature as ContractArtifact,
+    IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
     NativeOrdersCancellation: NativeOrdersCancellation as ContractArtifact,
@@ -260,6 +269,7 @@ export const artifacts = {
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IMooniswapPool: IMooniswapPool as ContractArtifact,
     IUniswapV2Pair: IUniswapV2Pair as ContractArtifact,
+    IUniswapV3Pool: IUniswapV3Pool as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
@@ -285,6 +295,7 @@ export const artifacts = {
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
     TestMooniswap: TestMooniswap as ContractArtifact,
     TestNativeOrdersFeature: TestNativeOrdersFeature as ContractArtifact,
+    TestNoEthRecipient: TestNoEthRecipient as ContractArtifact,
     TestOrderSignerRegistryWithContractWallet: TestOrderSignerRegistryWithContractWallet as ContractArtifact,
     TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
     TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
@@ -297,6 +308,9 @@ export const artifacts = {
     TestTransformerBase: TestTransformerBase as ContractArtifact,
     TestTransformerDeployerTransformer: TestTransformerDeployerTransformer as ContractArtifact,
     TestTransformerHost: TestTransformerHost as ContractArtifact,
+    TestUniswapV3Factory: TestUniswapV3Factory as ContractArtifact,
+    TestUniswapV3Feature: TestUniswapV3Feature as ContractArtifact,
+    TestUniswapV3Pool: TestUniswapV3Pool as ContractArtifact,
     TestWeth: TestWeth as ContractArtifact,
     TestWethTransformerHost: TestWethTransformerHost as ContractArtifact,
     TestZeroExFeature: TestZeroExFeature as ContractArtifact,
