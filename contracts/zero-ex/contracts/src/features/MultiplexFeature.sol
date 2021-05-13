@@ -36,6 +36,7 @@ import "./interfaces/IFeature.sol";
 import "./interfaces/IMultiplexFeature.sol";
 import "./interfaces/INativeOrdersFeature.sol";
 import "./interfaces/ITransformERC20Feature.sol";
+import "./interfaces/IUniswapV3Feature.sol";
 import "./libs/LibNativeOrder.sol";
 
 
@@ -55,7 +56,7 @@ contract MultiplexFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MultiplexFeature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
 
     /// @dev The WETH token contract.
     IEtherTokenV06 private immutable weth;
@@ -273,6 +274,22 @@ contract MultiplexFeature is
                 // Increment the sold and bought amounts.
                 soldAmount = soldAmount.safeAdd(inputTokenAmount);
                 outputTokenAmount = outputTokenAmount.safeAdd(outputTokenAmount_);
+            } else if (wrappedCall.selector == IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector) {
+                (bool success, bytes memory resultData) = address(this).delegatecall(
+                    abi.encodeWithSelector(
+                        IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
+                        wrappedCall.data,
+                        inputTokenAmount,
+                        0,
+                        msg.sender
+                    )
+                );
+                if (success) {
+                    uint256 outputTokenAmount_ = abi.decode(resultData, (uint256));
+                    // Increment the sold and bought amounts.
+                    soldAmount = soldAmount.safeAdd(inputTokenAmount);
+                    outputTokenAmount = outputTokenAmount.safeAdd(outputTokenAmount_);
+                }
             } else if (wrappedCall.selector == this._sellToLiquidityProvider.selector) {
                 (address provider, bytes memory auxiliaryData) = abi.decode(
                     wrappedCall.data,

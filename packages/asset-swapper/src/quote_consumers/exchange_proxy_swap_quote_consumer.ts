@@ -549,6 +549,14 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         }),
                     });
                     break switch_statement;
+                case ERC20BridgeSource.UniswapV3:
+                    const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
+                    wrappedBatchCalls.push({
+                        selector: this._exchangeProxy.getSelector('sellTokenForTokenToUniswapV3'),
+                        sellAmount: order.takerAmount,
+                        data: fillData.uniswapPath,
+                    });
+                    break switch_statement;
                 default:
                     const fqtData = encodeFillQuoteTransformerData({
                         side: FillQuoteTransformerSide.Sell,
