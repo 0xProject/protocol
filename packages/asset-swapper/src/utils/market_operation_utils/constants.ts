@@ -113,7 +113,11 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
         ]),
-        [ChainId.Polygon]: new SourceFilters([ERC20BridgeSource.SushiSwap, ERC20BridgeSource.QuickSwap]),
+        [ChainId.Polygon]: new SourceFilters([
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.QuickSwap,
+            ERC20BridgeSource.ComethSwap,
+        ]),
     },
 
     new SourceFilters([]),
@@ -187,7 +191,11 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
         ]),
-        [ChainId.Polygon]: new SourceFilters([ERC20BridgeSource.SushiSwap, ERC20BridgeSource.QuickSwap]),
+        [ChainId.Polygon]: new SourceFilters([
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.QuickSwap,
+            ERC20BridgeSource.ComethSwap,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -1174,6 +1182,13 @@ export const QUICKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const COMETHSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: '0x93bcdc45f7e62f89a8e901dc4a0e2c6c427d9f25',
+    },
+    NULL_ADDRESS,
+);
+
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     // TODO: Different base cost if to/from ETH.
     let gas = 90e3;
@@ -1290,6 +1305,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     // Polygon
     //
     [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

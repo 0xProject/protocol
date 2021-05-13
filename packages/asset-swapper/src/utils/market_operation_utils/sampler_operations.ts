@@ -1187,6 +1187,7 @@ export class SamplerOperations {
                         case ERC20BridgeSource.CheeseSwap:
                         case ERC20BridgeSource.JulSwap:
                         case ERC20BridgeSource.QuickSwap:
+                        case ERC20BridgeSource.ComethSwap:
                             const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                             if (!isValidAddress(uniLikeRouter)) {
                                 return [];
@@ -1444,6 +1445,7 @@ export class SamplerOperations {
                         case ERC20BridgeSource.CheeseSwap:
                         case ERC20BridgeSource.JulSwap:
                         case ERC20BridgeSource.QuickSwap:
+                        case ERC20BridgeSource.ComethSwap:
                             const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                             if (!isValidAddress(uniLikeRouter)) {
                                 return [];

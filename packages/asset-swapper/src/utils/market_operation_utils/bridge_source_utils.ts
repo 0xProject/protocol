@@ -7,6 +7,7 @@ import {
     BELT_BSC_INFOS,
     CAFESWAP_ROUTER_BY_CHAIN_ID,
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
+    COMETHSWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_MAINNET_INFOS,
@@ -318,7 +319,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.CafeSwap
         | ERC20BridgeSource.CheeseSwap
         | ERC20BridgeSource.JulSwap
-        | ERC20BridgeSource.QuickSwap,
+        | ERC20BridgeSource.QuickSwap
+        | ERC20BridgeSource.ComethSwap,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -343,6 +345,8 @@ export function uniswapV2LikeRouterAddress(
             return JULSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.QuickSwap:
             return QUICKSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.ComethSwap:
+            return COMETHSWAP_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

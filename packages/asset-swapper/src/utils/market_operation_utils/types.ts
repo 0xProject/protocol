@@ -79,6 +79,7 @@ export enum ERC20BridgeSource {
     JulSwap = 'JulSwap',
     // Polygon only
     QuickSwap = 'QuickSwap',
+    ComethSwap = 'ComethSwap',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
