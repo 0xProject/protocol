@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.24.0",
+        "changes": [
+            {
+                "note": "Add UniswapV3 VIP feature",
+                "pr": 237
+            }
+        ]
+    },
+    {
         "version": "0.23.0",
         "changes": [
             {

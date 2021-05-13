@@ -141,6 +141,7 @@ export {
     IZeroExPairCancelledRfqOrdersEventArgs,
     IZeroExRfqOrderFilledEventArgs,
     IZeroExRfqOrderOriginsAllowedEventArgs,
+    IZeroExOrderSignerRegisteredEventArgs,
 } from './generated-wrappers/i_zero_ex';
 export {
     StakingAuthorizedAddressAddedEventArgs,

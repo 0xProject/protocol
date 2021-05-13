@@ -15,6 +15,7 @@ import {
     DODOFillData,
     ERC20BridgeSource,
     FillData,
+    FinalUniswapV3FillData,
     GenericRouterFillData,
     KyberFillData,
     LiquidityProviderFillData,
@@ -42,11 +43,6 @@ export interface CreateOrderFromPathOpts {
     orderDomain: OrderDomain;
     contractAddresses: AssetSwapperContractAddresses;
     bridgeSlippage: number;
-}
-
-interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
-    // The uniswap-encoded path that can fll the maximum input amount.
-    uniswapPath: string;
 }
 
 export function createOrdersFromTwoHopSample(
