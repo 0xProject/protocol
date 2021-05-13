@@ -3,6 +3,7 @@
  */
 import { createDefaultServer } from '@0x/api-utils';
 import { ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
+import { IZeroExContract } from '@0x/contracts-zero-ex';
 import { NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosRequestConfig } from 'axios';
 import * as express from 'express';
@@ -32,6 +33,7 @@ import { RfqmService } from '../services/rfqm_service';
 import { HttpServiceConfig } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { providerUtils } from '../utils/provider_utils';
+import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 
 process.on('uncaughtException', (err) => {
     logger.error(err);
@@ -70,7 +72,15 @@ if (require.main === module) {
             ETH_GAS_STATION_API_URL,
         );
         const metaTxWorkerRegistry = META_TX_WORKER_REGISTRY || NULL_ADDRESS;
-        const rfqmService = new RfqmService(quoteRequestor, protocolFeeUtils, contractAddresses, metaTxWorkerRegistry);
+        const exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, provider);
+        const rfqBlockchainUtils = new RfqBlockchainUtils(exchangeProxy);
+        const rfqmService = new RfqmService(
+            quoteRequestor,
+            protocolFeeUtils,
+            contractAddresses,
+            metaTxWorkerRegistry,
+            rfqBlockchainUtils,
+        );
 
         const configManager = new ConfigManager();
 

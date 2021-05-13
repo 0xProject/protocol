@@ -12,6 +12,7 @@ export function createRfqmRouter(rfqmService: RfqmService, configManager: Config
 
     // Routes
     router.get('/price', asyncHandler(handlers.getIndicativeQuoteAsync.bind(handlers)));
+    router.get('/quote', asyncHandler(handlers.getFirmQuoteAsync.bind(handlers)));
 
     return router;
 }
