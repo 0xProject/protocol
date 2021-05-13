@@ -87,7 +87,7 @@ contract OtcOrdersFeature is
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
-    /// @dev Fill a OTC order for up to `takerTokenFillAmount` taker tokens.
+    /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
     /// @param order The OTC order.
     /// @param makerSignature The order signature from the maker.
     /// @param takerTokenFillAmount Maximum taker token amount to fill this
@@ -120,21 +120,17 @@ contract OtcOrdersFeature is
         );
     }
 
-    /// @dev Fill a OTC order for up to `takerTokenFillAmount` taker tokens.
-    ///      "Meta-transaction" variant, requires order to be signed by both
-    ///      maker and taker.
+    /// @dev Fully fill an OTC order. "Meta-transaction" variant,
+    ///      requires order to be signed by both maker and taker.
     /// @param order The OTC order.
     /// @param makerSignature The order signature from the maker.
     /// @param takerSignature The order signature from the taker.
-    /// @param takerTokenFillAmount Maximum taker token amount to fill this
-    ///        order with.
     /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillTakerSignedOtcOrder(
         LibNativeOrder.OtcOrder memory order,
         LibSignature.Signature memory makerSignature,
-        LibSignature.Signature memory takerSignature,
-        uint128 takerTokenFillAmount
+        LibSignature.Signature memory takerSignature
     )
         public
         override
@@ -144,7 +140,7 @@ contract OtcOrdersFeature is
             order,
             makerSignature,
             takerSignature,
-            takerTokenFillAmount
+            order.takerAmount
         );
     }
 
@@ -288,7 +284,7 @@ contract OtcOrdersFeature is
         );
     }
 
-    /// @dev Get the order info for a OTC order.
+    /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.
     /// @return orderInfo Info about the order.
     function getOtcOrderInfo(LibNativeOrder.OtcOrder memory order)
