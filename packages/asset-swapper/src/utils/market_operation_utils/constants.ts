@@ -1153,6 +1153,16 @@ export const JULSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
+    // TODO: Different base cost if to/from ETH.
+    let gas = 90e3;
+    const path = (fillData as UniswapV2FillData).tokenAddressPath;
+    if (path.length > 2) {
+        gas += (path.length - 2) * 60e3; // +60k for each hop.
+    }
+    return gas;
+};
+
 /**
  * Calculated gross gas cost of the underlying exchange.
  * The cost of switching from one source to another, assuming
@@ -1186,42 +1196,10 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Saddle]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
-    [ERC20BridgeSource.UniswapV2]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.SushiSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.CryptoCom]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.Linkswap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
+    [ERC20BridgeSource.UniswapV2]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.Linkswap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: () => 100e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
@@ -1267,72 +1245,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
-    //
-    // BSC
-    //
-    [ERC20BridgeSource.PancakeSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.PancakeSwapV2]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.BakerySwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.ApeSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.CafeSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.CheeseSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.JulSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
         let gas = 160e3;
         const path = (fillData as UniswapV3FillData).tokenAddressPath;
@@ -1341,6 +1253,22 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
+
+    //
+    // BSC
+    //
+    [ERC20BridgeSource.PancakeSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.PancakeSwapV2]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.BakerySwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.ApeSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.CafeSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
+
+    //
+    // Polygon
+    //
+    [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };
