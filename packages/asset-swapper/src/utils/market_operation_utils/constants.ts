@@ -418,6 +418,14 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             '0xad6d458402f60fd3bd25163575031acdce07538d', // DAI
             '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
         ],
+        [ChainId.Polygon]: [
+            getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
+            '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619', // WETH
+            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC
+            '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
+            '0xc2132d05d31c914a87c6611c10748aeb04b58e8f', // USDT
+            '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', // WBTC
+        ],
     },
     [],
 );
@@ -439,6 +447,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             .build(),
         [ChainId.BSC]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC],
+        }).build(),
+        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
         }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
