@@ -80,6 +80,7 @@ library LibNativeOrder {
         address txOrigin;
         bytes32 pool;
         uint64 expiry;
+        uint256 txOriginNonceBucket;
         uint256 txOriginNonce;
     }
 
@@ -150,11 +151,12 @@ library LibNativeOrder {
     //       "address txOrigin,",
     //       "bytes32 pool,",
     //       "uint64 expiry,",
+    //       "uint256 txOriginNonceBucket,"
     //       "uint256 txOriginNonce"
     //     ")"
     // ))
     uint256 private constant _OTC_ORDER_TYPEHASH =
-        0x04517ba2903b90285dbd94d6b20e29823d227a476f0ecac7067007e9bf35c14e;
+        0x1ef915323651e461289ce401e38113a6e4fd6a04a12355894d29efcf820c2641;
 
     /// @dev Get the struct hash of a limit order.
     /// @param order The limit order.
@@ -280,7 +282,8 @@ library LibNativeOrder {
         //   order.txOrigin,
         //   order.pool,
         //   order.expiry,
-        //   order.txOriginNonce,
+        //   order.txOriginNonceBucket,
+        //   order.txOriginNonce
         // ))
         assembly {
             let mem := mload(0x40)
@@ -303,8 +306,10 @@ library LibNativeOrder {
             mstore(add(mem, 0x100), mload(add(order, 0xE0)))
             // order.expiry;
             mstore(add(mem, 0x120), and(UINT_64_MASK, mload(add(order, 0x100))))
-            // order.txOriginNonce;
+            // order.txOriginNonceBucket;
             mstore(add(mem, 0x140), mload(add(order, 0x120)))
+            // order.txOriginNonce;
+            mstore(add(mem, 0x160), mload(add(order, 0x140)))
             structHash := keccak256(mem, 0x160)
         }
     }

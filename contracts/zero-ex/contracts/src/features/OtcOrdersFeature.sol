@@ -92,7 +92,7 @@ contract OtcOrdersFeature is
     /// @param makerSignature The order signature from the maker.
     /// @param takerTokenFillAmount Maximum taker token amount to fill this
     ///        order with.
-    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillOtcOrder(
         LibNativeOrder.OtcOrder memory order,
@@ -103,7 +103,7 @@ contract OtcOrdersFeature is
         override
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
-        if (msg.sender != order.taker) {
+        if (order.taker != address(0) && order.taker != msg.sender) {
             bytes32 orderHash = getOtcOrderHash(order);
             LibNativeOrdersRichErrors.OrderNotFillableByTakerError(
                 orderHash,
@@ -128,7 +128,7 @@ contract OtcOrdersFeature is
     /// @param takerSignature The order signature from the taker.
     /// @param takerTokenFillAmount Maximum taker token amount to fill this
     ///        order with.
-    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillTakerSignedOtcOrder(
         LibNativeOrder.OtcOrder memory order,
@@ -206,8 +206,9 @@ contract OtcOrdersFeature is
             }
         }
 
+        address taker = msg.sender;
         // If msg.sender is not the taker, validate the taker signature.
-        if (order.taker != msg.sender) {
+        if (order.taker != address(0) && order.taker != msg.sender) {
             address takerSigner = LibSignature.getSignerOfHash(orderInfo.orderHash, takerSignature);
             if (takerSigner != order.taker) {
                 LibNativeOrdersRichErrors.OrderNotSignedByTakerError(
@@ -216,18 +217,20 @@ contract OtcOrdersFeature is
                     order.taker
                 ).rrevert();
             }
+            taker = order.taker;
         }
 
         // Settle between the maker and taker.
         (takerTokenFilledAmount, makerTokenFilledAmount) = _settleOtcOrder(
             order,
+            taker,
             takerTokenFillAmount
         );
 
         emit OtcOrderFilled(
             orderInfo.orderHash,
             order.maker,
-            order.taker,
+            taker,
             address(order.makerToken),
             address(order.takerToken),
             takerTokenFilledAmount,
@@ -244,15 +247,15 @@ contract OtcOrdersFeature is
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _settleOtcOrder(
         LibNativeOrder.OtcOrder memory order,
+        address taker,
         uint128 takerTokenFillAmount
     )
         private
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         // Update tx origin nonce for the order.
-        LibOtcOrdersStorage
-            .getStorage()
-            .txOriginToNonce[order.txOrigin] = order.txOriginNonce;
+        LibOtcOrdersStorage.getStorage().txOriginNonces
+            [order.txOrigin][order.txOriginNonceBucket] = order.txOriginNonce;
 
         // Clamp the taker token fill amount to the fillable amount.
         takerTokenFilledAmount = LibSafeMathV06.min128(
@@ -271,7 +274,7 @@ contract OtcOrdersFeature is
         // Transfer taker -> maker.
         _transferERC20Tokens(
             order.takerToken,
-            order.taker,
+            taker,
             order.maker,
             takerTokenFilledAmount
         );
@@ -280,7 +283,7 @@ contract OtcOrdersFeature is
         _transferERC20Tokens(
             order.makerToken,
             order.maker,
-            order.taker,
+            taker,
             makerTokenFilledAmount
         );
     }
@@ -301,9 +304,11 @@ contract OtcOrdersFeature is
             LibOtcOrdersStorage.getStorage();
 
         // check tx origin nonce
-        uint256 lastTxOriginNonce = stor.txOriginToNonce[order.txOrigin];
+        uint256 minNonce = stor.txOriginNonces
+            [order.txOrigin]
+            [order.txOriginNonceBucket];
 
-        if (order.txOriginNonce <= lastTxOriginNonce) {
+        if (order.txOriginNonce <= minNonce) {
             orderInfo.status = LibNativeOrder.OrderStatus.INVALID;
             return orderInfo;
         }

@@ -50,7 +50,7 @@ interface IOtcOrdersFeature {
     /// @param makerSignature The order signature from the maker.
     /// @param takerTokenFillAmount Maximum taker token amount to fill this
     ///        order with.
-    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillOtcOrder(
         LibNativeOrder.OtcOrder calldata order,
@@ -68,7 +68,7 @@ interface IOtcOrdersFeature {
     /// @param takerSignature The order signature from the taker.
     /// @param takerTokenFillAmount Maximum taker token amount to fill this
     ///        order with.
-    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillTakerSignedOtcOrder(
         LibNativeOrder.OtcOrder calldata order,
