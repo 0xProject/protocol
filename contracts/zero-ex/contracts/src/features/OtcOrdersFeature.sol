@@ -47,6 +47,17 @@ contract OtcOrdersFeature is
     using LibSafeMathV06 for uint256;
     using LibSafeMathV06 for uint128;
 
+    /// @dev Options for handling ETH/WETH conversion
+    /// @param LeaveAsWeth Neither unwrap nor wrap.
+    /// @param WrapEth Wrap attached ETH.
+    /// @param UnwrapWeth Unwrap WETH before transferring
+    ///        to taker.
+    enum WethOptions {
+        LeaveAsWeth,
+        WrapEth,
+        UnwrapWeth
+    }
+
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "OtcOrders";
     /// @dev Version of this feature.
@@ -69,10 +80,11 @@ contract OtcOrdersFeature is
         returns (bytes4 success)
     {
         _registerFeatureFunction(this.fillOtcOrder.selector);
+        _registerFeatureFunction(this.fillOtcOrderWithEth.selector);
         _registerFeatureFunction(this.fillTakerSignedOtcOrder.selector);
         _registerFeatureFunction(this.getOtcOrderInfo.selector);
         _registerFeatureFunction(this.getOtcOrderHash.selector);
-        _registerFeatureFunction(this.minTxOriginNonce.selector);
+        _registerFeatureFunction(this.lastOtcTxOriginNonce.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -411,23 +423,22 @@ contract OtcOrdersFeature is
         );
     }
 
-    /// @dev Get the minimum valid nonce for a particular
+    /// @dev Get the last nonce used for a particular
     ///      tx.origin address and nonce bucket.
     /// @param txOrigin The address.
     /// @param nonceBucket The nonce bucket index.
-    /// @return minNonce The minimum valid nonce value.
-    function minTxOriginNonce(address txOrigin, uint64 nonceBucket)
+    /// @return lastNonce The last nonce value used.
+    function lastOtcTxOriginNonce(address txOrigin, uint64 nonceBucket)
         public
         override
         view
-        returns (uint128 minNonce)
+        returns (uint128 lastNonce)
     {
         LibOtcOrdersStorage.Storage storage stor =
             LibOtcOrdersStorage.getStorage();
-        uint128 lastNonce = stor.txOriginNonces
+        return stor.txOriginNonces
             [txOrigin]
             [nonceBucket];
-        return lastNonce.safeAdd128(1);
     }
 
     function _transferEth(address recipient, uint256 amount)

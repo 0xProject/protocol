@@ -27,17 +27,6 @@ import "../libs/LibSignature.sol";
 /// @dev Feature for interacting with OTC orders.
 interface IOtcOrdersFeature {
 
-    /// @dev Options for handling ETH/WETH conversion
-    /// @param LeaveAsWeth Neither unwrap nor wrap.
-    /// @param WrapEth Wrap attached ETH.
-    /// @param UnwrapWeth Unwrap WETH before transferring
-    ///        to taker.
-    enum WethOptions {
-        LeaveAsWeth,
-        WrapEth,
-        UnwrapWeth
-    }
-
     /// @dev Emitted whenever an `OtcOrder` is filled.
     /// @param orderHash The canonical hash of the order.
     /// @param maker The maker of the order.
@@ -121,13 +110,13 @@ interface IOtcOrdersFeature {
         view
         returns (bytes32 orderHash);
 
-    /// @dev Get the minimum valid nonce for a particular
+    /// @dev Get the last nonce used for a particular
     ///      tx.origin address and nonce bucket.
     /// @param txOrigin The address.
     /// @param nonceBucket The nonce bucket index.
-    /// @return minNonce The minimum valid nonce value.
-    function minTxOriginNonce(address txOrigin, uint64 nonceBucket)
+    /// @return lastNonce The last nonce value used.
+    function lastOtcTxOriginNonce(address txOrigin, uint64 nonceBucket)
         external
         view
-        returns (uint128 minNonce);
+        returns (uint128 lastNonce);
 }
