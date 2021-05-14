@@ -5,11 +5,25 @@ import {
     getRandomInteger,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { LimitOrder, LimitOrderFields, OrderBase, OrderInfo, RfqOrder, RfqOrderFields } from '@0x/protocol-utils';
+import {
+    LimitOrder,
+    LimitOrderFields,
+    OrderBase,
+    OrderInfo,
+    OtcOrder,
+    RfqOrder,
+    RfqOrderFields,
+    SignatureType,
+} from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 
-import { IZeroExContract, IZeroExLimitOrderFilledEventArgs, IZeroExRfqOrderFilledEventArgs } from '../../src/wrappers';
+import {
+    IZeroExContract,
+    IZeroExLimitOrderFilledEventArgs,
+    IZeroExOtcOrderFilledEventArgs,
+    IZeroExRfqOrderFilledEventArgs,
+} from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { fullMigrateAsync } from '../utils/migration';
 import { TestMintableERC20TokenContract } from '../wrappers';
@@ -20,11 +34,18 @@ interface RfqOrderFilledAmounts {
     makerTokenFilledAmount: BigNumber;
     takerTokenFilledAmount: BigNumber;
 }
+interface OtcOrderFilledAmounts extends RfqOrderFilledAmounts {}
 
 interface LimitOrderFilledAmounts {
     makerTokenFilledAmount: BigNumber;
     takerTokenFilledAmount: BigNumber;
     takerTokenFeeFilledAmount: BigNumber;
+}
+
+export enum OtcOrderWethOptions {
+    LeaveAsWeth,
+    WrapEth,
+    UnwrapWeth,
 }
 
 export class NativeOrdersTestEnvironment {
@@ -71,7 +92,7 @@ export class NativeOrdersTestEnvironment {
     ) {}
 
     public async prepareBalancesForOrdersAsync(
-        orders: LimitOrder[] | RfqOrder[],
+        orders: LimitOrder[] | RfqOrder[] | OtcOrder[],
         taker: string = this.taker,
     ): Promise<void> {
         await this.makerToken
@@ -128,6 +149,51 @@ export class NativeOrdersTestEnvironment {
             .awaitTransactionSuccessAsync({ from: taker });
     }
 
+    public async fillOtcOrderAsync(
+        order: OtcOrder,
+        fillAmount: BigNumber | number = order.takerAmount,
+        taker: string = this.taker,
+        unwrapWeth: boolean = false,
+    ): Promise<TransactionReceiptWithDecodedLogs> {
+        await this.prepareBalancesForOrdersAsync([order], taker);
+        return this.zeroEx
+            .fillOtcOrder(
+                order,
+                await order.getSignatureWithProviderAsync(this._env.provider),
+                new BigNumber(fillAmount),
+                unwrapWeth,
+            )
+            .awaitTransactionSuccessAsync({ from: taker });
+    }
+
+    public async fillTakerSignedOtcOrderAsync(
+        order: OtcOrder,
+        origin: string = order.txOrigin,
+        taker: string = order.taker,
+        unwrapWeth: boolean = false,
+    ): Promise<TransactionReceiptWithDecodedLogs> {
+        await this.prepareBalancesForOrdersAsync([order], taker);
+        return this.zeroEx
+            .fillTakerSignedOtcOrder(
+                order,
+                await order.getSignatureWithProviderAsync(this._env.provider),
+                await order.getSignatureWithProviderAsync(this._env.provider, SignatureType.EthSign, taker),
+                unwrapWeth,
+            )
+            .awaitTransactionSuccessAsync({ from: origin });
+    }
+
+    public async fillOtcOrderWithEthAsync(
+        order: OtcOrder,
+        fillAmount: BigNumber | number = order.takerAmount,
+        taker: string = this.taker,
+    ): Promise<TransactionReceiptWithDecodedLogs> {
+        await this.prepareBalancesForOrdersAsync([order], taker);
+        return this.zeroEx
+            .fillOtcOrderWithEth(order, await order.getSignatureWithProviderAsync(this._env.provider))
+            .awaitTransactionSuccessAsync({ from: taker, value: fillAmount });
+    }
+
     public createLimitOrderFilledEventArgs(
         order: LimitOrder,
         takerTokenFillAmount: BigNumber = order.takerAmount,
@@ -175,6 +241,25 @@ export class NativeOrdersTestEnvironment {
             pool: order.pool,
         };
     }
+
+    public createOtcOrderFilledEventArgs(
+        order: OtcOrder,
+        takerTokenFillAmount: BigNumber = order.takerAmount,
+    ): IZeroExOtcOrderFilledEventArgs {
+        const { makerTokenFilledAmount, takerTokenFilledAmount } = computeOtcOrderFilledAmounts(
+            order,
+            takerTokenFillAmount,
+        );
+        return {
+            takerTokenFilledAmount,
+            makerTokenFilledAmount,
+            orderHash: order.getHash(),
+            maker: order.maker,
+            taker: order.taker !== NULL_ADDRESS ? order.taker : this.taker,
+            makerToken: order.makerToken,
+            takerToken: order.takerToken,
+        };
+    }
 }
 
 /**
@@ -217,9 +302,30 @@ export function getRandomRfqOrder(fields: Partial<RfqOrderFields> = {}): RfqOrde
 }
 
 /**
+ * Generate a random OTC Order
+ */
+export function getRandomOtcOrder(fields: Partial<OtcOrder> = {}): OtcOrder {
+    return new OtcOrder({
+        makerToken: randomAddress(),
+        takerToken: randomAddress(),
+        makerAmount: getRandomInteger('1e18', '100e18'),
+        takerAmount: getRandomInteger('1e6', '100e6'),
+        maker: randomAddress(),
+        taker: randomAddress(),
+        txOrigin: randomAddress(),
+        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+            fields.expiry ?? new BigNumber(Math.floor(Date.now() / 1000 + 60)), // expiry
+            fields.nonceBucket ?? getRandomInteger(0, OtcOrder.MAX_NONCE_BUCKET), // nonceBucket
+            fields.nonce ?? getRandomInteger(0, OtcOrder.MAX_NONCE_VALUE), // nonce
+        ),
+        ...fields,
+    });
+}
+
+/**
  * Asserts the fields of an OrderInfo object.
  */
-export function assertOrderInfoEquals(actual: OrderInfo, expected: OrderInfo): void {
+export function assertOrderInfoEquals(actual: OrderInfo, expected: OrderInfo ): void {
     expect(actual.status, 'Order status').to.eq(expected.status);
     expect(actual.orderHash, 'Order hash').to.eq(expected.orderHash);
     expect(actual.takerTokenFilledAmount, 'Order takerTokenFilledAmount').to.bignumber.eq(
@@ -276,6 +382,24 @@ export function computeRfqOrderFilledAmounts(
         takerTokenFillAmount,
         order.takerAmount.minus(takerTokenAlreadyFilledAmount),
     );
+    const makerTokenFilledAmount = fillAmount
+        .times(order.makerAmount)
+        .div(order.takerAmount)
+        .integerValue(BigNumber.ROUND_DOWN);
+    return {
+        makerTokenFilledAmount,
+        takerTokenFilledAmount: fillAmount,
+    };
+}
+
+/**
+ * Computes the maker and taker amounts filled for the given OTC order.
+ */
+export function computeOtcOrderFilledAmounts(
+    order: OtcOrder,
+    takerTokenFillAmount: BigNumber = order.takerAmount,
+): OtcOrderFilledAmounts {
+    const fillAmount = BigNumber.min(order.takerAmount, takerTokenFillAmount, order.takerAmount);
     const makerTokenFilledAmount = fillAmount
         .times(order.makerAmount)
         .div(order.takerAmount)

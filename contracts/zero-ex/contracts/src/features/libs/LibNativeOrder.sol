@@ -78,7 +78,7 @@ library LibNativeOrder {
         address maker;
         address taker;
         address txOrigin;
-        uint256 expiryAndNonce;
+        uint256 expiryAndNonce; // [uint64 expiry, uint64 nonceBucket, uint128 nonce]
     }
 
     /// @dev Info on a limit or RFQ order.

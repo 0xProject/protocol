@@ -217,6 +217,7 @@ contract OtcOrdersFeature is
             ).rrevert();
         }
 
+        address taker = msg.sender;
         {
             LibNativeOrdersStorage.Storage storage stor =
                 LibNativeOrdersStorage.getStorage();
@@ -245,20 +246,22 @@ contract OtcOrdersFeature is
                     order.maker
                 ).rrevert();
             }
-        }
 
-        address taker = msg.sender;
-        // If msg.sender is not the taker, validate the taker signature.
-        if (!_isSenderValidTaker(order.taker)) {
-            address takerSigner = LibSignature.getSignerOfHash(orderInfo.orderHash, takerSignature);
-            if (takerSigner != order.taker) {
-                LibNativeOrdersRichErrors.OrderNotSignedByTakerError(
-                    orderInfo.orderHash,
-                    takerSigner,
-                    order.taker
-                ).rrevert();
-            }
-            taker = order.taker;
+            // If msg.sender is not the taker, validate the taker signature.
+            if (!_isSenderValidTaker(order.taker)) {
+                address takerSigner = LibSignature.getSignerOfHash(orderInfo.orderHash, takerSignature);
+                if (
+                    takerSigner != order.taker &&
+                    !stor.orderSignerRegistry[order.taker][takerSigner]
+                ) {
+                    LibNativeOrdersRichErrors.OrderNotSignedByTakerError(
+                        orderInfo.orderHash,
+                        takerSigner,
+                        order.taker
+                    ).rrevert();
+                }
+                taker = order.taker;
+            }            
         }
 
         // Settle between the maker and taker.
@@ -296,9 +299,10 @@ contract OtcOrdersFeature is
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         {
-            // Update tx origin nonce for the order.
+            // Unpack nonce fields
             uint64 nonceBucket = uint64(order.expiryAndNonce >> 128);
             uint128 nonce = uint128(order.expiryAndNonce);
+            // Update tx origin nonce for the order
             LibOtcOrdersStorage.getStorage().txOriginNonces
                 [order.txOrigin][nonceBucket] = nonce;
         }
@@ -385,6 +389,7 @@ contract OtcOrdersFeature is
         LibOtcOrdersStorage.Storage storage stor =
             LibOtcOrdersStorage.getStorage();
 
+        // Unpack expiry and nonce fields
         uint64 expiry = uint64(order.expiryAndNonce >> 192);
         uint64 nonceBucket = uint64(order.expiryAndNonce >> 128);
         uint128 nonce = uint128(order.expiryAndNonce);
@@ -393,7 +398,6 @@ contract OtcOrdersFeature is
         uint128 lastNonce = stor.txOriginNonces
             [order.txOrigin]
             [nonceBucket];
-
         if (nonce <= lastNonce) {
             orderInfo.status = LibNativeOrder.OrderStatus.INVALID;
             return orderInfo;
