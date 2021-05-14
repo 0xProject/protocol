@@ -195,7 +195,7 @@ contract OtcOrdersFeature is
     ///        Ignored if msg.sender == order.taker.
     /// @param takerTokenFillAmount Maximum taker token amount to
     ///        fill this order with.
-    /// @return takerTokenFilledAmount How much maker token was filled.
+    /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _fillOtcOrderPrivate(
         LibNativeOrder.OtcOrder memory order,
@@ -261,7 +261,7 @@ contract OtcOrdersFeature is
                     ).rrevert();
                 }
                 taker = order.taker;
-            }            
+            }
         }
 
         // Settle between the maker and taker.
@@ -307,19 +307,24 @@ contract OtcOrdersFeature is
                 [order.txOrigin][nonceBucket] = nonce;
         }
 
-        // Clamp the taker token fill amount to the fillable amount.
-        takerTokenFilledAmount = LibSafeMathV06.min128(
-            takerTokenFillAmount,
-            order.takerAmount
-        );
-        // Compute the maker token amount.
-        // This should never overflow because the values are all clamped to
-        // (2^128-1).
-        makerTokenFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
-            uint256(takerTokenFilledAmount),
-            uint256(order.takerAmount),
-            uint256(order.makerAmount)
-        ));
+        if (takerTokenFillAmount == order.takerAmount) {
+            takerTokenFilledAmount = order.takerAmount;
+            makerTokenFilledAmount = order.makerAmount;
+        } else {
+            // Clamp the taker token fill amount to the fillable amount.
+            takerTokenFilledAmount = LibSafeMathV06.min128(
+                takerTokenFillAmount,
+                order.takerAmount
+            );
+            // Compute the maker token amount.
+            // This should never overflow because the values are all clamped to
+            // (2^128-1).
+            makerTokenFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
+                uint256(takerTokenFilledAmount),
+                uint256(order.takerAmount),
+                uint256(order.makerAmount)
+            ));
+        }
 
         if (wethOptions == WethOptions.WrapEth) {
             require(
