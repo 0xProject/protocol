@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.24.0",
+        "changes": [
+            {
+                "note": "Add special selectors to selector collision test",
+                "pr": 243
+            }
+        ]
+    },
+    {
         "version": "0.23.0",
         "changes": [
             {
