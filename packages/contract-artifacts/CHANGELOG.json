@@ -5,6 +5,10 @@
             {
                 "note": "Update artifacts",
                 "pr": 237
+            },
+            {
+                "note": "Update IZeroEx artifact",
+                "pr": 244
             }
         ]
     },

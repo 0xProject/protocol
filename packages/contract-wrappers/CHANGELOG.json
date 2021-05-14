@@ -5,6 +5,10 @@
             {
                 "note": "Update wrappers",
                 "pr": 237
+            },
+            {
+                "note": "Update IZeroExContract wrapper",
+                "pr": 244
             }
         ]
     },

@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.25.0",
+        "changes": [
+            {
+                "note": "Add OtcOrdersFeature",
+                "pr": 244
+            }
+        ]
+    },
+    {
         "version": "0.24.0",
         "changes": [
             {
