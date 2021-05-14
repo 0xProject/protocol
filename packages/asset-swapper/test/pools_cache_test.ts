@@ -36,7 +36,11 @@ describe('Pools Caches for Balancer-based sampling', () => {
     describe('BalancerPoolsCache', () => {
         const cache = new BalancerPoolsCache();
         it('fetches pools', async () => {
-            const pairs = [[usdcAddress, daiAddress], [usdcAddress, wethAddress], [daiAddress, wethAddress]];
+            const pairs = [
+                [usdcAddress, daiAddress],
+                [usdcAddress, wethAddress],
+                [daiAddress, wethAddress],
+            ];
             await Promise.all(
                 // tslint:disable-next-line:promise-function-async
                 pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
@@ -47,7 +51,10 @@ describe('Pools Caches for Balancer-based sampling', () => {
     describe('BalancerV2PoolsCache', () => {
         const cache = new BalancerV2PoolsCache();
         it('fetches pools', async () => {
-            const pairs = [[wethAddress, wbtcAddress], [wethAddress, balAddress]];
+            const pairs = [
+                [wethAddress, wbtcAddress],
+                [wethAddress, balAddress],
+            ];
             await Promise.all(
                 // tslint:disable-next-line:promise-function-async
                 pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
@@ -58,7 +65,10 @@ describe('Pools Caches for Balancer-based sampling', () => {
     describe('CreamPoolsCache', () => {
         const cache = new CreamPoolsCache();
         it('fetches pools', async () => {
-            const pairs = [[usdcAddress, creamAddress], [creamAddress, wethAddress]];
+            const pairs = [
+                [usdcAddress, creamAddress],
+                [creamAddress, wethAddress],
+            ];
             await Promise.all(
                 // tslint:disable-next-line:promise-function-async
                 pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),

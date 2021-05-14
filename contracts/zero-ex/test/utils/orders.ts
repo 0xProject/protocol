@@ -325,7 +325,7 @@ export function getRandomOtcOrder(fields: Partial<OtcOrder> = {}): OtcOrder {
 /**
  * Asserts the fields of an OrderInfo object.
  */
-export function assertOrderInfoEquals(actual: OrderInfo, expected: OrderInfo ): void {
+export function assertOrderInfoEquals(actual: OrderInfo, expected: OrderInfo): void {
     expect(actual.status, 'Order status').to.eq(expected.status);
     expect(actual.orderHash, 'Order hash').to.eq(expected.orderHash);
     expect(actual.takerTokenFilledAmount, 'Order takerTokenFilledAmount').to.bignumber.eq(

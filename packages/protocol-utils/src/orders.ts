@@ -370,7 +370,11 @@ export class OtcOrder extends OrderBase {
 
     public static parseExpiryAndNonce(
         expiryAndNonce: BigNumber,
-    ): { expiry: BigNumber; nonceBucket: BigNumber; nonce: BigNumber } {
+    ): {
+        expiry: BigNumber;
+        nonceBucket: BigNumber;
+        nonce: BigNumber;
+    } {
         const expiryAndNonceHex = hexUtils.leftPad(expiryAndNonce);
         const expiry = new BigNumber(hexUtils.slice(expiryAndNonceHex, 0, 8).substr(2), 16);
         const nonceBucket = new BigNumber(hexUtils.slice(expiryAndNonceHex, 8, 16).substr(2), 16);
