@@ -39,7 +39,7 @@ blockchainTests.resets('OtcOrdersFeature', env => {
 
     before(async () => {
         // Useful for ETH balance accounting
-        env.txDefaults.gasPrice = 0;
+        const txDefaults = { ...env.txDefaults, gasPrice: 0 };
         let owner;
         [
             owner,
@@ -57,7 +57,7 @@ blockchainTests.resets('OtcOrdersFeature', env => {
                 TestMintableERC20TokenContract.deployFrom0xArtifactAsync(
                     artifacts.TestMintableERC20Token,
                     env.provider,
-                    env.txDefaults,
+                    txDefaults,
                     artifacts,
                 ),
             ),
@@ -65,19 +65,19 @@ blockchainTests.resets('OtcOrdersFeature', env => {
         wethToken = await TestWethContract.deployFrom0xArtifactAsync(
             artifacts.TestWeth,
             env.provider,
-            env.txDefaults,
+            txDefaults,
             artifacts,
         );
-        zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {}, { wethAddress: wethToken.address });
+        zeroEx = await fullMigrateAsync(owner, env.provider, txDefaults, {}, { wethAddress: wethToken.address });
         const otcFeatureImpl = await OtcOrdersFeatureContract.deployFrom0xArtifactAsync(
             artifacts.OtcOrdersFeature,
             env.provider,
-            env.txDefaults,
+            txDefaults,
             artifacts,
             zeroEx.address,
             wethToken.address,
         );
-        await new IOwnableFeatureContract(zeroEx.address, env.provider, env.txDefaults, abis)
+        await new IOwnableFeatureContract(zeroEx.address, env.provider, txDefaults, abis)
             .migrate(otcFeatureImpl.address, otcFeatureImpl.migrate().getABIEncodedTransactionData(), owner)
             .awaitTransactionSuccessAsync();
         verifyingContract = zeroEx.address;
