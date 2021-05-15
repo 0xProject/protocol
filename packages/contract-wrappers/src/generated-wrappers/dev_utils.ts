@@ -1896,7 +1896,7 @@ export class DevUtilsContract extends BaseContract {
                 takerFeeAssetData: string;
             }>,
             BigNumber[],
-            string[]
+            string[],
         ]
     > {
         const self = (this as any) as DevUtilsContract;
@@ -1927,7 +1927,7 @@ export class DevUtilsContract extends BaseContract {
                         takerFeeAssetData: string;
                     }>,
                     BigNumber[],
-                    string[]
+                    string[],
                 ]
             > {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -1962,7 +1962,7 @@ export class DevUtilsContract extends BaseContract {
                             takerFeeAssetData: string;
                         }>,
                         BigNumber[],
-                        string[]
+                        string[],
                     ]
                 >(rawCallResult);
             },
@@ -2830,7 +2830,7 @@ export class DevUtilsContract extends BaseContract {
                     [
                         { orderStatus: number; orderHash: string; orderTakerAssetFilledAmount: BigNumber },
                         BigNumber,
-                        boolean
+                        boolean,
                     ]
                 >(rawCallResult);
             },
@@ -2869,7 +2869,7 @@ export class DevUtilsContract extends BaseContract {
         [
             Array<{ orderStatus: number; orderHash: string; orderTakerAssetFilledAmount: BigNumber }>,
             BigNumber[],
-            boolean[]
+            boolean[],
         ]
     > {
         const self = (this as any) as DevUtilsContract;
@@ -2922,7 +2922,7 @@ export class DevUtilsContract extends BaseContract {
                 [
                     Array<{ orderStatus: number; orderHash: string; orderTakerAssetFilledAmount: BigNumber }>,
                     BigNumber[],
-                    boolean[]
+                    boolean[],
                 ]
             > {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -2936,7 +2936,7 @@ export class DevUtilsContract extends BaseContract {
                     [
                         Array<{ orderStatus: number; orderHash: string; orderTakerAssetFilledAmount: BigNumber }>,
                         BigNumber[],
-                        boolean[]
+                        boolean[],
                     ]
                 >(rawCallResult);
             },

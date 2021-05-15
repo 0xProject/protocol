@@ -49,6 +49,20 @@ export class OrderNotSignedByMakerError extends RevertError {
     }
 }
 
+export class OrderNotSignedByTakerError extends RevertError {
+    constructor(orderHash?: string, signer?: string, taker?: string) {
+        super(
+            'OrderNotSignedByTakerError',
+            'OrderNotSignedByTakerError(bytes32 orderHash, address signer, address taker)',
+            {
+                orderHash,
+                signer,
+                taker,
+            },
+        );
+    }
+}
+
 export class InvalidSignerError extends RevertError {
     constructor(maker?: string, signer?: string) {
         super('InvalidSignerError', 'InvalidSignerError(address maker, address signer)', {
@@ -138,6 +152,7 @@ const types = [
     OrderNotFillableByOriginError,
     OrderNotFillableError,
     OrderNotSignedByMakerError,
+    OrderNotSignedByTakerError,
     OrderNotFillableBySenderError,
     OrderNotFillableByTakerError,
     CancelSaltTooLowError,

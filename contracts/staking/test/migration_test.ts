@@ -102,13 +102,15 @@ blockchainTests('Migration tests', env => {
             });
 
             it('should set the correct initial params', async () => {
-                const stakingProxyContractAddress = (await StakingProxyContract.deployFrom0xArtifactAsync(
-                    artifacts.StakingProxy,
-                    env.provider,
-                    env.txDefaults,
-                    artifacts,
-                    stakingContract.address,
-                )).address;
+                const stakingProxyContractAddress = (
+                    await StakingProxyContract.deployFrom0xArtifactAsync(
+                        artifacts.StakingProxy,
+                        env.provider,
+                        env.txDefaults,
+                        artifacts,
+                        stakingContract.address,
+                    )
+                ).address;
 
                 const stakingProxyContract = new StakingContract(
                     stakingProxyContractAddress,

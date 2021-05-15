@@ -137,6 +137,7 @@ export {
     IZeroExTransformerDeployerUpdatedEventArgs,
     IZeroExLimitOrderFilledEventArgs,
     IZeroExOrderCancelledEventArgs,
+    IZeroExOtcOrderFilledEventArgs,
     IZeroExPairCancelledLimitOrdersEventArgs,
     IZeroExPairCancelledRfqOrdersEventArgs,
     IZeroExRfqOrderFilledEventArgs,

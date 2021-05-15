@@ -3,6 +3,10 @@
         "version": "0.25.0",
         "changes": [
             {
+                "note": "Add OtcOrdersFeature",
+                "pr": 244
+            },
+            {
                 "note": "Add UniswapV3 VIP feature",
                 "pr": 237
             }

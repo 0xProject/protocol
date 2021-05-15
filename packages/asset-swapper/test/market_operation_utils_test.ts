@@ -254,7 +254,11 @@ describe('MarketOperationUtils tests', () => {
             _wethAddress: string,
         ) => {
             return BATCH_SOURCE_FILTERS.getAllowed(sources).map(s =>
-                createSamplesFromRates(s, fillAmounts, rates[s].map(r => new BigNumber(1).div(r))),
+                createSamplesFromRates(
+                    s,
+                    fillAmounts,
+                    rates[s].map(r => new BigNumber(1).div(r)),
+                ),
             );
         };
     }

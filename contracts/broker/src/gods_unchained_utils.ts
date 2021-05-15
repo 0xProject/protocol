@@ -7,7 +7,10 @@ export interface GodsUnchainedProperties {
     quality: BigNumber | number;
 }
 
-const propertyDataEncoder = AbiEncoder.create([{ name: 'proto', type: 'uint16' }, { name: 'quality', type: 'uint8' }]);
+const propertyDataEncoder = AbiEncoder.create([
+    { name: 'proto', type: 'uint16' },
+    { name: 'quality', type: 'uint8' },
+]);
 const brokerDataEncoder = AbiEncoder.create([
     { name: 'godsUnchainedAddress', type: 'address' },
     { name: 'validatorAddress', type: 'address' },

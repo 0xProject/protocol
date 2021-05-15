@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.7.0",
+        "changes": [
+            {
+                "note": "Add utils for OtcOrders",
+                "pr": 244
+            }
+        ]
+    },
+    {
         "timestamp": 1621944788,
         "version": "1.6.2",
         "changes": [

@@ -37,6 +37,7 @@ import * as IMultiplexFeature from '../test/generated-artifacts/IMultiplexFeatur
 import * as INativeOrdersEvents from '../test/generated-artifacts/INativeOrdersEvents.json';
 import * as INativeOrdersFeature from '../test/generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../test/generated-artifacts/InitialMigration.json';
+import * as IOtcOrdersFeature from '../test/generated-artifacts/IOtcOrdersFeature.json';
 import * as IOwnableFeature from '../test/generated-artifacts/IOwnableFeature.json';
 import * as IPancakeSwapFeature from '../test/generated-artifacts/IPancakeSwapFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../test/generated-artifacts/ISimpleFunctionRegistryFeature.json';
@@ -60,6 +61,7 @@ import * as LibMigrate from '../test/generated-artifacts/LibMigrate.json';
 import * as LibNativeOrder from '../test/generated-artifacts/LibNativeOrder.json';
 import * as LibNativeOrdersRichErrors from '../test/generated-artifacts/LibNativeOrdersRichErrors.json';
 import * as LibNativeOrdersStorage from '../test/generated-artifacts/LibNativeOrdersStorage.json';
+import * as LibOtcOrdersStorage from '../test/generated-artifacts/LibOtcOrdersStorage.json';
 import * as LibOwnableRichErrors from '../test/generated-artifacts/LibOwnableRichErrors.json';
 import * as LibOwnableStorage from '../test/generated-artifacts/LibOwnableStorage.json';
 import * as LibProxyRichErrors from '../test/generated-artifacts/LibProxyRichErrors.json';
@@ -104,6 +106,7 @@ import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFe
 import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.json';
 import * as NativeOrdersProtocolFees from '../test/generated-artifacts/NativeOrdersProtocolFees.json';
 import * as NativeOrdersSettlement from '../test/generated-artifacts/NativeOrdersSettlement.json';
+import * as OtcOrdersFeature from '../test/generated-artifacts/OtcOrdersFeature.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PancakeSwapFeature from '../test/generated-artifacts/PancakeSwapFeature.json';
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
@@ -188,6 +191,7 @@ export const artifacts = {
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
     MultiplexFeature: MultiplexFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
+    OtcOrdersFeature: OtcOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
     PancakeSwapFeature: PancakeSwapFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
@@ -202,6 +206,7 @@ export const artifacts = {
     IMultiplexFeature: IMultiplexFeature as ContractArtifact,
     INativeOrdersEvents: INativeOrdersEvents as ContractArtifact,
     INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,
+    IOtcOrdersFeature: IOtcOrdersFeature as ContractArtifact,
     IOwnableFeature: IOwnableFeature as ContractArtifact,
     IPancakeSwapFeature: IPancakeSwapFeature as ContractArtifact,
     ISimpleFunctionRegistryFeature: ISimpleFunctionRegistryFeature as ContractArtifact,
@@ -228,6 +233,7 @@ export const artifacts = {
     LibMigrate: LibMigrate as ContractArtifact,
     LibMetaTransactionsStorage: LibMetaTransactionsStorage as ContractArtifact,
     LibNativeOrdersStorage: LibNativeOrdersStorage as ContractArtifact,
+    LibOtcOrdersStorage: LibOtcOrdersStorage as ContractArtifact,
     LibOwnableStorage: LibOwnableStorage as ContractArtifact,
     LibProxyStorage: LibProxyStorage as ContractArtifact,
     LibReentrancyGuardStorage: LibReentrancyGuardStorage as ContractArtifact,
