@@ -125,7 +125,7 @@ export class SwapQuoter {
             { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
             options.samplerOverrides,
         );
-        const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[]);
+        const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[], { BigNumber });
         const samplerContract = new ERC20BridgeSamplerContract(
             samplerAddress,
             this.provider,

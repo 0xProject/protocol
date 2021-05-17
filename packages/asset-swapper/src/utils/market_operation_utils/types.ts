@@ -224,6 +224,10 @@ export interface UniswapV3FillData extends FillData {
     pathAmounts: Array<{ uniswapPath: string; inputAmount: BigNumber }>;
 }
 
+export interface KyberDmmFillData extends UniswapV2FillData {
+    poolsPath: string[];
+}
+
 /**
  * Represents a node on a fill path.
  */

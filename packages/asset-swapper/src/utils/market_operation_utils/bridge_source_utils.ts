@@ -14,7 +14,6 @@ import {
     JULSWAP_ROUTER_BY_CHAIN_ID,
     KYBER_BANNED_RESERVES,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
-    KYBER_DMM_ROUTER_BY_CHAIN_ID,
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
     MSTABLE_POOLS_BY_CHAIN_ID,
@@ -314,7 +313,6 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.PancakeSwap
         | ERC20BridgeSource.PancakeSwapV2
         | ERC20BridgeSource.BakerySwap
-        | ERC20BridgeSource.KyberDmm
         | ERC20BridgeSource.ApeSwap
         | ERC20BridgeSource.CafeSwap
         | ERC20BridgeSource.CheeseSwap
@@ -333,8 +331,6 @@ export function uniswapV2LikeRouterAddress(
             return PANCAKESWAPV2_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.BakerySwap:
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.KyberDmm:
-            return KYBER_DMM_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ApeSwap:
             return APESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.CafeSwap:

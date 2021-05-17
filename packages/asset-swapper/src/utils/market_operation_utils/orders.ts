@@ -16,6 +16,7 @@ import {
     ERC20BridgeSource,
     FillData,
     GenericRouterFillData,
+    KyberDmmFillData,
     KyberFillData,
     LiquidityProviderFillData,
     MakerPsmFillData,
@@ -99,8 +100,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Dodo, 'Dodo');
         case ERC20BridgeSource.Kyber:
             return encodeBridgeSourceId(BridgeProtocol.Kyber, 'Kyber');
-        case ERC20BridgeSource.KyberDmm:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'KyberDmm');
         case ERC20BridgeSource.LiquidityProvider:
             // "LiquidityProvider" is too long to encode (17 characters).
             return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LP');
@@ -158,6 +157,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'JulSwap');
         case ERC20BridgeSource.UniswapV3:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV3, 'UniswapV3');
+        case ERC20BridgeSource.KyberDmm:
+            return encodeBridgeSourceId(BridgeProtocol.KyberDmm, 'KyberDmm');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -217,7 +218,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.PancakeSwap:
         case ERC20BridgeSource.PancakeSwapV2:
         case ERC20BridgeSource.BakerySwap:
-        case ERC20BridgeSource.KyberDmm:
         case ERC20BridgeSource.ApeSwap:
         case ERC20BridgeSource.CafeSwap:
         case ERC20BridgeSource.CheeseSwap:
@@ -273,6 +273,14 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.UniswapV3:
             const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
             bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.uniswapPath]);
+            break;
+        case ERC20BridgeSource.KyberDmm:
+            const kyberDmmFillData = (order as OptimizedMarketBridgeOrder<KyberDmmFillData>).fillData;
+            bridgeData = encoder.encode([
+                kyberDmmFillData.router,
+                kyberDmmFillData.poolsPath,
+                kyberDmmFillData.tokenAddressPath,
+            ]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -390,7 +398,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
     [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
-    [ERC20BridgeSource.KyberDmm]: routerAddressPathEncoder,
     // BSC
     [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.PancakeSwapV2]: routerAddressPathEncoder,
@@ -415,6 +422,7 @@ export const BRIDGE_ENCODERS: {
         { name: 'router', type: 'address' },
         { name: 'path', type: 'bytes' },
     ]),
+    [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

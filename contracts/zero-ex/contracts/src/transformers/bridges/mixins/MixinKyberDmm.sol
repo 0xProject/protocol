@@ -2,7 +2,7 @@
 
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -26,15 +26,16 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../IBridgeAdapter.sol";
 
 /*
-    UniswapV2
+    KyberDmm Router
 */
-interface IUniswapV2Router02 {
+interface IKyberDmmRouter {
 
     /// @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
     ///      The first element of path is the input token, the last is the output token, and any intermediate elements represent
     ///      intermediate pairs to trade through (if, for example, a direct pair does not exist).
     /// @param amountIn The amount of input tokens to send.
     /// @param amountOutMin The minimum amount of output tokens that must be received for the transaction not to revert.
+    /// @param pools An array of pool addresses. pools.length must be >= 1.
     /// @param path An array of token addresses. path.length must be >= 2. Pools for each consecutive pair of addresses must exist and have liquidity.
     /// @param to Recipient of the output tokens.
     /// @param deadline Unix timestamp after which the transaction will revert.
@@ -42,17 +43,18 @@ interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
-        IERC20TokenV06[] calldata path,
+        address[] calldata pools,
+        address[] calldata path,
         address to,
         uint deadline
     ) external returns (uint[] memory amounts);
 }
 
-contract MixinUniswapV2 {
+contract MixinKyberDmm {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    function _tradeUniswapV2(
+    function _tradeKyberDmm(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
@@ -60,28 +62,26 @@ contract MixinUniswapV2 {
         internal
         returns (uint256 boughtAmount)
     {
-        IUniswapV2Router02 router;
-        IERC20TokenV06[] memory path;
-        {
-            address[] memory _path;
-            (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));
-            // To get around `abi.decode()` not supporting interface array types.
-            assembly { path := _path }
-        }
+        address router;
+        address[] memory pools;
+        address[] memory path;
+        (router, pools, path) = abi.decode(bridgeData, (address, address[], address[]));
 
-        require(path.length >= 2, "MixinUniswapV2/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
-        require(
-            path[path.length - 1] == buyToken,
-            "MixinUniswapV2/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        );
-        // Grant the Uniswap router an allowance to sell the first token.
-        path[0].approveIfBelow(address(router), sellAmount);
+        require(pools.length >= 1, "MixinKyberDmm/POOLS_LENGTH_MUST_BE_AT_LEAST_ONE");
+        require(path.length == pools.length + 1, "MixinKyberDmm/ARRAY_LENGTH_MISMATCH");
+         require(
+             path[path.length - 1] == address(buyToken),
+             "MixinKyberDmm/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+         );
+        // Grant the KyberDmm router an allowance to sell the first token.
+        IERC20TokenV06(path[0]).approveIfBelow(address(router), sellAmount);
 
-        uint[] memory amounts = router.swapExactTokensForTokens(
+        uint[] memory amounts = IKyberDmmRouter(router).swapExactTokensForTokens(
              // Sell all tokens we hold.
             sellAmount,
              // Minimum buy amount.
             1,
+            pools,
             // Convert to `buyToken` along this path.
             path,
             // Recipient is `this`.

@@ -395,7 +395,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.Eth2Dai]: { router: randomAddress() },
         [ERC20BridgeSource.MakerPsm]: {},
-        [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [] },
+        [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [], router: randomAddress(), poolsPath: [] },
     };
 
     const DEFAULT_OPS = {

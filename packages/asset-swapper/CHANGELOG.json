@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.15.0",
+        "changes": [
+            {
+                "note": "Fix KyberDmm",
+                "pr": 236
+            }
+        ]
+    },
+    {
         "version": "6.14.0",
         "changes": [
             {

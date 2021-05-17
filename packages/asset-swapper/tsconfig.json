@@ -30,6 +30,7 @@
         "test/generated-artifacts/ISmoothy.json",
         "test/generated-artifacts/IUniswapExchangeQuotes.json",
         "test/generated-artifacts/IUniswapV2Router01.json",
+        "test/generated-artifacts/KyberDmmSampler.json",
         "test/generated-artifacts/KyberSampler.json",
         "test/generated-artifacts/LiquidityProviderSampler.json",
         "test/generated-artifacts/MStableSampler.json",
