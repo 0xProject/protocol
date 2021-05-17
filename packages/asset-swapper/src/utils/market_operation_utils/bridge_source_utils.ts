@@ -11,6 +11,8 @@ import {
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_MAINNET_INFOS,
+    CURVE_POLYGON_INFOS,
+    DFYN_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
     JULSWAP_ROUTER_BY_CHAIN_ID,
     KYBER_BANNED_RESERVES,
@@ -90,7 +92,7 @@ export function getComponentForPair(chainId: ChainId, takerToken: string, makerT
 
 // tslint:disable completed-docs
 export function getMStableForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
-    if (chainId !== ChainId.Mainnet) {
+    if (chainId !== ChainId.Mainnet && chainId !== ChainId.Polygon) {
         return [];
     }
     return Object.values(MSTABLE_POOLS_BY_CHAIN_ID[chainId])
@@ -100,16 +102,26 @@ export function getMStableForPair(chainId: ChainId, takerToken: string, makerTok
 
 // tslint:disable completed-docs
 export function getCurveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
-    if (chainId !== ChainId.Mainnet) {
-        return [];
+    switch (chainId) {
+        case ChainId.Mainnet:
+            return Object.values(CURVE_MAINNET_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaToken === undefined) ||
+                        (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                ),
+            );
+        case ChainId.Polygon:
+            return Object.values(CURVE_POLYGON_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaToken === undefined) ||
+                        (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                ),
+            );
+        default:
+            return [];
     }
-    return Object.values(CURVE_MAINNET_INFOS).filter(c =>
-        [makerToken, takerToken].every(
-            t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
-        ),
-    );
 }
 
 export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
@@ -320,7 +332,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.CheeseSwap
         | ERC20BridgeSource.JulSwap
         | ERC20BridgeSource.QuickSwap
-        | ERC20BridgeSource.ComethSwap,
+        | ERC20BridgeSource.ComethSwap
+        | ERC20BridgeSource.Dfyn,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -347,6 +360,8 @@ export function uniswapV2LikeRouterAddress(
             return QUICKSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ComethSwap:
             return COMETHSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.Dfyn:
+            return DFYN_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }
