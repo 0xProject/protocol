@@ -68,7 +68,7 @@ contract MixinKyberDmm {
         (router, pools, path) = abi.decode(bridgeData, (address, address[], address[]));
 
         require(pools.length >= 1, "MixinKyberDmm/POOLS_LENGTH_MUST_BE_AT_LEAST_ONE");
-        require(path.length >= 2, "MixinKyberDmm/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path.length == pools.length + 1, "MixinKyberDmm/ARRAY_LENGTH_MISMATCH");
          require(
              path[path.length - 1] == address(buyToken),
              "MixinKyberDmm/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"

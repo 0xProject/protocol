@@ -941,7 +941,7 @@ export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x12807818b584a3fa65d38b6c25b13983fe888d6e',
+        [ChainId.Mainnet]: '0x1c87257f5e8609940bc751a07bb085bb7f8cdbe6',
     },
     NULL_ADDRESS,
 );
