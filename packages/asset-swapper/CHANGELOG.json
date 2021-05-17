@@ -5,6 +5,10 @@
             {
                 "note": "Fix KyberDmm",
                 "pr": 236
+            },
+            {
+                "note": "Add Huobi Token to liquidity provider tokens",
+                "pr": 246                
             }
         ]
     },

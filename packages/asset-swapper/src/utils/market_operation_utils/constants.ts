@@ -301,6 +301,7 @@ export const MAINNET_TOKENS = {
     crETH: '0xcbc1065255cbc3ab41a6868c22d1f1c573ab89fd',
     ankrETH: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
     vETH: '0x898bad2774eb97cf6b94605677f43b41871410b1',
+    HT: '0x6f259637dcD74C767781E37Bc6133cd6A68aa161',
     // Mirror Protocol
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
@@ -861,6 +862,7 @@ export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityP
                     MAINNET_TOKENS.DAI,
                     MAINNET_TOKENS.BUSD,
                     MAINNET_TOKENS.AAVE,
+                    MAINNET_TOKENS.HT,
                 ],
                 gasCost: (takerToken: string, makerToken: string) =>
                     [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
