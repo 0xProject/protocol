@@ -31,6 +31,7 @@ interface IMStable {
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
+        uint256 minBoughtAmount,
         address recipient
     )
         external
@@ -59,6 +60,8 @@ contract MixinMStable {
             sellToken,
             buyToken,
             sellAmount,
+            // Minimum buy amount.
+            1,
             address(this)
         );
     }

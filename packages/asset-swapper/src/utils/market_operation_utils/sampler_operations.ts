@@ -29,7 +29,6 @@ import {
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
-    MSTABLE_ROUTER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
     NULL_BYTES,
@@ -1204,14 +1203,9 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.MStable:
-                            return isValidAddress(MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId])
-                                ? this.getMStableSellQuotes(
-                                      MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId],
-                                      makerToken,
-                                      takerToken,
-                                      takerFillAmounts,
-                                  )
-                                : [];
+                            return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getMStableSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                            );
                         case ERC20BridgeSource.Mooniswap:
                             return [
                                 ...MOONISWAP_REGISTRIES_BY_CHAIN_ID[this.chainId]
@@ -1456,14 +1450,9 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.MStable:
-                            return isValidAddress(MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId])
-                                ? this.getMStableBuyQuotes(
-                                      MSTABLE_ROUTER_BY_CHAIN_ID[this.chainId],
-                                      makerToken,
-                                      takerToken,
-                                      makerFillAmounts,
-                                  )
-                                : [];
+                            return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                                this.getMStableBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                            );
                         case ERC20BridgeSource.Mooniswap:
                             return [
                                 ...MOONISWAP_REGISTRIES_BY_CHAIN_ID[this.chainId]

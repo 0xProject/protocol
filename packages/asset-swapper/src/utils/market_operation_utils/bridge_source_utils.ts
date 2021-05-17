@@ -17,6 +17,7 @@ import {
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
+    MSTABLE_POOLS_BY_CHAIN_ID,
     NERVE_BSC_INFOS,
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
@@ -82,6 +83,16 @@ export function getComponentForPair(chainId: ChainId, takerToken: string, makerT
         return [];
     }
     return Object.values(COMPONENT_POOLS_BY_CHAIN_ID[chainId])
+        .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
+        .map(i => i.poolAddress);
+}
+
+// tslint:disable completed-docs
+export function getMStableForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
+    if (chainId !== ChainId.Mainnet) {
+        return [];
+    }
+    return Object.values(MSTABLE_POOLS_BY_CHAIN_ID[chainId])
         .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
         .map(i => i.poolAddress);
 }
@@ -221,13 +232,15 @@ export function getShellLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
     makerToken: string,
-    source: ERC20BridgeSource.Shell | ERC20BridgeSource.Component,
+    source: ERC20BridgeSource.Shell | ERC20BridgeSource.Component | ERC20BridgeSource.MStable,
 ): string[] {
     switch (source) {
         case ERC20BridgeSource.Shell:
             return getShellsForPair(chainId, takerToken, makerToken);
         case ERC20BridgeSource.Component:
             return getComponentForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.MStable:
+            return getMStableForPair(chainId, takerToken, makerToken);
         default:
             throw new Error(`Unknown Shell like source ${source}`);
     }
