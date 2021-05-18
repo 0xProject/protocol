@@ -20,7 +20,7 @@ import {
 import {
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
-    DODO_CONFIG_BY_CHAIN_ID,
+    DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
@@ -1326,11 +1326,11 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.Dodo:
-                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
+                            if (!isValidAddress(DODOV1_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                                 return [];
                             }
                             return this.getDODOSellQuotes(
-                                DODO_CONFIG_BY_CHAIN_ID[this.chainId],
+                                DODOV1_CONFIG_BY_CHAIN_ID[this.chainId],
                                 makerToken,
                                 takerToken,
                                 takerFillAmounts,
@@ -1584,11 +1584,11 @@ export class SamplerOperations {
                                 ),
                             );
                         case ERC20BridgeSource.Dodo:
-                            if (!isValidAddress(DODO_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
+                            if (!isValidAddress(DODOV1_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                                 return [];
                             }
                             return this.getDODOBuyQuotes(
-                                DODO_CONFIG_BY_CHAIN_ID[this.chainId],
+                                DODOV1_CONFIG_BY_CHAIN_ID[this.chainId],
                                 makerToken,
                                 takerToken,
                                 makerFillAmounts,
