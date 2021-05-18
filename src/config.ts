@@ -460,7 +460,23 @@ const EXCLUDED_FEE_SOURCES = (() => {
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
 const EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX = (sourceFlags: number) => {
-    if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
+    if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags) && CHAIN_ID === ChainId.Mainnet) {
+        // Uniswap and forks VIP
+        return TX_BASE_GAS;
+    } else if (
+        [
+            SOURCE_FLAGS.SushiSwap,
+            SOURCE_FLAGS.PancakeSwap,
+            SOURCE_FLAGS.PancakeSwap_V2,
+            SOURCE_FLAGS.BakerySwap,
+            SOURCE_FLAGS.ApeSwap,
+            SOURCE_FLAGS.CafeSwap,
+            SOURCE_FLAGS.CheeseSwap,
+            SOURCE_FLAGS.JulSwap,
+        ].includes(sourceFlags) &&
+        CHAIN_ID === ChainId.BSC
+    ) {
+        // PancakeSwap and forks VIP
         return TX_BASE_GAS;
     } else if (SOURCE_FLAGS.Curve === sourceFlags) {
         // Curve pseudo-VIP
@@ -477,12 +493,22 @@ const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS =
     SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider;
 const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: number) => {
     if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
-        // Uniswap VIP
+        // Uniswap and forks VIP
         return TX_BASE_GAS;
     } else if (
-        [SOURCE_FLAGS.SushiSwap, SOURCE_FLAGS.PancakeSwap, SOURCE_FLAGS.BakerySwap].includes(sourceFlags) &&
+        [
+            SOURCE_FLAGS.SushiSwap,
+            SOURCE_FLAGS.PancakeSwap,
+            SOURCE_FLAGS.PancakeSwap_V2,
+            SOURCE_FLAGS.BakerySwap,
+            SOURCE_FLAGS.ApeSwap,
+            SOURCE_FLAGS.CafeSwap,
+            SOURCE_FLAGS.CheeseSwap,
+            SOURCE_FLAGS.JulSwap,
+        ].includes(sourceFlags) &&
         CHAIN_ID === ChainId.BSC
     ) {
+        // PancakeSwap and forks VIP
         return TX_BASE_GAS;
     } else if (SOURCE_FLAGS.Curve === sourceFlags) {
         // Curve pseudo-VIP
