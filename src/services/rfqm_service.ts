@@ -1,12 +1,16 @@
 // tslint:disable:max-file-line-count
 import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
-import { ETH_TOKEN_ADDRESS, MetaTransaction, RfqOrder } from '@0x/protocol-utils';
+import { MetaTransaction, RfqOrder } from '@0x/protocol-utils';
+import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
+import { Counter } from 'prom-client';
+import { Connection } from 'typeorm';
 
 import { CHAIN_ID, META_TX_WORKER_REGISTRY, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import { NULL_ADDRESS, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../constants';
+import { RfqmQuoteEntity } from '../entities';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 
@@ -60,6 +64,12 @@ export interface MetaTransactionRfqmQuoteResponse extends BaseRfqmQuoteResponse 
 
 export type FetchFirmQuoteResponse = MetaTransactionRfqmQuoteResponse;
 
+const RFQM_QUOTE_INSERTED = new Counter({
+    name: 'rfqm_quote_inserted',
+    help: 'An RfqmQuote was inserted in the DB',
+    labelNames: ['apiKey', 'makerUri'],
+});
+
 const RFQM_DEFAULT_OPTS = {
     takerAddress: NULL_ADDRESS,
     txOrigin: META_TX_WORKER_REGISTRY || NULL_ADDRESS,
@@ -79,6 +89,7 @@ export class RfqmService {
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,
+        private readonly _connection: Connection,
     ) {
         if (_registryAddress === NULL_ADDRESS) {
             throw new Error('Must set the worker registry to valid address');
@@ -120,7 +131,7 @@ export class RfqmService {
             isLastLook: true,
             fee: {
                 amount: ZERO,
-                token: ETH_TOKEN_ADDRESS,
+                token: this._contractAddresses.etherToken,
                 type: 'fixed',
             },
         };
@@ -186,8 +197,13 @@ export class RfqmService {
         const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
-        // Prepare gas estimate
+        // Prepare gas estimate and fee
         const gas: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const fee: Fee = {
+            amount: ZERO,
+            token: this._contractAddresses.etherToken,
+            type: 'fixed',
+        };
 
         // Fetch quotes
         const opts: RfqmRequestOptions = {
@@ -198,11 +214,7 @@ export class RfqmService {
             intentOnFilling: true,
             isIndicative: false,
             isLastLook: true,
-            fee: {
-                amount: ZERO,
-                token: ETH_TOKEN_ADDRESS,
-                type: 'fixed',
-            },
+            fee,
         };
         const firmQuotes = await this._quoteRequestor.requestRfqmFirmQuotesAsync(
             makerToken,
@@ -228,6 +240,12 @@ export class RfqmService {
             return null;
         }
 
+        // Get the makerUri
+        const makerUri = this._quoteRequestor.getMakerUriForSignature(bestQuote.signature);
+        if (makerUri === undefined) {
+            throw new Error(`makerUri unknown for maker address ${bestQuote.order.maker}`);
+        }
+
         // Get the Order and its hash
         const rfqOrder = new RfqOrder(bestQuote.order);
         const orderHash = rfqOrder.getHash();
@@ -242,7 +260,19 @@ export class RfqmService {
         );
         const metaTransactionHash = metaTransaction.getHash();
 
-        // TODO: Save a record of the metatransactionHash (indexed), orderHash, and fee (a json blob)
+        // TODO: Save the integratorId
+        // Save the RfqmQuote
+        await this._connection.getRepository(RfqmQuoteEntity).insert(
+            new RfqmQuoteEntity({
+                orderHash,
+                metaTransactionHash,
+                chainId: CHAIN_ID,
+                fee,
+                order: rfqOrder,
+                makerUri,
+            }),
+        );
+        RFQM_QUOTE_INSERTED.labels(apiKey, makerUri).inc();
 
         // Prepare the price
         const makerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.makerAmount, makerTokenDecimals);

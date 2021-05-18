@@ -6,6 +6,7 @@ import {
     MakerBalanceChainCacheEntity,
     PersistentSignedOrderEntity,
     PersistentSignedOrderV4Entity,
+    RfqmQuoteEntity,
     SignedOrderEntity,
     SignedOrderV4Entity,
     TransactionEntity,
@@ -19,6 +20,7 @@ const entities = [
     MakerBalanceChainCacheEntity,
     SignedOrderV4Entity,
     PersistentSignedOrderV4Entity,
+    RfqmQuoteEntity,
 ];
 
 const config: ConnectionOptions = {
@@ -36,7 +38,7 @@ const config: ConnectionOptions = {
         ? {
               replication: {
                   master: { url: POSTGRES_URI },
-                  slaves: POSTGRES_READ_REPLICA_URIS.map(r => ({ url: r })),
+                  slaves: POSTGRES_READ_REPLICA_URIS.map((r) => ({ url: r })),
               },
           }
         : { url: POSTGRES_URI }),

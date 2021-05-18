@@ -11,6 +11,7 @@ import * as express from 'express';
 import * as core from 'express-serve-static-core';
 import { Agent as HttpAgent, Server } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import { Connection } from 'typeorm';
 
 import { getContractAddressesForNetworkOrThrowAsync } from '../app';
 import {
@@ -25,6 +26,7 @@ import {
     SWAP_QUOTER_OPTS,
 } from '../config';
 import { KEEP_ALIVE_TTL, PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS, RFQM_PATH } from '../constants';
+import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
@@ -74,17 +76,20 @@ if (require.main === module) {
         const metaTxWorkerRegistry = META_TX_WORKER_REGISTRY || NULL_ADDRESS;
         const exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, provider);
         const rfqBlockchainUtils = new RfqBlockchainUtils(exchangeProxy);
+
+        const connection = await getDBConnectionAsync();
         const rfqmService = new RfqmService(
             quoteRequestor,
             protocolFeeUtils,
             contractAddresses,
             metaTxWorkerRegistry,
             rfqBlockchainUtils,
+            connection,
         );
 
         const configManager = new ConfigManager();
 
-        await runHttpRfqmServiceAsync(rfqmService, configManager, config);
+        await runHttpRfqmServiceAsync(rfqmService, configManager, config, connection);
     })().catch((error) => logger.error(error.stack));
 }
 
@@ -113,12 +118,13 @@ export async function runHttpRfqmServiceAsync(
     rfqmService: RfqmService,
     configManager: ConfigManager,
     config: HttpServiceConfig,
+    connection: Connection,
     _app?: core.Express,
 ): Promise<{ app: express.Application; server: Server }> {
     const app = _app || express();
     app.use(addressNormalizer);
     const server = createDefaultServer(config, app, logger, async () => {
-        /* TODO - clean up DB connection when present */
+        await connection.close();
     });
 
     if (rfqmService && configManager) {
