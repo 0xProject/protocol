@@ -51,7 +51,7 @@ const BASE_RFQM_REQUEST_PARAMS = {
     comparisonPrice: undefined,
     isLastLook: 'true',
     feeToken: contractAddresses.etherToken,
-    feeAmount: '0',
+    feeAmount: '16500000',
     feeType: 'fixed',
 };
 const MOCK_META_TX = new MetaTransaction();

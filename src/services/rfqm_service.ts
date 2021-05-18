@@ -9,7 +9,7 @@ import { Counter } from 'prom-client';
 import { Connection } from 'typeorm';
 
 import { CHAIN_ID, META_TX_WORKER_REGISTRY, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
-import { NULL_ADDRESS, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../constants';
+import { NULL_ADDRESS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { RfqmQuoteEntity } from '../entities';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -118,8 +118,9 @@ export class RfqmService {
         const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
-        // Prepare gas estimate
-        const gas: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        // Prepare gas estimate and fee
+        const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const feeAmount = gasPrice.times(RFQM_TX_GAS_ESTIMATE);
 
         // Fetch quotes
         const opts: RfqmRequestOptions = {
@@ -130,7 +131,7 @@ export class RfqmService {
             isIndicative: true,
             isLastLook: true,
             fee: {
-                amount: ZERO,
+                amount: feeAmount,
                 token: this._contractAddresses.etherToken,
                 type: 'fixed',
             },
@@ -167,7 +168,7 @@ export class RfqmService {
         // Prepare response
         return {
             price,
-            gas,
+            gas: gasPrice,
             buyAmount: bestQuote.makerAmount,
             buyTokenAddress: bestQuote.makerToken,
             sellAmount: bestQuote.takerAmount,
@@ -198,9 +199,10 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Prepare gas estimate and fee
-        const gas: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const feeAmount = gasPrice.times(RFQM_TX_GAS_ESTIMATE);
         const fee: Fee = {
-            amount: ZERO,
+            amount: feeAmount,
             token: this._contractAddresses.etherToken,
             type: 'fixed',
         };
@@ -283,7 +285,7 @@ export class RfqmService {
         return {
             type: 'metatransaction',
             price,
-            gas,
+            gas: gasPrice,
             buyAmount: bestQuote.order.makerAmount,
             buyTokenAddress: bestQuote.order.makerToken,
             sellAmount: bestQuote.order.takerAmount,
