@@ -7,6 +7,10 @@
                 "pr": 236
             },
             {
+                "note": "Re-enable KyberDmm",
+                "pr": 247
+            },
+            {
                 "note": "Add Huobi Token to liquidity provider tokens",
                 "pr": 246
             }
