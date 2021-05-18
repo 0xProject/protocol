@@ -45,8 +45,8 @@ These are services that handle HTTP requests and responses.
 These are services that make sure the data being served is present and up-to-date by keeping the database in sync with [0x Mesh](https://github.com/0xProject/0x-mesh) and Ethereum. The endpoints above run without these services, but would be providing degraded or non-functional service. There is nothing stateful about 0x API -- all the data comes from [0x Mesh](https://github.com/0xProject/0x-mesh) or the Ethereum blockchain.
 
 | Name                                                          | Run Command                              | Requires [0x Mesh](https://github.com/0xProject/0x-mesh)? | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
-| ------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------- | ------------------------------------ | ----------------------------- | --- | --- |
-| Order Watcher (keep database in sync with Mesh)               | `yarn start:service:order_watcher`       | Yes                                                       | No                                   | Yes                           |     | Yes |
+| ------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------- | ------------------------------------ | ----------------------------- |
+| Order Watcher (keep database in sync with Mesh)               | `yarn start:service:order_watcher`       | Yes                                                       | No                                   | Yes                           |  | Yes |
 | Transaction Watcher (monitor and broadcast meta transactions) | `yarn start:service:transaction_watcher` | No                                                        | Yes                                  | Yes                           |
 
 ## Getting started
