@@ -38,7 +38,7 @@
         "start:service:sra_http": "node -r dotenv/config lib/src/runners/http_sra_service_runner.js",
         "start:service:swap_http": "node -r dotenv/config lib/src/runners/http_swap_service_runner.js",
         "start:service:meta_transaction_http": "node -r dotenv/config lib/src/runners/http_meta_transaction_service_runner.js",
-        "start:service:rfqm_http": "node -r dotenv/config src/runners/http_rfqm_service_runner.ts",
+        "start:service:rfqm_http": "node -r dotenv/config lib/src/runners/http_rfqm_service_runner.js",
         "start:service:order_watcher": "node -r dotenv/config lib/src/runners/order_watcher_service_runner.js",
         "start:service:transaction_watcher": "node -r dotenv/config lib/src/runners/transaction_watcher_signer_service_runner.js",
         "start:service:rfq_maker_balance_cache": "node -r dotenv/config lib/src/runners/rfq_maker_balance_cache_runner.js",

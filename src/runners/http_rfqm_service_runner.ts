@@ -27,6 +27,7 @@ import {
 } from '../config';
 import { KEEP_ALIVE_TTL, PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS, RFQM_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
+import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
@@ -123,6 +124,7 @@ export async function runHttpRfqmServiceAsync(
 ): Promise<{ app: express.Application; server: Server }> {
     const app = _app || express();
     app.use(addressNormalizer);
+    app.get('/', rootHandler);
     const server = createDefaultServer(config, app, logger, async () => {
         await connection.close();
     });
