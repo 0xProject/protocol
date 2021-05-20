@@ -204,6 +204,12 @@ export class OrderWatcherService {
         orders: SignedLimitOrder[],
         pinned: boolean = false,
     ): Promise<ValidationResults> {
+        if (orders.length === 0) {
+            return {
+                accepted: [],
+                rejected: [],
+            };
+        }
         const { accepted, rejected } = await this._meshClient.addOrdersV4Async(orders, pinned);
         return {
             accepted: meshUtils.orderInfosToApiOrders(accepted),

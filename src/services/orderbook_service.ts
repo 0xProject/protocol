@@ -226,6 +226,12 @@ export class OrderBookService {
         signedOrders: SignedLimitOrder[],
         pinned: boolean,
     ): Promise<AcceptedOrderResult<OrderWithMetadataV4>[]> {
+        // Avoid making a request with no orders to save mesh roundtrip time and
+        // error handling as an empty array of orders fails initial validation
+        // on Mesh >=v11.2.
+        if (signedOrders.length === 0) {
+            return [];
+        }
         if (this._meshClient) {
             const { rejected, accepted } = await this._meshClient.addOrdersV4Async(signedOrders, pinned);
             if (rejected.length !== 0) {
