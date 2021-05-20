@@ -108,7 +108,9 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaToken === undefined) ||
-                        (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                        (c.tokens.includes(t) &&
+                            c.metaToken !== undefined &&
+                            [makerToken, takerToken].includes(c.metaToken)),
                 ),
             );
         case ChainId.Polygon:
@@ -116,7 +118,9 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaToken === undefined) ||
-                        (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                        (c.tokens.includes(t) &&
+                            c.metaToken !== undefined &&
+                            [makerToken, takerToken].includes(c.metaToken)),
                 ),
             );
         default:
