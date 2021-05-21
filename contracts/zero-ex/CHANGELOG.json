@@ -6,7 +6,8 @@
                 "note": "Add special selectors to selector collision test",
                 "pr": 243
             }
-        ]
+        ],
+        "timestamp": 1621600614
     },
     {
         "version": "0.23.0",

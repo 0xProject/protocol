@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.15.0 - _May 21, 2021_
+
+    * Fix KyberDmm (#236)
+    * Re-enable KyberDmm (#247)
+    * Add Huobi Token to liquidity provider tokens (#246)
+    * Temporarily disable specific LiquidityProvider
+
 ## v6.14.0 - _May 12, 2021_
 
     * Add support for additional sources and intermediate tokens on Ropsten (#231)

@@ -6,7 +6,8 @@
                 "note": "Deployed FQT on mainnet and ropsten for `KyberDMM`",
                 "pr": 247
             }
-        ]
+        ],
+        "timestamp": 1621600614
     },
     {
         "version": "6.1.0",

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.4.1 - _May 21, 2021_
+
+    * Dependencies updated
+
 ## v5.4.0 - _May 5, 2021_
 
     * Set default ganache gas limit to 100e6 (#197)

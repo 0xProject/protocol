@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.24.0 - _May 21, 2021_
+
+    * Add special selectors to selector collision test (#243)
+
 ## v0.23.0 - _May 5, 2021_
 
     * Added ETH support to `MixinCurve` (#220)

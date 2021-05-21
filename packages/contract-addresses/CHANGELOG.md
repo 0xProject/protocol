@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.2.0 - _May 21, 2021_
+
+    * Deployed FQT on mainnet and ropsten for `KyberDMM` (#247)
+
 ## v6.1.0 - _May 5, 2021_
 
     * Deployed FQT on mainnet and ropsten for `Balancer_V2` (#225)
