@@ -13,6 +13,9 @@
             {
                 "note": "Add Huobi Token to liquidity provider tokens",
                 "pr": 246
+            },
+            {
+                "note": "Temporarily disable specific LiquidityProvider"
             }
         ]
     },

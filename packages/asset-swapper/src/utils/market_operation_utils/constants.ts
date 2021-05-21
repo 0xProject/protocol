@@ -851,18 +851,21 @@ export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityP
         [ChainId.Mainnet]: {
             ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
                 tokens: [
-                    MAINNET_TOKENS.WETH,
-                    MAINNET_TOKENS.USDC,
-                    MAINNET_TOKENS.USDT,
-                    MAINNET_TOKENS.WBTC,
-                    MAINNET_TOKENS.PAX,
-                    MAINNET_TOKENS.LINK,
-                    MAINNET_TOKENS.KNC,
-                    MAINNET_TOKENS.MANA,
-                    MAINNET_TOKENS.DAI,
-                    MAINNET_TOKENS.BUSD,
-                    MAINNET_TOKENS.AAVE,
-                    MAINNET_TOKENS.HT,
+                    // Disabled temporarily as the swap function requires
+                    // gas price to be provided. Making it difficult to get
+                    // a gas estimate
+                    // MAINNET_TOKENS.WETH,
+                    // MAINNET_TOKENS.USDC,
+                    // MAINNET_TOKENS.USDT,
+                    // MAINNET_TOKENS.WBTC,
+                    // MAINNET_TOKENS.PAX,
+                    // MAINNET_TOKENS.LINK,
+                    // MAINNET_TOKENS.KNC,
+                    // MAINNET_TOKENS.MANA,
+                    // MAINNET_TOKENS.DAI,
+                    // MAINNET_TOKENS.BUSD,
+                    // MAINNET_TOKENS.AAVE,
+                    // MAINNET_TOKENS.HT,
                 ],
                 gasCost: (takerToken: string, makerToken: string) =>
                     [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
