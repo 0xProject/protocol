@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 
-contract UtilitySampler {
+contract NetworkUtils {
 
     using LibERC20TokenV06 for IERC20TokenV06;
 

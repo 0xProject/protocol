@@ -6,16 +6,20 @@ import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
 import {
     CollapsedFill,
-    DexSample,
-    ERC20BridgeSource,
-    FillData,
-    MultiHopFillData,
     NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
+import {
+    DexSample,
+    ERC20BridgeSource,
+    FillData,
+} from '../network/types';
+import {
+    TwoHopFillData
+} from '../network/two_hop_sampler';
 
 export interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;
@@ -73,7 +77,7 @@ export interface PriceComparisonsReport {
 export function generateQuoteReport(
     marketOperation: MarketOperation,
     nativeOrders: NativeOrderWithFillableAmounts[],
-    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<TwoHopFillData>,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
@@ -107,7 +111,7 @@ export function generateQuoteReport(
     } else {
         sourcesDelivered = [
             // tslint:disable-next-line: no-unnecessary-type-assertion
-            multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+            multiHopSampleToReportSource(liquidityDelivered as DexSample<TwoHopFillData>, marketOperation),
         ];
     }
     return {
@@ -158,10 +162,10 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
  * NOTE: this is used for the QuoteReport and quote price comparison data
  */
 export function multiHopSampleToReportSource(
-    ds: DexSample<MultiHopFillData>,
+    ds: DexSample<TwoHopFillData>,
     marketOperation: MarketOperation,
 ): MultiHopQuoteReportEntry {
-    const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData;
+    const { firstHop, secondHop } = ds.fillData;
     // input and output map to different values
     // based on the market operation
     if (marketOperation === MarketOperation.Buy) {

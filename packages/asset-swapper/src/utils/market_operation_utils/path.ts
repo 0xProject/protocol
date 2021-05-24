@@ -1,5 +1,6 @@
 import { BigNumber } from '@0x/utils';
 
+import { ERC20BridgeSource } from '../../network/types';
 import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
@@ -7,7 +8,6 @@ import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts,
 import { getCompleteRate, getRate } from './rate_utils';
 import {
     CollapsedFill,
-    ERC20BridgeSource,
     ExchangeProxyOverhead,
     Fill,
     NativeCollapsedFill,

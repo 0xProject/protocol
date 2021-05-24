@@ -1,9 +1,11 @@
 import { BigNumber } from '@0x/utils';
 
+import { DexSample, ERC20BridgeSource } from '../../network/types';
+import { TwoHopFillData } from '../../network/two_hop_sampler'
 import { MarketOperation } from '../../types';
 
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, ExchangeProxyOverhead, FeeSchedule, MultiHopFillData } from './types';
+import { ExchangeProxyOverhead, FeeSchedule, } from './types';
 
 // tslint:disable:no-bitwise
 
@@ -13,7 +15,7 @@ import { DexSample, ERC20BridgeSource, ExchangeProxyOverhead, FeeSchedule, Multi
  */
 export function getTwoHopAdjustedRate(
     side: MarketOperation,
-    twoHopQuote: DexSample<MultiHopFillData>,
+    twoHopQuote: DexSample<TwoHopFillData>,
     targetInput: BigNumber,
     outputAmountPerEth: BigNumber,
     fees: FeeSchedule = {},
@@ -26,8 +28,8 @@ export function getTwoHopAdjustedRate(
     const penalty = outputAmountPerEth.times(
         exchangeProxyOverhead(
             SOURCE_FLAGS.MultiHop |
-                SOURCE_FLAGS[fillData.firstHopSource.source] |
-                SOURCE_FLAGS[fillData.secondHopSource.source],
+                SOURCE_FLAGS[fillData.firstHop.source] |
+                SOURCE_FLAGS[fillData.secondHop.source],
         ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
     );
     const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);

@@ -1,10 +1,11 @@
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { ERC20BridgeSource } from '../../network/types';
 import { MarketOperation } from '../../types';
 
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
-import { ERC20BridgeSource, Fill } from './types';
+import { Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -23,7 +24,7 @@ export async function findOptimalPathAsync(
 ): Promise<Path | undefined> {
     // Sort fill arrays by descending adjusted completed rate.
     // Remove any paths which cannot impact the optimal path
-    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts), side);
+    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts));
     if (sortedPaths.length === 0) {
         return undefined;
     }
@@ -62,7 +63,7 @@ export function fillsToSortedPaths(
 }
 
 // Remove paths which have no impact on the optimal path
-export function reducePaths(sortedPaths: Path[], side: MarketOperation): Path[] {
+export function reducePaths(sortedPaths: Path[]): Path[] {
     // Any path which has a min rate that is less than the best adjusted completed rate has no chance of improving
     // the overall route.
     const bestNonNativeCompletePath = sortedPaths.filter(

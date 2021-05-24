@@ -22,7 +22,9 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IBancor.sol";
 
-contract CompilerHack {}
+contract CompilerHack {
+    uint256 private constant HACK = 0;
+}
 
 contract BancorSampler is CompilerHack {
 

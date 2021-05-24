@@ -122,7 +122,7 @@ interface IExchange {
         );
 }
 
-contract NativeOrderSampler {
+contract NativeOrderUtils {
     using LibSafeMathV06 for uint256;
     using LibBytesV06 for bytes;
 

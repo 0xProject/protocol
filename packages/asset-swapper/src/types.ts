@@ -1,4 +1,3 @@
-import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
 import {
     FillQuoteTransformerOrderType,
@@ -12,14 +11,19 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosRequestConfig } from 'axios';
 
+import { ERC20BridgeSource } from './network/types';
 import {
-    ERC20BridgeSource,
     GetMarketOrdersOpts,
-    LiquidityProviderRegistry,
     OptimizedMarketOrder,
-    TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
 import { PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
+import {
+    TokenAdjacencyGraph,
+} from './network/types'
+import {
+    LiquidityProviderRegistry,
+} from './network/samplers'
+
 
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).
@@ -315,16 +319,13 @@ export type AssetSwapperContractAddresses = ContractAddresses;
  * samplerGasLimit: The gas limit used when querying the sampler contract. Defaults to 36e6
  */
 export interface SwapQuoterOpts extends OrderPrunerOpts {
-    chainId: ChainId;
     orderRefreshIntervalMs: number;
     expiryBufferMs: number;
     ethereumRpcUrl?: string;
     contractAddresses?: AssetSwapperContractAddresses;
     samplerGasLimit?: number;
-    multiBridgeAddress?: string;
     ethGasStationUrl?: string;
     rfqt?: SwapQuoterRfqOpts;
-    samplerOverrides?: SamplerOverrides;
     tokenAdjacencyGraph?: TokenAdjacencyGraph;
     liquidityProviderRegistry?: LiquidityProviderRegistry;
 }
