@@ -35,14 +35,11 @@ import "./MakerPSMSampler.sol";
 import "./MultiBridgeSampler.sol";
 import "./MStableSampler.sol";
 import "./MooniswapSampler.sol";
-import "./NativeOrderSampler.sol";
 import "./ShellSampler.sol";
 import "./SmoothySampler.sol";
 import "./TwoHopSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
-import "./UniswapV3Sampler.sol";
-import "./UtilitySampler.sol";
 
 
 contract ERC20BridgeSampler is
@@ -61,14 +58,11 @@ contract ERC20BridgeSampler is
     MStableSampler,
     MooniswapSampler,
     MultiBridgeSampler,
-    NativeOrderSampler,
     ShellSampler,
     SmoothySampler,
     TwoHopSampler,
     UniswapSampler,
-    UniswapV2Sampler,
-    UniswapV3Sampler,
-    UtilitySampler
+    UniswapV2Sampler
 {
 
     struct CallResults {

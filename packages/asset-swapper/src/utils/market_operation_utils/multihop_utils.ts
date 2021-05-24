@@ -1,35 +1,17 @@
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { DexSample } from '../../network/types';
+import { TwoHopFillData } from '../../network/two_hop_sampler';
 import { Omit } from '../../types';
 
 import { ZERO_AMOUNT } from './constants';
 import { getTwoHopAdjustedRate } from './rate_utils';
 import {
-    DexSample,
     ExchangeProxyOverhead,
     FeeSchedule,
     MarketSideLiquidity,
-    MultiHopFillData,
-    TokenAdjacencyGraph,
 } from './types';
-
-/**
- * Given a token pair, returns the intermediate tokens to consider for two-hop routes.
- */
-export function getIntermediateTokens(
-    makerToken: string,
-    takerToken: string,
-    tokenAdjacencyGraph: TokenAdjacencyGraph,
-): string[] {
-    const intermediateTokens = _.intersection(
-        _.get(tokenAdjacencyGraph, takerToken, tokenAdjacencyGraph.default),
-        _.get(tokenAdjacencyGraph, makerToken, tokenAdjacencyGraph.default),
-    );
-    return _.uniqBy(intermediateTokens, a => a.toLowerCase()).filter(
-        token => token.toLowerCase() !== makerToken.toLowerCase() && token.toLowerCase() !== takerToken.toLowerCase(),
-    );
-}
 
 /**
  * Returns the best two-hop quote and the fee-adjusted rate of that quote.
@@ -38,7 +20,7 @@ export function getBestTwoHopQuote(
     marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
     feeSchedule?: FeeSchedule,
     exchangeProxyOverhead?: ExchangeProxyOverhead,
-): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
+): { quote: DexSample<TwoHopFillData> | undefined; adjustedRate: BigNumber } {
     const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
     const { twoHopQuotes } = quotes;
     // Ensure the expected data we require exists. In the case where all hops reverted
@@ -48,8 +30,8 @@ export function getBestTwoHopQuote(
         quote =>
             quote &&
             quote.fillData &&
-            quote.fillData.firstHopSource &&
-            quote.fillData.secondHopSource &&
+            quote.fillData.firstHop.source &&
+            quote.fillData.secondHop.source &&
             quote.output.isGreaterThan(ZERO_AMOUNT),
     );
     if (filteredQuotes.length === 0) {

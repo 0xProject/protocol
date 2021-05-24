@@ -1,3 +1,4 @@
+import * as fetch from 'node-fetch';
 import { BigNumber } from '@0x/utils';
 import * as heartbeats from 'heartbeats';
 
@@ -60,7 +61,7 @@ export class ProtocolFeeUtils {
     // tslint:disable-next-line: prefer-function-over-method
     private async _getGasPriceFromGasStationOrThrowAsync(): Promise<BigNumber> {
         try {
-            const res = await fetch(this._ethGasStationUrl);
+            const res = await (fetch as any)(this._ethGasStationUrl);
             const gasInfo = await res.json();
             // Eth Gas Station result is gwei * 10
             // tslint:disable-next-line:custom-no-magic-numbers

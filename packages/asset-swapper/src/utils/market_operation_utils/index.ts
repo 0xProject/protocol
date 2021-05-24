@@ -2,7 +2,15 @@ import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { Chain } from '../../network/chain';
+
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
+import { SourceFilters } from '../../network/source_filters';
+import { SassySampler } from '../../network/sassy_sampler';
+import { NetworkUtils } from '../../network/network_utils';
+import { NativeOrderUtils } from '../../network/native_order_utils';
+import { DexSample, ERC20BridgeSource, TokenAdjacencyGraph } from '../../network/types';
+import { LiquidityProviderRegistry } from '../../network/samplers/liquidity_provider';
 import {
     AssetSwapperContractAddresses,
     MarketOperation,
@@ -15,6 +23,7 @@ import {
     getNativeAdjustedFillableAmountsFromTakerAmount,
     getNativeAdjustedMakerFillAmount,
 } from '../utils';
+import { WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from '../../network/tokens';
 
 import {
     dexSampleToReportSource,
@@ -30,29 +39,25 @@ import {
     DEFAULT_GET_MARKET_ORDERS_OPTS,
     FEE_QUOTE_SOURCES_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID,
-    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
+
 import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { PathPenaltyOpts } from './path';
 import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
-import { DexOrderSampler, getSampleAmounts } from './sampler';
-import { SourceFilters } from './source_filters';
+import { getSampleAmounts } from './sampler_utils';
 import {
     AggregationError,
     CollapsedFill,
-    DexSample,
-    ERC20BridgeSource,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
     OptimizerResult,
     OptimizerResultWithReport,
-    OrderDomain,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -63,6 +68,8 @@ export class MarketOperationUtils {
     private readonly _feeSources: SourceFilters;
     private readonly _nativeFeeToken: string;
     private readonly _nativeFeeTokenAmount: BigNumber;
+    private readonly _networkUtils: NetworkUtils;
+    private readonly _nativeOrderUtils: NativeOrderUtils;
 
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
@@ -96,16 +103,44 @@ export class MarketOperationUtils {
         return { dexSources, multiHopSources, nativeSources };
     }
 
-    constructor(
-        private readonly _sampler: DexOrderSampler,
+    public static async createAsync(opts: {
+        chain: Chain;
+        contractAddresses: AssetSwapperContractAddresses;
+        liquidityProviderRegistry?: LiquidityProviderRegistry;
+        tokenAdjacencyGraph?: TokenAdjacencyGraph,
+    }): Promise<MarketOperationUtils> {
+        const { chain } = opts;
+        const samplerSources =
+                new SourceFilters([
+                    ...SELL_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId].sources,
+                    ...BUY_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId].sources,
+                    ...FEE_QUOTE_SOURCES_BY_CHAIN_ID[chain.chainId],
+                ]).exclude([ERC20BridgeSource.Native, ERC20BridgeSource.MultiHop]).sources;
+        const sampler = await SassySampler.createAsync({
+            chain: opts.chain,
+            liquidityProviderRegistry: opts.liquidityProviderRegistry,
+            tokenAdjacencyGraph: opts.tokenAdjacencyGraph,
+            sources: samplerSources,
+        });
+        return new MarketOperationUtils(
+            opts.chain,
+            opts.contractAddresses,
+            sampler,
+        );
+    }
+
+    protected constructor(
+        public readonly chain: Chain,
         private readonly contractAddresses: AssetSwapperContractAddresses,
-        private readonly _orderDomain: OrderDomain,
+        private readonly _sampler: SassySampler,
     ) {
-        this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
-        this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
-        this._feeSources = new SourceFilters(FEE_QUOTE_SOURCES_BY_CHAIN_ID[_sampler.chainId]);
-        this._nativeFeeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[_sampler.chainId];
-        this._nativeFeeTokenAmount = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[_sampler.chainId];
+        this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId];
+        this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId];
+        this._feeSources = new SourceFilters(FEE_QUOTE_SOURCES_BY_CHAIN_ID[chain.chainId]);
+        this._nativeFeeToken = WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID[chain.chainId];
+        this._nativeFeeTokenAmount = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[chain.chainId];
+        this._networkUtils = new NetworkUtils(chain);
+        this._nativeOrderUtils = new NativeOrderUtils(chain);
     }
 
     /**
@@ -131,54 +166,46 @@ export class MarketOperationUtils {
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
-        // Call the sampler contract.
-        const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals([makerToken, takerToken]),
+        const [
+            isTxOriginContract,
+            tokenDecimals,
+            orderFillableTakerAmounts,
+            outputAmountPerEth,
+            inputAmountPerEth,
+            dexQuotes,
+            rawTwoHopQuotes,
+        ] = await Promise.all([
+            this._networkUtils.isAddressContract(txOrigin),
+            this._networkUtils.getTokenDecimalsAsync([makerToken, takerToken]),
             // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+            this._nativeOrderUtils.getLimitOrderFillableTakerAmountsAsync(nativeOrders),
             // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(
+            this._sampler.getMedianSellRateAsync(
                 feeSourceFilters.sources,
-                makerToken,
                 this._nativeFeeToken,
+                makerToken,
                 this._nativeFeeTokenAmount,
             ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
+            this._sampler.getMedianSellRateAsync(
                 feeSourceFilters.sources,
-                takerToken,
                 this._nativeFeeToken,
+                takerToken,
                 this._nativeFeeTokenAmount,
             ),
             // Get sell quotes for taker -> maker.
-            this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
-            this._sampler.getTwoHopSellQuotes(
+            this._sampler.getSellSamplesAsync(quoteSourceFilters.sources, takerToken, makerToken, sampleAmounts),
+            this._sampler.getTwoHopSellSamplesAsync(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
-                makerToken,
                 takerToken,
+                makerToken,
                 takerAmount,
             ),
-            this._sampler.isAddressContract(txOrigin),
-        );
-
-        // Refresh the cached pools asynchronously if required
-        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
-
-        const [
-            [
-                tokenDecimals,
-                orderFillableTakerAmounts,
-                outputAmountPerEth,
-                inputAmountPerEth,
-                dexQuotes,
-                rawTwoHopQuotes,
-                isTxOriginContract,
-            ],
-        ] = await Promise.all([samplerPromise]);
+        ]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
-            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+            q => q && q.fillData && q.fillData.firstHop.source && q.fillData.secondHop.source,
         );
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
@@ -197,8 +224,8 @@ export class MarketOperationUtils {
             outputAmountPerEth,
             inputAmountPerEth,
             quoteSourceFilters,
-            makerTokenDecimals: makerTokenDecimals.toNumber(),
-            takerTokenDecimals: takerTokenDecimals.toNumber(),
+            makerTokenDecimals: makerTokenDecimals,
+            takerTokenDecimals: takerTokenDecimals,
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
@@ -232,54 +259,46 @@ export class MarketOperationUtils {
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
-        // Call the sampler contract.
-        const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals([makerToken, takerToken]),
+        const [
+            isTxOriginContract,
+            tokenDecimals,
+            orderFillableMakerAmounts,
+            ethToMakerAssetRate,
+            ethToTakerAssetRate,
+            dexQuotes,
+            rawTwoHopQuotes,
+        ] = await Promise.all([
+            this._networkUtils.isAddressContract(txOrigin),
+            this._networkUtils.getTokenDecimalsAsync([makerToken, takerToken]),
             // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
-            // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(
+            this._nativeOrderUtils.getLimitOrderFillableMakerAmountsAsync(nativeOrders),
+            // Get ETH -> maker token price.
+            this._sampler.getMedianSellRateAsync(
                 feeSourceFilters.sources,
-                makerToken,
                 this._nativeFeeToken,
+                makerToken,
                 this._nativeFeeTokenAmount,
             ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
+            this._sampler.getMedianSellRateAsync(
                 feeSourceFilters.sources,
-                takerToken,
                 this._nativeFeeToken,
+                takerToken,
                 this._nativeFeeTokenAmount,
             ),
-            // Get buy quotes for taker -> maker.
-            this._sampler.getBuyQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
-            this._sampler.getTwoHopBuyQuotes(
+            // Get sell quotes for taker -> maker.
+            this._sampler.getBuySamplesAsync(quoteSourceFilters.sources, takerToken, makerToken, sampleAmounts),
+            this._sampler.getTwoHopBuySamplesAsync(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
-                makerToken,
                 takerToken,
+                makerToken,
                 makerAmount,
             ),
-            this._sampler.isAddressContract(txOrigin),
-        );
-
-        // Refresh the cached pools asynchronously if required
-        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
-
-        const [
-            [
-                tokenDecimals,
-                orderFillableMakerAmounts,
-                ethToMakerAssetRate,
-                ethToTakerAssetRate,
-                dexQuotes,
-                rawTwoHopQuotes,
-                isTxOriginContract,
-            ],
-        ] = await Promise.all([samplerPromise]);
+        ]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
-            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+            q => q && q.fillData && q.fillData.firstHop.source && q.fillData.secondHop.source,
         );
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
@@ -298,8 +317,8 @@ export class MarketOperationUtils {
             outputAmountPerEth: ethToTakerAssetRate,
             inputAmountPerEth: ethToMakerAssetRate,
             quoteSourceFilters,
-            makerTokenDecimals: makerTokenDecimals.toNumber(),
-            takerTokenDecimals: takerTokenDecimals.toNumber(),
+            makerTokenDecimals: makerTokenDecimals,
+            takerTokenDecimals: takerTokenDecimals,
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
@@ -335,33 +354,31 @@ export class MarketOperationUtils {
         const quoteSourceFilters = this._buySources.merge(requestFilters);
 
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
-
-        const ops = [
-            ...batchNativeOrders.map(orders =>
-                this._sampler.getLimitOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
+        const executeResults = await Promise.all([
+            ...batchNativeOrders.map(async orders =>
+                this._nativeOrderUtils.getLimitOrderFillableMakerAmountsAsync(orders),
             ),
-            ...batchNativeOrders.map(orders =>
-                this._sampler.getMedianSellRate(
+            ...batchNativeOrders.map(async orders =>
+                this._sampler.getMedianSellRateAsync(
                     feeSourceFilters.sources,
-                    orders[0].order.takerToken,
                     this._nativeFeeToken,
+                    orders[0].order.takerToken,
                     this._nativeFeeTokenAmount,
                 ),
             ),
-            ...batchNativeOrders.map((orders, i) =>
-                this._sampler.getBuyQuotes(
+            ...batchNativeOrders.map(async (orders, i) =>
+                this._sampler.getBuySamplesAsync(
                     quoteSourceFilters.sources,
-                    orders[0].order.makerToken,
                     orders[0].order.takerToken,
+                    orders[0].order.makerToken,
                     [makerAmounts[i]],
                 ),
             ),
-            ...batchNativeOrders.map(orders =>
-                this._sampler.getTokenDecimals([orders[0].order.makerToken, orders[0].order.takerToken]),
+            batchNativeOrders.map(async orders =>
+                this._networkUtils.getTokenDecimalsAsync([orders[0].order.makerToken, orders[0].order.takerToken]),
             ),
-        ];
+        ] as any);
 
-        const executeResults = await this._sampler.executeBatchAsync(ops);
         const batchOrderFillableMakerAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
         const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
         const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
@@ -439,7 +456,6 @@ export class MarketOperationUtils {
             side,
             inputToken,
             outputToken,
-            orderDomain: this._orderDomain,
             contractAddresses: this.contractAddresses,
             bridgeSlippage: opts.bridgeSlippage || 0,
         };
@@ -715,17 +731,6 @@ export class MarketOperationUtils {
             );
         }
         return { ...optimizerResult, quoteReport, priceComparisonsReport };
-    }
-
-    private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
-        void Promise.all(
-            Object.values(this._sampler.poolsCaches).map(async cache => {
-                if (cache.isFresh(takerToken, makerToken)) {
-                    return Promise.resolve([]);
-                }
-                return cache.getFreshPoolsForPairAsync(takerToken, makerToken);
-            }),
-        );
     }
 }
 

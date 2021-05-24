@@ -27,69 +27,72 @@ contract TwoHopSampler {
     using LibBytesV06 for bytes;
 
     struct HopInfo {
-        uint256 sourceIndex;
-        bytes returnData;
+        address to;
+        bytes data;
+    }
+
+    struct TwoHopResult {
+        uint256 outputAmount;
+        uint256 firstHopIndex;
+        bytes firstHopResult;
+        uint256 secondHopIndex;
+        bytes secondHopResult;
     }
 
     function sampleTwoHopSell(
-        bytes[] memory firstHopCalls,
-        bytes[] memory secondHopCalls,
+        HopInfo[] memory firstHopCalls,
+        HopInfo[] memory secondHopCalls,
         uint256 sellAmount
     )
         public
-        returns (
-            HopInfo memory firstHop,
-            HopInfo memory secondHop,
-            uint256 buyAmount
-        )
+        returns (TwoHopResult memory result)
     {
         uint256 intermediateAssetAmount = 0;
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
-            firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, sellAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
+            bytes memory data = firstHopCalls[i].data;
+            data.writeUint256(data.length - 32, sellAmount);
+            (bool didSucceed, bytes memory returnData) = address(firstHopCalls[i].to).call(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (amount > intermediateAssetAmount) {
                     intermediateAssetAmount = amount;
-                    firstHop.sourceIndex = i;
-                    firstHop.returnData = returnData;
+                    result.firstHopIndex = i;
+                    result.firstHopResult = returnData;
                 }
             }
         }
         if (intermediateAssetAmount == 0) {
-            return (firstHop, secondHop, buyAmount);
+            return result;
         }
-        for (uint256 j = 0; j != secondHopCalls.length; ++j) {
-            secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, intermediateAssetAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
+        for (uint256 i = 0; i != secondHopCalls.length; ++i) {
+            bytes memory data = secondHopCalls[i].data;
+            data.writeUint256(data.length - 32, intermediateAssetAmount);
+            (bool didSucceed, bytes memory returnData) = address(secondHopCalls[i].to).call(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (amount > buyAmount) {
-                    buyAmount = amount;
-                    secondHop.sourceIndex = j;
-                    secondHop.returnData = returnData;
+                if (amount > result.outputAmount) {
+                    result.outputAmount = amount;
+                    result.secondHopIndex = i;
+                    result.secondHopResult = returnData;
                 }
             }
         }
     }
 
     function sampleTwoHopBuy(
-        bytes[] memory firstHopCalls,
-        bytes[] memory secondHopCalls,
+        HopInfo[] memory firstHopCalls,
+        HopInfo[] memory secondHopCalls,
         uint256 buyAmount
     )
         public
-        returns (
-            HopInfo memory firstHop,
-            HopInfo memory secondHop,
-            uint256 sellAmount
-        )
+        returns (TwoHopResult memory result)
     {
-        sellAmount = uint256(-1);
+        result.outputAmount = uint256(-1);
         uint256 intermediateAssetAmount = uint256(-1);
-        for (uint256 j = 0; j != secondHopCalls.length; ++j) {
-            secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, buyAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
+        for (uint256 i = 0; i != secondHopCalls.length; ++i) {
+            bytes memory data = secondHopCalls[i].data;
+            data.writeUint256(data.length - 32, buyAmount);
+            (bool didSucceed, bytes memory returnData) = address(secondHopCalls[i].to).call(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (
@@ -97,26 +100,27 @@ contract TwoHopSampler {
                     amount < intermediateAssetAmount
                 ) {
                     intermediateAssetAmount = amount;
-                    secondHop.sourceIndex = j;
-                    secondHop.returnData = returnData;
+                    result.secondHopIndex= i;
+                    result.secondHopResult = returnData;
                 }
             }
         }
         if (intermediateAssetAmount == uint256(-1)) {
-            return (firstHop, secondHop, sellAmount);
+            return result;
         }
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
-            firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, intermediateAssetAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
+            bytes memory data = firstHopCalls[i].data;
+            data.writeUint256(data.length - 32, intermediateAssetAmount);
+            (bool didSucceed, bytes memory returnData) = address(this).call(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (
                     amount > 0 &&
-                    amount < sellAmount
+                    amount < result.outputAmount
                 ) {
-                    sellAmount = amount;
-                    firstHop.sourceIndex = i;
-                    firstHop.returnData = returnData;
+                    result.outputAmount = amount;
+                    result.firstHopIndex = i;
+                    result.firstHopResult = returnData;
                 }
             }
         }

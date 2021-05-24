@@ -7,17 +7,16 @@ import * as _ from 'lodash';
 import 'mocha';
 import * as TypeMoq from 'typemoq';
 
+import { DexSample, ERC20BridgeSource } from '../src/network/types';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../src/types';
 import {
     CollapsedFill,
-    DexSample,
-    ERC20BridgeSource,
-    MultiHopFillData,
     NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
 } from '../src/utils/market_operation_utils/types';
+import { TwoHopFillData } from '../src/network/two_hop_sampler';
 import { QuoteRequestor } from '../src/utils/quote_requestor';
 
 import {
@@ -297,24 +296,22 @@ describe('generateQuoteReport', async () => {
             fillableTakerFeeAmount: getRandomAmount(),
             signature: getRandomSignature(),
         };
-        const twoHopFillData: MultiHopFillData = {
+        const twoHopFillData: TwoHopFillData = {
             intermediateToken: hexUtils.random(20),
-            firstHopSource: {
+            firstHop: {
                 source: ERC20BridgeSource.Balancer,
                 fillData: {},
-                encodeCall: () => '',
-                handleCallResults: _callResults => [new BigNumber(1337)],
-                handleRevert: _c => [],
+                input: new BigNumber(1337),
+                output: new BigNumber(1337),
             },
-            secondHopSource: {
+            secondHop: {
                 source: ERC20BridgeSource.Curve,
                 fillData: {},
-                encodeCall: () => '',
-                handleCallResults: _callResults => [new BigNumber(1337)],
-                handleRevert: _c => [],
+                input: new BigNumber(1337),
+                output: new BigNumber(1337),
             },
         };
-        const twoHopSample: DexSample<MultiHopFillData> = {
+        const twoHopSample: DexSample<TwoHopFillData> = {
             source: ERC20BridgeSource.MultiHop,
             input: new BigNumber(3005),
             output: new BigNumber(3006),

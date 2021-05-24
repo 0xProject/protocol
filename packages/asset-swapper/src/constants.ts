@@ -15,9 +15,11 @@ import {
 } from './types';
 import {
     DEFAULT_GET_MARKET_ORDERS_OPTS,
-    DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID,
-    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
+
+import {
+    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
+} from './network/tokens';
 
 const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
 const NULL_BYTES = '0x';
@@ -44,7 +46,6 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
 
 const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
-    chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
     ...DEFAULT_ORDER_PRUNER_OPTS,
     samplerGasLimit: 500e6,
@@ -98,6 +99,12 @@ export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 // tslint:disable-next-line: custom-no-magic-numbers
 export const KEEP_ALIVE_TTL = 5 * 60 * ONE_SECOND_MS;
 
+export const DUMMY_PROVIDER: any = {
+    sendAsync(): void {
+        return;
+    },
+};
+
 export const constants = {
     ETH_GAS_STATION_API_URL,
     PROTOCOL_FEE_MULTIPLIER,
@@ -112,7 +119,6 @@ export const constants = {
     ONE_SECOND_MS,
     ONE_MINUTE_MS,
     DEFAULT_SWAP_QUOTER_OPTS,
-    DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID,
     DEFAULT_SWAP_QUOTE_REQUEST_OPTS,
     DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS,
     DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
