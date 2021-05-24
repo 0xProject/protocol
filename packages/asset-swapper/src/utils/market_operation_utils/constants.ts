@@ -730,12 +730,12 @@ export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
         tokens: [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
         pool: CURVE_POLYGON_POOLS.aave,
-        gasSchedule: 1e3,
+        gasSchedule: 300e3,
     }),
     ['aave_exchange']: createCurveExchangePool({
         tokens: [POLYGON_TOKENS.amDAI, POLYGON_TOKENS.amUSDC, POLYGON_TOKENS.amUSDT],
         pool: CURVE_POLYGON_POOLS.aave,
-        gasSchedule: 1e3,
+        gasSchedule: 150e3,
     }),
 };
 
