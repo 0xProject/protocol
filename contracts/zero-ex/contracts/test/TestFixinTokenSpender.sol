@@ -28,7 +28,7 @@ contract TestFixinTokenSpender is
 {
     constructor() public {}
 
-    function transferERC20Tokens(
+    function transferERC20TokensFrom(
         IERC20TokenV06 token,
         address owner,
         address to,
@@ -36,7 +36,7 @@ contract TestFixinTokenSpender is
     )
         external
     {
-        _transferERC20Tokens(
+        _transferERC20TokensFrom(
             token,
             owner,
             to,

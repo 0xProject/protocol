@@ -42,19 +42,19 @@ blockchainTests.resets('FixinTokenSpender', env => {
         );
     });
 
-    describe('transferERC20Tokens()', () => {
+    describe('transferERC20TokensFrom()', () => {
         const EMPTY_RETURN_AMOUNT = 1337;
         const FALSE_RETURN_AMOUNT = 1338;
         const REVERT_RETURN_AMOUNT = 1339;
         const EXTRA_RETURN_TRUE_AMOUNT = 1341;
         const EXTRA_RETURN_FALSE_AMOUNT = 1342;
 
-        it('transferERC20Tokens() successfully calls compliant ERC20 token', async () => {
+        it('transferERC20TokensFrom() successfully calls compliant ERC20 token', async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(123456);
             const receipt = await tokenSpender
-                .transferERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .transferERC20TokensFrom(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             verifyEventsFromLogs(
                 receipt.logs,
@@ -70,12 +70,12 @@ blockchainTests.resets('FixinTokenSpender', env => {
             );
         });
 
-        it('transferERC20Tokens() successfully calls non-compliant ERC20 token', async () => {
+        it('transferERC20TokensFrom() successfully calls non-compliant ERC20 token', async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(EMPTY_RETURN_AMOUNT);
             const receipt = await tokenSpender
-                .transferERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .transferERC20TokensFrom(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             verifyEventsFromLogs(
                 receipt.logs,
@@ -91,34 +91,34 @@ blockchainTests.resets('FixinTokenSpender', env => {
             );
         });
 
-        it('transferERC20Tokens() reverts if ERC20 token reverts', async () => {
+        it('transferERC20TokensFrom() reverts if ERC20 token reverts', async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(REVERT_RETURN_AMOUNT);
             const tx = tokenSpender
-                .transferERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .transferERC20TokensFrom(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             const expectedError = new StringRevertError('TestTokenSpenderERC20Token/Revert');
             return expect(tx).to.revertWith(expectedError);
         });
 
-        it('transferERC20Tokens() reverts if ERC20 token returns false', async () => {
+        it('transferERC20TokensFrom() reverts if ERC20 token returns false', async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(FALSE_RETURN_AMOUNT);
             const tx = tokenSpender
-                .transferERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .transferERC20TokensFrom(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             return expect(tx).to.revertWith(new RawRevertError(hexUtils.leftPad(0)));
         });
 
-        it('transferERC20Tokens() allows extra data after true', async () => {
+        it('transferERC20TokensFrom() allows extra data after true', async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(EXTRA_RETURN_TRUE_AMOUNT);
 
             const receipt = await tokenSpender
-                .transferERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .transferERC20TokensFrom(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             verifyEventsFromLogs(
                 receipt.logs,
@@ -134,24 +134,24 @@ blockchainTests.resets('FixinTokenSpender', env => {
             );
         });
 
-        it("transferERC20Tokens() reverts when there's extra data after false", async () => {
+        it("transferERC20TokensFrom() reverts when there's extra data after false", async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(EXTRA_RETURN_FALSE_AMOUNT);
 
             const tx = tokenSpender
-                .transferERC20Tokens(token.address, tokenFrom, tokenTo, tokenAmount)
+                .transferERC20TokensFrom(token.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             return expect(tx).to.revertWith(new RawRevertError(hexUtils.leftPad(EXTRA_RETURN_FALSE_AMOUNT, 64)));
         });
 
-        it('transferERC20Tokens() cannot call self', async () => {
+        it('transferERC20TokensFrom() cannot call self', async () => {
             const tokenFrom = randomAddress();
             const tokenTo = randomAddress();
             const tokenAmount = new BigNumber(123456);
 
             const tx = tokenSpender
-                .transferERC20Tokens(tokenSpender.address, tokenFrom, tokenTo, tokenAmount)
+                .transferERC20TokensFrom(tokenSpender.address, tokenFrom, tokenTo, tokenAmount)
                 .awaitTransactionSuccessAsync();
             return expect(tx).to.revertWith('FixinTokenSpender/CANNOT_INVOKE_SELF');
         });

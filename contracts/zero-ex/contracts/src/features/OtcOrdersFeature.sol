@@ -344,7 +344,7 @@ contract OtcOrdersFeature is
             }
         } else {
             // Transfer taker -> maker
-            _transferERC20Tokens(
+            _transferERC20TokensFrom(
                 order.takerToken,
                 taker,
                 order.maker,
@@ -358,7 +358,7 @@ contract OtcOrdersFeature is
                 "OtcOrdersFeature/INVALID_UNWRAP_WETH"
             );
             // Transfer maker tokens in
-            _transferERC20Tokens(
+            _transferERC20TokensFrom(
                 order.makerToken,
                 order.maker,
                 address(this),
@@ -370,7 +370,7 @@ contract OtcOrdersFeature is
             _transferEth(taker, makerTokenFilledAmount);
         } else {
             // Transfer maker -> taker.
-            _transferERC20Tokens(
+            _transferERC20TokensFrom(
                 order.makerToken,
                 order.maker,
                 taker,

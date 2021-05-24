@@ -108,7 +108,7 @@ contract LiquidityProviderFeature is
 
         if (!LibERC20Transformer.isTokenETH(inputToken)) {
             // Transfer input ERC20 tokens to the provider.
-            _transferERC20Tokens(
+            _transferERC20TokensFrom(
                 inputToken,
                 msg.sender,
                 address(provider),

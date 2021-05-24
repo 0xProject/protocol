@@ -235,6 +235,8 @@ contract UniswapV3Feature is
         returns (uint256 buyAmount)
     {
         if (sellAmount != 0) {
+            require(sellAmount <= uint256(type(int256).max), "UniswapV3Feature/SELL_AMOUNT_OVERFLOW");
+
             // Perform a swap for each hop in the path.
             bytes memory swapCallbackData = new bytes(SWAP_CALLBACK_DATA_SIZE);
             while (true) {
@@ -297,7 +299,7 @@ contract UniswapV3Feature is
         private
     {
         if (payer != address(this)) {
-            _transferERC20Tokens(token, payer, to, amount);
+            _transferERC20TokensFrom(token, payer, to, amount);
         } else {
             _transferERC20Tokens(token, to, amount);
         }

@@ -306,7 +306,7 @@ contract MultiplexFeature is
                     remainingEth -= inputTokenAmount;
                 } else {
                     // Transfer input ERC20 tokens to the provider.
-                    _transferERC20Tokens(
+                    _transferERC20TokensFrom(
                         fillData.inputToken,
                         msg.sender,
                         provider,
@@ -470,7 +470,7 @@ contract MultiplexFeature is
                         _transferEth(payable(provider), outputTokenAmount);
                         remainingEth -= outputTokenAmount;
                     } else {
-                        _transferERC20Tokens(
+                        _transferERC20TokensFrom(
                             IERC20TokenV06(fillData.tokens[i]),
                             msg.sender,
                             provider,
@@ -529,7 +529,7 @@ contract MultiplexFeature is
                     // send the output token to some address other than
                     // msg.sender, so we must transfer the input token
                     // to the FlashWallet here.
-                    _transferERC20Tokens(
+                    _transferERC20TokensFrom(
                         args.inputToken,
                         msg.sender,
                         flashWallet,
@@ -615,7 +615,7 @@ contract MultiplexFeature is
 
         if (pairAddress == address(0)) {
             pairAddress = _computeUniswapPairAddress(tokens[0], tokens[1], isSushi);
-            _transferERC20Tokens(
+            _transferERC20TokensFrom(
                 IERC20TokenV06(tokens[0]),
                 msg.sender,
                 pairAddress,
