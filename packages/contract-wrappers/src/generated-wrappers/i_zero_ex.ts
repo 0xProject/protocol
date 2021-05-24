@@ -5230,7 +5230,7 @@ export class IZeroExContract extends BaseContract {
                 [
                     Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                     BigNumber[],
-                    boolean[]
+                    boolean[],
                 ]
             > {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -5244,7 +5244,7 @@ export class IZeroExContract extends BaseContract {
                     [
                         Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                         BigNumber[],
-                        boolean[]
+                        boolean[],
                     ]
                 >(rawCallResult);
             },
@@ -5327,7 +5327,7 @@ export class IZeroExContract extends BaseContract {
                 [
                     Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                     BigNumber[],
-                    boolean[]
+                    boolean[],
                 ]
             > {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -5341,7 +5341,7 @@ export class IZeroExContract extends BaseContract {
                     [
                         Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                         BigNumber[],
-                        boolean[]
+                        boolean[],
                     ]
                 >(rawCallResult);
             },
