@@ -1052,13 +1052,6 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/token-metadata@0xProject/gitpkg-registry#0x-token-metadata-v0.0.8-6906bb1":
-  version "0.0.8"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/fe381dcc3349e45e0ad82f38b67908e92d1d56ce"
-  dependencies:
-    "@0x/contract-addresses" "0xProject/gitpkg-registry#0x-contract-addresses-v6.1.0-d0006cbc3"
-    typescript "^4.2.4"
-
 "@0x/ts-doc-gen@^0.0.28":
   version "0.0.28"
   resolved "https://registry.yarnpkg.com/@0x/ts-doc-gen/-/ts-doc-gen-0.0.28.tgz#075f53268e99ece6448515a3347b1d51fe92365f"
@@ -12884,11 +12877,6 @@ typescript@4.2.2:
 typescript@^3.8.3:
   version "3.9.7"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.7.tgz#98d600a5ebdc38f40cb277522f12dc800e9e25fa"
-
-typescript@^4.2.4:
-  version "4.2.4"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"
-  integrity sha512-V+evlYHZnQkaz8TRBuxTA92yZBPotr5H+WhQ7bD3hZUndx5tGOa1fuCgeSjxAzM1RiN5IzvadIXTVefuuwZCRg==
 
 typewise-core@^1.2, typewise-core@^1.2.0:
   version "1.2.0"
