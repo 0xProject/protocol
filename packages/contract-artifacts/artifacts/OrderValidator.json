@@ -58,15 +58,9 @@
             },
             {
                 "constant": true,
-                "inputs": [
-                    { "name": "target", "type": "address" },
-                    { "name": "assetData", "type": "bytes" }
-                ],
+                "inputs": [{ "name": "target", "type": "address" }, { "name": "assetData", "type": "bytes" }],
                 "name": "getBalanceAndAllowance",
-                "outputs": [
-                    { "name": "balance", "type": "uint256" },
-                    { "name": "allowance", "type": "uint256" }
-                ],
+                "outputs": [{ "name": "balance", "type": "uint256" }, { "name": "allowance", "type": "uint256" }],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
@@ -170,10 +164,7 @@
             },
             {
                 "constant": true,
-                "inputs": [
-                    { "name": "token", "type": "address" },
-                    { "name": "tokenId", "type": "uint256" }
-                ],
+                "inputs": [{ "name": "token", "type": "address" }, { "name": "tokenId", "type": "uint256" }],
                 "name": "getERC721TokenOwner",
                 "outputs": [{ "name": "owner", "type": "address" }],
                 "payable": false,
@@ -182,15 +173,9 @@
             },
             {
                 "constant": true,
-                "inputs": [
-                    { "name": "target", "type": "address" },
-                    { "name": "assetData", "type": "bytes[]" }
-                ],
+                "inputs": [{ "name": "target", "type": "address" }, { "name": "assetData", "type": "bytes[]" }],
                 "name": "getBalancesAndAllowances",
-                "outputs": [
-                    { "name": "", "type": "uint256[]" },
-                    { "name": "", "type": "uint256[]" }
-                ],
+                "outputs": [{ "name": "", "type": "uint256[]" }, { "name": "", "type": "uint256[]" }],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
@@ -240,10 +225,7 @@
                 "type": "function"
             },
             {
-                "inputs": [
-                    { "name": "_exchange", "type": "address" },
-                    { "name": "_zrxAssetData", "type": "bytes" }
-                ],
+                "inputs": [{ "name": "_exchange", "type": "address" }, { "name": "_zrxAssetData", "type": "bytes" }],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "constructor"
