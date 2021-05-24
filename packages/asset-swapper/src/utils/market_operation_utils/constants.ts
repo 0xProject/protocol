@@ -121,6 +121,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Dodo,
         ]),
     },
     new SourceFilters([]),
@@ -202,6 +203,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Dodo,
         ]),
     },
     new SourceFilters([]),
@@ -1031,6 +1033,10 @@ export const DODOV1_CONFIG_BY_CHAIN_ID = valueByChainId(
         [ChainId.BSC]: {
             helper: '0x0f859706aee7fcf61d5a8939e8cb9dbb6c1eda33',
             registry: '0xca459456a45e300aa7ef447dbb60f87cccb42828',
+        },
+        [ChainId.Polygon]: {
+            helper: '0xdfaf9584f5d229a9dbe5978523317820a8897c5a',
+            registry: '0x357c5e9cfa8b834edcef7c7aabd8f9db09119d11',
         },
     },
     { helper: NULL_ADDRESS, registry: NULL_ADDRESS },
