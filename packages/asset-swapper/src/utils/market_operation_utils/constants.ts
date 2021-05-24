@@ -336,6 +336,9 @@ export const POLYGON_TOKENS = {
     amDAI: '0x27f8d03b3a2196956ed754badc28d73be8830a6e',
     amUSDC: '0x1a13f4ca1d028320a707d99520abfefca3998b7f',
     amUSDT: '0x60d55f02a771d515e077c9c2403a1ef324885cec',
+    WBTC: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
+    WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+    WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
 };
 
 export const CURVE_POOLS = {
@@ -447,12 +450,12 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
         ],
         [ChainId.Polygon]: [
-            getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
-            '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619', // WETH
-            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC
-            '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
-            '0xc2132d05d31c914a87c6611c10748aeb04b58e8f', // USDT
-            '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', // WBTC
+            POLYGON_TOKENS.WMATIC,
+            POLYGON_TOKENS.WETH,
+            POLYGON_TOKENS.USDC,
+            POLYGON_TOKENS.DAI,
+            POLYGON_TOKENS.USDT,
+            POLYGON_TOKENS.WBTC,
         ],
     },
     [],
