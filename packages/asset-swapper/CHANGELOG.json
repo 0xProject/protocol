@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.17.0",
+        "changes": [
+            {
+                "note": "Re-enable liquidity provider and update KNC address",
+                "pr": 253
+            }
+        ]
+    },
+    {
         "version": "6.16.0",
         "changes": [
             {
