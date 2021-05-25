@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-exchange-libs",
-    "version": "4.3.30",
+    "version": "4.3.31",
     "engines": {
         "node": ">=6.12"
     },
@@ -81,9 +81,9 @@
     },
     "dependencies": {
         "@0x/base-contract": "^6.4.0",
-        "@0x/contracts-test-utils": "^5.4.1",
-        "@0x/contracts-utils": "^4.7.9",
-        "@0x/order-utils": "^10.4.22",
+        "@0x/contracts-test-utils": "^5.4.2",
+        "@0x/contracts-utils": "^4.7.10",
+        "@0x/order-utils": "^10.4.23",
         "@0x/types": "^3.3.3",
         "@0x/typescript-typings": "^5.2.0",
         "@0x/utils": "^6.4.3",
