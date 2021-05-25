@@ -226,7 +226,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
 
         if (
-            this.chainId === ChainId.Mainnet &&
+            [ChainId.Mainnet, ChainId.BSC].includes(this.chainId) &&
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])
         ) {
             const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
