@@ -715,27 +715,9 @@
     js-sha3 "^0.7.0"
     uuid "^3.3.2"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v6.1.0-d0006cbc3":
-  version "6.1.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/bdf9a0923625e4fbd39815410c5fdb2b16f2065b"
-
 "@0x/contract-addresses@^4.0.0":
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-4.12.0.tgz#2adb0bcde763ad13437f782adf25c403107ff428"
-
-"@0x/contract-wrappers@0xProject/gitpkg-registry#0x-contract-wrappers-v13.16.1-baafa8a7e":
-  version "13.16.1"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/e2f1ffae00c1beddf55fb1de63e9c5c0e6a74605"
-  dependencies:
-    "@0x/assert" "^3.0.27"
-    "@0x/base-contract" "^6.4.0"
-    "@0x/contract-addresses" "0xProject/gitpkg-registry#0x-contract-addresses-v6.1.0-d0006cbc3"
-    "@0x/json-schemas" "^6.1.3"
-    "@0x/types" "^3.3.3"
-    "@0x/utils" "^6.4.3"
-    "@0x/web3-wrapper" "^7.5.3"
-    ethereum-types "^3.5.0"
-    ethers "~4.0.4"
 
 "@0x/contracts-gen@^2.0.38":
   version "2.0.38"

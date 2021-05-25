@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.16.0",
+        "changes": [
+            {
+                "note": "Add support for the Polygon chain",
+                "pr": 240
+            }
+        ]
+    },
+    {
         "version": "6.15.0",
         "changes": [
             {
