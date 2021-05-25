@@ -178,6 +178,8 @@ export enum ChainId {
     Kovan = 42,
     Ganache = 1337,
     BSC = 56,
+    Polygon = 137,
+    PolygonMumbai = 80001,
 }
 // tslint:enable:enum-naming
 
