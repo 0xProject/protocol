@@ -11,6 +11,7 @@ import * as express from 'express';
 import * as core from 'express-serve-static-core';
 import { Agent as HttpAgent, Server } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import { Producer } from 'sqs-producer';
 import { Connection } from 'typeorm';
 
 import { getContractAddressesForNetworkOrThrowAsync } from '../app';
@@ -20,6 +21,8 @@ import {
     ETH_GAS_STATION_API_URL,
     META_TX_WORKER_REGISTRY,
     RFQM_MAKER_ASSET_OFFERINGS,
+    RFQM_META_TX_SQS_REGION,
+    RFQM_META_TX_SQS_URL,
     RFQT_MAKER_ASSET_OFFERINGS,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
@@ -79,6 +82,11 @@ if (require.main === module) {
         const rfqBlockchainUtils = new RfqBlockchainUtils(exchangeProxy);
 
         const connection = await getDBConnectionAsync();
+        const sqsProducer = Producer.create({
+            queueUrl: RFQM_META_TX_SQS_REGION,
+            region: RFQM_META_TX_SQS_URL,
+        });
+
         const rfqmService = new RfqmService(
             quoteRequestor,
             protocolFeeUtils,
@@ -86,6 +94,7 @@ if (require.main === module) {
             metaTxWorkerRegistry,
             rfqBlockchainUtils,
             connection,
+            sqsProducer,
         );
 
         const configManager = new ConfigManager();

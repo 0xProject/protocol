@@ -1,6 +1,6 @@
-import { RfqOrder } from '@0x/asset-swapper';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+
+import { StoredFee, StoredOrder } from '../utils/rfqm_db_utils';
 
 @Entity({ name: 'rfqm_quotes' })
 export class RfqmQuoteEntity {
@@ -24,24 +24,26 @@ export class RfqmQuoteEntity {
     public makerUri?: string;
 
     @Column({ name: 'fee', type: 'jsonb', nullable: true })
-    public fee: Fee | null;
+    public fee: StoredFee | null;
 
     @Column({ name: 'order', type: 'jsonb', nullable: true })
-    public order: RfqOrder | null;
+    public order: StoredOrder | null;
 
     constructor(
         opts: {
             orderHash?: string;
             metaTransactionHash?: string;
+            createdAt?: Date;
             chainId?: number;
             integratorId?: string;
             makerUri?: string;
-            fee?: Fee;
-            order?: RfqOrder;
+            fee?: StoredFee;
+            order?: StoredOrder;
         } = {},
     ) {
         this.orderHash = opts.orderHash;
         this.metaTransactionHash = opts.metaTransactionHash || null;
+        this.createdAt = opts.createdAt;
         this.chainId = opts.chainId;
         this.integratorId = opts.integratorId || null;
         this.makerUri = opts.makerUri;

@@ -2,10 +2,13 @@
 import {
     InternalServerError,
     InvalidAPIKeyError,
+    isAPIError,
     NotFoundError,
+    NotImplementedError,
     ValidationError,
     ValidationErrorCodes,
 } from '@0x/api-utils';
+import { MetaTransaction } from '@0x/protocol-utils';
 import { getTokenMetadataIfExists, isNativeSymbolOrAddress, TokenMetadata } from '@0x/token-metadata';
 import { addressUtils, BigNumber } from '@0x/utils';
 import * as express from 'express';
@@ -14,8 +17,20 @@ import { Counter } from 'prom-client';
 
 import { CHAIN_ID, NATIVE_WRAPPED_TOKEN_SYMBOL } from '../config';
 import { schemas } from '../schemas';
-import { FetchFirmQuoteParams, FetchIndicativeQuoteParams, RfqmService } from '../services/rfqm_service';
+import {
+    FetchFirmQuoteParams,
+    FetchIndicativeQuoteParams,
+    RfqmService,
+    RfqmTypes,
+    SubmitRfqmSignedQuoteParams,
+} from '../services/rfqm_service';
 import { ConfigManager } from '../utils/config_manager';
+import {
+    StringMetaTransactionFields,
+    StringSignatureFields,
+    stringsToMetaTransactionFields,
+    stringsToSignature,
+} from '../utils/rfqm_request_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
 const RFQM_INDICATIVE_QUOTE_REQUEST = new Counter({
@@ -51,6 +66,12 @@ const RFQM_FIRM_QUOTE_NOT_FOUND = new Counter({
 const RFQM_FIRM_QUOTE_ERROR = new Counter({
     name: 'rfqm_handler_firm_quote_error',
     help: 'Request to fetch rfqm firm quote resulted in error',
+    labelNames: ['apiKey'],
+});
+
+const RFQM_SIGNED_QUOTE_SUBMITTED = new Counter({
+    name: 'rfqm_handler_signed_quote_submitted',
+    help: 'Request received to submit a signed rfqm quote',
     labelNames: ['apiKey'],
 });
 
@@ -91,7 +112,7 @@ export class RfqmHandlers {
         // Parse request
         const params = this._parseFetchFirmQuoteParams(req);
 
-        // Try to get indicative quote
+        // Try to get firm quote
         let firmQuote;
         try {
             firmQuote = await this._rfqmService.fetchFirmQuoteAsync(params);
@@ -109,6 +130,28 @@ export class RfqmHandlers {
 
         // Result
         res.status(HttpStatus.OK).send(firmQuote);
+    }
+
+    public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
+        const apiKeyLabel = req.header('0x-api-key') || 'N/A';
+        RFQM_SIGNED_QUOTE_SUBMITTED.labels(apiKeyLabel).inc();
+        const params = this._parseSubmitSignedQuoteParams(req);
+
+        if (params.type === RfqmTypes.MetaTransaction) {
+            try {
+                const response = await this._rfqmService.submitMetaTransactionSignedQuoteAsync(params);
+                res.status(HttpStatus.CREATED).send(response);
+            } catch (err) {
+                req.log.error(err, 'Encountered an error while queuing a signed quote');
+                if (isAPIError(err)) {
+                    throw err;
+                } else {
+                    throw new InternalServerError(`An unexpected error occurred`);
+                }
+            }
+        } else {
+            throw new NotImplementedError('rfqm type not supported');
+        }
     }
 
     private _parseFetchFirmQuoteParams(req: express.Request): FetchFirmQuoteParams {
@@ -138,17 +181,20 @@ export class RfqmHandlers {
         };
     }
 
-    private _parseFetchIndicativeQuoteParams(req: express.Request): FetchIndicativeQuoteParams {
-        // HACK - reusing the validation for Swap Quote as the interface here is a subset
-        schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
-        const apiKey = req.header('0x-api-key');
+    private _validateAndReturnApiKey(apiKey: string | undefined): string {
         if (apiKey === undefined) {
             throw new InvalidAPIKeyError('Must access with an API key');
         }
-
         if (!this._configManager.getRfqmApiKeyWhitelist().has(apiKey)) {
             throw new InvalidAPIKeyError('API key not authorized for RFQM access');
         }
+        return apiKey;
+    }
+
+    private _parseFetchIndicativeQuoteParams(req: express.Request): FetchIndicativeQuoteParams {
+        // HACK - reusing the validation for Swap Quote as the interface here is a subset
+        schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
+        const apiKey = this._validateAndReturnApiKey(req.header('0x-api-key'));
 
         // Parse string params
         const { takerAddress } = req.query;
@@ -180,6 +226,32 @@ export class RfqmHandlers {
             sellTokenDecimals,
             takerAddress: takerAddress as string,
         };
+    }
+
+    private _parseSubmitSignedQuoteParams(req: express.Request): SubmitRfqmSignedQuoteParams {
+        const type = req.body.type as RfqmTypes;
+        this._validateAndReturnApiKey(req.header('0x-api-key'));
+
+        if (type === RfqmTypes.MetaTransaction) {
+            const metaTransaction = new MetaTransaction(
+                stringsToMetaTransactionFields((req.body.metaTransaction as unknown) as StringMetaTransactionFields),
+            );
+            const signature = stringsToSignature((req.body.signature as unknown) as StringSignatureFields);
+
+            return {
+                type,
+                metaTransaction,
+                signature,
+            };
+        } else {
+            throw new ValidationError([
+                {
+                    field: 'type',
+                    code: ValidationErrorCodes.FieldInvalid,
+                    reason: `${type} is an invalid value for 'type'`,
+                },
+            ]);
+        }
     }
 }
 

@@ -53,8 +53,19 @@ export class RfqBlockchainUtils {
             const results = await this._exchangeProxy
                 .executeMetaTransaction(metaTx, metaTxSig)
                 .callAsync({ from: sender, ...txOptions });
+            const takerTokenFillAmount = (this._exchangeProxy.getABIDecodedTransactionData(
+                'fillRfqOrder',
+                metaTx.callData,
+            ) as any).takerTokenFillAmount;
+            const decodedResults: [BigNumber, BigNumber] = this._exchangeProxy.getABIDecodedReturnData(
+                'fillRfqOrder',
+                results,
+            );
+            if (decodedResults[0].isLessThan(takerTokenFillAmount)) {
+                throw new Error(`filled amount is less than requested fill amount`);
+            }
             // returns [takerTokenFilledAmount, makerTokenFilledAmount]
-            return this._exchangeProxy.getABIDecodedReturnData('fillRfqOrder', results);
+            return decodedResults;
         } catch (err) {
             throw new Error(err);
         }

@@ -6,6 +6,7 @@ import {
     MakerBalanceChainCacheEntity,
     PersistentSignedOrderEntity,
     PersistentSignedOrderV4Entity,
+    RfqmJobEntity,
     RfqmQuoteEntity,
     SignedOrderEntity,
     SignedOrderV4Entity,
@@ -21,6 +22,7 @@ const entities = [
     SignedOrderV4Entity,
     PersistentSignedOrderV4Entity,
     RfqmQuoteEntity,
+    RfqmJobEntity,
 ];
 
 const config: ConnectionOptions = {
