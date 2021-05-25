@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.16.0 - _May 25, 2021_
+
+    * Add support for the Polygon chain (#240)
+
 ## v6.15.0 - _May 21, 2021_
 
     * Fix KyberDmm (#236)

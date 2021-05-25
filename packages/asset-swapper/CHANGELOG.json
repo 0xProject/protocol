@@ -6,7 +6,8 @@
                 "note": "Add support for the Polygon chain",
                 "pr": 240
             }
-        ]
+        ],
+        "timestamp": 1621944788
     },
     {
         "version": "6.15.0",

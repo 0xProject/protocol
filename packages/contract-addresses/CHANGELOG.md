@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.3.0 - _May 25, 2021_
+
+    * Deployed contracts on `Polygon` (#240)
+
 ## v6.2.0 - _May 21, 2021_
 
     * Deployed FQT on mainnet and ropsten for `KyberDMM` (#247)
