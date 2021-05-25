@@ -1,5 +1,14 @@
 [
     {
+        "version": "1.2.0",
+        "changes": [
+            {
+                "note": "Added proposal 0 params and test",
+                "pr": 252
+            }
+        ]
+    },
+    {
         "timestamp": 1621944788,
         "version": "1.1.8",
         "changes": [
