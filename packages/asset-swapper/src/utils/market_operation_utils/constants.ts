@@ -310,7 +310,7 @@ export const MAINNET_TOKENS = {
     stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
     LINK: '0x514910771af9ca656af840dff83e8264ecf986ca',
     MANA: '0x0f5d2fb29fb7d3cfee444a200298f468908cc942',
-    KNC: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
+    KNC: '0xdefa4e8a7bcba345f687a2f1456f5edd9ce97202',
     AAVE: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
     sLINK: '0xbbc455cb4f1b9e4bfc4b73970d360c8f032efee6',
     yUSD: '0x5dbcf33d8c2e976c6b560249878e6f1491bca25c',
@@ -915,21 +915,18 @@ export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityP
         [ChainId.Mainnet]: {
             ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
                 tokens: [
-                    // Disabled temporarily as the swap function requires
-                    // gas price to be provided. Making it difficult to get
-                    // a gas estimate
-                    // MAINNET_TOKENS.WETH,
-                    // MAINNET_TOKENS.USDC,
-                    // MAINNET_TOKENS.USDT,
-                    // MAINNET_TOKENS.WBTC,
-                    // MAINNET_TOKENS.PAX,
-                    // MAINNET_TOKENS.LINK,
-                    // MAINNET_TOKENS.KNC,
-                    // MAINNET_TOKENS.MANA,
-                    // MAINNET_TOKENS.DAI,
-                    // MAINNET_TOKENS.BUSD,
-                    // MAINNET_TOKENS.AAVE,
-                    // MAINNET_TOKENS.HT,
+                    MAINNET_TOKENS.WETH,
+                    MAINNET_TOKENS.USDC,
+                    MAINNET_TOKENS.USDT,
+                    MAINNET_TOKENS.WBTC,
+                    MAINNET_TOKENS.PAX,
+                    MAINNET_TOKENS.LINK,
+                    MAINNET_TOKENS.KNC,
+                    MAINNET_TOKENS.MANA,
+                    MAINNET_TOKENS.DAI,
+                    MAINNET_TOKENS.BUSD,
+                    MAINNET_TOKENS.AAVE,
+                    MAINNET_TOKENS.HT,
                 ],
                 gasCost: (takerToken: string, makerToken: string) =>
                     [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
