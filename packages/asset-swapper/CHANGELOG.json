@@ -6,7 +6,8 @@
                 "note": "Re-enable liquidity provider and update KNC address",
                 "pr": 253
             }
-        ]
+        ],
+        "timestamp": 1622154125
     },
     {
         "version": "6.16.0",

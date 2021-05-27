@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.17.0 - _May 27, 2021_
+
+    * Re-enable liquidity provider and update KNC address (#253)
+
 ## v6.16.0 - _May 25, 2021_
 
     * Add support for the Polygon chain (#240)
