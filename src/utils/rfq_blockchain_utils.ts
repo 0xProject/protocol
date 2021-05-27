@@ -2,6 +2,7 @@ import { IZeroExContract } from '@0x/contracts-zero-ex';
 import { CallData } from '@0x/dev-utils';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import { HDNode } from '@ethersproject/hdnode';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { ChainId } from '../types';
@@ -12,6 +13,27 @@ const MIN_GAS_PRICE = new BigNumber(0);
 const MAX_GAS_PRICE = new BigNumber(1e13);
 
 export class RfqBlockchainUtils {
+    public static getPrivateKeyFromIndexAndPhrase(mnemonic: string, index: number): string {
+        const hdNode = HDNode.fromMnemonic(mnemonic).derivePath(this._getPathByIndex(index));
+
+        return hdNode.privateKey;
+    }
+
+    public static getAddressFromIndexAndPhrase(mnemonic: string, index: number): string {
+        const hdNode = HDNode.fromMnemonic(mnemonic).derivePath(this._getPathByIndex(index));
+
+        return hdNode.address;
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    private static _getPathByIndex(index: number): string {
+        // ensure index is a 0+ integer
+        if (index < 0 || index !== Math.floor(index)) {
+            throw new Error(`invalid index`);
+        }
+        return `m/44'/60'/0'/0/`.concat(String(index));
+    }
+
     constructor(private readonly _exchangeProxy: IZeroExContract) {}
 
     // for use when 0x API operator submits an order on-chain on behalf of taker
