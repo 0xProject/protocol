@@ -131,13 +131,13 @@ describe(SUITE_NAME, () => {
     });
 
     describe('validateMetaTransaction', () => {
-        it('returns true for a valid metatransaction', async () => {
+        it('returns successful filled amounts for a valid metatransaction', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
             expect(await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin)).to.deep.eq([takerAmount, makerAmount]);
         });
-        it('returns error for a metatransaction with an invalid signature', async () => {
+        it('throws for a metatransaction with an invalid signature', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const invalidMetaTxSig = orderSig;
 
@@ -148,12 +148,45 @@ describe(SUITE_NAME, () => {
                 expect(String(err)).to.contain('SignatureValidationError');
             }
         });
-        it('returns error for a metatransaction with an unfillable order', async () => {
+        it('throws for a metatransaction with an unfillable order', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(unfillableRfqOrder, sigForUnfillableOrder, taker, invalidTakerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
             try {
                 await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin);
+                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when the order is unfillable`);
+            } catch (err) {
+                expect(String(err)).to.contain('MetaTransactionCallFailedError');
+            }
+        });
+        it('returns successful filled amounts for a valid metatransaction when validating calldata', async () => {
+            const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
+            const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
+
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+            expect(await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin)).to.deep.eq([takerAmount, makerAmount]);
+        });
+        it('throws for a metatransaction with an invalid signature when validating calldata', async () => {
+            const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
+            const invalidMetaTxSig = orderSig;
+
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, invalidMetaTxSig);
+
+            try {
+                await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
+                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when the signature is invalid`);
+            } catch (err) {
+                expect(String(err)).to.contain('SignatureValidationError');
+            }
+        });
+        it('throws for a metatransaction with an unfillable order when validating calldata', async () => {
+            const metaTx = rfqBlockchainUtils.generateMetaTransaction(unfillableRfqOrder, sigForUnfillableOrder, taker, invalidTakerAmount, CHAIN_ID);
+            const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
+
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+
+            try {
+                await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
                 expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when the order is unfillable`);
             } catch (err) {
                 expect(String(err)).to.contain('MetaTransactionCallFailedError');

@@ -65,6 +65,15 @@ export class RfqBlockchainUtils {
         });
     }
 
+    public async decodeMetaTransactionCallDataAndValidateAsync(
+        calldata: string,
+        sender: string,
+        txOptions?: Partial<CallData>,
+    ): Promise<[BigNumber, BigNumber]> {
+        const metaTxInput: any = this._exchangeProxy.getABIDecodedTransactionData('executeMetaTransaction', calldata);
+        return this.validateMetaTransactionOrThrowAsync(metaTxInput[0], metaTxInput[1], sender, txOptions);
+    }
+
     public async validateMetaTransactionOrThrowAsync(
         metaTx: MetaTransaction,
         metaTxSig: Signature,
