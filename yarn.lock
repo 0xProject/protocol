@@ -840,9 +840,10 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/token-metadata@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.1.0.tgz#080caed591989fafef4aa9854a91c0ae959aba8a"
+"@0x/token-metadata@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.1.1.tgz#f03622f3c545c5da4957d09b72eae46e13d2b113"
+  integrity sha512-dJxmENi9RoRQWtpjvfLmG8IY7MVYTvSFNvBUO70wXm/bUy9KPyREadKd0m8pNIDR11WbWI/Fhj9co0f4SuL91w==
   dependencies:
     "@0x/contract-addresses" "^6.3.0"
     typescript "^4.2.4"
