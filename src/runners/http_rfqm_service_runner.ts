@@ -83,8 +83,8 @@ if (require.main === module) {
 
         const connection = await getDBConnectionAsync();
         const sqsProducer = Producer.create({
-            queueUrl: RFQM_META_TX_SQS_REGION,
-            region: RFQM_META_TX_SQS_URL,
+            region: RFQM_META_TX_SQS_REGION,
+            queueUrl: RFQM_META_TX_SQS_URL,
         });
 
         const rfqmService = new RfqmService(
