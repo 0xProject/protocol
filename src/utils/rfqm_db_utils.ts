@@ -131,6 +131,12 @@ export const feeToStoredFee = (fee: Fee): StoredFee => {
 export class RfqmDbUtils {
     constructor(private readonly _connection: Connection) {}
 
+    public async findJobByOrderHashAsync(orderHash: string): Promise<RfqmJobEntity | undefined> {
+        return this._connection.getRepository(RfqmJobEntity).findOne({
+            where: { orderHash },
+        });
+    }
+
     public async findQuoteByOrderHashAsync(orderHash: string): Promise<RfqmQuoteEntity | undefined> {
         return this._connection.getRepository(RfqmQuoteEntity).findOne({
             where: { orderHash },
@@ -143,6 +149,13 @@ export class RfqmDbUtils {
         return this._connection.getRepository(RfqmQuoteEntity).findOne({
             where: { metaTransactionHash },
         });
+    }
+
+    /**
+     * updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
+     */
+    public async updateRfqmJobAsync(orderHash: string, rfqmJobOpts: RfqmJobOpts): Promise<void> {
+        await this._connection.getRepository(RfqmJobEntity).save({ ...rfqmJobOpts, orderHash });
     }
 
     public async writeRfqmJobToDbAsync(rfqmJobOpts: RfqmJobOpts): Promise<void> {

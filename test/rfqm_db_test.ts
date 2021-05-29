@@ -9,6 +9,7 @@ import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity } from '../src/entities';
 import {
     feeToStoredFee,
+    RfqmDbUtils,
     RfqmJobOpts,
     RfqmJobStatus,
     v4RfqOrderToStoredOrder,
@@ -23,6 +24,7 @@ const SUITE_NAME = 'rfqm db test';
 
 describe(SUITE_NAME, () => {
     let connection: Connection;
+    let dbUtils: RfqmDbUtils;
 
     const createdAt = new Date();
     // it's expired if it's over 9000
@@ -58,6 +60,7 @@ describe(SUITE_NAME, () => {
         await setupDependenciesAsync(SUITE_NAME);
         connection = await getDBConnectionAsync();
         await connection.synchronize(true);
+        dbUtils = new RfqmDbUtils(connection);
     });
 
     after(async () => {
@@ -71,6 +74,7 @@ describe(SUITE_NAME, () => {
         // reset DB
         connection = await getDBConnectionAsync();
         await connection.synchronize(true);
+        dbUtils = new RfqmDbUtils(connection);
     });
 
     describe('rfqm db tests', () => {
@@ -116,6 +120,37 @@ describe(SUITE_NAME, () => {
 
             // the saved + read entity should match the original entity in information
             expect(dbEntity).to.deep.eq(testRfqmJobEntity);
+        });
+
+        it('should be able to update an rfqm job entity', async () => {
+            const rfqmJobOpts: RfqmJobOpts = {
+                orderHash,
+                metaTransactionHash,
+                createdAt,
+                expiry,
+                chainId,
+                integratorId,
+                makerUri,
+                status: RfqmJobStatus.InQueue,
+                statusReason: null,
+                calldata,
+                fee: feeToStoredFee(fee),
+                order: v4RfqOrderToStoredOrder(order),
+            };
+            await dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
+
+            const dbEntityFirstSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
+            await dbUtils.updateRfqmJobAsync(orderHash, { status: RfqmJobStatus.Processing });
+
+            const dbEntitySecondSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
+
+            // expect status to be updated
+            expect(dbEntityFirstSnapshot?.status).to.eq(RfqmJobStatus.InQueue);
+            expect(dbEntitySecondSnapshot?.status).to.eq(RfqmJobStatus.Processing);
+
+            // spot check that other values have not changed
+            expect(dbEntityFirstSnapshot?.calldata).to.eq(dbEntitySecondSnapshot?.calldata);
+            expect(dbEntityFirstSnapshot?.expiry).to.deep.eq(dbEntitySecondSnapshot?.expiry);
         });
     });
 });
