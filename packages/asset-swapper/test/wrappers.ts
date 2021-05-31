@@ -29,6 +29,7 @@ export * from '../test/generated-wrappers/i_uniswap_exchange_quotes';
 export * from '../test/generated-wrappers/i_uniswap_v2_router01';
 export * from '../test/generated-wrappers/kyber_dmm_sampler';
 export * from '../test/generated-wrappers/kyber_sampler';
+export * from '../test/generated-wrappers/lido_sampler';
 export * from '../test/generated-wrappers/liquidity_provider_sampler';
 export * from '../test/generated-wrappers/m_stable_sampler';
 export * from '../test/generated-wrappers/maker_p_s_m_sampler';
