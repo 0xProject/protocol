@@ -123,7 +123,7 @@ describe(SUITE_NAME, () => {
             .approve(zeroEx.address, takerAmount)
             .awaitTransactionSuccessAsync({ from: taker });
 
-        rfqBlockchainUtils = new RfqBlockchainUtils(zeroEx);
+        rfqBlockchainUtils = new RfqBlockchainUtils(provider, zeroEx.address);
     });
 
     after(async () => {
@@ -191,6 +191,18 @@ describe(SUITE_NAME, () => {
             } catch (err) {
                 expect(String(err)).to.contain('MetaTransactionCallFailedError');
             }
+        });
+    });
+    describe('submitCallDataToExchangeProxyAsync', () => {
+        it('passes submit validation and returns a transaction hash for a valid meta tx', async () => {
+            const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
+            const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
+
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+
+            const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, { gasPrice: 1e9, gas: 200000, value: 0 });
+
+            expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
         });
     });
 });

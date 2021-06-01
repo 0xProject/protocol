@@ -1,8 +1,10 @@
+import { provider } from '@0x/contracts-test-utils';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
-import { CallData } from '@0x/dev-utils';
+import { CallData, SupportedProvider, Web3Wrapper } from '@0x/dev-utils';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
+import { TxData } from 'ethereum-types';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { ChainId } from '../types';
@@ -13,6 +15,9 @@ const MIN_GAS_PRICE = new BigNumber(0);
 const MAX_GAS_PRICE = new BigNumber(1e13);
 
 export class RfqBlockchainUtils {
+    private readonly _exchangeProxy: IZeroExContract;
+    private readonly _web3Wrapper: Web3Wrapper;
+
     public static getPrivateKeyFromIndexAndPhrase(mnemonic: string, index: number): string {
         const hdNode = HDNode.fromMnemonic(mnemonic).derivePath(this._getPathByIndex(index));
 
@@ -34,7 +39,10 @@ export class RfqBlockchainUtils {
         return `m/44'/60'/0'/0/`.concat(String(index));
     }
 
-    constructor(private readonly _exchangeProxy: IZeroExContract) {}
+    constructor(private readonly _provider: SupportedProvider, private readonly _exchangeProxyAddress: string) {
+        this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, this._provider);
+        this._web3Wrapper = new Web3Wrapper(provider);
+    }
 
     // for use when 0x API operator submits an order on-chain on behalf of taker
     public generateMetaTransaction(
@@ -104,5 +112,20 @@ export class RfqBlockchainUtils {
 
     public generateMetaTransactionCallData(metaTx: MetaTransaction, metaTxSig: Signature): string {
         return this._exchangeProxy.executeMetaTransaction(metaTx, metaTxSig).getABIEncodedTransactionData();
+    }
+
+    public async submitCallDataToExchangeProxyAsync(
+        callData: string,
+        workerAddress: string,
+        txOptions?: Partial<TxData>,
+    ): Promise<string> {
+        const txData: TxData = {
+            to: this._exchangeProxy.address,
+            data: callData,
+            from: workerAddress,
+            ...txOptions,
+        };
+
+        return this._web3Wrapper.sendTransactionAsync(txData);
     }
 }

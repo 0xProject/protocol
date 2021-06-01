@@ -3,7 +3,6 @@
  */
 import { createDefaultServer } from '@0x/api-utils';
 import { ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
-import { IZeroExContract } from '@0x/contracts-zero-ex';
 import { NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosRequestConfig } from 'axios';
 import * as express from 'express';
@@ -78,8 +77,7 @@ if (require.main === module) {
             ETH_GAS_STATION_API_URL,
         );
         const metaTxWorkerRegistry = META_TX_WORKER_REGISTRY || NULL_ADDRESS;
-        const exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, provider);
-        const rfqBlockchainUtils = new RfqBlockchainUtils(exchangeProxy);
+        const rfqBlockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy);
 
         const connection = await getDBConnectionAsync();
         const sqsProducer = Producer.create({
