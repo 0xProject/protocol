@@ -47,11 +47,13 @@ jobs:
               with:
                   token: ${{ secrets.PAT }}
                   repository: 0xProject/0x-main-infra
-            - name: Update API configs
+            - name: Update API configs (Ethereum)
               if: env.chain == 'ethereum'
               run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/common/*.yml env/0x-api/${{ env.folder_env }}/apis/*.yml
+            - name: Update API configs (BSC)
               if: env.chain == 'bsc'
               run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/bsc/*.yml
+            - name: Update API configs (Polygon)
               if: env.chain == 'polygon'
               run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/polygon/*.yml
             - name: Create Pull Request
