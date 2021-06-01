@@ -335,10 +335,6 @@ export const RFQM_META_TX_SQS_URL: string | undefined = _.isEmpty(process.env.RF
     ? undefined
     : assertEnvVarType('RFQM_META_TX_SQS_URL', process.env.RFQM_META_TX_SQS_URL, EnvVarType.Url);
 
-export const RFQM_META_TX_SQS_REGION: string = _.isEmpty(process.env.SQS_REGION)
-    ? undefined
-    : assertEnvVarType('RFQM_META_TX_SQS_REGION', process.env.SQS_REGION, EnvVarType.NonEmptyString);
-
 // tslint:disable-next-line:boolean-naming
 export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
 

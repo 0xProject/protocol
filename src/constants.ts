@@ -97,5 +97,9 @@ export const RFQ_ALLOWANCE_TARGET = '0xdef1c0ded9bec7f1a1670819833240f027b25eff'
 export const RFQM_MINIMUM_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
 export const RFQM_TX_GAS_ESTIMATE = 165e3;
 
+// SQS Client
+export const LONG_POLLING_WAIT_TIME_SECONDS = 20;
+export const SINGLE_MESSAGE = 1;
+
 // General cache control
 export const DEFAULT_CACHE_AGE_SECONDS = 10;

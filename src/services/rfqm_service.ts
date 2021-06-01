@@ -13,6 +13,7 @@ import { CHAIN_ID, META_TX_WORKER_REGISTRY, RFQT_REQUEST_MAX_RESPONSE_MS } from 
 import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { RfqmQuoteEntity } from '../entities';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
+import { logger } from '../logger';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import {
     feeToStoredFee,
@@ -133,11 +134,7 @@ export class RfqmService {
         private readonly _blockchainUtils: RfqBlockchainUtils,
         private readonly _connection: Connection,
         private readonly _sqsProducer: Producer,
-    ) {
-        if (_registryAddress === NULL_ADDRESS) {
-            throw new Error('Must set the worker registry to valid address');
-        }
-    }
+    ) {}
 
     /**
      * Fetch the best indicative quote available. Returns null if no valid quotes found
@@ -422,6 +419,16 @@ export class RfqmService {
             metaTransactionHash,
             orderHash: quote.orderHash!,
         };
+    }
+
+    /**
+     * Process an orderHash as an RfqmJob. Throws an error if job must be retried
+     */
+    // tslint:disable: prefer-function-over-method
+    public async processRfqmJobAsync(orderHash: string): Promise<void> {
+        logger.info({ orderHash }, 'finished processing job');
+        // tslint:disable-next-line: custom-no-magic-numbers
+        return Math.random() > 0.5 ? Promise.reject('failing') : Promise.resolve();
     }
 
     private async _enqueueJobAsync(orderHash: string): Promise<void> {

@@ -3,7 +3,6 @@
  */
 import { createDefaultServer } from '@0x/api-utils';
 import { ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
-import { NULL_ADDRESS } from '@0x/utils';
 import Axios, { AxiosRequestConfig } from 'axios';
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
@@ -20,9 +19,7 @@ import {
     ETH_GAS_STATION_API_URL,
     META_TX_WORKER_REGISTRY,
     RFQM_MAKER_ASSET_OFFERINGS,
-    RFQM_META_TX_SQS_REGION,
     RFQM_META_TX_SQS_URL,
-    RFQT_MAKER_ASSET_OFFERINGS,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
     SWAP_QUOTER_OPTS,
@@ -53,52 +50,61 @@ process.on('unhandledRejection', (err) => {
 
 if (require.main === module) {
     (async () => {
-        const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+        // Build dependencies
         const config: HttpServiceConfig = {
             ...defaultHttpServiceWithRateLimiterConfig,
             // Mesh is not required for Rfqm Service
             meshWebsocketUri: undefined,
             meshHttpUri: undefined,
         };
-
-        const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
-        const quoteRequestor = new QuoteRequestor(
-            RFQT_MAKER_ASSET_OFFERINGS,
-            RFQM_MAKER_ASSET_OFFERINGS,
-            Axios.create(getAxiosRequestConfig()),
-            undefined, // No Alt RFQM offerings at the moment
-            logger.warn.bind(logger),
-            logger.info.bind(logger),
-            SWAP_QUOTER_OPTS.expiryBufferMs,
-        );
-
-        const protocolFeeUtils = ProtocolFeeUtils.getInstance(
-            PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-            ETH_GAS_STATION_API_URL,
-        );
-        const metaTxWorkerRegistry = META_TX_WORKER_REGISTRY || NULL_ADDRESS;
-        const rfqBlockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy);
-
         const connection = await getDBConnectionAsync();
-        const sqsProducer = Producer.create({
-            region: RFQM_META_TX_SQS_REGION,
-            queueUrl: RFQM_META_TX_SQS_URL,
-        });
-
-        const rfqmService = new RfqmService(
-            quoteRequestor,
-            protocolFeeUtils,
-            contractAddresses,
-            metaTxWorkerRegistry,
-            rfqBlockchainUtils,
-            connection,
-            sqsProducer,
-        );
-
+        const rfqmService = await buildRfqmServiceAsync(connection);
         const configManager = new ConfigManager();
 
         await runHttpRfqmServiceAsync(rfqmService, configManager, config, connection);
     })().catch((error) => logger.error(error.stack));
+}
+
+/**
+ * Builds an instance of RfqmService
+ */
+export async function buildRfqmServiceAsync(connection: Connection): Promise<RfqmService> {
+    const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+
+    const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
+    const quoteRequestor = new QuoteRequestor(
+        {}, // No RFQT offerings
+        RFQM_MAKER_ASSET_OFFERINGS,
+        Axios.create(getAxiosRequestConfig()),
+        undefined, // No Alt RFQM offerings at the moment
+        logger.warn.bind(logger),
+        logger.info.bind(logger),
+        SWAP_QUOTER_OPTS.expiryBufferMs,
+    );
+
+    const protocolFeeUtils = ProtocolFeeUtils.getInstance(
+        PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
+        ETH_GAS_STATION_API_URL,
+    );
+    if (META_TX_WORKER_REGISTRY === undefined) {
+        throw new Error('META_TX_WORKER_REGISTRY must be set!');
+    }
+
+    const rfqBlockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy);
+
+    const sqsProducer = Producer.create({
+        queueUrl: RFQM_META_TX_SQS_URL,
+    });
+
+    return new RfqmService(
+        quoteRequestor,
+        protocolFeeUtils,
+        contractAddresses,
+        META_TX_WORKER_REGISTRY!,
+        rfqBlockchainUtils,
+        connection,
+        sqsProducer,
+    );
 }
 
 /**
