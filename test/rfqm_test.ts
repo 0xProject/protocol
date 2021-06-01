@@ -108,9 +108,9 @@ describe(SUITE_NAME, () => {
         when(
             rfqBlockchainUtilsMock.generateMetaTransaction(anything(), anything(), anything(), anything(), anything()),
         ).thenReturn(MOCK_META_TX);
-        when(
-            rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), anything()),
-        ).thenReturn(MOCK_META_TX_CALL_DATA);
+        when(rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), anything())).thenReturn(
+            MOCK_META_TX_CALL_DATA,
+        );
         when(
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
@@ -121,17 +121,17 @@ describe(SUITE_NAME, () => {
             MD5OfMessageBody: string;
             MessageId: string;
         }
-        const sqsResponse: SqsResponse[] = [{
-            Id: 'id',
-            MD5OfMessageBody: 'MD5OfMessageBody',
-            MessageId: 'MessageId',
-        }];
+        const sqsResponse: SqsResponse[] = [
+            {
+                Id: 'id',
+                MD5OfMessageBody: 'MD5OfMessageBody',
+                MessageId: 'MessageId',
+            },
+        ];
 
         // Create the mock sqsProducer
         const sqsProducerMock = mock(Producer);
-        when(
-            sqsProducerMock.send(anything())
-        ).thenResolve(sqsResponse);
+        when(sqsProducerMock.send(anything())).thenResolve(sqsResponse);
         const sqsProducer = instance(sqsProducerMock);
 
         connection = await getDBConnectionAsync();
@@ -797,7 +797,7 @@ describe(SUITE_NAME, () => {
                 salt: '1000',
                 chainId: '1337',
                 verifyingContract: '0x123',
-            }
+            },
         };
         it('should return status 201 created and queue up a job with a successful request', async () => {
             const mockMetaTx = createMockMetaTx();
@@ -816,7 +816,7 @@ describe(SUITE_NAME, () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE})
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -836,7 +836,7 @@ describe(SUITE_NAME, () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE})
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.NOT_FOUND)
                 .expect('Content-Type', /json/);
@@ -849,7 +849,7 @@ describe(SUITE_NAME, () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: invalidType, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE})
+                .send({ type: invalidType, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
@@ -874,7 +874,7 @@ describe(SUITE_NAME, () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE})
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -882,13 +882,13 @@ describe(SUITE_NAME, () => {
             // try to submit again
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE})
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expect('Content-Type', /json/);
         });
         it('should fail with 400 BAD REQUEST if meta tx is too close to expiration', async () => {
-            const mockMetaTx = createMockMetaTx({expirationTimeSeconds: new BigNumber(1)});
+            const mockMetaTx = createMockMetaTx({ expirationTimeSeconds: new BigNumber(1) });
             const order = storedOrderToRfqmOrder(mockStoredOrder);
             const mockQuote = new RfqmQuoteEntity({
                 orderHash: order.getHash(),
@@ -902,15 +902,13 @@ describe(SUITE_NAME, () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE})
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
             expect(appResponse.body.reason).to.equal('Validation Failed');
-            expect(appResponse.body.validationErrors[0].reason).to.equal(
-                `metatransaction will expire too soon`,
-            );
+            expect(appResponse.body.validationErrors[0].reason).to.equal(`metatransaction will expire too soon`);
         });
     });
 });
