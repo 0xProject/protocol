@@ -267,9 +267,17 @@ export class RfqmService {
             opts,
         );
 
+        const firmQuotesWithCorrectChainId = firmQuotes.filter((quote) => {
+            if (quote.order.chainId !== CHAIN_ID) {
+                logger.error(`Received a quote with incorrect chain id: ${quote}`);
+                return false;
+            }
+            return true;
+        });
+
         // Get the best quote
         const bestQuote = getBestQuote(
-            firmQuotes,
+            firmQuotesWithCorrectChainId,
             isSelling,
             takerToken,
             makerToken,
