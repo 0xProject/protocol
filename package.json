@@ -145,7 +145,7 @@
         "@0x/protocol-utils": "^1.4.0",
         "@0x/quote-server": "^6.0.2",
         "@0x/subproviders": "^6.4.2",
-        "@0x/token-metadata": "^0.1.1",
+        "@0x/token-metadata": "^0.1.4",
         "@0x/types": "^3.3.2",
         "@0x/utils": "^6.4.1",
         "@0x/web3-wrapper": "^7.4.2",
