@@ -20,15 +20,27 @@ jobs:
             - name: save branch sha
               run: echo ${{ steps.comment-branch.outputs.head_sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             # Different deploy scenarios
-            - name: deploy from master to production
+            # Ethereum: folder_chain=''
+            - name: deploy from master to production (Ethereum)
               if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
-              run: echo "folder=prod" >> $GITHUB_ENV; echo "trimmed_branch_name=master" >> $GITHUB_ENV; echo ${{ github.sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
-            - name: deploy from branch to staging
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV; echo "trimmed_branch_name=master" >> $GITHUB_ENV; echo ${{ github.sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
+            - name: deploy from branch to staging (Ethereum)
               if: github.event.issue.pull_request && github.event.comment.body == 'deploy staging'
-              run: echo "folder=staging" >> $GITHUB_ENV
-            - name: deploy from branch to production
+              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV;
+            - name: deploy from branch to production (Ethereum)
               if: github.event.issue.pull_request && github.event.comment.body == 'deploy production'
-              run: echo "folder=prod" >> $GITHUB_ENV
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV;
+            # BSC: folder_chain=bsc
+            - name: deploy from branch to staging (BSC)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy staging bsc' || github.event.comment.body == 'deploy bsc staging')
+              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=bsc" >> $GITHUB_ENV;
+            - name: deploy from branch to production (BSC)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production bsc' || github.event.comment.body == 'deploy bsc production')
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=bsc" >> $GITHUB_ENV;
+            # Polygon: folder_chain=polygon
+            - name: deploy from branch to production (Polygon)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production polygon' || github.event.comment.body == 'deploy polygon production')
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
             # Make the changes to 0x-main-infra
             - name: Checkout 0x-main-infra
               uses: actions/checkout@v2
@@ -36,15 +48,20 @@ jobs:
                   token: ${{ secrets.PAT }}
                   repository: 0xProject/0x-main-infra
             - name: Update API configs
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder }}/common/*.yml env/0x-api/${{ env.folder }}/apis/*.yml
+              if: env.chain == 'ethereum'
+                run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/common/*.yml env/0x-api/${{ env.folder_env }}/apis/*.yml
+              if: env.chain == 'bsc'
+                run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/bsc/*.yml
+              if: env.chain == 'polygon'
+                run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/polygon/*.yml
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v3.5.0
               with:
                   token: ${{ secrets.PAT }}
                   author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
-                  commit-message: '0x-api/${{ env.folder }}: Deploy ${{ env.trimmed_branch_name }}'
-                  title: '[0xApi][${{ env.folder }}] Deploy ${{ env.trimmed_branch_name }}'
-                  branch: '0xApi/${{ env.folder }}/${{ env.trimmed_branch_name }}'
+                  commit-message: '0x-api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ env.trimmed_branch_name }}'
+                  title: '[0xApi][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ env.trimmed_branch_name }}'
+                  branch: '0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ env.trimmed_branch_name }}'
                   body: |
                       ## Automated deploy action
                       Triggered by @${{ github.event.sender.login }}
