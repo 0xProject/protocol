@@ -232,6 +232,11 @@ export interface KyberDmmFillData extends UniswapV2FillData {
     poolsPath: string[];
 }
 
+export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
+    // The uniswap-encoded path that can fll the maximum input amount.
+    uniswapPath: string;
+}
+
 /**
  * Represents a node on a fill path.
  */

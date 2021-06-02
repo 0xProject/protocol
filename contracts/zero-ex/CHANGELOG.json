@@ -1,5 +1,18 @@
 [
     {
+        "version": "0.25.0",
+        "changes": [
+            {
+                "note": "Add OtcOrdersFeature",
+                "pr": 244
+            },
+            {
+                "note": "Add UniswapV3 VIP feature",
+                "pr": 237
+            }
+        ]
+    },
+    {
         "timestamp": 1621944788,
         "version": "0.24.1",
         "changes": [

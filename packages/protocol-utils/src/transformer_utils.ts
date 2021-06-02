@@ -186,7 +186,10 @@ export const wethTransformerDataEncoder = AbiEncoder.create([
     {
         name: 'data',
         type: 'tuple',
-        components: [{ name: 'token', type: 'address' }, { name: 'amount', type: 'uint256' }],
+        components: [
+            { name: 'token', type: 'address' },
+            { name: 'amount', type: 'uint256' },
+        ],
     },
 ]);
 
@@ -219,7 +222,10 @@ export const payTakerTransformerDataEncoder = AbiEncoder.create([
     {
         name: 'data',
         type: 'tuple',
-        components: [{ name: 'tokens', type: 'address[]' }, { name: 'amounts', type: 'uint256[]' }],
+        components: [
+            { name: 'tokens', type: 'address[]' },
+            { name: 'amounts', type: 'uint256[]' },
+        ],
     },
 ]);
 

@@ -92,6 +92,35 @@
             {
                 "anonymous": false,
                 "inputs": [
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "signer", "type": "address" },
+                    { "indexed": false, "internalType": "bool", "name": "allowed", "type": "bool" }
+                ],
+                "name": "OrderSignerRegistered",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "taker", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "makerToken", "type": "address" },
+                    { "indexed": false, "internalType": "address", "name": "takerToken", "type": "address" },
+                    {
+                        "indexed": false,
+                        "internalType": "uint128",
+                        "name": "takerTokenFilledAmount",
+                        "type": "uint128"
+                    },
+                    { "indexed": false, "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "name": "OtcOrderFilled",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
                     { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" },
                     { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }
                 ],
@@ -353,11 +382,35 @@
             },
             {
                 "inputs": [
+                    { "internalType": "address", "name": "maker", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
+                ],
+                "name": "batchCancelPairLimitOrdersWithSigner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
                     { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
                     { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
                 ],
                 "name": "batchCancelPairRfqOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "maker", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
+                ],
+                "name": "batchCancelPairRfqOrdersWithSigner",
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -696,11 +749,35 @@
             },
             {
                 "inputs": [
+                    { "internalType": "address", "name": "maker", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
+                ],
+                "name": "cancelPairLimitOrdersWithSigner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
                     { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
                     { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
                 ],
                 "name": "cancelPairRfqOrders",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "maker", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
+                ],
+                "name": "cancelPairRfqOrdersWithSigner",
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -928,6 +1005,90 @@
                             { "internalType": "address", "name": "maker", "type": "address" },
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "uint256", "name": "expiryAndNonce", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OtcOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "makerSignature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" },
+                    { "internalType": "bool", "name": "unwrapWeth", "type": "bool" }
+                ],
+                "name": "fillOtcOrder",
+                "outputs": [
+                    { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
+                    { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "uint256", "name": "expiryAndNonce", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OtcOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "makerSignature",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "fillOtcOrderWithEth",
+                "outputs": [
+                    { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
+                    { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
                             { "internalType": "bytes32", "name": "pool", "type": "bytes32" },
                             { "internalType": "uint64", "name": "expiry", "type": "uint64" },
                             { "internalType": "uint256", "name": "salt", "type": "uint256" }
@@ -954,6 +1115,63 @@
                     { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" }
                 ],
                 "name": "fillRfqOrder",
+                "outputs": [
+                    { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
+                    { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "uint256", "name": "expiryAndNonce", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OtcOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "makerSignature",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "takerSignature",
+                        "type": "tuple"
+                    },
+                    { "internalType": "bool", "name": "unwrapWeth", "type": "bool" }
+                ],
+                "name": "fillTakerSignedOtcOrder",
                 "outputs": [
                     { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
                     { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
@@ -1139,6 +1357,62 @@
                 "type": "function"
             },
             {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "uint256", "name": "expiryAndNonce", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OtcOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getOtcOrderHash",
+                "outputs": [{ "internalType": "bytes32", "name": "orderHash", "type": "bytes32" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
+                            { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
+                            { "internalType": "address", "name": "maker", "type": "address" },
+                            { "internalType": "address", "name": "taker", "type": "address" },
+                            { "internalType": "address", "name": "txOrigin", "type": "address" },
+                            { "internalType": "uint256", "name": "expiryAndNonce", "type": "uint256" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OtcOrder",
+                        "name": "order",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getOtcOrderInfo",
+                "outputs": [
+                    {
+                        "components": [
+                            { "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
+                            { "internalType": "enum LibNativeOrder.OrderStatus", "name": "status", "type": "uint8" }
+                        ],
+                        "internalType": "struct LibNativeOrder.OtcOrderInfo",
+                        "name": "orderInfo",
+                        "type": "tuple"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
                 "inputs": [],
                 "name": "getProtocolFeeMultiplier",
                 "outputs": [{ "internalType": "uint32", "name": "multiplier", "type": "uint32" }],
@@ -1299,6 +1573,26 @@
             },
             {
                 "inputs": [
+                    { "internalType": "address", "name": "maker", "type": "address" },
+                    { "internalType": "address", "name": "signer", "type": "address" }
+                ],
+                "name": "isValidOrderSigner",
+                "outputs": [{ "internalType": "bool", "name": "isAllowed", "type": "bool" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "txOrigin", "type": "address" },
+                    { "internalType": "uint64", "name": "nonceBucket", "type": "uint64" }
+                ],
+                "name": "lastOtcTxOriginNonce",
+                "outputs": [{ "internalType": "uint128", "name": "lastNonce", "type": "uint128" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     { "internalType": "address", "name": "target", "type": "address" },
                     { "internalType": "bytes", "name": "data", "type": "bytes" },
                     { "internalType": "address", "name": "newOwner", "type": "address" }
@@ -1344,6 +1638,16 @@
             },
             {
                 "inputs": [
+                    { "internalType": "address", "name": "signer", "type": "address" },
+                    { "internalType": "bool", "name": "allowed", "type": "bool" }
+                ],
+                "name": "registerAllowedOrderSigner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     { "internalType": "address[]", "name": "origins", "type": "address[]" },
                     { "internalType": "bool", "name": "allowed", "type": "bool" }
                 ],
@@ -1360,6 +1664,17 @@
                 "name": "rollback",
                 "outputs": [],
                 "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "bytes", "name": "encodedPath", "type": "bytes" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
+                    { "internalType": "address", "name": "recipient", "type": "address" }
+                ],
+                "name": "sellEthForTokenToUniswapV3",
+                "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
+                "stateMutability": "payable",
                 "type": "function"
             },
             {
@@ -1399,6 +1714,30 @@
                 "name": "sellToUniswap",
                 "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
                 "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "bytes", "name": "encodedPath", "type": "bytes" },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
+                    { "internalType": "address payable", "name": "recipient", "type": "address" }
+                ],
+                "name": "sellTokenForEthToUniswapV3",
+                "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "bytes", "name": "encodedPath", "type": "bytes" },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
+                    { "internalType": "address", "name": "recipient", "type": "address" }
+                ],
+                "name": "sellTokenForTokenToUniswapV3",
+                "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -1449,6 +1788,17 @@
                 "outputs": [{ "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" }],
                 "stateMutability": "payable",
                 "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "int256", "name": "amount0Delta", "type": "int256" },
+                    { "internalType": "int256", "name": "amount1Delta", "type": "int256" },
+                    { "internalType": "bytes", "name": "data", "type": "bytes" }
+                ],
+                "name": "uniswapV3SwapCallback",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             }
         ],
         "devdoc": {
@@ -1488,27 +1838,45 @@
                     "returns": { "outputTokenAmount": "The amount of `outputToken` received by the taker." }
                 },
                 "batchCancelLimitOrders((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[])": {
-                    "details": "Cancel multiple limit orders. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "details": "Cancel multiple limit orders. The caller must be the maker or a valid order signer.      Silently succeeds if the order has already been cancelled.",
                     "params": { "orders": "The limit orders." }
                 },
                 "batchCancelPairLimitOrders(address[],address[],uint256[])": {
-                    "details": "Cancel all limit orders for a given maker and pair with a salt less      than the value provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
+                    "details": "Cancel all limit orders for a given maker and pairs with salts less      than the values provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
                     "params": {
+                        "makerTokens": "The maker tokens.",
+                        "minValidSalts": "The new minimum valid salts.",
+                        "takerTokens": "The taker tokens."
+                    }
+                },
+                "batchCancelPairLimitOrdersWithSigner(address,address[],address[],uint256[])": {
+                    "details": "Cancel all limit orders for a given maker and pairs with salts less      than the values provided. The caller must be a signer registered to the maker.      Subsequent calls to this function with the same maker and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "maker": "The maker for which to cancel.",
                         "makerTokens": "The maker tokens.",
                         "minValidSalts": "The new minimum valid salts.",
                         "takerTokens": "The taker tokens."
                     }
                 },
                 "batchCancelPairRfqOrders(address[],address[],uint256[])": {
-                    "details": "Cancel all RFQ orders for a given maker and pair with a salt less      than the value provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
+                    "details": "Cancel all RFQ orders for a given maker and pairs with salts less      than the values provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
                     "params": {
                         "makerTokens": "The maker tokens.",
                         "minValidSalts": "The new minimum valid salts.",
                         "takerTokens": "The taker tokens."
                     }
                 },
+                "batchCancelPairRfqOrdersWithSigner(address,address[],address[],uint256[])": {
+                    "details": "Cancel all RFQ orders for a given maker and pairs with salts less      than the values provided. The caller must be a signer registered to the maker.      Subsequent calls to this function with the same maker and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "maker": "The maker for which to cancel.",
+                        "makerTokens": "The maker tokens.",
+                        "minValidSalts": "The new minimum valid salts.",
+                        "takerTokens": "The taker tokens."
+                    }
+                },
                 "batchCancelRfqOrders((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[])": {
-                    "details": "Cancel multiple RFQ orders. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "details": "Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.      Silently succeeds if the order has already been cancelled.",
                     "params": { "orders": "The RFQ orders." }
                 },
                 "batchExecuteMetaTransactions((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256)[],(uint8,uint8,bytes32,bytes32)[])": {
@@ -1572,12 +1940,21 @@
                     }
                 },
                 "cancelLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))": {
-                    "details": "Cancel a single limit order. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "details": "Cancel a single limit order. The caller must be the maker or a valid order signer.      Silently succeeds if the order has already been cancelled.",
                     "params": { "order": "The limit order." }
                 },
                 "cancelPairLimitOrders(address,address,uint256)": {
                     "details": "Cancel all limit orders for a given maker and pair with a salt less      than the value provided. The caller must be the maker. Subsequent      calls to this function with the same caller and pair require the      new salt to be >= the old salt.",
                     "params": {
+                        "makerToken": "The maker token.",
+                        "minValidSalt": "The new minimum valid salt.",
+                        "takerToken": "The taker token."
+                    }
+                },
+                "cancelPairLimitOrdersWithSigner(address,address,address,uint256)": {
+                    "details": "Cancel all limit orders for a given maker and pair with a salt less      than the value provided. The caller must be a signer registered to the maker.      Subsequent calls to this function with the same maker and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "maker": "The maker for which to cancel.",
                         "makerToken": "The maker token.",
                         "minValidSalt": "The new minimum valid salt.",
                         "takerToken": "The taker token."
@@ -1591,8 +1968,17 @@
                         "takerToken": "The taker token."
                     }
                 },
+                "cancelPairRfqOrdersWithSigner(address,address,address,uint256)": {
+                    "details": "Cancel all RFQ orders for a given maker and pair with a salt less      than the value provided. The caller must be a signer registered to the maker.      Subsequent calls to this function with the same maker and pair require the      new salt to be >= the old salt.",
+                    "params": {
+                        "maker": "The maker for which to cancel.",
+                        "makerToken": "The maker token.",
+                        "minValidSalt": "The new minimum valid salt.",
+                        "takerToken": "The taker token."
+                    }
+                },
                 "cancelRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256))": {
-                    "details": "Cancel a single RFQ order. The caller must be the maker.      Silently succeeds if the order has already been cancelled.",
+                    "details": "Cancel a single RFQ order. The caller must be the maker or a valid order signer.      Silently succeeds if the order has already been cancelled.",
                     "params": { "order": "The RFQ order." }
                 },
                 "createTransformWallet()": {
@@ -1641,6 +2027,27 @@
                     },
                     "returns": { "makerTokenFilledAmount": "How much maker token was filled." }
                 },
+                "fillOtcOrder((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),uint128,bool)": {
+                    "details": "Fill an OTC order for up to `takerTokenFillAmount` taker tokens.",
+                    "params": {
+                        "makerSignature": "The order signature from the maker.",
+                        "order": "The OTC order.",
+                        "takerTokenFillAmount": "Maximum taker token amount to fill this        order with.",
+                        "unwrapWeth": "Whether or not to unwrap bought WETH into ETH        before transferring it to the taker. Should be set to false"
+                    },
+                    "returns": {
+                        "makerTokenFilledAmount": "How much maker token was filled.",
+                        "takerTokenFilledAmount": "How much taker token was filled."
+                    }
+                },
+                "fillOtcOrderWithEth((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32))": {
+                    "details": "Fill an OTC order whose taker token is WETH for up      to `msg.value`.",
+                    "params": { "makerSignature": "The order signature from the maker.", "order": "The OTC order." },
+                    "returns": {
+                        "makerTokenFilledAmount": "How much maker token was filled.",
+                        "takerTokenFilledAmount": "How much taker token was filled."
+                    }
+                },
                 "fillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)": {
                     "details": "Fill an RFQ order for up to `takerTokenFillAmount` taker tokens.      The taker will be the caller.",
                     "params": {
@@ -1651,6 +2058,19 @@
                     "returns": {
                         "makerTokenFilledAmount": "How much maker token was filled.",
                         "takerTokenFilledAmount": "How much maker token was filled."
+                    }
+                },
+                "fillTakerSignedOtcOrder((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),(uint8,uint8,bytes32,bytes32),bool)": {
+                    "details": "Fully fill an OTC order. \"Meta-transaction\" variant,      requires order to be signed by both maker and taker.",
+                    "params": {
+                        "makerSignature": "The order signature from the maker.",
+                        "order": "The OTC order.",
+                        "takerSignature": "The order signature from the taker.",
+                        "unwrapWeth": "Whether or not to unwrap bought WETH into ETH        before transferring it to the taker. Should be set to false        if the maker token is not WETH."
+                    },
+                    "returns": {
+                        "makerTokenFilledAmount": "How much maker token was filled.",
+                        "takerTokenFilledAmount": "How much taker token was filled."
                     }
                 },
                 "getLimitOrderHash((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))": {
@@ -1686,6 +2106,16 @@
                     "details": "Get the block at which a meta-transaction hash has been executed.",
                     "params": { "mtxHash": "The meta-transaction hash." },
                     "returns": { "blockNumber": "The block height when the meta-transactioin was executed." }
+                },
+                "getOtcOrderHash((address,address,uint128,uint128,address,address,address,uint256))": {
+                    "details": "Get the canonical hash of an OTC order.",
+                    "params": { "order": "The OTC order." },
+                    "returns": { "orderHash": "The order hash." }
+                },
+                "getOtcOrderInfo((address,address,uint128,uint128,address,address,address,uint256))": {
+                    "details": "Get the order info for an OTC order.",
+                    "params": { "order": "The OTC order." },
+                    "returns": { "orderInfo": "Info about the order." }
                 },
                 "getProtocolFeeMultiplier()": {
                     "details": "Get the protocol fee multiplier. This should be multiplied by the      gas price to arrive at the required protocol fee to fill a native order.",
@@ -1734,6 +2164,18 @@
                     "details": "Return the allowed deployer for transformers.",
                     "returns": { "deployer": "The transform deployer address." }
                 },
+                "isValidOrderSigner(address,address)": {
+                    "details": "checks if a given address is registered to sign on behalf of a maker address",
+                    "params": {
+                        "maker": "The maker address encoded in an order (can be a contract)",
+                        "signer": "The address that is providing a signature"
+                    }
+                },
+                "lastOtcTxOriginNonce(address,uint64)": {
+                    "details": "Get the last nonce used for a particular      tx.origin address and nonce bucket.",
+                    "params": { "nonceBucket": "The nonce bucket index.", "txOrigin": "The address." },
+                    "returns": { "lastNonce": "The last nonce value used." }
+                },
                 "migrate(address,bytes,address)": {
                     "details": "Execute a migration function in the context of the ZeroEx contract.      The result of the function being called should be the magic bytes      0x2c64c5ef (`keccack('MIGRATE_SUCCESS')`). Only callable by the owner.      The owner will be temporarily set to `address(this)` inside the call.      Before returning, the owner will be set to `newOwner`.",
                     "params": {
@@ -1754,6 +2196,13 @@
                     "details": "The owner of this contract.",
                     "returns": { "ownerAddress": "The owner address." }
                 },
+                "registerAllowedOrderSigner(address,bool)": {
+                    "details": "Register a signer who can sign on behalf of msg.sender      This allows one to sign on behalf of a contract that calls this function",
+                    "params": {
+                        "allowed": "True to register, false to unregister.",
+                        "signer": "The address from which you plan to generate signatures"
+                    }
+                },
                 "registerAllowedRfqOrigins(address[],bool)": {
                     "details": "Mark what tx.origin addresses are allowed to fill an order that      specifies the message sender as its txOrigin.",
                     "params": {
@@ -1767,6 +2216,15 @@
                         "selector": "The function selector.",
                         "targetImpl": "The address of an older implementation of the function."
                     }
+                },
+                "sellEthForTokenToUniswapV3(bytes,uint256,address)": {
+                    "details": "Sell attached ETH directly against uniswap v3.",
+                    "params": {
+                        "encodedPath": "Uniswap-encoded path, where the first token is WETH.",
+                        "minBuyAmount": "Minimum amount of the last token in the path to buy.",
+                        "recipient": "The recipient of the bought tokens. Can be zero for sender."
+                    },
+                    "returns": { "buyAmount": "Amount of the last token in the path bought." }
                 },
                 "sellToLiquidityProvider(address,address,address,address,uint256,uint256,bytes)": {
                     "details": "Sells `sellAmount` of `inputToken` to the liquidity provider      at the given `provider` address.",
@@ -1782,7 +2240,7 @@
                     "returns": { "boughtAmount": "The amount of `outputToken` bought." }
                 },
                 "sellToPancakeSwap(address[],uint256,uint256,uint8)": {
-                    "details": "Efficiently sell directly to PancakeSwap/BakerySwap/Sushiswap.",
+                    "details": "Efficiently sell directly to PancakeSwap (and forks).",
                     "params": {
                         "fork": "The protocol fork to use.",
                         "minBuyAmount": "Minimum amount of `tokens[-1]` to buy.",
@@ -1800,6 +2258,26 @@
                         "tokens": "Sell path."
                     },
                     "returns": { "buyAmount": "Amount of `tokens[-1]` bought." }
+                },
+                "sellTokenForEthToUniswapV3(bytes,uint256,uint256,address)": {
+                    "details": "Sell a token for ETH directly against uniswap v3.",
+                    "params": {
+                        "encodedPath": "Uniswap-encoded path, where the last token is WETH.",
+                        "minBuyAmount": "Minimum amount of ETH to buy.",
+                        "recipient": "The recipient of the bought tokens. Can be zero for sender.",
+                        "sellAmount": "amount of the first token in the path to sell."
+                    },
+                    "returns": { "buyAmount": "Amount of ETH bought." }
+                },
+                "sellTokenForTokenToUniswapV3(bytes,uint256,uint256,address)": {
+                    "details": "Sell a token for another token directly against uniswap v3.",
+                    "params": {
+                        "encodedPath": "Uniswap-encoded path.",
+                        "minBuyAmount": "Minimum amount of the last token in the path to buy.",
+                        "recipient": "The recipient of the bought tokens. Can be zero for sender.",
+                        "sellAmount": "amount of the first token in the path to sell."
+                    },
+                    "returns": { "buyAmount": "Amount of the last token in the path bought." }
                 },
                 "setQuoteSigner(address)": {
                     "details": "Replace the optional signer for `transformERC20()` calldata.      Only callable by the owner.",
@@ -1829,6 +2307,14 @@
                         "transformations": "The transformations to execute on the token balance(s)        in sequence."
                     },
                     "returns": { "outputTokenAmount": "The amount of `outputToken` received by the sender." }
+                },
+                "uniswapV3SwapCallback(int256,int256,bytes)": {
+                    "details": "The UniswapV3 pool swap callback which pays the funds requested      by the caller/pool to the pool. Can only be called by a valid      UniswapV3 pool.",
+                    "params": {
+                        "amount0Delta": "Token0 amount owed.",
+                        "amount1Delta": "Token1 amount owed.",
+                        "data": "Arbitrary data forwarded from swap() caller. An ABI-encoded        struct of: inputToken, outputToken, fee, payer"
+                    }
                 }
             },
             "version": 1

@@ -15,6 +15,7 @@ import {
     DODOFillData,
     ERC20BridgeSource,
     FillData,
+    FinalUniswapV3FillData,
     GenericRouterFillData,
     KyberDmmFillData,
     KyberFillData,
@@ -43,11 +44,6 @@ export interface CreateOrderFromPathOpts {
     orderDomain: OrderDomain;
     contractAddresses: AssetSwapperContractAddresses;
     bridgeSlippage: number;
-}
-
-interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
-    // The uniswap-encoded path that can fll the maximum input amount.
-    uniswapPath: string;
 }
 
 export function createOrdersFromTwoHopSample(
@@ -364,7 +360,10 @@ const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
-const balancerV2Encoder = AbiEncoder.create([{ name: 'vault', type: 'address' }, { name: 'poolId', type: 'bytes32' }]);
+const balancerV2Encoder = AbiEncoder.create([
+    { name: 'vault', type: 'address' },
+    { name: 'poolId', type: 'bytes32' },
+]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
@@ -372,7 +371,7 @@ export const BRIDGE_ENCODERS: {
     [key in Exclude<
         ERC20BridgeSource,
         ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop | ERC20BridgeSource.MultiBridge
-    >]: AbiEncoder.DataType
+    >]: AbiEncoder.DataType;
 } = {
     [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
         { name: 'provider', type: 'address' },

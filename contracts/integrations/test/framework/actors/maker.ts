@@ -190,9 +190,14 @@ export function MakerMixin<TBase extends Constructor>(Base: TBase): TBase & Cons
                 rightTakerAssetData,
                 makerFeeAssetData,
                 takerFeeAssetData,
-            ] = [leftMakerToken, leftTakerToken, rightMakerToken, rightTakerToken, makerFeeToken, takerFeeToken].map(
-                token => encodeERC20AssetData(token.address),
-            );
+            ] = [
+                leftMakerToken,
+                leftTakerToken,
+                rightMakerToken,
+                rightTakerToken,
+                makerFeeToken,
+                takerFeeToken,
+            ].map(token => encodeERC20AssetData(token.address));
 
             // Construct and sign the left order
             const leftOrder = await this.signOrderAsync({

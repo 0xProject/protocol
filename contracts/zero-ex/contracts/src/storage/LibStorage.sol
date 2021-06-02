@@ -38,7 +38,8 @@ library LibStorage {
         TransformERC20,
         MetaTransactions,
         ReentrancyGuard,
-        NativeOrders
+        NativeOrders,
+        OtcOrders
     }
 
     /// @dev Get the storage slot given a storage ID. We assign unique, well-spaced

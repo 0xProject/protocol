@@ -141,7 +141,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const value = testUtils.protocolFee.times(orders.length);
             const tx = await feature
-                .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), false)
+                .batchFillLimitOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    false,
+                )
                 .awaitTransactionSuccessAsync({ from: taker, value });
             const [orderInfos] = await zeroEx.batchGetLimitOrderRelevantStates(orders, signatures).callAsync();
             orderInfos.map((orderInfo, i) =>
@@ -192,7 +197,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const value = testUtils.protocolFee.times(orders.length).plus(420);
             const tx = await feature
-                .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), false)
+                .batchFillLimitOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    false,
+                )
                 .awaitTransactionSuccessAsync({ from: taker, value });
             const [orderInfos] = await zeroEx.batchGetLimitOrderRelevantStates(orders, signatures).callAsync();
             orderInfos.map((orderInfo, i) =>
@@ -219,7 +229,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const value = testUtils.protocolFee.times(orders.length);
             const tx = await feature
-                .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), false)
+                .batchFillLimitOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    false,
+                )
                 .awaitTransactionSuccessAsync({ from: taker, value });
             const [orderInfos] = await zeroEx.batchGetLimitOrderRelevantStates(orders, signatures).callAsync();
             const [expiredOrderInfo, ...filledOrderInfos] = orderInfos;
@@ -250,7 +265,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const value = testUtils.protocolFee.times(orders.length);
             const tx = await feature
-                .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), true)
+                .batchFillLimitOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    true,
+                )
                 .awaitTransactionSuccessAsync({ from: taker, value });
             const [orderInfos] = await zeroEx.batchGetLimitOrderRelevantStates(orders, signatures).callAsync();
             orderInfos.map((orderInfo, i) =>
@@ -277,7 +297,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const value = testUtils.protocolFee.times(orders.length);
             const tx = feature
-                .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), true)
+                .batchFillLimitOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    true,
+                )
                 .awaitTransactionSuccessAsync({ from: taker, value });
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.BatchFillIncompleteError(
@@ -299,7 +324,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const value = testUtils.protocolFee.times(orders.length);
             const tx = feature
-                .batchFillLimitOrders(orders, signatures, orders.map(order => order.takerAmount), true)
+                .batchFillLimitOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    true,
+                )
                 .awaitTransactionSuccessAsync({ from: taker, value });
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.BatchFillIncompleteError(
@@ -337,7 +367,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             );
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const tx = await feature
-                .batchFillRfqOrders(orders, signatures, orders.map(order => order.takerAmount), false)
+                .batchFillRfqOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    false,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             const [orderInfos] = await zeroEx.batchGetRfqOrderRelevantStates(orders, signatures).callAsync();
             orderInfos.map((orderInfo, i) =>
@@ -388,7 +423,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             );
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const tx = await feature
-                .batchFillRfqOrders(orders, signatures, orders.map(order => order.takerAmount), false)
+                .batchFillRfqOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    false,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             const [orderInfos] = await zeroEx.batchGetRfqOrderRelevantStates(orders, signatures).callAsync();
             const [expiredOrderInfo, ...filledOrderInfos] = orderInfos;
@@ -418,7 +458,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             );
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const tx = await feature
-                .batchFillRfqOrders(orders, signatures, orders.map(order => order.takerAmount), true)
+                .batchFillRfqOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    true,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             const [orderInfos] = await zeroEx.batchGetRfqOrderRelevantStates(orders, signatures).callAsync();
             orderInfos.map((orderInfo, i) =>
@@ -444,7 +489,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             );
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const tx = feature
-                .batchFillRfqOrders(orders, signatures, orders.map(order => order.takerAmount), true)
+                .batchFillRfqOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    true,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.BatchFillIncompleteError(
@@ -465,7 +515,12 @@ blockchainTests.resets('BatchFillNativeOrdersFeature', env => {
             );
             await testUtils.prepareBalancesForOrdersAsync(orders);
             const tx = feature
-                .batchFillRfqOrders(orders, signatures, orders.map(order => order.takerAmount), true)
+                .batchFillRfqOrders(
+                    orders,
+                    signatures,
+                    orders.map(order => order.takerAmount),
+                    true,
+                )
                 .awaitTransactionSuccessAsync({ from: taker });
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.BatchFillIncompleteError(

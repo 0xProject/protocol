@@ -157,11 +157,11 @@ export class FinalizerActor extends BaseActor {
             const delegators = delegatorsByPoolId[poolId];
             delegatorBalancesByPoolId[poolId] = {};
             for (const delegator of delegators) {
-                delegatorBalancesByPoolId[poolId][
-                    delegator
-                ] = (await this._stakingApiWrapper.stakingContract
-                    .getStakeDelegatedToPoolByOwner(delegator, poolId)
-                    .callAsync()).currentEpochBalance;
+                delegatorBalancesByPoolId[poolId][delegator] = (
+                    await this._stakingApiWrapper.stakingContract
+                        .getStakeDelegatedToPoolByOwner(delegator, poolId)
+                        .callAsync()
+                ).currentEpochBalance;
             }
         }
         return delegatorBalancesByPoolId;
@@ -253,7 +253,10 @@ export class FinalizerActor extends BaseActor {
         const totalFeesCollected = BigNumber.sum(...activePools.map(p => p.feesCollected));
         const totalWeightedStake = BigNumber.sum(...activePools.map(p => p.weightedStake));
         if (totalRewards.eq(0) || totalFeesCollected.eq(0) || totalWeightedStake.eq(0)) {
-            return _.zipObject(poolIds, _.times(poolIds.length, () => new BigNumber(0)));
+            return _.zipObject(
+                poolIds,
+                _.times(poolIds.length, () => new BigNumber(0)),
+            );
         }
         const rewards = await Promise.all(
             activePools.map(async pool =>

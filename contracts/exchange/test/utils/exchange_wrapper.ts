@@ -109,7 +109,11 @@ export class ExchangeWrapper {
         opts: { makerAssetFillAmount: BigNumber; gas?: number; gasPrice?: BigNumber },
     ): Promise<TransactionReceiptWithDecodedLogs> {
         return this.exchangeContract
-            .marketBuyOrdersNoThrow(orders, opts.makerAssetFillAmount, orders.map(signedOrder => signedOrder.signature))
+            .marketBuyOrdersNoThrow(
+                orders,
+                opts.makerAssetFillAmount,
+                orders.map(signedOrder => signedOrder.signature),
+            )
             .awaitTransactionSuccessAsync({ from, gas: opts.gas });
     }
     public async marketSellOrdersFillOrKillAsync(

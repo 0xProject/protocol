@@ -304,7 +304,10 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 {
                     name: 'transformations',
                     type: 'tuple[]',
-                    components: [{ name: 'deploymentNonce', type: 'uint32' }, { name: 'data', type: 'bytes' }],
+                    components: [
+                        { name: 'deploymentNonce', type: 'uint32' },
+                        { name: 'data', type: 'bytes' },
+                    ],
                 },
                 { name: 'ethValue', type: 'uint256' },
             ]);
@@ -439,7 +442,10 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 {
                     name: 'transformations',
                     type: 'tuple[]',
-                    components: [{ name: 'deploymentNonce', type: 'uint32' }, { name: 'data', type: 'bytes' }],
+                    components: [
+                        { name: 'deploymentNonce', type: 'uint32' },
+                        { name: 'data', type: 'bytes' },
+                    ],
                 },
                 { name: 'ethValue', type: 'uint256' },
             ]);
@@ -460,7 +466,10 @@ blockchainTests.fork.skip('Multiplex feature', env => {
                 {
                     name: 'calls',
                     type: 'tuple[]',
-                    components: [{ name: 'selector', type: 'bytes4' }, { name: 'data', type: 'bytes' }],
+                    components: [
+                        { name: 'selector', type: 'bytes4' },
+                        { name: 'data', type: 'bytes' },
+                    ],
                 },
                 { name: 'ethValue', type: 'uint256' },
             ]);

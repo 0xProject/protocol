@@ -39,7 +39,10 @@ blockchainTests.resets('Reentrancy Tests', env => {
         // Handle tuples.
         if (item.type === 'tuple') {
             const tuple = item as TupleDataItem;
-            return _.zipObject(tuple.components.map(c => c.name), tuple.components.map(createFunctionInputs));
+            return _.zipObject(
+                tuple.components.map(c => c.name),
+                tuple.components.map(createFunctionInputs),
+            );
         }
         // Handle strings.
         if (item.type === 'string') {

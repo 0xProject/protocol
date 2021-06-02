@@ -186,13 +186,13 @@ blockchainTests.resets('LibAssetData', env => {
         });
 
         it('should decode multiasset data', async () => {
-            expect(await devUtils.decodeMultiAssetData(KNOWN_MULTI_ASSET_ENCODING.assetData).callAsync()).to.deep.equal(
-                [
-                    AssetProxyId.MultiAsset,
-                    KNOWN_MULTI_ASSET_ENCODING.amounts,
-                    KNOWN_MULTI_ASSET_ENCODING.nestedAssetData,
-                ],
-            );
+            expect(
+                await devUtils.decodeMultiAssetData(KNOWN_MULTI_ASSET_ENCODING.assetData).callAsync(),
+            ).to.deep.equal([
+                AssetProxyId.MultiAsset,
+                KNOWN_MULTI_ASSET_ENCODING.amounts,
+                KNOWN_MULTI_ASSET_ENCODING.nestedAssetData,
+            ]);
         });
 
         it('should encode StaticCall data', async () => {
