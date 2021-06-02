@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.7.0 - _June 2, 2021_
+
+    * Add utils for OtcOrders (#244)
+
 ## v1.6.2 - _May 25, 2021_
 
     * Dependencies updated

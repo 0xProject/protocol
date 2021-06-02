@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.17.1 - _June 2, 2021_
+
+    * Dependencies updated
+
 ## v6.17.0 - _May 27, 2021_
 
     * Re-enable liquidity provider and update KNC address (#253)
@@ -23,6 +27,7 @@ CHANGELOG
 ## v6.14.0 - _May 12, 2021_
 
     * Add support for additional sources and intermediate tokens on Ropsten (#231)
+    * Add UniswapV3 VIP support (#237)
 
 ## v6.13.0 - _May 11, 2021_
 

@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.25.0 - _June 2, 2021_
+
+    * Add OtcOrdersFeature (#244)
+    * Add UniswapV3 VIP feature (#237)
+
 ## v0.24.1 - _May 25, 2021_
 
     * Dependencies updated

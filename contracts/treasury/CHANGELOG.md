@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.2.1 - _June 2, 2021_
+
+    * Dependencies updated
+
 ## v1.2.0 - _May 27, 2021_
 
     * Added proposal 0 params and test (#252)
