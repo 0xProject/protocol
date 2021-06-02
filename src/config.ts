@@ -427,7 +427,7 @@ const EXCLUDED_SOURCES = (() => {
     const allERC20BridgeSources = Object.values(ERC20BridgeSource);
     switch (CHAIN_ID) {
         case ChainId.Mainnet:
-            return [ERC20BridgeSource.MultiBridge];
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.MakerPsm];
         case ChainId.Kovan:
             return allERC20BridgeSources.filter(
                 (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,

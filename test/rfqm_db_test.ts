@@ -42,15 +42,15 @@ describe(SUITE_NAME, () => {
     };
 
     const order = new RfqOrder({
-        txOrigin: '0xsomeone',
-        taker: '0xataker',
-        maker: '0xamaker',
-        makerToken: '0xamakertoken',
-        takerToken: '0xatakertoken',
+        txOrigin: '0x0000000000000000000000000000000000000000',
+        taker: '0x1111111111111111111111111111111111111111',
+        maker: '0x2222222222222222222222222222222222222222',
+        makerToken: '0x3333333333333333333333333333333333333333',
+        takerToken: '0x4444444444444444444444444444444444444444',
         expiry,
         salt: new BigNumber(1),
         chainId,
-        verifyingContract: '0xacontract',
+        verifyingContract: '0x0000000000000000000000000000000000000000',
         pool: '0x1',
     });
 
