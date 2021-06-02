@@ -120,6 +120,7 @@ const RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON = new Counter({
     name: 'rfqm_signed_quote_expiry_too_soon',
     help: 'A signed quote was not queued because it would expire too soon',
 });
+const PRICE_DECIMAL_PLACES = 6;
 
 /**
  * RfqmService is the coordination layer for HTTP based RFQM flows.
@@ -204,10 +205,13 @@ export class RfqmService {
         const makerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.makerAmount, makerTokenDecimals);
         const takerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.takerAmount, takerTokenDecimals);
         const price = isSelling ? makerAmountInUnit.div(takerAmountInUnit) : takerAmountInUnit.div(makerAmountInUnit);
+        // The way the BigNumber round down behavior (https://mikemcl.github.io/bignumber.js/#dp) works requires us
+        // to add 1 to PRICE_DECIMAL_PLACES in order to actually come out with the decimal places specified.
+        const roundedPrice = price.decimalPlaces(PRICE_DECIMAL_PLACES + 1, BigNumber.ROUND_DOWN);
 
         // Prepare response
         return {
-            price,
+            price: roundedPrice,
             gas: gasPrice,
             buyAmount: bestQuote.makerAmount,
             buyTokenAddress: bestQuote.makerToken,
@@ -328,11 +332,14 @@ export class RfqmService {
         const makerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.makerAmount, makerTokenDecimals);
         const takerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.takerAmount, takerTokenDecimals);
         const price = isSelling ? makerAmountInUnit.div(takerAmountInUnit) : takerAmountInUnit.div(makerAmountInUnit);
+        // The way the BigNumber round down behavior (https://mikemcl.github.io/bignumber.js/#dp) works requires us
+        // to add 1 to PRICE_DECIMAL_PLACES in order to actually come out with the decimal places specified.
+        const roundedPrice = price.decimalPlaces(PRICE_DECIMAL_PLACES + 1, BigNumber.ROUND_DOWN);
 
         // Prepare response
         return {
             type: RfqmTypes.MetaTransaction,
-            price,
+            price: roundedPrice,
             gas: gasPrice,
             buyAmount: bestQuote.order.makerAmount,
             buyTokenAddress: bestQuote.order.makerToken,
