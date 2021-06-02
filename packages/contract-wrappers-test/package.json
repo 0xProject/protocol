@@ -1,6 +1,6 @@
 {
     "name": "@0x/contract-wrappers-test",
-    "version": "12.2.47",
+    "version": "12.2.48",
     "engines": {
         "node": ">=6.12"
     },
@@ -31,11 +31,11 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-wrappers-test",
     "devDependencies": {
-        "@0x/contract-wrappers": "^13.16.3",
-        "@0x/contracts-test-utils": "^5.4.2",
+        "@0x/contract-wrappers": "^13.17.0",
+        "@0x/contracts-test-utils": "^5.4.3",
         "@0x/dev-utils": "^4.2.7",
-        "@0x/migrations": "^8.0.8",
-        "@0x/order-utils": "^10.4.23",
+        "@0x/migrations": "^8.0.9",
+        "@0x/order-utils": "^10.4.24",
         "@0x/subproviders": "^6.5.3",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.4",
