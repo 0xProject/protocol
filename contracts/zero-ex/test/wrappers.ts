@@ -105,6 +105,7 @@ export * from '../test/generated-wrappers/multiplex_liquidity_provider';
 export * from '../test/generated-wrappers/multiplex_rfq';
 export * from '../test/generated-wrappers/multiplex_transform_erc20';
 export * from '../test/generated-wrappers/multiplex_uniswap_v2';
+export * from '../test/generated-wrappers/multiplex_uniswap_v3';
 export * from '../test/generated-wrappers/native_orders_cancellation';
 export * from '../test/generated-wrappers/native_orders_feature';
 export * from '../test/generated-wrappers/native_orders_info';

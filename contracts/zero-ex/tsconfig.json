@@ -138,6 +138,7 @@
         "test/generated-artifacts/MultiplexRfq.json",
         "test/generated-artifacts/MultiplexTransformERC20.json",
         "test/generated-artifacts/MultiplexUniswapV2.json",
+        "test/generated-artifacts/MultiplexUniswapV3.json",
         "test/generated-artifacts/NativeOrdersCancellation.json",
         "test/generated-artifacts/NativeOrdersFeature.json",
         "test/generated-artifacts/NativeOrdersInfo.json",
