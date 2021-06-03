@@ -108,6 +108,7 @@ import * as MultiplexLiquidityProvider from '../test/generated-artifacts/Multipl
 import * as MultiplexRfq from '../test/generated-artifacts/MultiplexRfq.json';
 import * as MultiplexTransformERC20 from '../test/generated-artifacts/MultiplexTransformERC20.json';
 import * as MultiplexUniswapV2 from '../test/generated-artifacts/MultiplexUniswapV2.json';
+import * as MultiplexUniswapV3 from '../test/generated-artifacts/MultiplexUniswapV3.json';
 import * as NativeOrdersCancellation from '../test/generated-artifacts/NativeOrdersCancellation.json';
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
 import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.json';
@@ -227,6 +228,7 @@ export const artifacts = {
     MultiplexRfq: MultiplexRfq as ContractArtifact,
     MultiplexTransformERC20: MultiplexTransformERC20 as ContractArtifact,
     MultiplexUniswapV2: MultiplexUniswapV2 as ContractArtifact,
+    MultiplexUniswapV3: MultiplexUniswapV3 as ContractArtifact,
     NativeOrdersCancellation: NativeOrdersCancellation as ContractArtifact,
     NativeOrdersInfo: NativeOrdersInfo as ContractArtifact,
     NativeOrdersProtocolFees: NativeOrdersProtocolFees as ContractArtifact,
