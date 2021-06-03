@@ -103,6 +103,10 @@ import * as MixinUniswapV3 from '../test/generated-artifacts/MixinUniswapV3.json
 import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridge.json';
 import * as MooniswapLiquidityProvider from '../test/generated-artifacts/MooniswapLiquidityProvider.json';
 import * as MultiplexFeature from '../test/generated-artifacts/MultiplexFeature.json';
+import * as MultiplexLiquidityProvider from '../test/generated-artifacts/MultiplexLiquidityProvider.json';
+import * as MultiplexRfq from '../test/generated-artifacts/MultiplexRfq.json';
+import * as MultiplexTransformERC20 from '../test/generated-artifacts/MultiplexTransformERC20.json';
+import * as MultiplexUniswapV2 from '../test/generated-artifacts/MultiplexUniswapV2.json';
 import * as NativeOrdersCancellation from '../test/generated-artifacts/NativeOrdersCancellation.json';
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
 import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.json';
@@ -191,7 +195,6 @@ export const artifacts = {
     BootstrapFeature: BootstrapFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
-    MultiplexFeature: MultiplexFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OtcOrdersFeature: OtcOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
@@ -218,6 +221,11 @@ export const artifacts = {
     IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
+    MultiplexFeature: MultiplexFeature as ContractArtifact,
+    MultiplexLiquidityProvider: MultiplexLiquidityProvider as ContractArtifact,
+    MultiplexRfq: MultiplexRfq as ContractArtifact,
+    MultiplexTransformERC20: MultiplexTransformERC20 as ContractArtifact,
+    MultiplexUniswapV2: MultiplexUniswapV2 as ContractArtifact,
     NativeOrdersCancellation: NativeOrdersCancellation as ContractArtifact,
     NativeOrdersInfo: NativeOrdersInfo as ContractArtifact,
     NativeOrdersProtocolFees: NativeOrdersProtocolFees as ContractArtifact,

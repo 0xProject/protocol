@@ -25,8 +25,18 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 interface IMultiplexFeature {
 
-    // Parameters for `batchFill`.
-    struct BatchFillData {
+    enum MultiplexSubcall {
+        Invalid,
+        RFQ,
+        UniswapV2,
+        UniswapV3,
+        LiquidityProvider,
+        TransformERC20,
+        BatchSell,
+        MultiHopSell
+    }
+
+    struct BatchSellParams {
         // The token being sold.
         IERC20TokenV06 inputToken;
         // The token being bought.
@@ -34,13 +44,16 @@ interface IMultiplexFeature {
         // The amount of `inputToken` to sell.
         uint256 sellAmount;
         // The nested calls to perform.
-        WrappedBatchCall[] calls;
+        BatchSellSubcall[] calls;
+
+        bool useSelfBalance;
+        address recipient;
     }
 
     // Represents a call nested within a `batchFill`.
-    struct WrappedBatchCall {
-        // The selector of the function to call.
-        bytes4 selector;
+    struct BatchSellSubcall {
+        // The function to call.
+        MultiplexSubcall id;
         // Amount of `inputToken` to sell.
         uint256 sellAmount;
         // ABI-encoded parameters needed to perform the call.
@@ -48,70 +61,98 @@ interface IMultiplexFeature {
     }
 
     // Parameters for `multiHopFill`.
-    struct MultiHopFillData {
+    struct MultiHopSellParams {
         // The sell path, i.e.
         // tokens = [inputToken, hopToken1, ..., hopTokenN, outputToken]
         address[] tokens;
         // The amount of `tokens[0]` to sell.
         uint256 sellAmount;
         // The nested calls to perform.
-        WrappedMultiHopCall[] calls;
+        MultiHopSellSubcall[] calls;
+
+        bool useSelfBalance;
+        address recipient;
     }
 
     // Represents a call nested within a `multiHopFill`.
-    struct WrappedMultiHopCall {
-        // The selector of the function to call.
-        bytes4 selector;
+    struct MultiHopSellSubcall {
+        // The function to call.
+        MultiplexSubcall id;
         // ABI-encoded parameters needed to perform the call.
         bytes data;
     }
 
-    event LiquidityProviderSwap(
-        address inputToken,
-        address outputToken,
-        uint256 inputTokenAmount,
-        uint256 outputTokenAmount,
-        address provider,
-        address recipient
-    );
+    struct BatchSellState {
+        // Tracks the amount of input token sold.
+        uint256 soldAmount;
+        // Tracks the amount of output token bought.
+        uint256 boughtAmount;
+    }
 
-    event ExpiredRfqOrder(
-        bytes32 orderHash,
-        address maker,
-        uint64 expiry
-    );
+    struct MultiHopSellState {
+        // This variable is used as the input and output amounts of
+        // each hop. After the final hop, this will contain the output
+        // amount of the multi-hop fill.
+        uint256 outputTokenAmount;
+        // This variable is used to cache the address to target in the
+        // next hop. See `_computeHopRecipient` for details.
+        address currentTarget;
+        address nextTarget;
+        uint256 hopIndex;
+    }
 
-    /// @dev Executes a batch of fills selling `fillData.inputToken`
-    ///      for `fillData.outputToken` in sequence. Refer to the
-    ///      internal variant `_batchFill` for the allowed nested
-    ///      operations.
-    /// @param fillData Encodes the input/output tokens, the sell
-    ///        amount, and the nested operations for this batch fill.
-    /// @param minBuyAmount The minimum amount of `fillData.outputToken`
-    ///        to buy. Reverts if this amount is not met.
-    /// @return outputTokenAmount The amount of the output token bought.
-    function batchFill(
-        BatchFillData calldata fillData,
+    function multiplexBatchSellEthForToken(
+        IERC20TokenV06 outputToken,
+        BatchSellSubcall[] calldata calls,
         uint256 minBuyAmount
     )
         external
         payable
-        returns (uint256 outputTokenAmount);
+        returns (uint256 boughtAmount);
 
-    /// @dev Executes a sequence of fills "hopping" through the
-    ///      path of tokens given by `fillData.tokens`. Refer to the
-    ///      internal variant `_multiHopFill` for the allowed nested
-    ///      operations.
-    /// @param fillData Encodes the path of tokens, the sell amount,
-    ///        and the nested operations for this multi-hop fill.
-    /// @param minBuyAmount The minimum amount of the output token
-    ///        to buy. Reverts if this amount is not met.
-    /// @return outputTokenAmount The amount of the output token bought.
-    function multiHopFill(
-        MultiHopFillData calldata fillData,
+    function multiplexBatchSellTokenForEth(
+        IERC20TokenV06 inputToken,
+        BatchSellSubcall[] calldata calls,
+        uint256 sellAmount,
+        uint256 minBuyAmount
+    )
+        external
+        returns (uint256 boughtAmount);
+
+    function multiplexBatchSellTokenForToken(
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        BatchSellSubcall[] calldata calls,
+        uint256 sellAmount,
+        uint256 minBuyAmount
+    )
+        external
+        returns (uint256 boughtAmount);
+
+    function multiplexMultiHopSellEthForToken(
+        address[] calldata tokens,
+        MultiHopSellSubcall[] calldata calls,
         uint256 minBuyAmount
     )
         external
         payable
-        returns (uint256 outputTokenAmount);
+        returns (uint256 boughtAmount);
+
+    function multiplexMultiHopSellTokenForEth(
+        address[] calldata tokens,
+        MultiHopSellSubcall[] calldata calls,
+        uint256 sellAmount,
+        uint256 minBuyAmount
+    )
+        external
+        returns (uint256 boughtAmount);
+
+    function multiplexMultiHopSellTokenForToken(
+        address[] calldata tokens,
+        MultiHopSellSubcall[] calldata calls,
+        uint256 sellAmount,
+        uint256 minBuyAmount
+    )
+        external
+        returns (uint256 boughtAmount);
 }
