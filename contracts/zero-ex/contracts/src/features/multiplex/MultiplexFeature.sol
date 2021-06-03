@@ -28,11 +28,11 @@ import "../../fixins/FixinCommon.sol";
 import "../../migrations/LibMigrate.sol";
 import "../interfaces/IFeature.sol";
 import "../interfaces/IMultiplexFeature.sol";
-import "../interfaces/IUniswapV3Feature.sol";
 import "./MultiplexLiquidityProvider.sol";
 import "./MultiplexRfq.sol";
 import "./MultiplexTransformERC20.sol";
 import "./MultiplexUniswapV2.sol";
+import "./MultiplexUniswapV3.sol";
 
 
 /// @dev This feature enables efficient batch and multi-hop trades
@@ -44,7 +44,8 @@ contract MultiplexFeature is
     MultiplexLiquidityProvider,
     MultiplexRfq,
     MultiplexTransformERC20,
-    MultiplexUniswapV2
+    MultiplexUniswapV2,
+    MultiplexUniswapV3
 {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MultiplexFeature";
@@ -312,21 +313,12 @@ contract MultiplexFeature is
                     inputTokenAmount
                 );
             } else if (wrappedCall.id == MultiplexSubcall.UniswapV3) {
-                (bool success, bytes memory resultData) = address(this).delegatecall(
-                    abi.encodeWithSelector(
-                        IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
-                        wrappedCall.data,
-                        inputTokenAmount,
-                        0,
-                        msg.sender
-                    )
+                _batchSellUniswapV3(
+                    state,
+                    params,
+                    wrappedCall.data,
+                    inputTokenAmount
                 );
-                if (success) {
-                    uint256 outputTokenAmount = abi.decode(resultData, (uint256));
-                    // Increment the sold and bought amounts.
-                    state.soldAmount = state.soldAmount.safeAdd(inputTokenAmount);
-                    state.boughtAmount = state.boughtAmount.safeAdd(outputTokenAmount);
-                }
             } else if (wrappedCall.id == MultiplexSubcall.LiquidityProvider) {
                 _batchSellLiquidityProvider(
                     state,
@@ -390,14 +382,15 @@ contract MultiplexFeature is
 
         state.hopIndex = 0;
         state.nextTarget = _computeHopTarget(params, 0);
-        if (!params.useSelfBalance) {
+        if (!params.useSelfBalance && state.nextTarget != msg.sender) {
             _transferERC20TokensFrom(
                 IERC20TokenV06(params.tokens[0]),
                 msg.sender,
                 state.nextTarget,
                 params.sellAmount
             );
-        } else if (state.nextTarget != address(this)) {
+        }
+        if (params.useSelfBalance && state.nextTarget != address(this)) {
             _transferERC20Tokens(
                 IERC20TokenV06(params.tokens[0]),
                 state.nextTarget,
@@ -412,6 +405,12 @@ contract MultiplexFeature is
 
             if (wrappedCall.id == MultiplexSubcall.UniswapV2) {
                 _multiHopSellUniswapV2(
+                    state,
+                    params,
+                    wrappedCall.data
+                );
+            } else if (wrappedCall.id == MultiplexSubcall.UniswapV3) {
+                _multiHopSellUniswapV3(
                     state,
                     params,
                     wrappedCall.data
@@ -452,10 +451,10 @@ contract MultiplexFeature is
     )
         private
         view
-        returns (address recipient)
+        returns (address target)
     {
         if (i == params.calls.length) {
-            recipient = params.recipient;
+            target = params.recipient;
         } else {
             MultiHopSellSubcall memory wrappedCall = params.calls[i];
             if (wrappedCall.id == MultiplexSubcall.UniswapV2) {
@@ -463,23 +462,32 @@ contract MultiplexFeature is
                     wrappedCall.data,
                     (address[], bool)
                 );
-                recipient = _computeUniswapPairAddress(
+                target = _computeUniswapPairAddress(
                     tokens[0],
                     tokens[1],
                     isSushi
                 );
             } else if (wrappedCall.id == MultiplexSubcall.LiquidityProvider) {
-                (recipient,) = abi.decode(
+                (target,) = abi.decode(
                     wrappedCall.data,
                     (address, bytes)
                 );
+            } else if (
+                wrappedCall.id == MultiplexSubcall.UniswapV3 ||
+                wrappedCall.id == MultiplexSubcall.BatchSell
+            ) {
+                if (i == 0 && !params.useSelfBalance) {
+                    target = msg.sender;
+                } else {
+                    target = address(this);
+                }
             } else {
                 revert("MultiplexFeature::_computeHopTarget/INVALID_SUBCALL");
             }
         }
         require(
-            recipient != address(0),
-            "MultiplexFeature::_computeHopTarget/RECIPIENT_IS_NULL"
+            target != address(0),
+            "MultiplexFeature::_computeHopTarget/TARGET_IS_NULL"
         );
     }
 }
