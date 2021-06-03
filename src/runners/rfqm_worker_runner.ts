@@ -6,11 +6,18 @@ import { SQS } from 'aws-sdk';
 import * as express from 'express';
 import { Counter } from 'prom-client';
 
-import { ENABLE_PROMETHEUS_METRICS, PROMETHEUS_PORT, RFQM_META_TX_SQS_URL } from '../config';
+import {
+    ENABLE_PROMETHEUS_METRICS,
+    META_TX_WORKER_INDEX,
+    META_TX_WORKER_MNEMONIC,
+    PROMETHEUS_PORT,
+    RFQM_META_TX_SQS_URL,
+} from '../config';
 import { METRICS_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
 import { RfqmService } from '../services/rfqm_service';
+import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
 
@@ -42,23 +49,35 @@ if (require.main === module) {
         // Start the Metrics Server
         startMetricsServer();
 
+        if (META_TX_WORKER_MNEMONIC === undefined) {
+            throw new Error(`META_TX_WORKER_MNEMONIC must be defined to use RFQM worker runner`);
+        }
+        if (META_TX_WORKER_INDEX === undefined) {
+            throw new Error(`META_TX_WORKER_INDEX must be defined to use RFQM worker runner`);
+        }
+
+        const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(
+            META_TX_WORKER_MNEMONIC,
+            META_TX_WORKER_INDEX,
+        );
+
         // Build dependencies
         const connection = await getDBConnectionAsync();
-        const rfqmService = await buildRfqmServiceAsync(connection);
+        const rfqmService = await buildRfqmServiceAsync(connection, true);
 
         // Run the worker
-        await runRfqmWorkerAsync(rfqmService);
+        await runRfqmWorkerAsync(rfqmService, workerAddress);
     })().catch((error) => logger.error(error.stack));
 }
 
 /**
  * Runs the Rfqm Consumer
  */
-export async function runRfqmWorkerAsync(rfqmService: RfqmService): Promise<SqsConsumer> {
+export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress: string): Promise<SqsConsumer> {
     // Build the Sqs consumer
     const sqsClient = new SqsClient(new SQS({ apiVersion: '2012-11-05' }), RFQM_META_TX_SQS_URL!);
     const consumer = new SqsConsumer({
-        id: 'TODO-replace-with-address',
+        id: workerAddress,
         sqsClient,
         handleMessage: async (message) => {
             RFQM_JOB_DEQUEUED.inc();

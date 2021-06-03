@@ -1,13 +1,16 @@
 import { provider } from '@0x/contracts-test-utils';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
-import { CallData, SupportedProvider, Web3Wrapper } from '@0x/dev-utils';
+import { CallData, SupportedProvider, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
-import { BigNumber } from '@0x/utils';
+import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import { BigNumber, providerUtils } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
 import { TxData } from 'ethereum-types';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { ChainId } from '../types';
+
+import { SubproviderAdapter } from './subprovider_adapter';
 
 // allow a wide range for gas price for flexibility
 const MIN_GAS_PRICE = new BigNumber(0);
@@ -21,13 +24,25 @@ export class RfqBlockchainUtils {
     public static getPrivateKeyFromIndexAndPhrase(mnemonic: string, index: number): string {
         const hdNode = HDNode.fromMnemonic(mnemonic).derivePath(this._getPathByIndex(index));
 
-        return hdNode.privateKey;
+        // take '0x' off
+        return hdNode.privateKey.substring(2);
     }
 
     public static getAddressFromIndexAndPhrase(mnemonic: string, index: number): string {
         const hdNode = HDNode.fromMnemonic(mnemonic).derivePath(this._getPathByIndex(index));
 
         return hdNode.address;
+    }
+
+    public static createPrivateKeyProvider(
+        rpcProvider: SupportedProvider,
+        privateWalletSubprovider: PrivateKeyWalletSubprovider,
+    ): SupportedProvider {
+        const providerEngine = new Web3ProviderEngine();
+        providerEngine.addProvider(privateWalletSubprovider);
+        providerEngine.addProvider(new SubproviderAdapter(rpcProvider));
+        providerUtils.startProviderEngine(providerEngine);
+        return providerEngine;
     }
 
     // tslint:disable-next-line:prefer-function-over-method
