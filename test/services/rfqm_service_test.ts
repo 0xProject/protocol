@@ -2,7 +2,13 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { FillQuoteTransformerOrderType, ProtocolFeeUtils, QuoteRequestor, SignatureType } from '@0x/asset-swapper';
+import {
+    FillQuoteTransformerOrderType,
+    ProtocolFeeUtils,
+    QuoteRequestor,
+    SignatureType,
+    SignedNativeOrder,
+} from '@0x/asset-swapper';
 import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
@@ -391,71 +397,6 @@ describe('RfqmService', () => {
                 }
                 expect(res.sellAmount.toNumber()).to.equal(100);
                 expect(res.price.toNumber()).to.equal(1.01); // Worse pricing wins because better pricing is for wrong pair
-            });
-
-            it.skip('should ignore quotes that are for the wrong chain', async () => {
-                const contractAddresses = getContractAddressesForChainOrThrow(1);
-                const worsePricing = {
-                    chainId: 1337,
-                    makerToken: contractAddresses.zrxToken,
-                    makerAmount: new BigNumber(101),
-                    takerToken: contractAddresses.etherToken,
-                    takerAmount: new BigNumber(100),
-                    expiry: NEVER_EXPIRES,
-                };
-                const wrongChain = {
-                    chainId: 1,
-                    makerToken: contractAddresses.zrxToken,
-                    makerAmount: new BigNumber(111),
-                    takerToken: contractAddresses.etherToken,
-                    takerAmount: new BigNumber(100),
-                    expiry: NEVER_EXPIRES,
-                };
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([worsePricing, wrongChain]);
-
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
-
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
-
-                const res = await service.fetchIndicativeQuoteAsync({
-                    apiKey: 'some-api-key',
-                    buyToken: contractAddresses.zrxToken,
-                    sellToken: contractAddresses.etherToken,
-                    buyTokenDecimals: 18,
-                    sellTokenDecimals: 18,
-                    sellAmount: new BigNumber(100),
-                });
-
-                if (res === null) {
-                    expect.fail('res is null, but not expected to be null');
-                    return;
-                }
-                expect(res.sellAmount.toNumber()).to.equal(100);
-                expect(res.price.toNumber()).to.equal(1.01); // Worse pricing wins because better pricing is for wrong chain
             });
 
             it('should ignore quotes that expire within 3 minutes', async () => {
@@ -940,6 +881,107 @@ describe('RfqmService', () => {
                 expect(res.price.toNumber()).to.equal(0.8);
                 expect(res.metaTransactionHash).to.match(/^0x[0-9a-fA-F]+/);
                 expect(res.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+            });
+
+            it('should ignore quotes that are for the wrong chain', async () => {
+                const contractAddresses = getContractAddressesForChainOrThrow(1);
+                // Given
+                const makerUri = 'https://rfqm.somemaker.xyz';
+                const quoteRequestorMock = mock(QuoteRequestor);
+
+                const worsePrice: SignedNativeOrder = {
+                    order: new RfqOrder({
+                        chainId: 1337,
+                        makerToken: contractAddresses.zrxToken,
+                        makerAmount: new BigNumber(100),
+                        takerToken: contractAddresses.etherToken,
+                        takerAmount: new BigNumber(101),
+                        expiry: NEVER_EXPIRES,
+                    }),
+                    type: FillQuoteTransformerOrderType.Rfq,
+                    signature: INVALID_SIGNATURE,
+                };
+
+                const wrongChain: SignedNativeOrder = {
+                    order: new RfqOrder({
+                        chainId: 1,
+                        makerToken: contractAddresses.zrxToken,
+                        makerAmount: new BigNumber(100),
+                        takerToken: contractAddresses.etherToken,
+                        takerAmount: new BigNumber(5),
+                        expiry: NEVER_EXPIRES,
+                    }),
+                    type: FillQuoteTransformerOrderType.Rfq,
+                    signature: INVALID_SIGNATURE,
+                };
+
+                when(
+                    quoteRequestorMock.requestRfqmFirmQuotesAsync(
+                        anything(),
+                        anything(),
+                        anything(),
+                        anything(),
+                        anything(),
+                        anything(),
+                    ),
+                ).thenResolve([worsePrice, wrongChain]);
+                when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
+
+                const quoteRequestorInstance = instance(quoteRequestorMock);
+                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
+                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
+                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
+                when(
+                    rfqBlockchainUtilsMock.generateMetaTransaction(
+                        anything(),
+                        anything(),
+                        anything(),
+                        anything(),
+                        anything(),
+                    ),
+                ).thenReturn(MOCK_META_TX);
+                const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
+
+                // Mock out the repository
+                const repositoryMock = mock(Repository);
+                when(repositoryMock.insert(anything())).thenResolve(new InsertResult());
+                const repositoryInstance = instance(repositoryMock);
+
+                // Mock out the connection
+                const connectionMock = mock(Connection);
+                when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
+                const connectionInstance = instance(connectionMock);
+                const sqsMock = mock(Producer);
+
+                const service = new RfqmService(
+                    quoteRequestorInstance,
+                    protocolFeeUtilsInstance,
+                    contractAddresses,
+                    MOCK_WORKER_REGISTRY_ADDRESS,
+                    rfqBlockchainUtils,
+                    connectionInstance,
+                    sqsMock,
+                );
+
+                // When
+                const res = await service.fetchFirmQuoteAsync({
+                    apiKey: 'some-api-key',
+                    takerAddress,
+                    buyToken: contractAddresses.zrxToken,
+                    sellToken: contractAddresses.etherToken,
+                    buyTokenDecimals: 18,
+                    sellTokenDecimals: 18,
+                    buyAmount: new BigNumber(100),
+                });
+
+                // Then
+                if (res === null) {
+                    expect.fail('res is null, but not expected to be null');
+                    return;
+                }
+
+                expect(res.price.toNumber()).to.equal(1.01); // Worse pricing wins because better pricing is for wrong chain
             });
         });
     });
