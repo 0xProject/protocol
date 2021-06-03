@@ -3,7 +3,7 @@
  */
 import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import { SQS } from 'aws-sdk';
-import express from 'express';
+import * as express from 'express';
 import { Counter } from 'prom-client';
 
 import { ENABLE_PROMETHEUS_METRICS, PROMETHEUS_PORT, RFQM_META_TX_SQS_URL } from '../config';
