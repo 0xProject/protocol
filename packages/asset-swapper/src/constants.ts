@@ -47,7 +47,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
     ...DEFAULT_ORDER_PRUNER_OPTS,
-    samplerGasLimit: 500e6,
+    samplerGasLimit: 500e7,
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     rfqt: {
         takerApiKeyWhitelist: [],
@@ -90,8 +90,6 @@ export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
 
 const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: EMPTY_BYTES32, s: EMPTY_BYTES32 };
-
-export { DEFAULT_FEE_SCHEDULE, DEFAULT_GAS_SCHEDULE } from './utils/market_operation_utils/constants';
 
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 

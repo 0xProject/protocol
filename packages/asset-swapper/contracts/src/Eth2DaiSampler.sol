@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -20,21 +20,38 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/IEth2Dai.sol";
-import "./SamplerUtils.sol";
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinOasis.sol";
+import "./SwapRevertSampler.sol";
 
 
 contract Eth2DaiSampler is
-    SamplerUtils
+    MixinOasis,
+    SwapRevertSampler
 {
-    /// @dev Base gas limit for Eth2Dai calls.
-    uint256 constant private ETH2DAI_CALL_GAS = 1000e3; // 1m
+
+    function sampleSwapFromOasis(
+        address sellToken,
+        address buyToken,
+        bytes memory bridgeData,
+        uint256 takerTokenAmount
+    )
+        external
+        returns (uint256)
+    {
+        return _tradeOasis(
+            IERC20TokenV06(sellToken),
+            IERC20TokenV06(buyToken),
+            takerTokenAmount,
+            bridgeData
+        );
+    }
 
     /// @dev Sample sell quotes from Eth2Dai/Oasis.
     /// @param router Address of the Eth2Dai/Oasis contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return gasUsed gas consumed in each sample sell
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromEth2Dai(
@@ -44,29 +61,17 @@ contract Eth2DaiSampler is
         uint256[] memory takerTokenAmounts
     )
         public
-        view
-        returns (uint256[] memory makerTokenAmounts)
+        returns (uint256[] memory gasUsed, uint256[] memory makerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
-        for (uint256 i = 0; i < numSamples; i++) {
-            try
-                IEth2Dai(router).getBuyAmount
-                    {gas: ETH2DAI_CALL_GAS}
-                    (makerToken, takerToken, takerTokenAmounts[i])
-                returns (uint256 amount)
-            {
-                makerTokenAmounts[i] = amount;
-                // Break early if there are 0 amounts
-                if (makerTokenAmounts[i] == 0) {
-                    break;
-                }
-            } catch (bytes memory) {
-                // Swallow failures, leaving all results as zero.
-                break;
-            }
-        }
+        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
+            SwapRevertSamplerQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                bridgeData: abi.encode(router),
+                getSwapQuoteCallback: this.sampleSwapFromOasis
+            }),
+            takerTokenAmounts
+        );
     }
 
     /// @dev Sample buy quotes from Eth2Dai/Oasis.
@@ -74,6 +79,7 @@ contract Eth2DaiSampler is
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Maker token sell amount for each sample.
+    /// @return gasUsed gas consumed in each sample sell
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromEth2Dai(
@@ -83,28 +89,17 @@ contract Eth2DaiSampler is
         uint256[] memory makerTokenAmounts
     )
         public
-        view
-        returns (uint256[] memory takerTokenAmounts)
+        returns (uint256[] memory gasUsed, uint256[] memory takerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
-        for (uint256 i = 0; i < numSamples; i++) {
-            try
-                IEth2Dai(router).getPayAmount
-                    {gas: ETH2DAI_CALL_GAS}
-                    (takerToken, makerToken, makerTokenAmounts[i])
-                returns (uint256 amount)
-            {
-                takerTokenAmounts[i] = amount;
-                // Break early if there are 0 amounts
-                if (takerTokenAmounts[i] == 0) {
-                    break;
-                }
-            } catch (bytes memory) {
-                // Swallow failures, leaving all results as zero.
-                break;
-            }
-        }
+        (gasUsed, takerTokenAmounts) = _sampleSwapApproximateBuys(
+            SwapRevertSamplerBuyQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                sellTokenData: abi.encode(router),
+                buyTokenData: abi.encode(router),
+                getSwapQuoteCallback: this.sampleSwapFromOasis
+            }),
+            makerTokenAmounts
+        );
     }
 }

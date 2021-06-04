@@ -52,6 +52,17 @@ interface IKyberNetworkProxy {
         external
         payable
         returns (uint256 boughtAmount);
+
+    function getExpectedRateAfterFee(
+        address src,
+        address dest,
+        uint256 srcQty,
+        uint256 platformFeeBps,
+        bytes calldata hint
+    )
+        external
+        view
+        returns (uint256 expectedRate);
 }
 
 contract MixinKyber {
@@ -79,11 +90,25 @@ contract MixinKyber {
         internal
         returns (uint256 boughtAmount)
     {
+        return _tradeKyberInternal(KYBER_ETH_ADDRESS, WETH, sellToken, buyToken, sellAmount, bridgeData);
+    }
+
+    function _tradeKyberInternal(
+        IERC20TokenV06 kyberEthAddress,
+        IEtherTokenV06 weth,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+    )
+        internal
+        returns (uint256 boughtAmount)
+    {
         (IKyberNetworkProxy kyber, bytes memory hint) =
             abi.decode(bridgeData, (IKyberNetworkProxy, bytes));
 
         uint256 payableAmount = 0;
-        if (sellToken != WETH) {
+        if (sellToken != weth) {
             // If the input token is not WETH, grant an allowance to the exchange
             // to spend them.
             sellToken.approveIfBelow(
@@ -93,18 +118,18 @@ contract MixinKyber {
         } else {
             // If the input token is WETH, unwrap it and attach it to the call.
             payableAmount = sellAmount;
-            WETH.withdraw(payableAmount);
+            weth.withdraw(payableAmount);
         }
 
         // Try to sell all of this contract's input token balance through
         // `KyberNetworkProxy.trade()`.
         boughtAmount = kyber.tradeWithHint{ value: payableAmount }(
             // Input token.
-            sellToken == WETH ? KYBER_ETH_ADDRESS : sellToken,
+            sellToken == weth ? kyberEthAddress : sellToken,
             // Sell amount.
             sellAmount,
             // Output token.
-            buyToken == WETH ? KYBER_ETH_ADDRESS : buyToken,
+            buyToken == weth ? kyberEthAddress : buyToken,
             // Transfer to this contract
             address(uint160(address(this))),
             // Buy as much as possible.
@@ -116,8 +141,8 @@ contract MixinKyber {
             hint
         );
         // If receving ETH, wrap it to WETH.
-        if (buyToken == WETH) {
-            WETH.deposit{ value: boughtAmount }();
+        if (buyToken == weth) {
+            weth.deposit{ value: boughtAmount }();
         }
         return boughtAmount;
     }

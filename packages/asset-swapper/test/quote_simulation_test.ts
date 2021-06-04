@@ -4,6 +4,7 @@ import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { MarketOperation } from '../src/types';
+import { NATIVE_LIMIT_ORDER_GAS_USED } from '../src/utils/market_operation_utils/constants';
 import {
     CollapsedFill,
     ERC20BridgeSource,
@@ -26,8 +27,6 @@ describe('quote_simulation tests', async () => {
     const ONE = new BigNumber(1);
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
-    const GAS_SCHEDULE = { [ERC20BridgeSource.Uniswap]: _.constant(1), [ERC20BridgeSource.Native]: _.constant(1) };
-
     // Check if two numbers are within `maxError` error rate within each other.
     function assertRoughlyEquals(n1: BigNumber, n2: BigNumber, maxError: BigNumber | number = 1e-10): void {
         // |n2-n1| / max(|n1|, |n2|)
@@ -161,6 +160,7 @@ describe('quote_simulation tests', async () => {
             },
             type,
             fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
+            gasUsed: NATIVE_LIMIT_ORDER_GAS_USED,
         };
         return order;
     }
@@ -182,6 +182,7 @@ describe('quote_simulation tests', async () => {
                     input: subFillInputs[j],
                     output: subFillOutputs[j],
                 })),
+                gasUsed: new BigNumber(1),
             };
         });
     }
@@ -247,7 +248,7 @@ describe('quote_simulation tests', async () => {
                     fillsCount,
                     count: 1,
                 });
-                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
@@ -269,7 +270,7 @@ describe('quote_simulation tests', async () => {
                     count: 1,
                 });
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(inputFillAmount);
@@ -295,7 +296,7 @@ describe('quote_simulation tests', async () => {
                     count: 1,
                 });
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(inputFillAmount);
@@ -318,7 +319,7 @@ describe('quote_simulation tests', async () => {
                     count: 1,
                 });
                 const inputFillAmount = fillableInput.times(3 / 2).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
@@ -343,7 +344,7 @@ describe('quote_simulation tests', async () => {
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
-                const result = fillQuoteOrders(fillOrders, totalFillableInput, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, totalFillableInput, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, totalFillableInput);
@@ -370,7 +371,7 @@ describe('quote_simulation tests', async () => {
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
                 const inputFillAmount = totalFillableInput.times(2 / 3).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, inputFillAmount);
@@ -397,7 +398,7 @@ describe('quote_simulation tests', async () => {
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
                 const inputFillAmount = totalFillableInput.times(3 / 2).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, totalFillableInput);
@@ -423,7 +424,7 @@ describe('quote_simulation tests', async () => {
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
-                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, fillableInput);
@@ -450,7 +451,7 @@ describe('quote_simulation tests', async () => {
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, inputFillAmount);
@@ -477,7 +478,7 @@ describe('quote_simulation tests', async () => {
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
                 const inputFillAmount = fillableInput.times(3 / 2).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, fillableInput);
@@ -500,7 +501,7 @@ describe('quote_simulation tests', async () => {
                     count: 1,
                     type: FillQuoteTransformerOrderType.Rfq,
                 });
-                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
@@ -516,7 +517,7 @@ describe('quote_simulation tests', async () => {
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const fillOrders = createQuoteFillOrders({ fillableInput, fillableOutput, side });
-                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
@@ -531,7 +532,7 @@ describe('quote_simulation tests', async () => {
                 const fillableOutput = getRandomOrderSize();
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
                 const fillOrders = createQuoteFillOrders({ fillableInput, fillableOutput, side });
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(inputFillAmount);
@@ -545,7 +546,7 @@ describe('quote_simulation tests', async () => {
                 const fillableOutput = getRandomOrderSize();
                 const inputFillAmount = fillableInput.times(3 / 2).integerValue();
                 const fillOrders = createQuoteFillOrders({ fillableInput, fillableOutput, side });
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
@@ -567,7 +568,7 @@ describe('quote_simulation tests', async () => {
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
-                const result = fillQuoteOrders(fillOrders, totalFillableInput, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, totalFillableInput, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, totalFillableInput);
@@ -591,7 +592,7 @@ describe('quote_simulation tests', async () => {
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
                 const inputFillAmount = totalFillableInput.times(2 / 3).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, inputFillAmount);
@@ -615,7 +616,7 @@ describe('quote_simulation tests', async () => {
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
                 const totalFillableInput = fillableInput.times(signedInputFeeRate + 1).integerValue();
                 const inputFillAmount = totalFillableInput.times(3 / 2).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, totalFillableInput);
@@ -638,7 +639,7 @@ describe('quote_simulation tests', async () => {
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
-                const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, fillableInput, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, fillableInput);
@@ -662,7 +663,7 @@ describe('quote_simulation tests', async () => {
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, inputFillAmount);
@@ -686,7 +687,7 @@ describe('quote_simulation tests', async () => {
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
                 const totalFillableOutput = fillableOutput.times(signedOutputFeeRate + 1).integerValue();
                 const inputFillAmount = fillableInput.times(3 / 2).integerValue();
-                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE, GAS_SCHEDULE);
+                const result = fillQuoteOrders(fillOrders, inputFillAmount, ONE);
                 const totalFilledInput = result.input.plus(result.inputFee);
                 const totalFilledOutput = result.output.plus(result.outputFee);
                 assertRoughlyEquals(totalFilledInput, fillableInput);
@@ -744,7 +745,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
             if (side === MarketOperation.Sell) {
                 expect(result.totalMakerAssetAmount).to.be.bignumber.eq(fillableOutput);
@@ -769,7 +770,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
             expect(result.gas).to.eq(countCollapsedFills(orders));
             expect(result.protocolFeeAmount).to.bignumber.gt(orders.length);
@@ -801,7 +802,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: inputFillAmount,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
@@ -835,7 +836,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: totalFillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
 
             assertRoughlyEquals(result.takerAssetAmount, fillableInput);
@@ -865,7 +866,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: inputFillAmount,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
@@ -893,7 +894,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
             expect(result.gas).to.eq(countCollapsedFills(orders));
             expect(result.protocolFeeAmount).to.bignumber.gt(orders.length);
@@ -923,7 +924,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: inputFillAmount,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
@@ -951,7 +952,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE, slippage },
+                opts: { slippage },
             });
             if (side === MarketOperation.Sell) {
                 const slippedOutput = fillableOutput.times(1 - slippage).integerValue();
@@ -982,14 +983,14 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: {},
             });
             const worstCase = simulateWorstCaseFill({
                 orders,
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE, slippage: orderSlippage },
+                opts: { slippage: orderSlippage },
             });
             const bestPrice = bestCase.makerAssetAmount.div(bestCase.totalTakerAssetAmount);
             const worstPrice = worstCase.makerAssetAmount.div(worstCase.totalTakerAssetAmount);

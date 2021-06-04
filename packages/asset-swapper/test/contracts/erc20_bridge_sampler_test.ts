@@ -18,7 +18,8 @@ import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '
 // tslint:disable: custom-no-magic-numbers
 
 const { NULL_ADDRESS } = constants;
-blockchainTests('erc20-bridge-sampler', env => {
+// jacob: Skip until we can override in Ganache
+blockchainTests.skip('erc20-bridge-sampler', env => {
     let testContract: TestERC20BridgeSamplerContract;
     const RATE_DENOMINATOR = constants.ONE_ETHER;
     const MIN_RATE = new BigNumber('0.01');
@@ -37,7 +38,6 @@ blockchainTests('erc20-bridge-sampler', env => {
     const KYBER_RESERVE_OFFSET = new BigNumber(0);
     let KYBER_ADDRESS = '';
     let ETH2DAI_ADDRESS = '';
-    let UNISWAP_ADDRESS = '';
     let UNISWAP_V2_ROUTER = '';
 
     before(async () => {
@@ -50,7 +50,6 @@ blockchainTests('erc20-bridge-sampler', env => {
         UNISWAP_V2_ROUTER = await testContract.uniswapV2Router().callAsync();
         KYBER_ADDRESS = await testContract.kyber().callAsync();
         ETH2DAI_ADDRESS = await testContract.eth2Dai().callAsync();
-        UNISWAP_ADDRESS = await testContract.uniswap().callAsync();
     });
 
     function getPackedHash(...args: string[]): string {
@@ -655,198 +654,6 @@ blockchainTests('erc20-bridge-sampler', env => {
             await enableFailTriggerAsync();
             const quotes = await testContract
                 .sampleBuysFromEth2Dai(ETH2DAI_ADDRESS, WETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-    });
-
-    blockchainTests.resets('sampleSellsFromUniswap()', () => {
-        const UNISWAP_ETH_ADDRESS = NULL_ADDRESS;
-        before(async () => {
-            await testContract.createTokenExchanges([MAKER_TOKEN, TAKER_TOKEN]).awaitTransactionSuccessAsync();
-        });
-
-        it('throws if tokens are the same', async () => {
-            const tx = testContract.sampleSellsFromUniswap(UNISWAP_ADDRESS, MAKER_TOKEN, MAKER_TOKEN, []).callAsync();
-            return expect(tx).to.revertWith(INVALID_TOKEN_PAIR_ERROR);
-        });
-
-        it('can return no quotes', async () => {
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, MAKER_TOKEN, [])
-                .callAsync();
-            expect(quotes).to.deep.eq([]);
-        });
-
-        it('can quote token -> token', async () => {
-            const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
-            const [expectedQuotes] = getDeterministicSellQuotes(TAKER_TOKEN, MAKER_TOKEN, ['Uniswap'], sampleAmounts);
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if token -> token fails', async () => {
-            const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            await enableFailTriggerAsync();
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('can quote token -> ETH', async () => {
-            const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
-            const [expectedQuotes] = getDeterministicSellQuotes(TAKER_TOKEN, WETH_ADDRESS, ['Uniswap'], sampleAmounts);
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, UNISWAP_ETH_ADDRESS, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if token -> ETH fails', async () => {
-            const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            await enableFailTriggerAsync();
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, UNISWAP_ETH_ADDRESS, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('can quote ETH -> token', async () => {
-            const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
-            const [expectedQuotes] = getDeterministicSellQuotes(WETH_ADDRESS, TAKER_TOKEN, ['Uniswap'], sampleAmounts);
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, UNISWAP_ETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if ETH -> token fails', async () => {
-            const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            await enableFailTriggerAsync();
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, UNISWAP_ETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if no exchange exists for the maker token', async () => {
-            const nonExistantToken = randomAddress();
-            const sampleAmounts = getSampleAmounts(TAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, nonExistantToken, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if no exchange exists for the taker token', async () => {
-            const nonExistantToken = randomAddress();
-            const sampleAmounts = getSampleAmounts(nonExistantToken);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            const quotes = await testContract
-                .sampleSellsFromUniswap(UNISWAP_ADDRESS, nonExistantToken, MAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-    });
-
-    blockchainTests.resets('sampleBuysFromUniswap()', () => {
-        const UNISWAP_ETH_ADDRESS = NULL_ADDRESS;
-        before(async () => {
-            await testContract.createTokenExchanges([MAKER_TOKEN, TAKER_TOKEN]).awaitTransactionSuccessAsync();
-        });
-
-        it('throws if tokens are the same', async () => {
-            const tx = testContract.sampleBuysFromUniswap(UNISWAP_ADDRESS, MAKER_TOKEN, MAKER_TOKEN, []).callAsync();
-            return expect(tx).to.revertWith(INVALID_TOKEN_PAIR_ERROR);
-        });
-
-        it('can return no quotes', async () => {
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, MAKER_TOKEN, [])
-                .callAsync();
-            expect(quotes).to.deep.eq([]);
-        });
-
-        it('can quote token -> token', async () => {
-            const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
-            const [expectedQuotes] = getDeterministicBuyQuotes(TAKER_TOKEN, MAKER_TOKEN, ['Uniswap'], sampleAmounts);
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if token -> token fails', async () => {
-            const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            await enableFailTriggerAsync();
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, MAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('can quote token -> ETH', async () => {
-            const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
-            const [expectedQuotes] = getDeterministicBuyQuotes(TAKER_TOKEN, WETH_ADDRESS, ['Uniswap'], sampleAmounts);
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, UNISWAP_ETH_ADDRESS, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if token -> ETH fails', async () => {
-            const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            await enableFailTriggerAsync();
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, UNISWAP_ETH_ADDRESS, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('can quote ETH -> token', async () => {
-            const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
-            const [expectedQuotes] = getDeterministicBuyQuotes(WETH_ADDRESS, TAKER_TOKEN, ['Uniswap'], sampleAmounts);
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, UNISWAP_ETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if ETH -> token fails', async () => {
-            const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            await enableFailTriggerAsync();
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, UNISWAP_ETH_ADDRESS, TAKER_TOKEN, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if no exchange exists for the maker token', async () => {
-            const nonExistantToken = randomAddress();
-            const sampleAmounts = getSampleAmounts(nonExistantToken);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, TAKER_TOKEN, nonExistantToken, sampleAmounts)
-                .callAsync();
-            expect(quotes).to.deep.eq(expectedQuotes);
-        });
-
-        it('returns zero if no exchange exists for the taker token', async () => {
-            const nonExistantToken = randomAddress();
-            const sampleAmounts = getSampleAmounts(MAKER_TOKEN);
-            const expectedQuotes = _.times(sampleAmounts.length, () => constants.ZERO_AMOUNT);
-            const quotes = await testContract
-                .sampleBuysFromUniswap(UNISWAP_ADDRESS, nonExistantToken, MAKER_TOKEN, sampleAmounts)
                 .callAsync();
             expect(quotes).to.deep.eq(expectedQuotes);
         });

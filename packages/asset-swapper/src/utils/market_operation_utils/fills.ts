@@ -3,8 +3,14 @@ import { BigNumber, hexUtils } from '@0x/utils';
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
-import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
+import {
+    NATIVE_LIMIT_ORDER_GAS_USED,
+    NATIVE_RFQT_GAS_USED,
+    POSITIVE_INF,
+    SOURCE_FLAGS,
+    ZERO_AMOUNT,
+} from './constants';
+import { DexSample, ERC20BridgeSource, Fill } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 
@@ -13,17 +19,16 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
  */
 export function createFills(opts: {
     side: MarketOperation;
+    gasPrice: BigNumber;
     orders?: NativeOrderWithFillableAmounts[];
     dexQuotes?: DexSample[][];
     targetInput?: BigNumber;
     outputAmountPerEth?: BigNumber;
     inputAmountPerEth?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
-    feeSchedule?: FeeSchedule;
 }): Fill[][] {
     const { side } = opts;
     const excludedSources = opts.excludedSources || [];
-    const feeSchedule = opts.feeSchedule || {};
     const orders = opts.orders || [];
     const dexQuotes = opts.dexQuotes || [];
     const outputAmountPerEth = opts.outputAmountPerEth || ZERO_AMOUNT;
@@ -35,11 +40,11 @@ export function createFills(opts: {
         opts.targetInput,
         outputAmountPerEth,
         inputAmountPerEth,
-        feeSchedule,
+        opts.gasPrice,
     );
     // Create DEX fills.
     const dexFills = dexQuotes.map(singleSourceSamples =>
-        dexSamplesToFills(side, singleSourceSamples, outputAmountPerEth, inputAmountPerEth, feeSchedule),
+        dexSamplesToFills(side, singleSourceSamples, outputAmountPerEth, inputAmountPerEth, opts.gasPrice),
     );
     return [...dexFills, nativeFills]
         .map(p => clipFillsToInput(p, opts.targetInput))
@@ -77,7 +82,7 @@ function nativeOrdersToFills(
     targetInput: BigNumber = POSITIVE_INF,
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
 ): Fill[] {
     const sourcePathId = hexUtils.random();
     // Create a single path from all orders.
@@ -88,10 +93,12 @@ function nativeOrdersToFills(
         const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
         const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
-        const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o);
+        const gasUsed =
+            o.type === FillQuoteTransformerOrderType.Limit ? NATIVE_LIMIT_ORDER_GAS_USED : NATIVE_RFQT_GAS_USED;
+        const feeInEth = gasUsed.times(gasPrice);
         const outputPenalty = !outputAmountPerEth.isZero()
-            ? outputAmountPerEth.times(fee)
-            : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
+            ? outputAmountPerEth.times(feeInEth)
+            : inputAmountPerEth.times(feeInEth).times(output.dividedToIntegerBy(input));
         // targetInput can be less than the order size
         // whilst the penalty is constant, it affects the adjusted output
         // only up until the target has been exhausted.
@@ -104,6 +111,7 @@ function nativeOrdersToFills(
             side === MarketOperation.Sell ? clippedOutput.minus(outputPenalty) : clippedOutput.plus(outputPenalty);
         const adjustedRate =
             side === MarketOperation.Sell ? adjustedOutput.div(clippedInput) : clippedInput.div(adjustedOutput);
+
         // Skip orders with rates that are <= 0.
         if (adjustedRate.lte(0)) {
             continue;
@@ -119,6 +127,7 @@ function nativeOrdersToFills(
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
             type,
+            gasUsed,
             fillData: { ...o },
         });
     }
@@ -137,7 +146,7 @@ function dexSamplesToFills(
     samples: DexSample[],
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
 ): Fill[] {
     const sourcePathId = hexUtils.random();
     const fills: Fill[] = [];
@@ -152,7 +161,12 @@ function dexSamplesToFills(
         const { source, fillData } = sample;
         const input = sample.input.minus(prevSample ? prevSample.input : 0);
         const output = sample.output.minus(prevSample ? prevSample.output : 0);
-        const fee = fees[source] === undefined ? 0 : fees[source]!(sample.fillData) || 0;
+
+        if (!sample.gasUsed || sample.gasUsed.isZero()) {
+            throw new Error(`${sample.source} gas used missing or 0`);
+        }
+        const fee = gasPrice.times(sample.gasUsed);
+
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
             // Only the first fill in a DEX path incurs a penalty.
@@ -173,6 +187,7 @@ function dexSamplesToFills(
             index: i,
             parent: i !== 0 ? fills[fills.length - 1] : undefined,
             flags: SOURCE_FLAGS[source],
+            gasUsed: sample.gasUsed,
         });
     }
     return fills;

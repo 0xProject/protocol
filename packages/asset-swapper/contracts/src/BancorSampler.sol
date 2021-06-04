@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -20,11 +20,21 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/IBancor.sol";
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinBancor.sol";
+import "./SwapRevertSampler.sol";
 
 contract CompilerHack {}
 
-contract BancorSampler is CompilerHack {
+contract BancorSampler is
+    CompilerHack,
+    MixinBancor,
+    SwapRevertSampler
+{
+
+    constructor(IEtherTokenV06 weth)
+        public
+        MixinBancor(weth)
+    { }
 
     /// @dev Base gas limit for Bancor calls.
     uint256 constant private BANCOR_CALL_GAS = 300e3; // 300k
@@ -34,6 +44,23 @@ contract BancorSampler is CompilerHack {
         address[][] paths;
     }
 
+    function sampleSwapFromBancor(
+        address sellToken,
+        address buyToken,
+        bytes memory bridgeData,
+        uint256 takerTokenAmount
+    )
+        external
+        returns (uint256)
+    {
+        return _tradeBancorInternal(
+            _getNativeWrappedToken(),
+            IERC20TokenV06(buyToken),
+            takerTokenAmount,
+            bridgeData
+        );
+    }
+
     /// @dev Sample sell quotes from Bancor.
     /// @param opts BancorSamplerOpts The Bancor registry contract address and paths
     /// @param takerToken Address of the taker token (what to sell).
@@ -41,6 +68,7 @@ contract BancorSampler is CompilerHack {
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return bancorNetwork the Bancor Network address
     /// @return path the selected conversion path from bancor
+    /// @return gasUsed gas consumed in each sample sell
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromBancor(
@@ -50,34 +78,30 @@ contract BancorSampler is CompilerHack {
         uint256[] memory takerTokenAmounts
     )
         public
-        view
-        returns (address bancorNetwork, address[] memory path, uint256[] memory makerTokenAmounts)
+        returns (
+            address bancorNetwork,
+            address[] memory path,
+            uint256[] memory gasUsed,
+            uint256[] memory makerTokenAmounts
+        )
     {
         if (opts.paths.length == 0) {
-            return (bancorNetwork, path, makerTokenAmounts);
+            return (bancorNetwork, path, gasUsed, makerTokenAmounts);
         }
-        (bancorNetwork, path) = _findBestPath(opts, takerToken, makerToken, takerTokenAmounts);
-        makerTokenAmounts = new uint256[](takerTokenAmounts.length);
 
-        for (uint256 i = 0; i < makerTokenAmounts.length; i++) {
-            try
-                IBancorNetwork(bancorNetwork)
-                    .rateByPath
-                        {gas: BANCOR_CALL_GAS}
-                        (path, takerTokenAmounts[i])
-                returns (uint256 amount)
-            {
-                makerTokenAmounts[i] = amount;
-                // Break early if there are 0 amounts
-                if (makerTokenAmounts[i] == 0) {
-                    break;
-                }
-            } catch {
-                // Swallow failures, leaving all results as zero.
-                break;
-            }
-        }
-        return (bancorNetwork, path, makerTokenAmounts);
+        (bancorNetwork, path) = _findBestPath(opts, takerToken, makerToken, takerTokenAmounts);
+
+        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
+            SwapRevertSamplerQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                bridgeData: abi.encode(bancorNetwork, path),
+                getSwapQuoteCallback: this.sampleSwapFromBancor
+            }),
+            takerTokenAmounts
+        );
+
+        return (bancorNetwork, path, gasUsed, makerTokenAmounts);
     }
 
     /// @dev Sample buy quotes from Bancor. Unimplemented
@@ -87,6 +111,7 @@ contract BancorSampler is CompilerHack {
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return bancorNetwork the Bancor Network address
     /// @return path the selected conversion path from bancor
+    /// @return gasUsed gas consumed in each sample sell
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromBancor(
@@ -97,7 +122,7 @@ contract BancorSampler is CompilerHack {
     )
         public
         view
-        returns (address bancorNetwork, address[] memory path, uint256[] memory takerTokenAmounts)
+        returns (address bancorNetwork, address[] memory path, uint256[] memory gasUsed, uint256[] memory takerTokenAmounts)
     {
     }
 

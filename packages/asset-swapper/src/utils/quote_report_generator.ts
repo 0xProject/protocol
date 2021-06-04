@@ -4,6 +4,7 @@ import _ = require('lodash');
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
+import { NATIVE_LIMIT_ORDER_GAS_USED, NATIVE_RFQT_GAS_USED } from './market_operation_utils/constants';
 import {
     CollapsedFill,
     DexSample,
@@ -22,6 +23,7 @@ export interface QuoteReportEntryBase {
     makerAmount: BigNumber;
     takerAmount: BigNumber;
     fillData: FillData;
+    gasUsed: BigNumber;
 }
 export interface BridgeQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
@@ -140,6 +142,7 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
             takerAmount: ds.output,
             liquiditySource,
             fillData: ds.fillData,
+            gasUsed: ds.gasUsed,
         };
     } else if (marketOperation === MarketOperation.Sell) {
         return {
@@ -147,6 +150,7 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
             takerAmount: ds.input,
             liquiditySource,
             fillData: ds.fillData,
+            gasUsed: ds.gasUsed,
         };
     } else {
         throw new Error(`Unexpected marketOperation ${marketOperation}`);
@@ -171,6 +175,7 @@ export function multiHopSampleToReportSource(
             takerAmount: ds.output,
             fillData: ds.fillData,
             hopSources: [firstHop.source, secondHop.source],
+            gasUsed: ds.gasUsed,
         };
     } else if (marketOperation === MarketOperation.Sell) {
         return {
@@ -179,6 +184,7 @@ export function multiHopSampleToReportSource(
             takerAmount: ds.input,
             fillData: ds.fillData,
             hopSources: [firstHop.source, secondHop.source],
+            gasUsed: ds.gasUsed,
         };
     } else {
         throw new Error(`Unexpected marketOperation ${marketOperation}`);
@@ -223,6 +229,7 @@ export function nativeOrderToReportEntry(
             ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
             nativeOrder,
             fillData,
+            gasUsed: NATIVE_RFQT_GAS_USED,
         };
     } else {
         // tslint:disable-next-line: no-object-literal-type-assertion
@@ -231,6 +238,7 @@ export function nativeOrderToReportEntry(
             ...nativeOrderBase,
             isRfqt: false,
             fillData,
+            gasUsed: NATIVE_LIMIT_ORDER_GAS_USED,
         };
     }
 }

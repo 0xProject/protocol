@@ -21,18 +21,22 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/IKyberNetwork.sol";
-import "./ApproximateBuys.sol";
-import "./SamplerUtils.sol";
-
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinKyber.sol";
+import "./SwapRevertSampler.sol";
 
 contract KyberSampler is
-    SamplerUtils,
-    ApproximateBuys
+    MixinKyber,
+    SwapRevertSampler
 {
+
     /// @dev Gas limit for Kyber calls.
     uint256 constant private KYBER_CALL_GAS = 500e3; // 500k
     /// @dev Kyber ETH pseudo-address.
     address constant internal KYBER_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    constructor(IEtherTokenV06 weth)
+        public
+        MixinKyber(weth)
+    { }
 
     struct KyberSamplerOpts {
         uint256 reserveOffset;
@@ -42,6 +46,27 @@ contract KyberSampler is
         bytes hint;
     }
 
+    function sampleSwapFromKyber(
+        address sellToken,
+        address buyToken,
+        bytes memory bridgeData,
+        uint256 takerTokenAmount
+    )
+        external
+        returns (uint256)
+    {
+        KyberSamplerOpts memory opts = abi.decode(bridgeData, (KyberSamplerOpts));
+        return _tradeKyberInternal(
+            // these are Immutable in MixinKyber, since they are only set in constructor they must be passed in
+            IERC20TokenV06(KYBER_ETH_ADDRESS),
+            IEtherTokenV06(opts.weth),
+            IERC20TokenV06(sellToken),
+            IERC20TokenV06(buyToken),
+            takerTokenAmount,
+            abi.encode(opts.networkProxy, opts.hint)
+        );
+    }
+
     /// @dev Sample sell quotes from Kyber.
     /// @param opts KyberSamplerOpts The nth reserve
     /// @param takerToken Address of the taker token (what to sell).
@@ -49,6 +74,7 @@ contract KyberSampler is
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return reserveId The id of the reserve found at reserveOffset
     /// @return hint The hint for the selected reserve
+    /// @return gasUsed Gas consumed per sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromKyberNetwork(
         KyberSamplerOpts memory opts,
@@ -57,32 +83,29 @@ contract KyberSampler is
         uint256[] memory takerTokenAmounts
     )
         public
-        view
-        returns (bytes32 reserveId, bytes memory hint, uint256[] memory makerTokenAmounts)
+        returns (
+            bytes32 reserveId,
+            bytes memory hint,
+            uint256[] memory gasUsed,
+            uint256[] memory makerTokenAmounts
+        )
     {
-        _assertValidPair(makerToken, takerToken);
         reserveId = _getNextReserveId(opts, takerToken, makerToken);
         if (reserveId == 0x0) {
-            return (reserveId, hint, makerTokenAmounts);
+            return (reserveId, hint, gasUsed, makerTokenAmounts);
         }
         opts.hint = this.encodeKyberHint(opts, reserveId, takerToken, makerToken);
         hint = opts.hint;
 
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
-        for (uint256 i = 0; i < numSamples; i++) {
-            uint256 value = this.sampleSellFromKyberNetwork(
-                opts,
-                takerToken,
-                makerToken,
-                takerTokenAmounts[i]
-            );
-            makerTokenAmounts[i] = value;
-            // Break early if there are 0 amounts
-            if (makerTokenAmounts[i] == 0) {
-                break;
-            }
-        }
+        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
+            SwapRevertSamplerQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                bridgeData: abi.encode(opts),
+                getSwapQuoteCallback: this.sampleSwapFromKyber
+            }),
+            takerTokenAmounts
+        );
     }
 
     /// @dev Sample buy quotes from Kyber.
@@ -92,6 +115,7 @@ contract KyberSampler is
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return reserveId The id of the reserve found at reserveOffset
     /// @return hint The hint for the selected reserve
+    /// @return gasUsed Gas consumed for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromKyberNetwork(
         KyberSamplerOpts memory opts,
@@ -100,27 +124,30 @@ contract KyberSampler is
         uint256[] memory makerTokenAmounts
     )
         public
-        view
-        returns (bytes32 reserveId, bytes memory hint, uint256[] memory takerTokenAmounts)
+        returns (
+            bytes32 reserveId,
+            bytes memory hint,
+            uint256[] memory gasUsed,
+            uint256[] memory takerTokenAmounts
+        )
     {
-        _assertValidPair(makerToken, takerToken);
-
         reserveId = _getNextReserveId(opts, takerToken, makerToken);
         if (reserveId == 0x0) {
-            return (reserveId, hint, takerTokenAmounts);
+            return (reserveId, hint, gasUsed, takerTokenAmounts);
         }
         opts.hint = this.encodeKyberHint(opts, reserveId, takerToken, makerToken);
         hint = opts.hint;
 
-        takerTokenAmounts = _sampleApproximateBuys(
-            ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(makerToken, opts),
-                takerTokenData: abi.encode(takerToken, opts),
-                getSellQuoteCallback: _sampleSellForApproximateBuyFromKyber
+        (gasUsed, takerTokenAmounts) = _sampleSwapApproximateBuys(
+            SwapRevertSamplerBuyQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                sellTokenData: abi.encode(opts),
+                buyTokenData: abi.encode(opts),
+                getSwapQuoteCallback: this.sampleSwapFromKyber
             }),
             makerTokenAmounts
         );
-        return (reserveId, hint, takerTokenAmounts);
     }
 
     function encodeKyberHint(
@@ -198,73 +225,6 @@ contract KyberSampler is
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
             }
-        }
-    }
-
-    function _sampleSellForApproximateBuyFromKyber(
-        bytes memory takerTokenData,
-        bytes memory makerTokenData,
-        uint256 sellAmount
-    )
-        private
-        view
-        returns (uint256)
-    {
-        (address makerToken, KyberSamplerOpts memory opts) =
-            abi.decode(makerTokenData, (address, KyberSamplerOpts));
-        (address takerToken, ) =
-            abi.decode(takerTokenData, (address, KyberSamplerOpts));
-        try
-            this.sampleSellFromKyberNetwork
-                (opts, takerToken, makerToken, sellAmount)
-            returns (uint256 amount)
-        {
-            return amount;
-        } catch (bytes memory) {
-            // Swallow failures, leaving all results as zero.
-            return 0;
-        }
-    }
-
-    function sampleSellFromKyberNetwork(
-        KyberSamplerOpts memory opts,
-        address takerToken,
-        address makerToken,
-        uint256 takerTokenAmount
-    )
-        public
-        view
-        returns (uint256 makerTokenAmount)
-    {
-        // If there is no hint do not continue
-        if (opts.hint.length == 0) {
-            return 0;
-        }
-
-        try
-            IKyberNetworkProxy(opts.networkProxy).getExpectedRateAfterFee
-                {gas: KYBER_CALL_GAS}
-                (
-                    takerToken == opts.weth ? KYBER_ETH_ADDRESS : takerToken,
-                    makerToken == opts.weth ? KYBER_ETH_ADDRESS : makerToken,
-                    takerTokenAmount,
-                    0, // fee
-                    opts.hint
-                )
-            returns (uint256 rate)
-        {
-            uint256 makerTokenDecimals = _getTokenDecimals(makerToken);
-            uint256 takerTokenDecimals = _getTokenDecimals(takerToken);
-            makerTokenAmount =
-                rate *
-                takerTokenAmount *
-                10 ** makerTokenDecimals /
-                10 ** takerTokenDecimals /
-                10 ** 18;
-            return makerTokenAmount;
-        } catch (bytes memory) {
-            // Swallow failures, leaving all results as zero.
-            return 0;
         }
     }
 

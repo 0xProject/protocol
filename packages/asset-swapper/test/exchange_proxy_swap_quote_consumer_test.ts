@@ -102,6 +102,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             takerAmount: order.takerAmount,
             fills: [],
             ...optimizerFields,
+            gasUsed: new BigNumber(1),
         };
     }
 

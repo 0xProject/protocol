@@ -1,5 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
+import _ = require('lodash');
 
 import { SamplerOverrides } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
@@ -141,11 +142,12 @@ export class DexOrderSampler extends SamplerOperations {
      * Run a series of operations from `DexOrderSampler.ops` in a single transaction.
      * Takes an arbitrary length array, but is not typesafe.
      */
-    public async executeBatchAsync<T extends Array<BatchedOperation<any>>>(ops: T): Promise<any[]> {
+    public async executeBatchAsync<T extends Array<BatchedOperation<any>>>(
+        ops: T,
+        opts: Partial<SamplerOverrides> = {},
+    ): Promise<any[]> {
         const callDatas = ops.map(o => o.encodeCall());
-        const { overrides, block } = this._samplerOverrides
-            ? this._samplerOverrides
-            : { overrides: undefined, block: undefined };
+        const { overrides, block } = _.merge(opts, this._samplerOverrides);
 
         // All operations are NOOPs
         if (callDatas.every(cd => cd === NULL_BYTES)) {
@@ -157,11 +159,12 @@ export class DexOrderSampler extends SamplerOperations {
             .callAsync({ overrides }, block);
         // Return the parsed results.
         let rawCallResultsIdx = 0;
-        return callDatas.map((callData, i) => {
+        const results = callDatas.map((callData, i) => {
             // tslint:disable-next-line:boolean-naming
             const { data, success } =
                 callData !== NULL_BYTES ? rawCallResults[rawCallResultsIdx++] : { success: true, data: NULL_BYTES };
             return success ? ops[i].handleCallResults(data) : ops[i].handleRevert(data);
         });
+        return results;
     }
 }

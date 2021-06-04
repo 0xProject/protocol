@@ -125,20 +125,34 @@ contract MixinUniswap {
         internal
         returns (uint256 boughtAmount)
     {
+        _tradeUniswapInternal(WETH, sellToken, buyToken, sellAmount, bridgeData);
+    }
+
+    function _tradeUniswapInternal(
+        IEtherTokenV06 weth,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+    )
+        internal
+        returns (uint256 boughtAmount)
+    {
         IUniswapExchangeFactory exchangeFactory =
             abi.decode(bridgeData, (IUniswapExchangeFactory));
 
         // Get the exchange for the token pair.
         IUniswapExchange exchange = _getUniswapExchangeForTokenPair(
+            weth,
             exchangeFactory,
             sellToken,
             buyToken
         );
 
         // Convert from WETH to a token.
-        if (sellToken == WETH) {
+        if (sellToken == weth) {
             // Unwrap the WETH.
-            WETH.withdraw(sellAmount);
+            weth.withdraw(sellAmount);
             // Buy as much of `buyToken` token with ETH as possible
             boughtAmount = exchange.ethToTokenTransferInput{ value: sellAmount }(
                 // Minimum buy amount.
@@ -150,7 +164,7 @@ contract MixinUniswap {
             );
 
         // Convert from a token to WETH.
-        } else if (buyToken == WETH) {
+        } else if (buyToken == weth) {
             // Grant the exchange an allowance.
             sellToken.approveIfBelow(
                 address(exchange),
@@ -166,7 +180,7 @@ contract MixinUniswap {
                 block.timestamp
             );
             // Wrap the ETH.
-            WETH.deposit{ value: boughtAmount }();
+            weth.deposit{ value: boughtAmount }();
         // Convert from one token to another.
         } else {
             // Grant the exchange an allowance.
@@ -200,6 +214,7 @@ contract MixinUniswap {
     /// @param buyToken The address of the token we are converting to.
     /// @return exchange The uniswap exchange.
     function _getUniswapExchangeForTokenPair(
+        IEtherTokenV06 weth,
         IUniswapExchangeFactory exchangeFactory,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken
@@ -209,7 +224,7 @@ contract MixinUniswap {
         returns (IUniswapExchange exchange)
     {
         // Whichever isn't WETH is the exchange token.
-        exchange = sellToken == WETH
+        exchange = sellToken == weth
             ? exchangeFactory.getExchange(buyToken)
             : exchangeFactory.getExchange(sellToken);
         require(address(exchange) != address(0), "MixinUniswap/NO_EXCHANGE");
