@@ -494,14 +494,14 @@ const EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX = (sourceFlags: number) => {
     ) {
         // PancakeSwap and forks VIP
         return TX_BASE_GAS;
+    } else if (SOURCE_FLAGS.Uniswap_V3 === sourceFlags) {
+        // Uniswap V3 VIP
+        return TX_BASE_GAS.plus(5e3);
     } else if (SOURCE_FLAGS.Curve === sourceFlags) {
         // Curve pseudo-VIP
         return TX_BASE_GAS.plus(40e3);
     } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
         return TX_BASE_GAS.plus(10e3);
-    } else if (SOURCE_FLAGS.Uniswap_V3 === sourceFlags) {
-        // Uniswap V3 VIP
-        return TX_BASE_GAS.plus(-4e3);
     } else {
         return FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
     }
@@ -529,6 +529,9 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: number) => {
     ) {
         // PancakeSwap and forks VIP
         return TX_BASE_GAS;
+    } else if (SOURCE_FLAGS.Uniswap_V3 === sourceFlags) {
+        // Uniswap V3 VIP
+        return TX_BASE_GAS.plus(5e3);
     } else if (SOURCE_FLAGS.Curve === sourceFlags) {
         // Curve pseudo-VIP
         return TX_BASE_GAS.plus(40e3);
@@ -544,9 +547,6 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: number) => {
     ) {
         // Multiplex multi-hop fill
         return TX_BASE_GAS.plus(25e3);
-    } else if (SOURCE_FLAGS.Uniswap_V3 === sourceFlags) {
-        // Uniswap V3 VIP
-        return TX_BASE_GAS.plus(-4e3);
     } else {
         return FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
     }
