@@ -334,23 +334,12 @@ contract MultiplexFeature is
                     inputTokenAmount
                 );
             } else if (wrappedCall.id == MultiplexSubcall.MultiHopSell) {
-                MultiHopSellParams memory multiHopParams;
-                (
-                    multiHopParams.tokens,
-                    multiHopParams.calls
-                ) = abi.decode(
+                _nestedMultiHopSell(
+                    state,
+                    params,
                     wrappedCall.data,
-                    (address[], MultiHopSellSubcall[])
+                    inputTokenAmount
                 );
-                multiHopParams.sellAmount = inputTokenAmount;
-                multiHopParams.useSelfBalance = params.useSelfBalance;
-                multiHopParams.recipient = params.recipient;
-
-                uint256 outputTokenAmount =
-                    _executeMultiHopSell(multiHopParams).outputTokenAmount;
-                // Increment the sold and bought amounts.
-                state.soldAmount = state.soldAmount.safeAdd(inputTokenAmount);
-                state.boughtAmount = state.boughtAmount.safeAdd(outputTokenAmount);
             } else {
                 revert("MultiplexFeature::_executeBatchSell/INVALID_SUBCALL");
             }
@@ -421,10 +410,69 @@ contract MultiplexFeature is
                     params,
                     wrappedCall.data
                 );
+            } else if (wrappedCall.id == MultiplexSubcall.BatchSell) {
+                _nestedBatchSell(
+                    state,
+                    params,
+                    wrappedCall.data
+                );
             } else {
                 revert("MultiplexFeature::_executeMultiHopSell/INVALID_SUBCALL");
             }
         }
+    }
+
+    function _nestedMultiHopSell(
+        IMultiplexFeature.BatchSellState memory state,
+        IMultiplexFeature.BatchSellParams memory params,
+        bytes memory wrappedCallData,
+        uint256 sellAmount
+    )
+        private
+    {
+        MultiHopSellParams memory multiHopParams;
+        (
+            multiHopParams.tokens,
+            multiHopParams.calls
+        ) = abi.decode(
+            wrappedCallData,
+            (address[], MultiHopSellSubcall[])
+        );
+        multiHopParams.sellAmount = sellAmount;
+        multiHopParams.useSelfBalance = params.useSelfBalance;
+        multiHopParams.recipient = params.recipient;
+
+        uint256 outputTokenAmount =
+            _executeMultiHopSell(multiHopParams).outputTokenAmount;
+        // Increment the sold and bought amounts.
+        state.soldAmount = state.soldAmount.safeAdd(sellAmount);
+        state.boughtAmount = state.boughtAmount.safeAdd(outputTokenAmount);
+    }
+
+    function _nestedBatchSell(
+        IMultiplexFeature.MultiHopSellState memory state,
+        IMultiplexFeature.MultiHopSellParams memory params,
+        bytes memory wrappedCallData
+    )
+        private
+    {
+        BatchSellParams memory batchSellParams;
+        batchSellParams.calls = abi.decode(
+            wrappedCallData,
+            (BatchSellSubcall[])
+        );
+        batchSellParams.inputToken = IERC20TokenV06(
+            params.tokens[state.hopIndex]
+        );
+        batchSellParams.outputToken = IERC20TokenV06(
+            params.tokens[state.hopIndex + 1]
+        );
+        batchSellParams.sellAmount = state.outputTokenAmount;
+        batchSellParams.useSelfBalance = true;
+        batchSellParams.recipient = state.nextTarget;
+
+        state.outputTokenAmount =
+            _executeBatchSell(batchSellParams).boughtAmount;
     }
 
     function _transferEth(address payable recipient, uint256 amount)
