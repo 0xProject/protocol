@@ -83,7 +83,7 @@ export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress
             RFQM_JOB_DEQUEUED.inc();
             const { orderHash } = JSON.parse(message.Body!);
             logger.info({ orderHash }, 'about to process job');
-            return rfqmService.processRfqmJobAsync(orderHash);
+            return rfqmService.processRfqmJobAsync(orderHash, workerAddress);
         },
         afterHandle: async (message) => {
             const orderHash = message.Body!;

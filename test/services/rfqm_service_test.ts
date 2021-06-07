@@ -20,55 +20,72 @@ import { Connection, InsertResult, Repository } from 'typeorm';
 
 import { ONE_MINUTE_MS } from '../../src/constants';
 import { RfqmService } from '../../src/services/rfqm_service';
+import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_GAS_PRICE = new BigNumber(100);
 
+const buildRfqmServiceForUnitTest = (
+    overrides: {
+        quoteRequestor?: QuoteRequestor;
+        protocolFeeUtils?: ProtocolFeeUtils;
+        rfqBlockchainUtils?: RfqBlockchainUtils;
+        connection?: Connection;
+        producer?: Producer;
+        quoteServerClient?: QuoteServerClient;
+    } = {},
+): RfqmService => {
+    const contractAddresses = getContractAddressesForChainOrThrow(1);
+    const quoteRequestorMock = mock(QuoteRequestor);
+    when(
+        quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
+            anything(),
+            anything(),
+            anything(),
+            anything(),
+            anything(),
+            anything(),
+        ),
+    ).thenResolve([
+        {
+            makerToken: contractAddresses.zrxToken,
+            makerAmount: new BigNumber(101),
+            takerToken: contractAddresses.etherToken,
+            takerAmount: new BigNumber(100),
+            expiry: NEVER_EXPIRES,
+        },
+    ]);
+
+    const quoteRequestorInstance = instance(quoteRequestorMock);
+    const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
+    when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
+    const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+    const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
+    const connectionMock = mock(Connection);
+    const sqsMock = mock(Producer);
+    const quoteServerClientMock = mock(QuoteServerClient);
+
+    return new RfqmService(
+        overrides.quoteRequestor || quoteRequestorInstance,
+        overrides.protocolFeeUtils || protocolFeeUtilsInstance,
+        contractAddresses,
+        MOCK_WORKER_REGISTRY_ADDRESS,
+        overrides.rfqBlockchainUtils || rfqBlockchainUtilsMock,
+        overrides.connection || connectionMock,
+        overrides.producer || sqsMock,
+        overrides.quoteServerClient || quoteServerClientMock,
+    );
+};
+
 describe('RfqmService', () => {
     describe('fetchIndicativeQuoteAsync', () => {
         describe('sells', async () => {
             it('should fetch indicative quote', async () => {
-                const contractAddresses = getContractAddressesForChainOrThrow(1);
                 // Given
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        makerToken: contractAddresses.zrxToken,
-                        makerAmount: new BigNumber(101),
-                        takerToken: contractAddresses.etherToken,
-                        takerAmount: new BigNumber(100),
-                        expiry: NEVER_EXPIRES,
-                    },
-                ]);
-
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
-
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const contractAddresses = getContractAddressesForChainOrThrow(1);
+                const service = buildRfqmServiceForUnitTest();
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -90,8 +107,9 @@ describe('RfqmService', () => {
             });
 
             it('should round price to six decimal places', async () => {
-                const contractAddresses = getContractAddressesForChainOrThrow(1);
                 // Given
+                const contractAddresses = getContractAddressesForChainOrThrow(1);
+
                 const quoteRequestorMock = mock(QuoteRequestor);
                 when(
                     quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
@@ -113,22 +131,10 @@ describe('RfqmService', () => {
                 ]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -179,22 +185,10 @@ describe('RfqmService', () => {
                 ).thenResolve([partialFillQuote, fullQuote]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -238,22 +232,10 @@ describe('RfqmService', () => {
                 ).thenResolve([partialFillQuote]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // Expect
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -297,22 +279,9 @@ describe('RfqmService', () => {
                 ).thenResolve([worsePricing, betterPricing]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
-
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -363,22 +332,9 @@ describe('RfqmService', () => {
                 ).thenResolve([worsePricing, wrongPair]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
-
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -430,22 +386,10 @@ describe('RfqmService', () => {
                 ).thenResolve([expiresSoon, expiresNever]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -492,22 +436,10 @@ describe('RfqmService', () => {
                 ]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -565,22 +497,10 @@ describe('RfqmService', () => {
                 ).thenResolve([partialFillQuoteBadPricing, partialFillQuoteGoodPricing, fullQuote]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                const connectionMock = mock(Connection);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
-                    rfqBlockchainUtilsMock,
-                    connectionMock,
-                    sqsMock,
-                );
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
+                });
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -646,9 +566,8 @@ describe('RfqmService', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+
+                // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
                 when(
                     rfqBlockchainUtilsMock.generateMetaTransaction(
@@ -670,17 +589,12 @@ describe('RfqmService', () => {
                 const connectionMock = mock(Connection);
                 when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
                 const connectionInstance = instance(connectionMock);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connectionInstance,
-                    sqsMock,
-                );
+                    connection: connectionInstance,
+                });
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
@@ -735,9 +649,8 @@ describe('RfqmService', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+
+                // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
                 when(
                     rfqBlockchainUtilsMock.generateMetaTransaction(
@@ -759,17 +672,12 @@ describe('RfqmService', () => {
                 const connectionMock = mock(Connection);
                 when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
                 const connectionInstance = instance(connectionMock);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connectionInstance,
-                    sqsMock,
-                );
+                    connection: connectionInstance,
+                });
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
@@ -824,9 +732,8 @@ describe('RfqmService', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+
+                // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
                 when(
                     rfqBlockchainUtilsMock.generateMetaTransaction(
@@ -848,17 +755,12 @@ describe('RfqmService', () => {
                 const connectionMock = mock(Connection);
                 when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
                 const connectionInstance = instance(connectionMock);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connectionInstance,
-                    sqsMock,
-                );
+                    connection: connectionInstance,
+                });
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
@@ -928,9 +830,8 @@ describe('RfqmService', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
-                const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-                when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-                const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+
+                // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
                 when(
                     rfqBlockchainUtilsMock.generateMetaTransaction(
@@ -952,17 +853,12 @@ describe('RfqmService', () => {
                 const connectionMock = mock(Connection);
                 when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
                 const connectionInstance = instance(connectionMock);
-                const sqsMock = mock(Producer);
 
-                const service = new RfqmService(
-                    quoteRequestorInstance,
-                    protocolFeeUtilsInstance,
-                    contractAddresses,
-                    MOCK_WORKER_REGISTRY_ADDRESS,
+                const service = buildRfqmServiceForUnitTest({
+                    quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connectionInstance,
-                    sqsMock,
-                );
+                    connection: connectionInstance,
+                });
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({

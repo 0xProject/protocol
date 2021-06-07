@@ -14,12 +14,13 @@ import { expect } from '@0x/contracts-test-utils';
 import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
+import AxiosMockAdapter from 'axios-mock-adapter';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
 import { Producer } from 'sqs-producer';
 import * as request from 'supertest';
-import { anything, instance, mock, when } from 'ts-mockito';
+import { anyString, anything, instance, mock, when } from 'ts-mockito';
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
@@ -29,7 +30,15 @@ import { RfqmJobEntity, RfqmQuoteEntity } from '../src/entities';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { RfqmService, RfqmTypes } from '../src/services/rfqm_service';
 import { ConfigManager } from '../src/utils/config_manager';
-import { RfqmOrderTypes, StoredFee, StoredOrder, storedOrderToRfqmOrder } from '../src/utils/rfqm_db_utils';
+import { QuoteServerClient } from '../src/utils/quote_server_client';
+import {
+    RfqmDbUtils,
+    RfqmJobStatus,
+    RfqmOrderTypes,
+    StoredFee,
+    StoredOrder,
+    storedOrderToRfqmOrder,
+} from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
 import { CONTRACT_ADDRESSES, getProvider, NULL_ADDRESS } from './constants';
@@ -66,6 +75,7 @@ describe(SUITE_NAME, () => {
     let app: Express.Application;
     let server: Server;
     let connection: Connection;
+    let rfqmService: RfqmService;
 
     before(async () => {
         // docker-compose up
@@ -115,6 +125,9 @@ describe(SUITE_NAME, () => {
         when(
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
+        when(
+            rfqBlockchainUtilsMock.decodeMetaTransactionCallDataAndValidateAsync(anyString(), anyString(), anything()),
+        ).thenResolve(validationResponse);
         const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
         interface SqsResponse {
@@ -130,15 +143,18 @@ describe(SUITE_NAME, () => {
             },
         ];
 
+        connection = await getDBConnectionAsync();
+        await connection.synchronize(true);
+
         // Create the mock sqsProducer
         const sqsProducerMock = mock(Producer);
         when(sqsProducerMock.send(anything())).thenResolve(sqsResponse);
         const sqsProducer = instance(sqsProducerMock);
 
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        // Create the quote server client
+        const quoteServerClient = new QuoteServerClient(axiosClient);
 
-        const rfqmService = new RfqmService(
+        rfqmService = new RfqmService(
             quoteRequestor,
             protocolFeeUtils,
             contractAddresses,
@@ -146,6 +162,7 @@ describe(SUITE_NAME, () => {
             rfqBlockchainUtils,
             connection,
             sqsProducer,
+            quoteServerClient,
         );
 
         // Start the server
@@ -910,6 +927,89 @@ describe(SUITE_NAME, () => {
 
             expect(appResponse.body.reason).to.equal('Validation Failed');
             expect(appResponse.body.validationErrors[0].reason).to.equal(`metatransaction will expire too soon`);
+        });
+    });
+
+    describe('processJobAsync', async () => {
+        const createMockMetaTx = (overrideFields?: Partial<MetaTransactionFields>): MetaTransaction => {
+            return new MetaTransaction({
+                signer: '0x123',
+                sender: '0x123',
+                minGasPrice: new BigNumber('123'),
+                maxGasPrice: new BigNumber('123'),
+                expirationTimeSeconds: new BigNumber(SAFE_EXPIRY),
+                salt: new BigNumber('123'),
+                callData: '0x123',
+                value: new BigNumber('123'),
+                feeToken: '0x123',
+                feeAmount: new BigNumber('123'),
+                chainId: 1337,
+                verifyingContract: '0x123',
+                ...overrideFields,
+            });
+        };
+        const mockStoredFee: StoredFee = {
+            token: '0x123',
+            amount: '1000',
+            type: 'fixed',
+        };
+        const mockStoredOrder: StoredOrder = {
+            type: RfqmOrderTypes.V4Rfq,
+            order: {
+                txOrigin: '0x123',
+                maker: '0x123',
+                taker: '0x123',
+                makerToken: '0x123',
+                takerToken: '0x123',
+                makerAmount: '1',
+                takerAmount: '1',
+                pool: '0x1234',
+                expiry: SAFE_EXPIRY,
+                salt: '1000',
+                chainId: '1337',
+                verifyingContract: '0x123',
+            },
+        };
+
+        it('should sucessfully resolve when the job is processed', async () => {
+            const mockAxios = new AxiosMockAdapter(axiosClient);
+            const dbUtils = new RfqmDbUtils(connection);
+            const mockMetaTx = createMockMetaTx();
+            const order = storedOrderToRfqmOrder(mockStoredOrder);
+            const orderHash = order.getHash();
+            const mockQuote = new RfqmQuoteEntity({
+                orderHash,
+                metaTransactionHash: mockMetaTx.getHash(),
+                makerUri: MARKET_MAKER_1,
+                fee: mockStoredFee,
+                order: mockStoredOrder,
+                chainId: 1337,
+            });
+            const workerAddress = '0x123';
+
+            const mmResponse = {
+                fee: mockStoredFee,
+                proceedWithFill: true,
+                signedOrderHash: 'someSignedOrderHash',
+            };
+            mockAxios.onPost(`${MARKET_MAKER_1}/submit`).replyOnce(HttpStatus.OK, mmResponse);
+
+            // write a corresponding quote entity to validate against
+            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
+
+            await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.CREATED)
+                .expect('Content-Type', /json/);
+
+            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
+
+            const job = await dbUtils.findJobByOrderHashAsync(orderHash);
+            expect(job?.status).to.eq(RfqmJobStatus.Successful);
+
+            mockAxios.reset();
         });
     });
 });
