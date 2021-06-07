@@ -75,6 +75,7 @@ abstract contract MultiplexRfq is
             order.makerToken == params.outputToken,
             "MultiplexFeature::_fillRfqOrder/RFQ_ORDER_INVALID_TOKENS"
         );
+
         // Try filling the RFQ order. Swallows reverts.
         try
             INativeOrdersFeature(address(this))._fillRfqOrder
@@ -82,7 +83,9 @@ abstract contract MultiplexRfq is
                     order,
                     signature,
                     sellAmount.safeDowncastToUint128(),
-                    msg.sender
+                    msg.sender,
+                    params.useSelfBalance,
+                    params.recipient
                 )
             returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
         {
