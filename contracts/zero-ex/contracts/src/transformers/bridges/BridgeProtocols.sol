@@ -47,4 +47,5 @@ library BridgeProtocols {
     uint128 internal constant BALANCERV2  = 17;
     uint128 internal constant UNISWAPV3   = 18;
     uint128 internal constant KYBERDMM    = 19;
+    uint128 internal constant CURVEV2     = 20;
 }

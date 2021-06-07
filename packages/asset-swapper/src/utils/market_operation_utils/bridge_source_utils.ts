@@ -12,6 +12,7 @@ import {
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_MAINNET_INFOS,
     CURVE_POLYGON_INFOS,
+    CURVE_V2_MAINNET_INFOS,
     DFYN_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
     JULSWAP_ROUTER_BY_CHAIN_ID,
@@ -115,6 +116,24 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
             );
         case ChainId.Polygon:
             return Object.values(CURVE_POLYGON_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaToken === undefined) ||
+                        (c.tokens.includes(t) &&
+                            c.metaToken !== undefined &&
+                            [makerToken, takerToken].includes(c.metaToken)),
+                ),
+            );
+        default:
+            return [];
+    }
+}
+
+// tslint:disable completed-docs
+export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    switch (chainId) {
+        case ChainId.Mainnet:
+            return Object.values(CURVE_V2_MAINNET_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaToken === undefined) ||
@@ -274,6 +293,7 @@ export function getCurveLikeInfosForPair(
     makerToken: string,
     source:
         | ERC20BridgeSource.Curve
+        | ERC20BridgeSource.CurveV2
         | ERC20BridgeSource.Swerve
         | ERC20BridgeSource.SnowSwap
         | ERC20BridgeSource.Nerve
@@ -287,6 +307,9 @@ export function getCurveLikeInfosForPair(
     switch (source) {
         case ERC20BridgeSource.Curve:
             pools = getCurveInfosForPair(chainId, takerToken, makerToken);
+            break;
+        case ERC20BridgeSource.CurveV2:
+            pools = getCurveV2InfosForPair(chainId, takerToken, makerToken);
             break;
         case ERC20BridgeSource.Swerve:
             pools = getSwerveInfosForPair(chainId, takerToken, makerToken);

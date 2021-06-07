@@ -94,6 +94,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.CurveV2,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -176,6 +177,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.CurveV2,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -399,6 +401,10 @@ export const CURVE_POOLS = {
     BUSD: '0x4807862aa8b2bf68830e4c8dc86d0e9a998e085a',
 };
 
+export const CURVE_V2_POOLS = {
+    tricrypto: '0x80466c64868e1ab14a1ddf27a676c3fcbe638fe5',
+};
+
 export const CURVE_POLYGON_POOLS = {
     aave: '0x445fe580ef8d70ff569ab36e80c647af338db351',
 };
@@ -560,6 +566,16 @@ const createCurveMetaTriBtcPool = (info: { token: string; pool: string; gasSched
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
     tokens: [info.token, ...CURVE_TRI_BTC_POOL_TOKEN],
     metaToken: info.token,
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
+const createCurveExchangeV2Pool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange_v2,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_v2,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: info.tokens,
+    metaToken: undefined,
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
@@ -742,6 +758,14 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.ankrETH],
         pool: CURVE_POOLS.ankreth,
         gasSchedule: 125e3,
+    }),
+};
+
+export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_V2_POOLS.tricrypto]: createCurveExchangeV2Pool({
+        tokens: [MAINNET_TOKENS.USDT, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.WETH],
+        pool: CURVE_V2_POOLS.tricrypto,
+        gasSchedule: 350e3,
     }),
 };
 
@@ -1300,6 +1324,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.CurveV2]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Swerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.SnowSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,

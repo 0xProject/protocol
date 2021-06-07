@@ -66,6 +66,7 @@ export enum ERC20BridgeSource {
     Saddle = 'Saddle',
     XSigma = 'xSigma',
     UniswapV3 = 'Uniswap_V3',
+    CurveV2 = 'Curve_V2',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -96,6 +97,9 @@ export enum CurveFunctionSelectors {
     get_dx_underlying = '0x0e71d1b9',
     get_dy = '0x5e0d443f',
     get_dx = '0x67df02ca',
+    // Curve V2
+    exchange_v2 = '0x5b41b908',
+    get_dy_v2 = '0x556d6e9f',
     // Smoothy
     swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
     get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
