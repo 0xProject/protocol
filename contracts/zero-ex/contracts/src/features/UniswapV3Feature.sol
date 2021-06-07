@@ -40,7 +40,7 @@ contract UniswapV3Feature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "UniswapV3Feature";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
     /// @dev WETH contract.
     IEtherTokenV06 private immutable WETH;
     /// @dev UniswapV3 Factory contract address prepended with '0xff' and left-aligned.
@@ -88,6 +88,7 @@ contract UniswapV3Feature is
         _registerFeatureFunction(this.sellEthForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForEthToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForTokenToUniswapV3.selector);
+        _registerFeatureFunction(this._sellTokenForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.uniswapV3SwapCallback.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -171,6 +172,33 @@ contract UniswapV3Feature is
             sellAmount,
             minBuyAmount,
             msg.sender,
+            _normalizeRecipient(recipient)
+        );
+    }
+
+    /// @dev Sell a token for another token directly against uniswap v3.
+    ///      Private variant, uses tokens held by `address(this)`.
+    /// @param encodedPath Uniswap-encoded path.
+    /// @param sellAmount amount of the first token in the path to sell.
+    /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @return buyAmount Amount of the last token in the path bought.
+    function _sellTokenForTokenToUniswapV3(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address recipient
+    )
+        public
+        override
+        onlySelf
+        returns (uint256 buyAmount)
+    {
+        buyAmount = _swap(
+            encodedPath,
+            sellAmount,
+            minBuyAmount,
+            address(this),
             _normalizeRecipient(recipient)
         );
     }

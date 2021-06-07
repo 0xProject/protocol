@@ -399,11 +399,7 @@ contract MultiplexFeature is
                     wrappedCall.data
                 );
             } else if (wrappedCall.id == MultiplexSubcall.UniswapV3) {
-                _multiHopSellUniswapV3(
-                    state,
-                    params,
-                    wrappedCall.data
-                );
+                _multiHopSellUniswapV3(state, wrappedCall.data);
             } else if (wrappedCall.id == MultiplexSubcall.LiquidityProvider) {
                 _multiHopSellLiquidityProvider(
                     state,

@@ -40,17 +40,29 @@ abstract contract MultiplexUniswapV3 is
     )
         internal
     {
-        // TODO: payer = params.useSelfBalance ? address(this) : msg.sender;
-
-        (bool success, bytes memory resultData) = address(this).delegatecall(
-            abi.encodeWithSelector(
-                IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
-                wrappedCallData,
-                sellAmount,
-                0,
-                params.recipient
-            )
-        );
+        bool success;
+        bytes memory resultData;
+        if (params.useSelfBalance) {
+            (success, resultData) = address(this).call(
+                abi.encodeWithSelector(
+                    IUniswapV3Feature._sellTokenForTokenToUniswapV3.selector,
+                    wrappedCallData,
+                    sellAmount,
+                    0,
+                    params.recipient
+                )
+            );
+        } else {
+            (success, resultData) = address(this).delegatecall(
+                abi.encodeWithSelector(
+                    IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
+                    wrappedCallData,
+                    sellAmount,
+                    0,
+                    params.recipient
+                )
+            );
+        }
         if (success) {
             uint256 outputTokenAmount = abi.decode(resultData, (uint256));
             // Increment the sold and bought amounts.
@@ -61,22 +73,34 @@ abstract contract MultiplexUniswapV3 is
 
     function _multiHopSellUniswapV3(
         IMultiplexFeature.MultiHopSellState memory state,
-        IMultiplexFeature.MultiHopSellParams memory params,
         bytes memory wrappedCallData
     )
         internal
     {
-        // TODO: payer = state.currentTarget
+        bool success;
+        bytes memory resultData;
+        if (state.currentTarget == address(this)) {
+            (success, resultData) = address(this).call(
+                abi.encodeWithSelector(
+                    IUniswapV3Feature._sellTokenForTokenToUniswapV3.selector,
+                    wrappedCallData,
+                    state.outputTokenAmount,
+                    0,
+                    state.nextTarget
+                )
+            );
+        } else {
+            (success, resultData) = address(this).delegatecall(
+                abi.encodeWithSelector(
+                    IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
+                    wrappedCallData,
+                    state.outputTokenAmount,
+                    0,
+                    state.nextTarget
+                )
+            );
+        }
 
-        (bool success, bytes memory resultData) = address(this).delegatecall(
-            abi.encodeWithSelector(
-                IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
-                wrappedCallData,
-                state.outputTokenAmount,
-                0,
-                state.nextTarget
-            )
-        );
         if (success) {
             state.outputTokenAmount = abi.decode(resultData, (uint256));
         } else {
