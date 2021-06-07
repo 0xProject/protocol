@@ -54,6 +54,8 @@ abstract contract NativeOrdersSettlement is
         address maker;
         // Taker of the order.
         address taker;
+        // Recipient of the maker tokens.
+        address recipient;
         // Maker token.
         IERC20TokenV06 makerToken;
         // Taker token.
@@ -80,6 +82,21 @@ abstract contract NativeOrdersSettlement is
         address taker;
         // The order sender.
         address sender;
+    }
+
+    /// @dev Params for `_fillRfqOrderPrivate()`
+    struct FillRfqOrderPrivateParams {
+        LibNativeOrder.RfqOrder order;
+        // The order signature.
+        LibSignature.Signature signature;
+        // Maximum taker token to fill this order with.
+        uint128 takerTokenFillAmount;
+        // The order taker.
+        address taker;
+
+        bool useSelfBalance;
+
+        address recipient;
     }
 
     // @dev Fill results returned by `_fillLimitOrderPrivate()` and
@@ -154,12 +171,14 @@ abstract contract NativeOrdersSettlement is
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         FillNativeOrderResults memory results =
-            _fillRfqOrderPrivate(
-                order,
-                signature,
-                takerTokenFillAmount,
-                msg.sender
-            );
+            _fillRfqOrderPrivate(FillRfqOrderPrivateParams({
+                order: order,
+                signature: signature,
+                takerTokenFillAmount: takerTokenFillAmount,
+                taker: msg.sender,
+                useSelfBalance: false,
+                recipient: msg.sender
+            }));
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount
@@ -220,12 +239,14 @@ abstract contract NativeOrdersSettlement is
         returns (uint128 makerTokenFilledAmount)
     {
         FillNativeOrderResults memory results =
-            _fillRfqOrderPrivate(
-                order,
-                signature,
-                takerTokenFillAmount,
-                msg.sender
-            );
+            _fillRfqOrderPrivate(FillRfqOrderPrivateParams({
+                order: order,
+                signature: signature,
+                takerTokenFillAmount: takerTokenFillAmount,
+                taker: msg.sender,
+                useSelfBalance: false,
+                recipient: msg.sender
+            }));
         // Must have filled exactly the amount requested.
         if (results.takerTokenFilledAmount < takerTokenFillAmount) {
             LibNativeOrdersRichErrors.FillOrKillFailedError(
@@ -260,13 +281,13 @@ abstract contract NativeOrdersSettlement is
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         FillNativeOrderResults memory results =
-            _fillLimitOrderPrivate(FillLimitOrderPrivateParams({
-                order: order,
-                signature: signature,
-                takerTokenFillAmount: takerTokenFillAmount,
-                taker: taker,
-                sender: sender
-            }));
+            _fillLimitOrderPrivate(FillLimitOrderPrivateParams(
+                order,
+                signature,
+                takerTokenFillAmount,
+                taker,
+                sender
+            ));
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount
@@ -280,13 +301,18 @@ abstract contract NativeOrdersSettlement is
     /// @param signature The order signature.
     /// @param takerTokenFillAmount Maximum taker token to fill this order with.
     /// @param taker The order taker.
+    /// @param useSelfBalance Whether to use the ExchangeProxy's transient
+    ///        balance of taker tokens to fill the order.
+    /// @param recipient The recipient of the maker tokens.
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _fillRfqOrder(
         LibNativeOrder.RfqOrder memory order,
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
-        address taker
+        address taker,
+        bool useSelfBalance,
+        address recipient
     )
         public
         virtual
@@ -294,12 +320,14 @@ abstract contract NativeOrdersSettlement is
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         FillNativeOrderResults memory results =
-            _fillRfqOrderPrivate(
+            _fillRfqOrderPrivate(FillRfqOrderPrivateParams(
                 order,
                 signature,
                 takerTokenFillAmount,
-                taker
-            );
+                taker,
+                useSelfBalance,
+                recipient
+            ));
         (takerTokenFilledAmount, makerTokenFilledAmount) = (
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount
@@ -388,6 +416,7 @@ abstract contract NativeOrdersSettlement is
                 orderHash: orderInfo.orderHash,
                 maker: params.order.maker,
                 taker: params.taker,
+                recipient: params.taker,
                 makerToken: IERC20TokenV06(params.order.makerToken),
                 takerToken: IERC20TokenV06(params.order.takerToken),
                 makerAmount: params.order.makerAmount,
@@ -427,22 +456,14 @@ abstract contract NativeOrdersSettlement is
         );
     }
 
-    /// @dev Fill an RFQ order. Private variant. Does not refund protocol fees.
-    /// @param order The RFQ order.
-    /// @param signature The order signature.
-    /// @param takerTokenFillAmount Maximum taker token to fill this order with.
-    /// @param taker The order taker.
+    /// @dev Fill an RFQ order. Private variant.
+    /// @param params Function params.
     /// @return results Results of the fill.
-    function _fillRfqOrderPrivate(
-        LibNativeOrder.RfqOrder memory order,
-        LibSignature.Signature memory signature,
-        uint128 takerTokenFillAmount,
-        address taker
-    )
+    function _fillRfqOrderPrivate(FillRfqOrderPrivateParams memory params)
         private
         returns (FillNativeOrderResults memory results)
     {
-        LibNativeOrder.OrderInfo memory orderInfo = getRfqOrderInfo(order);
+        LibNativeOrder.OrderInfo memory orderInfo = getRfqOrderInfo(params.order);
 
         // Must be fillable.
         if (orderInfo.status != LibNativeOrder.OrderStatus.FILLABLE) {
@@ -457,32 +478,41 @@ abstract contract NativeOrdersSettlement is
                 LibNativeOrdersStorage.getStorage();
 
             // Must be fillable by the tx.origin.
-            if (order.txOrigin != tx.origin && !stor.originRegistry[order.txOrigin][tx.origin]) {
+            if (
+                params.order.txOrigin != tx.origin &&
+                !stor.originRegistry[params.order.txOrigin][tx.origin]
+            ) {
                 LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
                     orderInfo.orderHash,
                     tx.origin,
-                    order.txOrigin
+                    params.order.txOrigin
                 ).rrevert();
             }
         }
 
         // Must be fillable by the taker.
-        if (order.taker != address(0) && order.taker != taker) {
+        if (params.order.taker != address(0) && params.order.taker != params.taker) {
             LibNativeOrdersRichErrors.OrderNotFillableByTakerError(
                 orderInfo.orderHash,
-                taker,
-                order.taker
+                params.taker,
+                params.order.taker
             ).rrevert();
         }
 
         // Signature must be valid for the order.
         {
-            address signer = LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
-            if (signer != order.maker && !isValidOrderSigner(order.maker, signer)) {
+            address signer = LibSignature.getSignerOfHash(
+                orderInfo.orderHash,
+                params.signature
+            );
+            if (
+                signer != params.order.maker &&
+                !isValidOrderSigner(params.order.maker, signer)
+            ) {
                 LibNativeOrdersRichErrors.OrderNotSignedByMakerError(
                     orderInfo.orderHash,
                     signer,
-                    order.maker
+                    params.order.maker
                 ).rrevert();
             }
         }
@@ -491,26 +521,27 @@ abstract contract NativeOrdersSettlement is
         (results.takerTokenFilledAmount, results.makerTokenFilledAmount) = _settleOrder(
             SettleOrderInfo({
                 orderHash: orderInfo.orderHash,
-                maker: order.maker,
-                taker: taker,
-                makerToken: IERC20TokenV06(order.makerToken),
-                takerToken: IERC20TokenV06(order.takerToken),
-                makerAmount: order.makerAmount,
-                takerAmount: order.takerAmount,
-                takerTokenFillAmount: takerTokenFillAmount,
+                maker: params.order.maker,
+                taker: params.useSelfBalance ? address(this) : params.taker,
+                recipient: params.recipient,
+                makerToken: IERC20TokenV06(params.order.makerToken),
+                takerToken: IERC20TokenV06(params.order.takerToken),
+                makerAmount: params.order.makerAmount,
+                takerAmount: params.order.takerAmount,
+                takerTokenFillAmount: params.takerTokenFillAmount,
                 takerTokenFilledAmount: orderInfo.takerTokenFilledAmount
             })
         );
 
         emit RfqOrderFilled(
             orderInfo.orderHash,
-            order.maker,
-            taker,
-            address(order.makerToken),
-            address(order.takerToken),
+            params.order.maker,
+            params.taker,
+            address(params.order.makerToken),
+            address(params.order.takerToken),
             results.takerTokenFilledAmount,
             results.makerTokenFilledAmount,
-            order.pool
+            params.order.pool
         );
     }
 
@@ -549,19 +580,28 @@ abstract contract NativeOrdersSettlement is
             // function if the order is cancelled.
                 settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
 
-        // Transfer taker -> maker.
-        _transferERC20TokensFrom(
-            settleInfo.takerToken,
-            settleInfo.taker,
-            settleInfo.maker,
-            takerTokenFilledAmount
-        );
+        if (settleInfo.taker == address(this)) {
+            // Transfer this -> maker.
+            _transferERC20Tokens(
+                settleInfo.takerToken,
+                settleInfo.maker,
+                takerTokenFilledAmount
+            );
+        } else {
+            // Transfer taker -> maker.
+            _transferERC20TokensFrom(
+                settleInfo.takerToken,
+                settleInfo.taker,
+                settleInfo.maker,
+                takerTokenFilledAmount
+            );
+        }
 
-        // Transfer maker -> taker.
+        // Transfer maker -> recipient.
         _transferERC20TokensFrom(
             settleInfo.makerToken,
             settleInfo.maker,
-            settleInfo.taker,
+            settleInfo.recipient,
             makerTokenFilledAmount
         );
     }
