@@ -70,6 +70,22 @@ interface IUniswapV3Feature {
         external
         returns (uint256 buyAmount);
 
+    /// @dev Sell a token for another token directly against uniswap v3.
+    ///      Private variant, uses tokens held by `address(this)`.
+    /// @param encodedPath Uniswap-encoded path.
+    /// @param sellAmount amount of the first token in the path to sell.
+    /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for sender.
+    /// @return buyAmount Amount of the last token in the path bought.
+    function _sellTokenForTokenToUniswapV3(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address recipient
+    )
+        external
+        returns (uint256 buyAmount);
+
     /// @dev The UniswapV3 pool swap callback which pays the funds requested
     ///      by the caller/pool to the pool. Can only be called by a valid
     ///      UniswapV3 pool.
