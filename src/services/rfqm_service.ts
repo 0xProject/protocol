@@ -139,6 +139,27 @@ const PRICE_DECIMAL_PLACES = 6;
  */
 export class RfqmService {
     public dbUtils = new RfqmDbUtils(this._connection);
+
+    private static _getSellAmountGivenBuyAmountAndQuote(
+        buyAmount: BigNumber,
+        quotedTakerAmount: BigNumber,
+        quotedMakerAmount: BigNumber,
+    ): BigNumber {
+        // Solving for x given the following proportion:
+        // x / buyAmount = quotedTakerAmount / quotedMakerAmount
+        return quotedTakerAmount.div(quotedMakerAmount).times(buyAmount).decimalPlaces(0);
+    }
+
+    private static _getBuyAmountGivenSellAmountAndQuote(
+        sellAmount: BigNumber,
+        quotedTakerAmount: BigNumber,
+        quotedMakerAmount: BigNumber,
+    ): BigNumber {
+        // Solving for y given the following proportion:
+        // y / sellAmount =  quotedMakerAmount / quotedTakerAmount
+        return quotedMakerAmount.div(quotedTakerAmount).times(sellAmount).decimalPlaces(0);
+    }
+
     constructor(
         private readonly _quoteRequestor: QuoteRequestor,
         private readonly _protocolFeeUtils: ProtocolFeeUtils,
@@ -313,6 +334,31 @@ export class RfqmService {
             throw new Error(`makerUri unknown for maker address ${bestQuote.order.maker}`);
         }
 
+        // Prepare the price
+        const makerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.makerAmount, makerTokenDecimals);
+        const takerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.takerAmount, takerTokenDecimals);
+        const price = isSelling ? makerAmountInUnit.div(takerAmountInUnit) : takerAmountInUnit.div(makerAmountInUnit);
+        // The way the BigNumber round down behavior (https://mikemcl.github.io/bignumber.js/#dp) works requires us
+        // to add 1 to PRICE_DECIMAL_PLACES in order to actually come out with the decimal places specified.
+        const roundedPrice = price.decimalPlaces(PRICE_DECIMAL_PLACES + 1, BigNumber.ROUND_DOWN);
+
+        // Prepare the final takerAmount and makerAmount
+        const takerAmount = isSelling
+            ? sellAmount!
+            : RfqmService._getSellAmountGivenBuyAmountAndQuote(
+                  buyAmount!,
+                  bestQuote.order.takerAmount,
+                  bestQuote.order.makerAmount,
+              );
+
+        const makerAmount = isSelling
+            ? RfqmService._getBuyAmountGivenSellAmountAndQuote(
+                  sellAmount!,
+                  bestQuote.order.takerAmount,
+                  bestQuote.order.makerAmount,
+              )
+            : buyAmount!;
+
         // Get the Order and its hash
         const rfqOrder = new RfqOrder(bestQuote.order);
         const orderHash = rfqOrder.getHash();
@@ -322,7 +368,7 @@ export class RfqmService {
             rfqOrder,
             bestQuote.signature,
             takerAddress,
-            bestQuote.order.takerAmount,
+            takerAmount,
             CHAIN_ID,
         );
         const metaTransactionHash = metaTransaction.getHash();
@@ -341,22 +387,14 @@ export class RfqmService {
         );
         RFQM_QUOTE_INSERTED.labels(apiKey, makerUri).inc();
 
-        // Prepare the price
-        const makerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.makerAmount, makerTokenDecimals);
-        const takerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.takerAmount, takerTokenDecimals);
-        const price = isSelling ? makerAmountInUnit.div(takerAmountInUnit) : takerAmountInUnit.div(makerAmountInUnit);
-        // The way the BigNumber round down behavior (https://mikemcl.github.io/bignumber.js/#dp) works requires us
-        // to add 1 to PRICE_DECIMAL_PLACES in order to actually come out with the decimal places specified.
-        const roundedPrice = price.decimalPlaces(PRICE_DECIMAL_PLACES + 1, BigNumber.ROUND_DOWN);
-
         // Prepare response
         return {
             type: RfqmTypes.MetaTransaction,
             price: roundedPrice,
             gas: gasPrice,
-            buyAmount: bestQuote.order.makerAmount,
+            buyAmount: makerAmount,
             buyTokenAddress: bestQuote.order.makerToken,
-            sellAmount: bestQuote.order.takerAmount,
+            sellAmount: takerAmount,
             sellTokenAddress: bestQuote.order.takerToken,
             allowanceTarget: this._contractAddresses.exchangeProxy,
             metaTransaction,
