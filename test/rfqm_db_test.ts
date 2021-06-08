@@ -7,13 +7,7 @@ import { Connection } from 'typeorm';
 
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity } from '../src/entities';
-import {
-    feeToStoredFee,
-    RfqmDbUtils,
-    RfqmJobOpts,
-    RfqmJobStatus,
-    v4RfqOrderToStoredOrder,
-} from '../src/utils/rfqm_db_utils';
+import { feeToStoredFee, RfqmDbUtils, RfqmJobStatus, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
 
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
@@ -98,7 +92,7 @@ describe(SUITE_NAME, () => {
             expect(dbEntity).to.deep.eq(testRfqmQuoteEntity);
         });
         it('should be able to save and read an rfqm job entity w/ no change in information', async () => {
-            const rfqmJobOpts: RfqmJobOpts = {
+            const rfqmJobOpts = {
                 orderHash,
                 metaTransactionHash,
                 createdAt,
@@ -123,7 +117,7 @@ describe(SUITE_NAME, () => {
         });
 
         it('should be able to update an rfqm job entity', async () => {
-            const rfqmJobOpts: RfqmJobOpts = {
+            const rfqmJobOpts = {
                 orderHash,
                 metaTransactionHash,
                 createdAt,

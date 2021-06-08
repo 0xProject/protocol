@@ -16,11 +16,11 @@ import { MetaTransaction, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
-import { Connection, InsertResult, Repository } from 'typeorm';
 
 import { ONE_MINUTE_MS } from '../../src/constants';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
+import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
@@ -32,7 +32,7 @@ const buildRfqmServiceForUnitTest = (
         quoteRequestor?: QuoteRequestor;
         protocolFeeUtils?: ProtocolFeeUtils;
         rfqBlockchainUtils?: RfqBlockchainUtils;
-        connection?: Connection;
+        dbUtils?: RfqmDbUtils;
         producer?: Producer;
         quoteServerClient?: QuoteServerClient;
     } = {},
@@ -63,7 +63,7 @@ const buildRfqmServiceForUnitTest = (
     when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
     const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-    const connectionMock = mock(Connection);
+    const dbUtilsMock = mock(RfqmDbUtils);
     const sqsMock = mock(Producer);
     const quoteServerClientMock = mock(QuoteServerClient);
 
@@ -73,7 +73,7 @@ const buildRfqmServiceForUnitTest = (
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || rfqBlockchainUtilsMock,
-        overrides.connection || connectionMock,
+        overrides.dbUtils || dbUtilsMock,
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
     );
@@ -581,20 +581,15 @@ describe('RfqmService', () => {
                 ).thenReturn(MOCK_META_TX);
                 const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
-                // Mock out the repository
-                const repositoryMock = mock(Repository);
-                when(repositoryMock.insert(anything())).thenResolve(new InsertResult());
-                const repositoryInstance = instance(repositoryMock);
-
-                // Mock out the connection
-                const connectionMock = mock(Connection);
-                when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
-                const connectionInstance = instance(connectionMock);
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
                     quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connection: connectionInstance,
+                    dbUtils,
                 });
 
                 // When
@@ -664,20 +659,15 @@ describe('RfqmService', () => {
                 ).thenReturn(MOCK_META_TX);
                 const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
-                // Mock out the repository
-                const repositoryMock = mock(Repository);
-                when(repositoryMock.insert(anything())).thenResolve(new InsertResult());
-                const repositoryInstance = instance(repositoryMock);
-
-                // Mock out the connection
-                const connectionMock = mock(Connection);
-                when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
-                const connectionInstance = instance(connectionMock);
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
                     quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connection: connectionInstance,
+                    dbUtils,
                 });
 
                 // When
@@ -748,20 +738,15 @@ describe('RfqmService', () => {
                 ).thenReturn(MOCK_META_TX);
                 const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
-                // Mock out the repository
-                const repositoryMock = mock(Repository);
-                when(repositoryMock.insert(anything())).thenResolve(new InsertResult());
-                const repositoryInstance = instance(repositoryMock);
-
-                // Mock out the connection
-                const connectionMock = mock(Connection);
-                when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
-                const connectionInstance = instance(connectionMock);
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
                     quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connection: connectionInstance,
+                    dbUtils,
                 });
 
                 // When
@@ -832,20 +817,15 @@ describe('RfqmService', () => {
                 ).thenReturn(MOCK_META_TX);
                 const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
-                // Mock out the repository
-                const repositoryMock = mock(Repository);
-                when(repositoryMock.insert(anything())).thenResolve(new InsertResult());
-                const repositoryInstance = instance(repositoryMock);
-
-                // Mock out the connection
-                const connectionMock = mock(Connection);
-                when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
-                const connectionInstance = instance(connectionMock);
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
                     quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connection: connectionInstance,
+                    dbUtils,
                 });
 
                 // When
@@ -916,20 +896,15 @@ describe('RfqmService', () => {
                 ).thenReturn(MOCK_META_TX);
                 const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
-                // Mock out the repository
-                const repositoryMock = mock(Repository);
-                when(repositoryMock.insert(anything())).thenResolve(new InsertResult());
-                const repositoryInstance = instance(repositoryMock);
-
-                // Mock out the connection
-                const connectionMock = mock(Connection);
-                when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
-                const connectionInstance = instance(connectionMock);
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
                     quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connection: connectionInstance,
+                    dbUtils,
                 });
 
                 // When
@@ -1015,20 +990,15 @@ describe('RfqmService', () => {
                 ).thenReturn(MOCK_META_TX);
                 const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
-                // Mock out the repository
-                const repositoryMock = mock(Repository);
-                when(repositoryMock.insert(anything())).thenResolve(new InsertResult());
-                const repositoryInstance = instance(repositoryMock);
-
-                // Mock out the connection
-                const connectionMock = mock(Connection);
-                when(connectionMock.getRepository(anything())).thenReturn(repositoryInstance);
-                const connectionInstance = instance(connectionMock);
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
                     quoteRequestor: quoteRequestorInstance,
                     rfqBlockchainUtils,
-                    connection: connectionInstance,
+                    dbUtils,
                 });
 
                 // When

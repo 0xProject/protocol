@@ -29,18 +29,7 @@ export class RfqmQuoteEntity {
     @Column({ name: 'order', type: 'jsonb', nullable: true })
     public order: StoredOrder | null;
 
-    constructor(
-        opts: {
-            orderHash?: string;
-            metaTransactionHash?: string;
-            createdAt?: Date;
-            chainId?: number;
-            integratorId?: string;
-            makerUri?: string;
-            fee?: StoredFee;
-            order?: StoredOrder;
-        } = {},
-    ) {
+    constructor(opts: Partial<RfqmQuoteEntity> = {}) {
         this.orderHash = opts.orderHash;
         this.metaTransactionHash = opts.metaTransactionHash || null;
         this.createdAt = opts.createdAt;

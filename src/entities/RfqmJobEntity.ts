@@ -1,7 +1,7 @@
 import { BigNumber } from '@0x/asset-swapper';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-import { RfqmJobOpts, RfqmJobStatus, StoredFee, StoredOrder } from '../utils/rfqm_db_utils';
+import { RfqmJobStatus, StoredFee, StoredOrder } from '../utils/rfqm_db_utils';
 
 import { BigNumberTransformer } from './transformers';
 
@@ -51,7 +51,7 @@ export class RfqmJobEntity {
     @Column({ name: 'metadata', type: 'jsonb', nullable: true })
     public metadata: object | null;
 
-    constructor(opts: RfqmJobOpts = {}) {
+    constructor(opts: Partial<RfqmJobEntity> = {}) {
         this.orderHash = opts.orderHash;
         this.metaTransactionHash = opts.metaTransactionHash || null;
         this.createdAt = opts.createdAt || new Date();

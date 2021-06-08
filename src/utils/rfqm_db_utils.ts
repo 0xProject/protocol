@@ -5,23 +5,6 @@ import { Connection } from 'typeorm/connection/Connection';
 
 import { RfqmJobEntity, RfqmQuoteEntity } from '../entities';
 
-export interface RfqmJobOpts {
-    orderHash?: string;
-    metaTransactionHash?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    expiry?: BigNumber;
-    chainId?: number;
-    integratorId?: string | null;
-    makerUri?: string;
-    status?: RfqmJobStatus;
-    statusReason?: string | null;
-    calldata?: string;
-    fee?: StoredFee | null;
-    order?: StoredOrder | null;
-    metadata?: object;
-}
-
 export enum RfqmJobStatus {
     InQueue = 'inQueue',
     Processing = 'processing',
@@ -154,11 +137,15 @@ export class RfqmDbUtils {
     /**
      * updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
      */
-    public async updateRfqmJobAsync(orderHash: string, rfqmJobOpts: RfqmJobOpts): Promise<void> {
+    public async updateRfqmJobAsync(orderHash: string, rfqmJobOpts: Partial<RfqmJobEntity>): Promise<void> {
         await this._connection.getRepository(RfqmJobEntity).save({ ...rfqmJobOpts, orderHash });
     }
 
-    public async writeRfqmJobToDbAsync(rfqmJobOpts: RfqmJobOpts): Promise<void> {
+    public async writeRfqmQuoteToDbAsync(rfqmQuoteOpts: Partial<RfqmQuoteEntity>): Promise<void> {
+        await this._connection.getRepository(RfqmQuoteEntity).insert(new RfqmQuoteEntity(rfqmQuoteOpts));
+    }
+
+    public async writeRfqmJobToDbAsync(rfqmJobOpts: Partial<RfqmJobEntity>): Promise<void> {
         await this._connection.getRepository(RfqmJobEntity).insert(new RfqmJobEntity(rfqmJobOpts));
     }
 }

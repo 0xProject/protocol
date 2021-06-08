@@ -40,6 +40,7 @@ import { HttpServiceConfig } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { providerUtils } from '../utils/provider_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
+import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 
 process.on('uncaughtException', (err) => {
@@ -115,6 +116,8 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
 
     const rfqBlockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy);
 
+    const dbUtils = new RfqmDbUtils(connection);
+
     const sqsProducer = Producer.create({
         queueUrl: RFQM_META_TX_SQS_URL,
     });
@@ -127,7 +130,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         contractAddresses,
         META_TX_WORKER_REGISTRY!,
         rfqBlockchainUtils,
-        connection,
+        dbUtils,
         sqsProducer,
         quoteServerClient,
     );

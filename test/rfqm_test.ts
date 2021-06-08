@@ -143,8 +143,10 @@ describe(SUITE_NAME, () => {
             },
         ];
 
+        // Create the dbUtils
         connection = await getDBConnectionAsync();
         await connection.synchronize(true);
+        const dbUtils = new RfqmDbUtils(connection);
 
         // Create the mock sqsProducer
         const sqsProducerMock = mock(Producer);
@@ -160,7 +162,7 @@ describe(SUITE_NAME, () => {
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
             rfqBlockchainUtils,
-            connection,
+            dbUtils,
             sqsProducer,
             quoteServerClient,
         );

@@ -7,7 +7,6 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { Counter } from 'prom-client';
 import { Producer } from 'sqs-producer';
-import { Connection } from 'typeorm';
 
 import { CHAIN_ID, META_TX_WORKER_REGISTRY, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_TX_GAS_ESTIMATE } from '../constants';
@@ -19,7 +18,6 @@ import { QuoteServerClient } from '../utils/quote_server_client';
 import {
     feeToStoredFee,
     RfqmDbUtils,
-    RfqmJobOpts,
     RfqmJobStatus,
     storedFeeToFee,
     storedOrderToRfqmOrder,
@@ -138,8 +136,6 @@ const PRICE_DECIMAL_PLACES = 6;
  * RfqmService is the coordination layer for HTTP based RFQM flows.
  */
 export class RfqmService {
-    public dbUtils = new RfqmDbUtils(this._connection);
-
     private static _getSellAmountGivenBuyAmountAndQuote(
         buyAmount: BigNumber,
         quotedTakerAmount: BigNumber,
@@ -166,7 +162,7 @@ export class RfqmService {
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,
-        private readonly _connection: Connection,
+        private readonly _dbUtils: RfqmDbUtils,
         private readonly _sqsProducer: Producer,
         private readonly _quoteServerClient: QuoteServerClient,
     ) {}
@@ -375,7 +371,7 @@ export class RfqmService {
 
         // TODO: Save the integratorId
         // Save the RfqmQuote
-        await this._connection.getRepository(RfqmQuoteEntity).insert(
+        await this._dbUtils.writeRfqmQuoteToDbAsync(
             new RfqmQuoteEntity({
                 orderHash,
                 metaTransactionHash,
@@ -409,7 +405,7 @@ export class RfqmService {
         const metaTransactionHash = params.metaTransaction.getHash();
 
         // check that the firm quote is recognized as a previously returned quote
-        const quote = await this.dbUtils.findQuoteByMetaTransactionHashAsync(metaTransactionHash);
+        const quote = await this._dbUtils.findQuoteByMetaTransactionHashAsync(metaTransactionHash);
         if (quote === undefined) {
             RFQM_SIGNED_QUOTE_NOT_FOUND.inc();
             throw new NotFoundError('quote not found');
@@ -450,7 +446,7 @@ export class RfqmService {
             ]);
         }
 
-        const rfqmJobOpts: RfqmJobOpts = {
+        const rfqmJobOpts = {
             orderHash: quote.orderHash!,
             metaTransactionHash,
             createdAt: new Date(),
@@ -472,7 +468,7 @@ export class RfqmService {
         // that a signed quote cannot be queued twice
         try {
             // make sure job data is persisted to Postgres before queueing task
-            await this.dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
+            await this._dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
             await this._enqueueJobAsync(quote.orderHash!);
         } catch (err) {
             throw new InternalServerError(
@@ -494,7 +490,7 @@ export class RfqmService {
         logger.info({ orderHash }, 'start processing job');
 
         // Get job
-        const job = await this.dbUtils.findJobByOrderHashAsync(orderHash);
+        const job = await this._dbUtils.findJobByOrderHashAsync(orderHash);
         if (job === undefined) {
             throw new NotFoundError(`job for orderHash ${orderHash} not found`);
         }
@@ -504,7 +500,7 @@ export class RfqmService {
         const { calldata, makerUri, order, fee } = job;
 
         // Start processing
-        await this.dbUtils.updateRfqmJobAsync(orderHash, {
+        await this._dbUtils.updateRfqmJobAsync(orderHash, {
             status: RfqmJobStatus.Processing,
         });
 
@@ -515,7 +511,7 @@ export class RfqmService {
             RFQM_JOB_FAILED_ETHCALL_VALIDATION.inc();
             logger.warn({ error: e, orderHash }, 'The eth_call validation failed');
             // Terminate with an error transition
-            await this.dbUtils.updateRfqmJobAsync(orderHash, {
+            await this._dbUtils.updateRfqmJobAsync(orderHash, {
                 status: RfqmJobStatus.Failed,
                 statusReason: 'eth_call failed',
             });
@@ -535,7 +531,7 @@ export class RfqmService {
 
         if (!shouldProceed) {
             // Terminate with an error transition
-            await this.dbUtils.updateRfqmJobAsync(orderHash, {
+            await this._dbUtils.updateRfqmJobAsync(orderHash, {
                 status: RfqmJobStatus.Failed,
                 statusReason: 'Rejected by MM last look',
             });
@@ -545,7 +541,7 @@ export class RfqmService {
         // TODO: Submit To Chain
 
         // Update Status
-        await this.dbUtils.updateRfqmJobAsync(orderHash, {
+        await this._dbUtils.updateRfqmJobAsync(orderHash, {
             status: RfqmJobStatus.Successful,
         });
         return;
@@ -565,7 +561,7 @@ export class RfqmService {
     private async _validateJobAsync(orderHash: string, job: RfqmJobEntity): Promise<void> {
         const { calldata, makerUri, order, fee } = job;
         if (calldata === undefined) {
-            await this.dbUtils.updateRfqmJobAsync(orderHash, {
+            await this._dbUtils.updateRfqmJobAsync(orderHash, {
                 status: RfqmJobStatus.Failed,
                 statusReason: 'Missing Calldata',
             });
@@ -573,7 +569,7 @@ export class RfqmService {
         }
 
         if (makerUri === undefined) {
-            await this.dbUtils.updateRfqmJobAsync(orderHash, {
+            await this._dbUtils.updateRfqmJobAsync(orderHash, {
                 status: RfqmJobStatus.Failed,
                 statusReason: 'Missing makerUri',
             });
@@ -581,7 +577,7 @@ export class RfqmService {
         }
 
         if (order === null) {
-            await this.dbUtils.updateRfqmJobAsync(orderHash, {
+            await this._dbUtils.updateRfqmJobAsync(orderHash, {
                 status: RfqmJobStatus.Failed,
                 statusReason: 'Missing order on job',
             });
@@ -589,7 +585,7 @@ export class RfqmService {
         }
 
         if (fee === null) {
-            await this.dbUtils.updateRfqmJobAsync(orderHash, {
+            await this._dbUtils.updateRfqmJobAsync(orderHash, {
                 status: RfqmJobStatus.Failed,
                 statusReason: 'Missing fee on job',
             });
