@@ -43,7 +43,7 @@ abstract contract MultiplexRfq is
         FixinEIP712(zeroExAddress)
     {}
 
-    function _fillRfqOrder(
+    function _batchSellRfqOrder(
         IMultiplexFeature.BatchSellState memory state,
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory wrappedCallData,

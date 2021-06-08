@@ -43,6 +43,8 @@ abstract contract MultiplexTransformERC20 {
         args.outputToken = params.outputToken;
         args.inputTokenAmount = sellAmount;
         args.minOutputTokenAmount = 0;
+        args.useSelfBalance = params.useSelfBalance;
+        args.recipient = payable(params.recipient);
         (args.transformations) = abi.decode(
             wrappedCallData,
             (ITransformERC20Feature.Transformation[])

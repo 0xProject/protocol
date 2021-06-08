@@ -299,7 +299,7 @@ contract MultiplexFeature is
                 params.sellAmount.safeSub(state.soldAmount)
             );
             if (wrappedCall.id == MultiplexSubcall.RFQ) {
-                _fillRfqOrder(
+                _batchSellRfqOrder(
                     state,
                     params,
                     wrappedCall.data,
