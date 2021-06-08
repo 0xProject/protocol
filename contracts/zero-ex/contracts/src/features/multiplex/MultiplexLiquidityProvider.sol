@@ -25,7 +25,6 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../external/ILiquidityProviderSandbox.sol";
 import "../../fixins/FixinTokenSpender.sol";
-import "../../transformers/LibERC20Transformer.sol";
 import "../../vendor/ILiquidityProvider.sol";
 import "../interfaces/IMultiplexFeature.sol";
 

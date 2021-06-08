@@ -59,6 +59,9 @@ interface ITransformERC20Feature {
         // The transformations to execute on the token balance(s)
         // in sequence.
         Transformation[] transformations;
+
+        bool useSelfBalance;
+        address payable recipient;
     }
 
     /// @dev Raised upon a successful `transformERC20`.

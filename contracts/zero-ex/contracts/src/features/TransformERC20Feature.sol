@@ -51,14 +51,14 @@ contract TransformERC20Feature is
     struct TransformERC20PrivateState {
         IFlashWallet wallet;
         address transformerDeployer;
-        uint256 takerOutputTokenBalanceBefore;
-        uint256 takerOutputTokenBalanceAfter;
+        uint256 recipientOutputTokenBalanceBefore;
+        uint256 recipientOutputTokenBalanceAfter;
     }
 
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "TransformERC20";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 3, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 4, 0);
 
     constructor() public {}
 
@@ -180,7 +180,9 @@ contract TransformERC20Feature is
                 outputToken: outputToken,
                 inputTokenAmount: inputTokenAmount,
                 minOutputTokenAmount: minOutputTokenAmount,
-                transformations: transformations
+                transformations: transformations,
+                useSelfBalance: false,
+                recipient: msg.sender
             })
         );
     }
@@ -208,7 +210,7 @@ contract TransformERC20Feature is
     {
         // If the input token amount is -1 and we are not selling ETH,
         // transform the taker's entire spendable balance.
-        if (args.inputTokenAmount == uint256(-1)) {
+        if (!args.useSelfBalance && args.inputTokenAmount == uint256(-1)) {
             if (LibERC20Transformer.isTokenETH(args.inputToken)) {
                 // We can't pull more ETH from the taker, so we just set the
                 // input token amount to the value attached to the call.
@@ -225,17 +227,12 @@ contract TransformERC20Feature is
         state.wallet = getTransformWallet();
         state.transformerDeployer = getTransformerDeployer();
 
-        // Remember the initial output token balance of the taker.
-        state.takerOutputTokenBalanceBefore =
-            LibERC20Transformer.getTokenBalanceOf(args.outputToken, args.taker);
+        // Remember the initial output token balance of the recipient.
+        state.recipientOutputTokenBalanceBefore =
+            LibERC20Transformer.getTokenBalanceOf(args.outputToken, args.recipient);
 
         // Pull input tokens from the taker to the wallet and transfer attached ETH.
-        _transferInputTokensAndAttachedEth(
-            args.inputToken,
-            args.taker,
-            address(state.wallet),
-            args.inputTokenAmount
-        );
+        _transferInputTokensAndAttachedEth(args, address(state.wallet));
 
         {
             // Perform transformations.
@@ -244,22 +241,22 @@ contract TransformERC20Feature is
                     state.wallet,
                     args.transformations[i],
                     state.transformerDeployer,
-                    args.taker
+                    args.recipient
                 );
             }
         }
 
-        // Compute how much output token has been transferred to the taker.
-        state.takerOutputTokenBalanceAfter =
-            LibERC20Transformer.getTokenBalanceOf(args.outputToken, args.taker);
-        if (state.takerOutputTokenBalanceAfter < state.takerOutputTokenBalanceBefore) {
+        // Compute how much output token has been transferred to the recipient.
+        state.recipientOutputTokenBalanceAfter =
+            LibERC20Transformer.getTokenBalanceOf(args.outputToken, args.recipient);
+        if (state.recipientOutputTokenBalanceAfter < state.recipientOutputTokenBalanceBefore) {
             LibTransformERC20RichErrors.NegativeTransformERC20OutputError(
                 address(args.outputToken),
-                state.takerOutputTokenBalanceBefore - state.takerOutputTokenBalanceAfter
+                state.recipientOutputTokenBalanceBefore - state.recipientOutputTokenBalanceAfter
             ).rrevert();
         }
-        outputTokenAmount = state.takerOutputTokenBalanceAfter.safeSub(
-            state.takerOutputTokenBalanceBefore
+        outputTokenAmount = state.recipientOutputTokenBalanceAfter.safeSub(
+            state.recipientOutputTokenBalanceBefore
         );
         // Ensure enough output token has been sent to the taker.
         if (outputTokenAmount < args.minOutputTokenAmount) {
@@ -292,38 +289,49 @@ contract TransformERC20Feature is
         return LibTransformERC20Storage.getStorage().wallet;
     }
 
-    /// @dev Transfer input tokens from the taker and any attached ETH to `to`
-    /// @param inputToken The token to pull from the taker.
-    /// @param from The from (taker) address.
+    /// @dev Transfer input tokens and any attached ETH to `to`
+    /// @param args A `TransformERC20Args` struct.
     /// @param to The recipient of tokens and ETH.
-    /// @param amount Amount of `inputToken` tokens to transfer.
     function _transferInputTokensAndAttachedEth(
-        IERC20TokenV06 inputToken,
-        address from,
-        address payable to,
-        uint256 amount
+        TransformERC20Args memory args,
+        address payable to
     )
         private
     {
+        if (
+            LibERC20Transformer.isTokenETH(args.inputToken) &&
+            msg.value < args.inputTokenAmount
+        ) {
+             // Token is ETH, so the caller must attach enough ETH to the call.
+            LibTransformERC20RichErrors.InsufficientEthAttachedError(
+                msg.value,
+                args.inputTokenAmount
+            ).rrevert();
+        }
+
         // Transfer any attached ETH.
         if (msg.value != 0) {
             to.transfer(msg.value);
         }
+
         // Transfer input tokens.
-        if (!LibERC20Transformer.isTokenETH(inputToken) && amount != 0) {
-            // Token is not ETH, so pull ERC20 tokens.
-            _transferERC20TokensFrom(
-                inputToken,
-                from,
-                to,
-                amount
-            );
-        } else if (msg.value < amount) {
-             // Token is ETH, so the caller must attach enough ETH to the call.
-            LibTransformERC20RichErrors.InsufficientEthAttachedError(
-                msg.value,
-                amount
-            ).rrevert();
+        if (!LibERC20Transformer.isTokenETH(args.inputToken)) {
+            if (args.useSelfBalance) {
+                // Use EP balance input token.
+                _transferERC20Tokens(
+                    args.inputToken,
+                    to,
+                    args.inputTokenAmount
+                );
+            } else {
+                // Pull ERC20 tokens from taker.
+                _transferERC20TokensFrom(
+                    args.inputToken,
+                    args.taker,
+                    to,
+                    args.inputTokenAmount
+                );
+            }
         }
     }
 
