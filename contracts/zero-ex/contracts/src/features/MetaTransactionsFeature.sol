@@ -415,7 +415,9 @@ contract MetaTransactionsFeature is
                     outputToken: args.outputToken,
                     inputTokenAmount: args.inputTokenAmount,
                     minOutputTokenAmount: args.minOutputTokenAmount,
-                    transformations: args.transformations
+                    transformations: args.transformations,
+                    useSelfBalance: false,
+                    recipient: state.mtx.signer
               })
             ),
             state.mtx.value
