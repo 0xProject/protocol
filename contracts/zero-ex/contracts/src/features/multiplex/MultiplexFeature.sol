@@ -51,6 +51,10 @@ contract MultiplexFeature is
     string public constant override FEATURE_NAME = "MultiplexFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(2, 0, 0);
+    /// @dev The highest bit of a uint256 value.
+    uint256 private constant HIGH_BIT = 2 ** 255;
+    /// @dev Mask of the lower 255 bits of a uint256 value.
+    uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
 
     /// @dev The WETH token contract.
     IEtherTokenV06 private immutable weth;
@@ -294,9 +298,10 @@ contract MultiplexFeature is
             if (state.soldAmount >= params.sellAmount) { break; }
             BatchSellSubcall memory wrappedCall = params.calls[i];
             // Compute the fill amount.
-            uint256 inputTokenAmount = LibSafeMathV06.min256(
+            uint256 inputTokenAmount = _normalizeFillAmount(
                 wrappedCall.sellAmount,
-                params.sellAmount.safeSub(state.soldAmount)
+                params.sellAmount,
+                state.soldAmount
             );
             if (wrappedCall.id == MultiplexSubcall.RFQ) {
                 _batchSellRfqOrder(
@@ -533,5 +538,32 @@ contract MultiplexFeature is
             target != address(0),
             "MultiplexFeature::_computeHopTarget/TARGET_IS_NULL"
         );
+    }
+
+    // Convert possible proportional values to absolute quantities.
+    function _normalizeFillAmount(
+        uint256 rawAmount,
+        uint256 totalSellAmount,
+        uint256 soldAmount
+    )
+        private
+        pure
+        returns (uint256 normalized)
+    {
+        if ((rawAmount & HIGH_BIT) == HIGH_BIT) {
+            // If the high bit of `rawAmount` is set then the lower 255 bits
+            // specify a fraction of `totalSellAmount`.
+            return LibSafeMathV06.min256(
+                totalSellAmount
+                    * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)
+                    / 1e18,
+                totalSellAmount.safeSub(soldAmount)
+            );
+        } else {
+            return LibSafeMathV06.min256(
+                rawAmount,
+                totalSellAmount.safeSub(soldAmount)
+            );
+        }
     }
 }
