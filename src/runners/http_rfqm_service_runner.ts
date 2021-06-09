@@ -19,11 +19,11 @@ import {
     CHAIN_ID,
     defaultHttpServiceWithRateLimiterConfig,
     ETH_GAS_STATION_API_URL,
-    META_TX_WORKER_INDEX,
     META_TX_WORKER_MNEMONIC,
     META_TX_WORKER_REGISTRY,
     RFQM_MAKER_ASSET_OFFERINGS,
     RFQM_META_TX_SQS_URL,
+    RFQM_WORKER_INDEX,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
     SWAP_QUOTER_OPTS,
@@ -81,12 +81,12 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         if (META_TX_WORKER_MNEMONIC === undefined) {
             throw new Error(`META_TX_WORKER_MNEMONIC must be defined to run RFQM service as a worker`);
         }
-        if (META_TX_WORKER_INDEX === undefined) {
+        if (RFQM_WORKER_INDEX === undefined) {
             throw new Error(`META_TX_WORKER_INDEX must be defined to run RFQM service as a worker`);
         }
         const workerPrivateKey = RfqBlockchainUtils.getPrivateKeyFromIndexAndPhrase(
             META_TX_WORKER_MNEMONIC,
-            META_TX_WORKER_INDEX,
+            RFQM_WORKER_INDEX,
         );
         const privateWalletSubprovider = new PrivateKeyWalletSubprovider(workerPrivateKey);
         provider = RfqBlockchainUtils.createPrivateKeyProvider(rpcProvider, privateWalletSubprovider);

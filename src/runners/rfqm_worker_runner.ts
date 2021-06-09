@@ -8,10 +8,10 @@ import { Counter } from 'prom-client';
 
 import {
     ENABLE_PROMETHEUS_METRICS,
-    META_TX_WORKER_INDEX,
     META_TX_WORKER_MNEMONIC,
     PROMETHEUS_PORT,
     RFQM_META_TX_SQS_URL,
+    RFQM_WORKER_INDEX,
 } from '../config';
 import { METRICS_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
@@ -52,13 +52,13 @@ if (require.main === module) {
         if (META_TX_WORKER_MNEMONIC === undefined) {
             throw new Error(`META_TX_WORKER_MNEMONIC must be defined to use RFQM worker runner`);
         }
-        if (META_TX_WORKER_INDEX === undefined) {
+        if (RFQM_WORKER_INDEX === undefined) {
             throw new Error(`META_TX_WORKER_INDEX must be defined to use RFQM worker runner`);
         }
 
         const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(
             META_TX_WORKER_MNEMONIC,
-            META_TX_WORKER_INDEX,
+            RFQM_WORKER_INDEX,
         );
 
         // Build dependencies
