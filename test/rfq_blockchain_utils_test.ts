@@ -11,7 +11,7 @@ import { PROTOCOL_FEE_MULTIPLIER } from '../src/config';
 import { ChainId } from '../src/types';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
-import { getProvider } from './constants';
+import { getProvider, TEST_RFQ_ORDER_FILLED_EVENT_LOG, TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 const SUITE_NAME = 'RFQ Blockchain Utils Test';
@@ -192,6 +192,22 @@ describe(SUITE_NAME, () => {
                 expect(String(err)).to.contain('MetaTransactionCallFailedError');
             }
         });
+        it('should throw for a partially filled order', async () => {
+            const metaTx1 = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount.div(2), CHAIN_ID);
+            const metaTxSig1 = await metaTx1.getSignatureWithProviderAsync(provider);
+
+            await zeroEx.executeMetaTransaction(metaTx1, metaTxSig1).awaitTransactionSuccessAsync({from: txOrigin});
+
+            const metaTx2 = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
+            const metaTxSig2 = await metaTx2.getSignatureWithProviderAsync(provider);
+
+            try {
+                await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx2, metaTxSig2, txOrigin);
+                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when not filling the entire amount`);
+            } catch (err) {
+                expect(String(err)).to.contain(`filled amount is less than requested fill amount`);
+            }
+        });
     });
     describe('submitCallDataToExchangeProxyAsync', () => {
         it('passes submit validation and returns a transaction hash for a valid meta tx', async () => {
@@ -203,6 +219,25 @@ describe(SUITE_NAME, () => {
             const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, { gasPrice: 1e9, gas: 200000, value: 0 });
 
             expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
+        });
+    });
+    describe('getTakerTokenFillAmountFromMetaTxCallData', () => {
+        it('returns the correct taker token fill amount from calldata', async () => {
+            const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
+            const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
+
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+
+            const expectedTakerTokenFillAmount = rfqBlockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(callData);
+            expect(expectedTakerTokenFillAmount).to.deep.eq(takerAmount);
+        });
+    });
+    describe('getDecodedRfqOrderFillEventLogFromLogs', () => {
+        it('correctly parses an RfqOrderFillEvent from logs', async () => {
+            const rfqOrderFilledEvent = rfqBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs([TEST_RFQ_ORDER_FILLED_EVENT_LOG]);
+
+            expect(rfqOrderFilledEvent.args.takerTokenFilledAmount).to.deep.eq(TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT);
+            expect(rfqOrderFilledEvent.blockNumber).to.deep.eq(TEST_RFQ_ORDER_FILLED_EVENT_LOG.blockNumber);
         });
     });
 });

@@ -15,6 +15,7 @@ import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { TransactionReceiptStatus } from 'ethereum-types';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
@@ -26,22 +27,23 @@ import { Connection } from 'typeorm';
 import * as config from '../src/config';
 import { RFQM_PATH } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
-import { RfqmJobEntity, RfqmQuoteEntity } from '../src/entities';
+import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
-import { RfqmService, RfqmTypes } from '../src/services/rfqm_service';
+import { BLOCK_FINALITY_THRESHOLD, RfqmService, RfqmTypes } from '../src/services/rfqm_service';
 import { ConfigManager } from '../src/utils/config_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import {
     RfqmDbUtils,
     RfqmJobStatus,
     RfqmOrderTypes,
+    RfqmTranasctionSubmissionStatus,
     StoredFee,
     StoredOrder,
     storedOrderToRfqmOrder,
 } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
-import { CONTRACT_ADDRESSES, getProvider, NULL_ADDRESS } from './constants';
+import { CONTRACT_ADDRESSES, getProvider, NULL_ADDRESS, TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG, TEST_RFQ_ORDER_FILLED_EVENT_LOG } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
@@ -68,6 +70,32 @@ const BASE_RFQM_REQUEST_PARAMS = {
 const MOCK_META_TX_CALL_DATA = '0x123';
 const VALID_SIGNATURE = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 const SAFE_EXPIRY = '1903620548';
+const NONCE = 1;
+const GAS_ESTIMATE = 165000;
+const WORKER_ADDRESS = '0xaWorkerAddress';
+const FIRST_TRANSACTION_HASH = '0xfirstTxHash';
+const TX_STATUS: TransactionReceiptStatus = 1;
+const GAS_PRICE = new BigNumber(100);
+// it's over 9K
+const MINED_BLOCK = 9001;
+// the tx should be finalized
+const CURRENT_BLOCK = MINED_BLOCK - BLOCK_FINALITY_THRESHOLD;
+const MOCK_EXCHANGE_PROXY = '0xtheExchangeProxy';
+const EXPECTED_FILL_AMOUNT = new BigNumber(9000);
+const SUCCESSFUL_TRANSACTION_RECEIPT = {
+    blockHash: '0xaBlockHash',
+    blockNumber: MINED_BLOCK,
+    contractAddress: null,
+    cumulativeGasUsed: 150000,
+    from: WORKER_ADDRESS,
+    gasUsed: GAS_ESTIMATE,
+    logs: [TEST_RFQ_ORDER_FILLED_EVENT_LOG],
+    status: TX_STATUS,
+    to: MOCK_EXCHANGE_PROXY,
+    transactionHash: FIRST_TRANSACTION_HASH,
+    transactionIndex: 5,
+};
+
 describe(SUITE_NAME, () => {
     let takerAddress: string;
     let makerAddress: string;
@@ -90,7 +118,7 @@ describe(SUITE_NAME, () => {
         // Build dependencies
         // Create the mock ProtocolFeeUtils
         const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-        when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(100));
+        when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(GAS_PRICE);
         const protocolFeeUtils = instance(protocolFeeUtilsMock);
 
         // Create the mock ConfigManager
@@ -126,8 +154,45 @@ describe(SUITE_NAME, () => {
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
         when(
+            rfqBlockchainUtilsMock.getNonceAsync(
+                anything(),
+            ),
+        ).thenResolve(NONCE);
+        when(
+            rfqBlockchainUtilsMock.estimateGasForExchangeProxyCallAsync(
+                anything(),
+                anything(),
+            ),
+        ).thenResolve(GAS_ESTIMATE);
+        when(
+            rfqBlockchainUtilsMock.submitCallDataToExchangeProxyAsync(
+                anything(),
+                anything(),
+                anything(),
+            ),
+        ).thenResolve(FIRST_TRANSACTION_HASH);
+        when(
+            rfqBlockchainUtilsMock.getTransactionReceiptIfExistsAsync(
+                FIRST_TRANSACTION_HASH,
+            ),
+        ).thenResolve(SUCCESSFUL_TRANSACTION_RECEIPT);
+        when(
+            rfqBlockchainUtilsMock.getCurrentBlockAsync()
+        ).thenResolve(CURRENT_BLOCK);
+        when(
+            rfqBlockchainUtilsMock.getExchangeProxyAddress()
+        ).thenReturn(MOCK_EXCHANGE_PROXY);
+        when(
+            rfqBlockchainUtilsMock.getTakerTokenFillAmountFromMetaTxCallData(
+                anything(),
+            )
+        ).thenReturn(EXPECTED_FILL_AMOUNT);
+        when(
             rfqBlockchainUtilsMock.decodeMetaTransactionCallDataAndValidateAsync(anyString(), anyString(), anything()),
         ).thenResolve(validationResponse);
+        when(rfqBlockchainUtilsMock.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn(
+            TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
+        );
         const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
         interface SqsResponse {
@@ -931,7 +996,29 @@ describe(SUITE_NAME, () => {
             expect(appResponse.body.validationErrors[0].reason).to.equal(`metatransaction will expire too soon`);
         });
     });
+    describe('completeSubmissionLifecycleAsync', async () => {
+        const callData = '0x123';
+        const orderHash = '0xanOrderHash';
+        it('should successfully process a transaction', async () => {
+            await rfqmService.completeSubmissionLifecycleAsync(orderHash, WORKER_ADDRESS, callData);
 
+            // find the saved results
+            const dbSubmissionEntity = await connection.getRepository(RfqmTransactionSubmissionEntity).findOne({
+                transactionHash: FIRST_TRANSACTION_HASH,
+            });
+            expect(dbSubmissionEntity).to.not.be.null();
+            expect(dbSubmissionEntity?.transactionHash).to.equal(FIRST_TRANSACTION_HASH);
+            expect(dbSubmissionEntity?.orderHash).to.equal(orderHash);
+            expect(dbSubmissionEntity?.from).to.deep.equal(WORKER_ADDRESS);
+            expect(dbSubmissionEntity?.gasUsed).to.deep.equal(new BigNumber(GAS_ESTIMATE));
+            expect(dbSubmissionEntity?.gasPrice).to.deep.equal(GAS_PRICE);
+            expect(dbSubmissionEntity?.nonce).to.deep.equal(NONCE);
+            expect(dbSubmissionEntity?.status).to.deep.equal(RfqmTranasctionSubmissionStatus.Successful);
+            expect(dbSubmissionEntity?.blockMined).to.deep.equal(new BigNumber(MINED_BLOCK));
+            expect(dbSubmissionEntity?.to).to.deep.equal(MOCK_EXCHANGE_PROXY);
+            expect(dbSubmissionEntity?.statusReason).to.deep.equal(null);
+        });
+    });
     describe('processJobAsync', async () => {
         const createMockMetaTx = (overrideFields?: Partial<MetaTransactionFields>): MetaTransaction => {
             return new MetaTransaction({

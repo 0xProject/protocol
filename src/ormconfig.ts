@@ -8,6 +8,7 @@ import {
     PersistentSignedOrderV4Entity,
     RfqmJobEntity,
     RfqmQuoteEntity,
+    RfqmTransactionSubmissionEntity,
     SignedOrderEntity,
     SignedOrderV4Entity,
     TransactionEntity,
@@ -23,6 +24,7 @@ const entities = [
     PersistentSignedOrderV4Entity,
     RfqmQuoteEntity,
     RfqmJobEntity,
+    RfqmTransactionSubmissionEntity,
 ];
 
 const config: ConnectionOptions = {

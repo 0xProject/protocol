@@ -1,9 +1,8 @@
 import { constants, expect } from '@0x/contracts-test-utils';
-import { BlockchainLifecycle, Web3ProviderEngine } from '@0x/dev-utils';
+import { BlockchainLifecycle, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
 import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as Mocha from 'mocha';
 import { Connection } from 'typeorm';
 

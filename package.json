@@ -151,7 +151,7 @@
         "@0x/token-metadata": "^0.1.4",
         "@0x/types": "^3.3.2",
         "@0x/utils": "^6.4.3",
-        "@0x/web3-wrapper": "^7.4.2",
+        "@0x/web3-wrapper": "^7.5.0",
         "@ethersproject/hdnode": "^5.2.0",
         "aws-sdk": "^2.908.0",
         "axios": "^0.21.1",

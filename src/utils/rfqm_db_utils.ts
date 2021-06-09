@@ -3,7 +3,7 @@ import { RfqOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { Connection } from 'typeorm/connection/Connection';
 
-import { RfqmJobEntity, RfqmQuoteEntity } from '../entities';
+import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
 
 export enum RfqmJobStatus {
     InQueue = 'inQueue',
@@ -11,6 +11,13 @@ export enum RfqmJobStatus {
     Submitted = 'submitted',
     Successful = 'successful',
     Failed = 'failed',
+}
+
+export enum RfqmTranasctionSubmissionStatus {
+    Submitted = 'submitted',
+    Successful = 'successful',
+    Reverted = 'reverted',
+    DroppedAndReplaced = 'droppedAndReplaced',
 }
 
 export enum RfqmOrderTypes {
@@ -134,6 +141,22 @@ export class RfqmDbUtils {
         });
     }
 
+    public async findRfqmTransactionSubmissionByTransactionHashAsync(
+        transactionHash: string,
+    ): Promise<RfqmTransactionSubmissionEntity | undefined> {
+        return this._connection.getRepository(RfqmTransactionSubmissionEntity).findOne({
+            where: { transactionHash },
+        });
+    }
+
+    public async findRfqmTransactionSubmissionsByOrderHashAsync(
+        orderHash: string,
+    ): Promise<RfqmTransactionSubmissionEntity[]> {
+        return this._connection.getRepository(RfqmTransactionSubmissionEntity).find({
+            where: { orderHash },
+        });
+    }
+
     /**
      * updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
      */
@@ -147,5 +170,20 @@ export class RfqmDbUtils {
 
     public async writeRfqmJobToDbAsync(rfqmJobOpts: Partial<RfqmJobEntity>): Promise<void> {
         await this._connection.getRepository(RfqmJobEntity).insert(new RfqmJobEntity(rfqmJobOpts));
+    }
+
+    public async writeRfqmTransactionSubmissionToDbAsync(
+        partialRfqmTransactionSubmissionEntity: Partial<RfqmTransactionSubmissionEntity>,
+    ): Promise<RfqmTransactionSubmissionEntity> {
+        const entity = new RfqmTransactionSubmissionEntity(partialRfqmTransactionSubmissionEntity);
+        await this._connection.getRepository(RfqmTransactionSubmissionEntity).insert(entity);
+
+        return entity;
+    }
+
+    public async updateRfqmTransactionSubmissionsAsync(
+        entities: Partial<RfqmTransactionSubmissionEntity>[],
+    ): Promise<void> {
+        await this._connection.getRepository(RfqmTransactionSubmissionEntity).save(entities);
     }
 }

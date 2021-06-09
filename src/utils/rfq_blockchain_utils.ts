@@ -1,11 +1,12 @@
+import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { provider } from '@0x/contracts-test-utils';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
 import { CallData, SupportedProvider, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
-import { BigNumber, providerUtils } from '@0x/utils';
+import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
-import { TxData } from 'ethereum-types';
+import { LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } from 'ethereum-types';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { ChainId } from '../types';
@@ -16,10 +17,30 @@ import { SubproviderAdapter } from './subprovider_adapter';
 const MIN_GAS_PRICE = new BigNumber(0);
 // 10K Gwei
 const MAX_GAS_PRICE = new BigNumber(1e13);
+const GAS_ESTIMATE_BUFFER = 0.05;
+const RFQ_ORDER_FILLED_EVENT_TOPIC0 = '0x829fa99d94dc4636925b38632e625736a614c154d55006b7ab6bea979c210c32';
+const RFQ_ORDER_FILLED_EVENT_ABI = [
+    {
+        anonymous: false,
+        inputs: [
+            { indexed: false, internalType: 'bytes32', name: 'orderHash', type: 'bytes32' },
+            { indexed: false, internalType: 'address', name: 'maker', type: 'address' },
+            { indexed: false, internalType: 'address', name: 'taker', type: 'address' },
+            { indexed: false, internalType: 'address', name: 'makerToken', type: 'address' },
+            { indexed: false, internalType: 'address', name: 'takerToken', type: 'address' },
+            { indexed: false, internalType: 'uint128', name: 'takerTokenFilledAmount', type: 'uint128' },
+            { indexed: false, internalType: 'uint128', name: 'makerTokenFilledAmount', type: 'uint128' },
+            { indexed: false, internalType: 'bytes32', name: 'pool', type: 'bytes32' },
+        ],
+        name: 'RfqOrderFilled',
+        type: 'event',
+    },
+];
 
 export class RfqBlockchainUtils {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _web3Wrapper: Web3Wrapper;
+    private readonly _abiDecoder: AbiDecoder;
 
     public static getPrivateKeyFromIndexAndPhrase(mnemonic: string, index: number): string {
         const hdNode = HDNode.fromMnemonic(mnemonic).derivePath(this._getPathByIndex(index));
@@ -57,6 +78,7 @@ export class RfqBlockchainUtils {
     constructor(private readonly _provider: SupportedProvider, private readonly _exchangeProxyAddress: string) {
         this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, this._provider);
         this._web3Wrapper = new Web3Wrapper(provider);
+        this._abiDecoder = new AbiDecoder([RFQ_ORDER_FILLED_EVENT_ABI]);
     }
 
     // for use when 0x API operator submits an order on-chain on behalf of taker
@@ -97,6 +119,11 @@ export class RfqBlockchainUtils {
         return this.validateMetaTransactionOrThrowAsync(metaTxInput[0], metaTxInput[1], sender, txOptions);
     }
 
+    public getTakerTokenFillAmountFromMetaTxCallData(calldata: string): BigNumber {
+        const metaTxInput: any = this._exchangeProxy.getABIDecodedTransactionData('executeMetaTransaction', calldata);
+        return (this._exchangeProxy.getABIDecodedTransactionData('fillRfqOrder', metaTxInput[0].callData) as any)[2];
+    }
+
     public async validateMetaTransactionOrThrowAsync(
         metaTx: MetaTransaction,
         metaTxSig: Signature,
@@ -110,7 +137,7 @@ export class RfqBlockchainUtils {
             const takerTokenFillAmount = (this._exchangeProxy.getABIDecodedTransactionData(
                 'fillRfqOrder',
                 metaTx.callData,
-            ) as any).takerTokenFillAmount;
+            ) as any)[2];
             const decodedResults: [BigNumber, BigNumber] = this._exchangeProxy.getABIDecodedReturnData(
                 'fillRfqOrder',
                 results,
@@ -127,6 +154,48 @@ export class RfqBlockchainUtils {
 
     public generateMetaTransactionCallData(metaTx: MetaTransaction, metaTxSig: Signature): string {
         return this._exchangeProxy.executeMetaTransaction(metaTx, metaTxSig).getABIEncodedTransactionData();
+    }
+
+    public async getNonceAsync(workerAddress: string): Promise<number> {
+        return this._web3Wrapper.getAccountNonceAsync(workerAddress);
+    }
+
+    public getExchangeProxyAddress(): string {
+        return this._exchangeProxyAddress;
+    }
+
+    public async getTransactionReceiptIfExistsAsync(transactionHash: string): Promise<TransactionReceipt | undefined> {
+        return this._web3Wrapper.getTransactionReceiptIfExistsAsync(transactionHash);
+    }
+
+    public async getCurrentBlockAsync(): Promise<number> {
+        return this._web3Wrapper.getBlockNumberAsync();
+    }
+
+    public async estimateGasForExchangeProxyCallAsync(callData: string, workerAddress: string): Promise<number> {
+        const txData: Partial<TxData> = {
+            to: this._exchangeProxy.address,
+            data: callData,
+            from: workerAddress,
+        };
+
+        const gasEstimate = await this._web3Wrapper.estimateGasAsync(txData);
+
+        // add a buffer
+        return Math.ceil((GAS_ESTIMATE_BUFFER + 1) * gasEstimate);
+    }
+
+    public getDecodedRfqOrderFillEventLogFromLogs(
+        logs: LogEntry[],
+    ): LogWithDecodedArgs<IZeroExRfqOrderFilledEventArgs> {
+        for (const log of logs) {
+            if (log.topics[0] === RFQ_ORDER_FILLED_EVENT_TOPIC0) {
+                return this._abiDecoder.tryToDecodeLogOrNoop(log) as LogWithDecodedArgs<IZeroExRfqOrderFilledEventArgs>;
+            }
+        }
+        throw new Error(
+            `no RfqOrderFilledEvent logs among the logs passed into getDecodedRfqOrderFillEventLogFromLogs`,
+        );
     }
 
     public async submitCallDataToExchangeProxyAsync(
