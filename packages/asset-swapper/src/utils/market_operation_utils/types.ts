@@ -67,6 +67,7 @@ export enum ERC20BridgeSource {
     XSigma = 'xSigma',
     UniswapV3 = 'Uniswap_V3',
     CurveV2 = 'Curve_V2',
+    Lido = 'Lido',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -243,6 +244,10 @@ export interface KyberDmmFillData extends UniswapV2FillData {
 export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
     // The uniswap-encoded path that can fll the maximum input amount.
     uniswapPath: string;
+}
+
+export interface LidoFillData extends FillData {
+    stEthTokenAddress: string;
 }
 
 /**

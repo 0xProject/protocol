@@ -87,6 +87,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
+            ERC20BridgeSource.Lido,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Smoothy,
@@ -171,6 +172,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
             ERC20BridgeSource.Cream,
+            ERC20BridgeSource.Lido,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
@@ -1240,6 +1242,13 @@ export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const LIDO_STAKED_ETH_ADDRESS_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
+    },
+    NULL_ADDRESS,
+);
+
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
@@ -1451,6 +1460,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
+    [ERC20BridgeSource.Lido]: () => 300e3, // TODO(kimpers): add correct value
 
     //
     // BSC

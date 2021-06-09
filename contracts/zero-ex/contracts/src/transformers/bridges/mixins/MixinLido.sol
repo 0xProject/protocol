@@ -36,26 +36,35 @@ interface ILido {
 
 contract MixinLido {
     using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IEtherTokenV06;
 
+    IEtherTokenV06 private immutable WETH;
     address constant private ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
-    function _tradeLido(
+    constructor(IEtherTokenV06 weth)
+        public
+    {
+        WETH = weth;
+    }
 
-        ILido lido,
-        IEtherTokenV06 wethToken,
+
+
+    function _tradeLido(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bytes memory bridgeData
     )
         internal
         returns (uint256 boughtAmount)
     {
+        (ILido lido) = abi.decode(bridgeData, (ILido));
         if (address(buyToken) == address(lido)) {
             if (address(sellToken) == ETH_ADDRESS) {
                 // TODO(kimpers): do we want to use a referral address here
                 boughtAmount = lido.submit{ value: sellAmount}(address(0));
-            } else if (address(sellToken) == address(wethToken)) {
-                wethToken.withdraw(sellAmount);
+            } else if (address(sellToken) == address(WETH)) {
+                WETH.withdraw(sellAmount);
                 boughtAmount = lido.submit{ value: sellAmount}(address(0));
             }
         }

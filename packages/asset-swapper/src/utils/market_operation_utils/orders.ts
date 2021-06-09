@@ -19,6 +19,7 @@ import {
     GenericRouterFillData,
     KyberDmmFillData,
     KyberFillData,
+    LidoFillData,
     LiquidityProviderFillData,
     MakerPsmFillData,
     MooniswapFillData,
@@ -167,6 +168,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'WaultSwap');
         case ERC20BridgeSource.Polydex:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Polydex');
+        case ERC20BridgeSource.Lido:
+            return encodeBridgeSourceId(BridgeProtocol.Lido, 'Lido');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -296,6 +299,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 kyberDmmFillData.tokenAddressPath,
             ]);
             break;
+        case ERC20BridgeSource.Lido:
+            const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
+            bridgeData = encoder.encode([lidoFillData.stEthTokenAddress]);
+            break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -373,6 +380,7 @@ const balancerV2Encoder = AbiEncoder.create([
     { name: 'vault', type: 'address' },
     { name: 'poolId', type: 'bytes32' },
 ]);
+
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
@@ -447,6 +455,7 @@ export const BRIDGE_ENCODERS: {
         { name: 'path', type: 'bytes' },
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
+    [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

@@ -24,6 +24,7 @@ import {
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
+    LIDO_STAKED_ETH_ADDRESS_BY_CHAIN,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
     MAINNET_TOKENS,
@@ -60,6 +61,7 @@ import {
     KyberDmmFillData,
     KyberFillData,
     KyberSamplerOpts,
+    LidoFillData,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MakerPsmFillData,
@@ -1059,6 +1061,40 @@ export class SamplerOperations {
         });
     }
 
+    public getLidoSellQuotes(
+        stEthTokenAddress: string,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<LidoFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Lido,
+            fillData: {
+                stEthTokenAddress,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromLido,
+            params: [stEthTokenAddress, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getLidoBuyQuotes(
+        stEthTokenAddress: string,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<LidoFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.MakerPsm,
+            fillData: {
+                stEthTokenAddress,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromLido,
+            params: [stEthTokenAddress, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1392,6 +1428,15 @@ export class SamplerOperations {
                             ...intermediateTokens.map(t => [takerToken, t, makerToken]),
                         ].map(path => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
                     }
+                    case ERC20BridgeSource.Lido: {
+                        const stEthTokenAddress = LIDO_STAKED_ETH_ADDRESS_BY_CHAIN[this.chainId];
+
+                        if (stEthTokenAddress === NULL_ADDRESS) {
+                            return [];
+                        }
+
+                        return this.getLidoSellQuotes(stEthTokenAddress, makerToken, takerToken, takerFillAmounts);
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -1641,6 +1686,15 @@ export class SamplerOperations {
                             [takerToken, makerToken],
                             ...intermediateTokens.map(t => [takerToken, t, makerToken]),
                         ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
+                    }
+                    case ERC20BridgeSource.Lido: {
+                        const stEthTokenAddress = LIDO_STAKED_ETH_ADDRESS_BY_CHAIN[this.chainId];
+
+                        if (stEthTokenAddress === NULL_ADDRESS) {
+                            return [];
+                        }
+
+                        return this.getLidoBuyQuotes(stEthTokenAddress, makerToken, takerToken, makerFillAmounts);
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);
