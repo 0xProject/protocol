@@ -246,11 +246,13 @@ describe(SUITE_NAME, () => {
     beforeEach(async () => {
         await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
     });
 
     after(async () => {
         await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
         await new Promise<void>((resolve, reject) => {
             server.close((err?: Error) => {
                 if (err) {
@@ -1097,6 +1099,9 @@ describe(SUITE_NAME, () => {
 
             const job = await dbUtils.findJobByOrderHashAsync(orderHash);
             expect(job?.status).to.eq(RfqmJobStatus.Successful);
+
+            const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
+            expect(submissions[0].status).to.eq(RfqmTranasctionSubmissionStatus.Successful);
 
             mockAxios.reset();
         });
