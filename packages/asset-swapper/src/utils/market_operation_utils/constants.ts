@@ -765,7 +765,7 @@ export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_POOLS.tricrypto]: createCurveExchangeV2Pool({
         tokens: [MAINNET_TOKENS.USDT, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.WETH],
         pool: CURVE_V2_POOLS.tricrypto,
-        gasSchedule: 350e3,
+        gasSchedule: 300e3,
     }),
 };
 
