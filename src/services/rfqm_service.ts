@@ -584,10 +584,12 @@ export class RfqmService {
         }
 
         // Get last look from MM
+        const takerTokenFillAmount = this._blockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(calldata!);
         const submitRequest: SubmitRequest = {
             order: storedOrderToRfqmOrder(order!),
             orderHash,
             fee: storedFeeToFee(fee!),
+            takerTokenFillAmount,
         };
 
         const shouldProceed = await this._quoteServerClient.confirmLastLookAsync(makerUri!, submitRequest);

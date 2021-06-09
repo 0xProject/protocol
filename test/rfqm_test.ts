@@ -1,4 +1,4 @@
-// tslint:disable:max-file-line-count
+// tslint:disable:max-file-line-count custom-no-magic-numbers
 import {
     BigNumber,
     MockedRfqQuoteResponse,
@@ -10,8 +10,9 @@ import {
     SignatureType,
 } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
-import { expect } from '@0x/contracts-test-utils';
-import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
+import { expect, randomAddress } from '@0x/contracts-test-utils';
+import { MetaTransaction, MetaTransactionFields, RfqOrder, Signature } from '@0x/protocol-utils';
+import { generatePseudoRandom256BitNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -43,7 +44,7 @@ import {
 } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
-import { CONTRACT_ADDRESSES, getProvider, NULL_ADDRESS, TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG, TEST_RFQ_ORDER_FILLED_EVENT_LOG } from './constants';
+import { CHAIN_ID, CONTRACT_ADDRESSES, getProvider, NULL_ADDRESS, TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG, TEST_RFQ_ORDER_FILLED_EVENT_LOG } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
@@ -1022,66 +1023,70 @@ describe(SUITE_NAME, () => {
         });
     });
     describe('processJobAsync', async () => {
-        const createMockMetaTx = (overrideFields?: Partial<MetaTransactionFields>): MetaTransaction => {
-            return new MetaTransaction({
-                signer: '0x123',
-                sender: '0x123',
-                minGasPrice: new BigNumber('123'),
-                maxGasPrice: new BigNumber('123'),
-                expirationTimeSeconds: new BigNumber(SAFE_EXPIRY),
-                salt: new BigNumber('123'),
-                callData: '0x123',
-                value: new BigNumber('123'),
-                feeToken: '0x123',
-                feeAmount: new BigNumber('123'),
-                chainId: 1337,
-                verifyingContract: '0x123',
-                ...overrideFields,
-            });
-        };
+        const feeAddress = randomAddress();
         const mockStoredFee: StoredFee = {
-            token: '0x123',
+            token: feeAddress,
             amount: '1000',
             type: 'fixed',
-        };
-        const mockStoredOrder: StoredOrder = {
-            type: RfqmOrderTypes.V4Rfq,
-            order: {
-                txOrigin: '0x123',
-                maker: '0x123',
-                taker: '0x123',
-                makerToken: '0x123',
-                takerToken: '0x123',
-                makerAmount: '1',
-                takerAmount: '1',
-                pool: '0x1234',
-                expiry: SAFE_EXPIRY,
-                salt: '1000',
-                chainId: '1337',
-                verifyingContract: '0x123',
-            },
         };
 
         it('should sucessfully resolve when the job is processed', async () => {
             const mockAxios = new AxiosMockAdapter(axiosClient);
             const dbUtils = new RfqmDbUtils(connection);
-            const mockMetaTx = createMockMetaTx();
-            const order = storedOrderToRfqmOrder(mockStoredOrder);
+            const blockchainUtils = new RfqBlockchainUtils(getProvider(), contractAddresses.exchangeProxy);
+            const order = new RfqOrder({
+                txOrigin: randomAddress(),
+                chainId: CHAIN_ID,
+                expiry: new BigNumber(new Date().getTime()).plus(60 * 5),
+                maker: randomAddress(),
+                taker: NULL_ADDRESS,
+                makerAmount: new BigNumber(1),
+                takerAmount: EXPECTED_FILL_AMOUNT,
+                makerToken: randomAddress(),
+                takerToken: randomAddress(),
+                pool: `0x${generatePseudoRandom256BitNumber().toString(16)}`,
+                salt: new BigNumber(1),
+                verifyingContract: contractAddresses.exchangeProxy,
+            });
+            const fakeSignature: Signature = {
+                r: `0x${generatePseudoRandom256BitNumber().toString(16)}`,
+                s: `0x${generatePseudoRandom256BitNumber().toString(16)}`,
+                v: 27,
+                signatureType: SignatureType.EthSign,
+            };
+            const metaTransaction = blockchainUtils.generateMetaTransaction(
+                order,
+                fakeSignature,
+                randomAddress(),
+                new BigNumber(1),
+                CHAIN_ID,
+            );
             const orderHash = order.getHash();
             const mockQuote = new RfqmQuoteEntity({
                 orderHash,
-                metaTransactionHash: mockMetaTx.getHash(),
+                metaTransactionHash: metaTransaction.getHash(),
                 makerUri: MARKET_MAKER_1,
                 fee: mockStoredFee,
-                order: mockStoredOrder,
+                order: {
+                    type: RfqmOrderTypes.V4Rfq,
+                    order: {
+                        ...order,
+                        chainId: order.chainId.toString(),
+                        makerAmount: order.makerAmount.toString(),
+                        takerAmount: order.takerAmount.toString(),
+                        salt: order.salt.toString(),
+                        expiry: order.expiry.toString(),
+                    },
+                },
                 chainId: 1337,
             });
-            const workerAddress = '0x123';
+            const workerAddress = randomAddress();
 
             const mmResponse = {
                 fee: mockStoredFee,
                 proceedWithFill: true,
-                signedOrderHash: 'someSignedOrderHash',
+                signedOrderHash: orderHash,
+                takerTokenFillAmount: EXPECTED_FILL_AMOUNT.toString(),
             };
             mockAxios.onPost(`${MARKET_MAKER_1}/submit`).replyOnce(HttpStatus.OK, mmResponse);
 
@@ -1090,7 +1095,7 @@ describe(SUITE_NAME, () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);

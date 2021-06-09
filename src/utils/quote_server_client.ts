@@ -28,7 +28,11 @@ export class QuoteServerClient {
             const response = await this._axiosInstance.post(`${makerUri}/submit`, payload, {
                 timeout: ONE_SECOND_MS * 2,
             });
-            schemaValidator.validate(response.data, schemas.submitReceiptSchema);
+            const validator = schemaValidator.validate(response.data, schemas.submitReceiptSchema);
+            if (validator.errors.length > 0) {
+                const errorsMsg = validator.errors.map((err) => err.toString()).join(',');
+                throw new Error(`Error from validator: ${errorsMsg}`);
+            }
             const responseFee: Fee = {
                 amount: new BigNumber(response.data.fee.amount),
                 token: response.data.fee.token,
@@ -37,6 +41,18 @@ export class QuoteServerClient {
 
             if (!_.isEqual(responseFee, payload.fee)) {
                 throw new Error('Fee in response is not equal to fee in request');
+            }
+
+            if (response.data.signedOrderHash !== payload.orderHash) {
+                throw new Error(
+                    `Requested trade for order hash ${payload.orderHash} - received response for order hash ${response.data.signedOrderHash}`,
+                );
+            }
+
+            if (response.data.takerTokenFillAmount !== payload.takerTokenFillAmount.toString()) {
+                throw new Error(
+                    'takerTokenFillableAmount in response is not equal to takerTokenFillableAmount in request',
+                );
             }
 
             return response.data.proceedWithFill === true;

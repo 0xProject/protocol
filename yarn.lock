@@ -647,10 +647,10 @@
     express-async-handler "^1.1.4"
     http-status-codes "^1.4.0"
 
-"@0x/quote-server@^6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-6.0.3.tgz#2f59be57a6271ca6d704a6a5e8b53506f01c3075"
-  integrity sha512-ZEg5r3WhAeijgjb9rXSfAs0bBEI5J2PgmtcMBbQaqB3ILp5hOdA0jvj5B8diNneIOpXRMfZGmQSTlhmmWJtvdA==
+"@0x/quote-server@^6.0.4":
+  version "6.0.4"
+  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-6.0.4.tgz#9567ccb02be57dabffe699c6944307cefe8fa12e"
+  integrity sha512-Q5pgZv2EhtsBLeHIRibZGHUC0xXV6DDpZSNUR1zD3+yjFZL2jAu/j/uNnzkwxIGbJUGO89UL6f7YpnfIBpbyEw==
   dependencies:
     "@0x/json-schemas" "^6.0.1"
     "@0x/order-utils" "^10.2.4"
