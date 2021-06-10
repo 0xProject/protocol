@@ -456,6 +456,20 @@ export class RfqmService {
         };
     }
 
+    /**
+     * isWorkerReadyAsync checks if the worker is ready to accept work
+     */
+    public async isWorkerReadyAsync(workerAddress: string): Promise<boolean> {
+        let gasPrice;
+        try {
+            gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        } catch (error) {
+            logger.error({ error }, 'Current gas price is unable to be fetched, marking worker as not ready.');
+            return false;
+        }
+        return this._blockchainUtils.isWorkerReadyAsync(workerAddress, gasPrice);
+    }
+
     public async submitMetaTransactionSignedQuoteAsync(
         params: MetaTransactionSubmitRfqmSignedQuoteParams,
     ): Promise<MetaTransactionSubmitRfqmSignedQuoteResponse> {

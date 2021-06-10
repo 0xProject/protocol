@@ -10,6 +10,7 @@ import { CallData, LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } fr
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { ChainId } from '../types';
 
+import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
 
 // allow a wide range for gas price for flexibility
@@ -210,5 +211,9 @@ export class RfqBlockchainUtils {
         };
 
         return this._web3Wrapper.sendTransactionAsync(txData);
+    }
+
+    public async isWorkerReadyAsync(workerAddress: string, gasPrice: BigNumber): Promise<boolean> {
+        return isWorkerReadyAndAbleAsync(this._web3Wrapper, workerAddress, gasPrice);
     }
 }
