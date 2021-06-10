@@ -1,12 +1,11 @@
 import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
-import { provider } from '@0x/contracts-test-utils';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
-import { CallData, SupportedProvider, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
-import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
 import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { HDNode } from '@ethersproject/hdnode';
-import { LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } from 'ethereum-types';
+import { CallData, LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } from 'ethereum-types';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { ChainId } from '../types';
@@ -77,7 +76,7 @@ export class RfqBlockchainUtils {
 
     constructor(private readonly _provider: SupportedProvider, private readonly _exchangeProxyAddress: string) {
         this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, this._provider);
-        this._web3Wrapper = new Web3Wrapper(provider);
+        this._web3Wrapper = new Web3Wrapper(_provider);
         this._abiDecoder = new AbiDecoder([RFQ_ORDER_FILLED_EVENT_ABI]);
     }
 
