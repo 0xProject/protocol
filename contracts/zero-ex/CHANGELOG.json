@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.26.0",
+        "changes": [
+            {
+                "note": "Add Lido stETH deposit integration",
+                "pr": 260
+            }
+        ]
+    },
+    {
         "timestamp": 1623382456,
         "version": "0.25.1",
         "changes": [
