@@ -8,6 +8,7 @@ import { HDNode } from '@ethersproject/hdnode';
 import { CallData, LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } from 'ethereum-types';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
+import { logger } from '../logger';
 import { ChainId } from '../types';
 
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
@@ -165,7 +166,12 @@ export class RfqBlockchainUtils {
     }
 
     public async getTransactionReceiptIfExistsAsync(transactionHash: string): Promise<TransactionReceipt | undefined> {
-        return this._web3Wrapper.getTransactionReceiptIfExistsAsync(transactionHash);
+        try {
+            return this._web3Wrapper.getTransactionReceiptIfExistsAsync(transactionHash);
+        } catch (err) {
+            logger.warn({ transactionHash, error: err }, `failed to get transaction receipt`);
+            return undefined;
+        }
     }
 
     public async getCurrentBlockAsync(): Promise<number> {

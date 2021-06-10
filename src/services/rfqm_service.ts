@@ -624,7 +624,7 @@ export class RfqmService {
         try {
             submissionsMap = await this.completeSubmissionLifecycleAsync(orderHash, workerAddress, calldata!);
         } catch (err) {
-            logger.warn({ orderHash, workerAddress }, `encountered an error in transaction submission: ${err.message}`);
+            logger.warn({ error: err, orderHash, workerAddress }, `encountered an error in transaction submission`);
             throw new Error(`encountered an error in transaction submission`);
         }
 
@@ -731,7 +731,7 @@ export class RfqmService {
             if (receipt.response !== undefined) {
                 isTxMined = true;
                 const currentBlock = await this._blockchainUtils.getCurrentBlockAsync();
-                if (receipt.response.blockNumber - currentBlock >= BLOCK_FINALITY_THRESHOLD) {
+                if (currentBlock - receipt.response.blockNumber >= BLOCK_FINALITY_THRESHOLD) {
                     isTxFinalized = true;
                 }
                 // update all entities

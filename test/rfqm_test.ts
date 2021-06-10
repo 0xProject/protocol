@@ -80,7 +80,7 @@ const GAS_PRICE = new BigNumber(100);
 // it's over 9K
 const MINED_BLOCK = 9001;
 // the tx should be finalized
-const CURRENT_BLOCK = MINED_BLOCK - BLOCK_FINALITY_THRESHOLD;
+const CURRENT_BLOCK = MINED_BLOCK + BLOCK_FINALITY_THRESHOLD;
 const MOCK_EXCHANGE_PROXY = '0xtheExchangeProxy';
 const EXPECTED_FILL_AMOUNT = new BigNumber(9000);
 const SUCCESSFUL_TRANSACTION_RECEIPT = {
