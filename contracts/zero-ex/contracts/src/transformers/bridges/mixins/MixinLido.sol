@@ -43,7 +43,6 @@ contract MixinLido {
     using LibERC20TokenV06 for IEtherTokenV06;
 
     IEtherTokenV06 private immutable WETH;
-    address constant private ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     constructor(IEtherTokenV06 weth)
         public
@@ -61,14 +60,10 @@ contract MixinLido {
         returns (uint256 boughtAmount)
     {
         (ILido lido) = abi.decode(bridgeData, (ILido));
-        if (address(buyToken) == address(lido)) {
-            if (address(sellToken) == ETH_ADDRESS) {
-                // TODO(kimpers): do we want to use a referral address here
-                boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
-            } else if (address(sellToken) == address(WETH)) {
-                WETH.withdraw(sellAmount);
-                boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
-            }
+        if (address(sellToken) == address(WETH) && address(buyToken) == address(lido)) {
+            WETH.withdraw(sellAmount);
+            // TODO(kimpers): do we want to use a referral address here
+            boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
         }
 
     }
