@@ -1244,7 +1244,7 @@ export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
 
 export const LIDO_STAKED_ETH_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
+        [ChainId.Mainnet]: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
     },
     NULL_ADDRESS,
 );
@@ -1460,7 +1460,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
-    [ERC20BridgeSource.Lido]: () => 300e3, // TODO(kimpers): add correct value
+    [ERC20BridgeSource.Lido]: () => 260e3, // TODO(kimpers): circle back to this with more accurate values
 
     //
     // BSC

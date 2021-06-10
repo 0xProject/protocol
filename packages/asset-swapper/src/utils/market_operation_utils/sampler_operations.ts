@@ -1063,6 +1063,7 @@ export class SamplerOperations {
 
     public getLidoSellQuotes(
         stEthTokenAddress: string,
+        wethTokenAddress: string,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -1074,24 +1075,25 @@ export class SamplerOperations {
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromLido,
-            params: [stEthTokenAddress, takerToken, makerToken, takerFillAmounts],
+            params: [stEthTokenAddress, wethTokenAddress, takerToken, makerToken, takerFillAmounts],
         });
     }
 
     public getLidoBuyQuotes(
         stEthTokenAddress: string,
+        wethTokenAddress: string,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<LidoFillData> {
         return new SamplerContractOperation({
-            source: ERC20BridgeSource.MakerPsm,
+            source: ERC20BridgeSource.Lido,
             fillData: {
                 stEthTokenAddress,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromLido,
-            params: [stEthTokenAddress, takerToken, makerToken, makerFillAmounts],
+            params: [stEthTokenAddress, wethTokenAddress, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1435,7 +1437,13 @@ export class SamplerOperations {
                             return [];
                         }
 
-                        return this.getLidoSellQuotes(stEthTokenAddress, makerToken, takerToken, takerFillAmounts);
+                        return this.getLidoSellQuotes(
+                            stEthTokenAddress,
+                            MAINNET_TOKENS.WETH,
+                            makerToken,
+                            takerToken,
+                            takerFillAmounts,
+                        );
                     }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
@@ -1694,7 +1702,13 @@ export class SamplerOperations {
                             return [];
                         }
 
-                        return this.getLidoBuyQuotes(stEthTokenAddress, makerToken, takerToken, makerFillAmounts);
+                        return this.getLidoBuyQuotes(
+                            stEthTokenAddress,
+                            MAINNET_TOKENS.WETH,
+                            makerToken,
+                            takerToken,
+                            makerFillAmounts,
+                        );
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);

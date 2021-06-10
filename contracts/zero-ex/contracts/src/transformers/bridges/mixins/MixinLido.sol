@@ -27,10 +27,14 @@ import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 
 /// @dev Minimal interface for minting StETH
 interface ILido {
-      /// @dev Adds eth to the pool
-      /// @param _referral optional address for referrals
-      /// @return StETH Amount of StETH generated
+    /// @dev Adds eth to the pool
+    /// @param _referral optional address for referrals
+    /// @return StETH Amount of shares generated
     function submit(address _referral) external payable returns (uint256 StETH);
+    /// @dev Retrieve the current pooled ETH representation of the shares amount
+    /// @param _sharesAmount amount of shares
+    /// @return amount of pooled ETH represented by the shares amount
+    function getPooledEthByShares(uint256 _sharesAmount) external view returns (uint256);
 }
 
 
@@ -47,8 +51,6 @@ contract MixinLido {
         WETH = weth;
     }
 
-
-
     function _tradeLido(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
@@ -62,10 +64,10 @@ contract MixinLido {
         if (address(buyToken) == address(lido)) {
             if (address(sellToken) == ETH_ADDRESS) {
                 // TODO(kimpers): do we want to use a referral address here
-                boughtAmount = lido.submit{ value: sellAmount}(address(0));
+                boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
             } else if (address(sellToken) == address(WETH)) {
                 WETH.withdraw(sellAmount);
-                boughtAmount = lido.submit{ value: sellAmount}(address(0));
+                boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
             }
         }
 
