@@ -74,9 +74,9 @@ export class RfqBlockchainUtils {
         return `m/44'/60'/0'/0/`.concat(String(index));
     }
 
-    constructor(private readonly _provider: SupportedProvider, private readonly _exchangeProxyAddress: string) {
-        this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, this._provider);
-        this._web3Wrapper = new Web3Wrapper(_provider);
+    constructor(provider: SupportedProvider, private readonly _exchangeProxyAddress: string) {
+        this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, provider);
+        this._web3Wrapper = new Web3Wrapper(provider);
         this._abiDecoder = new AbiDecoder([RFQ_ORDER_FILLED_EVENT_ABI]);
     }
 
