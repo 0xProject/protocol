@@ -137,6 +137,14 @@ export interface PsmInfo {
 }
 
 /**
+ * Configuration for a Lido deployment
+ */
+export interface LidoInfo {
+    stEthToken: string;
+    wethToken: string;
+}
+
+/**
  * Configuration info for a Balancer V2 pool.
  */
 export interface BalancerV2PoolInfo {

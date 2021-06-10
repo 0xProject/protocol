@@ -22,24 +22,21 @@ pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
 
-interface IStEth {
-    function getSharesByPooledEth(uint256 _ethAmount) external view returns (uint256);
-}
-
 contract LidoSampler is SamplerUtils {
-    address constant private ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    struct LidoInfo {
+        address stEthToken;
+        address wethToken;
+    }
 
     /// @dev Sample sell quotes from Lido
-    /// @param stETHToken Address of the Lido stETH token
-    /// @param wethToken Address of Wrapped Ethereum
+    /// @param lidoInfo Info regarding a specific Lido deployment
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromLido(
-        IStEth stETHToken,
-        address wethToken,
+        LidoInfo memory lidoInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -52,8 +49,8 @@ contract LidoSampler is SamplerUtils {
 
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
-        if ((takerToken != ETH_ADDRESS && takerToken != wethToken) || makerToken != address(stETHToken)) {
-            // Return 0 values if not selling ETH for stETH
+        if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
+            // Return 0 values if not selling WETH for stETH
             return makerTokenAmounts;
         }
 
@@ -64,16 +61,14 @@ contract LidoSampler is SamplerUtils {
     }
 
     /// @dev Sample buy quotes from Lido.
-    /// @param stETHToken Address of the Lido stETH token
-    /// @param wethToken Address of Wrapped Ethereum
+    /// @param lidoInfo Info regarding a specific Lido deployment
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromLido(
-        address stETHToken,
-        address wethToken,
+        LidoInfo memory lidoInfo,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -86,9 +81,9 @@ contract LidoSampler is SamplerUtils {
 
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
-        if ((takerToken != ETH_ADDRESS && takerToken != wethToken)|| makerToken != stETHToken) {
-            // Return 0 values if not buying stETH for ETH
-            return makerTokenAmounts;
+        if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
+            // Return 0 values if not buying stETH for WETH
+            return takerTokenAmounts;
         }
 
         for (uint256 i = 0; i < numSamples; i++) {

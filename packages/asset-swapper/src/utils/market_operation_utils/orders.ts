@@ -380,7 +380,6 @@ const balancerV2Encoder = AbiEncoder.create([
     { name: 'vault', type: 'address' },
     { name: 'poolId', type: 'bytes32' },
 ]);
-
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 

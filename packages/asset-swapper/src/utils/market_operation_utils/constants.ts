@@ -17,6 +17,7 @@ import {
     FillData,
     GetMarketOrdersOpts,
     KyberSamplerOpts,
+    LidoInfo,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MakerPsmFillData,
@@ -1242,11 +1243,17 @@ export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const LIDO_STAKED_ETH_ADDRESS_BY_CHAIN = valueByChainId<string>(
+export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     {
-        [ChainId.Mainnet]: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+        [ChainId.Mainnet]: {
+            stEthToken: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+            wethToken: MAINNET_TOKENS.WETH,
+        },
     },
-    NULL_ADDRESS,
+    {
+        stEthToken: NULL_ADDRESS,
+        wethToken: NULL_ADDRESS,
+    },
 );
 
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
