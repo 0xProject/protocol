@@ -99,7 +99,9 @@ export enum CurveFunctionSelectors {
     get_dx = '0x67df02ca',
     // Curve V2
     exchange_v2 = '0x5b41b908',
+    exchange_underlying_v2 = '0x65b2489b',
     get_dy_v2 = '0x556d6e9f',
+    get_dy_underlying_v2 = '0x85f11d1e',
     // Smoothy
     swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
     get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
@@ -118,7 +120,7 @@ export interface CurveInfo {
     buyQuoteFunctionSelector: CurveFunctionSelectors;
     poolAddress: string;
     tokens: string[];
-    metaToken: string | undefined;
+    metaTokens: string[] | undefined;
     gasSchedule: number;
 }
 

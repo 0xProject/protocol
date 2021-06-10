@@ -13,6 +13,7 @@ import {
     CURVE_MAINNET_INFOS,
     CURVE_POLYGON_INFOS,
     CURVE_V2_MAINNET_INFOS,
+    CURVE_V2_POLYGON_INFOS,
     DFYN_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
     JULSWAP_ROUTER_BY_CHAIN_ID,
@@ -108,20 +109,16 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
             return Object.values(CURVE_MAINNET_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
-                        (c.tokens.includes(t) && c.metaToken === undefined) ||
-                        (c.tokens.includes(t) &&
-                            c.metaToken !== undefined &&
-                            [makerToken, takerToken].includes(c.metaToken)),
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
                 ),
             );
         case ChainId.Polygon:
             return Object.values(CURVE_POLYGON_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
-                        (c.tokens.includes(t) && c.metaToken === undefined) ||
-                        (c.tokens.includes(t) &&
-                            c.metaToken !== undefined &&
-                            [makerToken, takerToken].includes(c.metaToken)),
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
                 ),
             );
         default:
@@ -136,10 +133,16 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
             return Object.values(CURVE_V2_MAINNET_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
-                        (c.tokens.includes(t) && c.metaToken === undefined) ||
-                        (c.tokens.includes(t) &&
-                            c.metaToken !== undefined &&
-                            [makerToken, takerToken].includes(c.metaToken)),
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                ),
+            );
+        case ChainId.Polygon:
+            return Object.values(CURVE_V2_POLYGON_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
                 ),
             );
         default:
@@ -154,8 +157,8 @@ export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, make
     return Object.values(SWERVE_MAINNET_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
         ),
     );
 }
@@ -167,8 +170,8 @@ export function getSnowSwapInfosForPair(chainId: ChainId, takerToken: string, ma
     return Object.values(SNOWSWAP_MAINNET_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
         ),
     );
 }
@@ -180,8 +183,8 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
     return Object.values(NERVE_BSC_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
         ),
     );
 }
@@ -193,8 +196,8 @@ export function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerT
     return Object.values(BELT_BSC_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
         ),
     );
 }
@@ -206,8 +209,8 @@ export function getEllipsisInfosForPair(chainId: ChainId, takerToken: string, ma
     return Object.values(ELLIPSIS_BSC_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
         ),
     );
 }
@@ -217,20 +220,16 @@ export function getSmoothyInfosForPair(chainId: ChainId, takerToken: string, mak
         return Object.values(SMOOTHY_BSC_INFOS).filter(c =>
             [makerToken, takerToken].every(
                 t =>
-                    (c.tokens.includes(t) && c.metaToken === undefined) ||
-                    (c.tokens.includes(t) &&
-                        c.metaToken !== undefined &&
-                        [makerToken, takerToken].includes(c.metaToken)),
+                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                    (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
             ),
         );
     } else if (chainId === ChainId.Mainnet) {
         return Object.values(SMOOTHY_MAINNET_INFOS).filter(c =>
             [makerToken, takerToken].every(
                 t =>
-                    (c.tokens.includes(t) && c.metaToken === undefined) ||
-                    (c.tokens.includes(t) &&
-                        c.metaToken !== undefined &&
-                        [makerToken, takerToken].includes(c.metaToken)),
+                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                    (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
             ),
         );
     } else {
@@ -245,8 +244,8 @@ export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, make
     return Object.values(SADDLE_MAINNET_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
         ),
     );
 }
@@ -258,8 +257,8 @@ export function getXSigmaInfosForPair(chainId: ChainId, takerToken: string, make
     return Object.values(XSIGMA_MAINNET_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
-                (c.tokens.includes(t) && c.metaToken === undefined) ||
-                (c.tokens.includes(t) && c.metaToken !== undefined && [makerToken, takerToken].includes(c.metaToken)),
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
         ),
     );
 }
