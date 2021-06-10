@@ -1071,6 +1071,7 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Lido,
             fillData: {
+                takerToken,
                 stEthTokenAddress: lidoInfo.stEthToken,
             },
             contract: this._samplerContract,
@@ -1088,6 +1089,7 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Lido,
             fillData: {
+                takerToken,
                 stEthTokenAddress: lidoInfo.stEthToken,
             },
             contract: this._samplerContract,

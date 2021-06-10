@@ -256,6 +256,7 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswap
 
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
+    takerToken: string;
 }
 
 /**
