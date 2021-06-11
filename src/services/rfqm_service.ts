@@ -28,7 +28,7 @@ import {
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 
 const TRANSACTION_WATCHER_SLEEP_TIME_MS = 15000;
-export const BLOCK_FINALITY_THRESHOLD = 6;
+export const BLOCK_FINALITY_THRESHOLD = 3;
 
 export enum RfqmTypes {
     MetaTransaction = 'metatransaction',
