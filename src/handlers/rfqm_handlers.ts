@@ -234,9 +234,9 @@ export class RfqmHandlers {
 
         if (type === RfqmTypes.MetaTransaction) {
             const metaTransaction = new MetaTransaction(
-                stringsToMetaTransactionFields((req.body.metaTransaction as unknown) as StringMetaTransactionFields),
+                stringsToMetaTransactionFields(req.body.metaTransaction as unknown as StringMetaTransactionFields),
             );
-            const signature = stringsToSignature((req.body.signature as unknown) as StringSignatureFields);
+            const signature = stringsToSignature(req.body.signature as unknown as StringSignatureFields);
 
             return {
                 type,

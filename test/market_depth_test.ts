@@ -268,7 +268,7 @@ describe(SUITE_NAME, () => {
                 20, // max end perc
             );
             const emptySources: { [key: string]: BigNumber } = {};
-            Object.values(ERC20BridgeSource).forEach(s => (emptySources[s] = ZERO));
+            Object.values(ERC20BridgeSource).forEach((s) => (emptySources[s] = ZERO));
             expect(result).to.be.deep.eq([
                 {
                     price: B(10),
@@ -349,7 +349,7 @@ describe(SUITE_NAME, () => {
                 20, // max end perc
             );
             const emptySources: { [key: string]: BigNumber } = {};
-            Object.values(ERC20BridgeSource).forEach(s => (emptySources[s] = ZERO));
+            Object.values(ERC20BridgeSource).forEach((s) => (emptySources[s] = ZERO));
             expect(result).to.be.deep.eq([
                 {
                     price: B(10),

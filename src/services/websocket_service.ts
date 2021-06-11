@@ -47,10 +47,8 @@ export class WebsocketService {
     private readonly _meshClient: MeshClient;
     private readonly _pongIntervalId: NodeJS.Timeout;
     private readonly _requestIdToSocket: Map<string, WrappedWebSocket> = new Map(); // requestId to WebSocket mapping
-    private readonly _requestIdToSubscriptionOpts: Map<
-        string,
-        OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS
-    > = new Map(); // requestId -> { base, quote }
+    private readonly _requestIdToSubscriptionOpts: Map<string, OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS> =
+        new Map(); // requestId -> { base, quote }
     private _orderEventsSubscription?: ZenObservable.Subscription;
     private static _matchesOrdersChannelSubscription(
         order: SignedLimitOrder,

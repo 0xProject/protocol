@@ -132,7 +132,7 @@ describe('Transaction Watcher Service integration test', () => {
     it('sends a signed zeroex transaction correctly', async () => {
         const { zeroExTransactionHash, zeroExTransaction } = await request(app)
             .get(`${META_TRANSACTION_PATH}/quote${metaTxnUser.getQuoteString('DAI', 'WETH', '500000000')}`)
-            .then(async response => {
+            .then(async (response) => {
                 return response.body;
             });
         const signature = await metaTxnUser.signAsync(zeroExTransactionHash);
@@ -141,7 +141,7 @@ describe('Transaction Watcher Service integration test', () => {
             .set('0x-api-key', 'e20bd887-e195-4580-bca0-322607ec2a49')
             .send({ signature, zeroExTransaction })
             .expect('Content-Type', /json/)
-            .then(async response => {
+            .then(async (response) => {
                 expect(response.body.code).to.not.equal(GeneralErrorCodes.InvalidAPIKey);
                 const { ethereumTransactionHash } = response.body;
                 await _waitUntilStatusAsync(
@@ -153,7 +153,7 @@ describe('Transaction Watcher Service integration test', () => {
             });
         await request(app)
             .get(`${META_TRANSACTION_PATH}/status/${txHashToRequest}`)
-            .then(response => {
+            .then((response) => {
                 expect(response.body.hash).to.equal(txHashToRequest);
                 expect(response.body.status).to.equal('confirmed');
             });
@@ -161,7 +161,7 @@ describe('Transaction Watcher Service integration test', () => {
     it('handles low gas price correctly', async () => {
         const { zeroExTransaction } = await request(app)
             .get(`${META_TRANSACTION_PATH}/quote${metaTxnUser.getQuoteString('DAI', 'WETH', '500000000')}`)
-            .then(async response => {
+            .then(async (response) => {
                 return response.body;
             });
         zeroExTransaction.gasPrice = '1337';
@@ -171,7 +171,7 @@ describe('Transaction Watcher Service integration test', () => {
             .set('0x-api-key', 'e20bd887-e195-4580-bca0-322607ec2a49')
             .send({ signature, zeroExTransaction })
             .expect('Content-Type', /json/)
-            .then(async response => {
+            .then(async (response) => {
                 expect(response.body.code).to.not.equal(GeneralErrorCodes.InvalidAPIKey);
                 const { ethereumTransactionHash } = response.body;
                 await _waitUntilStatusAsync(
@@ -183,13 +183,13 @@ describe('Transaction Watcher Service integration test', () => {
             });
         await request(app)
             .get(`${META_TRANSACTION_PATH}/status/${txHashToRequest}`)
-            .then(response => {
+            .then((response) => {
                 expect(response.body.hash).to.equal(txHashToRequest);
                 expect(response.body.status).to.equal('aborted');
             });
         await request(app)
             .get('/metrics')
-            .then(response => {
+            .then((response) => {
                 expect(response.text).to.include('signer_transactions_count');
                 expect(response.text).to.include('signer_gas_price_sum');
                 expect(response.text).to.include('signer_eth_balance_sum');

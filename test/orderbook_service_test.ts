@@ -194,7 +194,7 @@ describe(SUITE_NAME, () => {
                             return _orders.length > 0
                                 ? deleteFn(
                                       connection,
-                                      _orders.map(o => o.metaData.orderHash),
+                                      _orders.map((o) => o.metaData.orderHash),
                                   )
                                 : Promise.resolve();
                         };
@@ -254,7 +254,7 @@ describe(SUITE_NAME, () => {
             await orderBookService.addOrdersAsync([apiOrder.order], false);
 
             const meshOrders = await meshClientMock.mockMeshClient.getOrdersAsync();
-            expect(meshOrders.ordersInfos.find(i => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
+            expect(meshOrders.ordersInfos.find((i) => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
 
             // should not save to persistent orders table
             const result = await connection.manager.find(PersistentSignedOrderV4Entity, {
@@ -268,7 +268,7 @@ describe(SUITE_NAME, () => {
             await orderBookService.addPersistentOrdersAsync([apiOrder.order], false);
 
             const meshOrders = await meshClientMock.mockMeshClient.getOrdersAsync();
-            expect(meshOrders.ordersInfos.find(i => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
+            expect(meshOrders.ordersInfos.find((i) => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
 
             const result = await connection.manager.find(PersistentSignedOrderV4Entity, {
                 hash: apiOrder.metaData.orderHash,

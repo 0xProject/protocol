@@ -121,10 +121,7 @@ describe(SUITE_NAME, () => {
     });
 
     it('getApiKeyWhitelistWithFallback() is able to correctly configure fallback', () => {
-        process.env.TEST_LEGACY_KEY = JSON.stringify([
-            'foo',
-            'bar',
-        ]);
+        process.env.TEST_LEGACY_KEY = JSON.stringify(['foo', 'bar']);
 
         const response = getApiKeyWhitelistWithFallback('TEST_LEGACY_KEY', 'TEST_NEW_KEY', 'plp');
         expect(response.length).to.eql(2);
@@ -134,10 +131,10 @@ describe(SUITE_NAME, () => {
 
     it('getApiKeyWhitelistWithFallback() is able to decode new format', () => {
         const keys: ApiKeyStructure = {
-            'foo': {'rfqm': false, 'rfqt': true, 'plp': true, 'label': 'Foo key' },
-            'bar': {'rfqm': false, 'rfqt': true, 'plp': false, 'label': 'Bar key' },
-            'baz': {'rfqm': false, 'rfqt': false, 'plp': true, 'label': 'Baz key' },
-            'barf': {'rfqm': true, 'rfqt': false, 'plp': false, 'label': 'Barf key' },
+            foo: { rfqm: false, rfqt: true, plp: true, label: 'Foo key' },
+            bar: { rfqm: false, rfqt: true, plp: false, label: 'Bar key' },
+            baz: { rfqm: false, rfqt: false, plp: true, label: 'Baz key' },
+            barf: { rfqm: true, rfqt: false, plp: false, label: 'Barf key' },
         };
         process.env.TEST_NEW_KEY = JSON.stringify(keys);
 

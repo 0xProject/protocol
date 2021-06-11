@@ -115,13 +115,9 @@ describe(SUITE_NAME, () => {
         sigForUnfillableOrder = await unfillableRfqOrder.getSignatureWithProviderAsync(provider);
 
         await makerToken.mint(makerAmount).awaitTransactionSuccessAsync({ from: maker });
-        await makerToken
-            .approve(zeroEx.address, makerAmount)
-            .awaitTransactionSuccessAsync({ from: maker });
+        await makerToken.approve(zeroEx.address, makerAmount).awaitTransactionSuccessAsync({ from: maker });
         await takerToken.mint(takerAmount).awaitTransactionSuccessAsync({ from: taker });
-        await takerToken
-            .approve(zeroEx.address, takerAmount)
-            .awaitTransactionSuccessAsync({ from: taker });
+        await takerToken.approve(zeroEx.address, takerAmount).awaitTransactionSuccessAsync({ from: taker });
 
         rfqBlockchainUtils = new RfqBlockchainUtils(provider, zeroEx.address);
     });
@@ -135,7 +131,9 @@ describe(SUITE_NAME, () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
-            expect(await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin)).to.deep.eq([takerAmount, makerAmount]);
+            expect(
+                await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin),
+            ).to.deep.eq([takerAmount, makerAmount]);
         });
         it('throws for a metatransaction with an invalid signature', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
@@ -149,7 +147,13 @@ describe(SUITE_NAME, () => {
             }
         });
         it('throws for a metatransaction with an unfillable order', async () => {
-            const metaTx = rfqBlockchainUtils.generateMetaTransaction(unfillableRfqOrder, sigForUnfillableOrder, taker, invalidTakerAmount, CHAIN_ID);
+            const metaTx = rfqBlockchainUtils.generateMetaTransaction(
+                unfillableRfqOrder,
+                sigForUnfillableOrder,
+                taker,
+                invalidTakerAmount,
+                CHAIN_ID,
+            );
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
             try {
@@ -164,7 +168,9 @@ describe(SUITE_NAME, () => {
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
             const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
-            expect(await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin)).to.deep.eq([takerAmount, makerAmount]);
+            expect(
+                await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin),
+            ).to.deep.eq([takerAmount, makerAmount]);
         });
         it('throws for a metatransaction with an invalid signature when validating calldata', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
@@ -180,7 +186,13 @@ describe(SUITE_NAME, () => {
             }
         });
         it('throws for a metatransaction with an unfillable order when validating calldata', async () => {
-            const metaTx = rfqBlockchainUtils.generateMetaTransaction(unfillableRfqOrder, sigForUnfillableOrder, taker, invalidTakerAmount, CHAIN_ID);
+            const metaTx = rfqBlockchainUtils.generateMetaTransaction(
+                unfillableRfqOrder,
+                sigForUnfillableOrder,
+                taker,
+                invalidTakerAmount,
+                CHAIN_ID,
+            );
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
             const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
@@ -193,17 +205,31 @@ describe(SUITE_NAME, () => {
             }
         });
         it('should throw for a partially filled order', async () => {
-            const metaTx1 = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount.div(2), CHAIN_ID);
+            const metaTx1 = rfqBlockchainUtils.generateMetaTransaction(
+                rfqOrder,
+                orderSig,
+                taker,
+                takerAmount.div(2),
+                CHAIN_ID,
+            );
             const metaTxSig1 = await metaTx1.getSignatureWithProviderAsync(provider);
 
-            await zeroEx.executeMetaTransaction(metaTx1, metaTxSig1).awaitTransactionSuccessAsync({from: txOrigin});
+            await zeroEx.executeMetaTransaction(metaTx1, metaTxSig1).awaitTransactionSuccessAsync({ from: txOrigin });
 
-            const metaTx2 = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
+            const metaTx2 = rfqBlockchainUtils.generateMetaTransaction(
+                rfqOrder,
+                orderSig,
+                taker,
+                takerAmount,
+                CHAIN_ID,
+            );
             const metaTxSig2 = await metaTx2.getSignatureWithProviderAsync(provider);
 
             try {
                 await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx2, metaTxSig2, txOrigin);
-                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when not filling the entire amount`);
+                expect.fail(
+                    `validateMetaTransactionOrThrowAsync should throw an error when not filling the entire amount`,
+                );
             } catch (err) {
                 expect(String(err)).to.contain(`filled amount is less than requested fill amount`);
             }
@@ -216,7 +242,11 @@ describe(SUITE_NAME, () => {
 
             const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
 
-            const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, { gasPrice: 1e9, gas: 200000, value: 0 });
+            const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, {
+                gasPrice: 1e9,
+                gas: 200000,
+                value: 0,
+            });
 
             expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
         });
@@ -234,9 +264,13 @@ describe(SUITE_NAME, () => {
     });
     describe('getDecodedRfqOrderFillEventLogFromLogs', () => {
         it('correctly parses an RfqOrderFillEvent from logs', async () => {
-            const rfqOrderFilledEvent = rfqBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs([TEST_RFQ_ORDER_FILLED_EVENT_LOG]);
+            const rfqOrderFilledEvent = rfqBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs([
+                TEST_RFQ_ORDER_FILLED_EVENT_LOG,
+            ]);
 
-            expect(rfqOrderFilledEvent.args.takerTokenFilledAmount).to.deep.eq(TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT);
+            expect(rfqOrderFilledEvent.args.takerTokenFilledAmount).to.deep.eq(
+                TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT,
+            );
             expect(rfqOrderFilledEvent.blockNumber).to.deep.eq(TEST_RFQ_ORDER_FILLED_EVENT_LOG.blockNumber);
         });
     });

@@ -22,7 +22,7 @@ describe(SUITE_NAME, () => {
                 { balance: 51.68, count: 2, from: '6' },
             ];
             const testCase = new Map<string, { count: number; balance: number }>();
-            testSigners.forEach(signer => {
+            testSigners.forEach((signer) => {
                 const { from, count, balance } = signer;
                 testCase.set(from, { count, balance });
             });

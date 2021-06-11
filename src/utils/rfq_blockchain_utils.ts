@@ -135,10 +135,9 @@ export class RfqBlockchainUtils {
             const results = await this._exchangeProxy
                 .executeMetaTransaction(metaTx, metaTxSig)
                 .callAsync({ from: sender, ...txOptions });
-            const takerTokenFillAmount = (this._exchangeProxy.getABIDecodedTransactionData(
-                'fillRfqOrder',
-                metaTx.callData,
-            ) as any)[2];
+            const takerTokenFillAmount = (
+                this._exchangeProxy.getABIDecodedTransactionData('fillRfqOrder', metaTx.callData) as any
+            )[2];
             const decodedResults: [BigNumber, BigNumber] = this._exchangeProxy.getABIDecodedReturnData(
                 'fillRfqOrder',
                 results,

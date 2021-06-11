@@ -8,14 +8,14 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
         const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
         await getAppAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
-    })().catch(err => logger.error(err.stack));
+    })().catch((err) => logger.error(err.stack));
 }
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
     logger.error(err);
     process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err);
     }

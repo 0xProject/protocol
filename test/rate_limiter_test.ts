@@ -82,7 +82,7 @@ const generateNewTransactionsForKey = (
 // NOTE: Because TypeORM does not allow us to override entities createdAt
 // directly, we resort to a raw query.
 const backdateTransactions = async (txes: TransactionEntity[], num: number, unit: string): Promise<void> => {
-    const txesString = txes.map(tx => `'${tx.refHash}'`).join(',');
+    const txesString = txes.map((tx) => `'${tx.refHash}'`).join(',');
     await transactionRepository.query(
         `UPDATE transactions SET created_at = now() - interval '${num} ${unit}' WHERE transactions.ref_hash IN (${txesString});`,
     );

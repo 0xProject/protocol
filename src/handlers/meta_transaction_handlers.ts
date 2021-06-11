@@ -142,15 +142,14 @@ export class MetaTransactionHandlers {
         const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
 
         try {
-            const metaTransactionPriceCalculation = await this._metaTransactionService.calculateMetaTransactionPriceAsync(
-                {
+            const metaTransactionPriceCalculation =
+                await this._metaTransactionService.calculateMetaTransactionPriceAsync({
                     ...params,
                     from: params.takerAddress,
                     apiKey,
                     isETHBuy,
                     isETHSell: false,
-                },
-            );
+                });
 
             const metaTransactionPriceResponse: GetMetaTransactionPriceResponse = {
                 ..._.omit(metaTransactionPriceCalculation, 'orders', 'quoteReport', 'estimatedGasTokenRefund'),

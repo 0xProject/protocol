@@ -193,9 +193,10 @@ export class RfqmService {
     /**
      * update RfqmJobStatus based on transaction status
      */
-    private static _getJobStatusFromSubmissions(
-        submissionsMap: SubmissionsMap,
-    ): { status: RfqmJobStatus; statusReason: string | null } {
+    private static _getJobStatusFromSubmissions(submissionsMap: SubmissionsMap): {
+        status: RfqmJobStatus;
+        statusReason: string | null;
+    } {
         // there should only be one mined transaction, which will either be successful or a revert
         for (const submission of Object.values(submissionsMap)) {
             if (submission.status === RfqmTranasctionSubmissionStatus.Successful) {

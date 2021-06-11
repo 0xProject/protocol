@@ -94,10 +94,8 @@ export class SwapService {
         affiliateFee: AffiliateFee,
     ): { price: BigNumber; guaranteedPrice: BigNumber } {
         const { makerAmount, totalTakerAmount } = swapQuote.bestCaseQuoteInfo;
-        const {
-            totalTakerAmount: guaranteedTotalTakerAmount,
-            makerAmount: guaranteedMakerAmount,
-        } = swapQuote.worstCaseQuoteInfo;
+        const { totalTakerAmount: guaranteedTotalTakerAmount, makerAmount: guaranteedMakerAmount } =
+            swapQuote.worstCaseQuoteInfo;
         const unitMakerAmount = Web3Wrapper.toUnitAmount(makerAmount, buyTokenDecimals);
         const unitTakerAmount = Web3Wrapper.toUnitAmount(totalTakerAmount, sellTokenDecimals);
         const guaranteedUnitMakerAmount = Web3Wrapper.toUnitAmount(guaranteedMakerAmount, buyTokenDecimals);
@@ -437,8 +435,9 @@ export class SwapService {
             .map((quote, i) => {
                 const buyTokenDecimals = new BigNumber(quote.makerTokenDecimals).toNumber();
                 const sellTokenDecimals = new BigNumber(quote.takerTokenDecimals).toNumber();
-                const symbol = queryTokenData.find((data) => data.tokenAddresses[CHAIN_ID] === quote.makerToken)
-                    ?.symbol;
+                const symbol = queryTokenData.find(
+                    (data) => data.tokenAddresses[CHAIN_ID] === quote.makerToken,
+                )?.symbol;
                 const { makerAmount, totalTakerAmount } = quote.bestCaseQuoteInfo;
                 const unitMakerAmount = Web3Wrapper.toUnitAmount(makerAmount, buyTokenDecimals);
                 const unitTakerAmount = Web3Wrapper.toUnitAmount(totalTakerAmount, sellTokenDecimals);
@@ -460,9 +459,7 @@ export class SwapService {
         return { ...paginatedTokens, records: prices };
     }
 
-    public async calculateMarketDepthAsync(
-        params: CalaculateMarketDepthParams,
-    ): Promise<{
+    public async calculateMarketDepthAsync(params: CalaculateMarketDepthParams): Promise<{
         asks: { depth: BucketedPriceDepth[] };
         bids: { depth: BucketedPriceDepth[] };
         buyToken: TokenMetadataOptionalSymbol;
@@ -555,9 +552,8 @@ export class SwapService {
         if (amount === undefined) {
             throw new Error('sellAmount or buyAmount required');
         }
-        const data = (isUnwrap
-            ? this._wethContract.withdraw(amount)
-            : this._wethContract.deposit()
+        const data = (
+            isUnwrap ? this._wethContract.withdraw(amount) : this._wethContract.deposit()
         ).getABIEncodedTransactionData();
         const value = isUnwrap ? ZERO : amount;
         const attributedCalldata = serviceUtils.attributeCallData(data, affiliateAddress);

@@ -60,7 +60,7 @@ let dependencies: AppDependencies;
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const SUITE_NAME = 'rfqt tests';
 
-const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter(s => s !== ERC20BridgeSource.Native);
+const EXCLUDED_SOURCES = Object.values(ERC20BridgeSource).filter((s) => s !== ERC20BridgeSource.Native);
 const DEFAULT_SELL_AMOUNT = new BigNumber(100000000000000000);
 const DEFAULT_QUERY = `buyToken=ZRX&sellToken=WETH&excludedSources=${EXCLUDED_SOURCES.join(',')}&gasPrice=1`;
 

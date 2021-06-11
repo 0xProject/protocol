@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount1615218503896
-    implements MigrationInterface {
+    implements MigrationInterface
+{
     name = 'RenameRemainingFillableAssetAmountToRemainingFillableTakerAmount1615218503896';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
