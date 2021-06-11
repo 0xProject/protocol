@@ -6,18 +6,10 @@ import 'mocha';
 import { Connection } from 'typeorm';
 
 import { getDBConnectionAsync } from '../src/db_connection';
-import {
-    RfqmJobEntity,
-    RfqmQuoteEntity,
-    RfqmTransactionSubmissionEntity,
-} from '../src/entities';
-import {
-    feeToStoredFee,
-    RfqmDbUtils,
-    RfqmJobStatus,
-    RfqmTranasctionSubmissionStatus,
-    v4RfqOrderToStoredOrder,
-} from '../src/utils/rfqm_db_utils';
+import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
+import { RfqmJobStatus } from '../src/entities/RfqmJobEntity';
+import { RfqmTranasctionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
+import { feeToStoredFee, RfqmDbUtils, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
 
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
@@ -91,6 +83,29 @@ describe(SUITE_NAME, () => {
     });
 
     describe('rfqm db tests', () => {
+        it("should use the database's timestamp", async () => {
+            const testRfqmQuoteEntity = new RfqmQuoteEntity({
+                orderHash,
+                metaTransactionHash,
+                integratorId,
+                chainId,
+                makerUri,
+                fee: feeToStoredFee(fee),
+                order: v4RfqOrderToStoredOrder(order),
+            });
+
+            const quoteRepository = connection.getRepository(RfqmQuoteEntity);
+            await quoteRepository.save(testRfqmQuoteEntity);
+            const dbEntity = await quoteRepository.findOne();
+
+            const { createdAt: recordCreatedAt } = dbEntity!;
+            expect(recordCreatedAt.getTime()).to.be.a('number');
+
+            const timeDiff = Math.abs(Date.now() - recordCreatedAt.getTime());
+            const tenMinutesMs = 10 * 60 * 1000; // tslint:disable-line custom-no-magic-numbers
+            expect(timeDiff).to.be.lessThan(tenMinutesMs);
+        });
+
         it('should be able to save and read an rfqm quote entity w/ no change in information', async () => {
             const testRfqmQuoteEntity = new RfqmQuoteEntity({
                 orderHash,

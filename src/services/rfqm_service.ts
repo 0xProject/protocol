@@ -12,6 +12,8 @@ import { Producer } from 'sqs-producer';
 import { CHAIN_ID, META_TX_WORKER_REGISTRY, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
+import { RfqmJobStatus } from '../entities/RfqmJobEntity';
+import { RfqmTranasctionSubmissionStatus } from '../entities/RfqmTransactionSubmissionEntity';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { getBestQuote } from '../utils/quote_comparison_utils';
@@ -19,8 +21,6 @@ import { QuoteServerClient } from '../utils/quote_server_client';
 import {
     feeToStoredFee,
     RfqmDbUtils,
-    RfqmJobStatus,
-    RfqmTranasctionSubmissionStatus,
     storedFeeToFee,
     storedOrderToRfqmOrder,
     v4RfqOrderToStoredOrder,

@@ -4,48 +4,10 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { Connection } from 'typeorm/connection/Connection';
 
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
-
-export enum RfqmJobStatus {
-    InQueue = 'inQueue',
-    Processing = 'processing',
-    Submitted = 'submitted',
-    Successful = 'successful',
-    Failed = 'failed',
-}
-
-export enum RfqmTranasctionSubmissionStatus {
-    Submitted = 'submitted',
-    Successful = 'successful',
-    Reverted = 'reverted',
-    DroppedAndReplaced = 'droppedAndReplaced',
-}
-
-export enum RfqmOrderTypes {
-    V4Rfq = 'v4Rfq',
-}
-
-export interface V4StringRfqOrderFields {
-    txOrigin: string;
-    maker: string;
-    taker: string;
-    makerToken: string;
-    takerToken: string;
-    makerAmount: string;
-    takerAmount: string;
-    pool: string;
-    expiry: string;
-    salt: string;
-    chainId: string;
-    verifyingContract: string;
-}
-
-export interface V4RfqStoredOrder {
-    type: RfqmOrderTypes.V4Rfq;
-    order: V4StringRfqOrderFields;
-}
+import { RfqmJobConstructorOpts, RfqmOrderTypes, StoredFee, StoredOrder } from '../entities/RfqmJobEntity';
+import { RfqmQuoteConstructorOpts } from '../entities/RfqmQuoteEntity';
 
 export type RfqmOrder = RfqOrder;
-export type StoredOrder = V4RfqStoredOrder;
 
 /**
  * convert a stored order into the appropriate order class
@@ -91,12 +53,6 @@ export function v4RfqOrderToStoredOrder(order: RfqOrder): StoredOrder {
             chainId: String(order.chainId),
         },
     };
-}
-
-export interface StoredFee {
-    token: string;
-    amount: string;
-    type: 'fixed' | 'bps';
 }
 
 export const storedFeeToFee = (fee: StoredFee): Fee => {
@@ -164,11 +120,11 @@ export class RfqmDbUtils {
         await this._connection.getRepository(RfqmJobEntity).save({ ...rfqmJobOpts, orderHash });
     }
 
-    public async writeRfqmQuoteToDbAsync(rfqmQuoteOpts: Partial<RfqmQuoteEntity>): Promise<void> {
+    public async writeRfqmQuoteToDbAsync(rfqmQuoteOpts: RfqmQuoteConstructorOpts): Promise<void> {
         await this._connection.getRepository(RfqmQuoteEntity).insert(new RfqmQuoteEntity(rfqmQuoteOpts));
     }
 
-    public async writeRfqmJobToDbAsync(rfqmJobOpts: Partial<RfqmJobEntity>): Promise<void> {
+    public async writeRfqmJobToDbAsync(rfqmJobOpts: RfqmJobConstructorOpts): Promise<void> {
         await this._connection.getRepository(RfqmJobEntity).insert(new RfqmJobEntity(rfqmJobOpts));
     }
 

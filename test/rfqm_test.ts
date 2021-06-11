@@ -29,17 +29,14 @@ import * as config from '../src/config';
 import { RFQM_PATH } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
+import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOrder } from '../src/entities/RfqmJobEntity';
+import { RfqmTranasctionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService, RfqmTypes } from '../src/services/rfqm_service';
 import { ConfigManager } from '../src/utils/config_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import {
     RfqmDbUtils,
-    RfqmJobStatus,
-    RfqmOrderTypes,
-    RfqmTranasctionSubmissionStatus,
-    StoredFee,
-    StoredOrder,
     storedOrderToRfqmOrder,
 } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
