@@ -730,12 +730,12 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 319e3,
     }),
     [CURVE_POOLS.TUSD]: createCurveMetaTriPool({
-        tokens:[MAINNET_TOKENS.TUSD],
+        tokens: [MAINNET_TOKENS.TUSD],
         pool: CURVE_POOLS.TUSD,
         gasSchedule: 404e3,
     }),
     [CURVE_POOLS.STABLEx]: createCurveMetaTriPool({
-        tokens:[MAINNET_TOKENS.STABLEx],
+        tokens: [MAINNET_TOKENS.STABLEx],
         pool: CURVE_POOLS.STABLEx,
         gasSchedule: 397e3,
     }),

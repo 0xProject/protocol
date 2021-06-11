@@ -110,7 +110,8 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
         case ChainId.Polygon:
@@ -118,7 +119,8 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
         default:
@@ -134,7 +136,8 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
         case ChainId.Polygon:
@@ -142,7 +145,8 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
         default:
@@ -158,7 +162,7 @@ export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, make
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
 }
@@ -171,7 +175,7 @@ export function getSnowSwapInfosForPair(chainId: ChainId, takerToken: string, ma
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
 }
@@ -184,7 +188,7 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
 }
@@ -197,7 +201,7 @@ export function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerT
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
 }
@@ -210,7 +214,7 @@ export function getEllipsisInfosForPair(chainId: ChainId, takerToken: string, ma
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
 }
@@ -221,7 +225,8 @@ export function getSmoothyInfosForPair(chainId: ChainId, takerToken: string, mak
             [makerToken, takerToken].every(
                 t =>
                     (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                    (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                    (c.tokens.includes(t) &&
+                        [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
             ),
         );
     } else if (chainId === ChainId.Mainnet) {
@@ -229,7 +234,8 @@ export function getSmoothyInfosForPair(chainId: ChainId, takerToken: string, mak
             [makerToken, takerToken].every(
                 t =>
                     (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                    (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                    (c.tokens.includes(t) &&
+                        [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
             ),
         );
     } else {
@@ -245,7 +251,7 @@ export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, make
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
 }
@@ -258,7 +264,7 @@ export function getXSigmaInfosForPair(chainId: ChainId, takerToken: string, make
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && ([makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0)),
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
 }
