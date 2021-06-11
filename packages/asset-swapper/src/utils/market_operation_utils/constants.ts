@@ -1472,10 +1472,10 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         const takerToken = (fillData as LidoFillData).takerToken;
         // WETH avoids one wrapping and so it's slightly cheaper
         if (takerToken === MAINNET_TOKENS.WETH) {
-            return 230e3;
+            return 226e3;
         }
 
-        return 260e3;
+        return 255e3;
     },
 
     //
