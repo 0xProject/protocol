@@ -27,6 +27,7 @@ import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCurve.sol";
+import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
@@ -50,6 +51,7 @@ contract BridgeAdapter is
     MixinBancor,
     MixinCoFiX,
     MixinCurve,
+    MixinCurveV2,
     MixinCryptoCom,
     MixinDodo,
     MixinDodoV2,
@@ -73,6 +75,7 @@ contract BridgeAdapter is
         MixinBancor(weth)
         MixinCoFiX()
         MixinCurve(weth)
+        MixinCurveV2()
         MixinCryptoCom()
         MixinDodo()
         MixinDodoV2()
@@ -102,6 +105,13 @@ contract BridgeAdapter is
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.CURVE) {
             boughtAmount = _tradeCurve(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.CURVEV2) {
+            boughtAmount = _tradeCurveV2(
                 sellToken,
                 buyToken,
                 sellAmount,

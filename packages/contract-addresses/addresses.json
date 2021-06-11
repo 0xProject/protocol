@@ -36,7 +36,7 @@
             "wethTransformer": "0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7",
             "payTakerTransformer": "0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e",
             "affiliateFeeTransformer": "0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f",
-            "fillQuoteTransformer": "0xd12a34076a4d9eac4cb82d87411d958641d0db9b",
+            "fillQuoteTransformer": "0x75665d9a15a5212db8668bc3eb46fe09df8335af",
             "positiveSlippageFeeTransformer": "0xa9416ce1dbde8d331210c07b5c253d94ee4cc3fd"
         }
     },
@@ -77,7 +77,7 @@
             "wethTransformer": "0x05ad19aa3826e0609a19568ffbd1dfe86c6c7184",
             "payTakerTransformer": "0x6d0ebf2bcd9cc93ec553b60ad201943dcca4e291",
             "affiliateFeeTransformer": "0x6588256778ca4432fa43983ac685c45efb2379e2",
-            "fillQuoteTransformer": "0xfdabf2a405034fd9034ddc51ba1189cbed6bd651",
+            "fillQuoteTransformer": "0xc7d935c79e4f01ed29e92950a158807b31f7b799",
             "positiveSlippageFeeTransformer": "0x8b332f700fd37e71c5c5b26c4d78b5ca63dd33b2"
         }
     },
@@ -282,7 +282,7 @@
             "wethTransformer": "0xe309d011cc6f189a3e8dcba85922715a019fed38",
             "payTakerTransformer": "0x5ba7b9be86cda01cfbf56e0fb97184783be9dda1",
             "affiliateFeeTransformer": "0xbed27284b42e5684e987169cf1da09c5d6c49fa8",
-            "fillQuoteTransformer": "0x2a0b60642d58ca819a6f3a3b4a6066be0df0486c",
+            "fillQuoteTransformer": "0xf708d512b8a82e2862543a630403327174410baf",
             "positiveSlippageFeeTransformer": "0x4cd8f1c0df4d40fcc1e073845d5f6f4ed5cc8dab"
         }
     },

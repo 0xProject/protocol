@@ -161,6 +161,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'ComethSwap');
         case ERC20BridgeSource.Dfyn:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Dfyn');
+        case ERC20BridgeSource.CurveV2:
+            return encodeBridgeSourceId(BridgeProtocol.CurveV2, 'CurveV2');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -183,6 +185,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
 
     switch (order.source) {
         case ERC20BridgeSource.Curve:
+        case ERC20BridgeSource.CurveV2:
         case ERC20BridgeSource.Swerve:
         case ERC20BridgeSource.SnowSwap:
         case ERC20BridgeSource.Nerve:
@@ -392,6 +395,7 @@ export const BRIDGE_ENCODERS: {
     ]),
     // Curve like
     [ERC20BridgeSource.Curve]: curveEncoder,
+    [ERC20BridgeSource.CurveV2]: curveEncoder,
     [ERC20BridgeSource.Swerve]: curveEncoder,
     [ERC20BridgeSource.SnowSwap]: curveEncoder,
     [ERC20BridgeSource.Nerve]: curveEncoder,
