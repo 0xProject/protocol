@@ -35,6 +35,7 @@ abstract contract MultiplexLiquidityProvider is
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
+    // Same event fired by LiquidityProviderFeature
     event LiquidityProviderSwap(
         address inputToken,
         address outputToken,
@@ -53,10 +54,6 @@ abstract contract MultiplexLiquidityProvider is
         sandbox = sandbox_;
     }
 
-    // Same as the LiquidityProviderFeature, but without the transfer in
-    // (which is potentially done in the previous hop of a multi-hop fill)
-    // and without the minBuyAmount check (which is performed at the top, i.e.
-    // in either `batchFill` or `multiHopFill`).
     function _batchSellLiquidityProvider(
         IMultiplexFeature.BatchSellState memory state,
         IMultiplexFeature.BatchSellParams memory params,
@@ -65,18 +62,22 @@ abstract contract MultiplexLiquidityProvider is
     )
         internal
     {
+        // Decode the provider address and auxiliary data.
         (address provider, bytes memory auxiliaryData) = abi.decode(
             wrappedCallData,
             (address, bytes)
         );
 
         if (params.useSelfBalance) {
+            // If `useSelfBalance` is true, use the input tokens
+            // held by `address(this)`.
             _transferERC20Tokens(
                 params.inputToken,
                 provider,
                 sellAmount
             );
         } else {
+            // Otherwise, transfer the input tokens from `msg.sender`.
             _transferERC20TokensFrom(
                 params.inputToken,
                 msg.sender,
@@ -84,10 +85,10 @@ abstract contract MultiplexLiquidityProvider is
                 sellAmount
             );
         }
-
+        // Cache the recipient's balance of the output token.
         uint256 balanceBefore = params.outputToken
             .compatBalanceOf(params.recipient);
-
+        // Execute the swap.
         sandbox.executeSellTokenForToken(
             ILiquidityProvider(provider),
             params.inputToken,
@@ -96,7 +97,8 @@ abstract contract MultiplexLiquidityProvider is
             0,
             auxiliaryData
         );
-
+        // Compute amount of output token received by the
+        // recipient.
         uint256 boughtAmount = params.outputToken
             .compatBalanceOf(params.recipient)
             .safeSub(balanceBefore);
@@ -109,12 +111,13 @@ abstract contract MultiplexLiquidityProvider is
             provider,
             params.recipient
         );
-
         // Increment the sold and bought amounts.
         state.soldAmount = state.soldAmount.safeAdd(sellAmount);
         state.boughtAmount = state.boughtAmount.safeAdd(boughtAmount);
     }
 
+    // This function is called after tokens have already been transferred
+    // into the liquidity provider contract (in the previous hop).
     function _multiHopSellLiquidityProvider(
         IMultiplexFeature.MultiHopSellState memory state,
         IMultiplexFeature.MultiHopSellParams memory params,
@@ -124,27 +127,33 @@ abstract contract MultiplexLiquidityProvider is
     {
         IERC20TokenV06 inputToken = IERC20TokenV06(params.tokens[state.hopIndex]);
         IERC20TokenV06 outputToken = IERC20TokenV06(params.tokens[state.hopIndex + 1]);
-
+        // Decode the provider address and auxiliary data.
         (address provider, bytes memory auxiliaryData) = abi.decode(
             wrappedCallData,
             (address, bytes)
         );
-
+        // Cache the recipient's balance of the output token.
         uint256 balanceBefore = outputToken
-            .compatBalanceOf(state.nextTarget);
-
+            .compatBalanceOf(state.to);
+        // Execute the swap.
         sandbox.executeSellTokenForToken(
             ILiquidityProvider(provider),
             inputToken,
             outputToken,
-            state.nextTarget,
+            state.to,
             0,
             auxiliaryData
         );
-
+        // The previous `ouputTokenAmount` was effectively the
+        // input amount for this call. Cache the value before
+        // overwriting it with the new output token amount so
+        // that both the input and ouput amounts can be in the
+        // `LiquidityProviderSwap` event.
         uint256 sellAmount = state.outputTokenAmount;
+        // Compute amount of output token received by the
+        // recipient.
         state.outputTokenAmount = outputToken
-            .compatBalanceOf(state.nextTarget)
+            .compatBalanceOf(state.to)
             .safeSub(balanceBefore);
 
         emit LiquidityProviderSwap(
@@ -153,7 +162,7 @@ abstract contract MultiplexLiquidityProvider is
             sellAmount,
             state.outputTokenAmount,
             provider,
-            state.nextTarget
+            state.to
         );
     }
 }

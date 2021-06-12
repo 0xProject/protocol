@@ -38,6 +38,8 @@ abstract contract MultiplexTransformERC20 {
         internal
     {
         ITransformERC20Feature.TransformERC20Args memory args;
+        // We want the TransformedERC20 event to have
+        // `msg.sender` as the taker.
         args.taker = msg.sender;
         args.inputToken = params.inputToken;
         args.outputToken = params.outputToken;
@@ -49,6 +51,7 @@ abstract contract MultiplexTransformERC20 {
             wrappedCallData,
             (ITransformERC20Feature.Transformation[])
         );
+        // Execute the transformations and swallow reverts.
         try ITransformERC20Feature(address(this))._transformERC20
             (args)
             returns (uint256 outputTokenAmount)
