@@ -39,7 +39,7 @@ abstract contract MultiplexRfq is
     );
 
     constructor(address zeroExAddress)
-        public
+        internal
         FixinEIP712(zeroExAddress)
     {}
 
@@ -59,6 +59,7 @@ abstract contract MultiplexRfq is
             wrappedCallData,
             (LibNativeOrder.RfqOrder, LibSignature.Signature)
         );
+        // Pre-emptively check if the order is expired.
         if (order.expiry <= uint64(block.timestamp)) {
             bytes32 orderHash = _getEIP712Hash(
                 LibNativeOrder.getRfqOrderStructHash(order)
@@ -70,12 +71,12 @@ abstract contract MultiplexRfq is
             );
             return;
         }
+        // Validate tokens.
         require(
             order.takerToken == params.inputToken &&
             order.makerToken == params.outputToken,
-            "MultiplexFeature::_fillRfqOrder/RFQ_ORDER_INVALID_TOKENS"
+            "MultiplexRfq::_batchSellRfqOrder/RFQ_ORDER_INVALID_TOKENS"
         );
-
         // Try filling the RFQ order. Swallows reverts.
         try
             INativeOrdersFeature(address(this))._fillRfqOrder

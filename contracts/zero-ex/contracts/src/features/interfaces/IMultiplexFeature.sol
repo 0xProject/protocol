@@ -24,7 +24,7 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 
 interface IMultiplexFeature {
-
+    // Identifies the type of subcall.
     enum MultiplexSubcall {
         Invalid,
         RFQ,
@@ -36,6 +36,7 @@ interface IMultiplexFeature {
         MultiHopSell
     }
 
+    // Parameters for a batch sell.
     struct BatchSellParams {
         // The token being sold.
         IERC20TokenV06 inputToken;
@@ -45,22 +46,27 @@ interface IMultiplexFeature {
         uint256 sellAmount;
         // The nested calls to perform.
         BatchSellSubcall[] calls;
-
+        // Whether to use the Exchange Proxy's balance
+        // of input tokens.
         bool useSelfBalance;
+        // The recipient of the bought output tokens.
         address recipient;
     }
 
-    // Represents a call nested within a `batchFill`.
+    // Represents a constituent call of a batch sell.
     struct BatchSellSubcall {
         // The function to call.
         MultiplexSubcall id;
-        // Amount of `inputToken` to sell.
+        // Amount of input token to sell. If the highest bit is 1,
+        // this value represents a proportion of the total
+        // `sellAmount` of the batch sell. See `_normalizeSellAmount`
+        // for details.
         uint256 sellAmount;
         // ABI-encoded parameters needed to perform the call.
         bytes data;
     }
 
-    // Parameters for `multiHopFill`.
+    // Parameters for a multi-hop sell.
     struct MultiHopSellParams {
         // The sell path, i.e.
         // tokens = [inputToken, hopToken1, ..., hopTokenN, outputToken]
@@ -69,12 +75,14 @@ interface IMultiplexFeature {
         uint256 sellAmount;
         // The nested calls to perform.
         MultiHopSellSubcall[] calls;
-
+        // Whether to use the Exchange Proxy's balance
+        // of input tokens.
         bool useSelfBalance;
+        // The recipient of the bought output tokens.
         address recipient;
     }
 
-    // Represents a call nested within a `multiHopFill`.
+    // Represents a constituent call of a multi-hop sell.
     struct MultiHopSellSubcall {
         // The function to call.
         MultiplexSubcall id;
@@ -90,17 +98,28 @@ interface IMultiplexFeature {
     }
 
     struct MultiHopSellState {
-        // This variable is used as the input and output amounts of
+        // This variable is used for the input and output amounts of
         // each hop. After the final hop, this will contain the output
-        // amount of the multi-hop fill.
+        // amount of the multi-hop sell.
         uint256 outputTokenAmount;
-        // This variable is used to cache the address to target in the
-        // next hop. See `_computeHopRecipient` for details.
-        address currentTarget;
-        address nextTarget;
+        // For each hop in a multi-hop sell, `from` is the
+        // address that holds the input tokens of the hop,
+        // `to` is the address that receives the output tokens
+        // of the hop.
+        // See `_computeHopTarget` for details.
+        address from;
+        address to;
+        // The index of the current hop in the multi-hop chain.
         uint256 hopIndex;
     }
 
+    /// @dev Sells attached ETH for `outputToken` using the provided
+    ///      calls.
+    /// @param outputToken The token to buy.
+    /// @param calls The calls to use to sell the attached ETH.
+    /// @param minBuyAmount The minimum amount of `outputToken` that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of `outputToken` bought.
     function multiplexBatchSellEthForToken(
         IERC20TokenV06 outputToken,
         BatchSellSubcall[] calldata calls,
@@ -110,6 +129,14 @@ interface IMultiplexFeature {
         payable
         returns (uint256 boughtAmount);
 
+    /// @dev Sells `sellAmount` of the given `inputToken` for ETH
+    ///      using the provided calls.
+    /// @param inputToken The token to sell.
+    /// @param calls The calls to use to sell the input tokens.
+    /// @param sellAmount The amount of `inputToken` to sell.
+    /// @param minBuyAmount The minimum amount of ETH that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of ETH bought.
     function multiplexBatchSellTokenForEth(
         IERC20TokenV06 inputToken,
         BatchSellSubcall[] calldata calls,
@@ -119,6 +146,15 @@ interface IMultiplexFeature {
         external
         returns (uint256 boughtAmount);
 
+    /// @dev Sells `sellAmount` of the given `inputToken` for
+    ///      `outputToken` using the provided calls.
+    /// @param inputToken The token to sell.
+    /// @param outputToken The token to buy.
+    /// @param calls The calls to use to sell the input tokens.
+    /// @param sellAmount The amount of `inputToken` to sell.
+    /// @param minBuyAmount The minimum amount of `outputToken`
+    ///        that must be bought for this function to not revert.
+    /// @return boughtAmount The amount of `outputToken` bought.
     function multiplexBatchSellTokenForToken(
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
@@ -129,6 +165,17 @@ interface IMultiplexFeature {
         external
         returns (uint256 boughtAmount);
 
+    /// @dev Sells attached ETH via the given sequence of tokens
+    ///      and calls. `tokens[0]` must be WETH.
+    ///      The last token in `tokens` is the output token that
+    ///      will ultimately be sent to `msg.sender`
+    /// @param tokens The sequence of tokens to use for the sell,
+    ///        i.e. `tokens[i]` will be sold for `tokens[i+1]` via
+    ///        `calls[i]`.
+    /// @param calls The sequence of calls to use for the sell.
+    /// @param minBuyAmount The minimum amount of output tokens that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of output tokens bought.
     function multiplexMultiHopSellEthForToken(
         address[] calldata tokens,
         MultiHopSellSubcall[] calldata calls,
@@ -138,6 +185,16 @@ interface IMultiplexFeature {
         payable
         returns (uint256 boughtAmount);
 
+    /// @dev Sells `sellAmount` of the input token (`tokens[0]`)
+    ///      for ETH via the given sequence of tokens and calls.
+    ///      The last token in `tokens` must be WETH.
+    /// @param tokens The sequence of tokens to use for the sell,
+    ///        i.e. `tokens[i]` will be sold for `tokens[i+1]` via
+    ///        `calls[i]`.
+    /// @param calls The sequence of calls to use for the sell.
+    /// @param minBuyAmount The minimum amount of ETH that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of ETH bought.
     function multiplexMultiHopSellTokenForEth(
         address[] calldata tokens,
         MultiHopSellSubcall[] calldata calls,
@@ -147,6 +204,17 @@ interface IMultiplexFeature {
         external
         returns (uint256 boughtAmount);
 
+    /// @dev Sells `sellAmount` of the input token (`tokens[0]`)
+    ///      via the given sequence of tokens and calls.
+    ///      The last token in `tokens` is the output token that
+    ///      will ultimately be sent to `msg.sender`
+    /// @param tokens The sequence of tokens to use for the sell,
+    ///        i.e. `tokens[i]` will be sold for `tokens[i+1]` via
+    ///        `calls[i]`.
+    /// @param calls The sequence of calls to use for the sell.
+    /// @param minBuyAmount The minimum amount of output tokens that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of output tokens bought.
     function multiplexMultiHopSellTokenForToken(
         address[] calldata tokens,
         MultiHopSellSubcall[] calldata calls,

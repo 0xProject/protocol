@@ -59,8 +59,9 @@ interface ITransformERC20Feature {
         // The transformations to execute on the token balance(s)
         // in sequence.
         Transformation[] transformations;
-
+        // Whether to use the Exchange Proxy's balance of `inputToken`.
         bool useSelfBalance;
+        // The recipient of the bought `outputToken`.
         address payable recipient;
     }
 

@@ -93,9 +93,10 @@ abstract contract NativeOrdersSettlement is
         uint128 takerTokenFillAmount;
         // The order taker.
         address taker;
-
+        // Whether to use the Exchange Proxy's balance
+        // of taker tokens.
         bool useSelfBalance;
-
+        // The recipient of the maker tokens.
         address recipient;
     }
 

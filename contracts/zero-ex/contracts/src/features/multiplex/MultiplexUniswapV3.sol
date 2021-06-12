@@ -43,6 +43,9 @@ abstract contract MultiplexUniswapV3 is
         bool success;
         bytes memory resultData;
         if (params.useSelfBalance) {
+            // If the tokens are held by `address(this)`, we call
+            // the `onlySelf` variant `_sellTokenForTokenToUniswapV3`,
+            // which uses the Exchange Proxy's balance of input token.
             (success, resultData) = address(this).call(
                 abi.encodeWithSelector(
                     IUniswapV3Feature._sellTokenForTokenToUniswapV3.selector,
@@ -53,6 +56,9 @@ abstract contract MultiplexUniswapV3 is
                 )
             );
         } else {
+            // Otherwise, we self-delegatecall the normal variant
+            // `sellTokenForTokenToUniswapV3`, which pulls the input token
+            // from `msg.sender`.
             (success, resultData) = address(this).delegatecall(
                 abi.encodeWithSelector(
                     IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
@@ -64,6 +70,7 @@ abstract contract MultiplexUniswapV3 is
             );
         }
         if (success) {
+            // Decode the output token amount on success.
             uint256 outputTokenAmount = abi.decode(resultData, (uint256));
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(sellAmount);
@@ -79,29 +86,35 @@ abstract contract MultiplexUniswapV3 is
     {
         bool success;
         bytes memory resultData;
-        if (state.currentTarget == address(this)) {
+        if (state.from == address(this)) {
+            // If the tokens are held by `address(this)`, we call
+            // the `onlySelf` variant `_sellTokenForTokenToUniswapV3`,
+            // which uses the Exchange Proxy's balance of input token.
             (success, resultData) = address(this).call(
                 abi.encodeWithSelector(
                     IUniswapV3Feature._sellTokenForTokenToUniswapV3.selector,
                     wrappedCallData,
                     state.outputTokenAmount,
                     0,
-                    state.nextTarget
+                    state.to
                 )
             );
         } else {
+            // Otherwise, we self-delegatecall the normal variant
+            // `sellTokenForTokenToUniswapV3`, which pulls the input token
+            // from `msg.sender`.
             (success, resultData) = address(this).delegatecall(
                 abi.encodeWithSelector(
                     IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
                     wrappedCallData,
                     state.outputTokenAmount,
                     0,
-                    state.nextTarget
+                    state.to
                 )
             );
         }
-
         if (success) {
+            // Decode the output token amount on success.
             state.outputTokenAmount = abi.decode(resultData, (uint256));
         } else {
             revert("MultiplexUniswapV3::_multiHopSellUniswapV3/SWAP_FAILED");
