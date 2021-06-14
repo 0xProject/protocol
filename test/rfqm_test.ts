@@ -98,6 +98,44 @@ const SUCCESSFUL_TRANSACTION_RECEIPT = {
     transactionIndex: 5,
 };
 
+const MOCK_RFQM_JOB: RfqmJobEntity = {
+    calldata:
+        '0xaa77476c000000000000000000000000374a16f5e686c09b0cc9e8bc3466b3b645c74aa7000000000000000000000000f84830b73b2ed3c7267e7638f500110ea47fdf30000000000000000000000000000000000000000000000000002356870546ced00000000000000000000000000000000000000000000000015af1d78b58c4000100000000000000000000000006754422cf9f54ae0e67d42fd788b33d8eb4c5d500000000000000000000000006652bdd5a8eb3d206caedd6b95b61f820abb9b1000000000000000000000000a85795b9b37e200c67398d7796ab301a838f539d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060c2a83100000000000000000000000000000000000000000000000000000179f85d57800000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000001c45c3a18bfafd33f71ac9b53d29a69d550ea5429bb6eafce9c0f8f9c4c253e5d45056b83e5b7eeb97629144760dcdccc4eeb09c1d215f8ebededeb790a2277d070000000000000000000000000000000000000000000000015af1d78b58c40001',
+    chainId: 1337,
+    createdAt: new Date(),
+    expiry: new BigNumber(Date.now()),
+    fee: {
+        amount: '1000',
+        token: '0x123',
+        type: 'fixed',
+    },
+    integratorId: null,
+    makerUri: MARKET_MAKER_1,
+    metadata: null,
+    metaTransactionHash: '0xd2fb3c7e481ff79fde1692d5ab0ecdf6a1d9e2ec57a789683adac9e0aa620860',
+    order: {
+        order: {
+            chainId: '1337',
+            expiry: SAFE_EXPIRY,
+            maker: '0x123',
+            makerAmount: '1',
+            makerToken: '0x123',
+            pool: '0x1234',
+            salt: '1000',
+            taker: '0x123',
+            takerAmount: '1',
+            takerToken: '0x123',
+            txOrigin: '0x123',
+            verifyingContract: '0x123',
+        },
+        type: RfqmOrderTypes.V4Rfq,
+    },
+    orderHash: '0x288d4d771179738ee9ca60f14df74612fb1ca43dfbc3bbb49dd9226a19747c11',
+    status: RfqmJobStatus.Submitted,
+    statusReason: '',
+    updatedAt: new Date(),
+};
+
 describe(SUITE_NAME, () => {
     let takerAddress: string;
     let makerAddress: string;
@@ -106,6 +144,7 @@ describe(SUITE_NAME, () => {
     let server: Server;
     let connection: Connection;
     let rfqmService: RfqmService;
+    let dbUtils: RfqmDbUtils;
 
     before(async () => {
         // docker-compose up
@@ -194,7 +233,7 @@ describe(SUITE_NAME, () => {
         // Create the dbUtils
         connection = await getDBConnectionAsync();
         await connection.synchronize(true);
-        const dbUtils = new RfqmDbUtils(connection);
+        dbUtils = new RfqmDbUtils(connection);
 
         // Create the mock sqsProducer
         const sqsProducerMock = mock(Producer);
@@ -981,6 +1020,30 @@ describe(SUITE_NAME, () => {
             expect(appResponse.body.validationErrors[0].reason).to.equal(`metatransaction will expire too soon`);
         });
     });
+
+    describe('rfqm/v1/status/:orderHash', () => {
+        it('should return a 404 NOT FOUND if the order hash is not found', () => {
+            const orderHash = '0x00';
+            return request(app)
+                .get(`${RFQM_PATH}/status/${orderHash}`)
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.NOT_FOUND);
+        });
+
+        it('should return a 200 when the order exists', async () => {
+            await dbUtils.writeRfqmJobToDbAsync(MOCK_RFQM_JOB);
+
+            const response = await request(app)
+                .get(`${RFQM_PATH}/status/${MOCK_RFQM_JOB.orderHash}`)
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+
+            // Response details are covered by the service test, but do one small check for sanity
+            expect(response.body.status).to.equal(RfqmJobStatus.Submitted);
+        });
+    });
+
     describe('completeSubmissionLifecycleAsync', async () => {
         const callData = '0x123';
         const orderHash = '0xanOrderHash';
@@ -1014,7 +1077,6 @@ describe(SUITE_NAME, () => {
 
         it('should sucessfully resolve when the job is processed', async () => {
             const mockAxios = new AxiosMockAdapter(axiosClient);
-            const dbUtils = new RfqmDbUtils(connection);
             const blockchainUtils = new RfqBlockchainUtils(getProvider(), contractAddresses.exchangeProxy);
             const order = new RfqOrder({
                 txOrigin: randomAddress(),

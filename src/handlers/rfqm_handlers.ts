@@ -132,6 +132,18 @@ export class RfqmHandlers {
         res.status(HttpStatus.OK).send(firmQuote);
     }
 
+    public async getStatusAsync(req: express.Request, res: express.Response): Promise<void> {
+        const apiKeyLabel = req.header('0x-api-key') || 'N/A';
+
+        this._validateAndReturnApiKey(apiKeyLabel);
+
+        const { orderHash } = req.params;
+
+        const status = await this._rfqmService.getOrderStatusAsync(orderHash);
+
+        status ? res.status(HttpStatus.OK).send(status) : res.status(HttpStatus.NOT_FOUND).send();
+    }
+
     public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const apiKeyLabel = req.header('0x-api-key') || 'N/A';
         RFQM_SIGNED_QUOTE_SUBMITTED.labels(apiKeyLabel).inc();
