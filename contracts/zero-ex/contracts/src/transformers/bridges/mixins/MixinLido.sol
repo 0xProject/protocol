@@ -62,9 +62,9 @@ contract MixinLido {
         (ILido lido) = abi.decode(bridgeData, (ILido));
         if (address(sellToken) == address(WETH) && address(buyToken) == address(lido)) {
             WETH.withdraw(sellAmount);
-            // TODO(kimpers): do we want to use a referral address here
             boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
+        } else {
+            revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
         }
-
     }
 }
