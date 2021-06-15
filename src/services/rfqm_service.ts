@@ -110,7 +110,7 @@ export type SubmitRfqmSignedQuoteParams = MetaTransactionSubmitRfqmSignedQuotePa
 export type SubmitRfqmSignedQuoteResponse = MetaTransactionSubmitRfqmSignedQuoteResponse;
 
 export interface StatusResponse {
-    status: 'pending' | 'submitted' | 'failed' | 'successful';
+    status: 'pending' | 'submitted' | 'failed' | 'succeeded' | 'confirmed';
     // For pending, expect no transactions. For successful transactions, expect just the mined transaction.
     transactions: { hash: string; timestamp: number /* unix ms */ }[];
 }
@@ -177,44 +177,38 @@ export class RfqmService {
         return quotedMakerAmount.div(quotedTakerAmount).times(sellAmount).decimalPlaces(0);
     }
 
-    private static _validateJob(job: RfqmJobEntity): void {
+    // Returns a failure status for invalide jobs and null if the job is valid.
+    private static _validateJob(job: RfqmJobEntity): RfqmJobStatus | null {
         const { calldata, makerUri, order, fee } = job;
         if (calldata === undefined) {
-            throw new Error('Missing calldata on job');
+            return RfqmJobStatus.FailedValidationNoCallData;
         }
 
         if (makerUri === undefined) {
-            throw new Error('Missing makerUri on job');
+            return RfqmJobStatus.FailedValidationNoMakerUri;
         }
 
         if (order === null) {
-            throw new Error('Missing order on job');
+            return RfqmJobStatus.FailedValidationNoOrder;
         }
 
         if (fee === null) {
-            throw new Error('Missing fee on job');
+            return RfqmJobStatus.FailedValidationNoFee;
         }
+
+        return null;
     }
 
     /**
      * update RfqmJobStatus based on transaction status
      */
-    private static _getJobStatusFromSubmissions(submissionsMap: SubmissionsMap): {
-        status: RfqmJobStatus;
-        statusReason: string | null;
-    } {
+    private static _getJobStatusFromSubmissions(submissionsMap: SubmissionsMap): RfqmJobStatus {
         // there should only be one mined transaction, which will either be successful or a revert
         for (const submission of Object.values(submissionsMap)) {
             if (submission.status === RfqmTranasctionSubmissionStatus.Successful) {
-                return {
-                    status: RfqmJobStatus.Successful,
-                    statusReason: null,
-                };
+                return RfqmJobStatus.SucceededUnconfirmed;
             } else if (submission.status === RfqmTranasctionSubmissionStatus.Reverted) {
-                return {
-                    status: RfqmJobStatus.Failed,
-                    statusReason: 'transaction reverted',
-                };
+                return RfqmJobStatus.FailedRevertedUnconfirmed;
             }
         }
         throw new Error('no transactions mined in submissions');
@@ -491,7 +485,7 @@ export class RfqmService {
             return null;
         }
         const { status } = job;
-        if (status === RfqmJobStatus.InQueue && job.expiry.lt(Date.now())) {
+        if (status === RfqmJobStatus.PendingEnqueued && job.expiry.lt(Date.now())) {
             // the workers are dead/on vacation and the expiration time has passed
             return {
                 status: 'failed',
@@ -500,20 +494,30 @@ export class RfqmService {
         }
         const transactionSubmissions = await this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
         switch (status) {
-            case RfqmJobStatus.InQueue:
-            case RfqmJobStatus.Processing:
+            case RfqmJobStatus.PendingEnqueued:
+            case RfqmJobStatus.PendingProcessing:
                 return { status: 'pending', transactions: [] };
-            case RfqmJobStatus.Submitted:
+            case RfqmJobStatus.PendingSubmitted:
                 return {
                     status: 'submitted',
                     transactions: transformSubmissions(transactionSubmissions),
                 };
-            case RfqmJobStatus.Failed:
+            case RfqmJobStatus.FailedEthCallFailed:
+            case RfqmJobStatus.FailedExpired:
+            case RfqmJobStatus.FailedLastLookDeclined:
+            case RfqmJobStatus.FailedRevertedConfirmed:
+            case RfqmJobStatus.FailedRevertedUnconfirmed:
+            case RfqmJobStatus.FailedSubmitFailed:
+            case RfqmJobStatus.FailedValidationNoCallData:
+            case RfqmJobStatus.FailedValidationNoFee:
+            case RfqmJobStatus.FailedValidationNoMakerUri:
+            case RfqmJobStatus.FailedValidationNoOrder:
                 return {
                     status: 'failed',
                     transactions: transformSubmissions(transactionSubmissions),
                 };
-            case RfqmJobStatus.Successful:
+            case RfqmJobStatus.SucceededConfirmed:
+            case RfqmJobStatus.SucceededUnconfirmed:
                 const successfulTransactions = transactionSubmissions.filter(
                     (s) => s.status === RfqmTranasctionSubmissionStatus.Successful,
                 );
@@ -528,11 +532,13 @@ export class RfqmService {
                     throw new Error(`Successful transaction did not have a hash`);
                 }
                 return {
-                    status: 'successful',
+                    status: status === RfqmJobStatus.SucceededUnconfirmed ? 'succeeded' : 'confirmed',
                     transactions: [successfulTransactionData],
                 };
             default:
-                throw new Error(`RFQM job has an unknown status: ${status}`);
+                ((_x: never): never => {
+                    throw new Error('Unreachable');
+                })(status);
         }
     }
 
@@ -591,7 +597,7 @@ export class RfqmService {
             chainId: CHAIN_ID,
             integratorId: quote.integratorId ? quote.integratorId : null,
             makerUri: quote.makerUri,
-            status: RfqmJobStatus.InQueue,
+            status: RfqmJobStatus.PendingEnqueued,
             statusReason: null,
             calldata: this._blockchainUtils.generateMetaTransactionCallData(params.metaTransaction, params.signature),
             fee: quote.fee,
@@ -633,12 +639,10 @@ export class RfqmService {
         }
 
         // Basic validation
-        try {
-            RfqmService._validateJob(job);
-        } catch (err) {
+        const errorStatus = RfqmService._validateJob(job);
+        if (errorStatus !== null) {
             await this._dbUtils.updateRfqmJobAsync(orderHash, {
-                status: RfqmJobStatus.Failed,
-                statusReason: err.message,
+                status: errorStatus,
             });
             return;
         }
@@ -646,7 +650,7 @@ export class RfqmService {
 
         // Start processing
         await this._dbUtils.updateRfqmJobAsync(orderHash, {
-            status: RfqmJobStatus.Processing,
+            status: RfqmJobStatus.PendingProcessing,
         });
 
         // Validate w/Eth Call
@@ -657,8 +661,7 @@ export class RfqmService {
             logger.warn({ error: e, orderHash }, 'The eth_call validation failed');
             // Terminate with an error transition
             await this._dbUtils.updateRfqmJobAsync(orderHash, {
-                status: RfqmJobStatus.Failed,
-                statusReason: 'eth_call failed',
+                status: RfqmJobStatus.FailedEthCallFailed,
             });
             return;
         }
@@ -679,8 +682,7 @@ export class RfqmService {
             RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri!).inc();
             // Terminate with an error transition
             await this._dbUtils.updateRfqmJobAsync(orderHash, {
-                status: RfqmJobStatus.Failed,
-                statusReason: 'Rejected by MM last look',
+                status: RfqmJobStatus.FailedLastLookDeclined,
             });
             return;
         }
@@ -697,8 +699,7 @@ export class RfqmService {
         // update job status based on transaction submission status
         const finalJobStatus = RfqmService._getJobStatusFromSubmissions(submissionsMap);
         await this._dbUtils.updateRfqmJobAsync(orderHash, {
-            status: finalJobStatus.status,
-            statusReason: finalJobStatus.statusReason,
+            status: finalJobStatus,
         });
     }
 

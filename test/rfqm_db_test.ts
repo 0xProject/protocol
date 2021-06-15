@@ -134,7 +134,7 @@ describe(SUITE_NAME, () => {
                 chainId,
                 integratorId,
                 makerUri,
-                status: RfqmJobStatus.InQueue,
+                status: RfqmJobStatus.PendingEnqueued,
                 statusReason: null,
                 calldata,
                 fee: feeToStoredFee(fee),
@@ -159,7 +159,7 @@ describe(SUITE_NAME, () => {
                 chainId,
                 integratorId,
                 makerUri,
-                status: RfqmJobStatus.InQueue,
+                status: RfqmJobStatus.PendingEnqueued,
                 statusReason: null,
                 calldata,
                 fee: feeToStoredFee(fee),
@@ -168,13 +168,13 @@ describe(SUITE_NAME, () => {
             await dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
 
             const dbEntityFirstSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
-            await dbUtils.updateRfqmJobAsync(orderHash, { status: RfqmJobStatus.Processing });
+            await dbUtils.updateRfqmJobAsync(orderHash, { status: RfqmJobStatus.PendingProcessing });
 
             const dbEntitySecondSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
 
             // expect status to be updated
-            expect(dbEntityFirstSnapshot?.status).to.eq(RfqmJobStatus.InQueue);
-            expect(dbEntitySecondSnapshot?.status).to.eq(RfqmJobStatus.Processing);
+            expect(dbEntityFirstSnapshot?.status).to.eq(RfqmJobStatus.PendingEnqueued);
+            expect(dbEntitySecondSnapshot?.status).to.eq(RfqmJobStatus.PendingProcessing);
 
             // spot check that other values have not changed
             expect(dbEntityFirstSnapshot?.calldata).to.eq(dbEntitySecondSnapshot?.calldata);
@@ -190,7 +190,7 @@ describe(SUITE_NAME, () => {
                 chainId,
                 integratorId,
                 makerUri,
-                status: RfqmJobStatus.InQueue,
+                status: RfqmJobStatus.PendingEnqueued,
                 statusReason: null,
                 calldata,
                 fee: feeToStoredFee(fee),
@@ -229,7 +229,7 @@ describe(SUITE_NAME, () => {
                 chainId,
                 integratorId,
                 makerUri,
-                status: RfqmJobStatus.InQueue,
+                status: RfqmJobStatus.PendingEnqueued,
                 statusReason: null,
                 calldata,
                 fee: feeToStoredFee(fee),

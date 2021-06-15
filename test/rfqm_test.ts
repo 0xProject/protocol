@@ -131,8 +131,7 @@ const MOCK_RFQM_JOB: RfqmJobEntity = {
         type: RfqmOrderTypes.V4Rfq,
     },
     orderHash: '0x288d4d771179738ee9ca60f14df74612fb1ca43dfbc3bbb49dd9226a19747c11',
-    status: RfqmJobStatus.Submitted,
-    statusReason: '',
+    status: RfqmJobStatus.PendingSubmitted,
     updatedAt: new Date(),
 };
 
@@ -1040,7 +1039,7 @@ describe(SUITE_NAME, () => {
                 .expect('Content-Type', /json/);
 
             // Response details are covered by the service test, but do one small check for sanity
-            expect(response.body.status).to.equal(RfqmJobStatus.Submitted);
+            expect(response.body.status).to.equal('submitted');
         });
     });
 
@@ -1141,7 +1140,7 @@ describe(SUITE_NAME, () => {
             await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
 
             const job = await dbUtils.findJobByOrderHashAsync(orderHash);
-            expect(job?.status).to.eq(RfqmJobStatus.Successful);
+            expect(job?.status).to.eq(RfqmJobStatus.SucceededUnconfirmed);
 
             const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
             expect(submissions[0].status).to.eq(RfqmTranasctionSubmissionStatus.Successful);

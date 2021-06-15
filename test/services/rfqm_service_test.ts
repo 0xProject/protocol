@@ -1057,7 +1057,7 @@ describe('RfqmService', () => {
             }
             expect(jobStatus.status).to.equal('failed');
 
-            if (jobStatus.status !== RfqmJobStatus.Failed) {
+            if (jobStatus.status !== 'failed') {
                 expect.fail('Status should be failed');
                 throw new Error();
             }
@@ -1092,7 +1092,7 @@ describe('RfqmService', () => {
                 expiry: new BigNumber(Date.now() + 10000),
                 makerUri: '',
                 orderHash: '0x00',
-                status: RfqmJobStatus.Processing,
+                status: RfqmJobStatus.PendingProcessing,
             });
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
@@ -1119,7 +1119,7 @@ describe('RfqmService', () => {
                 expiry: jobExpiryTime,
                 makerUri: '',
                 orderHash: '0x00',
-                status: RfqmJobStatus.Submitted,
+                status: RfqmJobStatus.PendingSubmitted,
             });
 
             const submission1 = new RfqmTransactionSubmissionEntity({
@@ -1148,7 +1148,7 @@ describe('RfqmService', () => {
                 throw new Error();
             }
 
-            if (jobStatus.status !== RfqmJobStatus.Submitted) {
+            if (jobStatus.status !== 'submitted') {
                 expect.fail('Status should be submitted');
                 throw new Error();
             }
@@ -1157,7 +1157,7 @@ describe('RfqmService', () => {
             expect(jobStatus.transactions).to.deep.include({ hash: '0x02', timestamp: +transaction2Time.valueOf() });
         });
 
-        it('should return success for a successful job, with the succeeded job', async () => {
+        it('should return succeeded for a successful job, with the succeeded job', async () => {
             const now = Date.now();
             const jobExpiryTime = new BigNumber(now + 10000);
             const transaction1Time = now + 10;
@@ -1169,7 +1169,7 @@ describe('RfqmService', () => {
                 expiry: jobExpiryTime,
                 makerUri: '',
                 orderHash: '0x00',
-                status: RfqmJobStatus.Successful,
+                status: RfqmJobStatus.SucceededUnconfirmed,
             });
 
             const submission1 = new RfqmTransactionSubmissionEntity({
@@ -1200,8 +1200,58 @@ describe('RfqmService', () => {
                 throw new Error();
             }
 
-            if (jobStatus.status !== RfqmJobStatus.Successful) {
-                expect.fail('Status should be successful');
+            if (jobStatus.status !== 'succeeded') {
+                expect.fail('Status should be succeeded');
+                throw new Error();
+            }
+            expect(jobStatus.transactions[0]).to.contain({ hash: '0x02', timestamp: +transaction2Time.valueOf() });
+        });
+
+        it('should return confirmed for a successful confirmed job', async () => {
+            const now = Date.now();
+            const jobExpiryTime = new BigNumber(now + 10000);
+            const transaction1Time = now + 10;
+            const transaction2Time = now + 20;
+
+            const job = new RfqmJobEntity({
+                calldata: '',
+                chainId: 1337,
+                expiry: jobExpiryTime,
+                makerUri: '',
+                orderHash: '0x00',
+                status: RfqmJobStatus.SucceededConfirmed,
+            });
+
+            const submission1 = new RfqmTransactionSubmissionEntity({
+                createdAt: new Date(transaction1Time),
+                orderHash: '0x00',
+                transactionHash: '0x01',
+                status: RfqmTranasctionSubmissionStatus.Reverted,
+            });
+            const submission2 = new RfqmTransactionSubmissionEntity({
+                createdAt: new Date(transaction2Time),
+                orderHash: '0x00',
+                transactionHash: '0x02',
+                status: RfqmTranasctionSubmissionStatus.Successful,
+            });
+
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
+            when(dbUtilsMock.findRfqmTransactionSubmissionsByOrderHashAsync('0x00')).thenResolve([
+                submission1,
+                submission2,
+            ]);
+            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+            const jobStatus = await service.getOrderStatusAsync('0x00');
+
+            if (jobStatus === null) {
+                expect.fail('Status should exist');
+                throw new Error();
+            }
+
+            if (jobStatus.status !== 'confirmed') {
+                expect.fail('Status should be confirmed');
                 throw new Error();
             }
             expect(jobStatus.transactions[0]).to.contain({ hash: '0x02', timestamp: +transaction2Time.valueOf() });
@@ -1219,7 +1269,7 @@ describe('RfqmService', () => {
                 expiry: jobExpiryTime,
                 makerUri: '',
                 orderHash: '0x00',
-                status: RfqmJobStatus.Successful,
+                status: RfqmJobStatus.SucceededUnconfirmed,
             });
 
             const submission1 = new RfqmTransactionSubmissionEntity({
@@ -1260,7 +1310,7 @@ describe('RfqmService', () => {
                 expiry: jobExpiryTime,
                 makerUri: '',
                 orderHash: '0x00',
-                status: RfqmJobStatus.Successful,
+                status: RfqmJobStatus.SucceededUnconfirmed,
             });
 
             const submission1 = new RfqmTransactionSubmissionEntity({
