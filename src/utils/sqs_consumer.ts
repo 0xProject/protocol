@@ -1,3 +1,4 @@
+// tslint:disable: max-classes-per-file
 import { SQS } from 'aws-sdk';
 import delay from 'delay';
 
@@ -8,6 +9,7 @@ import { SqsClient } from './sqs_client';
 
 export type MessageHandler = (message: SQS.Types.Message) => Promise<any>;
 
+export class SqsRetryableError extends Error {}
 export class SqsConsumer {
     private readonly _id: string;
     private readonly _sqsClient: SqsClient;
@@ -53,23 +55,12 @@ export class SqsConsumer {
             try {
                 beforeCheck = await this._beforeHandle();
             } catch (e) {
-                logger.warn(
-                    {
-                        id: this._id,
-                        error: e,
-                    },
-                    'Error encountered in the preHandle check',
-                );
+                logger.warn({ id: this._id, error: e }, 'Error encountered in the preHandle check');
                 return;
             }
 
             if (!beforeCheck) {
-                logger.warn(
-                    {
-                        id: this._id,
-                    },
-                    'before validation failed',
-                );
+                logger.warn({ id: this._id }, 'before validation failed');
                 await delay(ONE_SECOND_MS);
                 return;
             }
@@ -87,18 +78,15 @@ export class SqsConsumer {
         try {
             await this._handleMessage(message);
         } catch (err) {
-            logger.error(
-                {
-                    err,
-                    message,
-                    id: this._id,
-                },
-                'Encountered error while handling message',
-            );
-            // Retry message
-            await this._sqsClient.changeMessageVisibilityAsync(message.ReceiptHandle!, 0);
-            await delay(ONE_SECOND_MS);
-            return;
+            logger.error({ err, message, id: this._id }, 'Encountered error while handling message');
+
+            if (err instanceof SqsRetryableError) {
+                logger.info({ message, id: this._id }, 'Retrying message');
+                // Retry message
+                await this._sqsClient.changeMessageVisibilityAsync(message.ReceiptHandle!, 0);
+                await delay(ONE_SECOND_MS);
+                return;
+            }
         }
 
         // Delete message

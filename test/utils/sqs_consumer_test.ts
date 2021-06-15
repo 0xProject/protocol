@@ -3,10 +3,10 @@
 // tslint:disable:max-file-line-count
 
 import { expect } from '@0x/contracts-test-utils';
-import { anyString, instance, mock, verify, when } from 'ts-mockito';
+import { anyString, anything, instance, mock, verify, when } from 'ts-mockito';
 
 import { SqsClient } from '../../src/utils/sqs_client';
-import { SqsConsumer } from '../../src/utils/sqs_consumer';
+import { SqsConsumer, SqsRetryableError } from '../../src/utils/sqs_consumer';
 
 describe('SqsConsumer', () => {
     describe('consumeOnceAsync', () => {
@@ -135,7 +135,33 @@ describe('SqsConsumer', () => {
                 expect(isHandleCalled).to.eq(false);
             });
 
-            it('should call changeMessageVisibility if an error is encountered (triggering a retry)', async () => {
+            it('should call changeMessageVisibility if a SqsRetryableError is encountered (triggers a retry)', async () => {
+                // Given
+                const sqsClientMock = mock(SqsClient);
+                when(sqsClientMock.receiveMessageAsync()).thenResolve({
+                    Body: '0xdeadbeef',
+                    ReceiptHandle: '1',
+                });
+                const sqsClientInstance = instance(sqsClientMock);
+
+                const handleMessage = async () => {
+                    throw new SqsRetryableError('error');
+                };
+
+                const consumer = new SqsConsumer({
+                    id: 'id',
+                    sqsClient: sqsClientInstance,
+                    handleMessage,
+                });
+
+                // When
+                await consumer.consumeOnceAsync();
+
+                // Then
+                verify(sqsClientMock.changeMessageVisibilityAsync(anyString(), 0)).once();
+            });
+
+            it('should not call changeMessageVisibility if a non SqsRetryableError is encountered', async () => {
                 // Given
                 const sqsClientMock = mock(SqsClient);
                 when(sqsClientMock.receiveMessageAsync()).thenResolve({
@@ -158,7 +184,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                verify(sqsClientMock.changeMessageVisibilityAsync(anyString(), 0)).once();
+                verify(sqsClientMock.changeMessageVisibilityAsync(anything(), anything())).never();
             });
 
             it('should call deleteMessageAsync if message is successfully handled', async () => {
