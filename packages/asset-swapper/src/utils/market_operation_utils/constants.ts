@@ -127,6 +127,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.WaultSwap,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -138,6 +139,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.DodoV2,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.WaultSwap,
+            ERC20BridgeSource.Polydex,
         ]),
     },
     new SourceFilters([]),
@@ -211,6 +214,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.WaultSwap,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -222,6 +226,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.DodoV2,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.WaultSwap,
+            ERC20BridgeSource.Polydex,
         ]),
     },
     new SourceFilters([]),
@@ -359,6 +365,10 @@ export const POLYGON_TOKENS = {
     WBTC: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
     WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
     WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+    renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
+    QUICK: '0x831753dd7087cac61ab5644b308642cc1c33dc13',
+    TITAN: '0xaaa5b9e6c589642f98a1cda99b9d024b8407285a',
+    IRON: '0xd86b5923f3ad7b585ed81b448170ae026c65ae9a',
 };
 
 export const CURVE_POOLS = {
@@ -409,6 +419,7 @@ export const CURVE_V2_POOLS = {
 
 export const CURVE_POLYGON_POOLS = {
     aave: '0x445fe580ef8d70ff569ab36e80c647af338db351',
+    ren: '0xc2d95eef97ec6c17551d45e77b590dc1f9117c67',
 };
 
 export const CURVE_V2_POLYGON_POOLS = {
@@ -484,6 +495,9 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             POLYGON_TOKENS.DAI,
             POLYGON_TOKENS.USDT,
             POLYGON_TOKENS.WBTC,
+            POLYGON_TOKENS.QUICK,
+            POLYGON_TOKENS.TITAN,
+            POLYGON_TOKENS.IRON,
         ],
     },
     [],
@@ -797,6 +811,11 @@ export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         tokens: CURVE_POLYGON_ATRICRYPTO_TOKENS,
         pool: CURVE_POLYGON_POOLS.aave,
         gasSchedule: 150e3,
+    }),
+    [CURVE_POLYGON_POOLS.ren]: createCurveExchangeUnderlyingPool({
+        tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.renBTC],
+        pool: CURVE_POLYGON_POOLS.ren,
+        gasSchedule: 350e3,
     }),
 };
 
@@ -1316,6 +1335,21 @@ export const DFYN_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const WAULT_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0xd48745e39bbed146eec15b79cbf964884f9877c2',
+        [ChainId.Polygon]: '0x3a1d87f206d12415f5b0a33e786967680aab4f6d',
+    },
+    NULL_ADDRESS,
+);
+
+export const POLYDEX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: '0xe5c67ba380fb2f70a47b489e94bced486bb8fb74',
+    },
+    NULL_ADDRESS,
+);
+
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     // TODO: Different base cost if to/from ETH.
     let gas = 90e3;
@@ -1428,6 +1462,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.CafeSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
 
     //
     // Polygon
@@ -1435,6 +1470,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.Polydex]: uniswapV2CloneGasSchedule,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };
