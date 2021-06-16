@@ -26,6 +26,7 @@ import {
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
     PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
+    POLYDEX_ROUTER_BY_CHAIN_ID,
     QUICKSWAP_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
@@ -35,6 +36,7 @@ import {
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
     SWERVE_MAINNET_INFOS,
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
+    WAULT_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
@@ -365,7 +367,9 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.JulSwap
         | ERC20BridgeSource.QuickSwap
         | ERC20BridgeSource.ComethSwap
-        | ERC20BridgeSource.Dfyn,
+        | ERC20BridgeSource.Dfyn
+        | ERC20BridgeSource.WaultSwap
+        | ERC20BridgeSource.Polydex,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -394,6 +398,10 @@ export function uniswapV2LikeRouterAddress(
             return COMETHSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Dfyn:
             return DFYN_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.WaultSwap:
+            return WAULT_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.Polydex:
+            return POLYDEX_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

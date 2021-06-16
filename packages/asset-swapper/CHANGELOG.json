@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.17.3",
+        "changes": [
+            {
+                "note": "QUICK, TITAN, IRON as intermediate tokens, integrating WaultSwap and Polydex for Polygon, Curve renBTC pool"
+            }
+        ]
+    },
+    {
         "timestamp": 1623382456,
         "version": "6.17.2",
         "changes": [
