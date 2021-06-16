@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.17.3 - _June 16, 2021_
+
+    * QUICK, TITAN, IRON as intermediate tokens, integrating WaultSwap and Polydex for Polygon, Curve renBTC pool
+
 ## v6.17.2 - _June 11, 2021_
 
     * Dependencies updated
