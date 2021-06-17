@@ -485,7 +485,7 @@ export class RfqmService {
             return null;
         }
         const { status } = job;
-        if (status === RfqmJobStatus.PendingEnqueued && job.expiry.lt(Date.now())) {
+        if (status === RfqmJobStatus.PendingEnqueued && job.expiry.multipliedBy(ONE_SECOND_MS).lt(Date.now())) {
             // the workers are dead/on vacation and the expiration time has passed
             return {
                 status: 'failed',

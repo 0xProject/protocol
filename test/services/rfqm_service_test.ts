@@ -1041,7 +1041,7 @@ describe('RfqmService', () => {
             const oldJob = new RfqmJobEntity({
                 calldata: '',
                 chainId: 1337,
-                expiry: new BigNumber(Date.now() - 10000),
+                expiry: new BigNumber(Date.now() - 10000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
                 makerUri: '',
                 orderHash: '0x00',
             });
@@ -1068,7 +1068,7 @@ describe('RfqmService', () => {
             const newJob = new RfqmJobEntity({
                 calldata: '',
                 chainId: 1337,
-                expiry: new BigNumber(Date.now() + 10000),
+                expiry: new BigNumber(Date.now() + 10000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
                 makerUri: '',
                 orderHash: '0x00',
             });
