@@ -496,8 +496,6 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             POLYGON_TOKENS.USDT,
             POLYGON_TOKENS.WBTC,
             POLYGON_TOKENS.QUICK,
-            POLYGON_TOKENS.TITAN,
-            POLYGON_TOKENS.IRON,
         ],
     },
     [],
