@@ -18,7 +18,7 @@ import { SubproviderAdapter } from './subprovider_adapter';
 const MIN_GAS_PRICE = new BigNumber(0);
 // 10K Gwei
 const MAX_GAS_PRICE = new BigNumber(1e13);
-const GAS_ESTIMATE_BUFFER = 0.1;
+const GAS_ESTIMATE_BUFFER = 0.5;
 const RFQ_ORDER_FILLED_EVENT_TOPIC0 = '0x829fa99d94dc4636925b38632e625736a614c154d55006b7ab6bea979c210c32';
 const RFQ_ORDER_FILLED_EVENT_ABI = [
     {
