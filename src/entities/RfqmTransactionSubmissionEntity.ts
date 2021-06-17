@@ -3,11 +3,13 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { BigIntTransformer, BigNumberTransformer } from './transformers';
 
-export enum RfqmTranasctionSubmissionStatus {
+export enum RfqmTransactionSubmissionStatus {
+    DroppedAndReplaced = 'dropped_and_replaced',
+    RevertedConfirmed = 'reverted_confirmed',
+    RevertedUnconfirmed = 'reverted_unconfirmed',
     Submitted = 'submitted',
-    Successful = 'successful',
-    Reverted = 'reverted',
-    DroppedAndReplaced = 'droppedAndReplaced',
+    SucceededConfirmed = 'succeeded_confirmed',
+    SucceededUnconfirmed = 'succeeded_unconfirmed',
 }
 
 @Entity({ name: 'rfqm_transaction_submissions' })
@@ -47,7 +49,7 @@ export class RfqmTransactionSubmissionEntity {
 
     @Index()
     @Column({ name: 'status', type: 'varchar' })
-    public status: RfqmTranasctionSubmissionStatus;
+    public status: RfqmTransactionSubmissionStatus;
 
     @Column({ name: 'status_reason', type: 'varchar', nullable: true })
     public statusReason: string | null;
@@ -68,7 +70,7 @@ export class RfqmTransactionSubmissionEntity {
         this.metadata = opts.metadata || null;
         this.nonce = opts.nonce || null;
         this.orderHash = opts.orderHash;
-        this.status = opts.status || RfqmTranasctionSubmissionStatus.Submitted;
+        this.status = opts.status || RfqmTransactionSubmissionStatus.Submitted;
         this.statusReason = opts.statusReason || null;
         this.to = opts.to || null;
         this.transactionHash = opts.transactionHash;

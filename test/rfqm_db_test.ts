@@ -8,7 +8,7 @@ import { Connection } from 'typeorm';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { RfqmJobStatus } from '../src/entities/RfqmJobEntity';
-import { RfqmTranasctionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
+import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
 import { feeToStoredFee, RfqmDbUtils, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
 
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
@@ -208,7 +208,7 @@ describe(SUITE_NAME, () => {
                 gasUsed,
                 blockMined,
                 nonce,
-                status: RfqmTranasctionSubmissionStatus.Submitted,
+                status: RfqmTransactionSubmissionStatus.Submitted,
                 statusReason: null,
             };
             const testEntity = new RfqmTransactionSubmissionEntity(rfqmTransactionSubmissionEntityOpts);
@@ -247,7 +247,7 @@ describe(SUITE_NAME, () => {
                 gasUsed,
                 blockMined,
                 nonce,
-                status: RfqmTranasctionSubmissionStatus.Submitted,
+                status: RfqmTransactionSubmissionStatus.Submitted,
                 statusReason: null,
             };
 
@@ -258,7 +258,7 @@ describe(SUITE_NAME, () => {
             const updatedAt = new Date();
             const newBlockMined = new BigNumber(5);
             const newGasUsed = new BigNumber('165000');
-            const newStatus = RfqmTranasctionSubmissionStatus.Successful;
+            const newStatus = RfqmTransactionSubmissionStatus.SucceededUnconfirmed;
 
             initialEntity!.updatedAt = updatedAt;
             initialEntity!.blockMined = newBlockMined;

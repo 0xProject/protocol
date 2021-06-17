@@ -30,7 +30,7 @@ import { RFQM_PATH } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOrder } from '../src/entities/RfqmJobEntity';
-import { RfqmTranasctionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
+import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService, RfqmTypes } from '../src/services/rfqm_service';
 import { ConfigManager } from '../src/utils/config_manager';
@@ -1046,7 +1046,13 @@ describe(SUITE_NAME, () => {
     describe('completeSubmissionLifecycleAsync', async () => {
         const callData = '0x123';
         const orderHash = '0xanOrderHash';
+
         it('should successfully process a transaction', async () => {
+            await dbUtils.writeRfqmJobToDbAsync({
+                ...MOCK_RFQM_JOB,
+                orderHash,
+                calldata: callData,
+            });
             await rfqmService.completeSubmissionLifecycleAsync(orderHash, WORKER_ADDRESS, callData);
 
             // find the saved results
@@ -1060,7 +1066,7 @@ describe(SUITE_NAME, () => {
             expect(dbSubmissionEntity?.gasUsed).to.deep.equal(new BigNumber(GAS_ESTIMATE));
             expect(dbSubmissionEntity?.gasPrice).to.deep.equal(GAS_PRICE);
             expect(dbSubmissionEntity?.nonce).to.deep.equal(NONCE);
-            expect(dbSubmissionEntity?.status).to.deep.equal(RfqmTranasctionSubmissionStatus.Successful);
+            expect(dbSubmissionEntity?.status).to.deep.equal(RfqmTransactionSubmissionStatus.SucceededConfirmed);
             expect(dbSubmissionEntity?.blockMined).to.deep.equal(new BigNumber(MINED_BLOCK));
             expect(dbSubmissionEntity?.to).to.deep.equal(MOCK_EXCHANGE_PROXY);
             expect(dbSubmissionEntity?.statusReason).to.deep.equal(null);
@@ -1140,10 +1146,10 @@ describe(SUITE_NAME, () => {
             await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
 
             const job = await dbUtils.findJobByOrderHashAsync(orderHash);
-            expect(job?.status).to.eq(RfqmJobStatus.SucceededUnconfirmed);
+            expect(job?.status).to.eq(RfqmJobStatus.SucceededConfirmed);
 
             const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
-            expect(submissions[0].status).to.eq(RfqmTranasctionSubmissionStatus.Successful);
+            expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
 
             mockAxios.reset();
         });
