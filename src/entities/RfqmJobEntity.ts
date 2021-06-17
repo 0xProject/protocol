@@ -93,6 +93,7 @@ export class RfqmJobEntity {
     @Column({ name: 'updated_at', type: 'timestamptz', nullable: true })
     public updatedAt: Date | null;
 
+    // The expiration time of the job, in unix seconds
     @Column({ name: 'expiry', type: 'numeric', transformer: BigNumberTransformer })
     public expiry: BigNumber;
 
