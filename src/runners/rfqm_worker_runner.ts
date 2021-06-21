@@ -72,7 +72,10 @@ if (require.main === module) {
 
         // Run the worker
         await runRfqmWorkerAsync(rfqmService, workerAddress);
-    })().catch((error) => logger.error(error.stack));
+    })().catch((error) => {
+        logger.error(error.stack);
+        process.exit(1);
+    });
 }
 
 /**
@@ -105,7 +108,10 @@ export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress
     });
 
     // Start the consumer - aka the worker
-    consumer.consumeAsync().catch((e) => logger.error(e));
+    consumer.consumeAsync().catch((e) => {
+        logger.error({ error: e }, 'Unexpected error encountered in consume loop');
+        process.exit(1);
+    });
     logger.info('Rfqm Consumer running');
     return consumer;
 }
