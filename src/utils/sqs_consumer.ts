@@ -15,7 +15,7 @@ export class SqsConsumer {
     private readonly _sqsClient: SqsClient;
     private readonly _beforeHandle?: () => Promise<boolean>;
     private readonly _handleMessage: MessageHandler;
-    private readonly _afterHandle?: MessageHandler;
+    private readonly _afterHandle?: (message: SQS.Types.Message, error?: Error) => Promise<any>;
     private _isConsuming: boolean;
 
     constructor(params: {
@@ -23,7 +23,7 @@ export class SqsConsumer {
         sqsClient: SqsClient;
         beforeHandle?: () => Promise<boolean>;
         handleMessage: MessageHandler;
-        afterHandle?: MessageHandler;
+        afterHandle?: (message: SQS.Types.Message, error?: Error) => Promise<any>;
     }) {
         this._id = params.id;
         this._sqsClient = params.sqsClient;
@@ -75,10 +75,12 @@ export class SqsConsumer {
         }
 
         // Handle message
+        let error: Error | undefined;
         try {
             await this._handleMessage(message);
         } catch (err) {
-            logger.error({ err, message, id: this._id }, 'Encountered error while handling message');
+            error = err;
+            logger.error({ error, message, id: this._id }, 'Encountered error while handling message');
 
             if (err instanceof SqsRetryableError) {
                 logger.info({ message, id: this._id }, 'Retrying message');
@@ -94,7 +96,7 @@ export class SqsConsumer {
 
         // Run the after hook
         if (this._afterHandle) {
-            await this._afterHandle(message);
+            await this._afterHandle(message, error);
         }
     }
 }

@@ -28,9 +28,14 @@ const RFQM_JOB_DEQUEUED = new Counter({
     help: 'An Rfqm Job was pulled from the queue',
 });
 
-const RFQM_JOB_SUCCEEDED = new Counter({
-    name: 'rfqm_job_succeeded',
-    help: 'An Rfqm Job succeeded',
+const RFQM_JOB_COMPLETED = new Counter({
+    name: 'rfqm_job_completed',
+    help: 'An Rfqm Job completed with no errors',
+});
+
+const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
+    name: 'rfqm_job_completed_with_error',
+    help: 'An Rfqm Job completed with an error',
 });
 
 process.on('uncaughtException', (err) => {
@@ -83,13 +88,19 @@ export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress
         handleMessage: async (message) => {
             RFQM_JOB_DEQUEUED.inc();
             const { orderHash } = JSON.parse(message.Body!);
-            logger.info({ orderHash }, 'about to process job');
+            logger.info({ workerAddress, orderHash }, 'about to process job');
             return rfqmService.processRfqmJobAsync(orderHash, workerAddress);
         },
-        afterHandle: async (message) => {
+        afterHandle: async (message, error) => {
             const orderHash = message.Body!;
-            logger.info({ orderHash }, 'job successfully ran');
-            RFQM_JOB_SUCCEEDED.inc();
+            if (error !== undefined) {
+                RFQM_JOB_COMPLETED_WITH_ERROR.inc();
+                logger.warn({ workerAddress, orderHash, error }, 'job completed with error');
+                return;
+            }
+
+            logger.info({ workerAddress, orderHash }, 'job completed without errors');
+            RFQM_JOB_COMPLETED.inc();
         },
     });
 

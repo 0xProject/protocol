@@ -244,6 +244,37 @@ describe('SqsConsumer', () => {
                 // Then
                 expect(isAfterCalled).to.eq(true);
             });
+
+            it('should be passed an error if a non-retryable error was encountered', async () => {
+                // Given
+                const sqsClientMock = mock(SqsClient);
+                when(sqsClientMock.receiveMessageAsync()).thenResolve({
+                    Body: '0xdeadbeef',
+                    ReceiptHandle: '1',
+                });
+
+                const sqsClientInstance = instance(sqsClientMock);
+                let isAfterCalledWithError = false;
+
+                const consumer = new SqsConsumer({
+                    id: 'id',
+                    sqsClient: sqsClientInstance,
+                    handleMessage: async () => {
+                        throw new Error();
+                    },
+                    afterHandle: async (_, error) => {
+                        if (error) {
+                            isAfterCalledWithError = true;
+                        }
+                    },
+                });
+
+                // When
+                await consumer.consumeOnceAsync();
+
+                // Then
+                expect(isAfterCalledWithError).to.eq(true);
+            });
         });
     });
 });
