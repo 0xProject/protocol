@@ -43,21 +43,19 @@ contract LidoSampler is SamplerUtils {
     )
         public
         pure
-        returns (uint256[] memory makerTokenAmounts)
+        returns (uint256[] memory)
     {
         _assertValidPair(makerToken, takerToken);
 
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
         if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
             // Return 0 values if not selling WETH for stETH
+            uint256 numSamples = takerTokenAmounts.length;
+            uint256[] memory makerTokenAmounts = new uint256[](numSamples);
             return makerTokenAmounts;
         }
 
-        for (uint256 i = 0; i < numSamples; i++) {
-            // Minting stETH is always 1:1
-            makerTokenAmounts[i] = takerTokenAmounts[i];
-        }
+        // Minting stETH is always 1:1 therefore we can just return the same amounts back
+        return takerTokenAmounts;
     }
 
     /// @dev Sample buy quotes from Lido.
@@ -75,21 +73,19 @@ contract LidoSampler is SamplerUtils {
     )
         public
         pure
-        returns (uint256[] memory takerTokenAmounts)
+        returns (uint256[] memory)
     {
         _assertValidPair(makerToken, takerToken);
 
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
         if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
             // Return 0 values if not buying stETH for WETH
+            uint256 numSamples = makerTokenAmounts.length;
+            uint256[] memory takerTokenAmounts = new uint256[](numSamples);
             return takerTokenAmounts;
         }
 
-        for (uint256 i = 0; i < numSamples; i++) {
-            // Minting stETH is always 1:1
-            takerTokenAmounts[i] = makerTokenAmounts[i];
-        }
+        // Minting stETH is always 1:1 therefore we can just return the same amounts back
+        return makerTokenAmounts;
     }
 
 }

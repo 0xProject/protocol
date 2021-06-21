@@ -1433,8 +1433,12 @@ export class SamplerOperations {
                     }
                     case ERC20BridgeSource.Lido: {
                         const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
-
-                        if (lidoInfo.stEthToken === NULL_ADDRESS) {
+                        if (
+                            lidoInfo.stEthToken === NULL_ADDRESS ||
+                            lidoInfo.wethToken === NULL_ADDRESS ||
+                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
+                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
+                        ) {
                             return [];
                         }
 
@@ -1693,7 +1697,12 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Lido: {
                         const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
 
-                        if (lidoInfo.stEthToken === NULL_ADDRESS) {
+                        if (
+                            lidoInfo.stEthToken === NULL_ADDRESS ||
+                            lidoInfo.wethToken === NULL_ADDRESS ||
+                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
+                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
+                        ) {
                             return [];
                         }
 

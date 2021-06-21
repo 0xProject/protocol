@@ -17,7 +17,6 @@ import {
     FillData,
     GetMarketOrdersOpts,
     KyberSamplerOpts,
-    LidoFillData,
     LidoInfo,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
@@ -1468,15 +1467,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
-    [ERC20BridgeSource.Lido]: (fillData?: FillData) => {
-        const takerToken = (fillData as LidoFillData).takerToken;
-        // WETH avoids one wrapping and so it's slightly cheaper
-        if (takerToken === MAINNET_TOKENS.WETH) {
-            return 226e3;
-        }
-
-        return 255e3;
-    },
+    [ERC20BridgeSource.Lido]: () => 226e3,
 
     //
     // BSC
