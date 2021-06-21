@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.4.0",
+        "changes": [
+            {
+                "note": "Deployed Lido FQT"
+            }
+        ]
+    },
+    {
         "timestamp": 1623382456,
         "version": "6.3.1",
         "changes": [
