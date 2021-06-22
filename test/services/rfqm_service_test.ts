@@ -1339,4 +1339,38 @@ describe('RfqmService', () => {
             }).to.throw; // tslint:disable-line no-unused-expression
         });
     });
+    describe('shouldResubmitTransaction', () => {
+        it('should say no if new gas price < 10% greater than previous', async () => {
+            const oldGasPrice = new BigNumber(10);
+            const newGasPrice = oldGasPrice.multipliedBy(1.09);
+
+            expect(RfqmService.shouldResubmitTransaction(oldGasPrice, newGasPrice)).to.equal(false);
+        });
+        it('should say yes if new gas price is 10% greater than previous', async () => {
+            const oldGasPrice = new BigNumber(10);
+            const newGasPrice = oldGasPrice.multipliedBy(1.1);
+
+            expect(RfqmService.shouldResubmitTransaction(oldGasPrice, newGasPrice)).to.equal(true);
+        });
+        it('should say yes if new gas price > 10% greater than previous', async () => {
+            const oldGasPrice = new BigNumber(10);
+            const newGasPrice = oldGasPrice.multipliedBy(1.11);
+
+            expect(RfqmService.shouldResubmitTransaction(oldGasPrice, newGasPrice)).to.equal(true);
+        });
+    });
+    describe('isBlockConfirmed', () => {
+        it('should say no if receipt block is under 3 blocks deep', async () => {
+            const receiptBlock = 100;
+            const currentBlock = 102;
+
+            expect(RfqmService.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(false);
+        });
+        it('should say yes if the receipt block is at least 3 blocks deep', async () => {
+            const receiptBlock = 100;
+            const currentBlock = 103;
+
+            expect(RfqmService.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(true);
+        });
+    });
 });
