@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.17.4",
+        "changes": [
+            {
+                "note": "FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY"
+            }
+        ]
+    },
+    {
         "version": "6.17.3",
         "changes": [
             {
