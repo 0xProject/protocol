@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.18.0",
+        "changes": [
+            {
+                "note": "Add Lido stETH deposit integration",
+                "pr": 260
+            }
+        ]
+    },
+    {
         "version": "6.17.3",
         "changes": [
             {
