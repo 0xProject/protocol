@@ -16,6 +16,8 @@ import {
     CURVE_V2_POLYGON_INFOS,
     DFYN_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
+    FIREBIRDONESWAP_BSC_INFOS,
+    FIREBIRDONESWAP_POLYGON_INFOS,
     JULSWAP_ROUTER_BY_CHAIN_ID,
     KYBER_BANNED_RESERVES,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
@@ -36,7 +38,7 @@ import {
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
     SWERVE_MAINNET_INFOS,
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
-    WAULT_ROUTER_BY_CHAIN_ID,
+    WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
@@ -195,6 +197,30 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
     );
 }
 
+export function getFirebirdOneSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId === ChainId.BSC) {
+        return Object.values(FIREBIRDONESWAP_BSC_INFOS).filter(c =>
+            [makerToken, takerToken].every(
+                t =>
+                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                    (c.tokens.includes(t) &&
+                        [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+            ),
+        );
+    } else if (chainId === ChainId.Polygon) {
+        return Object.values(FIREBIRDONESWAP_POLYGON_INFOS).filter(c =>
+            [makerToken, takerToken].every(
+                t =>
+                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                    (c.tokens.includes(t) &&
+                        [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+            ),
+        );
+    } else {
+        return [];
+    }
+}
+
 export function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.BSC) {
         return [];
@@ -308,7 +334,8 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Smoothy
         | ERC20BridgeSource.Saddle
-        | ERC20BridgeSource.XSigma,
+        | ERC20BridgeSource.XSigma
+        | ERC20BridgeSource.FirebirdOneSwap,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
     switch (source) {
@@ -341,6 +368,9 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.XSigma:
             pools = getXSigmaInfosForPair(chainId, takerToken, makerToken);
+            break;
+        case ERC20BridgeSource.FirebirdOneSwap:
+            pools = getFirebirdOneSwapInfosForPair(chainId, takerToken, makerToken);
             break;
         default:
             throw new Error(`Unknown Curve like source ${source}`);
@@ -399,7 +429,7 @@ export function uniswapV2LikeRouterAddress(
         case ERC20BridgeSource.Dfyn:
             return DFYN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.WaultSwap:
-            return WAULT_ROUTER_BY_CHAIN_ID[chainId];
+            return WAULTSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Polydex:
             return POLYDEX_ROUTER_BY_CHAIN_ID[chainId];
         default:
