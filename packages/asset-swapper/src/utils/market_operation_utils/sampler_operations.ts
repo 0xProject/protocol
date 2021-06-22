@@ -24,6 +24,7 @@ import {
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
+    LIDO_INFO_BY_CHAIN,
     LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
     MAINNET_TOKENS,
@@ -60,6 +61,8 @@ import {
     KyberDmmFillData,
     KyberFillData,
     KyberSamplerOpts,
+    LidoFillData,
+    LidoInfo,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MakerPsmFillData,
@@ -1059,6 +1062,42 @@ export class SamplerOperations {
         });
     }
 
+    public getLidoSellQuotes(
+        lidoInfo: LidoInfo,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<LidoFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Lido,
+            fillData: {
+                takerToken,
+                stEthTokenAddress: lidoInfo.stEthToken,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromLido,
+            params: [lidoInfo, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getLidoBuyQuotes(
+        lidoInfo: LidoInfo,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<LidoFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Lido,
+            fillData: {
+                takerToken,
+                stEthTokenAddress: lidoInfo.stEthToken,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromLido,
+            params: [lidoInfo, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1393,6 +1432,19 @@ export class SamplerOperations {
                             ...intermediateTokens.map(t => [takerToken, t, makerToken]),
                         ].map(path => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
                     }
+                    case ERC20BridgeSource.Lido: {
+                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
+                        if (
+                            lidoInfo.stEthToken === NULL_ADDRESS ||
+                            lidoInfo.wethToken === NULL_ADDRESS ||
+                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
+                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
+                        ) {
+                            return [];
+                        }
+
+                        return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -1643,6 +1695,20 @@ export class SamplerOperations {
                             [takerToken, makerToken],
                             ...intermediateTokens.map(t => [takerToken, t, makerToken]),
                         ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
+                    }
+                    case ERC20BridgeSource.Lido: {
+                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
+
+                        if (
+                            lidoInfo.stEthToken === NULL_ADDRESS ||
+                            lidoInfo.wethToken === NULL_ADDRESS ||
+                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
+                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
+                        ) {
+                            return [];
+                        }
+
+                        return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);

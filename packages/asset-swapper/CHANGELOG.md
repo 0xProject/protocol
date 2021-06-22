@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.18.0 - _June 22, 2021_
+
+    * Add Lido stETH deposit integration (#260)
+
 ## v6.17.3 - _June 16, 2021_
 
     * QUICK, TITAN, IRON as intermediate tokens, integrating WaultSwap and Polydex for Polygon, Curve renBTC pool

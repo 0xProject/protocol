@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.26.0 - _June 22, 2021_
+
+    * Add Lido stETH deposit integration (#260)
+
 ## v0.25.1 - _June 11, 2021_
 
     * Dependencies updated

@@ -121,6 +121,7 @@
         "test/generated-artifacts/MixinDodoV2.json",
         "test/generated-artifacts/MixinKyber.json",
         "test/generated-artifacts/MixinKyberDmm.json",
+        "test/generated-artifacts/MixinLido.json",
         "test/generated-artifacts/MixinMStable.json",
         "test/generated-artifacts/MixinMakerPSM.json",
         "test/generated-artifacts/MixinMooniswap.json",

@@ -1,11 +1,21 @@
 [
     {
-        "version": "6.17.4",
+        "version": "6.18.1",
         "changes": [
             {
                 "note": "FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY"
             }
         ]
+    },
+    {
+        "version": "6.18.0",
+        "changes": [
+            {
+                "note": "Add Lido stETH deposit integration",
+                "pr": 260
+            }
+        ],
+        "timestamp": 1624356181
     },
     {
         "version": "6.17.3",
