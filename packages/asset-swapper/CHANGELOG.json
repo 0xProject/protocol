@@ -6,7 +6,8 @@
                 "note": "Add Lido stETH deposit integration",
                 "pr": 260
             }
-        ]
+        ],
+        "timestamp": 1624356181
     },
     {
         "version": "6.17.3",
