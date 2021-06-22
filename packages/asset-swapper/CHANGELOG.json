@@ -3,7 +3,8 @@
         "version": "6.18.1",
         "changes": [
             {
-                "note": "FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY"
+                "note": "FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY",
+                "pr": 265
             }
         ]
     },
