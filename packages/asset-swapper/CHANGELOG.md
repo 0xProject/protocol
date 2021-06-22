@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.18.1 - _June 22, 2021_
+
+    * FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY (#265)
+
 ## v6.18.0 - _June 22, 2021_
 
     * Add Lido stETH deposit integration (#260)
