@@ -46,16 +46,6 @@ contract TestLiquidityProvider {
         uint256 inputTokenBalance
     );
 
-    IERC20TokenV06 public immutable xAsset;
-    IERC20TokenV06 public immutable yAsset;
-
-    constructor(IERC20TokenV06 xAsset_, IERC20TokenV06 yAsset_)
-        public
-    {
-        xAsset = xAsset_;
-        yAsset = yAsset_;
-    }
-
     receive() external payable {}
 
     /// @dev Trades `inputToken` for `outputToken`. The amount of `inputToken`
@@ -83,6 +73,8 @@ contract TestLiquidityProvider {
             minBuyAmount,
             IERC20TokenV06(inputToken).balanceOf(address(this))
         );
+        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
+        IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
     }
 
     /// @dev Trades ETH for token. ETH must be sent to the contract prior to
@@ -106,6 +98,8 @@ contract TestLiquidityProvider {
             minBuyAmount,
             address(this).balance
         );
+        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
+        IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
     }
 
     /// @dev Trades token for ETH. The token must be sent to the contract prior
@@ -129,5 +123,6 @@ contract TestLiquidityProvider {
             minBuyAmount,
             IERC20TokenV06(inputToken).balanceOf(address(this))
         );
+        recipient.transfer(address(this).balance);
     }
 }

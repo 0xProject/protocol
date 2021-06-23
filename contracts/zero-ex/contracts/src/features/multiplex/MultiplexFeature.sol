@@ -592,10 +592,13 @@ contract MultiplexFeature is
         // The `sellAmount` for the batch sell is the
         // `outputTokenAmount` from the previous hop.
         batchSellParams.sellAmount = state.outputTokenAmount;
-        // `_computeHopTarget` guarantees that the input
-        // tokens are currently held by `address(this)`,
-        // so `useSelfBalance` is true.
-        batchSellParams.useSelfBalance = true;
+        // If the nested batch sell is the first hop
+        // and `useSelfBalance` for the containing multi-
+        // hop sell is false, the nested batch sell should
+        // pull tokens from `msg.sender` (so  `batchSellParams.useSelfBalance`
+        // should be false). Otherwise `batchSellParams.useSelfBalance`
+        // should be true.
+        batchSellParams.useSelfBalance = state.hopIndex > 0 || params.useSelfBalance;
         // `state.to` has been populated with the address
         // that should receive the output tokens of the
         // batch sell.
