@@ -154,6 +154,8 @@ export * from '../test/generated-wrappers/test_transform_erc20';
 export * from '../test/generated-wrappers/test_transformer_base';
 export * from '../test/generated-wrappers/test_transformer_deployer_transformer';
 export * from '../test/generated-wrappers/test_transformer_host';
+export * from '../test/generated-wrappers/test_uniswap_v2_factory';
+export * from '../test/generated-wrappers/test_uniswap_v2_pool';
 export * from '../test/generated-wrappers/test_uniswap_v3_factory';
 export * from '../test/generated-wrappers/test_uniswap_v3_feature';
 export * from '../test/generated-wrappers/test_uniswap_v3_pool';

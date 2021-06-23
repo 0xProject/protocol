@@ -156,6 +156,8 @@ import * as TestTransformerBase from '../test/generated-artifacts/TestTransforme
 import * as TestTransformERC20 from '../test/generated-artifacts/TestTransformERC20.json';
 import * as TestTransformerDeployerTransformer from '../test/generated-artifacts/TestTransformerDeployerTransformer.json';
 import * as TestTransformerHost from '../test/generated-artifacts/TestTransformerHost.json';
+import * as TestUniswapV2Factory from '../test/generated-artifacts/TestUniswapV2Factory.json';
+import * as TestUniswapV2Pool from '../test/generated-artifacts/TestUniswapV2Pool.json';
 import * as TestUniswapV3Factory from '../test/generated-artifacts/TestUniswapV3Factory.json';
 import * as TestUniswapV3Feature from '../test/generated-artifacts/TestUniswapV3Feature.json';
 import * as TestUniswapV3Pool from '../test/generated-artifacts/TestUniswapV3Pool.json';
@@ -330,6 +332,8 @@ export const artifacts = {
     TestTransformerBase: TestTransformerBase as ContractArtifact,
     TestTransformerDeployerTransformer: TestTransformerDeployerTransformer as ContractArtifact,
     TestTransformerHost: TestTransformerHost as ContractArtifact,
+    TestUniswapV2Factory: TestUniswapV2Factory as ContractArtifact,
+    TestUniswapV2Pool: TestUniswapV2Pool as ContractArtifact,
     TestUniswapV3Factory: TestUniswapV3Factory as ContractArtifact,
     TestUniswapV3Feature: TestUniswapV3Feature as ContractArtifact,
     TestUniswapV3Pool: TestUniswapV3Pool as ContractArtifact,
