@@ -48,6 +48,7 @@ export const ONE_GWEI = new BigNumber(1000000000);
 
 // RFQM Service
 export const KEEP_ALIVE_TTL = ONE_MINUTE_MS * 5;
+export const RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = ONE_SECOND_MS * 15;
 
 // API namespaces
 export const SRA_PATH = '/sra/v4';

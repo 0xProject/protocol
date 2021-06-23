@@ -14,6 +14,8 @@ export enum RfqmJobStatus {
     PendingEnqueued = 'pending_enqueued',
     // Transaction has passed initial validation. Last look will be executed and transaction will be submitted if last look is accepted.
     PendingProcessing = 'pending_processing',
+    // Last look has been accepted, awaiting submission
+    PendingLastLookAccepted = 'pending_last_look_accepted',
     // Transaction has passed initial verification and has been submitted to the mem pool
     PendingSubmitted = 'pending_submitted',
 
@@ -122,6 +124,15 @@ export class RfqmJobEntity {
     @Column({ name: 'metadata', type: 'jsonb', nullable: true })
     public metadata: object | null;
 
+    @Column({ name: 'is_completed', type: 'boolean', nullable: false, default: () => false })
+    public isCompleted: boolean;
+
+    @Column({ name: 'worker_address', type: 'varchar', nullable: true })
+    public workerAddress: string | null;
+
+    @Column({ name: 'last_look_result', type: 'boolean', nullable: true })
+    public lastLookResult: boolean | null;
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
@@ -137,6 +148,8 @@ export class RfqmJobEntity {
         this.expiry = opts.expiry;
         this.fee = opts.fee || null;
         this.integratorId = opts.integratorId || null;
+        this.isCompleted = opts.isCompleted || false;
+        this.lastLookResult = opts.lastLookResult || null;
         this.makerUri = opts.makerUri;
         this.metadata = opts.metadata || null;
         this.metaTransactionHash = opts.metaTransactionHash || null;
@@ -144,5 +157,6 @@ export class RfqmJobEntity {
         this.orderHash = opts.orderHash;
         this.status = opts.status || RfqmJobStatus.PendingEnqueued;
         this.updatedAt = opts.updatedAt || null;
+        this.workerAddress = opts.workerAddress || null;
     }
 }

@@ -116,8 +116,12 @@ export class RfqmDbUtils {
     /**
      * updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
      */
-    public async updateRfqmJobAsync(orderHash: string, rfqmJobOpts: Partial<RfqmJobEntity>): Promise<void> {
-        await this._connection.getRepository(RfqmJobEntity).save({ ...rfqmJobOpts, orderHash });
+    public async updateRfqmJobAsync(
+        orderHash: string,
+        isCompleted: boolean,
+        rfqmJobOpts: Partial<RfqmJobEntity>,
+    ): Promise<void> {
+        await this._connection.getRepository(RfqmJobEntity).save({ ...rfqmJobOpts, isCompleted, orderHash });
     }
 
     public async writeRfqmQuoteToDbAsync(rfqmQuoteOpts: RfqmQuoteConstructorOpts): Promise<void> {
@@ -141,5 +145,13 @@ export class RfqmDbUtils {
         entities: Partial<RfqmTransactionSubmissionEntity>[],
     ): Promise<void> {
         await this._connection.getRepository(RfqmTransactionSubmissionEntity).save(entities);
+    }
+
+    public async findUnresolvedJobsAsync(workerAddress: string): Promise<RfqmJobEntity[]> {
+        return this._connection
+            .getRepository(RfqmJobEntity)
+            .createQueryBuilder()
+            .where('worker_address = :workerAddress AND is_completed = FALSE', { workerAddress })
+            .getMany();
     }
 }

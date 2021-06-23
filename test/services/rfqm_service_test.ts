@@ -29,6 +29,7 @@ import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_GAS_PRICE = new BigNumber(100);
+const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 500;
 
 const buildRfqmServiceForUnitTest = (
     overrides: {
@@ -79,6 +80,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.dbUtils || dbUtilsMock,
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
+        TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     );
 };
 

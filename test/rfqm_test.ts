@@ -97,6 +97,7 @@ const SUCCESSFUL_TRANSACTION_RECEIPT = {
     transactionHash: FIRST_TRANSACTION_HASH,
     transactionIndex: 5,
 };
+const TEST_TRANSACTION_WATCHER_SLEEP_MS = 500;
 
 const MOCK_RFQM_JOB: RfqmJobEntity = {
     calldata:
@@ -133,6 +134,9 @@ const MOCK_RFQM_JOB: RfqmJobEntity = {
     orderHash: '0x288d4d771179738ee9ca60f14df74612fb1ca43dfbc3bbb49dd9226a19747c11',
     status: RfqmJobStatus.PendingSubmitted,
     updatedAt: new Date(),
+    isCompleted: false,
+    workerAddress: null,
+    lastLookResult: null,
 };
 
 describe(SUITE_NAME, () => {
@@ -251,6 +255,7 @@ describe(SUITE_NAME, () => {
             dbUtils,
             sqsProducer,
             quoteServerClient,
+            TEST_TRANSACTION_WATCHER_SLEEP_MS,
         );
 
         // Start the server
@@ -1080,59 +1085,71 @@ describe(SUITE_NAME, () => {
             type: 'fixed',
         };
 
+        const blockchainUtils = new RfqBlockchainUtils(getProvider(), contractAddresses.exchangeProxy);
+        const order = new RfqOrder({
+            txOrigin: randomAddress(),
+            chainId: CHAIN_ID,
+            expiry: new BigNumber(new Date().getTime()).plus(60 * 5),
+            maker: randomAddress(),
+            taker: NULL_ADDRESS,
+            makerAmount: new BigNumber(1),
+            takerAmount: EXPECTED_FILL_AMOUNT,
+            makerToken: randomAddress(),
+            takerToken: randomAddress(),
+            pool: `0x${generatePseudoRandom256BitNumber().toString(16)}`,
+            salt: new BigNumber(1),
+            verifyingContract: contractAddresses.exchangeProxy,
+        });
+        const metaTransaction = blockchainUtils.generateMetaTransaction(
+            order,
+            VALID_SIGNATURE,
+            randomAddress(),
+            new BigNumber(1),
+            CHAIN_ID,
+        );
+        const orderHash = order.getHash();
+        const workerAddress = randomAddress();
+
+        const mockQuote = new RfqmQuoteEntity({
+            orderHash,
+            metaTransactionHash: metaTransaction.getHash(),
+            makerUri: MARKET_MAKER_1,
+            fee: mockStoredFee,
+            order: {
+                type: RfqmOrderTypes.V4Rfq,
+                order: {
+                    ...order,
+                    chainId: order.chainId.toString(),
+                    makerAmount: order.makerAmount.toString(),
+                    takerAmount: order.takerAmount.toString(),
+                    salt: order.salt.toString(),
+                    expiry: order.expiry.toString(),
+                },
+            },
+            chainId: 1337,
+        });
+        const mmResponse = {
+            fee: mockStoredFee,
+            proceedWithFill: true,
+            signedOrderHash: orderHash,
+            takerTokenFillAmount: EXPECTED_FILL_AMOUNT.toString(),
+        };
+
+        const txSubmission: Partial<RfqmTransactionSubmissionEntity> = {
+            transactionHash: FIRST_TRANSACTION_HASH,
+            orderHash,
+            createdAt: new Date(),
+            from: workerAddress,
+            to: '0x123',
+            nonce: 0,
+            gasPrice: new BigNumber(1),
+            gasUsed: new BigNumber(100),
+            status: RfqmTransactionSubmissionStatus.Submitted,
+        };
+
         it('should sucessfully resolve when the job is processed', async () => {
             const mockAxios = new AxiosMockAdapter(axiosClient);
-            const blockchainUtils = new RfqBlockchainUtils(getProvider(), contractAddresses.exchangeProxy);
-            const order = new RfqOrder({
-                txOrigin: randomAddress(),
-                chainId: CHAIN_ID,
-                expiry: new BigNumber(new Date().getTime()).plus(60 * 5),
-                maker: randomAddress(),
-                taker: NULL_ADDRESS,
-                makerAmount: new BigNumber(1),
-                takerAmount: EXPECTED_FILL_AMOUNT,
-                makerToken: randomAddress(),
-                takerToken: randomAddress(),
-                pool: `0x${generatePseudoRandom256BitNumber().toString(16)}`,
-                salt: new BigNumber(1),
-                verifyingContract: contractAddresses.exchangeProxy,
-            });
-            const metaTransaction = blockchainUtils.generateMetaTransaction(
-                order,
-                VALID_SIGNATURE,
-                randomAddress(),
-                new BigNumber(1),
-                CHAIN_ID,
-            );
-            const orderHash = order.getHash();
-            const mockQuote = new RfqmQuoteEntity({
-                orderHash,
-                metaTransactionHash: metaTransaction.getHash(),
-                makerUri: MARKET_MAKER_1,
-                fee: mockStoredFee,
-                order: {
-                    type: RfqmOrderTypes.V4Rfq,
-                    order: {
-                        ...order,
-                        chainId: order.chainId.toString(),
-                        makerAmount: order.makerAmount.toString(),
-                        takerAmount: order.takerAmount.toString(),
-                        salt: order.salt.toString(),
-                        expiry: order.expiry.toString(),
-                    },
-                },
-                chainId: 1337,
-            });
-            const workerAddress = randomAddress();
-
-            const mmResponse = {
-                fee: mockStoredFee,
-                proceedWithFill: true,
-                signedOrderHash: orderHash,
-                takerTokenFillAmount: EXPECTED_FILL_AMOUNT.toString(),
-            };
             mockAxios.onPost(`${MARKET_MAKER_1}/submit`).replyOnce(HttpStatus.OK, mmResponse);
-
             // write a corresponding quote entity to validate against
             await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
 
@@ -1152,6 +1169,59 @@ describe(SUITE_NAME, () => {
             expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
 
             mockAxios.reset();
+        });
+        it('should sucessfully resolve when there is a retry after last look is accepted', async () => {
+            // write a corresponding quote entity to validate against
+            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
+
+            await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.CREATED)
+                .expect('Content-Type', /json/);
+
+            // mark job as having completed last look
+            const jobBefore = await dbUtils.findJobByOrderHashAsync(orderHash);
+            jobBefore!.status = RfqmJobStatus.PendingLastLookAccepted;
+            jobBefore!.lastLookResult = true;
+            await dbUtils.updateRfqmJobAsync(orderHash, false, jobBefore!);
+
+            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
+
+            const jobAfter = await dbUtils.findJobByOrderHashAsync(orderHash);
+
+            expect(jobAfter?.status).to.eq(RfqmJobStatus.SucceededConfirmed);
+
+            const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
+            expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
+        });
+        it('should successfully complete a job if previous submissions found', async () => {
+            // write a corresponding quote entity to validate against
+            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
+
+            await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.CREATED)
+                .expect('Content-Type', /json/);
+
+            // mark job as having been submitted on-chain
+            await dbUtils.writeRfqmTransactionSubmissionToDbAsync(txSubmission);
+            const jobBefore = await dbUtils.findJobByOrderHashAsync(orderHash);
+            jobBefore!.status = RfqmJobStatus.PendingSubmitted;
+            jobBefore!.lastLookResult = true;
+            await dbUtils.updateRfqmJobAsync(orderHash, false, jobBefore!);
+
+            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
+
+            const jobAfter = await dbUtils.findJobByOrderHashAsync(orderHash);
+
+            expect(jobAfter?.status).to.eq(RfqmJobStatus.SucceededConfirmed);
+
+            const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
+            expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
         });
     });
 });

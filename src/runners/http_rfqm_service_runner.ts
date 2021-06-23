@@ -28,7 +28,12 @@ import {
     RFQ_PROXY_PORT,
     SWAP_QUOTER_OPTS,
 } from '../config';
-import { KEEP_ALIVE_TTL, PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS, RFQM_PATH } from '../constants';
+import {
+    KEEP_ALIVE_TTL,
+    PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
+    RFQM_PATH,
+    RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
+} from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -133,6 +138,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         dbUtils,
         sqsProducer,
         quoteServerClient,
+        RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     );
 }
 

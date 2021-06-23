@@ -168,7 +168,7 @@ describe(SUITE_NAME, () => {
             await dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
 
             const dbEntityFirstSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
-            await dbUtils.updateRfqmJobAsync(orderHash, { status: RfqmJobStatus.PendingProcessing });
+            await dbUtils.updateRfqmJobAsync(orderHash, false, { status: RfqmJobStatus.PendingProcessing });
 
             const dbEntitySecondSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
 
@@ -275,6 +275,49 @@ describe(SUITE_NAME, () => {
             expect(updatedEntity?.gasUsed).to.deep.eq(newGasUsed);
             expect(updatedEntity?.status).to.deep.eq(newStatus);
             expect(updatedEntity?.createdAt).to.deep.eq(createdAt);
+        });
+        it('should find unresolved jobs', async () => {
+            const workerAddress = '0x123';
+            const unresolvedJob1 = {
+                orderHash,
+                metaTransactionHash,
+                createdAt,
+                expiry,
+                chainId,
+                integratorId,
+                makerUri,
+                status: RfqmJobStatus.PendingEnqueued,
+                statusReason: null,
+                calldata,
+                fee: feeToStoredFee(fee),
+                order: v4RfqOrderToStoredOrder(order),
+                workerAddress,
+                isCompleted: false,
+            };
+            const unresolvedJob2 = {
+                orderHash: '0x1234',
+                metaTransactionHash: '0x1234',
+                createdAt,
+                expiry,
+                chainId,
+                integratorId,
+                makerUri,
+                status: RfqmJobStatus.PendingSubmitted,
+                statusReason: null,
+                calldata,
+                fee: feeToStoredFee(fee),
+                order: v4RfqOrderToStoredOrder(order),
+                workerAddress,
+                isCompleted: false,
+            };
+            await dbUtils.writeRfqmJobToDbAsync(unresolvedJob1);
+            await dbUtils.writeRfqmJobToDbAsync(unresolvedJob2);
+
+            const unresolvedJobs = await dbUtils.findUnresolvedJobsAsync(workerAddress);
+
+            expect(unresolvedJobs.length).to.deep.eq(2);
+            expect(unresolvedJobs[0].orderHash).to.deep.eq(orderHash);
+            expect(unresolvedJobs[1].orderHash).to.deep.eq('0x1234');
         });
     });
 });
