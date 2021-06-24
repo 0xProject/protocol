@@ -475,7 +475,7 @@ const EXCLUDED_FEE_SOURCES = (() => {
 })();
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
-const EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX = (sourceFlags: number) => {
+const EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags) && CHAIN_ID === ChainId.Mainnet) {
         // Uniswap and forks VIP
         return TX_BASE_GAS;
@@ -510,7 +510,7 @@ const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
     SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider | SOURCE_FLAGS.RfqOrder;
 const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS =
     SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider;
-const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: number) => {
+const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
         // Uniswap and forks VIP
         return TX_BASE_GAS;
