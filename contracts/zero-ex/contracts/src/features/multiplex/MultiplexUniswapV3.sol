@@ -44,11 +44,11 @@ abstract contract MultiplexUniswapV3 is
         bytes memory resultData;
         if (params.useSelfBalance) {
             // If the tokens are held by `address(this)`, we call
-            // the `onlySelf` variant `_sellTokenForTokenToUniswapV3`,
+            // the `onlySelf` variant `_sellHeldTokenForTokenToUniswapV3`,
             // which uses the Exchange Proxy's balance of input token.
             (success, resultData) = address(this).call(
                 abi.encodeWithSelector(
-                    IUniswapV3Feature._sellTokenForTokenToUniswapV3.selector,
+                    IUniswapV3Feature._sellHeldTokenForTokenToUniswapV3.selector,
                     wrappedCallData,
                     sellAmount,
                     0,
@@ -88,11 +88,11 @@ abstract contract MultiplexUniswapV3 is
         bytes memory resultData;
         if (state.from == address(this)) {
             // If the tokens are held by `address(this)`, we call
-            // the `onlySelf` variant `_sellTokenForTokenToUniswapV3`,
+            // the `onlySelf` variant `_sellHeldTokenForTokenToUniswapV3`,
             // which uses the Exchange Proxy's balance of input token.
             (success, resultData) = address(this).call(
                 abi.encodeWithSelector(
-                    IUniswapV3Feature._sellTokenForTokenToUniswapV3.selector,
+                    IUniswapV3Feature._sellHeldTokenForTokenToUniswapV3.selector,
                     wrappedCallData,
                     state.outputTokenAmount,
                     0,

@@ -88,7 +88,7 @@ contract UniswapV3Feature is
         _registerFeatureFunction(this.sellEthForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForEthToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForTokenToUniswapV3.selector);
-        _registerFeatureFunction(this._sellTokenForTokenToUniswapV3.selector);
+        _registerFeatureFunction(this._sellHeldTokenForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.uniswapV3SwapCallback.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -183,7 +183,7 @@ contract UniswapV3Feature is
     /// @param minBuyAmount Minimum amount of the last token in the path to buy.
     /// @param recipient The recipient of the bought tokens. Can be zero for sender.
     /// @return buyAmount Amount of the last token in the path bought.
-    function _sellTokenForTokenToUniswapV3(
+    function _sellHeldTokenForTokenToUniswapV3(
         bytes memory encodedPath,
         uint256 sellAmount,
         uint256 minBuyAmount,
