@@ -57,7 +57,7 @@ contract TestMintTokenERC20Transformer is
             address(this),
             msg.sender,
             context.sender,
-            context.taker,
+            context.recipient,
             context.data,
             LibERC20Transformer.isTokenETH(data.inputToken)
                 ? address(this).balance
@@ -72,14 +72,14 @@ contract TestMintTokenERC20Transformer is
         }
         // Mint output tokens.
         if (LibERC20Transformer.isTokenETH(IERC20TokenV06(address(data.outputToken)))) {
-            context.taker.transfer(data.mintAmount);
+            context.recipient.transfer(data.mintAmount);
         } else {
             data.outputToken.mint(
-                context.taker,
+                context.recipient,
                 data.mintAmount
             );
             // Burn fees from output.
-            data.outputToken.burn(context.taker, data.feeAmount);
+            data.outputToken.burn(context.recipient, data.feeAmount);
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
