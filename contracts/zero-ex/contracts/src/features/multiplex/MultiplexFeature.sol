@@ -57,12 +57,12 @@ contract MultiplexFeature is
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
 
     /// @dev The WETH token contract.
-    IEtherTokenV06 private immutable weth;
+    IEtherTokenV06 private immutable WETH;
 
     constructor(
         address zeroExAddress,
-        IEtherTokenV06 weth_,
-        ILiquidityProviderSandbox sandbox_,
+        IEtherTokenV06 weth,
+        ILiquidityProviderSandbox sandbox,
         address uniswapFactory,
         address sushiswapFactory,
         bytes32 uniswapPairInitCodeHash,
@@ -70,7 +70,7 @@ contract MultiplexFeature is
     )
         public
         MultiplexRfq(zeroExAddress)
-        MultiplexLiquidityProvider(sandbox_)
+        MultiplexLiquidityProvider(sandbox)
         MultiplexUniswapV2(
             uniswapFactory,
             sushiswapFactory,
@@ -78,7 +78,7 @@ contract MultiplexFeature is
             sushiswapPairInitCodeHash
         )
     {
-        weth = weth_;
+        WETH = weth;
     }
 
     /// @dev Initialize and register this feature.
@@ -115,12 +115,12 @@ contract MultiplexFeature is
         returns (uint256 boughtAmount)
     {
         // Wrap ETH.
-        weth.deposit{value: msg.value}();
+        WETH.deposit{value: msg.value}();
         // WETH is now held by this contract,
         // so `useSelfBalance` is true.
         return _multiplexBatchSell(
             BatchSellParams({
-                inputToken: weth,
+                inputToken: WETH,
                 outputToken: outputToken,
                 sellAmount: msg.value,
                 calls: calls,
@@ -155,7 +155,7 @@ contract MultiplexFeature is
         boughtAmount = _multiplexBatchSell(
             BatchSellParams({
                 inputToken: inputToken,
-                outputToken: weth,
+                outputToken: WETH,
                 sellAmount: sellAmount,
                 calls: calls,
                 useSelfBalance: false,
@@ -164,7 +164,7 @@ contract MultiplexFeature is
             minBuyAmount
         );
         // Unwrap WETH.
-        weth.withdraw(boughtAmount);
+        WETH.withdraw(boughtAmount);
         // Transfer ETH to `msg.sender`.
         _transferEth(msg.sender, boughtAmount);
     }
@@ -254,11 +254,11 @@ contract MultiplexFeature is
     {
         // First token must be WETH.
         require(
-            tokens[0] == address(weth),
+            tokens[0] == address(WETH),
             "MultiplexFeature::multiplexMultiHopSellEthForToken/NOT_WETH"
         );
         // Wrap ETH.
-        weth.deposit{value: msg.value}();
+        WETH.deposit{value: msg.value}();
         // WETH is now held by this contract,
         // so `useSelfBalance` is true.
         return _multiplexMultiHopSell(
@@ -295,7 +295,7 @@ contract MultiplexFeature is
     {
         // Last token must be WETH.
         require(
-            tokens[tokens.length - 1] == address(weth),
+            tokens[tokens.length - 1] == address(WETH),
             "MultiplexFeature::multiplexMultiHopSellTokenForEth/NOT_WETH"
         );
         // The `recipient of the WETH is set to  this contract, since
@@ -311,7 +311,7 @@ contract MultiplexFeature is
             minBuyAmount
         );
         // Unwrap WETH.
-        weth.withdraw(boughtAmount);
+        WETH.withdraw(boughtAmount);
         // Transfer ETH to `msg.sender`.
         _transferEth(msg.sender, boughtAmount);
     }
