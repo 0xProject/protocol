@@ -46,12 +46,12 @@ abstract contract MultiplexLiquidityProvider is
     );
 
     /// @dev The sandbox contract address.
-    ILiquidityProviderSandbox public immutable sandbox;
+    ILiquidityProviderSandbox private immutable SANDBOX;
 
-    constructor(ILiquidityProviderSandbox sandbox_)
+    constructor(ILiquidityProviderSandbox sandbox)
         internal
     {
-        sandbox = sandbox_;
+        SANDBOX = sandbox;
     }
 
     function _batchSellLiquidityProvider(
@@ -89,7 +89,7 @@ abstract contract MultiplexLiquidityProvider is
         uint256 balanceBefore = params.outputToken
             .compatBalanceOf(params.recipient);
         // Execute the swap.
-        sandbox.executeSellTokenForToken(
+        SANDBOX.executeSellTokenForToken(
             ILiquidityProvider(provider),
             params.inputToken,
             params.outputToken,
@@ -136,7 +136,7 @@ abstract contract MultiplexLiquidityProvider is
         uint256 balanceBefore = outputToken
             .compatBalanceOf(state.to);
         // Execute the swap.
-        sandbox.executeSellTokenForToken(
+        SANDBOX.executeSellTokenForToken(
             ILiquidityProvider(provider),
             inputToken,
             outputToken,
