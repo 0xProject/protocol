@@ -11,6 +11,7 @@ import * as express from 'express';
 import * as core from 'express-serve-static-core';
 import { Agent as HttpAgent, Server } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import * as rax from 'retry-axios';
 import { Producer } from 'sqs-producer';
 import { Connection } from 'typeorm';
 
@@ -101,6 +102,12 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
 
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
     const axiosInstance = Axios.create(getAxiosRequestConfig());
+    axiosInstance.defaults.raxConfig = {
+        retry: 3, // Retry on 429, 500, etc.
+        noResponseRetries: 0, // Do not retry on timeouts
+        instance: axiosInstance,
+    };
+    rax.attach(axiosInstance);
     const quoteRequestor = new QuoteRequestor(
         {}, // No RFQT offerings
         RFQM_MAKER_ASSET_OFFERINGS,

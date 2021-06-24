@@ -1170,6 +1170,36 @@ describe(SUITE_NAME, () => {
 
             mockAxios.reset();
         });
+
+        it('should clear out calldata if market maker rejects last look', async () => {
+            const mockAxios = new AxiosMockAdapter(axiosClient);
+            const lastLookResponse = {
+                fee: mockStoredFee,
+                proceedWithFill: false,
+                signedOrderHash: orderHash,
+                takerTokenFillAmount: EXPECTED_FILL_AMOUNT.toString(),
+            };
+            mockAxios.onPost(`${MARKET_MAKER_1}/submit`).replyOnce(HttpStatus.OK, lastLookResponse);
+
+            // write a corresponding quote entity to validate against
+            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
+
+            await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.CREATED)
+                .expect('Content-Type', /json/);
+
+            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
+
+            const job = await dbUtils.findJobByOrderHashAsync(orderHash);
+            expect(job?.status).to.eq(RfqmJobStatus.FailedLastLookDeclined);
+            expect(job?.calldata).to.eq('');
+
+            mockAxios.reset();
+        });
+
         it('should sucessfully resolve when there is a retry after last look is accepted', async () => {
             // write a corresponding quote entity to validate against
             await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
