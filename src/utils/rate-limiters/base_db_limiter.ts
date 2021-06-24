@@ -16,7 +16,7 @@ export abstract class MetaTransactionBaseDbRateLimiter {
         this._dbField = dbField;
     }
 
-    public abstract async isAllowedAsync(
+    public abstract isAllowedAsync(
         context: MetaTransactionRateLimiterContext,
     ): Promise<MetaTransactionRateLimiterResponse>;
 
