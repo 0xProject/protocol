@@ -339,12 +339,12 @@ contract TransformERC20Feature is
     /// @param wallet The wallet instance.
     /// @param transformation The transformation.
     /// @param transformerDeployer The address of the transformer deployer.
-    /// @param taker The taker address.
+    /// @param recipient The recipient address.
     function _executeTransformation(
         IFlashWallet wallet,
         Transformation memory transformation,
         address transformerDeployer,
-        address payable taker
+        address payable recipient
     )
         private
     {
@@ -362,7 +362,7 @@ contract TransformERC20Feature is
                 IERC20Transformer.transform.selector,
                 IERC20Transformer.TransformContext({
                     sender: msg.sender,
-                    taker: taker,
+                    recipient: recipient,
                     data: transformation.data
                 })
             )
