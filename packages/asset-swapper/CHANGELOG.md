@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.18.2 - _June 24, 2021_
+
+    * Dependencies updated
+
 ## v6.18.1 - _June 22, 2021_
 
     * FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY (#265)
