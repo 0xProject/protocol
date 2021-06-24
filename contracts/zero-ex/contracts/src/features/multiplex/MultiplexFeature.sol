@@ -205,7 +205,7 @@ contract MultiplexFeature is
     /// @dev Executes a batch sell and checks that at least
     ///      `minBuyAmount` of `outputToken` was bought.
     /// @param params Batch sell parameters.
-    /// @param minBuyAmount The mininum amount of `outputToken` that
+    /// @param minBuyAmount The minimum amount of `outputToken` that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
     function _multiplexBatchSell(
@@ -280,6 +280,7 @@ contract MultiplexFeature is
     ///        i.e. `tokens[i]` will be sold for `tokens[i+1]` via
     ///        `calls[i]`.
     /// @param calls The sequence of calls to use for the sell.
+    /// @param sellAmount The amount of `inputToken` to sell.
     /// @param minBuyAmount The minimum amount of ETH that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of ETH bought.
@@ -324,6 +325,7 @@ contract MultiplexFeature is
     ///        i.e. `tokens[i]` will be sold for `tokens[i+1]` via
     ///        `calls[i]`.
     /// @param calls The sequence of calls to use for the sell.
+    /// @param sellAmount The amount of `inputToken` to sell.    
     /// @param minBuyAmount The minimum amount of output tokens that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of output tokens bought.
@@ -352,7 +354,7 @@ contract MultiplexFeature is
     /// @dev Executes a multi-hop sell and checks that at least
     ///      `minBuyAmount` of output tokens were bought.
     /// @param params Multi-hop sell parameters.
-    /// @param minBuyAmount The mininum amount of output tokens that
+    /// @param minBuyAmount The minimum amount of output tokens that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of output tokens bought.
     function _multiplexMultiHopSell(

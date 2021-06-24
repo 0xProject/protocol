@@ -77,7 +77,7 @@ interface IUniswapV3Feature {
     /// @param minBuyAmount Minimum amount of the last token in the path to buy.
     /// @param recipient The recipient of the bought tokens. Can be zero for sender.
     /// @return buyAmount Amount of the last token in the path bought.
-    function _sellTokenForTokenToUniswapV3(
+    function _sellHeldTokenForTokenToUniswapV3(
         bytes memory encodedPath,
         uint256 sellAmount,
         uint256 minBuyAmount,
