@@ -45,7 +45,7 @@ interface TransferEvent {
 
 enum MultiplexSubcall {
     Invalid,
-    RFQ,
+    Rfq,
     UniswapV2,
     UniswapV3,
     LiquidityProvider,
@@ -90,7 +90,7 @@ blockchainTests.resets('MultiplexFeature', env => {
 
     //////////////// Deployment utility functions ////////////////
 
-    async function migrateLiquidityProviderContracts(): Promise<void> {
+    async function migrateLiquidityProviderContractsAsync(): Promise<void> {
         sandbox = await LiquidityProviderSandboxContract.deployFrom0xArtifactAsync(
             artifacts.LiquidityProviderSandbox,
             env.provider,
@@ -106,7 +106,7 @@ blockchainTests.resets('MultiplexFeature', env => {
         );
     }
 
-    async function migrateUniswapV2Contracts(): Promise<void> {
+    async function migrateUniswapV2ContractsAsync(): Promise<void> {
         sushiFactory = await TestUniswapV2FactoryContract.deployFrom0xArtifactAsync(
             artifacts.TestUniswapV2Factory,
             env.provider,
@@ -121,7 +121,7 @@ blockchainTests.resets('MultiplexFeature', env => {
         );
     }
 
-    async function migrateUniswapV3Contracts(): Promise<void> {
+    async function migrateUniswapV3ContractsAsync(): Promise<void> {
         uniV3Factory = await TestUniswapV3FactoryContract.deployFrom0xArtifactAsync(
             artifacts.TestUniswapV3Factory,
             env.provider,
@@ -228,12 +228,12 @@ blockchainTests.resets('MultiplexFeature', env => {
             { name: 'signature', type: 'tuple', components: SIGNATURE_ABI },
         ]);
         const makerToken =
-            rfqOrder.makerToken == weth.address
+            rfqOrder.makerToken === weth.address
                 ? weth
                 : new TestMintableERC20TokenContract(rfqOrder.makerToken, env.provider, env.txDefaults);
         await mintToAsync(makerToken, rfqOrder.maker, rfqOrder.makerAmount);
         return {
-            id: MultiplexSubcall.RFQ,
+            id: MultiplexSubcall.Rfq,
             sellAmount,
             data: rfqDataEncoder.encode({
                 order: rfqOrder,
@@ -437,9 +437,9 @@ blockchainTests.resets('MultiplexFeature', env => {
                 t.approve(zeroEx.address, constants.MAX_UINT256).awaitTransactionSuccessAsync({ from: maker }),
             ),
         ]);
-        await migrateLiquidityProviderContracts();
-        await migrateUniswapV2Contracts();
-        await migrateUniswapV3Contracts();
+        await migrateLiquidityProviderContractsAsync();
+        await migrateUniswapV2ContractsAsync();
+        await migrateUniswapV3ContractsAsync();
         transformerNonce = await env.web3Wrapper.getAccountNonceAsync(owner);
         await TestMintTokenERC20TransformerContract.deployFrom0xArtifactAsync(
             artifacts.TestMintTokenERC20Transformer,
