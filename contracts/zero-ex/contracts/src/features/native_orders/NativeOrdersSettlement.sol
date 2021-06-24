@@ -52,8 +52,8 @@ abstract contract NativeOrdersSettlement is
         bytes32 orderHash;
         // Maker of the order.
         address maker;
-        // Taker of the order.
-        address taker;
+        // The address holding the taker tokens.
+        address payer;
         // Recipient of the maker tokens.
         address recipient;
         // Maker token.
@@ -416,7 +416,7 @@ abstract contract NativeOrdersSettlement is
             SettleOrderInfo({
                 orderHash: orderInfo.orderHash,
                 maker: params.order.maker,
-                taker: params.taker,
+                payer: params.taker,
                 recipient: params.taker,
                 makerToken: IERC20TokenV06(params.order.makerToken),
                 takerToken: IERC20TokenV06(params.order.takerToken),
@@ -523,7 +523,7 @@ abstract contract NativeOrdersSettlement is
             SettleOrderInfo({
                 orderHash: orderInfo.orderHash,
                 maker: params.order.maker,
-                taker: params.useSelfBalance ? address(this) : params.taker,
+                payer: params.useSelfBalance ? address(this) : params.taker,
                 recipient: params.recipient,
                 makerToken: IERC20TokenV06(params.order.makerToken),
                 takerToken: IERC20TokenV06(params.order.takerToken),
@@ -581,7 +581,7 @@ abstract contract NativeOrdersSettlement is
             // function if the order is cancelled.
                 settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
 
-        if (settleInfo.taker == address(this)) {
+        if (settleInfo.payer == address(this)) {
             // Transfer this -> maker.
             _transferERC20Tokens(
                 settleInfo.takerToken,
@@ -592,7 +592,7 @@ abstract contract NativeOrdersSettlement is
             // Transfer taker -> maker.
             _transferERC20TokensFrom(
                 settleInfo.takerToken,
-                settleInfo.taker,
+                settleInfo.payer,
                 settleInfo.maker,
                 takerTokenFilledAmount
             );
