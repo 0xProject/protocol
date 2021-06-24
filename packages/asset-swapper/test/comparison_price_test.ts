@@ -39,7 +39,7 @@ const feeSchedule = {
     [ERC20BridgeSource.Native]: _.constant(GAS_PRICE.times(NATIVE_ORDER_FEE)),
 };
 
-const exchangeProxyOverhead = (sourceFlags: number) => {
+const exchangeProxyOverhead = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.RfqOrder].includes(sourceFlags)) {
         return new BigNumber(20e3).times(GAS_PRICE);
     } else {

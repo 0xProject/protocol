@@ -523,7 +523,7 @@ export class MarketOperationUtils {
             const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
             const sturdyOptimalPath = await findOptimalPathAsync(side, sturdyFills, inputAmount, opts.runLimit, {
                 ...penaltyOpts,
-                exchangeProxyOverhead: (sourceFlags: number) =>
+                exchangeProxyOverhead: (sourceFlags: bigint) =>
                     // tslint:disable-next-line: no-bitwise
                     penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
             });

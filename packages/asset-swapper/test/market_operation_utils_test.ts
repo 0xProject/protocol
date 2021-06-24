@@ -1280,7 +1280,7 @@ describe('MarketOperationUtils tests', () => {
                 });
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
                 const gasPrice = 100e9; // 100 gwei
-                const exchangeProxyOverhead = (sourceFlags: number) =>
+                const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);
@@ -1663,7 +1663,7 @@ describe('MarketOperationUtils tests', () => {
                 });
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
                 const gasPrice = 100e9; // 100 gwei
-                const exchangeProxyOverhead = (sourceFlags: number) =>
+                const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);
