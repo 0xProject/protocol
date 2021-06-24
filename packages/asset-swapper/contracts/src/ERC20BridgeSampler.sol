@@ -81,6 +81,7 @@ contract ERC20BridgeSampler is
         CurveSampler(weth)
         KyberSampler(weth)
         MooniswapSampler(weth)
+        LidoSampler(weth)
         UniswapSampler(weth)
     { }
 

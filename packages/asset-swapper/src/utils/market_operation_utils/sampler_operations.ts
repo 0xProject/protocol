@@ -507,6 +507,37 @@ export class SamplerOperations {
         });
     }
 
+    public getCurveV2BuyQuotes(
+        pool: CurveDetailedInfo,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+        source: ERC20BridgeSource = ERC20BridgeSource.Curve,
+    ): MeasuredSourceQuoteOperation<CurveFillData> {
+        return new MeasuredSamplerContractOperation({
+            deregisterable: true,
+            source,
+            fillData: {
+                pool,
+                fromTokenIdx: pool.takerTokenIdx,
+                toTokenIdx: pool.makerTokenIdx,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromCurveV2,
+            params: [
+                {
+                    curveAddress: pool.poolAddress,
+                    exchangeFunctionSelector: pool.exchangeFunctionSelector,
+                    fromCoinIdx: new BigNumber(pool.takerTokenIdx),
+                    toCoinIdx: new BigNumber(pool.makerTokenIdx),
+                },
+                takerToken,
+                makerToken,
+                takerFillAmounts,
+            ],
+        });
+    }
+
     public getCurveBuyQuotes(
         pool: CurveDetailedInfo,
         makerToken: string,
@@ -1092,7 +1123,7 @@ export class SamplerOperations {
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromLido,
-            params: [lidoInfo, takerToken, makerToken, takerFillAmounts],
+            params: [lidoInfo.stEthToken, takerToken, makerToken, takerFillAmounts],
         });
     }
 
@@ -1110,7 +1141,7 @@ export class SamplerOperations {
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromLido,
-            params: [lidoInfo, takerToken, makerToken, makerFillAmounts],
+            params: [lidoInfo.stEthToken, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1534,7 +1565,6 @@ export class SamplerOperations {
                             ),
                         );
                     case ERC20BridgeSource.Curve:
-                    case ERC20BridgeSource.CurveV2:
                     case ERC20BridgeSource.Swerve:
                     case ERC20BridgeSource.SnowSwap:
                     case ERC20BridgeSource.Nerve:
@@ -1543,18 +1573,13 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Saddle:
                     case ERC20BridgeSource.XSigma:
                     case ERC20BridgeSource.FirebirdOneSwap:
-                        return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
-                            this.getCurveBuyQuotes(
-                                pool,
-                                pool.takerTokenIdx,
-                                pool.makerTokenIdx,
-                                makerFillAmounts,
-                                source,
-                            ),
-                        );
                     case ERC20BridgeSource.Smoothy:
                         return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
-                            this.getCurveBuyQuotes(pool, makerToken, takerToken, makerFillAmounts, source),
+                            this.getCurveBuyQuotes(pool, takerToken, makerToken, makerFillAmounts, source),
+                        );
+                    case ERC20BridgeSource.CurveV2:
+                        return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                            this.getCurveV2BuyQuotes(pool, takerToken, makerToken, makerFillAmounts, source),
                         );
                     case ERC20BridgeSource.Shell:
                     case ERC20BridgeSource.Component:

@@ -11,11 +11,7 @@ import {
     ERC20BridgeSource,
     GetMarketOrdersOpts,
     KyberSamplerOpts,
-<<<<<<< HEAD
     LidoInfo,
-    LiquidityProviderFillData,
-=======
->>>>>>> Swap Sampler
     LiquidityProviderRegistry,
     PsmInfo,
     TokenAdjacencyGraph,
@@ -947,8 +943,6 @@ export const NERVE_BSC_INFOS: { [name: string]: CurveInfo } = {
 export const FIREBIRDONESWAP_BSC_INFOS: { [name: string]: CurveInfo } = {
     [FIREBIRDONESWAP_BSC_POOLS.oneswap]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: FIREBIRDONESWAP_BSC_POOLS.oneswap,
         tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC],
         metaTokens: undefined,
@@ -959,8 +953,6 @@ export const FIREBIRDONESWAP_BSC_INFOS: { [name: string]: CurveInfo } = {
 export const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     [FIREBIRDONESWAP_POLYGON_POOLS.oneswap]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: FIREBIRDONESWAP_POLYGON_POOLS.oneswap,
         tokens: [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
         metaTokens: undefined,

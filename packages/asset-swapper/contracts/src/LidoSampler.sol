@@ -20,72 +20,84 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./SamplerUtils.sol";
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinLido.sol";
+import "./SwapRevertSampler.sol";
 
-contract LidoSampler is SamplerUtils {
-    struct LidoInfo {
-        address stEthToken;
-        address wethToken;
+contract LidoSampler is
+    MixinLido,
+    SwapRevertSampler
+{
+
+    constructor(IEtherTokenV06 weth)
+        public
+        MixinLido(weth)
+    { }
+
+    function sampleSwapFromLido(
+        address sellToken,
+        address buyToken,
+        bytes memory bridgeData,
+        uint256 takerTokenAmount
+    )
+        external
+        returns (uint256)
+    {
+        return _tradeLidoInternal(
+            _getNativeWrappedToken(),
+            IERC20TokenV06(sellToken),
+            IERC20TokenV06(buyToken),
+            takerTokenAmount,
+            bridgeData
+        );
     }
 
     /// @dev Sample sell quotes from Lido
-    /// @param lidoInfo Info regarding a specific Lido deployment
+    /// @param lido Address of the Lido contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return gasUsed gas consumed for each sample amount
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromLido(
-        LidoInfo memory lidoInfo,
+        address lido,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
         public
-        pure
-        returns (uint256[] memory)
+        returns (uint256[] memory gasUsed, uint256[] memory makerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-
-        if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
-            // Return 0 values if not selling WETH for stETH
-            uint256 numSamples = takerTokenAmounts.length;
-            uint256[] memory makerTokenAmounts = new uint256[](numSamples);
-            return makerTokenAmounts;
-        }
-
-        // Minting stETH is always 1:1 therefore we can just return the same amounts back
-        return takerTokenAmounts;
+        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
+            SwapRevertSamplerQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                bridgeData: abi.encode(lido),
+                getSwapQuoteCallback: this.sampleSwapFromLido
+            }),
+            takerTokenAmounts
+        );
     }
 
     /// @dev Sample buy quotes from Lido.
-    /// @param lidoInfo Info regarding a specific Lido deployment
+    /// @param lido Address of the Lido contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
+    /// @return gasUsed gas consumed for each sample amount
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromLido(
-        LidoInfo memory lidoInfo,
+        address lido,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
         public
-        pure
-        returns (uint256[] memory)
+        returns (uint256[] memory gasUsed, uint256[] memory takerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-
-        if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
-            // Return 0 values if not buying stETH for WETH
-            uint256 numSamples = makerTokenAmounts.length;
-            uint256[] memory takerTokenAmounts = new uint256[](numSamples);
-            return takerTokenAmounts;
-        }
-
-        // Minting stETH is always 1:1 therefore we can just return the same amounts back
-        return makerTokenAmounts;
+        // 1:1 rate so we can perform an WETH sell
+        return this.sampleSellsFromLido(lido, takerToken, makerToken, makerTokenAmounts);
     }
 
 }

@@ -59,9 +59,22 @@ contract MixinLido {
         internal
         returns (uint256 boughtAmount)
     {
+        return _tradeLidoInternal(WETH, sellToken, buyToken, sellAmount, bridgeData);
+    }
+
+    function _tradeLidoInternal(
+        IEtherTokenV06 weth,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+    )
+        internal
+        returns (uint256 boughtAmount)
+    {
         (ILido lido) = abi.decode(bridgeData, (ILido));
-        if (address(sellToken) == address(WETH) && address(buyToken) == address(lido)) {
-            WETH.withdraw(sellAmount);
+        if (address(sellToken) == address(weth) && address(buyToken) == address(lido)) {
+            weth.withdraw(sellAmount);
             boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
         } else {
             revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");

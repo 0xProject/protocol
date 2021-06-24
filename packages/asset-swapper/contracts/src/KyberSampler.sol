@@ -55,15 +55,14 @@ contract KyberSampler is
         external
         returns (uint256)
     {
-        KyberSamplerOpts memory opts = abi.decode(bridgeData, (KyberSamplerOpts));
         return _tradeKyberInternal(
             // these are Immutable in MixinKyber, since they are only set in constructor they must be passed in
             IERC20TokenV06(KYBER_ETH_ADDRESS),
-            IEtherTokenV06(opts.weth),
+            _getNativeWrappedToken(),
             IERC20TokenV06(sellToken),
             IERC20TokenV06(buyToken),
             takerTokenAmount,
-            abi.encode(opts.networkProxy, opts.hint)
+            bridgeData
         );
     }
 
@@ -101,7 +100,7 @@ contract KyberSampler is
             SwapRevertSamplerQuoteOpts({
                 sellToken: takerToken,
                 buyToken: makerToken,
-                bridgeData: abi.encode(opts),
+                bridgeData: abi.encode(opts.networkProxy, hint),
                 getSwapQuoteCallback: this.sampleSwapFromKyber
             }),
             takerTokenAmounts
@@ -142,8 +141,8 @@ contract KyberSampler is
             SwapRevertSamplerBuyQuoteOpts({
                 sellToken: takerToken,
                 buyToken: makerToken,
-                sellTokenData: abi.encode(opts),
-                buyTokenData: abi.encode(opts),
+                sellTokenData: abi.encode(opts.networkProxy, hint),
+                buyTokenData: abi.encode(opts.networkProxy, hint),
                 getSwapQuoteCallback: this.sampleSwapFromKyber
             }),
             makerTokenAmounts
