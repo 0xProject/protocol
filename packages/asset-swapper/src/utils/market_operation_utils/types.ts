@@ -274,7 +274,7 @@ export interface Fill<TFillData extends FillData = FillData> {
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
     sourcePathId: string;
     // See `SOURCE_FLAGS`.
-    flags: number;
+    flags: bigint;
     // Input fill amount (taker asset amount in a sell, maker asset amount in a buy).
     input: BigNumber;
     // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
@@ -363,7 +363,7 @@ export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
 
 export type FeeEstimate = (fillData: FillData) => number | BigNumber;
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
-export type ExchangeProxyOverhead = (sourceFlags: number) => BigNumber;
+export type ExchangeProxyOverhead = (sourceFlags: bigint) => BigNumber;
 
 /**
  * Options for `getMarketSellOrdersAsync()` and `getMarketBuyOrdersAsync()`.
@@ -465,7 +465,7 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData> ext
 
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
-    sourceFlags: number;
+    sourceFlags: bigint;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;

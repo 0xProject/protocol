@@ -36,7 +36,7 @@ export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
 export class Path {
     public collapsedFills?: ReadonlyArray<CollapsedFill>;
     public orders?: OptimizedMarketOrder[];
-    public sourceFlags: number = 0;
+    public sourceFlags: bigint = BigInt(0);
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
 
@@ -95,7 +95,7 @@ export class Path {
         const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native);
         this.fills = [...nativeFills.filter(f => f !== lastNativeFillIfExists), ...fallback.fills];
         // Recompute the source flags
-        this.sourceFlags = this.fills.reduce((flags, fill) => flags | fill.flags, 0);
+        this.sourceFlags = this.fills.reduce((flags, fill) => flags | fill.flags, BigInt(0));
         return this;
     }
 
