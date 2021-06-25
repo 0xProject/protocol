@@ -6,10 +6,16 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as BalanceChecker from '../generated-artifacts/BalanceChecker.json';
+import * as DelegateHackedERC20 from '../generated-artifacts/DelegateHackedERC20.json';
 import * as ERC20BridgeSampler from '../generated-artifacts/ERC20BridgeSampler.json';
 import * as FakeTaker from '../generated-artifacts/FakeTaker.json';
+import * as GasOverhead from '../generated-artifacts/GasOverhead.json';
+import * as HackedERC20 from '../generated-artifacts/HackedERC20.json';
 export const artifacts = {
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     BalanceChecker: BalanceChecker as ContractArtifact,
+    DelegateHackedERC20: DelegateHackedERC20 as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,
+    HackedERC20: HackedERC20 as ContractArtifact,
+    GasOverhead: GasOverhead as ContractArtifact,
 };

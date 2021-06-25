@@ -30,6 +30,8 @@ import "../IBridgeAdapter.sol";
 */
 interface IKyberDmmRouter {
 
+    function factory() external view returns (address);
+
     /// @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
     ///      The first element of path is the input token, the last is the output token, and any intermediate elements represent
     ///      intermediate pairs to trade through (if, for example, a direct pair does not exist).

@@ -56,7 +56,13 @@ export class SamplerContractOperation<
         } catch (e) {
             // do nothing
         }
-        logUtils.warn(`SamplerContractOperation: ${this.source}.${this._samplerFunction.name} reverted ${msg}`);
+        logUtils.warn(
+            `SamplerContractOperation: ${this.source}.${this._samplerFunction.name} reverted ${msg} ${JSON.stringify(
+                this.fillData,
+                null,
+                2,
+            )}`,
+        );
         return [];
     }
 }

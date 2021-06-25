@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2020 ZeroEx Intl.
+  Copyright 2021 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -20,17 +20,40 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/IMooniswap.sol";
-import "./ApproximateBuys.sol";
-import "./SamplerUtils.sol";
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinMooniswap.sol";
+import "./SwapRevertSampler.sol";
 
+interface IMooniswapRegistry {
+    function pools(address token1, address token2) external view returns(address);
+}
 
 contract MooniswapSampler is
-    SamplerUtils,
-    ApproximateBuys
+    MixinMooniswap,
+    SwapRevertSampler
 {
-    /// @dev Gas limit for Mooniswap calls.
-    uint256 constant private MOONISWAP_CALL_GAS = 150e3; // 150k
+
+    constructor(IEtherTokenV06 weth)
+        public
+        MixinMooniswap(weth)
+    { }
+
+    function sampleSwapFromMooniswap(
+        address sellToken,
+        address buyToken,
+        bytes memory bridgeData,
+        uint256 takerTokenAmount
+    )
+        external
+        returns (uint256)
+    {
+        return _tradeMooniswapInternal(
+            _getNativeWrappedToken(),
+            IERC20TokenV06(sellToken),
+            IERC20TokenV06(buyToken),
+            takerTokenAmount,
+            bridgeData
+        );
+    }
 
     /// @dev Sample sell quotes from Mooniswap.
     /// @param registry Address of the Mooniswap Registry.
@@ -38,6 +61,7 @@ contract MooniswapSampler is
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return pool The contract address for the pool
+    /// @return gasUsed gas consumed in each sample sell
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromMooniswap(
@@ -47,69 +71,22 @@ contract MooniswapSampler is
         uint256[] memory takerTokenAmounts
     )
         public
-        view
-        returns (IMooniswap pool, uint256[] memory makerTokenAmounts)
+        returns (address pool, uint256[] memory gasUsed, uint256[] memory makerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
-
-        for (uint256 i = 0; i < numSamples; i++) {
-            uint256 buyAmount = sampleSingleSellFromMooniswapPool(
-                registry,
-                takerToken,
-                makerToken,
-                takerTokenAmounts[i]
-            );
-            makerTokenAmounts[i] = buyAmount;
-            // Break early if there are 0 amounts
-            if (makerTokenAmounts[i] == 0) {
-                break;
-            }
-        }
-
-        pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(takerToken, makerToken)
-        );
-    }
-
-    function sampleSingleSellFromMooniswapPool(
-        address registry,
-        address mooniswapTakerToken,
-        address mooniswapMakerToken,
-        uint256 takerTokenAmount
-    )
-        public
-        view
-        returns (uint256)
-    {
-        // Find the pool for the pair.
-        IMooniswap pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken)
-        );
-        // If there is no pool then return early
+        pool = _getMooniswapPool(registry, takerToken, makerToken);
         if (address(pool) == address(0)) {
-            return 0;
+            return (pool, gasUsed, makerTokenAmounts);
         }
-        uint256 poolBalance = mooniswapTakerToken == address(0)
-            ? address(pool).balance
-            : IERC20TokenV06(mooniswapTakerToken).balanceOf(address(pool));
-        // If the pool balance is smaller than the sell amount
-        // don't sample to avoid multiplication overflow in buys
-        if (poolBalance < takerTokenAmount) {
-            return 0;
-        }
-        try
-            pool.getReturn
-                {gas: MOONISWAP_CALL_GAS}
-                (mooniswapTakerToken, mooniswapMakerToken, takerTokenAmount)
-            returns (uint256 amount)
-        {
-            return amount;
-        } catch (bytes memory) {
-            // Swallow failures, leaving all results as zero.
-            return 0;
-        }
+
+        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
+            SwapRevertSamplerQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                bridgeData: abi.encode(pool),
+                getSwapQuoteCallback: this.sampleSwapFromMooniswap
+            }),
+            takerTokenAmounts
+        );
     }
 
     /// @dev Sample buy quotes from Mooniswap.
@@ -118,6 +95,7 @@ contract MooniswapSampler is
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token sell amount for each sample.
     /// @return pool The contract address for the pool
+    /// @return gasUsed gas consumed in each sample sell
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromMooniswap(
@@ -127,43 +105,42 @@ contract MooniswapSampler is
         uint256[] memory makerTokenAmounts
     )
         public
-        view
-        returns (IMooniswap pool, uint256[] memory takerTokenAmounts)
+        returns (address pool, uint256[] memory gasUsed, uint256[] memory takerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
+        pool = _getMooniswapPool(registry, takerToken, makerToken);
+        if (address(pool) == address(0)) {
+            return (pool, gasUsed, takerTokenAmounts);
+        }
 
-        takerTokenAmounts = _sampleApproximateBuys(
-            ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(registry, makerToken),
-                takerTokenData: abi.encode(registry, takerToken),
-                getSellQuoteCallback: _sampleSellForApproximateBuyFromMooniswap
+        (gasUsed, takerTokenAmounts) = _sampleSwapApproximateBuys(
+            SwapRevertSamplerBuyQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                sellTokenData: abi.encode(pool),
+                buyTokenData: abi.encode(pool),
+                getSwapQuoteCallback: this.sampleSwapFromMooniswap
             }),
             makerTokenAmounts
         );
-
-        pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(takerToken, makerToken)
-        );
     }
 
-    function _sampleSellForApproximateBuyFromMooniswap(
-        bytes memory takerTokenData,
-        bytes memory makerTokenData,
-        uint256 sellAmount
+    function _getMooniswapPool(
+        address registry,
+        address takerToken,
+        address makerToken
     )
-        private
-        view
-        returns (uint256 buyAmount)
+        internal
+        returns (address pool)
     {
-        (address registry, address mooniswapTakerToken) = abi.decode(takerTokenData, (address, address));
-        (address _registry, address mooniswapMakerToken) = abi.decode(makerTokenData, (address, address));
-        return sampleSingleSellFromMooniswapPool(
-            registry,
-            mooniswapTakerToken,
-            mooniswapMakerToken,
-            sellAmount
-        );
+        // WETH is actually ETH in these pools and represented as address(0)
+        address _takerToken = takerToken == address(_getNativeWrappedToken()) ? address(0) : takerToken;
+        address _makerToken = makerToken == address(_getNativeWrappedToken()) ? address(0) : makerToken;
+
+        try
+            IMooniswapRegistry(registry).pools{gas: 300e3}(_takerToken, _makerToken)
+            returns (address _pool)
+        {
+            pool = _pool;
+        } catch { }
     }
 }

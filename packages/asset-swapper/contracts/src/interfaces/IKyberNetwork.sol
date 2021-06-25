@@ -22,22 +22,6 @@ pragma solidity ^0.6;
 // Keepin everything together
 interface IKyberNetwork {
 
-
-}
-
-
-interface IKyberNetworkProxy {
-
-    function getExpectedRateAfterFee(
-        address src,
-        address dest,
-        uint256 srcQty,
-        uint256 platformFeeBps,
-        bytes calldata hint
-    )
-        external
-        view
-        returns (uint256 expectedRate);
 }
 
 interface IKyberHintHandler {

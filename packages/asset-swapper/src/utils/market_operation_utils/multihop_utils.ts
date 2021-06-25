@@ -5,14 +5,7 @@ import { Omit } from '../../types';
 
 import { ZERO_AMOUNT } from './constants';
 import { getTwoHopAdjustedRate } from './rate_utils';
-import {
-    DexSample,
-    ExchangeProxyOverhead,
-    FeeSchedule,
-    MarketSideLiquidity,
-    MultiHopFillData,
-    TokenAdjacencyGraph,
-} from './types';
+import { DexSample, ExchangeProxyOverhead, MarketSideLiquidity, MultiHopFillData, TokenAdjacencyGraph } from './types';
 
 /**
  * Given a token pair, returns the intermediate tokens to consider for two-hop routes.
@@ -36,7 +29,7 @@ export function getIntermediateTokens(
  */
 export function getBestTwoHopQuote(
     marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
-    feeSchedule?: FeeSchedule,
+    gasPrice: BigNumber,
     exchangeProxyOverhead?: ExchangeProxyOverhead,
 ): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
     const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
@@ -57,7 +50,7 @@ export function getBestTwoHopQuote(
     }
     const best = filteredQuotes
         .map(quote =>
-            getTwoHopAdjustedRate(side, quote, inputAmount, outputAmountPerEth, feeSchedule, exchangeProxyOverhead),
+            getTwoHopAdjustedRate(side, quote, inputAmount, outputAmountPerEth, gasPrice, exchangeProxyOverhead),
         )
         .reduce(
             (prev, curr, i) =>
@@ -68,7 +61,7 @@ export function getBestTwoHopQuote(
                     filteredQuotes[0],
                     inputAmount,
                     outputAmountPerEth,
-                    feeSchedule,
+                    gasPrice,
                     exchangeProxyOverhead,
                 ),
                 quote: filteredQuotes[0],

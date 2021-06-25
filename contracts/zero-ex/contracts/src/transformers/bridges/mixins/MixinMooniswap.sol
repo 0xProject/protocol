@@ -66,12 +66,26 @@ contract MixinMooniswap {
         internal
         returns (uint256 boughtAmount)
     {
+
+        return _tradeMooniswapInternal(WETH, sellToken, buyToken, sellAmount, bridgeData);
+    }
+
+    function _tradeMooniswapInternal(
+        IEtherTokenV06 weth,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+    )
+        internal
+        returns (uint256 boughtAmount)
+    {
         (IMooniswapPool pool) = abi.decode(bridgeData, (IMooniswapPool));
 
         // Convert WETH to ETH.
         uint256 ethValue = 0;
-        if (sellToken == WETH) {
-            WETH.withdraw(sellAmount);
+        if (sellToken == weth) {
+            weth.withdraw(sellAmount);
             ethValue = sellAmount;
         } else {
             // Grant the pool an allowance.
@@ -82,16 +96,16 @@ contract MixinMooniswap {
         }
 
         boughtAmount = pool.swap{value: ethValue}(
-            sellToken == WETH ? IERC20TokenV06(0) : sellToken,
-            buyToken == WETH ? IERC20TokenV06(0) : buyToken,
+            sellToken == weth ? IERC20TokenV06(0) : sellToken,
+            buyToken == weth ? IERC20TokenV06(0) : buyToken,
             sellAmount,
             1,
             address(0)
         );
 
         // Wrap ETH to WETH.
-        if (buyToken == WETH) {
-            WETH.deposit{value:boughtAmount}();
+        if (buyToken == weth) {
+            weth.deposit{value:boughtAmount}();
         }
     }
 }

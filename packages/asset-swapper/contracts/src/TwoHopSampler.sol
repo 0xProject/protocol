@@ -40,10 +40,11 @@ contract TwoHopSampler {
         returns (
             HopInfo memory firstHop,
             HopInfo memory secondHop,
+            uint256 intermediateAssetAmount,
             uint256 buyAmount
         )
     {
-        uint256 intermediateAssetAmount = 0;
+        intermediateAssetAmount = 0;
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
             firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, sellAmount);
             (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
@@ -57,7 +58,7 @@ contract TwoHopSampler {
             }
         }
         if (intermediateAssetAmount == 0) {
-            return (firstHop, secondHop, buyAmount);
+            return (firstHop, secondHop, intermediateAssetAmount, buyAmount);
         }
         for (uint256 j = 0; j != secondHopCalls.length; ++j) {
             secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, intermediateAssetAmount);

@@ -116,7 +116,6 @@ export {
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
-    DEFAULT_GAS_SCHEDULE,
     SOURCE_FLAGS,
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
@@ -138,7 +137,6 @@ export {
     DODOFillData,
     ERC20BridgeSource,
     ExchangeProxyOverhead,
-    FeeSchedule,
     Fill,
     FillData,
     GetMarketOrdersRfqOpts,

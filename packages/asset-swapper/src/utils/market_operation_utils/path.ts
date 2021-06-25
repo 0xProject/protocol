@@ -241,6 +241,8 @@ export class Path {
                     prevFill.input = prevFill.input.plus(fill.input);
                     prevFill.output = prevFill.output.plus(fill.output);
                     prevFill.fillData = fill.fillData;
+                    // Gas Used is always increasing
+                    prevFill.gasUsed = fill.gasUsed;
                     prevFill.subFills.push(fill);
                     continue;
                 }
@@ -252,6 +254,7 @@ export class Path {
                 fillData: fill.fillData,
                 input: fill.input,
                 output: fill.output,
+                gasUsed: fill.gasUsed,
                 subFills: [fill],
             });
         }

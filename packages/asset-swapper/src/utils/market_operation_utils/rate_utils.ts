@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { MarketOperation } from '../../types';
 
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, ExchangeProxyOverhead, FeeSchedule, MultiHopFillData } from './types';
+import { DexSample, ExchangeProxyOverhead, MultiHopFillData } from './types';
 
 // tslint:disable:no-bitwise
 
@@ -16,20 +16,19 @@ export function getTwoHopAdjustedRate(
     twoHopQuote: DexSample<MultiHopFillData>,
     targetInput: BigNumber,
     outputAmountPerEth: BigNumber,
-    fees: FeeSchedule = {},
+    gasPrice: BigNumber,
     exchangeProxyOverhead: ExchangeProxyOverhead = () => ZERO_AMOUNT,
 ): BigNumber {
     const { output, input, fillData } = twoHopQuote;
     if (input.isLessThan(targetInput) || output.isZero()) {
         return ZERO_AMOUNT;
     }
-    const penalty = outputAmountPerEth.times(
-        exchangeProxyOverhead(
-            SOURCE_FLAGS.MultiHop |
-                SOURCE_FLAGS[fillData.firstHopSource.source] |
-                SOURCE_FLAGS[fillData.secondHopSource.source],
-        ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
-    );
+    const costInEth = exchangeProxyOverhead(
+        SOURCE_FLAGS.MultiHop |
+            SOURCE_FLAGS[fillData.firstHopSource.source] |
+            SOURCE_FLAGS[fillData.secondHopSource.source],
+    ).plus(twoHopQuote.gasUsed.times(gasPrice));
+    const penalty = outputAmountPerEth.times(costInEth);
     const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
     return side === MarketOperation.Sell ? adjustedOutput.div(input) : input.div(adjustedOutput);
 }

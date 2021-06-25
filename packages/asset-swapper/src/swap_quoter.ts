@@ -27,13 +27,16 @@ import {
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
+import {
+    MAX_UINT256,
+    NATIVE_LIMIT_ORDER_GAS_USED,
+    SOURCE_FLAGS,
+    ZERO_AMOUNT,
+} from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
     ERC20BridgeSource,
-    FeeSchedule,
-    FillData,
     GetMarketOrdersOpts,
     MarketDepth,
     MarketDepthSide,
@@ -115,10 +118,13 @@ export class SwapQuoter {
         // Allow the sampler bytecode to be overwritten using geths override functionality
         const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
         // Allow address of the Sampler to be overridden, i.e in Ganache where overrides do not work
-        const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
+        // We default the sampler address to be FlashWallet to account for allowances being set on tokens
+        const samplerAddress =
+            (options.samplerOverrides && options.samplerOverrides.to) ||
+            this._contractAddresses.exchangeProxyFlashWallet;
         const defaultCodeOverrides = samplerBytecode
             ? {
-                  [samplerAddress]: { code: samplerBytecode },
+                  [samplerAddress]: { code: samplerBytecode, balance: MAX_UINT256 },
               }
             : {};
         const samplerOverrides = _.assign(
@@ -198,6 +204,7 @@ export class SwapQuoter {
         const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
             allOrders,
             makerTokenBuyAmounts,
+            gasPrice,
             opts as GetMarketOrdersOpts,
         );
 
@@ -212,7 +219,6 @@ export class SwapQuoter {
                         MarketOperation.Buy,
                         makerTokenBuyAmounts[i],
                         gasPrice,
-                        opts.gasSchedule,
                         opts.bridgeSlippage,
                     );
                 } else {
@@ -268,6 +274,7 @@ export class SwapQuoter {
                         output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
                         fillData: o,
                         source: ERC20BridgeSource.Native,
+                        gasUsed: NATIVE_LIMIT_ORDER_GAS_USED,
                     };
                 }),
             ];
@@ -359,10 +366,8 @@ export class SwapQuoter {
         const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
-            feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData: FillData) =>
-                gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
-            ),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
+            gasPrice,
         };
         // pass the QuoteRequestor on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
@@ -391,7 +396,6 @@ export class SwapQuoter {
             marketOperation,
             assetFillAmount,
             gasPrice,
-            opts.gasSchedule,
             opts.bridgeSlippage,
         );
 
@@ -494,7 +498,6 @@ function createSwapQuote(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
     slippage: number,
 ): SwapQuote {
     const {
@@ -509,8 +512,8 @@ function createSwapQuote(
 
     // Calculate quote info
     const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
-        ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule, slippage)
-        : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
+        ? calculateTwoHopQuoteInfo(optimizedOrders, operation, slippage)
+        : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, slippage);
 
     // Put together the swap quote
     const { makerTokenDecimals, takerTokenDecimals } = optimizerResult.marketSideLiquidity;
@@ -551,7 +554,6 @@ function calculateQuoteInfo(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const bestCaseFillResult = simulateBestCaseFill({
@@ -559,7 +561,7 @@ function calculateQuoteInfo(
         orders: optimizedOrders,
         side: operation,
         fillAmount: assetFillAmount,
-        opts: { gasSchedule },
+        opts: {},
     });
 
     const worstCaseFillResult = simulateWorstCaseFill({
@@ -567,7 +569,7 @@ function calculateQuoteInfo(
         orders: optimizedOrders,
         side: operation,
         fillAmount: assetFillAmount,
-        opts: { gasSchedule, slippage },
+        opts: { slippage },
     });
 
     return {
@@ -580,18 +582,12 @@ function calculateQuoteInfo(
 function calculateTwoHopQuoteInfo(
     optimizedOrders: OptimizedMarketOrder[],
     operation: MarketOperation,
-    gasSchedule: FeeSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const [firstHopOrder, secondHopOrder] = optimizedOrders;
     const [firstHopFill] = firstHopOrder.fills;
     const [secondHopFill] = secondHopOrder.fills;
-    const gas = new BigNumber(
-        gasSchedule[ERC20BridgeSource.MultiHop]!({
-            firstHopSource: _.pick(firstHopFill, 'source', 'fillData'),
-            secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
-        }),
-    ).toNumber();
+    const gas = (firstHopOrder.gasUsed || ZERO_AMOUNT).plus(secondHopFill.gasUsed || ZERO_AMOUNT).toNumber();
     return {
         bestCaseQuoteInfo: {
             makerAmount: operation === MarketOperation.Sell ? secondHopFill.output : secondHopFill.input,

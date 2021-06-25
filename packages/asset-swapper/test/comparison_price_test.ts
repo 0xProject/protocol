@@ -18,7 +18,6 @@ const expect = chai.expect;
 const DAI_TOKEN = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const ETH_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 const GAS_PRICE = new BigNumber(50e9); // 50 gwei
-const NATIVE_ORDER_FEE = new BigNumber(220e3); // 220K gas
 
 // DEX samples to fill in MarketSideLiquidity
 const kyberSample1: DexSample = {
@@ -26,19 +25,18 @@ const kyberSample1: DexSample = {
     input: new BigNumber(10000),
     output: new BigNumber(10001),
     fillData: {},
+    gasUsed: new BigNumber(450000),
 };
 const uniswapSample1: DexSample = {
     source: ERC20BridgeSource.UniswapV2,
     input: new BigNumber(10003),
     output: new BigNumber(10004),
     fillData: {},
+    gasUsed: new BigNumber(90000),
 };
 const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
 
-const feeSchedule = {
-    [ERC20BridgeSource.Native]: _.constant(GAS_PRICE.times(NATIVE_ORDER_FEE)),
-};
-
+// At this stage it has been gas price adjusted
 const exchangeProxyOverhead = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.RfqOrder].includes(sourceFlags)) {
         return new BigNumber(20e3).times(GAS_PRICE);
@@ -102,14 +100,14 @@ describe('getComparisonPrices', async () => {
             adjustedRate,
             AMOUNT,
             sellMarketSideLiquidity,
-            feeSchedule,
+            GAS_PRICE,
             exchangeProxyOverhead,
         );
 
         // expected outcome
-        const EXPECTED_PRICE = new BigNumber('500.6');
+        const EXPECTED_PRICE = new BigNumber('500.30');
 
-        expect(comparisonPrices.wholeOrder).to.deep.eq(EXPECTED_PRICE);
+        expect(comparisonPrices.wholeOrder).to.be.bignumber.eq(EXPECTED_PRICE);
     });
     it('should create a proper comparison price for Buys', () => {
         // test buying 10 ETH with DAI
@@ -124,14 +122,14 @@ describe('getComparisonPrices', async () => {
             adjustedRate,
             AMOUNT,
             buyMarketSideLiquidity,
-            feeSchedule,
+            GAS_PRICE,
             exchangeProxyOverhead,
         );
 
         // expected outcome
-        const EXPECTED_PRICE = new BigNumber('0.0020024029');
+        const EXPECTED_PRICE = new BigNumber('0.0020012007');
 
-        expect(comparisonPrices.wholeOrder).to.deep.eq(EXPECTED_PRICE);
+        expect(comparisonPrices.wholeOrder).to.be.bignumber.eq(EXPECTED_PRICE);
     });
     it('should not return a price if takerAmount is < 0', () => {
         // test selling 0.00001 ETH for DAI
@@ -144,7 +142,7 @@ describe('getComparisonPrices', async () => {
             adjustedRate,
             AMOUNT,
             sellMarketSideLiquidity,
-            feeSchedule,
+            GAS_PRICE,
             exchangeProxyOverhead,
         );
 

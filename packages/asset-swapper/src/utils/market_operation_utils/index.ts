@@ -1,7 +1,9 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import * as ethjs from 'ethereumjs-util';
 import * as _ from 'lodash';
 
+import { artifacts } from '../..';
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
 import {
     AssetSwapperContractAddresses,
@@ -36,7 +38,7 @@ import {
     ZERO_AMOUNT,
 } from './constants';
 import { createFills } from './fills';
-import { getBestTwoHopQuote } from './multihop_utils';
+import { getBestTwoHopQuote, getIntermediateTokens } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { PathPenaltyOpts } from './path';
 import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
@@ -50,10 +52,20 @@ import {
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
+    MultiHopFillData,
     OptimizerResult,
     OptimizerResultWithReport,
     OrderDomain,
 } from './types';
+
+const HACKED_ERC20_BYTECODE = _.get(artifacts.HackedERC20, 'compilerOutput.evm.deployedBytecode.object');
+const GAS_OVERHEAD_BYTECODE = _.get(artifacts.GasOverhead, 'compilerOutput.evm.deployedBytecode.object');
+const DELEGEATE_HACKED_ERC20_BYTECODE = _.get(
+    artifacts.DelegateHackedERC20,
+    'compilerOutput.evm.deployedBytecode.object',
+);
+const HACKED_ERC20_ADDRESS = '0xDEf1000000000000000000000000000000DE7d37';
+const GAS_OVERHEAD_ADDRESS = '0xDeF1000000000000000000000000000000001337';
 
 // tslint:disable:boolean-naming
 
@@ -63,6 +75,7 @@ export class MarketOperationUtils {
     private readonly _feeSources: SourceFilters;
     private readonly _nativeFeeToken: string;
     private readonly _nativeFeeTokenAmount: BigNumber;
+    private readonly _contractCodeByAddress: { [address: string]: string | undefined } = {};
 
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
@@ -131,34 +144,48 @@ export class MarketOperationUtils {
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
+        const { overrides } = await this._fetchTokenOverridesAsync(takerToken, makerToken);
         // Call the sampler contract.
-        const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals([makerToken, takerToken]),
-            // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
-            // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                makerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                takerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get sell quotes for taker -> maker.
-            this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
-            this._sampler.getTwoHopSellQuotes(
-                quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
-                makerToken,
-                takerToken,
-                takerAmount,
-            ),
-            this._sampler.isAddressContract(txOrigin),
+        const samplerPromise = this._sampler.executeBatchAsync(
+            [
+                this._sampler.getTokenDecimals([makerToken, takerToken]),
+                // Get native order fillable amounts.
+                this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+                // Get ETH -> maker token price.
+                this._sampler.getMedianSellRate(
+                    feeSourceFilters.sources,
+                    makerToken,
+                    this._nativeFeeToken,
+                    this._nativeFeeTokenAmount,
+                ),
+                // Get ETH -> taker token price.
+                this._sampler.getMedianSellRate(
+                    feeSourceFilters.sources,
+                    takerToken,
+                    this._nativeFeeToken,
+                    this._nativeFeeTokenAmount,
+                ),
+                // Get sell quotes for taker -> maker.
+                this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
+                this._sampler.isAddressContract(txOrigin),
+            ],
+            {
+                overrides,
+            },
+        );
+        // Perform the MultiHop sell quotes in a separate request
+        const multiHopsamplerPromise = this._sampler.executeBatchAsync(
+            [
+                this._sampler.getTwoHopSellQuotes(
+                    quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
+                    makerToken,
+                    takerToken,
+                    takerAmount,
+                ),
+            ],
+            {
+                overrides,
+            },
         );
 
         // Refresh the cached pools asynchronously if required
@@ -171,14 +198,15 @@ export class MarketOperationUtils {
                 outputAmountPerEth,
                 inputAmountPerEth,
                 dexQuotes,
-                rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-        ] = await Promise.all([samplerPromise]);
+            [rawTwoHopQuotes],
+        ] = await Promise.all([samplerPromise, multiHopsamplerPromise]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
-            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+            (q: DexSample<MultiHopFillData>) =>
+                q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
         );
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
@@ -232,35 +260,42 @@ export class MarketOperationUtils {
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
+        const { overrides } = await this._fetchTokenOverridesAsync(takerToken, makerToken);
         // Call the sampler contract.
-        const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals([makerToken, takerToken]),
-            // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
-            // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                makerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                takerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get buy quotes for taker -> maker.
-            this._sampler.getBuyQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
+        const samplerPromise = this._sampler.executeBatchAsync(
+            [
+                this._sampler.getTokenDecimals([makerToken, takerToken]),
+                // Get native order fillable amounts.
+                this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+                // Get ETH -> makerToken token price.
+                this._sampler.getMedianSellRate(
+                    feeSourceFilters.sources,
+                    makerToken,
+                    this._nativeFeeToken,
+                    this._nativeFeeTokenAmount,
+                ),
+                // Get ETH -> taker token price.
+                this._sampler.getMedianSellRate(
+                    feeSourceFilters.sources,
+                    takerToken,
+                    this._nativeFeeToken,
+                    this._nativeFeeTokenAmount,
+                ),
+                // Get buy quotes for taker -> maker.
+                this._sampler.getBuyQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
+                this._sampler.isAddressContract(txOrigin),
+            ],
+            { overrides },
+        );
+
+        const multiHopPromise = this._sampler.executeBatchAsync([
             this._sampler.getTwoHopBuyQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
                 takerToken,
                 makerAmount,
             ),
-            this._sampler.isAddressContract(txOrigin),
-        );
+        ]);
 
         // Refresh the cached pools asynchronously if required
         void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
@@ -272,14 +307,15 @@ export class MarketOperationUtils {
                 ethToMakerAssetRate,
                 ethToTakerAssetRate,
                 dexQuotes,
-                rawTwoHopQuotes,
                 isTxOriginContract,
             ],
-        ] = await Promise.all([samplerPromise]);
+            [rawTwoHopQuotes],
+        ] = await Promise.all([samplerPromise, multiHopPromise]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
-            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+            (q: DexSample<MultiHopFillData>) =>
+                q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
         );
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
@@ -324,17 +360,17 @@ export class MarketOperationUtils {
     public async getBatchMarketBuyOrdersAsync(
         batchNativeOrders: SignedNativeOrder[][],
         makerAmounts: BigNumber[],
-        opts?: Partial<GetMarketOrdersOpts>,
+        gasPrice: BigNumber,
+        opts: GetMarketOrdersOpts,
     ): Promise<Array<OptimizerResult | undefined>> {
         if (batchNativeOrders.length === 0) {
             throw new Error(AggregationError.EmptyOrders);
         }
-        const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
 
-        const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
+        const requestFilters = new SourceFilters().exclude(opts.excludedSources).include(opts.includedSources);
         const quoteSourceFilters = this._buySources.merge(requestFilters);
 
-        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
+        const feeSourceFilters = this._feeSources.exclude(opts.excludedFeeSources);
 
         const ops = [
             ...batchNativeOrders.map(orders =>
@@ -402,11 +438,11 @@ export class MarketOperationUtils {
                             isRfqSupported: false,
                         },
                         {
-                            bridgeSlippage: _opts.bridgeSlippage,
-                            maxFallbackSlippage: _opts.maxFallbackSlippage,
-                            excludedSources: _opts.excludedSources,
-                            feeSchedule: _opts.feeSchedule,
-                            allowFallback: _opts.allowFallback,
+                            bridgeSlippage: opts.bridgeSlippage,
+                            maxFallbackSlippage: opts.maxFallbackSlippage,
+                            excludedSources: opts.excludedSources,
+                            allowFallback: opts.allowFallback,
+                            gasPrice,
                         },
                     );
                     return optimizerResult;
@@ -466,7 +502,7 @@ export class MarketOperationUtils {
             outputAmountPerEth,
             inputAmountPerEth,
             excludedSources: opts.excludedSources,
-            feeSchedule: opts.feeSchedule,
+            gasPrice: opts.gasPrice,
         });
 
         // Find the optimal path.
@@ -490,7 +526,7 @@ export class MarketOperationUtils {
 
         const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
             marketSideLiquidity,
-            opts.feeSchedule,
+            opts.gasPrice,
             opts.exchangeProxyOverhead,
         );
         if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
@@ -558,16 +594,15 @@ export class MarketOperationUtils {
         nativeOrders: SignedNativeOrder[],
         amount: BigNumber,
         side: MarketOperation,
-        opts?: Partial<GetMarketOrdersOpts>,
+        opts: GetMarketOrdersOpts,
     ): Promise<OptimizerResultWithReport> {
-        const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const optimizerOpts: GenerateOptimizedOrdersOpts = {
-            bridgeSlippage: _opts.bridgeSlippage,
-            maxFallbackSlippage: _opts.maxFallbackSlippage,
-            excludedSources: _opts.excludedSources,
-            feeSchedule: _opts.feeSchedule,
-            allowFallback: _opts.allowFallback,
-            exchangeProxyOverhead: _opts.exchangeProxyOverhead,
+            bridgeSlippage: opts.bridgeSlippage,
+            maxFallbackSlippage: opts.maxFallbackSlippage,
+            excludedSources: opts.excludedSources,
+            allowFallback: opts.allowFallback,
+            exchangeProxyOverhead: opts.exchangeProxyOverhead,
+            gasPrice: opts.gasPrice,
         };
 
         if (nativeOrders.length === 0) {
@@ -579,7 +614,7 @@ export class MarketOperationUtils {
             side === MarketOperation.Sell
                 ? this.getMarketSellLiquidityAsync.bind(this)
                 : this.getMarketBuyLiquidityAsync.bind(this);
-        const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
+        const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, opts);
         let optimizerResult: OptimizerResult | undefined;
         try {
             optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
@@ -600,13 +635,13 @@ export class MarketOperationUtils {
                 optimizerResult.adjustedRate,
                 amount,
                 marketSideLiquidity,
-                _opts.feeSchedule,
-                _opts.exchangeProxyOverhead,
+                opts.gasPrice,
+                opts.exchangeProxyOverhead,
             ).wholeOrder;
         }
 
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity against the first optimizer result
-        const { rfqt } = _opts;
+        const { rfqt } = opts;
         if (
             marketSideLiquidity.isRfqSupported &&
             rfqt &&
@@ -697,9 +732,9 @@ export class MarketOperationUtils {
 
         // Compute Quote Report and return the results.
         let quoteReport: QuoteReport | undefined;
-        if (_opts.shouldGenerateQuoteReport) {
+        if (opts.shouldGenerateQuoteReport) {
             quoteReport = MarketOperationUtils._computeQuoteReport(
-                _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+                opts.rfqt ? opts.rfqt.quoteRequestor : undefined,
                 marketSideLiquidity,
                 optimizerResult,
                 wholeOrderPrice,
@@ -707,9 +742,9 @@ export class MarketOperationUtils {
         }
 
         let priceComparisonsReport: PriceComparisonsReport | undefined;
-        if (_opts.shouldIncludePriceComparisonsReport) {
+        if (opts.shouldIncludePriceComparisonsReport) {
             priceComparisonsReport = MarketOperationUtils._computePriceComparisonsReport(
-                _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+                opts.rfqt ? opts.rfqt.quoteRequestor : undefined,
                 marketSideLiquidity,
                 wholeOrderPrice,
             );
@@ -726,6 +761,61 @@ export class MarketOperationUtils {
                 return cache.getFreshPoolsForPairAsync(takerToken, makerToken);
             }),
         );
+    }
+
+    private async _fetchTokenOverridesAsync(
+        takerToken: string,
+        makerToken: string,
+    ): Promise<{ overrides: { [address: string]: { code: string } } }> {
+        const overrides: { [address: string]: { code: string } } = {};
+        // Set the gas overhead counter to a known address
+        overrides[GAS_OVERHEAD_ADDRESS] = { code: GAS_OVERHEAD_BYTECODE };
+        // Set the fixed impl of a HackedERC20 bytecode, all other tokens use a delegate call
+        overrides[HACKED_ERC20_ADDRESS] = { code: HACKED_ERC20_BYTECODE };
+
+        if (!this._sampler.tokenAdjacencyGraph) {
+            return { overrides };
+        }
+
+        // Allow the tokens bytecode to be overwritten using geths override functionality
+        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this._sampler.tokenAdjacencyGraph);
+        const tokens = [takerToken, makerToken, ...intermediateTokens].map(t => t.toLowerCase());
+
+        // Fetch all of the missing token codes
+        const missingTokenCodesTokens = tokens.filter(t => !this._contractCodeByAddress[t]);
+        if (missingTokenCodesTokens.length > 0) {
+            const missingTokenCodes = await this._sampler.executeBatchAsync(
+                missingTokenCodesTokens.map(t => this._sampler.getCode(t)),
+            );
+            missingTokenCodes.forEach((code, i) => {
+                this._contractCodeByAddress[missingTokenCodesTokens[i]] = code;
+            });
+        }
+
+        const tokenCodes = tokens.map(t => this._contractCodeByAddress[t]!);
+
+        const nativeWrappedToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[this._sampler.chainId];
+        tokens.forEach((token, i) => {
+            // Skip overriding WETH like token as this can be used directly with a deposit
+            if (token === nativeWrappedToken) {
+                return;
+            }
+
+            const tokenImplAddress = ethjs.bufferToHex(
+                ethjs.setLengthLeft(
+                    // tslint:disable-next-line: custom-no-magic-numbers prefer-template
+                    ethjs.toBuffer(`0x${new BigNumber(token.toLowerCase()).plus(1).toString(16)}`),
+                    // tslint:disable-next-line: custom-no-magic-numbers prefer-template
+                    20,
+                ),
+            );
+            // Override the original implementation with the HackedERC20 delegate
+            overrides[token] = { code: DELEGEATE_HACKED_ERC20_BYTECODE };
+            // Specify the original implementation at a new address (+1)
+            overrides[tokenImplAddress] = { code: tokenCodes[i] };
+        });
+
+        return { overrides };
     }
 }
 

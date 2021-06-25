@@ -3,6 +3,8 @@ import { blockchainTests, describe, expect, toBaseUnitAmount, Web3ProviderEngine
 import { RPCSubprovider } from '@0x/subproviders';
 import { BigNumber, NULL_BYTES, providerUtils } from '@0x/utils';
 
+import { ERC20BridgeSource } from '../../src';
+import { getCurveLikeInfosForPair } from '../../src/utils/market_operation_utils/bridge_source_utils';
 import { KYBER_CONFIG_BY_CHAIN_ID, MAINNET_TOKENS } from '../../src/utils/market_operation_utils/constants';
 import { artifacts } from '../artifacts';
 import { ERC20BridgeSamplerContract } from '../wrappers';
@@ -30,27 +32,50 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
         });
     });
     describe('Curve', () => {
-        const CURVE_ADDRESS = '0x45f783cce6b7ff23b2ab2d70e416cdb7d6055f51';
-        const DAI_TOKEN_INDEX = new BigNumber(0);
-        const USDC_TOKEN_INDEX = new BigNumber(1);
-        const CURVE_INFO = {
-            poolAddress: CURVE_ADDRESS,
-            sellQuoteFunctionSelector: '0x07211ef7',
-            buyQuoteFunctionSelector: '0x0e71d1b9',
-        };
-
         describe('sampleSellsFromCurve()', () => {
             it('samples sells from Curve DAI->USDC', async () => {
+                const CURVE_INFO = getCurveLikeInfosForPair(
+                    ChainId.Mainnet,
+                    MAINNET_TOKENS.DAI,
+                    MAINNET_TOKENS.USDC,
+                    ERC20BridgeSource.Curve,
+                )[0];
                 const samples = await testContract
-                    .sampleSellsFromCurve(CURVE_INFO, DAI_TOKEN_INDEX, USDC_TOKEN_INDEX, [toBaseUnitAmount(1)])
+                    .sampleSellsFromCurve(
+                        {
+                            curveAddress: CURVE_INFO.poolAddress,
+                            fromCoinIdx: new BigNumber(CURVE_INFO.takerTokenIdx),
+                            toCoinIdx: new BigNumber(CURVE_INFO.makerTokenIdx),
+                            exchangeFunctionSelector: CURVE_INFO.exchangeFunctionSelector,
+                        },
+                        MAINNET_TOKENS.DAI,
+                        MAINNET_TOKENS.USDC,
+                        [toBaseUnitAmount(1)],
+                    )
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
             });
 
             it('samples sells from Curve USDC->DAI', async () => {
+                const CURVE_INFO = getCurveLikeInfosForPair(
+                    ChainId.Mainnet,
+                    MAINNET_TOKENS.USDC,
+                    MAINNET_TOKENS.DAI,
+                    ERC20BridgeSource.Curve,
+                )[0];
                 const samples = await testContract
-                    .sampleSellsFromCurve(CURVE_INFO, USDC_TOKEN_INDEX, DAI_TOKEN_INDEX, [toBaseUnitAmount(1, 6)])
+                    .sampleSellsFromCurve(
+                        {
+                            curveAddress: CURVE_INFO.poolAddress,
+                            fromCoinIdx: new BigNumber(CURVE_INFO.takerTokenIdx),
+                            toCoinIdx: new BigNumber(CURVE_INFO.makerTokenIdx),
+                            exchangeFunctionSelector: CURVE_INFO.exchangeFunctionSelector,
+                        },
+                        MAINNET_TOKENS.USDC,
+                        MAINNET_TOKENS.DAI,
+                        [toBaseUnitAmount(1, 6)],
+                    )
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
@@ -58,11 +83,27 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
         });
 
         describe('sampleBuysFromCurve()', () => {
+            const CURVE_INFO = getCurveLikeInfosForPair(
+                ChainId.Mainnet,
+                MAINNET_TOKENS.DAI,
+                MAINNET_TOKENS.USDC,
+                ERC20BridgeSource.Curve,
+            )[0];
             it('samples buys from Curve DAI->USDC', async () => {
                 // From DAI to USDC
                 // I want to buy 1 USDC
                 const samples = await testContract
-                    .sampleBuysFromCurve(CURVE_INFO, DAI_TOKEN_INDEX, USDC_TOKEN_INDEX, [toBaseUnitAmount(1, 6)])
+                    .sampleBuysFromCurve(
+                        {
+                            curveAddress: CURVE_INFO.poolAddress,
+                            fromCoinIdx: new BigNumber(CURVE_INFO.takerTokenIdx),
+                            toCoinIdx: new BigNumber(CURVE_INFO.makerTokenIdx),
+                            exchangeFunctionSelector: CURVE_INFO.exchangeFunctionSelector,
+                        },
+                        MAINNET_TOKENS.DAI,
+                        MAINNET_TOKENS.USDC,
+                        [toBaseUnitAmount(1, 6)],
+                    )
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
@@ -72,7 +113,17 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
                 // From USDC to DAI
                 // I want to buy 1 DAI
                 const samples = await testContract
-                    .sampleBuysFromCurve(CURVE_INFO, USDC_TOKEN_INDEX, DAI_TOKEN_INDEX, [toBaseUnitAmount(1)])
+                    .sampleBuysFromCurve(
+                        {
+                            curveAddress: CURVE_INFO.poolAddress,
+                            fromCoinIdx: new BigNumber(CURVE_INFO.takerTokenIdx),
+                            toCoinIdx: new BigNumber(CURVE_INFO.makerTokenIdx),
+                            exchangeFunctionSelector: CURVE_INFO.exchangeFunctionSelector,
+                        },
+                        MAINNET_TOKENS.USDC,
+                        MAINNET_TOKENS.DAI,
+                        [toBaseUnitAmount(1)],
+                    )
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);

@@ -20,21 +20,16 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinCurve.sol";
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinCurveV2.sol";
 import "./SwapRevertSampler.sol";
 
 
-contract CurveSampler is
-    MixinCurve,
+contract CurveV2Sampler is
+    MixinCurveV2,
     SwapRevertSampler
 {
 
-    constructor(IEtherTokenV06 weth)
-        public
-        MixinCurve(weth)
-    { }
-
-    function sampleSwapFromCurve(
+    function sampleSwapFromCurveV2(
         address sellToken,
         address buyToken,
         bytes memory bridgeData,
@@ -43,8 +38,7 @@ contract CurveSampler is
         external
         returns (uint256)
     {
-        return _tradeCurveInternal(
-            _getNativeWrappedToken(),
+        return _tradeCurveV2(
             IERC20TokenV06(sellToken),
             IERC20TokenV06(buyToken),
             takerTokenAmount,
@@ -60,8 +54,8 @@ contract CurveSampler is
     /// @return gasUsed gas consumed in each sample sell
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromCurve(
-        CurveBridgeData memory curveInfo,
+    function sampleSellsFromCurveV2(
+        CurveBridgeDataV2 memory curveInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -74,7 +68,7 @@ contract CurveSampler is
                 sellToken: takerToken,
                 buyToken: makerToken,
                 bridgeData: abi.encode(curveInfo),
-                getSwapQuoteCallback: this.sampleSwapFromCurve
+                getSwapQuoteCallback: this.sampleSwapFromCurveV2
             }),
             takerTokenAmounts
         );
@@ -88,8 +82,8 @@ contract CurveSampler is
     /// @return gasUsed gas consumed in each sample sell
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromCurve(
-        CurveBridgeData memory curveInfo,
+    function sampleBuysFromCurveV2(
+        CurveBridgeDataV2 memory curveInfo,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -103,14 +97,14 @@ contract CurveSampler is
                 buyToken: makerToken,
                 sellTokenData: abi.encode(curveInfo),
                 buyTokenData: abi.encode(
-                    CurveBridgeData({
+                    CurveBridgeDataV2({
                         curveAddress: curveInfo.curveAddress,
                         exchangeFunctionSelector: curveInfo.exchangeFunctionSelector,
                         fromCoinIdx: curveInfo.toCoinIdx,
                         toCoinIdx: curveInfo.fromCoinIdx
                     })
                 ),
-                getSwapQuoteCallback: this.sampleSwapFromCurve
+                getSwapQuoteCallback: this.sampleSwapFromCurveV2
             }),
             makerTokenAmounts
         );

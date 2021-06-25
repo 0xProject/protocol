@@ -20,44 +20,29 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./SamplerUtils.sol";
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinBalancerV2.sol";
+import "./SwapRevertSampler.sol";
 
-/// @dev Minimal Balancer V2 Vault interface
-///      for documentation refer to https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
-interface IBalancerV2Vault {
-    enum SwapKind { GIVEN_IN, GIVEN_OUT }
+contract BalancerV2Sampler is
+    MixinBalancerV2,
+    SwapRevertSampler
+{
 
-    struct BatchSwapStep {
-        bytes32 poolId;
-        uint256 assetInIndex;
-        uint256 assetOutIndex;
-        uint256 amount;
-        bytes userData;
-    }
-
-    struct FundManagement {
-        address sender;
-        bool fromInternalBalance;
-        address payable recipient;
-        bool toInternalBalance;
-    }
-
-    function queryBatchSwap(
-        SwapKind kind,
-        BatchSwapStep[] calldata swaps,
-        IAsset[] calldata assets,
-        FundManagement calldata funds
-    ) external returns (int256[] memory assetDeltas);
-}
-interface IAsset {
-    // solhint-disable-previous-line no-empty-blocks
-}
-
-contract BalancerV2Sampler is SamplerUtils {
-
-    struct BalancerV2PoolInfo {
-        bytes32 poolId;
-        address vault;
+    function sampleSwapFromBalancerV2(
+        address sellToken,
+        address buyToken,
+        bytes memory bridgeData,
+        uint256 takerTokenAmount
+    )
+        external
+        returns (uint256)
+    {
+        return _tradeBalancerV2(
+            IERC20TokenV06(sellToken),
+            IERC20TokenV06(buyToken),
+            takerTokenAmount,
+            bridgeData
+        );
     }
 
     /// @dev Sample sell quotes from Balancer V2.
@@ -65,48 +50,27 @@ contract BalancerV2Sampler is SamplerUtils {
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return gasUsed gas consumed in each sample sell
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromBalancerV2(
-        BalancerV2PoolInfo memory poolInfo,
+        BalancerV2BridgeData memory poolInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
         public
-        returns (uint256[] memory makerTokenAmounts)
+        returns (uint256[] memory gasUsed, uint256[] memory makerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
-        IAsset[] memory swapAssets = new IAsset[](2);
-        swapAssets[0] = IAsset(takerToken);
-        swapAssets[1] = IAsset(makerToken);
-
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
-        IBalancerV2Vault.FundManagement memory swapFunds =
-            _createSwapFunds();
-
-        for (uint256 i = 0; i < numSamples; i++) {
-            IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
-                _createSwapSteps(poolInfo, takerTokenAmounts[i]);
-
-            try
-                // For sells we specify the takerToken which is what the vault will receive from the trade
-                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_IN, swapSteps, swapAssets, swapFunds)
-            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
-            returns (int256[] memory amounts) {
-                // Outgoing balance is negative so we need to flip the sign
-                int256 amountOutFromPool = amounts[1] * -1;
-                if (amountOutFromPool <= 0) {
-                    break;
-                }
-                makerTokenAmounts[i] = uint256(amountOutFromPool);
-            } catch (bytes memory) {
-                // Swallow failures, leaving all results as zero.
-                break;
-            }
-        }
+        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
+            SwapRevertSamplerQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                bridgeData: abi.encode(poolInfo),
+                getSwapQuoteCallback: this.sampleSwapFromBalancerV2
+            }),
+            takerTokenAmounts
+        );
     }
 
     /// @dev Sample buy quotes from Balancer V2.
@@ -114,76 +78,27 @@ contract BalancerV2Sampler is SamplerUtils {
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
+    /// @return gasUsed gas consumed in each sample sell
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromBalancerV2(
-        BalancerV2PoolInfo memory poolInfo,
+        BalancerV2BridgeData memory poolInfo,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
         public
-        returns (uint256[] memory takerTokenAmounts)
+        returns (uint256[] memory gasUsed, uint256[] memory takerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
-        IAsset[] memory swapAssets = new IAsset[](2);
-        swapAssets[0] = IAsset(takerToken);
-        swapAssets[1] = IAsset(makerToken);
-
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
-        IBalancerV2Vault.FundManagement memory swapFunds =
-            _createSwapFunds();
-
-        for (uint256 i = 0; i < numSamples; i++) {
-            IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
-                _createSwapSteps(poolInfo, makerTokenAmounts[i]);
-
-            try
-                // For buys we specify the makerToken which is what taker will receive from the trade
-                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_OUT, swapSteps, swapAssets, swapFunds)
-            returns (int256[] memory amounts) {
-                int256 amountIntoPool = amounts[0];
-                if (amountIntoPool <= 0) {
-                    break;
-                }
-                takerTokenAmounts[i] = uint256(amountIntoPool);
-            } catch (bytes memory) {
-                // Swallow failures, leaving all results as zero.
-                break;
-            }
-        }
-    }
-
-    function _createSwapSteps(
-        BalancerV2PoolInfo memory poolInfo,
-        uint256 amount
-    ) private pure returns (IBalancerV2Vault.BatchSwapStep[] memory) {
-        IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
-            new IBalancerV2Vault.BatchSwapStep[](1);
-        swapSteps[0] = IBalancerV2Vault.BatchSwapStep({
-            poolId: poolInfo.poolId,
-            assetInIndex: 0,
-            assetOutIndex: 1,
-            amount: amount,
-            userData: ""
-        });
-
-        return swapSteps;
-    }
-
-    function _createSwapFunds()
-        private
-        view
-        returns (IBalancerV2Vault.FundManagement memory)
-    {
-        return
-            IBalancerV2Vault.FundManagement({
-                sender: address(this),
-                fromInternalBalance: false,
-                recipient: payable(address(this)),
-                toInternalBalance: false
-            });
+        (gasUsed, takerTokenAmounts) = _sampleSwapApproximateBuys(
+            SwapRevertSamplerBuyQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                sellTokenData: abi.encode(poolInfo),
+                buyTokenData: abi.encode(poolInfo),
+                getSwapQuoteCallback: this.sampleSwapFromBalancerV2
+            }),
+            makerTokenAmounts
+        );
     }
 }

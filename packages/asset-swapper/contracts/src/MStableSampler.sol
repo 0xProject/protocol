@@ -20,23 +20,38 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/IMStable.sol";
-import "./ApproximateBuys.sol";
-import "./SamplerUtils.sol";
+import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinMStable.sol";
+import "./SwapRevertSampler.sol";
 
 
 contract MStableSampler is
-    SamplerUtils,
-    ApproximateBuys
+    MixinMStable,
+    SwapRevertSampler
 {
-    /// @dev Default gas limit for mStable calls.
-    uint256 constant private DEFAULT_CALL_GAS = 800e3; // 800k
+
+    function sampleSwapFromMStable(
+        address sellToken,
+        address buyToken,
+        bytes memory bridgeData,
+        uint256 takerTokenAmount
+    )
+        external
+        returns (uint256)
+    {
+        return _tradeMStable(
+            IERC20TokenV06(sellToken),
+            IERC20TokenV06(buyToken),
+            takerTokenAmount,
+            bridgeData
+        );
+    }
 
     /// @dev Sample sell quotes from the mStable contract
     /// @param router Address of the mStable contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return gasUsed gas consumed in each sample sell
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromMStable(
@@ -46,31 +61,17 @@ contract MStableSampler is
         uint256[] memory takerTokenAmounts
     )
         public
-        view
-        returns (uint256[] memory makerTokenAmounts)
+        returns (uint256[] memory gasUsed, uint256[] memory makerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        // Initialize array of maker token amounts.
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
-
-        for (uint256 i = 0; i < numSamples; i++) {
-            try
-                IMStable(router).getSwapOutput
-                    {gas: DEFAULT_CALL_GAS}
-                    (takerToken, makerToken, takerTokenAmounts[i])
-                returns (uint256 amount)
-            {
-                makerTokenAmounts[i] = amount;
-                // Break early if there are 0 amounts
-                if (makerTokenAmounts[i] == 0) {
-                    break;
-                }
-            } catch (bytes memory) {
-                // Swallow failures, leaving all results as zero.
-                break;
-            }
-        }
+        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
+            SwapRevertSamplerQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                bridgeData: abi.encode(router),
+                getSwapQuoteCallback: this.sampleSwapFromMStable
+            }),
+            takerTokenAmounts
+        );
     }
 
     /// @dev Sample buy quotes from MStable contract
@@ -78,6 +79,7 @@ contract MStableSampler is
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
+    /// @return gasUsed gas consumed in each sample sell
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromMStable(
@@ -87,41 +89,17 @@ contract MStableSampler is
         uint256[] memory makerTokenAmounts
     )
         public
-        view
-        returns (uint256[] memory takerTokenAmounts)
+        returns (uint256[] memory gasUsed, uint256[] memory takerTokenAmounts)
     {
-        return _sampleApproximateBuys(
-            ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(makerToken, router),
-                takerTokenData: abi.encode(takerToken, router),
-                getSellQuoteCallback: _sampleSellForApproximateBuyFromMStable
+        (gasUsed, takerTokenAmounts) = _sampleSwapApproximateBuys(
+            SwapRevertSamplerBuyQuoteOpts({
+                sellToken: takerToken,
+                buyToken: makerToken,
+                sellTokenData: abi.encode(router),
+                buyTokenData: abi.encode(router),
+                getSwapQuoteCallback: this.sampleSwapFromMStable
             }),
             makerTokenAmounts
         );
-    }
-
-    function _sampleSellForApproximateBuyFromMStable(
-        bytes memory takerTokenData,
-        bytes memory makerTokenData,
-        uint256 sellAmount
-    )
-        private
-        view
-        returns (uint256 buyAmount)
-    {
-        (address takerToken, address router) =
-            abi.decode(takerTokenData, (address, address));
-        (address makerToken) =
-            abi.decode(makerTokenData, (address));
-        try
-            this.sampleSellsFromMStable
-                (router, takerToken, makerToken, _toSingleValueArray(sellAmount))
-            returns (uint256[] memory amounts)
-        {
-            return amounts[0];
-        } catch (bytes memory) {
-            // Swallow failures, leaving all results as zero.
-            return 0;
-        }
     }
 }

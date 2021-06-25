@@ -8,6 +8,7 @@ import 'mocha';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../src/types';
+import { NATIVE_LIMIT_ORDER_GAS_USED, NATIVE_RFQT_GAS_USED } from '../src/utils/market_operation_utils/constants';
 import {
     CollapsedFill,
     DexSample,
@@ -34,6 +35,9 @@ import { getRandomAmount, getRandomSignature } from './utils/utils';
 chaiSetup.configure();
 const expect = chai.expect;
 
+const ONE = new BigNumber(1);
+const GAS_USED = ONE;
+
 function collapsedFillFromNativeOrder(order: NativeOrderWithFillableAmounts): NativeCollapsedFill {
     const fillData = {
         order: order.order,
@@ -51,6 +55,8 @@ function collapsedFillFromNativeOrder(order: NativeOrderWithFillableAmounts): Na
                 ? (fillData as NativeLimitOrderFillData)
                 : (fillData as NativeRfqOrderFillData),
         subFills: [],
+        gasUsed:
+            order.type === FillQuoteTransformerOrderType.Limit ? NATIVE_LIMIT_ORDER_GAS_USED : NATIVE_RFQT_GAS_USED,
     };
 }
 
@@ -63,12 +69,14 @@ describe('generateQuoteReport', async () => {
             input: new BigNumber(10003),
             output: new BigNumber(10004),
             fillData: {},
+            gasUsed: GAS_USED,
         };
         const uniswapSample2: DexSample = {
             source: ERC20BridgeSource.UniswapV2,
             input: new BigNumber(10005),
             output: new BigNumber(10006),
             fillData: {},
+            gasUsed: GAS_USED,
         };
         const orderbookOrder1: NativeOrderWithFillableAmounts = {
             order: new LimitOrder({ takerAmount: new BigNumber(1000) }),
@@ -161,6 +169,7 @@ describe('generateQuoteReport', async () => {
             fillData: {
                 order: rfqtOrder1.order,
             } as NativeRfqOrderFillData,
+            gasUsed: NATIVE_RFQT_GAS_USED,
         };
         const rfqtOrder2Source: NativeRfqOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
@@ -173,6 +182,7 @@ describe('generateQuoteReport', async () => {
             fillData: {
                 order: rfqtOrder2.order,
             } as NativeRfqOrderFillData,
+            gasUsed: NATIVE_RFQT_GAS_USED,
         };
         const orderbookOrder2Source: NativeLimitOrderQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Native,
@@ -183,18 +193,21 @@ describe('generateQuoteReport', async () => {
             fillData: {
                 order: orderbookOrder2.order,
             } as NativeLimitOrderFillData,
+            gasUsed: NATIVE_LIMIT_ORDER_GAS_USED,
         };
         const uniswap2Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.UniswapV2,
             makerAmount: uniswapSample2.output,
             takerAmount: uniswapSample2.input,
             fillData: {},
+            gasUsed: GAS_USED,
         };
         const kyber2Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Kyber,
             makerAmount: kyberSample2.output,
             takerAmount: kyberSample2.input,
             fillData: {},
+            gasUsed: GAS_USED,
         };
 
         const expectedSourcesConsidered: QuoteReportEntry[] = [rfqtOrder1Source, rfqtOrder2Source];
@@ -215,12 +228,14 @@ describe('generateQuoteReport', async () => {
             input: new BigNumber(10000),
             output: new BigNumber(10001),
             fillData: {},
+            gasUsed: GAS_USED,
         };
         const uniswapSample1: DexSample = {
             source: ERC20BridgeSource.UniswapV2,
             input: new BigNumber(10003),
             output: new BigNumber(10004),
             fillData: {},
+            gasUsed: GAS_USED,
         };
         const orderbookOrder1: NativeOrderWithFillableAmounts = {
             order: new LimitOrder({ takerAmount: new BigNumber(1101) }),
@@ -267,18 +282,21 @@ describe('generateQuoteReport', async () => {
             fillData: {
                 order: orderbookOrder1.order,
             } as NativeLimitOrderFillData,
+            gasUsed: NATIVE_LIMIT_ORDER_GAS_USED,
         };
         const uniswap1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.UniswapV2,
             makerAmount: uniswapSample1.input,
             takerAmount: uniswapSample1.output,
             fillData: {},
+            gasUsed: GAS_USED,
         };
         const kyber1Source: BridgeQuoteReportEntry = {
             liquiditySource: ERC20BridgeSource.Kyber,
             makerAmount: kyberSample1.input,
             takerAmount: kyberSample1.output,
             fillData: {},
+            gasUsed: GAS_USED,
         };
 
         // No order is considered here because only Native RFQ orders are considered.
@@ -303,15 +321,15 @@ describe('generateQuoteReport', async () => {
                 source: ERC20BridgeSource.Balancer,
                 fillData: {},
                 encodeCall: () => '',
-                handleCallResults: _callResults => [new BigNumber(1337)],
-                handleRevert: _c => [],
+                handleCallResults: _callResults => ({ gasUsed: [], samples: [new BigNumber(1337)] }),
+                handleRevert: _c => ({ gasUsed: [], samples: [] }),
             },
             secondHopSource: {
                 source: ERC20BridgeSource.Curve,
                 fillData: {},
                 encodeCall: () => '',
-                handleCallResults: _callResults => [new BigNumber(1337)],
-                handleRevert: _c => [],
+                handleCallResults: _callResults => ({ gasUsed: [], samples: [new BigNumber(1337)] }),
+                handleRevert: _c => ({ gasUsed: [], samples: [] }),
             },
         };
         const twoHopSample: DexSample<MultiHopFillData> = {
@@ -319,6 +337,7 @@ describe('generateQuoteReport', async () => {
             input: new BigNumber(3005),
             output: new BigNumber(3006),
             fillData: twoHopFillData,
+            gasUsed: GAS_USED,
         };
 
         const orderReport = generateQuoteReport(marketOperation, [orderbookOrder1], twoHopSample);
@@ -328,6 +347,7 @@ describe('generateQuoteReport', async () => {
             takerAmount: twoHopSample.input,
             hopSources: [ERC20BridgeSource.Balancer, ERC20BridgeSource.Curve],
             fillData: twoHopFillData,
+            gasUsed: GAS_USED,
         };
 
         // No entry is present in considered because No RFQ orders were reported.
@@ -356,12 +376,12 @@ function expectEqualQuoteReportEntries(
             expect(actualEntry.fillData.order).to.eql(
                 // tslint:disable-next-line:no-unnecessary-type-assertion
                 (expectedEntry.fillData as NativeFillData).order,
-                `${variableName} incorrect at index ${idx}`,
+                `${actualEntry.liquiditySource} ${variableName} incorrect at index ${idx}`,
             );
         }
         expect(_.omit(actualEntry, 'fillData')).to.eql(
             _.omit(expectedEntry, 'fillData'),
-            `${variableName} incorrect at index ${idx}`,
+            `${actualEntry.liquiditySource} ${variableName} incorrect at index ${idx}`,
         );
     });
 }

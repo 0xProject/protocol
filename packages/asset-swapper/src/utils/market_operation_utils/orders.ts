@@ -3,7 +3,7 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
-import { MAX_UINT256, ZERO_AMOUNT } from './constants';
+import { MAX_UINT256, NATIVE_LIMIT_ORDER_GAS_USED, NATIVE_RFQT_GAS_USED, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
@@ -61,6 +61,7 @@ export function createOrdersFromTwoHopSample(
         output: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
         subFills: [],
         fillData: firstHopSource.fillData,
+        gasUsed: ZERO_AMOUNT,
     };
     const secondHopFill: CollapsedFill = {
         sourcePathId: '',
@@ -70,6 +71,7 @@ export function createOrdersFromTwoHopSample(
         output: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
         subFills: [],
         fillData: secondHopSource.fillData,
+        gasUsed: sample.gasUsed,
     };
     return [
         createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
@@ -329,6 +331,7 @@ export function createBridgeOrder(
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
         fills: [fill],
+        gasUsed: fill.gasUsed,
     };
 }
 
@@ -487,6 +490,16 @@ export function createNativeOptimizedOrder(
         fillData,
     };
     return fill.type === FillQuoteTransformerOrderType.Rfq
-        ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
-        : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
+        ? {
+              ...base,
+              type: FillQuoteTransformerOrderType.Rfq,
+              fillData: fillData as NativeRfqOrderFillData,
+              gasUsed: NATIVE_RFQT_GAS_USED,
+          }
+        : {
+              ...base,
+              type: FillQuoteTransformerOrderType.Limit,
+              fillData: fillData as NativeLimitOrderFillData,
+              gasUsed: NATIVE_LIMIT_ORDER_GAS_USED,
+          };
 }

@@ -58,12 +58,25 @@ contract MixinCurve {
         internal
         returns (uint256 boughtAmount)
     {
+        return _tradeCurveInternal(WETH, sellToken, buyToken, sellAmount, bridgeData);
+    }
+
+    function _tradeCurveInternal(
+        IEtherTokenV06 weth,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+    )
+        internal
+        returns (uint256 boughtAmount)
+    {
         // Decode the bridge data to get the Curve metadata.
         CurveBridgeData memory data = abi.decode(bridgeData, (CurveBridgeData));
         uint256 payableAmount;
-        if (sellToken == WETH) {
+        if (sellToken == weth) {
             payableAmount = sellAmount;
-            WETH.withdraw(sellAmount);
+            weth.withdraw(sellAmount);
         } else {
             sellToken.approveIfBelow(data.curveAddress, sellAmount);
         }
@@ -83,9 +96,9 @@ contract MixinCurve {
             resultData.rrevert();
         }
 
-        if (buyToken == WETH) {
+        if (buyToken == weth) {
             boughtAmount = address(this).balance;
-            WETH.deposit{ value: boughtAmount }();
+            weth.deposit{ value: boughtAmount }();
         }
 
         return buyToken.balanceOf(address(this)).safeSub(beforeBalance);

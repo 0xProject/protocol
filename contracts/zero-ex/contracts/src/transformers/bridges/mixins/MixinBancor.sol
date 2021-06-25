@@ -39,6 +39,13 @@ interface IBancorNetwork {
         external
         payable
         returns (uint256);
+    function conversionPath(address _sourceToken, address _targetToken) external view returns (address[] memory);
+    function rateByPath(address[] memory _path, uint256 _amount) external view returns (uint256);
+}
+
+interface IBancorRegistry {
+    function getAddress(bytes32 _contractName) external view returns (address);
+    function BANCOR_NETWORK() external view returns (bytes32);
 }
 
 
@@ -63,6 +70,18 @@ contract MixinBancor {
         internal
         returns (uint256 boughtAmount)
     {
+        return _tradeBancorInternal(WETH, buyToken, sellAmount, bridgeData);
+    }
+
+    function _tradeBancorInternal(
+        IEtherTokenV06 weth,
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+    )
+        internal
+        returns (uint256 boughtAmount)
+    {
         // Decode the bridge data.
         IBancorNetwork bancorNetworkAddress;
         IERC20TokenV06[] memory path;
@@ -79,7 +98,7 @@ contract MixinBancor {
         require(path.length >= 2, "MixinBancor/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
             path[path.length - 1] == buyToken ||
-            (path[path.length - 1] == BANCOR_ETH_ADDRESS && buyToken == WETH),
+            (path[path.length - 1] == BANCOR_ETH_ADDRESS && buyToken == weth),
             "MixinBancor/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
 
@@ -88,7 +107,7 @@ contract MixinBancor {
         // The Bancor path will have ETH as the 0xeee address
         // Bancor expects to be paid in ETH not WETH
         if (path[0] == BANCOR_ETH_ADDRESS) {
-            WETH.withdraw(sellAmount);
+            weth.withdraw(sellAmount);
             payableAmount = sellAmount;
         } else {
             // Grant an allowance to the Bancor Network.
@@ -109,7 +128,7 @@ contract MixinBancor {
             0 // affiliateFee; no fee paid
         );
         if (path[path.length - 1] == BANCOR_ETH_ADDRESS) {
-            WETH.deposit{value: boughtAmount}();
+            weth.deposit{value: boughtAmount}();
         }
 
         return boughtAmount;
