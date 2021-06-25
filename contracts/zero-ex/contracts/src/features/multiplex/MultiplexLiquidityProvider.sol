@@ -24,12 +24,14 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../external/ILiquidityProviderSandbox.sol";
+import "../../fixins/FixinCommon.sol";
 import "../../fixins/FixinTokenSpender.sol";
 import "../../vendor/ILiquidityProvider.sol";
 import "../interfaces/IMultiplexFeature.sol";
 
 
 abstract contract MultiplexLiquidityProvider is
+    FixinCommon,
     FixinTokenSpender
 {
     using LibERC20TokenV06 for IERC20TokenV06;
@@ -54,13 +56,16 @@ abstract contract MultiplexLiquidityProvider is
         SANDBOX = sandbox;
     }
 
-    function _batchSellLiquidityProvider(
-        IMultiplexFeature.BatchSellState memory state,
-        IMultiplexFeature.BatchSellParams memory params,
-        bytes memory wrappedCallData,
+    // A payable external function that we can delegatecall to
+    // swallow reverts and roll back the input token transfer.
+    function _batchSellLiquidityProviderExternal(
+        IMultiplexFeature.BatchSellParams calldata params,
+        bytes calldata wrappedCallData,
         uint256 sellAmount
     )
-        internal
+        external
+        payable
+        returns (uint256 boughtAmount)
     {
         // Decode the provider address and auxiliary data.
         (address provider, bytes memory auxiliaryData) = abi.decode(
@@ -99,7 +104,7 @@ abstract contract MultiplexLiquidityProvider is
         );
         // Compute amount of output token received by the
         // recipient.
-        uint256 boughtAmount = params.outputToken
+        boughtAmount = params.outputToken
             .compatBalanceOf(params.recipient)
             .safeSub(balanceBefore);
 
@@ -111,9 +116,32 @@ abstract contract MultiplexLiquidityProvider is
             provider,
             params.recipient
         );
-        // Increment the sold and bought amounts.
-        state.soldAmount = state.soldAmount.safeAdd(sellAmount);
-        state.boughtAmount = state.boughtAmount.safeAdd(boughtAmount);
+    }
+
+    function _batchSellLiquidityProvider(
+        IMultiplexFeature.BatchSellState memory state,
+        IMultiplexFeature.BatchSellParams memory params,
+        bytes memory wrappedCallData,
+        uint256 sellAmount
+    )
+        internal
+    {
+        // Swallow reverts
+        (bool success, bytes memory resultData) = _implementation.delegatecall(
+            abi.encodeWithSelector(
+                this._batchSellLiquidityProviderExternal.selector,
+                params,
+                wrappedCallData,
+                sellAmount
+            )
+        );
+        if (success) {
+            // Decode the output token amount on success.
+            uint256 boughtAmount = abi.decode(resultData, (uint256));
+            // Increment the sold and bought amounts.
+            state.soldAmount = state.soldAmount.safeAdd(sellAmount);
+            state.boughtAmount = state.boughtAmount.safeAdd(boughtAmount);
+        }
     }
 
     // This function is called after tokens have already been transferred
