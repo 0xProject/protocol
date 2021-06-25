@@ -1,5 +1,14 @@
 [
     {
+        "version": "7.0.0",
+        "changes": [
+            {
+                "note": "SwapRevertSampler. Refactored sampler to use exchange functions. Remove gas schedule.",
+                "pr": 245
+            }
+        ]
+    },
+    {
         "timestamp": 1624562704,
         "version": "6.18.2",
         "changes": [

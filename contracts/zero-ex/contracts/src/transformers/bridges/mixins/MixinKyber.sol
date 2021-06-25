@@ -53,16 +53,6 @@ interface IKyberNetworkProxy {
         payable
         returns (uint256 boughtAmount);
 
-    function getExpectedRateAfterFee(
-        address src,
-        address dest,
-        uint256 srcQty,
-        uint256 platformFeeBps,
-        bytes calldata hint
-    )
-        external
-        view
-        returns (uint256 expectedRate);
 }
 
 contract MixinKyber {

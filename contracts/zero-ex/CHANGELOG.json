@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.27.0",
+        "changes": [
+            {
+                "note": "Refactor Mixins which use WETH to also have an Internal variant, allowing WETH to be passed in for SwapRevertSampler",
+                "pr": 245
+            }
+        ]
+    },
+    {
         "version": "0.26.0",
         "changes": [
             {

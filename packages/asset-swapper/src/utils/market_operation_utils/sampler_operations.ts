@@ -610,7 +610,6 @@ export class SamplerOperations {
     ): MeasuredSourceQuoteOperation<BalancerFillData> {
         return new MeasuredSamplerContractOperation({
             deregisterable: false,
-            log: true,
             source,
             fillData: { poolAddress },
             contract: this._samplerContract,
@@ -765,7 +764,6 @@ export class SamplerOperations {
     ): MeasuredSourceQuoteOperation<UniswapV3FillData> {
         return new MeasuredSamplerContractOperation({
             deregisterable: true,
-            log: true,
             source,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromUniswapV3,

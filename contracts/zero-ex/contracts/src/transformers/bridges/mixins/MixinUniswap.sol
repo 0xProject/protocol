@@ -125,7 +125,7 @@ contract MixinUniswap {
         internal
         returns (uint256 boughtAmount)
     {
-        _tradeUniswapInternal(WETH, sellToken, buyToken, sellAmount, bridgeData);
+        return _tradeUniswapInternal(WETH, sellToken, buyToken, sellAmount, bridgeData);
     }
 
     function _tradeUniswapInternal(
