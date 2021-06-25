@@ -22,12 +22,14 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "../../fixins/FixinCommon.sol";
 import "../../fixins/FixinTokenSpender.sol";
 import "../../vendor/IUniswapV2Pair.sol";
 import "../interfaces/IMultiplexFeature.sol";
 
 
 abstract contract MultiplexUniswapV2 is
+    FixinCommon,
     FixinTokenSpender
 {
     using LibSafeMathV06 for uint256;
@@ -55,13 +57,16 @@ abstract contract MultiplexUniswapV2 is
         SUSHISWAP_PAIR_INIT_CODE_HASH = sushiswapPairInitCodeHash;
     }
 
-    function _batchSellUniswapV2(
-        IMultiplexFeature.BatchSellState memory state,
-        IMultiplexFeature.BatchSellParams memory params,
-        bytes memory wrappedCallData,
+    // A payable external function that we can delegatecall to
+    // swallow reverts and roll back the input token transfer.
+    function _batchSellUniswapV2External(
+        IMultiplexFeature.BatchSellParams calldata params,
+        bytes calldata wrappedCallData,
         uint256 sellAmount
     )
-        internal
+        external
+        payable
+        returns (uint256 boughtAmount)
     {
         (address[] memory tokens, bool isSushi) = abi.decode(
             wrappedCallData,
@@ -100,16 +105,41 @@ abstract contract MultiplexUniswapV2 is
             );
         }
         // Execute the Uniswap/Sushiswap trade.
-        uint256 boughtAmount = _sellToUniswapV2(
+        return _sellToUniswapV2(
             tokens,
             sellAmount,
             isSushi,
             firstPairAddress,
             params.recipient
         );
-        // Increment the sold and bought amounts.
-        state.soldAmount = state.soldAmount.safeAdd(sellAmount);
-        state.boughtAmount = state.boughtAmount.safeAdd(boughtAmount);
+    }
+
+    function _batchSellUniswapV2(
+        IMultiplexFeature.BatchSellState memory state,
+        IMultiplexFeature.BatchSellParams memory params,
+        bytes memory wrappedCallData,
+        uint256 sellAmount
+    )
+        internal
+    {
+        // Swallow reverts
+        (bool success, bytes memory resultData) = _implementation.delegatecall(
+            abi.encodeWithSelector(
+                this._batchSellUniswapV2External.selector,
+                params,
+                wrappedCallData,
+                sellAmount
+            )
+        );
+        if (success) {
+            // Decode the output token amount on success.
+            uint256 boughtAmount = abi.decode(resultData, (uint256));
+            // Increment the sold and bought amounts.
+            state.soldAmount = state.soldAmount.safeAdd(sellAmount);
+            state.boughtAmount = state.boughtAmount.safeAdd(boughtAmount);
+        } else {
+            assembly { revert(add(resultData, 32), mload(resultData)) }
+        }
     }
 
     function _multiHopSellUniswapV2(
