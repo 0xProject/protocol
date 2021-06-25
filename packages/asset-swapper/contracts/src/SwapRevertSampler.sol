@@ -374,7 +374,12 @@ contract SwapRevertSampler {
                     }
                 }
             }
-            if (_gasUsed.length > 0 && buyAmounts.length > 0) {
+            // We've encountered reverts, so bail
+            if (_gasUsed.length == 0 || _gasUsed[0] == 0) {
+                return (gasUsed, takerTokenAmounts);
+            }
+
+            if (buyAmounts.length > 0) {
                 gasUsed[i] = _gasUsed[0];
                 // We do our best to close in on the requested amount, but we can either over buy or under buy and exit
                 // if we hit a max iteration limit
