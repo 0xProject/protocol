@@ -25,22 +25,23 @@ const kyberSample1: DexSample = {
     input: new BigNumber(10000),
     output: new BigNumber(10001),
     fillData: {},
-    gasUsed: new BigNumber(1),
+    gasUsed: new BigNumber(450000),
 };
 const uniswapSample1: DexSample = {
     source: ERC20BridgeSource.UniswapV2,
     input: new BigNumber(10003),
     output: new BigNumber(10004),
     fillData: {},
-    gasUsed: new BigNumber(1),
+    gasUsed: new BigNumber(90000),
 };
 const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
 
+// At this stage it has been gas price adjusted
 const exchangeProxyOverhead = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.RfqOrder].includes(sourceFlags)) {
-        return new BigNumber(20e3);
+        return new BigNumber(20e3).times(GAS_PRICE);
     } else {
-        return new BigNumber(200e3);
+        return new BigNumber(200e3).times(GAS_PRICE);
     }
 };
 
@@ -104,7 +105,7 @@ describe('getComparisonPrices', async () => {
         );
 
         // expected outcome
-        const EXPECTED_PRICE = new BigNumber('500.3');
+        const EXPECTED_PRICE = new BigNumber('500.30');
 
         expect(comparisonPrices.wholeOrder).to.be.bignumber.eq(EXPECTED_PRICE);
     });
