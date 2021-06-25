@@ -27,6 +27,7 @@ export class QuoteServerClient {
         try {
             const response = await this._axiosInstance.post(`${makerUri}/submit`, payload, {
                 timeout: ONE_SECOND_MS * 2,
+                headers: { 'Content-Type': 'application/json' },
             });
             const validator = schemaValidator.validate(response.data, schemas.submitReceiptSchema);
             if (validator.errors.length > 0) {
