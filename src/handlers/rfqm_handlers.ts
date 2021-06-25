@@ -25,6 +25,7 @@ import {
     SubmitRfqmSignedQuoteParams,
 } from '../services/rfqm_service';
 import { ConfigManager } from '../utils/config_manager';
+import { transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
     StringMetaTransactionFields,
     StringSignatureFields,
@@ -130,6 +131,12 @@ export class RfqmHandlers {
 
         // Result
         res.status(HttpStatus.OK).send(firmQuote);
+    }
+
+    public async getHealthAsync(req: express.Request, res: express.Response): Promise<void> {
+        const result = await this._rfqmService.runHealthCheckAsync();
+        const response = transformResultToShortResponse(result);
+        res.status(HttpStatus.OK).send(response);
     }
 
     public async getStatusAsync(req: express.Request, res: express.Response): Promise<void> {

@@ -11,6 +11,7 @@ export function createRfqmRouter(rfqmService: RfqmService, configManager: Config
     const handlers = new RfqmHandlers(rfqmService, configManager);
 
     // Routes
+    router.get('/healthz', asyncHandler(handlers.getHealthAsync.bind(handlers)));
     router.get('/price', asyncHandler(handlers.getIndicativeQuoteAsync.bind(handlers)));
     router.get('/quote', asyncHandler(handlers.getFirmQuoteAsync.bind(handlers)));
     router.get('/status/:orderHash', asyncHandler(handlers.getStatusAsync.bind(handlers)));

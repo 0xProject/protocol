@@ -290,6 +290,18 @@ describe(SUITE_NAME, () => {
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
+    describe('rfqm/v1/healthz', async () => {
+        it('should return a 200 OK with active pairs', async () => {
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/healthz`)
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+            expect(appResponse.body.isOperational).to.equal(true);
+            expect(appResponse.body.pairs[0][0]).to.equal('0x0b1ba0af832d7c05fd64161e0db78e85978e8082');
+            expect(appResponse.body.pairs[0][1]).to.equal('0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c');
+        });
+    });
+
     describe('rfqm/v1/price', async () => {
         it('should return a 200 OK with an indicative quote for sells', async () => {
             const sellAmount = 100000000000000000;
