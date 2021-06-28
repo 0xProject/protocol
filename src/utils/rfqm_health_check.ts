@@ -1,3 +1,8 @@
+import { Producer } from 'sqs-producer';
+
+const SQS_QUEUE_SIZE_DEGRADED_THRESHOLD = 10; // More messages sitting in queue than this will cause a DEGRADED issue
+const SQS_QUEUE_SIZE_FAILED_THRESHOLD = 20; // More messages sitting in queue than this will cause a FAILED issue
+
 export enum HealthCheckStatus {
     Operational = 'operational',
     Unknown = 'unknown',
@@ -47,4 +52,27 @@ export function transformResultToShortResponse(result: HealthCheckResult): RfqmH
                 return [tokenA, tokenB];
             }),
     };
+}
+
+/**
+ * Runs checks on the SQS queue to detect if there are messages piling up.
+ */
+export async function checkSqsQueueAsync(producer: Producer): Promise<HealthCheckIssue[]> {
+    const results: HealthCheckIssue[] = [];
+    const messagesInQueue = await producer.queueSize();
+    if (messagesInQueue === 0) {
+        return results;
+    }
+    if (messagesInQueue > SQS_QUEUE_SIZE_FAILED_THRESHOLD) {
+        results.push({
+            status: HealthCheckStatus.Failed,
+            description: `SQS queue contains ${messagesInQueue} messages (threshold is ${SQS_QUEUE_SIZE_FAILED_THRESHOLD})`,
+        });
+    } else if (messagesInQueue > SQS_QUEUE_SIZE_DEGRADED_THRESHOLD) {
+        results.push({
+            status: HealthCheckStatus.Degraded,
+            description: `SQS queue contains ${messagesInQueue} messages (threshold is ${SQS_QUEUE_SIZE_DEGRADED_THRESHOLD})`,
+        });
+    }
+    return results;
 }
