@@ -315,14 +315,14 @@ describe(SUITE_NAME, () => {
                 reason: 'Validation Failed',
                 validationErrors: [
                     {
-                        field: 'instance.quoteToken', // FIXME (xianny): bug in jsonschemas module
-                        code: 1001,
-                        reason: 'does not match pattern "^0x[0-9a-fA-F]{40}$"',
-                    },
-                    {
                         field: 'baseToken',
                         code: 1000,
-                        reason: 'requires property "baseToken"',
+                        reason: "should have required property 'baseToken'",
+                    },
+                    {
+                        field: 'quoteToken',
+                        code: 1001,
+                        reason: 'should match pattern "^0x[0-9a-fA-F]{40}$"',
                     },
                 ],
             };
@@ -371,12 +371,12 @@ describe(SUITE_NAME, () => {
                     {
                         field: 'taker',
                         code: ValidationErrorCodes.RequiredField,
-                        reason: 'requires property "taker"',
+                        reason: "should have required property 'taker'",
                     },
                     {
                         field: 'expiry',
                         code: ValidationErrorCodes.RequiredField,
-                        reason: 'requires property "expiry"',
+                        reason: "should have required property 'expiry'",
                     },
                 ],
             };

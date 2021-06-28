@@ -30,7 +30,7 @@ export class QuoteServerClient {
                 headers: { 'Content-Type': 'application/json' },
             });
             const validator = schemaValidator.validate(response.data, schemas.submitReceiptSchema);
-            if (validator.errors.length > 0) {
+            if (validator.errors && validator.errors.length > 0) {
                 const errorsMsg = validator.errors.map((err) => err.toString()).join(',');
                 throw new Error(`Error from validator: ${errorsMsg}`);
             }

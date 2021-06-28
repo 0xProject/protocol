@@ -1,5 +1,4 @@
-import { Schema, SchemaValidator } from '@0x/json-schemas';
-import { ValidationError as SchemaValidationError } from 'jsonschema';
+import { AJV, SchemaValidator } from '@0x/json-schemas';
 
 import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from '../errors';
 import { schemas } from '../schemas';
@@ -12,9 +11,9 @@ for (const schema of Object.values(schemas)) {
 }
 
 export const schemaUtils = {
-    validateSchema(instance: any, schema: Schema): void {
+    validateSchema(instance: any, schema: object): void {
         const validationResult = schemaValidator.validate(instance, schema);
-        if (validationResult.errors.length === 0) {
+        if (!validationResult.errors || validationResult.errors.length === 0) {
             return;
         } else {
             const validationErrorItems = validationResult.errors.map((schemaValidationError) =>
@@ -23,14 +22,12 @@ export const schemaUtils = {
             throw new ValidationError(validationErrorItems);
         }
     },
-    addSchema(schema: Schema): void {
+    addSchema(schema: object): void {
         schemaValidator.addSchema(schema);
     },
 };
 
-function schemaValidationErrorToValidationErrorItem(
-    schemaValidationError: Omit<SchemaValidationError, 'stack'>,
-): ValidationErrorItem {
+function schemaValidationErrorToValidationErrorItem(schemaValidationErrorObject: AJV.ErrorObject): ValidationErrorItem {
     if (
         [
             'type',
@@ -45,36 +42,36 @@ function schemaValidationErrorToValidationErrorItem(
             'uniqueItems',
             'items',
             'dependencies',
-        ].includes(schemaValidationError.name)
+        ].includes(schemaValidationErrorObject.keyword)
     ) {
         return {
-            field: schemaValidationError.property,
+            field: schemaValidationErrorObject.dataPath.replace('.', ''),
             code: ValidationErrorCodes.IncorrectFormat,
-            reason: schemaValidationError.message,
+            reason: schemaValidationErrorObject.message || '',
         };
     } else if (
         ['minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'maxItems', 'enum', 'const'].includes(
-            schemaValidationError.name,
+            schemaValidationErrorObject.keyword,
         )
     ) {
         return {
-            field: schemaValidationError.property,
+            field: schemaValidationErrorObject.dataPath.replace('.', ''),
             code: ValidationErrorCodes.ValueOutOfRange,
-            reason: schemaValidationError.message,
+            reason: schemaValidationErrorObject.message || '',
         };
-    } else if (schemaValidationError.name === 'required') {
+    } else if (schemaValidationErrorObject.keyword === 'required') {
         return {
-            field: schemaValidationError.argument,
+            field: (schemaValidationErrorObject.params as AJV.RequiredParams).missingProperty,
             code: ValidationErrorCodes.RequiredField,
-            reason: schemaValidationError.message,
+            reason: schemaValidationErrorObject.message || '',
         };
-    } else if (schemaValidationError.name === 'not') {
+    } else if (schemaValidationErrorObject.keyword === 'not') {
         return {
-            field: schemaValidationError.property,
+            field: schemaValidationErrorObject.dataPath.replace('.', ''),
             code: ValidationErrorCodes.UnsupportedOption,
-            reason: schemaValidationError.message,
+            reason: schemaValidationErrorObject.message || '',
         };
     } else {
-        throw new Error(`Unknnown schema validation error name: ${schemaValidationError.name}`);
+        throw new Error(`Unknown schema validation error name: ${schemaValidationErrorObject.keyword}`);
     }
 }

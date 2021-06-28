@@ -21,7 +21,7 @@
             "$ref": "/addressSchema"
         },
         "pool": {
-            "type": "hexSchema"
+            "$ref": "/hexSchema"
         },
         "expiry": {
             "$ref": "/wholeNumberSchema"
