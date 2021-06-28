@@ -88,7 +88,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
             throw new Error(`META_TX_WORKER_MNEMONIC must be defined to run RFQM service as a worker`);
         }
         if (RFQM_WORKER_INDEX === undefined) {
-            throw new Error(`META_TX_WORKER_INDEX must be defined to run RFQM service as a worker`);
+            throw new Error(`RFQM_WORKER_INDEX must be defined to run RFQM service as a worker`);
         }
         const workerPrivateKey = RfqBlockchainUtils.getPrivateKeyFromIndexAndPhrase(
             META_TX_WORKER_MNEMONIC,

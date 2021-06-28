@@ -58,7 +58,7 @@ if (require.main === module) {
             throw new Error(`META_TX_WORKER_MNEMONIC must be defined to use RFQM worker runner`);
         }
         if (RFQM_WORKER_INDEX === undefined) {
-            throw new Error(`META_TX_WORKER_INDEX must be defined to use RFQM worker runner`);
+            throw new Error(`RFQM_WORKER_INDEX must be defined to use RFQM worker runner`);
         }
 
         const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(
