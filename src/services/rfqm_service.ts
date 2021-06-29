@@ -6,7 +6,7 @@ import { Fee, SubmitRequest } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import delay from 'delay';
-import { Counter } from 'prom-client';
+import { Counter, Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import {
@@ -16,7 +16,13 @@ import {
     RFQM_WORKER_INDEX,
     RFQT_REQUEST_MAX_RESPONSE_MS,
 } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_TX_GAS_ESTIMATE } from '../constants';
+import {
+    ETH_DECIMALS,
+    NULL_ADDRESS,
+    ONE_SECOND_MS,
+    RFQM_MINIMUM_EXPIRY_DURATION_MS,
+    RFQM_TX_GAS_ESTIMATE,
+} from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
 import { RfqmJobStatus } from '../entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../entities/RfqmTransactionSubmissionEntity';
@@ -143,6 +149,30 @@ const RFQM_DEFAULT_OPTS = {
     altRfqAssetOfferings: {},
     isLastLook: true,
 };
+
+const RFQM_WORKER_BALANCE = new Gauge({
+    name: 'rfqm_worker_balance',
+    labelNames: ['address'],
+    help: 'Worker balance for RFQM',
+});
+
+const RFQM_WORKER_READY = new Counter({
+    name: 'rfqm_worker_ready',
+    labelNames: ['address'],
+    help: 'A worker passed the readiness check, and is ready to pick up work',
+});
+
+const RFQM_WORKER_NOT_READY = new Counter({
+    name: 'rfqm_worker_not_ready',
+    labelNames: ['address'],
+    help: 'A worker did not pass the readiness check, and was not able to pick up work',
+});
+
+const RFQM_JOB_REPAIR = new Gauge({
+    name: 'rfqm_job_to_repair',
+    labelNames: ['address'],
+    help: 'A submitted job failed and started repair mode',
+});
 
 const RFQM_SIGNED_QUOTE_NOT_FOUND = new Counter({
     name: 'rfqm_signed_quote_not_found',
@@ -490,20 +520,25 @@ export class RfqmService {
             gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
         } catch (error) {
             logger.error({ error }, 'Current gas price is unable to be fetched, marking worker as not ready.');
+            RFQM_WORKER_NOT_READY.labels(workerAddress).inc();
             return false;
         }
 
+        const balance = await this._blockchainUtils.getAccountBalanceAsync(workerAddress);
+        const balanceUnitAmount = Web3Wrapper.toUnitAmount(balance, ETH_DECIMALS).decimalPlaces(PRICE_DECIMAL_PLACES);
+        RFQM_WORKER_BALANCE.labels(workerAddress).set(balanceUnitAmount.toNumber());
+
         // check for outstanding jobs from the worker and resolve them
         const unresolvedJobs = await this._dbUtils.findUnresolvedJobsAsync(workerAddress);
+        RFQM_JOB_REPAIR.labels(workerAddress).inc(unresolvedJobs.length);
         for (const job of unresolvedJobs) {
             logger.info({ workerAddress, orderHash: job.orderHash }, `Unresolved job found, attempting to re-process`);
             await this.processRfqmJobAsync(job.orderHash, workerAddress);
         }
 
-        const balance = await this._blockchainUtils.getAccountBalanceAsync(workerAddress);
         const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(workerAddress, balance, gasPrice);
-
         if (!isWorkerReady) {
+            RFQM_WORKER_NOT_READY.labels(workerAddress).inc();
             return false;
         }
 
@@ -517,6 +552,7 @@ export class RfqmService {
             logger.error({ workerAddress, balance }, `Worker failed to write a heartbeat to storage: ${e}`);
         }
 
+        RFQM_WORKER_READY.labels(workerAddress).inc();
         return true;
     }
 
