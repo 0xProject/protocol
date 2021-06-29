@@ -339,6 +339,13 @@ export const RFQM_META_TX_SQS_URL: string | undefined = _.isEmpty(process.env.RF
     ? undefined
     : assertEnvVarType('RFQM_META_TX_SQS_URL', process.env.RFQM_META_TX_SQS_URL, EnvVarType.Url);
 
+// If set to TRUE, system health will change to MAINTENANCE and integrators will be told to not
+// send RFQM orders.
+// tslint:disable-next-line boolean-naming
+export const RFQM_MAINTENANCE_MODE: boolean = _.isEmpty(process.env.RFQM_MAINTENANCE_MODE)
+    ? false
+    : assertEnvVarType('RFQM_MAINTENANCE_MODE', process.env.RFQM_MAINTENANCE_MODE, EnvVarType.Boolean);
+
 // tslint:disable-next-line:boolean-naming
 export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
 
