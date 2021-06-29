@@ -146,6 +146,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.BalancerV2,
         ]),
     },
     new SourceFilters([]),
@@ -237,6 +238,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.BalancerV2,
         ]),
     },
     new SourceFilters([]),
@@ -1283,6 +1285,7 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
 export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+        [ChainId.Polygon]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
     },
     NULL_ADDRESS,
 );
@@ -1303,7 +1306,13 @@ export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
-export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2';
+
+export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',
+    },
+    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
+);
 
 export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
