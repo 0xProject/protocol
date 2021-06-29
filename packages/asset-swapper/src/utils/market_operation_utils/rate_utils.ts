@@ -30,6 +30,7 @@ export function getTwoHopAdjustedRate(
             SOURCE_FLAGS.MultiHop |
                 SOURCE_FLAGS[fillData.firstHop.source] |
                 SOURCE_FLAGS[fillData.secondHop.source],
+            2,
         ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
     );
     const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);

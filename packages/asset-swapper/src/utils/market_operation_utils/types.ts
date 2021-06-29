@@ -147,7 +147,7 @@ export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
 
 export type FeeEstimate = (fillData: FillData) => number | BigNumber;
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
-export type ExchangeProxyOverhead = (sourceFlags: bigint) => BigNumber;
+export type ExchangeProxyOverhead = (sourceFlags: bigint, numDistinctFills: number) => BigNumber;
 
 /**
  * Options for `getMarketSellOrdersAsync()` and `getMarketBuyOrdersAsync()`.
@@ -236,6 +236,7 @@ export interface GetMarketOrdersOpts {
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: bigint;
+    numDistinctFills: number;
     liquidityDelivered: CollapsedFill[] | DexSample<TwoHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;

@@ -308,7 +308,7 @@ export class SwapQuoter {
             feeSchedule: _.mapValues(fullOpts.feeSchedule, gasCost => (fillData: FillData) =>
                 gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
             ),
-            exchangeProxyOverhead: flags => gasPrice.times(fullOpts.exchangeProxyOverhead(flags)),
+            exchangeProxyOverhead: (...args) => gasPrice.times(fullOpts.exchangeProxyOverhead(...args)),
         };
         // pass the QuoteRequestor on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
@@ -342,7 +342,10 @@ export class SwapQuoter {
         );
 
         // Use the raw gas, not scaled by gas price
-        const exchangeProxyOverhead = fullOpts.exchangeProxyOverhead(result.sourceFlags).toNumber();
+        const exchangeProxyOverhead = fullOpts.exchangeProxyOverhead(
+            result.sourceFlags,
+            result.numDistinctFills,
+        ).toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
 
