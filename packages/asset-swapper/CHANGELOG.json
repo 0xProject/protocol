@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.18.3",
+        "changes": [
+            {
+                "note": "Polygon Balance V2"
+            }
+        ]
+    },
+    {
         "timestamp": 1624562704,
         "version": "6.18.2",
         "changes": [
