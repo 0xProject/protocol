@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.18.3 - _June 29, 2021_
+
+    * Polygon Balance V2
+
 ## v6.18.2 - _June 24, 2021_
 
     * Dependencies updated
