@@ -87,7 +87,7 @@ export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress
     const consumer = new SqsConsumer({
         id: workerAddress,
         sqsClient,
-        beforeHandle: async () => rfqmService.isWorkerReadyAsync(workerAddress),
+        beforeHandle: async () => rfqmService.workerBeforeLogicAsync(workerAddress),
         handleMessage: async (message) => {
             RFQM_JOB_DEQUEUED.inc();
             const { orderHash } = JSON.parse(message.Body!);

@@ -9,7 +9,13 @@ import delay from 'delay';
 import { Counter } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { CHAIN_ID, META_TX_WORKER_REGISTRY, RFQM_MAKER_ASSET_OFFERINGS, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
+import {
+    CHAIN_ID,
+    META_TX_WORKER_REGISTRY,
+    RFQM_MAKER_ASSET_OFFERINGS,
+    RFQM_WORKER_INDEX,
+    RFQT_REQUEST_MAX_RESPONSE_MS,
+} from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
 import { RfqmJobStatus } from '../entities/RfqmJobEntity';
@@ -478,10 +484,7 @@ export class RfqmService {
         };
     }
 
-    /**
-     * isWorkerReadyAsync checks if the worker is ready to accept work
-     */
-    public async isWorkerReadyAsync(workerAddress: string): Promise<boolean> {
+    public async workerBeforeLogicAsync(workerAddress: string): Promise<boolean> {
         let gasPrice;
         try {
             gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
@@ -497,7 +500,24 @@ export class RfqmService {
             await this.processRfqmJobAsync(job.orderHash, workerAddress);
         }
 
-        return this._blockchainUtils.isWorkerReadyAsync(workerAddress, gasPrice);
+        const balance = await this._blockchainUtils.getAccountBalanceAsync(workerAddress);
+        const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(workerAddress, balance, gasPrice);
+
+        if (!isWorkerReady) {
+            return false;
+        }
+
+        // Publish a heartbeat if the worker is ready to go
+        try {
+            if (RFQM_WORKER_INDEX === undefined) {
+                throw new Error('Worker index is undefined');
+            }
+            await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, RFQM_WORKER_INDEX, balance);
+        } catch (e) {
+            logger.error({ workerAddress, balance }, `Worker failed to write a heartbeat to storage: ${e}`);
+        }
+
+        return true;
     }
 
     public async getOrderStatusAsync(orderHash: string): Promise<StatusResponse | null> {

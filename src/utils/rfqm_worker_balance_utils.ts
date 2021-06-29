@@ -63,10 +63,10 @@ async function workerHasNoPendingTransactionsAsync(accountAddress: string, wrapp
 export async function isWorkerReadyAndAbleAsync(
     wrapper: Web3Wrapper,
     accountAddress: string,
+    accountBalance: BigNumber,
     gasPriceBaseUnits: BigNumber,
 ): Promise<boolean> {
     // Check worker has enough ETH to support 3 trades (small buffer)
-    const accountBalance = await wrapper.getBalanceInWeiAsync(accountAddress);
     if (!workerHasEnoughBalance(accountAddress, accountBalance, gasPriceBaseUnits)) {
         return false;
     }

@@ -218,7 +218,11 @@ export class RfqBlockchainUtils {
         return this._web3Wrapper.sendTransactionAsync(txData);
     }
 
-    public async isWorkerReadyAsync(workerAddress: string, gasPrice: BigNumber): Promise<boolean> {
-        return isWorkerReadyAndAbleAsync(this._web3Wrapper, workerAddress, gasPrice);
+    public async getAccountBalanceAsync(accountAddress: string): Promise<BigNumber> {
+        return this._web3Wrapper.getBalanceInWeiAsync(accountAddress);
+    }
+
+    public async isWorkerReadyAsync(workerAddress: string, balance: BigNumber, gasPrice: BigNumber): Promise<boolean> {
+        return isWorkerReadyAndAbleAsync(this._web3Wrapper, workerAddress, balance, gasPrice);
     }
 }

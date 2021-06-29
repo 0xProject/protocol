@@ -6,6 +6,7 @@ import { Connection } from 'typeorm/connection/Connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
 import { RfqmJobConstructorOpts, RfqmOrderTypes, StoredFee, StoredOrder } from '../entities/RfqmJobEntity';
 import { RfqmQuoteConstructorOpts } from '../entities/RfqmQuoteEntity';
+import { RfqmWorkerHeartbeatEntity } from '../entities/RfqmWorkerHeartbeatEntity';
 
 export type RfqmOrder = RfqOrder;
 
@@ -139,6 +140,32 @@ export class RfqmDbUtils {
         await this._connection.getRepository(RfqmTransactionSubmissionEntity).insert(entity);
 
         return entity;
+    }
+
+    public async upsertRfqmWorkerHeartbeatToDbAsync(
+        address: string,
+        index: number,
+        balance: BigNumber,
+    ): Promise<RfqmWorkerHeartbeatEntity> {
+        if (!Number.isInteger(index)) {
+            throw new Error(`Index ${index} is not an integer`);
+        }
+        const repository = this._connection.getRepository(RfqmWorkerHeartbeatEntity);
+
+        // Why I did not use `.save`:
+        // The `rfqm_worker_heartbeat` table has a trigger to automatically update the timestamp on UPDATE
+        // but the `.save` functionality is smart enough to not actually execute the update if none of the
+        // data has changed. Since this only happens when a worker balance changes, the timestamp won't
+        // update unless `.update` is explicitly called.
+        const updatedEntity = await repository.preload({ address, index, balance });
+        if (updatedEntity !== undefined) {
+            await this._connection.getRepository(RfqmWorkerHeartbeatEntity).update(address, updatedEntity);
+            return updatedEntity;
+        }
+
+        const newEntity = new RfqmWorkerHeartbeatEntity({ address, index, balance });
+        await this._connection.getRepository(RfqmWorkerHeartbeatEntity).insert(newEntity);
+        return newEntity;
     }
 
     public async updateRfqmTransactionSubmissionsAsync(
