@@ -292,6 +292,7 @@ export class Path {
     private _addFill(fill: Fill): void {
         this._fillsById[fill.sourcePathId] = this._fillsById[fill.sourcePathId] || [];
         this._fillsById[fill.sourcePathId].push(fill);
+        this._numDistinctFills = Object.keys(this._fillsById).length;
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
