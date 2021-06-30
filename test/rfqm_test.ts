@@ -441,7 +441,7 @@ describe(SUITE_NAME, () => {
             );
         });
 
-        it('should return a 404 NOT FOUND Error if no valid quotes found', async () => {
+        it('should return a 200 OK, liquidityAvailable === false if no valid quotes found', async () => {
             const sellAmount = 100000000000000000;
             const quotedAmount = 200000000000000000;
             const params = new URLSearchParams({
@@ -499,10 +499,11 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/price?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
-                        .expect(HttpStatus.NOT_FOUND)
+                        .expect(HttpStatus.OK)
                         .expect('Content-Type', /json/);
 
-                    expect(appResponse.body.reason).to.equal('Not Found');
+                    expect(appResponse.body.liquidityAvailable).to.equal(false);
+                    expect(appResponse.body.price).to.equal(undefined);
                 },
                 axiosClient,
             );
@@ -766,7 +767,7 @@ describe(SUITE_NAME, () => {
             );
         });
 
-        it('should return a 404 NOT FOUND if no valid firm quotes found', async () => {
+        it('should return a 200 OK, liquidityAvailable === false if no valid firm quotes found', async () => {
             const sellAmount = 100000000000000000;
             const insufficientSellAmount = 1;
 
@@ -848,10 +849,11 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/quote?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
-                        .expect(HttpStatus.NOT_FOUND)
+                        .expect(HttpStatus.OK)
                         .expect('Content-Type', /json/);
 
-                    expect(appResponse.body.reason).to.equal('Not Found');
+                    expect(appResponse.body.liquidityAvailable).to.equal(false);
+                    expect(appResponse.body.price).to.equal(undefined);
                 },
                 axiosClient,
             );

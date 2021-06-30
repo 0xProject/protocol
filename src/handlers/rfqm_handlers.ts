@@ -3,7 +3,6 @@ import {
     InternalServerError,
     InvalidAPIKeyError,
     isAPIError,
-    NotFoundError,
     NotImplementedError,
     ValidationError,
     ValidationErrorCodes,
@@ -96,14 +95,16 @@ export class RfqmHandlers {
             throw new InternalServerError('Unexpected error encountered');
         }
 
-        // Handle no quote returned
+        // Log no quote returned
         if (indicativeQuote === null) {
             RFQM_INDICATIVE_QUOTE_NOT_FOUND.labels(apiKeyLabel).inc();
-            throw new NotFoundError('Unable to retrieve a price');
         }
 
         // Result
-        res.status(HttpStatus.OK).send(indicativeQuote);
+        res.status(HttpStatus.OK).send({
+            liquidityAvailable: indicativeQuote !== null,
+            ...indicativeQuote,
+        });
     }
 
     public async getFirmQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
@@ -123,14 +124,16 @@ export class RfqmHandlers {
             throw new InternalServerError('Unexpected error encountered');
         }
 
-        // Handle no quote returned
+        // Log no quote returned
         if (firmQuote === null) {
             RFQM_FIRM_QUOTE_NOT_FOUND.labels(apiKeyLabel).inc();
-            throw new NotFoundError('Unable to retrieve a quote');
         }
 
         // Result
-        res.status(HttpStatus.OK).send(firmQuote);
+        res.status(HttpStatus.OK).send({
+            liquidityAvailable: firmQuote !== null,
+            ...firmQuote,
+        });
     }
 
     public async getHealthAsync(req: express.Request, res: express.Response): Promise<void> {
