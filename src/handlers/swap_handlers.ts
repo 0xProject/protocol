@@ -179,6 +179,7 @@ export class SwapHandlers {
 
         const response: GetSwapPriceResponse = _.pick(
             quote,
+            'chainId',
             'price',
             'value',
             'gasPrice',

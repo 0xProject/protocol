@@ -112,6 +112,7 @@ export class MetaTransactionService {
         const quote = await this._calculateMetaTransactionQuoteAsync(params, true);
         const { sellTokenToEthRate, buyTokenToEthRate } = quote;
         const commonQuoteFields = {
+            chainId: quote.chainId,
             price: quote.price,
             sellTokenAddress: params.sellTokenAddress,
             buyTokenAddress: params.buyTokenAddress,
@@ -363,6 +364,7 @@ export class MetaTransactionService {
 
         const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);
         return {
+            chainId: quote.chainId,
             price: quote.price,
             gasPrice: quote.gasPrice,
             protocolFee: quote.protocolFee,

@@ -205,6 +205,7 @@ export interface AffiliateFeeAmounts {
 /** Begin /swap and /meta_transaction types */
 
 interface QuoteBase {
+    chainId: ChainId;
     price: BigNumber;
     buyAmount: BigNumber;
     sellAmount: BigNumber;
@@ -238,6 +239,8 @@ export interface SourceComparison {
     price: BigNumber | null;
     gas: BigNumber | null;
     savingsInEth: BigNumber | null;
+    buyAmount: BigNumber | null;
+    sellAmount: BigNumber | null;
 }
 
 export interface AffiliateFee {

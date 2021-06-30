@@ -356,6 +356,7 @@ export class SwapService {
             .decimalPlaces(makerTokenDecimals);
 
         const apiSwapQuote: GetSwapQuoteResponse = {
+            chainId: CHAIN_ID,
             price,
             guaranteedPrice,
             to,
@@ -561,6 +562,7 @@ export class SwapService {
         const gasPrice = providedGasPrice || (await this._swapQuoter.getGasPriceEstimationOrThrowAsync());
         const gasEstimate = isUnwrap ? UNWRAP_QUOTE_GAS : WRAP_QUOTE_GAS;
         const apiSwapQuote: GetSwapQuoteResponse = {
+            chainId: CHAIN_ID,
             price: ONE,
             guaranteedPrice: ONE,
             to: NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID],

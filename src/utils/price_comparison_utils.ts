@@ -11,7 +11,7 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
-import { ZERO } from '../constants';
+import { GAS_LIMIT_BUFFER_MULTIPLIER, TX_BASE_GAS, ZERO } from '../constants';
 import { logger } from '../logger';
 import { ChainId, SourceComparison } from '../types';
 
@@ -45,6 +45,8 @@ const NULL_SOURCE_COMPARISONS = Object.values(ERC20BridgeSource).reduce<SourceCo
         price: null,
         gas: null,
         savingsInEth: null,
+        buyAmount: null,
+        sellAmount: null,
     });
 
     return memo;
@@ -116,7 +118,7 @@ function getPriceComparisonFromQuoteOrThrow(
 
     // Calculate the maker/taker amounts after factoring in gas costs
     const tradeSourcesWithGas = fullTradeSources.map((source) => {
-        const gas = new BigNumber(gasScheduleWithOverrides[source.liquiditySource]!(source.fillData));
+        const gas = TX_BASE_GAS.plus(new BigNumber(gasScheduleWithOverrides[source.liquiditySource]!(source.fillData)));
 
         const gasCost = gas.times(quote.gasPrice).dividedBy(ethUnitAmount).times(quoteTokenToEthRate);
         const unitMakerAmount = Web3Wrapper.toUnitAmount(source.makerAmount, buyToken.decimals);
@@ -151,6 +153,7 @@ function getPriceComparisonFromQuoteOrThrow(
 
     // Calculate savings (Part 1): Cost of the quote including gas
     const quoteGasCostInTokens = quote.estimatedGas
+        .dividedBy(GAS_LIMIT_BUFFER_MULTIPLIER) // Remove gas estimate safety buffer that we added to the quote
         .times(quote.gasPrice)
         .dividedBy(ethUnitAmount)
         .times(quoteTokenToEthRate);
@@ -182,6 +185,8 @@ function getPriceComparisonFromQuoteOrThrow(
         return {
             name: liquiditySource,
             price,
+            sellAmount: source.takerAmount,
+            buyAmount: source.makerAmount,
             gas,
             savingsInEth,
         };
