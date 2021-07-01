@@ -38,6 +38,7 @@ export class Path {
     public collapsedFills?: ReadonlyArray<CollapsedFill>;
     public orders?: OptimizedMarketOrder[];
     public sourceFlags: bigint = BigInt(0);
+    public fills: Array<Fill> = [];
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _numDistinctFills: number = 0;
@@ -50,10 +51,6 @@ export class Path {
         pathPenaltyOpts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
     ): Path {
         const path = new Path(side, fills, targetInput, pathPenaltyOpts);
-        fills.forEach(fill => {
-            path.sourceFlags |= fill.flags;
-            path._addFill(fill);
-        });
         return path;
     }
 
@@ -74,14 +71,16 @@ export class Path {
 
     protected constructor(
         protected readonly side: MarketOperation,
-        public fills: ReadonlyArray<Fill>,
+        fills: ReadonlyArray<Fill>,
         protected readonly targetInput: BigNumber,
         public readonly pathPenaltyOpts: PathPenaltyOpts,
-    ) {}
+    ) {
+        for (const f of fills) {
+            this._addFill(f);
+        }
+    }
 
     public append(fill: Fill): this {
-        (this.fills as Fill[]).push(fill);
-        this.sourceFlags |= fill.flags;
         this._addFill(fill);
         return this;
     }
@@ -121,7 +120,7 @@ export class Path {
             ...fallback.fills.filter(f => !otherSourcePathIds.includes(f.sourcePathId)),
         ];
         for (const f of fillsToAdd) {
-            this._addFill(f)
+            this._addFill(f);
         }
         return this;
     }
@@ -290,9 +289,13 @@ export class Path {
     }
 
     private _addFill(fill: Fill): void {
+        this.sourceFlags |= fill.flags;
+        (this.fills as Fill[]).push(fill);
+        if (!(fill.sourcePathId in this._fillsById)) {
+            this._numDistinctFills++;
+        }
         this._fillsById[fill.sourcePathId] = this._fillsById[fill.sourcePathId] || [];
         this._fillsById[fill.sourcePathId].push(fill);
-        this._numDistinctFills = Object.keys(this._fillsById).length;
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
