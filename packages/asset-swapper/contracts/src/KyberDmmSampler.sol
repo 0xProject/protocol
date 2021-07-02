@@ -20,12 +20,20 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-interface IKyberDmmFactory {
+interface IKyberDmmPool {
 
-    function getPoolAtIndex(address token0, address token1, uint256 index)
+    function totalSupply()
         external
         view
-        returns (address);
+        returns (uint256);
+}
+
+interface IKyberDmmFactory {
+
+    function getPools(address token0, address token1)
+        external
+        view
+        returns (address[] memory _tokenPools);
 }
 
 interface IKyberDmmRouter {
@@ -140,17 +148,26 @@ contract KyberDmmSampler
         view
         returns (address[] memory pools)
     {
-        pools = new address[](path.length - 1);
         IKyberDmmFactory factory = IKyberDmmFactory(IKyberDmmRouter(router).factory());
+        pools = new address[](path.length - 1);
         for (uint256 i = 0; i < pools.length; i++) {
-            // Currently only supporting the first pool found at the index
+            // find the best pool
+            address[] memory allPools;
             try
-                factory.getPoolAtIndex
+                factory.getPools
                     {gas: KYBER_DMM_CALL_GAS}
-                    (path[i], path[i + 1], 0)
-                returns (address pool)
+                    (path[i], path[i + 1])
+                returns (address[] memory allPools)
             {
-                pools[i] = pool;
+                uint256 maxSupply = 0;
+                require(allPools.length >= 1, "KyberDMMSampler/NO_POOLS_FOUND");
+                for (uint256 j = 0; j < allPools.length; j++) {
+                    uint256 totalSupply = IKyberDmmPool(allPools[j]).totalSupply();
+                    if (totalSupply > maxSupply) {
+                        maxSupply = totalSupply;
+                        pools[i] = allPools[j];
+                    }
+                }
             } catch (bytes memory) {
                 return new address[](0);
             }

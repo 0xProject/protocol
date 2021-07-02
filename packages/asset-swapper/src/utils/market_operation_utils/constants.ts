@@ -147,6 +147,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.LiquidityProvider,
         ]),
     },
@@ -240,6 +241,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.LiquidityProvider,
         ]),
     },
@@ -1139,6 +1141,7 @@ export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0x1c87257f5e8609940bc751a07bb085bb7f8cdbe6',
+        [ChainId.Polygon]: '0x546c79662e028b661dfb4767664d0273184e4dd1',
     },
     NULL_ADDRESS,
 );
