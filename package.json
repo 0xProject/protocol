@@ -138,7 +138,7 @@
     "dependencies": {
         "@0x/api-utils": "^0.0.1",
         "@0x/assert": "^3.0.28",
-        "@0x/asset-swapper": "^6.18.3",
+        "@0x/asset-swapper": "^16.19.0",
         "@0x/contract-addresses": "^6.4.0",
         "@0x/contract-wrappers": "^13.17.2",
         "@0x/contracts-zero-ex": "^0.26.0",
