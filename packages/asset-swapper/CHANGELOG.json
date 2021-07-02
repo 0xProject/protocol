@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.19.0",
+        "changes": [
+            {
+                "note": "Add LiquidityProvider to Polygon sources",
+                "pr": 270
+            }
+        ]
+    },
+    {
         "version": "6.18.3",
         "changes": [
             {
