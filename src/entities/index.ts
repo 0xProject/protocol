@@ -1,3 +1,4 @@
+export { BlockedAddressEntity } from './BlockedAddressEntity';
 export { KeyValueEntity } from './KeyValueEntity';
 export { MakerBalanceChainCacheEntity } from './MakerBalanceChainCacheEntity';
 export { PersistentSignedOrderEntity } from './PersistentSignedOrderEntity';

@@ -2,6 +2,7 @@ import { ConnectionOptions } from 'typeorm';
 
 import { POSTGRES_READ_REPLICA_URIS, POSTGRES_URI } from './config';
 import {
+    BlockedAddressEntity,
     KeyValueEntity,
     MakerBalanceChainCacheEntity,
     PersistentSignedOrderEntity,
@@ -16,6 +17,7 @@ import {
 } from './entities';
 
 const entities = [
+    BlockedAddressEntity,
     SignedOrderEntity,
     PersistentSignedOrderEntity,
     TransactionEntity,
