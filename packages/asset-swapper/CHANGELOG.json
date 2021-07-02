@@ -15,7 +15,8 @@
                 "note": "Add LiquidityProvider to Polygon sources",
                 "pr": 270
             }
-        ]
+        ],
+        "timestamp": 1625190486
     },
     {
         "version": "6.18.3",

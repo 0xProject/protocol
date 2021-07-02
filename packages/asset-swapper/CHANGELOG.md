@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.19.0 - _July 2, 2021_
+
+    * Add LiquidityProvider to Polygon sources (#270)
+
 ## v6.18.3 - _June 29, 2021_
 
     * Polygon Balance V2
