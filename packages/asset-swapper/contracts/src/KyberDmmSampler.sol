@@ -34,11 +34,6 @@ interface IKyberDmmFactory {
         external
         view
         returns (address[] memory _tokenPools);
-
-    function getPoolsLength(address token0, address token1)
-        external
-        view
-        returns (uint256);
 }
 
 interface IKyberDmmRouter {
@@ -165,6 +160,7 @@ contract KyberDmmSampler
                 returns (address[] memory allPools)
             {
                 uint256 maxSupply = 0;
+                require(allPools.length >= 1, "KyberDMMSampler/NO_POOLS_FOUND");
                 for (uint256 j = 0; j < allPools.length; j++) {
                     uint256 totalSupply = IKyberDmmPool(allPools[j]).totalSupply();
                     if (totalSupply > maxSupply) {
