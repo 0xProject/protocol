@@ -29,6 +29,9 @@ export class RfqmWorkerHeartbeatEntity {
     // therefore, add this hacky default.
     // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqmWorkerHeartbeatOptions = {} as RfqmWorkerHeartbeatOptions) {
+        if (opts.timestamp) {
+            this.timestamp = opts.timestamp;
+        }
         this.address = opts.address;
         this.balance = opts.balance;
         this.index = opts.index;
