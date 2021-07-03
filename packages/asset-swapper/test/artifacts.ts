@@ -9,6 +9,7 @@ import * as BalanceChecker from '../test/generated-artifacts/BalanceChecker.json
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
 import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
+import * as BoosterSampler from '../test/generated-artifacts/BoosterSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as CurveV2Sampler from '../test/generated-artifacts/CurveV2Sampler.json';
 import * as DelegateHackedERC20 from '../test/generated-artifacts/DelegateHackedERC20.json';
@@ -46,6 +47,7 @@ export const artifacts = {
     BalancerSampler: BalancerSampler as ContractArtifact,
     BalancerV2Sampler: BalancerV2Sampler as ContractArtifact,
     BancorSampler: BancorSampler as ContractArtifact,
+    BoosterSampler: BoosterSampler as ContractArtifact,
     CurveSampler: CurveSampler as ContractArtifact,
     CurveV2Sampler: CurveV2Sampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,

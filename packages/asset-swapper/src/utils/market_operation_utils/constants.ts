@@ -135,6 +135,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.Booster,
         ]),
     },
     new SourceFilters([]),
@@ -226,6 +227,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.Booster,
         ]),
     },
     new SourceFilters([]),
@@ -476,6 +478,22 @@ export const FIREBIRDONESWAP_POLYGON_POOLS = {
     oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
 };
 
+export const BOOSTER_POLYGON_POOLS = valueByChainId<Array<{ poolAddress: string; tokens: string[] }>>(
+    {
+        [ChainId.Polygon]: [
+            {
+                poolAddress: '0x7f01a853e857db87aad498ee2b640b5dbcda4fb9',
+                tokens: [POLYGON_TOKENS.USDC, POLYGON_TOKENS.WETH],
+            },
+            {
+                poolAddress: '0x43a8e6954384521d6a6d482f7dce7f849fd95cdc',
+                tokens: [POLYGON_TOKENS.WMATIC, POLYGON_TOKENS.WETH],
+            },
+        ],
+    },
+    [],
+);
+
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
     {
         [ChainId.Mainnet]: [
@@ -500,16 +518,16 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
         ],
         [ChainId.Polygon]: [
-            POLYGON_TOKENS.WMATIC,
-            POLYGON_TOKENS.WETH,
-            POLYGON_TOKENS.USDC,
-            POLYGON_TOKENS.DAI,
-            POLYGON_TOKENS.USDT,
-            POLYGON_TOKENS.WBTC,
-            POLYGON_TOKENS.QUICK,
-            POLYGON_TOKENS.DFYN,
-            POLYGON_TOKENS.BANANA,
-            POLYGON_TOKENS.WEXPOLY,
+            // POLYGON_TOKENS.WMATIC,
+            // POLYGON_TOKENS.WETH,
+            // POLYGON_TOKENS.USDC,
+            // POLYGON_TOKENS.DAI,
+            // POLYGON_TOKENS.USDT,
+            // POLYGON_TOKENS.WBTC,
+            // POLYGON_TOKENS.QUICK,
+            // POLYGON_TOKENS.DFYN,
+            // POLYGON_TOKENS.BANANA,
+            // POLYGON_TOKENS.WEXPOLY,
         ],
     },
     [],

@@ -119,7 +119,7 @@ export class MeasuredSamplerContractOperation<
         this._params = opts.params;
         this._callback = opts.callback;
         this._deregisterable = opts.deregisterable || false;
-        this._log = opts.log || false;
+        this._log = opts.log || true;
         if (this._deregisterable) {
             this._deregisterKey = PathDeregister.createKey(this._params.slice(0, this._params.length - 1));
         }

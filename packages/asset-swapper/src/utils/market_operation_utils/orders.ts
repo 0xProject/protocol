@@ -9,6 +9,7 @@ import {
     BalancerFillData,
     BalancerV2FillData,
     BancorFillData,
+    BoosterFillData,
     CollapsedFill,
     CurveFillData,
     DexSample,
@@ -174,6 +175,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'FirebirdOneSwap');
         case ERC20BridgeSource.Lido:
             return encodeBridgeSourceId(BridgeProtocol.Lido, 'Lido');
+        case ERC20BridgeSource.Booster:
+            return encodeBridgeSourceId(BridgeProtocol.Booster, 'Booster');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -307,6 +310,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Lido:
             const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
             bridgeData = encoder.encode([lidoFillData.stEthTokenAddress]);
+            break;
+        case ERC20BridgeSource.Booster:
+            const boosterFillData = (order as OptimizedMarketBridgeOrder<BoosterFillData>).fillData;
+            bridgeData = encoder.encode([boosterFillData.poolAddress]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -462,6 +469,7 @@ export const BRIDGE_ENCODERS: {
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.Booster]: poolEncoder,
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

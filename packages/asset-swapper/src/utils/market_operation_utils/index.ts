@@ -209,6 +209,14 @@ export class MarketOperationUtils {
                 q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
         );
 
+        console.log({
+            tokenDecimals,
+            outputAmountPerEth,
+            inputAmountPerEth,
+            dexQuotes,
+            rawTwoHopQuotes,
+        });
+
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
 
         const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
@@ -814,6 +822,7 @@ export class MarketOperationUtils {
             // Specify the original implementation at a new address (+1)
             overrides[tokenImplAddress] = { code: tokenCodes[i] };
         });
+        console.log({ overrides });
 
         return { overrides };
     }

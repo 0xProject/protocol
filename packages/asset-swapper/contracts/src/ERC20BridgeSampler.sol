@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./BalancerSampler.sol";
 import "./BalancerV2Sampler.sol";
 import "./BancorSampler.sol";
+import "./BoosterSampler.sol";
 import "./CurveSampler.sol";
 import "./CurveV2Sampler.sol";
 import "./DODOSampler.sol";
@@ -49,6 +50,7 @@ contract ERC20BridgeSampler is
     BalancerSampler,
     BalancerV2Sampler,
     BancorSampler,
+    BoosterSampler,
     CurveSampler,
     CurveV2Sampler,
     DODOSampler,

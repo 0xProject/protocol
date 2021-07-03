@@ -154,9 +154,16 @@ export class DexOrderSampler extends SamplerOperations {
             return callDatas.map((_callData, i) => ops[i].handleCallResults(NULL_BYTES));
         }
         // Execute all non-empty calldatas.
-        const rawCallResults = await this._samplerContract
-            .batchCall(callDatas.filter(cd => cd !== NULL_BYTES))
-            .callAsync({ overrides }, block);
+        let rawCallResults: any;
+        try {
+            rawCallResults = await this._samplerContract
+                .batchCall(callDatas.filter(cd => cd !== NULL_BYTES))
+                .callAsync({ overrides }, block);
+            console.log({ rawCallResults, ops: ops.map(o => (o as any).fillData) });
+        } catch (e) {
+            console.log('error', e);
+            throw e;
+        }
         // Return the parsed results.
         let rawCallResultsIdx = 0;
         const results = callDatas.map((callData, i) => {

@@ -86,6 +86,7 @@ export enum ERC20BridgeSource {
     WaultSwap = 'WaultSwap',
     Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
+    Booster = 'Booster',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
@@ -250,6 +251,10 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswap
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
     takerToken: string;
+}
+
+export interface BoosterFillData extends FillData {
+    poolAddress: string;
 }
 
 /**

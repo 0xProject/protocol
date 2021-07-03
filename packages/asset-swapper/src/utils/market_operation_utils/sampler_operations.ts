@@ -21,6 +21,7 @@ import {
 import {
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
+    BOOSTER_POLYGON_POOLS,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
@@ -52,6 +53,7 @@ import {
     BalancerV2PoolInfo,
     BancorFillData,
     BatchedOperation,
+    BoosterFillData,
     CurveFillData,
     DexSample,
     DODOFillData,
@@ -1125,6 +1127,23 @@ export class SamplerOperations {
         });
     }
 
+    public getBoosterSellQuotes(
+        poolAddress: string,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): MeasuredSourceQuoteOperation<BoosterFillData> {
+        return new MeasuredSamplerContractOperation({
+            source: ERC20BridgeSource.Booster,
+            fillData: {
+                poolAddress,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromBooster,
+            params: [poolAddress, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
     public getLidoBuyQuotes(
         lidoInfo: LidoInfo,
         makerToken: string,
@@ -1482,6 +1501,18 @@ export class SamplerOperations {
                         }
 
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
+                    }
+                    case ERC20BridgeSource.Booster: {
+                        console.log(BOOSTER_POLYGON_POOLS[this.chainId], makerToken, takerToken);
+                        const pools = BOOSTER_POLYGON_POOLS[this.chainId].filter(
+                            pool =>
+                                pool.tokens.includes(takerToken.toLowerCase()) &&
+                                pool.tokens.includes(makerToken.toLowerCase()),
+                        );
+                        console.log({ pools });
+                        return pools.map(pool =>
+                            this.getBoosterSellQuotes(pool.poolAddress, makerToken, takerToken, takerFillAmounts),
+                        );
                     }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
