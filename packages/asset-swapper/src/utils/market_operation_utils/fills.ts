@@ -165,11 +165,11 @@ function dexSamplesToFills(
         if (!sample.gasUsed || sample.gasUsed.isZero()) {
             throw new Error(`${sample.source} gas used missing or 0`);
         }
-        const fee = gasPrice.times(sample.gasUsed);
 
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
             // Only the first fill in a DEX path incurs a penalty.
+            const fee = gasPrice.times(sample.gasUsed);
             penalty = !outputAmountPerEth.isZero()
                 ? outputAmountPerEth.times(fee)
                 : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));

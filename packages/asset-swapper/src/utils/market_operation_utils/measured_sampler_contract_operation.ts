@@ -146,7 +146,7 @@ export class MeasuredSamplerContractOperation<
             PathDeregister.getInstance().handleResult(this.source, this._deregisterKey, result);
         }
         if (this._log) {
-            logUtils.log({ source: this.source, fillData: this.fillData, ...result });
+            logUtils.log({ source: this.source, fillData: this.fillData, params: this._params, ...result });
         }
         return result;
     }

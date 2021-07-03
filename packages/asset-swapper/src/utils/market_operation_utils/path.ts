@@ -230,7 +230,7 @@ export class Path {
         return true;
     }
 
-    private _collapseFills(): ReadonlyArray<CollapsedFill> {
+    public _collapseFills(): ReadonlyArray<CollapsedFill> {
         this.collapsedFills = [];
         for (const fill of this.fills) {
             const source = fill.source;
