@@ -29,6 +29,7 @@ import { RfqMakerBlacklist } from './rfq_maker_blacklist';
 
 const MAKER_TIMEOUT_STREAK_LENGTH = 10;
 const MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES = 10;
+const FILL_RATIO_WARNING_LEVEL = 0.99;
 const rfqMakerBlacklist = new RfqMakerBlacklist(MAKER_TIMEOUT_STREAK_LENGTH, MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES);
 
 interface RfqQuote<T> {
@@ -563,6 +564,21 @@ export class QuoteRequestor {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
                 return false;
             } else {
+                const fillRatio = order.takerAmount.div(assetFillAmount);
+                if (fillRatio.lt(1) && fillRatio.gte(FILL_RATIO_WARNING_LEVEL)) {
+                    this._warningLogger(
+                        {
+                            makerUri: result.makerUri,
+                            fillRatio,
+                            assetFillAmount,
+                            takerToken,
+                            makerToken,
+                            takerAmount: order.takerAmount,
+                            makerAmount: order.makerAmount,
+                        },
+                        'Fill ratio in warning range',
+                    );
+                }
                 return true;
             }
         });
