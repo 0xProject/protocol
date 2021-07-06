@@ -20,7 +20,7 @@ const createFill = (
         sourcePathId: source,
     } as Fill);
 
-describe.only('Path', () => {
+describe('Path', () => {
     it('Adds a fallback', () => {
         const targetInput = new BigNumber(100);
         const path = Path.create(
