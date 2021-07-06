@@ -23,6 +23,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./GasOverhead.sol";
+import "./console.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 
@@ -91,6 +92,7 @@ contract SwapRevertSampler {
     )
         external
     {
+        console.logString("Hello");
         // Clear any registered overhead
         try
             GAS_OVERHEAD.clearOverhead()
@@ -113,6 +115,7 @@ contract SwapRevertSampler {
         if (!success) {
             data.rrevert();
         }
+        console.log(gasUsed);
         // Revert with the amount bought
         _revertSingleSwapSample(abi.decode(data, (uint256)), gasUsed);
     }

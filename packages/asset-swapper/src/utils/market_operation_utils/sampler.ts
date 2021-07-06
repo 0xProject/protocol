@@ -36,7 +36,7 @@ export class DexOrderSampler extends SamplerOperations {
     constructor(
         public readonly chainId: ChainId,
         _samplerContract: ERC20BridgeSamplerContract,
-        private readonly _samplerOverrides?: SamplerOverrides,
+        protected readonly _samplerOverrides?: SamplerOverrides,
         poolsCaches?: { [key in ERC20BridgeSource]: PoolsCache },
         tokenAdjacencyGraph?: TokenAdjacencyGraph,
         liquidityProviderRegistry?: LiquidityProviderRegistry,

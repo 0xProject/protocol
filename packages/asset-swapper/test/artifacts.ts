@@ -9,6 +9,7 @@ import * as BalanceChecker from '../test/generated-artifacts/BalanceChecker.json
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
 import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
+import * as console from '../test/generated-artifacts/console.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as CurveV2Sampler from '../test/generated-artifacts/CurveV2Sampler.json';
 import * as DelegateHackedERC20 from '../test/generated-artifacts/DelegateHackedERC20.json';
@@ -71,6 +72,7 @@ export const artifacts = {
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
     UniswapV3Sampler: UniswapV3Sampler as ContractArtifact,
     UtilitySampler: UtilitySampler as ContractArtifact,
+    console: console as ContractArtifact,
     IEth2Dai: IEth2Dai as ContractArtifact,
     IKyberNetwork: IKyberNetwork as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
