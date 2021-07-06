@@ -6,7 +6,12 @@ import { instance, mock, when } from 'ts-mockito';
 
 import { ETH_DECIMALS } from '../../src/constants';
 import { RfqmWorkerHeartbeatEntity } from '../../src/entities';
-import { checkSqsQueueAsync, checkWorkerHeartbeatsAsync, HealthCheckStatus } from '../../src/utils/rfqm_health_check';
+import {
+    checkSqsQueueAsync,
+    checkWorkerHeartbeatsAsync,
+    getHttpIssues,
+    HealthCheckStatus,
+} from '../../src/utils/rfqm_health_check';
 
 let producerMock: Producer;
 
@@ -138,6 +143,23 @@ describe('RFQm Health Check', () => {
                 expect(degradedIssues).to.have.length(1);
                 expect(degradedIssues[0].description).to.contain('0x00');
             });
+        });
+    });
+
+    describe('getHttpIssues', () => {
+        it('goes into maintainence mode', async () => {
+            const issues = getHttpIssues(/* isMaintainenceMode */ true, /* registryBalance */ fullBalance);
+
+            expect(issues[0].status).to.equal(HealthCheckStatus.Maintenance);
+        });
+
+        it('produces a FAILED issue with a low registry balance', async () => {
+            const lowRegistryBalance = new BigNumber(0.01).shiftedBy(ETH_DECIMALS);
+
+            const issues = getHttpIssues(/* isMaintainenceMode */ false, lowRegistryBalance);
+
+            expect(issues[0].status).to.equal(HealthCheckStatus.Failed);
+            expect(issues[0].description).to.contain(lowRegistryBalance.shiftedBy(ETH_DECIMALS * -1).toString());
         });
     });
 });
