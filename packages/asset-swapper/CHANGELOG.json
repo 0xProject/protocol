@@ -15,7 +15,8 @@
                 "note": "Fix LiquidityProvider fallback",
                 "pr": 272
             }
-        ]
+        ],
+        "timestamp": 1625544188
     },
     {
         "version": "16.19.0",
