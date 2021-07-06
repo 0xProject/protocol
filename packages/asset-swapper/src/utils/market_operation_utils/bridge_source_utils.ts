@@ -32,6 +32,7 @@ import {
     QUICKSWAP_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
+    SHIBASWAP_ROUTER_BY_CHAIN_ID,
     SMOOTHY_BSC_INFOS,
     SMOOTHY_MAINNET_INFOS,
     SNOWSWAP_MAINNET_INFOS,
@@ -399,7 +400,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.ComethSwap
         | ERC20BridgeSource.Dfyn
         | ERC20BridgeSource.WaultSwap
-        | ERC20BridgeSource.Polydex,
+        | ERC20BridgeSource.Polydex
+        | ERC20BridgeSource.ShibaSwap,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -432,6 +434,8 @@ export function uniswapV2LikeRouterAddress(
             return WAULTSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Polydex:
             return POLYDEX_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.ShibaSwap:
+            return SHIBASWAP_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

@@ -1229,6 +1229,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Dfyn:
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
+                    case ERC20BridgeSource.ShibaSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1499,6 +1500,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Dfyn:
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
+                    case ERC20BridgeSource.ShibaSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
