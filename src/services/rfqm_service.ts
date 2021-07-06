@@ -687,7 +687,7 @@ export class RfqmService {
             await this._blockchainUtils.validateMetaTransactionOrThrowAsync(
                 params.metaTransaction,
                 params.signature,
-                META_TX_WORKER_REGISTRY!,
+                this._registryAddress,
             );
         } catch (err) {
             RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION.inc();
