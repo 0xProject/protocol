@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.20.0",
+        "changes": [
+            {
+                "note": "ShibaSwap",
+                "pr": 276
+            }
+        ]
+    },
+    {
         "version": "16.19.1",
         "changes": [
             {

@@ -97,6 +97,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -192,6 +193,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -1094,6 +1096,13 @@ export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const SHIBASWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x03f7724180aa6b939894b5ca4314783b0b36b329',
+    },
+    NULL_ADDRESS,
+);
+
 export const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: {
@@ -1472,6 +1481,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Linkswap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.ShibaSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: () => 100e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
