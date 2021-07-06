@@ -33,6 +33,7 @@ import {
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './utils/market_operation_utils/constants';
+import { DebugDexOrderSampler } from './utils/market_operation_utils/debug_sampler';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
@@ -147,7 +148,7 @@ export class SwapQuoter {
         );
 
         this._marketOperationUtils = new MarketOperationUtils(
-            new DexOrderSampler(
+            new DebugDexOrderSampler(
                 this.chainId,
                 samplerContract,
                 samplerOverrides,
