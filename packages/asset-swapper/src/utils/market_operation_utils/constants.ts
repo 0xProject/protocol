@@ -86,6 +86,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -181,6 +182,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -1054,6 +1056,13 @@ export const CRYPTO_COM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     { [ChainId.Mainnet]: '0xa7ece0911fe8c60bff9e99f8fafcdbe56e07aff1' },
+    NULL_ADDRESS,
+);
+
+export const SHIBASWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x03f7724180aa6b939894b5ca4314783b0b36b329',
+    },
     NULL_ADDRESS,
 );
 
