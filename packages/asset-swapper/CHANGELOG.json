@@ -9,6 +9,15 @@
         ]
     },
     {
+        "version": "16.19.1",
+        "changes": [
+            {
+                "note": "Fix LiquidityProvider fallback",
+                "pr": 272
+            }
+        ]
+    },
+    {
         "version": "16.19.0",
         "changes": [
             {
