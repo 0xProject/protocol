@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.20.0 - _July 6, 2021_
+
+    * ShibaSwap (#276)
+
 ## v16.19.1 - _July 6, 2021_
 
     * Fix LiquidityProvider fallback (#272)
