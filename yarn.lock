@@ -68,9 +68,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.19.1":
-  version "16.19.1"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.19.1.tgz#c169a718475711f5796a2d072918bee023ab2c6e"
+"@0x/asset-swapper@^16.20.0":
+  version "16.20.0"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.20.0.tgz#b99ebfccfa5480fe54cd247c768cb9a19e7b9768"
+  integrity sha512-nl0Zmi7QVSMCFSzQZkljyyzb59DJNnipvPE4KxEcx8tyBORSckFbkaJd/fa0wKnzS4x7EG/l5+IqfRZEgwhbOg==
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
