@@ -564,7 +564,8 @@ export class QuoteRequestor {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
                 return false;
             } else {
-                const fillRatio = order.takerAmount.div(assetFillAmount);
+                const takerAmount = new BigNumber(order.takerAmount);
+                const fillRatio = takerAmount.div(assetFillAmount);
                 if (fillRatio.lt(1) && fillRatio.gte(FILL_RATIO_WARNING_LEVEL)) {
                     this._warningLogger(
                         {
