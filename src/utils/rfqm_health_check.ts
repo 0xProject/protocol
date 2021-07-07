@@ -1,3 +1,4 @@
+import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 
@@ -20,7 +21,6 @@ const BALANCE_FAILED_THRESHOLD_WEI = new BigNumber(BALANCE_FAILED_THRESHOLD).shi
 
 export enum HealthCheckStatus {
     Operational = 'operational',
-    Unknown = 'unknown',
     Maintenance = 'maintenance',
     Degraded = 'degraded',
     Failed = 'failed',
@@ -31,6 +31,11 @@ interface HealthCheckIssue {
     description: string;
 }
 
+/**
+ * The complete result of an RFQm health check routine.
+ * For public users, this should be converted to a `RfqmHealthCheckShortResponse` before being
+ * sent in the reponse in order to not expose potentially-sensitive system details.
+ */
 export interface HealthCheckResult {
     status: HealthCheckStatus;
     pairs: {
@@ -53,6 +58,34 @@ export interface RfqmHealthCheckShortResponse {
 }
 
 /**
+ * Produces a full health check from the given inupts.
+ */
+export async function computeHealthCheckAsync(
+    isMaintainenceMode: boolean,
+    registryBalance: BigNumber,
+    offerings: RfqMakerAssetOfferings,
+    producer: Producer,
+    heartbeats: RfqmWorkerHeartbeatEntity[],
+): Promise<HealthCheckResult> {
+    const pairs = transformPairs(offerings);
+
+    const httpIssues = getHttpIssues(isMaintainenceMode, registryBalance);
+    const httpStatus = getWorstStatus(httpIssues.map((issue) => issue.status));
+
+    const queueIssues = await checkSqsQueueAsync(producer);
+    const heartbeatIssues = await checkWorkerHeartbeatsAsync(heartbeats);
+    const workersIssues = [...queueIssues, ...heartbeatIssues];
+    const workersStatus = getWorstStatus(workersIssues.map((issue) => issue.status));
+
+    return {
+        status: getWorstStatus([httpStatus, workersStatus]),
+        pairs,
+        http: { status: httpStatus, issues: httpIssues },
+        workers: { status: workersStatus, issues: workersIssues },
+    };
+}
+
+/**
  * Transform the full health check result into the minimal response the Matcha UI requires.
  */
 export function transformResultToShortResponse(result: HealthCheckResult): RfqmHealthCheckShortResponse {
@@ -70,6 +103,20 @@ export function transformResultToShortResponse(result: HealthCheckResult): RfqmH
 }
 
 /**
+ * Changes the set of trading pairs from the format used in config to the format used in the health check response.
+ */
+function transformPairs(offerings: RfqMakerAssetOfferings): { [pair: string]: HealthCheckStatus } {
+    return Object.values(offerings)
+        .flat()
+        .reduce((result: { [pair: string]: HealthCheckStatus }, pair) => {
+            const [tokenA, tokenB] = pair.sort();
+            // Currently, we assume all pairs are operation. In the future, this may not be the case.
+            result[`${tokenA}-${tokenB}`] = HealthCheckStatus.Operational;
+            return result;
+        }, {});
+}
+
+/**
  * Creates issues related to the server/API not specific to the worker farm.
  */
 export function getHttpIssues(isMaintainenceMode: boolean, registryBalance: BigNumber): HealthCheckIssue[] {
@@ -80,6 +127,7 @@ export function getHttpIssues(isMaintainenceMode: boolean, registryBalance: BigN
             description: 'RFQM is set to maintainence mode via the 0x API configuration',
         });
     }
+
     if (registryBalance.isLessThan(BALANCE_FAILED_THRESHOLD_WEI)) {
         issues.push({
             status: HealthCheckStatus.Failed,
@@ -112,6 +160,41 @@ export async function checkSqsQueueAsync(producer: Producer): Promise<HealthChec
         });
     }
     return results;
+}
+
+/**
+ * Returns a numerical value which corresponds to the "severity" of a `HealthCheckStatus` enum member.
+ * Higher values are more severe. (Oh to have SwiftLang enums here.)
+ */
+function statusSeverity(status: HealthCheckStatus): number {
+    // tslint:disable custom-no-magic-numbers
+    switch (status) {
+        case HealthCheckStatus.Failed:
+            return 4;
+        case HealthCheckStatus.Maintenance:
+            return 3;
+        case HealthCheckStatus.Degraded:
+            return 2;
+        case HealthCheckStatus.Operational:
+            return 1;
+        default:
+            throw new Error(`Received unknown status: ${status}`);
+    }
+    // tslint:enable custom-no-magic-numbers
+}
+
+/**
+ * Accepts a list of statuses and returns the worst status
+ */
+function getWorstStatus(statuses: HealthCheckStatus[]): HealthCheckStatus {
+    if (!statuses.length) {
+        return HealthCheckStatus.Operational;
+    }
+    return statuses.reduce(
+        (worstStatus, currentStatus) =>
+            statusSeverity(currentStatus) > statusSeverity(worstStatus) ? currentStatus : worstStatus,
+        HealthCheckStatus.Operational,
+    );
 }
 
 /**

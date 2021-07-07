@@ -26,7 +26,7 @@ import { anyString, anything, instance, mock, when } from 'ts-mockito';
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { RFQM_PATH } from '../src/constants';
+import { ETH_DECIMALS, RFQM_PATH } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOrder } from '../src/entities/RfqmJobEntity';
@@ -55,6 +55,7 @@ const SUITE_NAME = 'RFQM Integration Tests';
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const API_KEY = 'koolApiKey';
 const contractAddresses: ContractAddresses = CONTRACT_ADDRESSES;
+const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 
 // RFQM Market Maker request specific constants
 const MARKET_MAKER_1 = 'https://mock-rfqt1.club';
@@ -218,6 +219,9 @@ describe(SUITE_NAME, () => {
         when(rfqBlockchainUtilsMock.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn(
             TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
         );
+        when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
+            WORKER_FULL_BALANCE_WEI,
+        );
         const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
         interface SqsResponse {
@@ -241,6 +245,7 @@ describe(SUITE_NAME, () => {
         // Create the mock sqsProducer
         const sqsProducerMock = mock(Producer);
         when(sqsProducerMock.send(anything())).thenResolve(sqsResponse);
+        when(sqsProducerMock.queueSize()).thenResolve(0);
         const sqsProducer = instance(sqsProducerMock);
 
         // Create the quote server client
@@ -296,7 +301,6 @@ describe(SUITE_NAME, () => {
                 .get(`${RFQM_PATH}/healthz`)
                 .expect(HttpStatus.OK)
                 .expect('Content-Type', /json/);
-            expect(appResponse.body.isOperational).to.equal(true);
             expect(appResponse.body.pairs[0][0]).to.equal('0x0b1ba0af832d7c05fd64161e0db78e85978e8082');
             expect(appResponse.body.pairs[0][1]).to.equal('0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c');
         });

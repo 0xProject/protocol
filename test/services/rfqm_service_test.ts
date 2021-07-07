@@ -17,7 +17,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { ONE_MINUTE_MS } from '../../src/constants';
+import { ETH_DECIMALS, ONE_MINUTE_MS } from '../../src/constants';
 import { RfqmJobEntity, RfqmTransactionSubmissionEntity } from '../../src/entities';
 import { RfqmJobStatus } from '../../src/entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../../src/entities/RfqmTransactionSubmissionEntity';
@@ -31,6 +31,7 @@ const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_GAS_PRICE = new BigNumber(100);
 const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 500;
+const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 
 const buildRfqmServiceForUnitTest = (
     overrides: {
@@ -68,8 +69,12 @@ const buildRfqmServiceForUnitTest = (
     when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
     const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
+    when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
+        WORKER_FULL_BALANCE_WEI,
+    );
     const dbUtilsMock = mock(RfqmDbUtils);
     const sqsMock = mock(Producer);
+    when(sqsMock.queueSize()).thenResolve(0);
     const quoteServerClientMock = mock(QuoteServerClient);
 
     return new RfqmService(
@@ -77,7 +82,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.protocolFeeUtils || protocolFeeUtilsInstance,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
-        overrides.rfqBlockchainUtils || rfqBlockchainUtilsMock,
+        overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
         overrides.dbUtils || dbUtilsMock,
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,

@@ -114,6 +114,10 @@ export class RfqmDbUtils {
         });
     }
 
+    public async findRfqmWorkerHeartbeatsAsync(): Promise<RfqmWorkerHeartbeatEntity[]> {
+        return this._connection.getRepository(RfqmWorkerHeartbeatEntity).find();
+    }
+
     /**
      * updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
      */

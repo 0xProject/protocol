@@ -1,6 +1,6 @@
 // tslint:disable:max-file-line-count
 import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
-import { RfqMakerAssetOfferings, RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
+import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
 import { Fee, SubmitRequest } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
@@ -12,6 +12,7 @@ import { Producer } from 'sqs-producer';
 import {
     CHAIN_ID,
     META_TX_WORKER_REGISTRY,
+    RFQM_MAINTENANCE_MODE,
     RFQM_MAKER_ASSET_OFFERINGS,
     RFQM_WORKER_INDEX,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -37,7 +38,7 @@ import {
     storedOrderToRfqmOrder,
     v4RfqOrderToStoredOrder,
 } from '../utils/rfqm_db_utils';
-import { HealthCheckResult, HealthCheckStatus } from '../utils/rfqm_health_check';
+import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 
 export const BLOCK_FINALITY_THRESHOLD = 3;
@@ -633,24 +634,16 @@ export class RfqmService {
     /**
      * Runs checks to determine the health of the RFQm system. The results may be distilled to a format needed by integrators.
      */
-    // tslint:disable-next-line prefer-function-over-method
     public async runHealthCheckAsync(): Promise<HealthCheckResult> {
-        const transformPairs = (offerings: RfqMakerAssetOfferings): { [pair: string]: HealthCheckStatus } =>
-            Object.values(offerings)
-                .flat()
-                .reduce((result: { [pair: string]: HealthCheckStatus }, pair) => {
-                    const [tokenA, tokenB] = pair.sort();
-                    // Currently, we assume all pairs are operation. In the future, this may not be the case.
-                    result[`${tokenA}-${tokenB}`] = HealthCheckStatus.Operational;
-                    return result;
-                }, {});
-        const pairs = transformPairs(RFQM_MAKER_ASSET_OFFERINGS);
-        return {
-            status: HealthCheckStatus.Operational,
-            pairs,
-            http: { status: HealthCheckStatus.Operational, issues: [] },
-            workers: { status: HealthCheckStatus.Operational, issues: [] },
-        };
+        const heartbeats = await this._dbUtils.findRfqmWorkerHeartbeatsAsync();
+        const registryBalance = await this._blockchainUtils.getAccountBalanceAsync(this._registryAddress);
+        return computeHealthCheckAsync(
+            RFQM_MAINTENANCE_MODE,
+            registryBalance,
+            RFQM_MAKER_ASSET_OFFERINGS,
+            this._sqsProducer,
+            heartbeats,
+        );
     }
 
     public async submitMetaTransactionSignedQuoteAsync(
