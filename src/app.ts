@@ -14,8 +14,8 @@ import * as express from 'express';
 import { Server } from 'http';
 import { Connection } from 'typeorm';
 
-import { CHAIN_ID } from './config';
-import { RFQ_FIRM_QUOTE_CACHE_EXPIRY, SRA_PATH } from './constants';
+import { CHAIN_ID, RFQT_TX_ORIGIN_BLACKLIST } from './config';
+import { RFQ_DYNAMIC_BLACKLIST_TTL, RFQ_FIRM_QUOTE_CACHE_EXPIRY, SRA_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
 import { MakerBalanceChainCacheEntity } from './entities/MakerBalanceChainCacheEntity';
 import { logger } from './logger';
@@ -43,6 +43,7 @@ import {
     MetaTransactionRollingLimiter,
 } from './utils/rate-limiters';
 import { MetaTransactionComposableLimiter } from './utils/rate-limiters/meta_transaction_composable_rate_limiter';
+import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
 
 export interface AppDependencies {
     contractAddresses: ContractAddresses;
@@ -146,11 +147,17 @@ export async function getDefaultAppDependenciesAsync(
     let swapService: SwapService | undefined;
     let metaTransactionService: MetaTransactionService | undefined;
     try {
+        const rfqDynamicBlacklist = new RfqDynamicBlacklist(
+            connection,
+            RFQT_TX_ORIGIN_BLACKLIST,
+            RFQ_DYNAMIC_BLACKLIST_TTL,
+        );
         swapService = new SwapService(
             new AssetSwapperOrderbook(orderBookService),
             provider,
             contractAddresses,
             rfqtFirmQuoteValidator,
+            rfqDynamicBlacklist,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(
             provider,

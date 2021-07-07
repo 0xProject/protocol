@@ -15,7 +15,7 @@ const RFQ_BLOCKED_ADDRESS_SET_SIZE = new Gauge({
  * RfqBlockedAddressUtils helps manage the RFQ blocked addresses
  */
 export class RfqBlockedAddressUtils {
-    private _blocked: Set<string>;
+    public _blocked: Set<string>;
     private _expiresAt: number;
     private _updatePromise: Promise<void> | undefined;
     private _updating: boolean;

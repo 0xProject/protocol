@@ -72,6 +72,7 @@ import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { createResultCache } from '../utils/result_cache';
+import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { serviceUtils } from '../utils/service_utils';
 import { utils } from '../utils/utils';
 
@@ -135,6 +136,7 @@ export class SwapService {
         provider: SupportedProvider,
         contractAddresses: AssetSwapperContractAddresses,
         firmQuoteValidator?: RfqFirmQuoteValidator | undefined,
+        rfqDynamicBlacklist?: RfqDynamicBlacklist,
     ) {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
@@ -158,6 +160,11 @@ export class SwapService {
             },
             contractAddresses,
         };
+
+        if (swapQuoterOpts.rfqt !== undefined && rfqDynamicBlacklist !== undefined) {
+            swapQuoterOpts.rfqt.txOriginBlacklist = rfqDynamicBlacklist;
+        }
+
         if (CHAIN_ID === ChainId.Ganache) {
             swapQuoterOpts.samplerOverrides = {
                 block: BlockParamLiteral.Latest,
