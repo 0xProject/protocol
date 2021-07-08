@@ -9570,6 +9570,10 @@ neon-cli@^0.8.0:
     validate-npm-package-license "^3.0.4"
     validate-npm-package-name "^3.0.0"
 
+"neon-router@link:packages/asset-swapper/~/Development/Router/neon-router":
+  version "0.0.0"
+  uid ""
+
 next-tick@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
