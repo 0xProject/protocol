@@ -103,6 +103,8 @@ export function createContractWrapperAndHelper<TContract extends GeneratedContra
     ];
 }
 
+export type UnwrapContractFunctionReturnType<T> = T extends ContractFunctionObj<infer U> ? U : never;
+
 /**
  * This class is the preferred method for interaction with contract wrappers to
  * exploit automatic call batching. The methods here ensure the proper overrides
@@ -126,9 +128,11 @@ export class ContractHelper<TBaseContract extends GeneratedContract> {
         };
     }
 
-    public async ethCallAsync<TArgs extends any[], TReturn>(
-        fn: ContractFunction<TArgs, TReturn>,
-        args: TArgs,
+    public async ethCallAsync<TContractFunction extends ContractFunction<TParams,TReturn>,
+        TParams extends any[] = Parameters<TContractFunction>,
+        TReturn = UnwrapContractFunctionReturnType<ReturnType<TContractFunction>>>(
+        fn: TContractFunction,
+        args: Parameters<TContractFunction>,
         callOpts: Partial<ChainEthCallOpts> = {},
     ): Promise<TReturn> {
         const resultData = await this.chain.ethCall(this.encodeCall(
