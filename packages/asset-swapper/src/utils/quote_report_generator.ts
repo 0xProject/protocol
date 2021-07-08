@@ -2,6 +2,8 @@ import { FillQuoteTransformerOrderType, RfqOrderFields, Signature } from '@0x/pr
 import { BigNumber } from '@0x/utils';
 import _ = require('lodash');
 
+import { TwoHopFillData } from '../network/two_hop_sampler';
+import { DexSample, ERC20BridgeSource, FillData } from '../network/types';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
 import {
@@ -12,14 +14,6 @@ import {
     NativeRfqOrderFillData,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
-import {
-    DexSample,
-    ERC20BridgeSource,
-    FillData,
-} from '../network/types';
-import {
-    TwoHopFillData
-} from '../network/two_hop_sampler';
 
 export interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;

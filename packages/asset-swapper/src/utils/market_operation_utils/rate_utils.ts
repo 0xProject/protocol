@@ -1,11 +1,11 @@
 import { BigNumber } from '@0x/utils';
 
+import { TwoHopFillData } from '../../network/two_hop_sampler';
 import { DexSample, ERC20BridgeSource } from '../../network/types';
-import { TwoHopFillData } from '../../network/two_hop_sampler'
 import { MarketOperation } from '../../types';
 
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { ExchangeProxyOverhead, FeeSchedule, } from './types';
+import { ExchangeProxyOverhead, FeeSchedule } from './types';
 
 // tslint:disable:no-bitwise
 
@@ -27,9 +27,7 @@ export function getTwoHopAdjustedRate(
     }
     const penalty = outputAmountPerEth.times(
         exchangeProxyOverhead(
-            SOURCE_FLAGS.MultiHop |
-                SOURCE_FLAGS[fillData.firstHop.source] |
-                SOURCE_FLAGS[fillData.secondHop.source],
+            SOURCE_FLAGS.MultiHop | SOURCE_FLAGS[fillData.firstHop.source] | SOURCE_FLAGS[fillData.secondHop.source],
             2,
         ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
     );

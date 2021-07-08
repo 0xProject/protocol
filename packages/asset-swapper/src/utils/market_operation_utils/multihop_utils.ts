@@ -1,17 +1,13 @@
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { DexSample } from '../../network/types';
 import { TwoHopFillData } from '../../network/two_hop_sampler';
+import { DexSample } from '../../network/types';
 import { Omit } from '../../types';
 
 import { ZERO_AMOUNT } from './constants';
 import { getTwoHopAdjustedRate } from './rate_utils';
-import {
-    ExchangeProxyOverhead,
-    FeeSchedule,
-    MarketSideLiquidity,
-} from './types';
+import { ExchangeProxyOverhead, FeeSchedule, MarketSideLiquidity } from './types';
 
 /**
  * Returns the best two-hop quote and the fee-adjusted rate of that quote.

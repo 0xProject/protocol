@@ -7,13 +7,7 @@ import { ERC20BridgeSource } from '../../network/types';
 import { MarketOperation } from '../../types';
 
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
-import {
-    ComparisonPrice,
-    ExchangeProxyOverhead,
-    FeeEstimate,
-    FeeSchedule,
-    MarketSideLiquidity,
-} from './types';
+import { ComparisonPrice, ExchangeProxyOverhead, FeeEstimate, FeeSchedule, MarketSideLiquidity } from './types';
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat

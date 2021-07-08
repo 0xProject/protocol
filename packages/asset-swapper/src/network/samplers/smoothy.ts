@@ -6,10 +6,10 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 import { Chain } from '../chain';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { BSC_TOKENS, MAINNET_TOKENS } from '../tokens';
-import { Address, ERC20BridgeSource } from "../types";
+import { Address, ERC20BridgeSource } from '../types';
 import { valueByChainId } from '../utils';
 
-import { CurveFillData, CurveInfo, CurveFunctionSelectors, isCurveCompatible } from './curve';
+import { CurveFillData, CurveFunctionSelectors, CurveInfo, isCurveCompatible } from './curve';
 
 export type SmoothyFillData = CurveFillData;
 
@@ -50,7 +50,8 @@ const SMOOTHY_BSC_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
-const SMOOTHYLIKE_INFOS_BY_CHAIN_ID = valueByChainId({
+const SMOOTHYLIKE_INFOS_BY_CHAIN_ID = valueByChainId(
+    {
         [ChainId.Mainnet]: {
             ...SMOOTHY_MAINNET_INFOS,
         },
@@ -65,18 +66,16 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromSmoothy'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromSmoothy'];
-type SamplerSellEthCall = SamplerEthCall<SmoothyFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<SmoothyFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<SmoothyFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<SmoothyFillData, BuyContractBuyFunction>;
 
-export class SmoothySampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        SmoothyFillData
-    >
-{
+export class SmoothySampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    SmoothyFillData
+> {
     public static async createAsync(
         chain: Chain,
         fork: ERC20BridgeSource = ERC20BridgeSource.Smoothy,
@@ -103,7 +102,7 @@ export class SmoothySampler extends
     }
 
     public canConvertTokens(tokenAddressPath: Address[]): boolean {
-        if (tokenAddressPath.length != 2) {
+        if (tokenAddressPath.length !== 2) {
             return false;
         }
         return this._curveInfos.some(c => isCurveCompatible(c, tokenAddressPath));
@@ -135,9 +134,8 @@ export class SmoothySampler extends
                         fillData: { fromTokenIdx, toTokenIdx, pool: c },
                         input: a,
                         output: samples[i],
-                    }),
-                ),
-            } as SamplerSellEthCall;
+                    })),
+            };
         });
     }
 
@@ -167,9 +165,8 @@ export class SmoothySampler extends
                         fillData: { fromTokenIdx, toTokenIdx, pool: c },
                         input: a,
                         output: samples[i],
-                    }),
-                ),
-            } as SamplerSellEthCall;
+                    })),
+            };
         });
     }
 

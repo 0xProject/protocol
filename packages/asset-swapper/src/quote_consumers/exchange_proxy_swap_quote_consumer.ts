@@ -17,6 +17,8 @@ import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { constants, DUMMY_PROVIDER, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
+import { CurveFillData, LiquidityProviderFillData, MooniswapFillData, UniswapV2FillData } from '../network/samplers';
+import { WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from '../network/tokens';
 import { ERC20BridgeSource } from '../network/types';
 import {
     AffiliateFeeType,
@@ -36,20 +38,8 @@ import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
-import {
-    WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID,
-} from '../network/tokens';
 import { FinalUniswapV3FillData, poolEncoder } from '../utils/market_operation_utils/orders';
-import {
-    OptimizedMarketBridgeOrder,
-    OptimizedMarketOrder,
-} from '../utils/market_operation_utils/types';
-import {
-    CurveFillData,
-    LiquidityProviderFillData,
-    MooniswapFillData,
-    UniswapV2FillData,
-} from '../network/samplers';
+import { OptimizedMarketBridgeOrder, OptimizedMarketOrder } from '../utils/market_operation_utils/types';
 
 import {
     multiplexPlpEncoder,
@@ -95,7 +85,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _multiplex: MultiplexFeatureContract;
 
-    constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> & { chainId: ChainId }) {
+    constructor(
+        public readonly contractAddresses: ContractAddresses,
+        options: Partial<SwapQuoteConsumerOpts> & { chainId: ChainId },
+    ) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         assert.isNumber('chainId', chainId);
         this.chainId = chainId;
@@ -547,7 +540,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         }),
                     });
                     break switch_statement;
-                case ERC20BridgeSource.UniswapV3: {
+                case ERC20BridgeSource.UniswapV3:
+                    {
                         const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
                         wrappedBatchCalls.push({
                             selector: this._exchangeProxy.getSelector('sellTokenForTokenToUniswapV3'),

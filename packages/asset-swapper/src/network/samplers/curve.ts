@@ -6,7 +6,7 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 import { Chain } from '../chain';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { BSC_TOKENS, MAINNET_TOKENS, POLYGON_TOKENS } from '../tokens';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 /**
@@ -556,7 +556,8 @@ const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 100e3,
     },
 };
-const CURVELIKE_INFOS_BY_CHAIN_ID = valueByChainId({
+const CURVELIKE_INFOS_BY_CHAIN_ID = (valueByChainId(
+    {
         [ChainId.Mainnet]: {
             [ERC20BridgeSource.Curve]: CURVE_MAINNET_INFOS,
             [ERC20BridgeSource.Swerve]: SWERVE_MAINNET_INFOS,
@@ -578,28 +579,23 @@ const CURVELIKE_INFOS_BY_CHAIN_ID = valueByChainId({
         },
     },
     {},
-) as any as { [k in ChainId]: { [k in ERC20BridgeSource]: { [name: string]: CurveInfo }} };
+) as any) as { [k in ChainId]: { [k2 in ERC20BridgeSource]: { [name: string]: CurveInfo } } };
 
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromCurve'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromCurve'];
-type SamplerSellEthCall = SamplerEthCall<CurveFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<CurveFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<CurveFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<CurveFillData, BuyContractBuyFunction>;
 
-export class CurveSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        CurveFillData
-    >
-{
-    public static async createAsync(
-        chain: Chain,
-        fork: ERC20BridgeSource,
-    ): Promise<CurveSampler> {
+export class CurveSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    CurveFillData
+> {
+    public static async createAsync(chain: Chain, fork: ERC20BridgeSource): Promise<CurveSampler> {
         const curveInfos = CURVELIKE_INFOS_BY_CHAIN_ID[chain.chainId];
         if (!curveInfos) {
             throw new Error(`No curve configs for chain ${chain.chainId}`);
@@ -622,7 +618,7 @@ export class CurveSampler extends
     }
 
     public canConvertTokens(tokenAddressPath: Address[]): boolean {
-        if (tokenAddressPath.length != 2) {
+        if (tokenAddressPath.length !== 2) {
             return false;
         }
         return this._curveInfos.some(c => isCurveCompatible(c, tokenAddressPath));
@@ -648,7 +644,7 @@ export class CurveSampler extends
                     new BigNumber(toTokenIdx),
                     takerFillAmounts,
                 ],
-                getDexSamplesFromResult: (samples) => {
+                getDexSamplesFromResult: samples => {
                     return takerFillAmounts.map((a, i) => ({
                         source: this.fork,
                         fillData: { fromTokenIdx, toTokenIdx, pool: c },
@@ -686,8 +682,7 @@ export class CurveSampler extends
                         fillData: { fromTokenIdx, toTokenIdx, pool: c },
                         input: a,
                         output: samples[i],
-                    }),
-                ),
+                    })),
             } as SamplerSellEthCall;
         });
     }
@@ -698,6 +693,8 @@ export class CurveSampler extends
 }
 
 export function isCurveCompatible(curve: CurveInfo, tokens: Address[]): boolean {
-    return tokens.every(t => curve.tokens.includes(t)) &&
-        (!curve.metaTokens || tokens.some(t => curve.metaTokens!.includes(t)));
+    return (
+        tokens.every(t => curve.tokens.includes(t)) &&
+        (!curve.metaTokens || tokens.some(t => curve.metaTokens!.includes(t)))
+    );
 }

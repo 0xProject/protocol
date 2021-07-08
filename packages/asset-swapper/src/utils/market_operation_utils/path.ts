@@ -6,13 +6,7 @@ import { MarketOperation } from '../../types';
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
 import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
-import {
-    CollapsedFill,
-    ExchangeProxyOverhead,
-    Fill,
-    NativeCollapsedFill,
-    OptimizedMarketOrder,
-} from './types';
+import { CollapsedFill, ExchangeProxyOverhead, Fill, NativeCollapsedFill, OptimizedMarketOrder } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 
@@ -38,7 +32,7 @@ export class Path {
     public collapsedFills?: ReadonlyArray<CollapsedFill>;
     public orders?: OptimizedMarketOrder[];
     public sourceFlags: bigint = BigInt(0);
-    public fills: Array<Fill> = [];
+    public fills: Fill[] = [];
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _numDistinctFills: number = 0;
@@ -104,7 +98,9 @@ export class Path {
         // By prepending native paths to the front they cannot split on-chain sources and incur
         // an additional protocol fee. I.e [Uniswap,Native,Kyber] becomes [Native,Uniswap,Kyber]
         // In the previous step we dropped any hanging Native partial fills, as to not fully fill
-        const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native && f !== lastNativeFillIfExists);
+        const nativeFills = this.fills.filter(
+            f => f.source === ERC20BridgeSource.Native && f !== lastNativeFillIfExists,
+        );
         const otherFills = this.fills.filter(f => f.source !== ERC20BridgeSource.Native);
         const otherSourcePathIds = otherFills.map(f => f.sourcePathId);
         this.fills = [];

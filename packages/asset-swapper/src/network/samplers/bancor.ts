@@ -10,8 +10,8 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 import { Chain } from '../chain';
 import { NULL_ADDRESS } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
-import { Address, ERC20BridgeSource, FillData } from "../types";
 import { MAINNET_TOKENS } from '../tokens';
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 export interface BancorFillData extends FillData {
@@ -58,18 +58,16 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromBancor'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromBancor'];
-type SamplerSellEthCall = SamplerEthCall<BancorFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<BancorFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<BancorFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<BancorFillData, BuyContractBuyFunction>;
 
-export class BancorSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        BancorFillData
-    >
-{
+export class BancorSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    BancorFillData
+> {
     public static async createAsync(chain: Chain): Promise<BancorSampler> {
         return new BancorSampler(
             chain,
@@ -102,24 +100,21 @@ export class BancorSampler extends
     ): Promise<SamplerSellEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
         const paths = this._bancorService ? this._bancorService.getPaths(takerToken, makerToken) : [];
-        return [{
-            args: [
-                { registry: this._registry, paths },
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
-            getDexSamplesFromResult: ([networkAddress, path, samples]) =>
-                takerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.Bancor,
-                    fillData: {
-                        networkAddress,
-                        path,
-                    },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [{ registry: this._registry, paths }, takerToken, makerToken, takerFillAmounts],
+                getDexSamplesFromResult: ([networkAddress, path, samples]) =>
+                    takerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.Bancor,
+                        fillData: {
+                            networkAddress,
+                            path,
+                        },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 
     protected async _getBuyQuoteCallsAsync(
@@ -128,23 +123,20 @@ export class BancorSampler extends
     ): Promise<SamplerBuyEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
         const paths = this._bancorService ? this._bancorService.getPaths(takerToken, makerToken) : [];
-        return [{
-            args: [
-                { registry: this._registry, paths },
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
-            getDexSamplesFromResult: ([networkAddress, path, samples]) =>
-                makerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.Bancor,
-                    fillData: {
-                        networkAddress,
-                        path,
-                    },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [{ registry: this._registry, paths }, takerToken, makerToken, makerFillAmounts],
+                getDexSamplesFromResult: ([networkAddress, path, samples]) =>
+                    makerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.Bancor,
+                        fillData: {
+                            networkAddress,
+                            path,
+                        },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 }

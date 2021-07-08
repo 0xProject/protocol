@@ -5,12 +5,13 @@ import * as _ from 'lodash';
 import { Chain } from '../../network/chain';
 
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
-import { SourceFilters } from '../../network/source_filters';
-import { SassySampler } from '../../network/sassy_sampler';
-import { NetworkUtils } from '../../network/network_utils';
 import { NativeOrderUtils } from '../../network/native_order_utils';
-import { DexSample, ERC20BridgeSource, TokenAdjacencyGraph } from '../../network/types';
+import { NetworkUtils } from '../../network/network_utils';
 import { LiquidityProviderRegistry } from '../../network/samplers/liquidity_provider';
+import { SassySampler } from '../../network/sassy_sampler';
+import { SourceFilters } from '../../network/source_filters';
+import { WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from '../../network/tokens';
+import { DexSample, ERC20BridgeSource, TokenAdjacencyGraph } from '../../network/types';
 import {
     AssetSwapperContractAddresses,
     MarketOperation,
@@ -23,7 +24,6 @@ import {
     getNativeAdjustedFillableAmountsFromTakerAmount,
     getNativeAdjustedMakerFillAmount,
 } from '../utils';
-import { WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from '../../network/tokens';
 
 import {
     dexSampleToReportSource,
@@ -71,6 +71,27 @@ export class MarketOperationUtils {
     private readonly _networkUtils: NetworkUtils;
     private readonly _nativeOrderUtils: NativeOrderUtils;
 
+    public static async createAsync(opts: {
+        chain: Chain;
+        contractAddresses: AssetSwapperContractAddresses;
+        liquidityProviderRegistry?: LiquidityProviderRegistry;
+        tokenAdjacencyGraph?: TokenAdjacencyGraph;
+    }): Promise<MarketOperationUtils> {
+        const { chain } = opts;
+        const samplerSources = new SourceFilters([
+            ...SELL_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId].sources,
+            ...BUY_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId].sources,
+            ...FEE_QUOTE_SOURCES_BY_CHAIN_ID[chain.chainId],
+        ]).exclude([ERC20BridgeSource.Native, ERC20BridgeSource.MultiHop]).sources;
+        const sampler = await SassySampler.createAsync({
+            chain: opts.chain,
+            liquidityProviderRegistry: opts.liquidityProviderRegistry,
+            tokenAdjacencyGraph: opts.tokenAdjacencyGraph,
+            sources: samplerSources,
+        });
+        return new MarketOperationUtils(opts.chain, opts.contractAddresses, sampler);
+    }
+
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
@@ -101,32 +122,6 @@ export class MarketOperationUtils {
         );
 
         return { dexSources, multiHopSources, nativeSources };
-    }
-
-    public static async createAsync(opts: {
-        chain: Chain;
-        contractAddresses: AssetSwapperContractAddresses;
-        liquidityProviderRegistry?: LiquidityProviderRegistry;
-        tokenAdjacencyGraph?: TokenAdjacencyGraph,
-    }): Promise<MarketOperationUtils> {
-        const { chain } = opts;
-        const samplerSources =
-                new SourceFilters([
-                    ...SELL_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId].sources,
-                    ...BUY_SOURCE_FILTER_BY_CHAIN_ID[chain.chainId].sources,
-                    ...FEE_QUOTE_SOURCES_BY_CHAIN_ID[chain.chainId],
-                ]).exclude([ERC20BridgeSource.Native, ERC20BridgeSource.MultiHop]).sources;
-        const sampler = await SassySampler.createAsync({
-            chain: opts.chain,
-            liquidityProviderRegistry: opts.liquidityProviderRegistry,
-            tokenAdjacencyGraph: opts.tokenAdjacencyGraph,
-            sources: samplerSources,
-        });
-        return new MarketOperationUtils(
-            opts.chain,
-            opts.contractAddresses,
-            sampler,
-        );
     }
 
     protected constructor(
@@ -175,7 +170,7 @@ export class MarketOperationUtils {
             dexQuotes,
             rawTwoHopQuotes,
         ] = await Promise.all([
-            this._networkUtils.isAddressContract(txOrigin),
+            this._networkUtils.isAddressContractAsync(txOrigin),
             this._networkUtils.getTokenDecimalsAsync([makerToken, takerToken]),
             // Get native order fillable amounts.
             this._nativeOrderUtils.getLimitOrderFillableTakerAmountsAsync(nativeOrders),
@@ -224,8 +219,8 @@ export class MarketOperationUtils {
             outputAmountPerEth,
             inputAmountPerEth,
             quoteSourceFilters,
-            makerTokenDecimals: makerTokenDecimals,
-            takerTokenDecimals: takerTokenDecimals,
+            makerTokenDecimals,
+            takerTokenDecimals,
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
@@ -268,7 +263,7 @@ export class MarketOperationUtils {
             dexQuotes,
             rawTwoHopQuotes,
         ] = await Promise.all([
-            this._networkUtils.isAddressContract(txOrigin),
+            this._networkUtils.isAddressContractAsync(txOrigin),
             this._networkUtils.getTokenDecimalsAsync([makerToken, takerToken]),
             // Get native order fillable amounts.
             this._nativeOrderUtils.getLimitOrderFillableMakerAmountsAsync(nativeOrders),
@@ -317,8 +312,8 @@ export class MarketOperationUtils {
             outputAmountPerEth: ethToTakerAssetRate,
             inputAmountPerEth: ethToMakerAssetRate,
             quoteSourceFilters,
-            makerTokenDecimals: makerTokenDecimals,
-            takerTokenDecimals: takerTokenDecimals,
+            makerTokenDecimals,
+            takerTokenDecimals,
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],

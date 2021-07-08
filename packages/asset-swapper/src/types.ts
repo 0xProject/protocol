@@ -11,19 +11,10 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosRequestConfig } from 'axios';
 
-import { ERC20BridgeSource } from './network/types';
-import {
-    GetMarketOrdersOpts,
-    OptimizedMarketOrder,
-} from './utils/market_operation_utils/types';
+import { LiquidityProviderRegistry } from './network/samplers';
+import { ERC20BridgeSource, TokenAdjacencyGraph } from './network/types';
+import { GetMarketOrdersOpts, OptimizedMarketOrder } from './utils/market_operation_utils/types';
 import { PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
-import {
-    TokenAdjacencyGraph,
-} from './network/types'
-import {
-    LiquidityProviderRegistry,
-} from './network/samplers'
-
 
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).

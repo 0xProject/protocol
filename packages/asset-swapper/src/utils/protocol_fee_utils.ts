@@ -1,5 +1,5 @@
-import * as fetch from 'node-fetch';
 import { BigNumber } from '@0x/utils';
+import * as fetch from 'axios';
 import * as heartbeats from 'heartbeats';
 
 import { constants } from '../constants';

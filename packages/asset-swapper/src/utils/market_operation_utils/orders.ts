@@ -2,27 +2,6 @@ import { BridgeProtocol, encodeBridgeSourceId, FillQuoteTransformerOrderType } f
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import {
-    DexSample,
-    ERC20BridgeSource,
-    FillData,
-} from '../../network/types';
-import {
-    UniswapV3FillData,
-} from '../../network/samplers/uniswap_v3';
-import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
-
-import { MAX_UINT256, ZERO_AMOUNT } from './constants';
-import {
-    AggregationError,
-    CollapsedFill,
-    NativeCollapsedFill,
-    OptimizedMarketBridgeOrder,
-    OptimizedMarketOrder,
-    OptimizedMarketOrderBase,
-    NativeRfqOrderFillData,
-    NativeLimitOrderFillData,
-} from './types';
-import {
     BalancerFillData,
     BalancerV2FillData,
     BancorFillData,
@@ -35,14 +14,27 @@ import {
     LiquidityProviderFillData,
     MakerPsmFillData,
     MooniswapFillData,
-    ShellFillData,
     OasisFillData,
+    ShellFillData,
     UniswapV1FillData,
     UniswapV2FillData,
 } from '../../network/samplers';
+import { UniswapV3FillData } from '../../network/samplers/uniswap_v3';
+import { TwoHopFillData } from '../../network/two_hop_sampler';
+import { DexSample, ERC20BridgeSource, FillData } from '../../network/types';
+import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
+
+import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
-    TwoHopFillData
-} from '../../network/two_hop_sampler';
+    AggregationError,
+    CollapsedFill,
+    NativeCollapsedFill,
+    NativeLimitOrderFillData,
+    NativeRfqOrderFillData,
+    OptimizedMarketBridgeOrder,
+    OptimizedMarketOrder,
+    OptimizedMarketOrderBase,
+} from './types';
 
 // tslint:disable completed-docs
 
@@ -386,7 +378,10 @@ const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
-const balancerV2Encoder = AbiEncoder.create([{ name: 'vault', type: 'address' }, { name: 'poolId', type: 'bytes32' }]);
+const balancerV2Encoder = AbiEncoder.create([
+    { name: 'vault', type: 'address' },
+    { name: 'poolId', type: 'bytes32' },
+]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 

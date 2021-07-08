@@ -2,9 +2,8 @@ import { ChainId } from '@0x/contract-addresses';
 
 import { NULL_ADDRESS } from './constants';
 import { TokenAdjacencyGraphBuilder } from './token_adjacency_graph_builder';
-import { Address, TokenAdjacencyGraph  } from './types';
+import { Address, TokenAdjacencyGraph } from './types';
 import { valueByChainId } from './utils';
-
 
 const MIRROR_WRAPPED_TOKENS = {
     mAAPL: '0xd36932143f6ebdedd872d5fb0651f4b72fd15a84',
@@ -142,11 +141,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             BSC_TOKENS.USDT,
             BSC_TOKENS.WEX,
         ],
-        [ChainId.Ropsten]: [
-            ROPSTEN_TOKENS.WETH,
-            ROPSTEN_TOKENS.DAI,
-            ROPSTEN_TOKENS.USDC,
-        ],
+        [ChainId.Ropsten]: [ROPSTEN_TOKENS.WETH, ROPSTEN_TOKENS.DAI, ROPSTEN_TOKENS.USDC],
         [ChainId.Polygon]: [
             POLYGON_TOKENS.WMATIC,
             POLYGON_TOKENS.WETH,
@@ -184,10 +179,10 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
 
-export const WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID = {
+export const WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID = ({
     ...Object.values(ChainId).map(c => ({ [c]: NULL_ADDRESS })),
     [ChainId.Mainnet]: MAINNET_TOKENS.WETH,
     [ChainId.Ropsten]: ROPSTEN_TOKENS.WETH,
     [ChainId.Polygon]: POLYGON_TOKENS.WMATIC,
     [ChainId.BSC]: BSC_TOKENS.WBNB,
-} as any as { [k in ChainId]: Address };
+} as any) as { [k in ChainId]: Address };

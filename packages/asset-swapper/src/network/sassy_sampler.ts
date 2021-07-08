@@ -13,6 +13,7 @@ import {
     KyberDmmSampler,
     KyberSampler,
     LidoSampler,
+    LiquidityProviderRegistry,
     LiquidityProviderSampler,
     MakerPsmSampler,
     MooniswapSampler,
@@ -23,12 +24,11 @@ import {
     UniswapV1Sampler,
     UniswapV2Sampler,
     UniswapV3Sampler,
-    LiquidityProviderRegistry,
 } from './samplers';
 import { SourceFilters } from './source_filters';
-import { Address, DexSample, ERC20BridgeSource, SourceSampler, SourceSamplerMap, TokenAdjacencyGraph } from  './types';
-import { TwoHopSampler, TwoHopFillData } from './two_hop_sampler';
 import { DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID } from './tokens';
+import { TwoHopFillData, TwoHopSampler } from './two_hop_sampler';
+import { Address, DexSample, ERC20BridgeSource, SourceSampler, SourceSamplerMap, TokenAdjacencyGraph } from './types';
 
 const { ZERO_AMOUNT } = constants;
 
@@ -44,13 +44,15 @@ type SassySamplerCreateOpts = Partial<SassySamplerCreateFullOpts> & { chain: Cha
 const DEFAULT_SOURCES = SourceFilters.all().exclude([ERC20BridgeSource.Native, ERC20BridgeSource.MultiHop]).sources;
 
 export class SassySampler {
+
+    public readonly availableSources: ERC20BridgeSource[];
     public static async createAsync(opts: SassySamplerCreateOpts): Promise<SassySampler> {
         const sources = opts.sources || DEFAULT_SOURCES;
         const samplers = Object.assign(
             {},
-            ...(await Promise.all(
-                sources.map(async s => createSourceSamplerAsync(s, opts))
-            )).map((sampler, i) => ({ [sources[i]]: sampler })),
+            ...(await Promise.all(sources.map(async s => createSourceSamplerAsync(s, opts)))).map((sampler, i) => ({
+                [sources[i]]: sampler,
+            })),
         );
         const twoHopSampler = await TwoHopSampler.createAsync(opts.chain, samplers);
         return new SassySampler(
@@ -60,8 +62,6 @@ export class SassySampler {
             twoHopSampler,
         );
     }
-
-    public readonly availableSources: ERC20BridgeSource[];
 
     protected constructor(
         public readonly chain: Chain,
@@ -83,8 +83,9 @@ export class SassySampler {
         }
         const samples = (
             await Promise.all(
-                sources.map(s => this._sampleSellsFromSourceAsync(s, [takerToken, makerToken], [takerAmount])))
-            ).flat(1);
+                sources.map(async s => this._sampleSellsFromSourceAsync(s, [takerToken, makerToken], [takerAmount])),
+            )
+        ).flat(1);
         if (samples.length === 0) {
             return ZERO_AMOUNT;
         }
@@ -106,13 +107,13 @@ export class SassySampler {
         takerAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
         const tokenPaths = this._getExpandedTokenPaths(takerToken, makerToken);
-        return (await Promise.all(
-            sources.map(s =>
-                Promise.all(
-                    tokenPaths.map(p => this._sampleSellsFromSourceAsync(s, p, takerAmounts)),
+        return (
+            await Promise.all(
+                sources.map(async s =>
+                    Promise.all(tokenPaths.map(async p => this._sampleSellsFromSourceAsync(s, p, takerAmounts))),
                 ),
-            ),
-        )).flat(2);
+            )
+        ).flat(2);
     }
 
     public async getBuySamplesAsync(
@@ -122,13 +123,11 @@ export class SassySampler {
         makerAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
         const tokenPaths = this._getExpandedTokenPaths(takerToken, makerToken);
-        return (await Promise.all(
-            sources.map(s =>
-                Promise.all(
-                    tokenPaths.map(p => this._sampleBuysFromSourceAsync(s, p, makerAmounts)),
-                ),
-            ),
-        )).flat(2);
+        return (
+            await Promise.all(
+                sources.map(async s => Promise.all(tokenPaths.map(async p => this._sampleBuysFromSourceAsync(s, p, makerAmounts)))),
+            )
+        ).flat(2);
     }
 
     public async getTwoHopSellSamplesAsync(
@@ -136,11 +135,14 @@ export class SassySampler {
         takerToken: Address,
         makerToken: Address,
         takerAmount: BigNumber,
-    ): Promise<DexSample<TwoHopFillData>[]> {
+    ): Promise<Array<DexSample<TwoHopFillData>>> {
         const tokenPaths = this._getTwoHopTokenPaths(takerToken, makerToken);
-        const hopResults = (await Promise.all(tokenPaths.map(async tokenPath =>
-            this._twoHopSampler.getTwoHopSellSampleAsync(sources, tokenPath, takerAmount))));
-        return hopResults.filter(h => !!h) as DexSample<TwoHopFillData>[];
+        const hopResults = await Promise.all(
+            tokenPaths.map(async tokenPath =>
+                this._twoHopSampler.getTwoHopSellSampleAsync(sources, tokenPath, takerAmount),
+            ),
+        );
+        return hopResults.filter(h => !!h) as Array<DexSample<TwoHopFillData>>;
     }
 
     public async getTwoHopBuySamplesAsync(
@@ -148,11 +150,14 @@ export class SassySampler {
         takerToken: Address,
         makerToken: Address,
         makerAmount: BigNumber,
-    ): Promise<DexSample<TwoHopFillData>[]> {
+    ): Promise<Array<DexSample<TwoHopFillData>>> {
         const tokenPaths = this._getTwoHopTokenPaths(takerToken, makerToken);
-        const hopResults = (await Promise.all(tokenPaths.map(async tokenPath =>
-            this._twoHopSampler.getTwoHopBuySampleAsync(sources, tokenPath, makerAmount))));
-        return hopResults.filter(h => !!h) as DexSample<TwoHopFillData>[];
+        const hopResults = await Promise.all(
+            tokenPaths.map(async tokenPath =>
+                this._twoHopSampler.getTwoHopBuySampleAsync(sources, tokenPath, makerAmount),
+            ),
+        );
+        return hopResults.filter(h => !!h) as Array<DexSample<TwoHopFillData>>;
     }
 
     private _findSampler(source: ERC20BridgeSource): SourceSampler | undefined {
@@ -206,9 +211,14 @@ interface CreateSourceSamplerOpts {
     liquidityProviderRegistry?: LiquidityProviderRegistry;
 }
 
-async function createSourceSamplerAsync(source: ERC20BridgeSource, opts: CreateSourceSamplerOpts): Promise<SourceSampler> {
+async function createSourceSamplerAsync(
+    source: ERC20BridgeSource,
+    opts: CreateSourceSamplerOpts,
+): Promise<SourceSampler> {
     const { chain } = opts;
     switch (source) {
+        default:
+            break;
         case ERC20BridgeSource.Balancer:
         case ERC20BridgeSource.Cream:
             return BalancerSampler.createAsync(chain, source);

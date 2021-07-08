@@ -1,6 +1,6 @@
-import { BigNumber } from '@0x/utils';
-import { LimitOrderFields } from '@0x/protocol-utils';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { LimitOrderFields } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
 
 import { SignedNativeOrder } from '../types';
 import { NativeOrderUtilsContract } from '../wrappers';
@@ -26,22 +26,14 @@ export class NativeOrderUtils {
     public async getLimitOrderFillableTakerAmountsAsync(orders: SignedNativeOrder[]): Promise<BigNumber[]> {
         return this._nativeOrderUtilsContractHelper.ethCallAsync(
             this._nativeOrderUtilsContract.getLimitOrderFillableTakerAssetAmounts,
-            [
-                orders.map(o => o.order as LimitOrderFields),
-                orders.map(o => o.signature),
-                this.exchangeProxyAddress,
-            ],
+            [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), this.exchangeProxyAddress],
         );
     }
 
     public async getLimitOrderFillableMakerAmountsAsync(orders: SignedNativeOrder[]): Promise<BigNumber[]> {
         return this._nativeOrderUtilsContractHelper.ethCallAsync(
             this._nativeOrderUtilsContract.getLimitOrderFillableMakerAssetAmounts,
-            [
-                orders.map(o => o.order as LimitOrderFields),
-                orders.map(o => o.signature),
-                this.exchangeProxyAddress,
-            ],
+            [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), this.exchangeProxyAddress],
         );
     }
 }

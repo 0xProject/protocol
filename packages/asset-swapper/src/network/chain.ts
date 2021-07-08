@@ -1,11 +1,11 @@
 import { ChainId } from '@0x/contract-addresses';
 import { SupportedProvider } from '@0x/subproviders';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import { BigNumber, hexUtils } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as crypto from 'crypto';
 
-import { CallDispatcherContract } from '../wrappers';
 import { artifacts } from '../artifacts';
+import { CallDispatcherContract } from '../wrappers';
 
 import { DUMMY_PROVIDER, NULL_BYTES, ZERO_AMOUNT } from './constants';
 import { Address, Bytes } from './types';
@@ -13,8 +13,8 @@ import { Address, Bytes } from './types';
 export interface ChainEthCallOverrides {
     [address: string]: {
         code?: Bytes;
-    },
-};
+    };
+}
 
 export interface ChainEthCallOpts {
     data: Bytes;
@@ -28,7 +28,7 @@ export interface ChainEthCallOpts {
 }
 
 interface QueuedEthCall {
-    opts: ChainEthCallOpts,
+    opts: ChainEthCallOpts;
     accept: (v: Bytes) => void;
     reject: (v: string | Bytes) => void;
 }
@@ -42,10 +42,7 @@ export interface CreateChainOpts {
 const DEFAULT_CALL_GAS_LIMIT = 10e6;
 const DEFAULT_CALLER_ADDRESS = hexUtils.random(20);
 const DISPATCHER_CONTRACT_ADDRESS = hexUtils.random(20);
-const DISPATCHER_CONTRACT = new CallDispatcherContract(
-    DISPATCHER_CONTRACT_ADDRESS,
-    DUMMY_PROVIDER,
-);
+const DISPATCHER_CONTRACT = new CallDispatcherContract(DISPATCHER_CONTRACT_ADDRESS, DUMMY_PROVIDER);
 const DISPATCHER_CONTRACT_BYTECODE = artifacts.CallDispatcher.compilerOutput.evm.deployedBytecode.object;
 
 export interface DispatchedCallResult {
@@ -61,35 +58,10 @@ interface CachedDispatchedCallResult {
 export interface Chain {
     chainId: ChainId;
     provider: SupportedProvider;
-    ethCall(opts: ChainEthCallOpts): Promise<Bytes>;
+    ethCallAsync(opts: ChainEthCallOpts): Promise<Bytes>;
 }
 
 export class LiveChain implements Chain {
-    private readonly _w3: Web3Wrapper;
-    private readonly _chainId: ChainId;
-    private readonly _cachedCallResults: { [id: string]: CachedDispatchedCallResult } = {};
-    private _maxCacheAgeMs: number = 0;
-    private _tickTimer: NodeJS.Timeout | null = null;
-    private _queue: QueuedEthCall[] = [];
-
-    public static async createAsync(opts: CreateChainOpts): Promise<Chain> {
-        const fullOpts = { tickFrequency: 100, maxCacheAgeMs: 30e3, ...opts };
-        const w3 = new Web3Wrapper(opts.provider);
-        const chainId = await w3.getChainIdAsync() as ChainId;
-        const inst = new LiveChain(chainId, w3, fullOpts.maxCacheAgeMs);
-        await inst._start(fullOpts.tickFrequency);
-        return inst;
-    }
-
-    protected constructor(chainId: number, w3: Web3Wrapper, maxCacheAgeMs: number) {
-        this._chainId = chainId;
-        this._w3 = w3;
-        this._maxCacheAgeMs = maxCacheAgeMs;
-    }
-
-    protected async _start(tickFrequency: number): Promise<void> {
-        await this._tick(tickFrequency, true);
-    }
 
     public get provider(): SupportedProvider {
         return this._w3.getProvider();
@@ -98,8 +70,66 @@ export class LiveChain implements Chain {
     public get chainId(): ChainId {
         return this._chainId;
     }
+    private readonly _w3: Web3Wrapper;
+    private readonly _chainId: ChainId;
+    private readonly _cachedCallResults: { [id: string]: CachedDispatchedCallResult } = {};
+    private readonly _maxCacheAgeMs: number = 0;
+    private _tickTimer: NodeJS.Timeout | null = null;
+    private _queue: QueuedEthCall[] = [];
 
-    public async ethCall(opts: ChainEthCallOpts): Promise<Bytes> {
+    public static async createAsync(opts: CreateChainOpts): Promise<Chain> {
+        const fullOpts = { tickFrequency: 100, maxCacheAgeMs: 30e3, ...opts };
+        const w3 = new Web3Wrapper(opts.provider);
+        const chainId = (await w3.getChainIdAsync()) as ChainId;
+        const inst = new LiveChain(chainId, w3, fullOpts.maxCacheAgeMs);
+        await inst._startAsync(fullOpts.tickFrequency);
+        return inst;
+    }
+
+    private static _mergeBatchCalls(calls: QueuedEthCall[]): BatchedChainEthCallOpts {
+        if (calls.length === 1) {
+            // If we just have one call, don't bother batching it.
+            return {
+                gas: calls[0].opts.gas || DEFAULT_CALL_GAS_LIMIT,
+                from: DEFAULT_CALLER_ADDRESS,
+                gasPrice: calls[0].opts.gasPrice || ZERO_AMOUNT,
+                to: calls[0].opts.to,
+                value: calls[0].opts.value || ZERO_AMOUNT,
+                data: calls[0].opts.data,
+                overrides: calls[0].opts.overrides || {},
+            };
+        }
+        const callInfos = calls.map(c => ({
+            data: c.opts.data,
+            to: c.opts.to,
+            gas: new BigNumber(c.opts.gas || 0),
+            value: c.opts.value || ZERO_AMOUNT,
+        }));
+        return {
+            gas: calls.reduce((s, c) => (c.opts.gas || DEFAULT_CALL_GAS_LIMIT) + s, 0) || DEFAULT_CALL_GAS_LIMIT,
+            from: DEFAULT_CALLER_ADDRESS,
+            gasPrice: BigNumber.sum(...calls.map(c => c.opts.gasPrice || 0)),
+            to: DISPATCHER_CONTRACT.address,
+            value: BigNumber.sum(...calls.map(c => c.opts.value || 0)),
+            data: DISPATCHER_CONTRACT.dispatch(callInfos).getABIEncodedTransactionData(),
+            overrides: Object.assign(
+                { [DISPATCHER_CONTRACT.address]: { code: DISPATCHER_CONTRACT_BYTECODE } },
+                ...calls.map(c => c.opts.overrides),
+            ),
+        };
+    }
+
+    protected constructor(chainId: number, w3: Web3Wrapper, maxCacheAgeMs: number) {
+        this._chainId = chainId;
+        this._w3 = w3;
+        this._maxCacheAgeMs = maxCacheAgeMs;
+    }
+
+    protected async _startAsync(tickFrequency: number): Promise<void> {
+        await this._tickAsync(tickFrequency, true);
+    }
+
+    public async ethCallAsync(opts: ChainEthCallOpts): Promise<Bytes> {
         let c: QueuedEthCall | undefined;
         const p = new Promise<Bytes>((accept, reject) => {
             // This executes right away so `c` will be defined in this fn.
@@ -117,12 +147,13 @@ export class LiveChain implements Chain {
                 return p;
             }
             // Cache both success and failure results.
-            p.then(resultData => this._cacheCallResult(c!.opts, resultData))
-                .catch(error => this._cacheCallResult(c!.opts, undefined, error));
+            p.then(resultData => this._cacheCallResult(c!.opts, resultData)).catch(error =>
+                this._cacheCallResult(c!.opts, undefined, error),
+            );
         }
         if (opts.immediate) {
             // Do not add to queue. Dispatch immediately.
-            this._executeAsync([c!]);
+            void this._executeAsync([c!]);
         } else {
             // Just queue up and batch dispatch later.
             this._queue.push(c!);
@@ -148,7 +179,7 @@ export class LiveChain implements Chain {
         };
     }
 
-    private async _tick(tickFrequency: number, bootstrap = false): Promise<void> {
+    private async _tickAsync(tickFrequency: number, bootstrap: boolean = false): Promise<void> {
         if (!bootstrap && !this._tickTimer) {
             return;
         }
@@ -159,11 +190,7 @@ export class LiveChain implements Chain {
             this._queue = [];
             await this._executeAsync(queue);
         }
-        this._tickTimer =
-            setTimeout(
-                () => this._tick(tickFrequency),
-                tickFrequency,
-            );
+        this._tickTimer = setTimeout(async () => this._tickAsync(tickFrequency), tickFrequency);
     }
 
     private _pruneCache(): void {
@@ -177,7 +204,7 @@ export class LiveChain implements Chain {
 
     private async _executeAsync(queue: QueuedEthCall[]): Promise<void> {
         // dispatch each batch of calls.
-        await Promise.all([ ...generateCallBatches(queue)].map(b => this._dispatchBatchAsync(b)));
+        await Promise.all([...generateCallBatches(queue)].map(async b => this._dispatchBatchAsync(b)));
     }
 
     private async _dispatchBatchAsync(calls: QueuedEthCall[]): Promise<void> {
@@ -188,6 +215,7 @@ export class LiveChain implements Chain {
         try {
             rawResultData = await this._w3.callAsync(LiveChain._mergeBatchCalls(calls));
         } catch (err) {
+            // tslint:disable-next-line: no-console
             console.error(err);
             rejectBatch(err);
             return;
@@ -208,47 +236,12 @@ export class LiveChain implements Chain {
         // resolve each call in the batch.
         results.forEach((r, i) => resolveQueuedCall(calls[i], r));
     }
-
-    private static _mergeBatchCalls(calls: QueuedEthCall[]): BatchedChainEthCallOpts {
-        if (calls.length === 1) {
-            // If we just have one call, don't bother batching it.
-            return {
-                gas: calls[0].opts.gas || DEFAULT_CALL_GAS_LIMIT,
-                from: DEFAULT_CALLER_ADDRESS,
-                gasPrice: calls[0].opts.gasPrice || ZERO_AMOUNT,
-                to: calls[0].opts.to,
-                value: calls[0].opts.value || ZERO_AMOUNT,
-                data: calls[0].opts.data,
-                overrides: calls[0].opts.overrides || {},
-            };
-        }
-        const callInfos = calls.map(c =>
-            ({
-                data: c.opts.data,
-                to: c.opts.to,
-                gas: new BigNumber(c.opts.gas || 0),
-                value: c.opts.value || ZERO_AMOUNT,
-            }),
-        );
-        return {
-            gas: calls.reduce((s, c) => (c.opts.gas || DEFAULT_CALL_GAS_LIMIT) + s, 0) || DEFAULT_CALL_GAS_LIMIT,
-            from: DEFAULT_CALLER_ADDRESS,
-            gasPrice: BigNumber.sum(...calls.map(c => c.opts.gasPrice || 0)),
-            to: DISPATCHER_CONTRACT.address,
-            value: BigNumber.sum(...calls.map(c => c.opts.value || 0)),
-            data: DISPATCHER_CONTRACT.dispatch(callInfos).getABIEncodedTransactionData(),
-            overrides: Object.assign(
-                { [DISPATCHER_CONTRACT.address]: { code: DISPATCHER_CONTRACT_BYTECODE } },
-                ...calls.map(c => c.opts.overrides),
-            ),
-        };
-    }
 }
 
-function *generateCallBatches(queue: QueuedEthCall[]): Generator<QueuedEthCall[]> {
+function* generateCallBatches(queue: QueuedEthCall[]): Generator<QueuedEthCall[]> {
     let nextQueue = queue;
     while (nextQueue.length > 0) {
-        let _queue = nextQueue;
+        const _queue = nextQueue;
         nextQueue = [];
         const batch = [];
         for (const c of _queue) {
@@ -272,11 +265,8 @@ function resolveQueuedCall(c: QueuedEthCall, r: DispatchedCallResult): void {
 
 function tryDecodeStringRevertErrorResult(rawResultData: Bytes): string | undefined {
     if (rawResultData.startsWith('0x08c379a0')) {
-        const strLen = new BigNumber(hexUtils.slice(rawResultData, 4, 36)).toNumber();
-        return Buffer.from(
-            hexUtils.slice(rawResultData, 68, 68 + strLen).slice(2),
-            'hex',
-        ).toString();
+        const strLen: number = new BigNumber(hexUtils.slice(rawResultData, 4, 36)).toNumber();
+        return Buffer.from(hexUtils.slice(rawResultData, 68, 68 + strLen).slice(2), 'hex').toString();
     }
     return;
 }
@@ -305,7 +295,10 @@ function canBatchCallWith(ethCall: QueuedEthCall, batch: QueuedEthCall[]): boole
 }
 
 function hashCall(c: ChainEthCallOpts): string {
-    return crypto.createHash('sha1').update(JSON.stringify(c)).digest('hex');
+    return crypto
+        .createHash('sha1')
+        .update(JSON.stringify(c))
+        .digest('hex');
 }
 
 interface BatchedChainEthCallOpts {

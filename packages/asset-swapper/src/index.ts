@@ -77,12 +77,7 @@ export {
 export { artifacts } from './artifacts';
 export { InsufficientAssetLiquidityError } from './errors';
 export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
-export {
-    DexSample,
-    ERC20BridgeSource,
-    FillData,
-    TokenAdjacencyGraph,
-} from './network/types';
+export { DexSample, ERC20BridgeSource, FillData, TokenAdjacencyGraph } from './network/types';
 export { SwapQuoter, Orderbook } from './swap_quoter';
 export {
     AltOffering,
@@ -126,10 +121,7 @@ export {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
-export {
-    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
-    WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID,
-} from './network/tokens';
+export { DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID, WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from './network/tokens';
 export {
     CollapsedFill,
     ExchangeProxyOverhead,
@@ -158,9 +150,7 @@ export {
     UniswapV2FillData,
     UniswapV3FillData,
 } from './network/samplers';
-export {
-    TwoHopFillData,
-} from './network/two_hop_sampler';
+export { TwoHopFillData } from './network/two_hop_sampler';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {
     BridgeQuoteReportEntry,

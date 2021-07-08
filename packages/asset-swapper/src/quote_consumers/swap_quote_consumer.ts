@@ -20,7 +20,9 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _contractAddresses: ContractAddresses;
     private readonly _exchangeProxyConsumer: ExchangeProxySwapQuoteConsumer;
 
-    public static getSwapQuoteConsumer(options: Partial<SwapQuoteConsumerOpts> & { chainId: ChainId }): SwapQuoteConsumer {
+    public static getSwapQuoteConsumer(
+        options: Partial<SwapQuoteConsumerOpts> & { chainId: ChainId },
+    ): SwapQuoteConsumer {
         return new SwapQuoteConsumer(options);
     }
 
@@ -59,7 +61,9 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         return consumer.executeSwapQuoteOrThrowAsync(quote, opts);
     }
 
-    private async _getConsumerForSwapQuoteAsync(_opts: Partial<SwapQuoteGetOutputOpts>): Promise<SwapQuoteConsumerBase> {
+    private async _getConsumerForSwapQuoteAsync(
+        _opts: Partial<SwapQuoteGetOutputOpts>,
+    ): Promise<SwapQuoteConsumerBase> {
         return this._exchangeProxyConsumer;
     }
 }

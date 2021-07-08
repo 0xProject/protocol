@@ -7,7 +7,7 @@ import { Chain } from '../chain';
 import { NULL_ADDRESS, NULL_BYTES } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { MAINNET_TOKENS, ROPSTEN_TOKENS } from '../tokens';
-import { Address, Bytes, ERC20BridgeSource, FillData } from "../types";
+import { Address, Bytes, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 interface KyberSamplerOpts {
@@ -31,7 +31,8 @@ const KYBER_BRIDGED_LIQUIDITY_PREFIX = '0xbb';
 const KYBER_BANNED_RESERVES = ['0xff4f6e65426974205175616e7400000000000000000000000000000000000000'];
 const MAX_KYBER_RESERVES_QUERIED = 5;
 const KYBER_RESERVE_OFFSETS = Array(MAX_KYBER_RESERVES_QUERIED)
-        .fill(0).map((_v, i) => new BigNumber(i));
+    .fill(0)
+    .map((_v, i) => new BigNumber(i));
 const KYBER_OPTS_BY_CHAIN_ID = valueByChainId<KyberSamplerOpts>(
     {
         [ChainId.Mainnet]: {
@@ -56,18 +57,16 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromKyberNetwork'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromKyberNetwork'];
-type SamplerSellEthCall = SamplerEthCall<KyberFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<KyberFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<KyberFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<KyberFillData, BuyContractBuyFunction>;
 
-export class KyberSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        KyberFillData
-    >
-{
+export class KyberSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    KyberFillData
+> {
     public static async createAsync(chain: Chain): Promise<KyberSampler> {
         return new KyberSampler(chain, KYBER_OPTS_BY_CHAIN_ID[chain.chainId]);
     }
@@ -103,18 +102,18 @@ export class KyberSampler extends
                 takerFillAmounts,
             ],
             getDexSamplesFromResult: ([reserveId, hint, samples]) =>
-                isAllowedKyberReserveId(reserveId) ?
-                    takerFillAmounts.map((a, i) => ({
-                        source: ERC20BridgeSource.Kyber,
-                        fillData: {
-                            hint,
-                            reserveId,
-                            networkProxy: this._opts.networkProxy,
-                        },
-                        input: a,
-                        output: samples[i]
-                    }))
-                : [],
+                isAllowedKyberReserveId(reserveId)
+                    ? takerFillAmounts.map((a, i) => ({
+                          source: ERC20BridgeSource.Kyber,
+                          fillData: {
+                              hint,
+                              reserveId,
+                              networkProxy: this._opts.networkProxy,
+                          },
+                          input: a,
+                          output: samples[i],
+                      }))
+                    : [],
         }));
     }
 
@@ -135,18 +134,18 @@ export class KyberSampler extends
                 makerFillAmounts,
             ],
             getDexSamplesFromResult: ([reserveId, hint, samples]) =>
-                isAllowedKyberReserveId(reserveId) ?
-                    makerFillAmounts.map((a, i) => ({
-                        source: ERC20BridgeSource.Kyber,
-                        fillData: {
-                            hint,
-                            reserveId,
-                            networkProxy: this._opts.networkProxy,
-                        },
-                        input: a,
-                        output: samples[i],
-                    }))
-                : [],
+                isAllowedKyberReserveId(reserveId)
+                    ? makerFillAmounts.map((a, i) => ({
+                          source: ERC20BridgeSource.Kyber,
+                          fillData: {
+                              hint,
+                              reserveId,
+                              networkProxy: this._opts.networkProxy,
+                          },
+                          input: a,
+                          output: samples[i],
+                      }))
+                    : [],
         }));
     }
 }

@@ -6,7 +6,7 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 import { Chain } from '../chain';
 import { NULL_ADDRESS, NULL_BYTES32 } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
-import { Address, Bytes, ERC20BridgeSource, FillData } from "../types";
+import { Address, Bytes, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 /**
@@ -18,7 +18,7 @@ interface MakerPsmInfo {
     gemTokenAddress: Address;
 }
 
-export type MakerPsmFillData = FillData & MakerPsmInfo & { takerToken: Address; }
+export type MakerPsmFillData = FillData & MakerPsmInfo & { takerToken: Address };
 
 const MAKER_PSM_INFO_BY_CHAIN_ID = valueByChainId<MakerPsmInfo>(
     {
@@ -47,15 +47,13 @@ type BuyContractBuyFunction = BuyContract['sampleBuysFromMakerPsm'];
 type SamplerSellEthCall = SamplerEthCall<MakerPsmFillData, SellContractSellFunction>;
 type SamplerBuyEthCall = SamplerEthCall<MakerPsmFillData, BuyContractBuyFunction>;
 
-export class MakerPsmSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        MakerPsmFillData
-    >
-{
+export class MakerPsmSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    MakerPsmFillData
+> {
     public static async createAsync(chain: Chain): Promise<MakerPsmSampler> {
         return new MakerPsmSampler(chain, MAKER_PSM_INFO_BY_CHAIN_ID[chain.chainId]);
     }
@@ -79,21 +77,18 @@ export class MakerPsmSampler extends
         takerFillAmounts: BigNumber[],
     ): Promise<SamplerSellEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return [{
-            args: [
-                this._psmInfo,
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
-            getDexSamplesFromResult: (samples) =>
-                takerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.MakerPsm,
-                    fillData: { ...this._psmInfo, takerToken },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [this._psmInfo, takerToken, makerToken, takerFillAmounts],
+                getDexSamplesFromResult: samples =>
+                    takerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.MakerPsm,
+                        fillData: { ...this._psmInfo, takerToken },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 
     protected async _getBuyQuoteCallsAsync(
@@ -101,20 +96,17 @@ export class MakerPsmSampler extends
         makerFillAmounts: BigNumber[],
     ): Promise<SamplerBuyEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return [{
-            args: [
-                this._psmInfo,
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
-            getDexSamplesFromResult: (samples) =>
-                makerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.MakerPsm,
-                    fillData: { ...this._psmInfo, takerToken },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [this._psmInfo, takerToken, makerToken, makerFillAmounts],
+                getDexSamplesFromResult: samples =>
+                    makerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.MakerPsm,
+                        fillData: { ...this._psmInfo, takerToken },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 }

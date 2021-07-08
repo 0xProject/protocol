@@ -13,13 +13,9 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from './types';
-import {
-    DEFAULT_GET_MARKET_ORDERS_OPTS,
-} from './utils/market_operation_utils/constants';
+import { DEFAULT_GET_MARKET_ORDERS_OPTS } from './utils/market_operation_utils/constants';
 
-import {
-    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
-} from './network/tokens';
+import { DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID } from './network/tokens';
 
 const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
 const NULL_BYTES = '0x';

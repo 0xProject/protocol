@@ -3,11 +3,6 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import {
-    ERC20BridgeSource,
-    FillData,
-} from '../../network/types';
-import { SourceFilters } from '../../network/source_filters';
-import {
     BancorFillData,
     CurveFillData,
     DodoV1FillData,
@@ -17,15 +12,12 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
 } from '../../network/samplers';
-import {
-    TwoHopFillData,
-} from '../../network/two_hop_sampler';
+import { SourceFilters } from '../../network/source_filters';
+import { TwoHopFillData } from '../../network/two_hop_sampler';
+import { ERC20BridgeSource, FillData } from '../../network/types';
 import { valueByChainId } from '../../network/utils';
 
-import {
-    FeeSchedule,
-    GetMarketOrdersOpts,
-} from './types';
+import { FeeSchedule, GetMarketOrdersOpts } from './types';
 
 // tslint:disable: custom-no-magic-numbers no-bitwise
 
@@ -335,7 +327,6 @@ export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
-
 
 export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {

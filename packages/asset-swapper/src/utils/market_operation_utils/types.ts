@@ -7,14 +7,14 @@ import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
-import { ERC20BridgeSource, DexSample, FillData, TokenAdjacencyGraph } from '../../network/types';
+import { SourceFilters } from '../../network/source_filters';
 import { TwoHopFillData } from '../../network/two_hop_sampler';
+import { DexSample, ERC20BridgeSource, FillData, TokenAdjacencyGraph } from '../../network/types';
+import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { CollapsedPath } from './path';
-import { SourceFilters } from '../../network/source_filters';
 
 /**
  * Order domain keys: chainId and exchange

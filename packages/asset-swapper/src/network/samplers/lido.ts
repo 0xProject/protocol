@@ -7,7 +7,7 @@ import { Chain } from '../chain';
 import { NULL_ADDRESS } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { MAINNET_TOKENS } from '../tokens';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 export interface LidoInfo {
@@ -37,23 +37,18 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromLido'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromLido'];
-type SamplerSellEthCall = SamplerEthCall<LidoFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<LidoFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<LidoFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<LidoFillData, BuyContractBuyFunction>;
 
-export class LidoSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        LidoFillData
-    >
-{
+export class LidoSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    LidoFillData
+> {
     public static async createAsync(chain: Chain): Promise<LidoSampler> {
-        return new LidoSampler(
-            chain,
-            LIDO_INFO_BY_CHAIN[chain.chainId],
-        );
+        return new LidoSampler(chain, LIDO_INFO_BY_CHAIN[chain.chainId]);
     }
 
     protected constructor(chain: Chain, private readonly _lidoInfo: LidoInfo) {
@@ -75,21 +70,18 @@ export class LidoSampler extends
         takerFillAmounts: BigNumber[],
     ): Promise<SamplerSellEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return [{
-            args: [
-                this._lidoInfo,
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
-            getDexSamplesFromResult: samples =>
-                takerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.Uniswap,
-                    fillData: { takerToken, stEthTokenAddress: this._lidoInfo.stEthToken },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [this._lidoInfo, takerToken, makerToken, takerFillAmounts],
+                getDexSamplesFromResult: samples =>
+                    takerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.Uniswap,
+                        fillData: { takerToken, stEthTokenAddress: this._lidoInfo.stEthToken },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 
     protected async _getBuyQuoteCallsAsync(
@@ -97,20 +89,17 @@ export class LidoSampler extends
         makerFillAmounts: BigNumber[],
     ): Promise<SamplerBuyEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return [{
-            args: [
-                this._lidoInfo,
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
-            getDexSamplesFromResult: samples =>
-                makerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.Uniswap,
-                    fillData: { takerToken, stEthTokenAddress: this._lidoInfo.stEthToken },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [this._lidoInfo, takerToken, makerToken, makerFillAmounts],
+                getDexSamplesFromResult: samples =>
+                    makerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.Uniswap,
+                        fillData: { takerToken, stEthTokenAddress: this._lidoInfo.stEthToken },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 }

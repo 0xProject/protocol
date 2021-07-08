@@ -6,9 +6,8 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 import { Chain } from '../chain';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { MAINNET_TOKENS } from '../tokens';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
-
 
 export interface LiquidityProviderFillData extends FillData {
     poolAddress: Address;
@@ -53,7 +52,10 @@ const DEFAULT_LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<Liquidity
 
 export type LiquidityProviderRegistryByChainId = typeof DEFAULT_LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID;
 
-export function mergeLiquidityProviderRegistries(...registries: LiquidityProviderRegistryByChainId[]): LiquidityProviderRegistryByChainId {
+export function mergeLiquidityProviderRegistries(
+    // tslint:disable-next-line: trailing-comma
+    ...registries: LiquidityProviderRegistryByChainId[]
+): LiquidityProviderRegistryByChainId {
     return {
         ...Object.values(ChainId).map(c => ({
             [c]: {
@@ -67,18 +69,16 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromLiquidityProvider'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromLiquidityProvider'];
-type SamplerSellEthCall = SamplerEthCall<LiquidityProviderFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<LiquidityProviderFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<LiquidityProviderFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<LiquidityProviderFillData, BuyContractBuyFunction>;
 
-export class LiquidityProviderSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        LiquidityProviderFillData
-    >
-{
+export class LiquidityProviderSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    LiquidityProviderFillData
+> {
     public static async createAsync(
         chain: Chain,
         registry?: LiquidityProviderRegistry,
@@ -89,10 +89,7 @@ export class LiquidityProviderSampler extends
         );
     }
 
-    protected constructor(
-        chain: Chain,
-        private readonly _registry: LiquidityProviderRegistry,
-    ) {
+    protected constructor(chain: Chain, private readonly _registry: LiquidityProviderRegistry) {
         super({
             chain,
             sellSamplerContractType: ERC20BridgeSamplerContract,
@@ -106,7 +103,7 @@ export class LiquidityProviderSampler extends
         if (tokenAddressPath.length !== 2) {
             return false;
         }
-        return this._findCompatibleProviders(tokenAddressPath).length != 0;
+        return this._findCompatibleProviders(tokenAddressPath).length !== 0;
     }
 
     protected async _getSellQuoteCallsAsync(
@@ -116,12 +113,7 @@ export class LiquidityProviderSampler extends
         const providers = this._findCompatibleProviders(tokenAddressPath);
         const [takerToken, makerToken] = tokenAddressPath;
         return providers.map(p => ({
-            args: [
-                p,
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
+            args: [p, takerToken, makerToken, takerFillAmounts],
             getDexSamplesFromResult: samples =>
                 takerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.LiquidityProvider,
@@ -142,12 +134,7 @@ export class LiquidityProviderSampler extends
         const providers = this._findCompatibleProviders(tokenAddressPath);
         const [takerToken, makerToken] = tokenAddressPath;
         return providers.map(p => ({
-            args: [
-                p,
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
+            args: [p, takerToken, makerToken, makerFillAmounts],
             getDexSamplesFromResult: samples =>
                 makerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.LiquidityProvider,
@@ -169,7 +156,7 @@ export class LiquidityProviderSampler extends
 }
 
 function getProviderGasCost(providerInfo: LiquidityProviderInfo, takerToken: Address, makerToken: Address): number {
-    return typeof(providerInfo.gasCost) === 'number'
+    return typeof providerInfo.gasCost === 'number'
         ? providerInfo.gasCost
         : providerInfo.gasCost(takerToken, makerToken);
 }

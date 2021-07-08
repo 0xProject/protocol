@@ -9,11 +9,11 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 import { Chain } from '../chain';
 import { NULL_ADDRESS } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
-import { Address, Bytes, ERC20BridgeSource, FillData } from "../types";
+import { Address, Bytes, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
-import { CacheValue, PoolsCache } from './utils/pools_cache';
 import { parsePoolData } from './utils/balancer_sor_v2';
+import { CacheValue, PoolsCache } from './utils/pools_cache';
 
 /**
  * Configuration info for a Balancer V2 pool.
@@ -82,7 +82,7 @@ export class BalancerV2PoolsCache extends PoolsCache {
         private readonly subgraphUrl: string,
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
-        private readonly _warningLogger = DEFAULT_WARNING_LOGGER,
+        private readonly _warningLogger: typeof DEFAULT_WARNING_LOGGER = DEFAULT_WARNING_LOGGER,
         cache: { [key: string]: CacheValue } = {},
     ) {
         super(cache);
@@ -209,28 +209,22 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromBalancerV2'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromBalancerV2'];
-type SamplerSellEthCall = SamplerEthCall<BalancerV2FillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<BalancerV2FillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<BalancerV2FillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<BalancerV2FillData, BuyContractBuyFunction>;
 
-export class BalancerV2Sampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        BalancerV2FillData
-    >
-{
+export class BalancerV2Sampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    BalancerV2FillData
+> {
     public static async createAsync(chain: Chain): Promise<BalancerV2Sampler> {
         const config = BALANCER_V2_CONFIG_BY_CHAIN[chain.chainId];
         if (!config.subgraphUrl) {
             throw new Error(`No BalancerV2 subgraph for chain ${chain.chainId}`);
         }
-        return new BalancerV2Sampler(
-            chain,
-            new BalancerV2PoolsCache(config.subgraphUrl),
-            config.vault,
-        );
+        return new BalancerV2Sampler(chain, new BalancerV2PoolsCache(config.subgraphUrl), config.vault);
     }
 
     protected constructor(chain: Chain, private readonly _cache: PoolsCache, private readonly _vaultAddress: Address) {
@@ -259,12 +253,7 @@ export class BalancerV2Sampler extends
         const [takerToken, makerToken] = tokenAddressPath;
         const pools = this._cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
         return pools.map(poolId => ({
-            args: [
-                { poolId, vault: this._vaultAddress },
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
+            args: [{ poolId, vault: this._vaultAddress }, takerToken, makerToken, takerFillAmounts],
             getDexSamplesFromResult: samples =>
                 takerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.BalancerV2,
@@ -272,8 +261,7 @@ export class BalancerV2Sampler extends
                     input: a,
                     output: samples[i],
                 })),
-            }),
-        );
+        }));
     }
 
     protected async _getBuyQuoteCallsAsync(
@@ -283,12 +271,7 @@ export class BalancerV2Sampler extends
         const [takerToken, makerToken] = tokenAddressPath;
         const pools = this._cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
         return pools.map(poolId => ({
-            args: [
-                { poolId, vault: this._vaultAddress },
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
+            args: [{ poolId, vault: this._vaultAddress }, takerToken, makerToken, makerFillAmounts],
             getDexSamplesFromResult: samples =>
                 makerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.BalancerV2,
@@ -296,7 +279,6 @@ export class BalancerV2Sampler extends
                     input: a,
                     output: samples[i],
                 })),
-            }),
-        );
+        }));
     }
 }

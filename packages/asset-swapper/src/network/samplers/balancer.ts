@@ -1,15 +1,15 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 import { getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
-import { getPoolsWithTokens as getCreamPoolsWithTokens, parsePoolData as parseCreamPoolData } from 'cream-sor';
 import { Pool } from '@balancer-labs/sor/dist/types';
+import { getPoolsWithTokens as getCreamPoolsWithTokens, parsePoolData as parseCreamPoolData } from 'cream-sor';
 import { gql, request } from 'graphql-request';
 
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { Chain } from '../chain';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 
 import { CacheValue, PoolsCache } from './utils/pools_cache';
 
@@ -145,18 +145,16 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromBalancer'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromBalancer'];
-type SamplerSellEthCall = SamplerEthCall<BalancerFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<BalancerFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<BalancerFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<BalancerFillData, BuyContractBuyFunction>;
 
-export class BalancerSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        BalancerFillData
-    >
-{
+export class BalancerSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    BalancerFillData
+> {
     public static async createAsync(chain: Chain, fork: ERC20BridgeSource): Promise<BalancerSampler> {
         if (chain.chainId !== ChainId.Mainnet) {
             throw new Error(`Balancer forks are only available on mainnet`);
@@ -201,12 +199,7 @@ export class BalancerSampler extends
         const [takerToken, makerToken] = tokenAddressPath;
         const pools = this._cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
         return pools.map(poolAddress => ({
-            args: [
-                poolAddress,
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
+            args: [poolAddress, takerToken, makerToken, takerFillAmounts],
             getDexSamplesFromResult: samples =>
                 takerFillAmounts.map((a, i) => ({
                     source: this.fork,
@@ -214,8 +207,7 @@ export class BalancerSampler extends
                     input: a,
                     output: samples[i],
                 })),
-            }),
-        );
+        }));
     }
 
     protected async _getBuyQuoteCallsAsync(
@@ -225,12 +217,7 @@ export class BalancerSampler extends
         const [takerToken, makerToken] = tokenAddressPath;
         const pools = this._cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
         return pools.map(poolAddress => ({
-            args: [
-                poolAddress,
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
+            args: [poolAddress, takerToken, makerToken, makerFillAmounts],
             getDexSamplesFromResult: samples =>
                 makerFillAmounts.map((a, i) => ({
                     source: this.fork,
@@ -238,7 +225,6 @@ export class BalancerSampler extends
                     input: a,
                     output: samples[i],
                 })),
-            }),
-        );
+        }));
     }
 }

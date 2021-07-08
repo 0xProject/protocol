@@ -5,7 +5,7 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { Chain } from '../chain';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 
 const UNISWAP_V2_ROUTER_BY_CHAIN_ID_BY_FORK = {
     [ChainId.Mainnet]: {
@@ -48,18 +48,16 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromUniswapV2'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromUniswapV2'];
-type SamplerSellEthCall = SamplerEthCall<UniswapV2FillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<UniswapV2FillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<UniswapV2FillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<UniswapV2FillData, BuyContractBuyFunction>;
 
-export class UniswapV2Sampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        UniswapV2FillData
-    >
-{
+export class UniswapV2Sampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    UniswapV2FillData
+> {
     private readonly _router: Address;
 
     public static async createAsync(chain: Chain, fork: ERC20BridgeSource): Promise<UniswapV2Sampler> {
@@ -81,47 +79,41 @@ export class UniswapV2Sampler extends
         tokenAddressPath: string[],
         takerFillAmounts: BigNumber[],
     ): Promise<SamplerSellEthCall[]> {
-        return [{
-            args: [
-                this._router,
-                tokenAddressPath,
-                takerFillAmounts,
-            ],
-            getDexSamplesFromResult: samples =>
-                takerFillAmounts.map((a, i) => ({
-                    source: this.fork,
-                    fillData: {
-                        router: this._router,
-                        tokenAddressPath: tokenAddressPath,
-                    },
-                    input: a,
-                    output: samples[i],
-                }),
-            ),
-        }];
+        return [
+            {
+                args: [this._router, tokenAddressPath, takerFillAmounts],
+                getDexSamplesFromResult: samples =>
+                    takerFillAmounts.map((a, i) => ({
+                        source: this.fork,
+                        fillData: {
+                            router: this._router,
+                            tokenAddressPath,
+                        },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 
     protected async _getBuyQuoteCallsAsync(
         tokenAddressPath: string[],
         makerFillAmounts: BigNumber[],
     ): Promise<SamplerBuyEthCall[]> {
-        return [{
-            args: [
-                this._router,
-                tokenAddressPath,
-                makerFillAmounts,
-            ],
-            getDexSamplesFromResult: samples =>
-                makerFillAmounts.map((a, i) => ({
-                    source: this.fork,
-                    fillData: {
-                        router: this._router,
-                        tokenAddressPath: tokenAddressPath,
-                    },
-                    input: a,
-                    output: samples[i],
-                }),
-            ),
-        }];
+        return [
+            {
+                args: [this._router, tokenAddressPath, makerFillAmounts],
+                getDexSamplesFromResult: samples =>
+                    makerFillAmounts.map((a, i) => ({
+                        source: this.fork,
+                        fillData: {
+                            router: this._router,
+                            tokenAddressPath,
+                        },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 }

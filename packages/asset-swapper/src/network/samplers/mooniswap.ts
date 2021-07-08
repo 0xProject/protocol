@@ -7,7 +7,7 @@ import { Chain } from '../chain';
 import { NULL_ADDRESS } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from '../tokens';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 export interface MooniswapFillData extends FillData {
@@ -30,18 +30,16 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromMooniswap'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromMooniswap'];
-type SamplerSellEthCall = SamplerEthCall<MooniswapFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<MooniswapFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<MooniswapFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<MooniswapFillData, BuyContractBuyFunction>;
 
-export class MooniswapSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        MooniswapFillData
-    >
-{
+export class MooniswapSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    MooniswapFillData
+> {
     public static async createAsync(chain: Chain): Promise<MooniswapSampler> {
         return new MooniswapSampler(
             chain,
@@ -70,12 +68,7 @@ export class MooniswapSampler extends
     ): Promise<SamplerSellEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
         return this._registries.map(registry => ({
-            args: [
-                registry,
-                this._normalizeToken(takerToken),
-                this._normalizeToken(makerToken),
-                takerFillAmounts,
-            ],
+            args: [registry, this._normalizeToken(takerToken), this._normalizeToken(makerToken), takerFillAmounts],
             getDexSamplesFromResult: ([poolAddress, samples]) =>
                 takerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.Mooniswap,
@@ -92,12 +85,7 @@ export class MooniswapSampler extends
     ): Promise<SamplerBuyEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
         return this._registries.map(registry => ({
-            args: [
-                registry,
-                this._normalizeToken(takerToken),
-                this._normalizeToken(makerToken),
-                makerFillAmounts,
-            ],
+            args: [registry, this._normalizeToken(takerToken), this._normalizeToken(makerToken), makerFillAmounts],
             getDexSamplesFromResult: ([poolAddress, samples]) =>
                 makerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.Mooniswap,

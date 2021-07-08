@@ -5,7 +5,7 @@ import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { Chain } from '../chain';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 export interface DodoV2FillData extends FillData {
@@ -35,29 +35,24 @@ const DODOV2_FACTORIES_BY_CHAIN_ID = valueByChainId<string[]>(
 );
 
 const MAX_DODOV2_POOLS_QUERIED = 3;
-const DODO_V2_OFFSETS = [...new Array(MAX_DODOV2_POOLS_QUERIED)].map((_v, i) => new BigNumber(i))
+const DODO_V2_OFFSETS = [...new Array(MAX_DODOV2_POOLS_QUERIED)].map((_v, i) => new BigNumber(i));
 
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromDODOV2'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromDODOV2'];
-type SamplerSellEthCall = SamplerEthCall<DodoV2FillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<DodoV2FillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<DodoV2FillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<DodoV2FillData, BuyContractBuyFunction>;
 
-export class DodoV2Sampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        DodoV2FillData
-    >
-{
+export class DodoV2Sampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    DodoV2FillData
+> {
     public static async createAsync(chain: Chain): Promise<DodoV2Sampler> {
-        return new DodoV2Sampler(
-            chain,
-            DODOV2_FACTORIES_BY_CHAIN_ID[chain.chainId],
-        );
+        return new DodoV2Sampler(chain, DODOV2_FACTORIES_BY_CHAIN_ID[chain.chainId]);
     }
 
     protected constructor(chain: Chain, private readonly _factories: Address[]) {
@@ -79,25 +74,24 @@ export class DodoV2Sampler extends
         takerFillAmounts: BigNumber[],
     ): Promise<SamplerSellEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return this._factories.map(factory =>
-            DODO_V2_OFFSETS.map(offset => ({
-                args: [
-                    factory,
-                    offset,
-                    takerToken,
-                    makerToken,
-                    takerFillAmounts,
-                ],
-                getDexSamplesFromResult: ([isSellBase, poolAddress, samples]) => {
-                    return takerFillAmounts.map((a, i) => ({
-                        source: ERC20BridgeSource.DodoV2,
-                        fillData: { poolAddress, isSellBase },
-                        input: a,
-                        output: samples[i],
-                    }));
-                },
-            }) as SamplerSellEthCall,
-        )).flat(1);
+        return this._factories
+            .map(factory =>
+                DODO_V2_OFFSETS.map(
+                    offset =>
+                        ({
+                            args: [factory, offset, takerToken, makerToken, takerFillAmounts],
+                            getDexSamplesFromResult: ([isSellBase, poolAddress, samples]) => {
+                                return takerFillAmounts.map((a, i) => ({
+                                    source: ERC20BridgeSource.DodoV2,
+                                    fillData: { poolAddress, isSellBase },
+                                    input: a,
+                                    output: samples[i],
+                                }));
+                            },
+                        } as SamplerSellEthCall),
+                ),
+            )
+            .flat(1);
     }
 
     protected async _getBuyQuoteCallsAsync(
@@ -105,24 +99,23 @@ export class DodoV2Sampler extends
         makerFillAmounts: BigNumber[],
     ): Promise<SamplerBuyEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return this._factories.map(factory =>
-            DODO_V2_OFFSETS.map(offset => ({
-                args: [
-                    factory,
-                    offset,
-                    takerToken,
-                    makerToken,
-                    makerFillAmounts,
-                ],
-                getDexSamplesFromResult: ([isSellBase, poolAddress, samples]) => {
-                    return makerFillAmounts.map((a, i) => ({
-                        source: ERC20BridgeSource.DodoV2,
-                        fillData: { poolAddress, isSellBase },
-                        input: a,
-                        output: samples[i],
-                    }));
-                },
-            }) as SamplerBuyEthCall,
-        )).flat(1);
+        return this._factories
+            .map(factory =>
+                DODO_V2_OFFSETS.map(
+                    offset =>
+                        ({
+                            args: [factory, offset, takerToken, makerToken, makerFillAmounts],
+                            getDexSamplesFromResult: ([isSellBase, poolAddress, samples]) => {
+                                return makerFillAmounts.map((a, i) => ({
+                                    source: ERC20BridgeSource.DodoV2,
+                                    fillData: { poolAddress, isSellBase },
+                                    input: a,
+                                    output: samples[i],
+                                }));
+                            },
+                        } as SamplerBuyEthCall),
+                ),
+            )
+            .flat(1);
     }
 }

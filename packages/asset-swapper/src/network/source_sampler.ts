@@ -2,7 +2,14 @@ import { BigNumber } from '@0x/utils';
 
 import { Chain, ChainEthCallOpts } from './chain';
 import { Address, DexSample, FillData, MultiHopCallInfo, SourceSampler } from './types';
-import { ContractFunction, ContractHelper, ContractWrapperType, createContractWrapperAndHelper, GeneratedContract, UnwrapContractFunctionReturnType } from './utils';
+import {
+    ContractFunction,
+    ContractHelper,
+    ContractWrapperType,
+    createContractWrapperAndHelper,
+    GeneratedContract,
+    UnwrapContractFunctionReturnType,
+} from './utils';
 
 export abstract class SourceSamplerBase implements SourceSampler {
     protected constructor() {}
@@ -38,23 +45,23 @@ interface OnChainSourceSamplerOptions<
     TSellSamplerFunctionName = keyof TSellSamplerContract,
     TBuySamplerFunctionName = keyof TBuySamplerContract
 > {
-    chain: Chain,
+    chain: Chain;
     sellSamplerContractArtifactName?: string;
     buySamplerContractArtifactName?: string;
-    sellSamplerContractType: ContractWrapperType<TSellSamplerContract>,
-    buySamplerContractType: ContractWrapperType<TBuySamplerContract>,
-    sellContractSellFunctionName: TSellSamplerFunctionName,
-    buyContractBuyFunctionName: TBuySamplerFunctionName,
+    sellSamplerContractType: ContractWrapperType<TSellSamplerContract>;
+    buySamplerContractType: ContractWrapperType<TBuySamplerContract>;
+    sellContractSellFunctionName: TSellSamplerFunctionName;
+    buyContractBuyFunctionName: TBuySamplerFunctionName;
 }
 
 export interface SamplerEthCall<
     TFillData,
     TSamplerFunction extends ContractFunction<TParams, TReturn>,
     TParams extends any[] = Parameters<TSamplerFunction>,
-    TReturn = UnwrapContractFunctionReturnType<ReturnType<TSamplerFunction>>>
-{
+    TReturn = UnwrapContractFunctionReturnType<ReturnType<TSamplerFunction>>
+> {
     args: Parameters<TSamplerFunction>;
-    getDexSamplesFromResult(result: TReturn): DexSample<TFillData>[];
+    getDexSamplesFromResult(result: TReturn): Array<DexSample<TFillData>>;
 }
 
 // Base class for a standard sampler with on-chain quote functions.
@@ -87,8 +94,8 @@ export abstract class OnChainSourceSampler<
     protected readonly _buyContract: TBuySamplerContract;
     protected readonly _sellContractHelper: ContractHelper<TSellSamplerContract>;
     protected readonly _buyContractHelper: ContractHelper<TBuySamplerContract>;
-    protected readonly _sellContractFunction: ContractFunction<TSellSamplerFunctionArgs,TSellSamplerFunctionReturn>;
-    protected readonly _buyContractFunction: ContractFunction<TBuySamplerFunctionArgs,TBuySamplerFunctionReturn>;
+    protected readonly _sellContractFunction: ContractFunction<TSellSamplerFunctionArgs, TSellSamplerFunctionReturn>;
+    protected readonly _buyContractFunction: ContractFunction<TBuySamplerFunctionArgs, TBuySamplerFunctionReturn>;
 
     protected constructor(opts: TOpts) {
         super();
@@ -104,8 +111,10 @@ export abstract class OnChainSourceSampler<
             opts.buySamplerContractType.name || opts.buySamplerContractArtifactName!,
         );
         // HACK: Is there a way to restrict `TSellSamplerContract[TSellSamplerFunctionName] = TSellSamplerFunction`?
-        this._sellContractFunction = this._sellContract[opts.sellContractSellFunctionName] as any as TSellSamplerFunction;
-        this._buyContractFunction = this._buyContract[opts.buyContractBuyFunctionName] as any as TBuySamplerFunction;
+        this._sellContractFunction = (this._sellContract[
+            opts.sellContractSellFunctionName
+        ] as any) as TSellSamplerFunction;
+        this._buyContractFunction = (this._buyContract[opts.buyContractBuyFunctionName] as any) as TBuySamplerFunction;
     }
 
     public canConvertTokens(_tokenAddressPath: Address[]): boolean {
@@ -120,14 +129,15 @@ export abstract class OnChainSourceSampler<
             return [];
         }
         const calls = await this._getSellQuoteCallsAsync(tokenAddressPath, takerFillAmounts);
-        return await Promise.all(calls.map(async c =>
-            c.getDexSamplesFromResult(
-                await this._sellContractHelper.ethCallAsync(
-                    this._sellContractFunction,
-                    c.args,
-                ),
-            ).filter(s => s.output),
-        ));
+        return Promise.all(
+            calls.map(async c =>
+                c
+                    .getDexSamplesFromResult(
+                        await this._sellContractHelper.ethCallAsync(this._sellContractFunction, c.args),
+                    )
+                    .filter(s => s.output),
+            ),
+        );
     }
 
     public async getBuySamplesAsync(
@@ -138,14 +148,15 @@ export abstract class OnChainSourceSampler<
             return [];
         }
         const calls = await this._getBuyQuoteCallsAsync(tokenAddressPath, makerFillAmounts);
-        return await Promise.all(calls.map(async c =>
-            c.getDexSamplesFromResult(
-                await this._buyContractHelper.ethCallAsync(
-                    this._buyContractFunction,
-                    c.args,
-                ),
-            ).filter(s => s.output),
-        ));
+        return Promise.all(
+            calls.map(async c =>
+                c
+                    .getDexSamplesFromResult(
+                        await this._buyContractHelper.ethCallAsync(this._buyContractFunction, c.args),
+                    )
+                    .filter(s => s.output),
+            ),
+        );
     }
 
     public async getMultiHopSellCallInfosAsync(
@@ -156,16 +167,18 @@ export abstract class OnChainSourceSampler<
         if (!this.canConvertTokens(tokenAddressPath)) {
             return [];
         }
-        const calls = (await this._getSellQuoteCallsAsync(tokenAddressPath, [takerFillAmount]));
-        return calls.flat(1).map(c =>
-            createMultiHopCallInfo(
-                this._sellContractHelper,
-                this._sellContractFunction,
-                c.args,
-                (...args) => c.getDexSamplesFromResult(...args)[0],
-                callOpts,
-            ),
-        );
+        const calls = await this._getSellQuoteCallsAsync(tokenAddressPath, [takerFillAmount]);
+        return calls
+            .flat(1)
+            .map(c =>
+                createMultiHopCallInfo(
+                    this._sellContractHelper,
+                    this._sellContractFunction,
+                    c.args,
+                    (...args) => c.getDexSamplesFromResult(...args)[0],
+                    callOpts,
+                ),
+            );
     }
 
     public async getMultiHopBuyCallInfosAsync(
@@ -176,27 +189,29 @@ export abstract class OnChainSourceSampler<
         if (!this.canConvertTokens(tokenAddressPath)) {
             return [];
         }
-        const calls = (await this._getBuyQuoteCallsAsync(tokenAddressPath, [makerFillAmount]));
-        return calls.flat(1).map(c =>
-            createMultiHopCallInfo(
-                this._buyContractHelper,
-                this._buyContractFunction,
-                c.args,
-                (...args) => c.getDexSamplesFromResult(...args)[0],
-                callOpts,
-            ),
-        );
+        const calls = await this._getBuyQuoteCallsAsync(tokenAddressPath, [makerFillAmount]);
+        return calls
+            .flat(1)
+            .map(c =>
+                createMultiHopCallInfo(
+                    this._buyContractHelper,
+                    this._buyContractFunction,
+                    c.args,
+                    (...args) => c.getDexSamplesFromResult(...args)[0],
+                    callOpts,
+                ),
+            );
     }
 
     protected abstract _getSellQuoteCallsAsync(
         tokenAddressPath: Address[],
         takerFillAmounts: BigNumber[],
-    ): Promise<SamplerEthCall<TFillData, ContractFunction<TSellSamplerFunctionArgs,TSellSamplerFunctionReturn>>[]>;
+    ): Promise<Array<SamplerEthCall<TFillData, ContractFunction<TSellSamplerFunctionArgs, TSellSamplerFunctionReturn>>>>;
 
     protected abstract _getBuyQuoteCallsAsync(
         tokenAddressPath: Address[],
         takerFillAmounts: BigNumber[],
-    ): Promise<SamplerEthCall<TFillData, ContractFunction<TBuySamplerFunctionArgs,TBuySamplerFunctionReturn>>[]>;
+    ): Promise<Array<SamplerEthCall<TFillData, ContractFunction<TBuySamplerFunctionArgs, TBuySamplerFunctionReturn>>>>;
 }
 
 function createMultiHopCallInfo<TContract extends GeneratedContract, TArgs extends any[], TReturn, TFillData>(

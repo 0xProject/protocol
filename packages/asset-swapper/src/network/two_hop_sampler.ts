@@ -3,9 +3,17 @@ import { BigNumber } from '@0x/utils';
 import { ERC20BridgeSamplerContract } from '../wrappers';
 
 import { Chain } from './chain';
-import { Address, ERC20BridgeSource, DexSample, FillData, MultiHopCallInfo, SourceSampler, SourceSamplerMap } from  './types';
+import { MAX_UINT256, ZERO_AMOUNT } from './constants';
+import {
+    Address,
+    DexSample,
+    ERC20BridgeSource,
+    FillData,
+    MultiHopCallInfo,
+    SourceSampler,
+    SourceSamplerMap,
+} from './types';
 import { ContractHelper, createContractWrapperAndHelper } from './utils';
-import { ZERO_AMOUNT, MAX_UINT256 } from './constants';
 
 export interface TwoHopFillData extends FillData {
     firstHop: DexSample;
@@ -19,20 +27,11 @@ export class TwoHopSampler {
     protected readonly _sellContractHelper: ContractHelper<ERC20BridgeSamplerContract>;
     protected readonly _buyContractHelper: ContractHelper<ERC20BridgeSamplerContract>;
 
-    public static async createAsync(
-        chain: Chain,
-        subSamplers: SourceSamplerMap,
-    ): Promise<TwoHopSampler> {
-        return new TwoHopSampler(
-            chain,
-            subSamplers,
-        );
+    public static async createAsync(chain: Chain, subSamplers: SourceSamplerMap): Promise<TwoHopSampler> {
+        return new TwoHopSampler(chain, subSamplers);
     }
 
-    protected constructor(
-        public readonly chain: Chain,
-        private readonly _samplers: SourceSamplerMap,
-    ) {
+    protected constructor(public readonly chain: Chain, private readonly _samplers: SourceSamplerMap) {
         [this._sellContract, this._sellContractHelper] = createContractWrapperAndHelper(
             this.chain,
             ERC20BridgeSamplerContract,
@@ -76,12 +75,9 @@ export class TwoHopSampler {
             ],
             {
                 overrides: {
-                    ...Object.assign(
-                        {},
-                        ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides),
-                    ),
+                    ...Object.assign({}, ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides)),
                 },
-            }
+            },
         );
 
         if (result.outputAmount.eq(0)) {
@@ -133,12 +129,9 @@ export class TwoHopSampler {
             ],
             {
                 overrides: {
-                    ...Object.assign(
-                        {},
-                        ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides),
-                    ),
+                    ...Object.assign({}, ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides)),
                 },
-            }
+            },
         );
 
         if (result.outputAmount.eq(MAX_UINT256)) {
@@ -162,9 +155,9 @@ export class TwoHopSampler {
         tokenAddressPath: Address[],
     ): Promise<MultiHopCallInfo[]> {
         const samplers = this._getEligibleSamplers(sources);
-        return (await Promise.all(samplers.map(async s =>
-            s.getMultiHopSellCallInfosAsync(tokenAddressPath, ZERO_AMOUNT),
-        ))).flat(2);
+        return (
+            await Promise.all(samplers.map(async s => s.getMultiHopSellCallInfosAsync(tokenAddressPath, ZERO_AMOUNT)))
+        ).flat(2);
     }
 
     private async _getMultiHopBuyCallInfosAsync(
@@ -172,9 +165,9 @@ export class TwoHopSampler {
         tokenAddressPath: Address[],
     ): Promise<MultiHopCallInfo[]> {
         const samplers = this._getEligibleSamplers(sources);
-        return (await Promise.all(samplers.map(async s =>
-            s.getMultiHopBuyCallInfosAsync(tokenAddressPath, ZERO_AMOUNT),
-        ))).flat(2);
+        return (
+            await Promise.all(samplers.map(async s => s.getMultiHopBuyCallInfosAsync(tokenAddressPath, ZERO_AMOUNT)))
+        ).flat(2);
     }
 
     private _getEligibleSamplers(sources: ERC20BridgeSource[]): SourceSampler[] {

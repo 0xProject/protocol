@@ -1,16 +1,9 @@
 import * as chai from 'chai';
 import 'mocha';
 
-import {
-    PoolsCache,
-} from '../src/network/samplers/utils/pools_cache';
-import {
-    BalancerPoolsCache,
-    CreamPoolsCache,
-} from '../src/network/samplers/balancer';
-import {
-    BalancerV2PoolsCache,
-} from '../src/network/samplers/balancer_v2';
+import { BalancerPoolsCache, CreamPoolsCache } from '../src/network/samplers/balancer';
+import { BalancerV2PoolsCache } from '../src/network/samplers/balancer_v2';
+import { PoolsCache } from '../src/network/samplers/utils/pools_cache';
 
 import { chaiSetup } from './utils/chai_setup';
 

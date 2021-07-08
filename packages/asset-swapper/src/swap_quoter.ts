@@ -8,8 +8,9 @@ import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
 import { constants, INVALID_SIGNATURE, KEEP_ALIVE_TTL } from './constants';
+import { Chain, LiveChain } from './network/chain';
+import { SourceFilters } from './network/source_filters';
 import { ERC20BridgeSource, FillData } from './network/types';
-import { LiveChain } from './network/chain';
 import {
     MarketBuySwapQuote,
     MarketOperation,
@@ -24,10 +25,8 @@ import {
     SwapQuoterRfqOpts,
 } from './types';
 import { assert } from './utils/assert';
-import { Chain } from './network/chain';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
-import { SourceFilters } from './network/source_filters';
 import {
     FeeSchedule,
     GetMarketOrdersOpts,
@@ -76,30 +75,33 @@ export class SwapQuoter {
      *
      * @return  An instance of SwapQuoter
      */
-    public static async createAsync(supportedProvider: SupportedProvider, orderbook: Orderbook, opts: Partial<SwapQuoterOpts> = {}): Promise<SwapQuoter> {
+    public static async createAsync(
+        supportedProvider: SupportedProvider,
+        orderbook: Orderbook,
+        opts: Partial<SwapQuoterOpts> = {},
+    ): Promise<SwapQuoter> {
         const chain = await LiveChain.createAsync({ provider: providerUtils.standardizeOrThrow(supportedProvider) });
-        const contractAddresses = opts.contractAddresses  || getContractAddressesForChainOrThrow(chain.chainId);
+        const contractAddresses = opts.contractAddresses || getContractAddressesForChainOrThrow(chain.chainId);
         const marketUtils = await MarketOperationUtils.createAsync({
             chain,
             contractAddresses,
             liquidityProviderRegistry: opts.liquidityProviderRegistry,
             tokenAdjacencyGraph: opts.tokenAdjacencyGraph,
-        })
+        });
         return new SwapQuoter({ ...opts, chain, orderbook, marketUtils });
     }
 
-    protected constructor(opts: {
-        chain: Chain,
-        orderbook: Orderbook,
-        marketUtils: MarketOperationUtils,
-    } & Partial<SwapQuoterOpts>) {
-        const {
-            expiryBufferMs,
-            orderbook,
-            permittedOrderFeeTypes,
-            marketUtils,
-            rfqt,
-        } = { ...constants.DEFAULT_SWAP_QUOTER_OPTS, ...opts };
+    protected constructor(
+        opts: {
+            chain: Chain;
+            orderbook: Orderbook;
+            marketUtils: MarketOperationUtils;
+        } & Partial<SwapQuoterOpts>,
+    ) {
+        const { expiryBufferMs, orderbook, permittedOrderFeeTypes, marketUtils, rfqt } = {
+            ...constants.DEFAULT_SWAP_QUOTER_OPTS,
+            ...opts,
+        };
         assert.isValidOrderbook('orderbook', orderbook);
         assert.isNumber('expiryBufferMs', expiryBufferMs);
         this.orderbook = orderbook;
@@ -342,10 +344,9 @@ export class SwapQuoter {
         );
 
         // Use the raw gas, not scaled by gas price
-        const exchangeProxyOverhead = fullOpts.exchangeProxyOverhead(
-            result.sourceFlags,
-            result.numDistinctFills,
-        ).toNumber();
+        const exchangeProxyOverhead = fullOpts
+            .exchangeProxyOverhead(result.sourceFlags, result.numDistinctFills)
+            .toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
 

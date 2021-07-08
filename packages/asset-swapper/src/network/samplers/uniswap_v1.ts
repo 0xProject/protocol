@@ -7,7 +7,7 @@ import { Chain } from '../chain';
 import { NULL_ADDRESS } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from '../tokens';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<Address>(
@@ -24,24 +24,22 @@ export interface UniswapV1FillData extends FillData {
 
 const BAD_TOKENS = [
     '0xb8c77482e45f1f44de1745f52c74426c631bdd52', // BNB
-]
+];
 
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromUniswap'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromUniswap'];
-type SamplerSellEthCall = SamplerEthCall<UniswapV1FillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<UniswapV1FillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<UniswapV1FillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<UniswapV1FillData, BuyContractBuyFunction>;
 
-export class UniswapV1Sampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        UniswapV1FillData
-    >
-{
+export class UniswapV1Sampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    UniswapV1FillData
+> {
     public static async createAsync(chain: Chain): Promise<UniswapV1Sampler> {
         return new UniswapV1Sampler(
             chain,
@@ -69,21 +67,23 @@ export class UniswapV1Sampler extends
         takerFillAmounts: BigNumber[],
     ): Promise<SamplerSellEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return [{
-            args: [
-                this._router,
-                this._normalizeToken(takerToken),
-                this._normalizeToken(makerToken),
-                takerFillAmounts,
-            ],
-            getDexSamplesFromResult: samples =>
-                takerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.Uniswap,
-                    fillData: { router: this._router },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [
+                    this._router,
+                    this._normalizeToken(takerToken),
+                    this._normalizeToken(makerToken),
+                    takerFillAmounts,
+                ],
+                getDexSamplesFromResult: samples =>
+                    takerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.Uniswap,
+                        fillData: { router: this._router },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 
     protected async _getBuyQuoteCallsAsync(
@@ -91,21 +91,23 @@ export class UniswapV1Sampler extends
         makerFillAmounts: BigNumber[],
     ): Promise<SamplerBuyEthCall[]> {
         const [takerToken, makerToken] = tokenAddressPath;
-        return [{
-            args: [
-                this._router,
-                this._normalizeToken(takerToken),
-                this._normalizeToken(makerToken),
-                makerFillAmounts,
-            ],
-            getDexSamplesFromResult: samples =>
-                makerFillAmounts.map((a, i) => ({
-                    source: ERC20BridgeSource.Uniswap,
-                    fillData: { router: this._router },
-                    input: a,
-                    output: samples[i],
-                })),
-        }];
+        return [
+            {
+                args: [
+                    this._router,
+                    this._normalizeToken(takerToken),
+                    this._normalizeToken(makerToken),
+                    makerFillAmounts,
+                ],
+                getDexSamplesFromResult: samples =>
+                    makerFillAmounts.map((a, i) => ({
+                        source: ERC20BridgeSource.Uniswap,
+                        fillData: { router: this._router },
+                        input: a,
+                        output: samples[i],
+                    })),
+            },
+        ];
     }
 
     private _normalizeToken(token: Address): Address {

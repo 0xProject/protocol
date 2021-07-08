@@ -17,16 +17,12 @@ export class NetworkUtils {
     }
 
     public async getTokenDecimalsAsync(tokens: Address[]): Promise<number[]> {
-        return (await this._networkUtilsContractHelper.ethCallAsync(
-            this._networkUtilsContract.getTokenDecimals,
-            [tokens],
-        )).map(d => d.toNumber());
+        return (
+            await this._networkUtilsContractHelper.ethCallAsync(this._networkUtilsContract.getTokenDecimals, [tokens])
+        ).map(d => d.toNumber());
     }
 
-    public async isAddressContract(address: Address): Promise<boolean> {
-        return await this._networkUtilsContractHelper.ethCallAsync(
-            this._networkUtilsContract.isContract,
-            [address],
-        );
+    public async isAddressContractAsync(address: Address): Promise<boolean> {
+        return this._networkUtilsContractHelper.ethCallAsync(this._networkUtilsContract.isContract, [address]);
     }
 }

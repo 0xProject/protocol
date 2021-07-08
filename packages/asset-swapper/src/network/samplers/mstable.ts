@@ -7,7 +7,7 @@ import { Chain } from '../chain';
 import { NULL_ADDRESS } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { MAINNET_TOKENS, POLYGON_TOKENS } from '../tokens';
-import { Address, ERC20BridgeSource } from "../types";
+import { Address, ERC20BridgeSource } from '../types';
 import { valueByChainId } from '../utils';
 
 import { ShellFillData, ShellPoolInfo } from './shell';
@@ -53,28 +53,21 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromMStable'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromMStable'];
-type SamplerSellEthCall = SamplerEthCall<MStableFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<MStableFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<MStableFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<MStableFillData, BuyContractBuyFunction>;
 
-export class MStableSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        MStableFillData
-    >
-{
-    public static async createAsync(
-        chain: Chain,
-    ): Promise<MStableSampler> {
+export class MStableSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    MStableFillData
+> {
+    public static async createAsync(chain: Chain): Promise<MStableSampler> {
         return new MStableSampler(chain, Object.values(MSTABLE_POOLS_BY_CHAIN_ID[chain.chainId]));
     }
 
-    protected constructor(
-        chain: Chain,
-        private readonly _pools: ShellPoolInfo[],
-    ) {
+    protected constructor(chain: Chain, private readonly _pools: ShellPoolInfo[]) {
         super({
             chain,
             sellSamplerContractType: ERC20BridgeSamplerContract,
@@ -85,7 +78,7 @@ export class MStableSampler extends
     }
 
     public canConvertTokens(tokenAddressPath: Address[], pools?: Address[]): boolean {
-        if (tokenAddressPath.length != 2) {
+        if (tokenAddressPath.length !== 2) {
             return false;
         }
         const _pools = pools || this._getPoolsForTokens(tokenAddressPath);
@@ -102,18 +95,13 @@ export class MStableSampler extends
         const pools = this._getPoolsForTokens(tokenAddressPath);
         const [takerToken, makerToken] = tokenAddressPath;
         return pools.map(poolAddress => ({
-            args: [
-                poolAddress,
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
+            args: [poolAddress, takerToken, makerToken, takerFillAmounts],
             getDexSamplesFromResult: samples =>
                 takerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.MStable,
-                    fillData: { poolAddress: poolAddress },
+                    fillData: { poolAddress },
                     input: a,
-                    output: samples[i]
+                    output: samples[i],
                 })),
         }));
     }
@@ -125,18 +113,13 @@ export class MStableSampler extends
         const pools = this._getPoolsForTokens(tokenAddressPath);
         const [takerToken, makerToken] = tokenAddressPath;
         return pools.map(poolAddress => ({
-            args: [
-                poolAddress,
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
+            args: [poolAddress, takerToken, makerToken, makerFillAmounts],
             getDexSamplesFromResult: samples =>
                 makerFillAmounts.map((a, i) => ({
                     source: ERC20BridgeSource.MStable,
-                    fillData: { poolAddress: poolAddress },
+                    fillData: { poolAddress },
                     input: a,
-                    output: samples[i]
+                    output: samples[i],
                 })),
         }));
     }

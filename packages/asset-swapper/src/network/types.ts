@@ -80,22 +80,10 @@ export interface MultiHopCallInfo {
 
 export interface SourceSampler {
     canConvertTokens(tokenAddressPath: Address[]): boolean;
-    getSellSamplesAsync(
-        tokenAddressPath: Address[],
-        takerFillAmounts: BigNumber[],
-    ): Promise<DexSample[][]>;
-    getBuySamplesAsync(
-        tokenAddressPath: Address[],
-        makerFillAmounts: BigNumber[],
-    ): Promise<DexSample[][]>;
-    getMultiHopSellCallInfosAsync(
-        tokenAddressPath: Address[],
-        takerFillAmount: BigNumber,
-    ): Promise<MultiHopCallInfo[]>;
-    getMultiHopBuyCallInfosAsync(
-        tokenAddressPath: Address[],
-        makerFillAmount: BigNumber,
-    ): Promise<MultiHopCallInfo[]>;
+    getSellSamplesAsync(tokenAddressPath: Address[], takerFillAmounts: BigNumber[]): Promise<DexSample[][]>;
+    getBuySamplesAsync(tokenAddressPath: Address[], makerFillAmounts: BigNumber[]): Promise<DexSample[][]>;
+    getMultiHopSellCallInfosAsync(tokenAddressPath: Address[], takerFillAmount: BigNumber): Promise<MultiHopCallInfo[]>;
+    getMultiHopBuyCallInfosAsync(tokenAddressPath: Address[], makerFillAmount: BigNumber): Promise<MultiHopCallInfo[]>;
 }
 
 export interface SourceSamplerMap {

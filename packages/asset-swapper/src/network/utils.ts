@@ -1,8 +1,8 @@
-import { ChainId } from '@0x/contract-addresses';
 import { BaseContract, ContractFunctionObj } from '@0x/base-contract';
+import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, hexUtils } from '@0x/utils';
+import { ContractAbi, ContractVersionData, MethodAbi, SupportedProvider } from 'ethereum-types';
 import { FastABI } from 'fast-abi';
-import { ContractVersionData , ContractAbi, MethodAbi, SupportedProvider } from 'ethereum-types';
 
 import { artifacts } from '../artifacts';
 
@@ -17,6 +17,7 @@ interface ArtifactsMap {
 }
 
 export interface ContractWrapperType<T> {
+    contractName: string;
     new (
         address: Address,
         provider: SupportedProvider,
@@ -29,7 +30,6 @@ export interface ContractWrapperType<T> {
         },
     ): T;
     ABI(): ContractAbi | MethodAbi[];
-    contractName: string;
 }
 
 export function getDeterministicContractAddressFromBytecode(bytecode: Bytes): Address {
@@ -81,10 +81,7 @@ export function createContractWrapperAndHelper<TContract extends GeneratedContra
     artifactName: string,
     address?: Address,
 ): [TContract, ContractHelper<TContract>] {
-    const fastAbi = new FastABI(
-        contractType.ABI() as MethodAbi[],
-        { BigNumber },
-    );
+    const fastAbi = new FastABI(contractType.ABI() as MethodAbi[], { BigNumber });
     const artifact = (artifacts as ArtifactsMap)[artifactName];
     const wrapper = new contractType(
         address || getDeterministicContractAddressFromArtifact(artifact),
@@ -97,10 +94,7 @@ export function createContractWrapperAndHelper<TContract extends GeneratedContra
             decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
         },
     );
-    return [
-        wrapper,
-        new ContractHelper(chain, wrapper),
-    ];
+    return [wrapper, new ContractHelper(chain, wrapper)];
 }
 
 export type UnwrapContractFunctionReturnType<T> = T extends ContractFunctionObj<infer U> ? U : never;
@@ -113,33 +107,33 @@ export type UnwrapContractFunctionReturnType<T> = T extends ContractFunctionObj<
  * The `createContractWrapperAndHelper()` function will create both in a single step.
  */
 export class ContractHelper<TBaseContract extends GeneratedContract> {
-    private _defaultEthCallOpts: Partial<ChainEthCallOpts>;
+    private readonly _defaultEthCallOpts: Partial<ChainEthCallOpts>;
 
     constructor(public readonly chain: Chain, public readonly contract: TBaseContract) {
         this._defaultEthCallOpts = {
             to: contract.address,
-            ...(contract._deployedBytecodeIfExists ? {
-                overrides: {
-                    [contract.address]: {
-                        code: hexUtils.toHex(contract._deployedBytecodeIfExists),
-                    },
-                },
-            } : {}),
+            ...(contract._deployedBytecodeIfExists
+                ? {
+                      overrides: {
+                          [contract.address]: {
+                              code: hexUtils.toHex(contract._deployedBytecodeIfExists),
+                          },
+                      },
+                  }
+                : {}),
         };
     }
 
-    public async ethCallAsync<TContractFunction extends ContractFunction<TParams,TReturn>,
+    public async ethCallAsync<
+        TContractFunction extends ContractFunction<TParams, TReturn>,
         TParams extends any[] = Parameters<TContractFunction>,
-        TReturn = UnwrapContractFunctionReturnType<ReturnType<TContractFunction>>>(
+        TReturn = UnwrapContractFunctionReturnType<ReturnType<TContractFunction>>
+    >(
         fn: TContractFunction,
         args: Parameters<TContractFunction>,
         callOpts: Partial<ChainEthCallOpts> = {},
     ): Promise<TReturn> {
-        const resultData = await this.chain.ethCall(this.encodeCall(
-            fn,
-            args,
-            callOpts,
-        ));
+        const resultData = await this.chain.ethCallAsync(this.encodeCall(fn, args, callOpts));
         return this.decodeCallResult(fn, resultData);
     }
 
@@ -148,7 +142,7 @@ export class ContractHelper<TBaseContract extends GeneratedContract> {
         args: TArgs,
         callOpts: Partial<ChainEthCallOpts> = {},
     ): ChainEthCallOpts {
-        return encodeCall(this.contract, fn, args, mergeCallOpts( this._defaultEthCallOpts, callOpts));
+        return encodeCall(this.contract, fn, args, mergeCallOpts(this._defaultEthCallOpts, callOpts));
     }
 
     public decodeCallResult<TArgs extends any[], TReturn>(
@@ -174,16 +168,13 @@ export class ContractHelper<TBaseContract extends GeneratedContract> {
     }
 }
 
-export function mergeCallOpts(...callOpts: Partial<ChainEthCallOpts>[]): Partial<ChainEthCallOpts> {
+export function mergeCallOpts(...callOpts: Array<Partial<ChainEthCallOpts>>): Partial<ChainEthCallOpts> {
     return Object.assign(
         {},
         ...callOpts,
         // Mege overrides separately.
         {
-            overrides: Object.assign(
-                {},
-                ...callOpts.map(o => o.overrides || {}),
-            ),
+            overrides: Object.assign({}, ...callOpts.map(o => o.overrides || {})),
         },
     );
 }
@@ -195,12 +186,7 @@ export async function ethCallAsync<TArgs extends any[], TReturn>(
     args: TArgs,
     callOpts: Partial<ChainEthCallOpts> = {},
 ): Promise<TReturn> {
-    const resultData = await chain.ethCall(encodeCall(
-        contract,
-        fn,
-        args,
-        callOpts,
-    ));
+    const resultData = await chain.ethCallAsync(encodeCall(contract, fn, args, callOpts));
     return decodeCallResult(contract, fn, resultData);
 }
 

@@ -5,10 +5,10 @@ import * as _ from 'lodash';
 import 'mocha';
 
 import { SOURCE_FLAGS } from '../src';
+import { SourceFilters } from '../src/network/source_filters';
 import { DexSample, ERC20BridgeSource } from '../src/network/types';
 import { MarketOperation } from '../src/types';
 import { getComparisonPrices } from '../src/utils/market_operation_utils/comparison_price';
-import { SourceFilters } from '../src/network/source_filters';
 import { MarketSideLiquidity } from '../src/utils/market_operation_utils/types';
 
 import { chaiSetup } from './utils/chai_setup';

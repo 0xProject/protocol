@@ -7,7 +7,7 @@ import { Chain } from '../chain';
 import { NULL_ADDRESS } from '../constants';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { MAINNET_TOKENS } from '../tokens';
-import { Address, ERC20BridgeSource, FillData } from "../types";
+import { Address, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 export interface ShellFillData extends FillData {
@@ -73,22 +73,17 @@ type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromShell'];
 type BuyContractBuyFunction = BuyContract['sampleBuysFromShell'];
-type SamplerSellEthCall = SamplerEthCall<ShellFillData,SellContractSellFunction>;
-type SamplerBuyEthCall = SamplerEthCall<ShellFillData,BuyContractBuyFunction>;
+type SamplerSellEthCall = SamplerEthCall<ShellFillData, SellContractSellFunction>;
+type SamplerBuyEthCall = SamplerEthCall<ShellFillData, BuyContractBuyFunction>;
 
-export class ShellSampler extends
-    OnChainSourceSampler<
-        SellContract,
-        BuyContract,
-        SellContractSellFunction,
-        BuyContractBuyFunction,
-        ShellFillData
-    >
-{
-    public static async createAsync(
-        chain: Chain,
-        fork: ERC20BridgeSource,
-    ): Promise<ShellSampler> {
+export class ShellSampler extends OnChainSourceSampler<
+    SellContract,
+    BuyContract,
+    SellContractSellFunction,
+    BuyContractBuyFunction,
+    ShellFillData
+> {
+    public static async createAsync(chain: Chain, fork: ERC20BridgeSource): Promise<ShellSampler> {
         let pools: ShellPoolInfo[];
         switch (fork) {
             case ERC20BridgeSource.Shell:
@@ -118,7 +113,7 @@ export class ShellSampler extends
     }
 
     public canConvertTokens(tokenAddressPath: Address[], pools?: Address[]): boolean {
-        if (tokenAddressPath.length != 2) {
+        if (tokenAddressPath.length !== 2) {
             return false;
         }
         const _pools = pools || this._getPoolsForTokens(tokenAddressPath);
@@ -135,18 +130,13 @@ export class ShellSampler extends
         const pools = this._getPoolsForTokens(tokenAddressPath);
         const [takerToken, makerToken] = tokenAddressPath;
         return pools.map(poolAddress => ({
-            args: [
-                poolAddress,
-                takerToken,
-                makerToken,
-                takerFillAmounts,
-            ],
+            args: [poolAddress, takerToken, makerToken, takerFillAmounts],
             getDexSamplesFromResult: samples =>
                 takerFillAmounts.map((a, i) => ({
                     source: this.fork,
-                    fillData: { poolAddress: poolAddress },
+                    fillData: { poolAddress },
                     input: a,
-                    output: samples[i]
+                    output: samples[i],
                 })),
         }));
     }
@@ -158,18 +148,13 @@ export class ShellSampler extends
         const pools = this._getPoolsForTokens(tokenAddressPath);
         const [takerToken, makerToken] = tokenAddressPath;
         return pools.map(poolAddress => ({
-            args: [
-                poolAddress,
-                takerToken,
-                makerToken,
-                makerFillAmounts,
-            ],
+            args: [poolAddress, takerToken, makerToken, makerFillAmounts],
             getDexSamplesFromResult: samples =>
                 makerFillAmounts.map((a, i) => ({
                     source: this.fork,
-                    fillData: { poolAddress: poolAddress },
+                    fillData: { poolAddress },
                     input: a,
-                    output: samples[i]
+                    output: samples[i],
                 })),
         }));
     }
