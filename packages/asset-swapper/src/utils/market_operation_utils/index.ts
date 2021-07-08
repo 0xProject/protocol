@@ -515,6 +515,7 @@ export class MarketOperationUtils {
                 optimizedOrders: twoHopOrders,
                 liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
+                numDistinctFills: 2,
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
                 unoptimizedPath,
@@ -539,9 +540,9 @@ export class MarketOperationUtils {
             const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
             const sturdyOptimalPath = await findOptimalPathAsync(side, sturdyFills, inputAmount, opts.runLimit, {
                 ...penaltyOpts,
-                exchangeProxyOverhead: (sourceFlags: bigint) =>
+                exchangeProxyOverhead: (sourceFlags: bigint, numDistinctFills: number) =>
                     // tslint:disable-next-line: no-bitwise
-                    penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
+                    penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags, numDistinctFills),
             });
             // Calculate the slippage of on-chain sources compared to the most optimal path
             // if within an acceptable threshold we enable a fallback to prevent reverts
@@ -559,6 +560,7 @@ export class MarketOperationUtils {
             optimizedOrders: collapsedPath.orders,
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
+            numDistinctFills: collapsedPath.numDistinctFills,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
             unoptimizedPath,

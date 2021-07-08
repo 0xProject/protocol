@@ -33,12 +33,16 @@ export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
     exchangeProxyOverhead: () => ZERO_AMOUNT,
 };
 
+// TODO(dorothy-zbornak): This class is honestly so confusing. Consider burning it down.
 export class Path {
     public collapsedFills?: ReadonlyArray<CollapsedFill>;
     public orders?: OptimizedMarketOrder[];
     public sourceFlags: bigint = BigInt(0);
+    public fills: Array<Fill> = [];
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
+    protected _numDistinctFills: number = 0;
+    protected _fillsById: { [pathId: string]: Fill[] } = {};
 
     public static create(
         side: MarketOperation,
@@ -47,10 +51,6 @@ export class Path {
         pathPenaltyOpts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
     ): Path {
         const path = new Path(side, fills, targetInput, pathPenaltyOpts);
-        fills.forEach(fill => {
-            path.sourceFlags |= fill.flags;
-            path._addFillSize(fill);
-        });
         return path;
     }
 
@@ -61,20 +61,27 @@ export class Path {
         clonedPath._adjustedSize = { ...base._adjustedSize };
         clonedPath.collapsedFills = base.collapsedFills === undefined ? undefined : base.collapsedFills.slice();
         clonedPath.orders = base.orders === undefined ? undefined : base.orders.slice();
+        clonedPath._numDistinctFills = base._numDistinctFills;
+        clonedPath._fillsById = Object.assign(
+            {},
+            ...Object.entries(base._fillsById).map(([k, v]) => ({ [k]: v.slice() })),
+        );
         return clonedPath;
     }
 
     protected constructor(
         protected readonly side: MarketOperation,
-        public fills: ReadonlyArray<Fill>,
+        fills: ReadonlyArray<Fill>,
         protected readonly targetInput: BigNumber,
         public readonly pathPenaltyOpts: PathPenaltyOpts,
-    ) {}
+    ) {
+        for (const f of fills) {
+            this._addFill(f);
+        }
+    }
 
     public append(fill: Fill): this {
-        (this.fills as Fill[]).push(fill);
-        this.sourceFlags |= fill.flags;
-        this._addFillSize(fill);
+        this._addFill(fill);
         return this;
     }
 
@@ -97,19 +104,24 @@ export class Path {
         // By prepending native paths to the front they cannot split on-chain sources and incur
         // an additional protocol fee. I.e [Uniswap,Native,Kyber] becomes [Native,Uniswap,Kyber]
         // In the previous step we dropped any hanging Native partial fills, as to not fully fill
-        const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native);
+        const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native && f !== lastNativeFillIfExists);
         const otherFills = this.fills.filter(f => f.source !== ERC20BridgeSource.Native);
         const otherSourcePathIds = otherFills.map(f => f.sourcePathId);
-        this.fills = [
+        this.fills = [];
+        this.sourceFlags = BigInt(0);
+        this._fillsById = {};
+        this._numDistinctFills = 0;
+        const fillsToAdd = [
             // Append all of the native fills first
-            ...nativeFills.filter(f => f !== lastNativeFillIfExists),
+            ...nativeFills,
             // Add the other fills that are not native in the optimal path
             ...otherFills,
             // Add the fallbacks to the end that aren't already included
             ...fallback.fills.filter(f => !otherSourcePathIds.includes(f.sourcePathId)),
         ];
-        // Recompute the source flags
-        this.sourceFlags = this.fills.reduce((flags, fill) => flags | fill.flags, BigInt(0));
+        for (const f of fillsToAdd) {
+            this._addFill(f);
+        }
         return this;
     }
 
@@ -143,10 +155,14 @@ export class Path {
         return this._size;
     }
 
+    public get numDistinctFills(): number {
+        return this._numDistinctFills;
+    }
+
     public adjustedSize(): PathSize {
         const { input, output } = this._adjustedSize;
         const { exchangeProxyOverhead, outputAmountPerEth, inputAmountPerEth } = this.pathPenaltyOpts;
-        const gasOverhead = exchangeProxyOverhead(this.sourceFlags);
+        const gasOverhead = exchangeProxyOverhead(this.sourceFlags, this.numDistinctFills);
         const pathPenalty = !outputAmountPerEth.isZero()
             ? outputAmountPerEth.times(gasOverhead)
             : inputAmountPerEth.times(gasOverhead).times(output.dividedToIntegerBy(input));
@@ -272,7 +288,14 @@ export class Path {
         return this.collapsedFills;
     }
 
-    private _addFillSize(fill: Fill): void {
+    private _addFill(fill: Fill): void {
+        this.sourceFlags |= fill.flags;
+        (this.fills as Fill[]).push(fill);
+        if (!(fill.sourcePathId in this._fillsById)) {
+            this._numDistinctFills++;
+        }
+        this._fillsById[fill.sourcePathId] = this._fillsById[fill.sourcePathId] || [];
+        this._fillsById[fill.sourcePathId].push(fill);
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
