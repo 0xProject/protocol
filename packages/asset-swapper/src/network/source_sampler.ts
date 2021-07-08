@@ -1,9 +1,8 @@
-import { ContractFunctionObj } from '@0x/base-contract';
 import { BigNumber } from '@0x/utils';
 
 import { Chain, ChainEthCallOpts } from './chain';
 import { Address, DexSample, FillData, MultiHopCallInfo, SourceSampler } from './types';
-import { ContractFunction, ContractHelper, ContractWrapperType, createContractWrapperAndHelper, GeneratedContract } from './utils';
+import { ContractFunction, ContractHelper, ContractWrapperType, createContractWrapperAndHelper, GeneratedContract, UnwrapContractFunctionReturnType } from './utils';
 
 export abstract class SourceSamplerBase implements SourceSampler {
     protected constructor() {}
@@ -48,14 +47,15 @@ interface OnChainSourceSamplerOptions<
     buyContractBuyFunctionName: TBuySamplerFunctionName,
 }
 
-export interface SamplerEthCall<TFillData, TSamplerFunction extends ContractFunction<any, any>> {
+export interface SamplerEthCall<
+    TFillData,
+    TSamplerFunction extends ContractFunction<TParams, TReturn>,
+    TParams extends any[] = Parameters<TSamplerFunction>,
+    TReturn = UnwrapContractFunctionReturnType<ReturnType<TSamplerFunction>>>
+{
     args: Parameters<TSamplerFunction>;
-    getDexSamplesFromResult(
-        result: UnwrapContractFunctionReturnType<ReturnType<TSamplerFunction>>,
-    ): DexSample<TFillData>[];
+    getDexSamplesFromResult(result: TReturn): DexSample<TFillData>[];
 }
-
-type UnwrapContractFunctionReturnType<T> = T extends ContractFunctionObj<infer U> ? U : never;
 
 // Base class for a standard sampler with on-chain quote functions.
 export abstract class OnChainSourceSampler<
@@ -87,8 +87,8 @@ export abstract class OnChainSourceSampler<
     protected readonly _buyContract: TBuySamplerContract;
     protected readonly _sellContractHelper: ContractHelper<TSellSamplerContract>;
     protected readonly _buyContractHelper: ContractHelper<TBuySamplerContract>;
-    protected readonly _sellContractFunction: TSellSamplerFunction;
-    protected readonly _buyContractFunction: TBuySamplerFunction;
+    protected readonly _sellContractFunction: ContractFunction<TSellSamplerFunctionArgs,TSellSamplerFunctionReturn>;
+    protected readonly _buyContractFunction: ContractFunction<TBuySamplerFunctionArgs,TBuySamplerFunctionReturn>;
 
     protected constructor(opts: TOpts) {
         super();
@@ -191,12 +191,12 @@ export abstract class OnChainSourceSampler<
     protected abstract _getSellQuoteCallsAsync(
         tokenAddressPath: Address[],
         takerFillAmounts: BigNumber[],
-    ): Promise<SamplerEthCall<TFillData, TSellSamplerFunctionArgs, TSellSamplerFunctionReturn>[]>;
+    ): Promise<SamplerEthCall<TFillData, ContractFunction<TSellSamplerFunctionArgs,TSellSamplerFunctionReturn>>[]>;
 
     protected abstract _getBuyQuoteCallsAsync(
         tokenAddressPath: Address[],
         takerFillAmounts: BigNumber[],
-    ): Promise<SamplerEthCall<TFillData, TBuySamplerFunctionArgs, TBuySamplerFunctionReturn>[]>;
+    ): Promise<SamplerEthCall<TFillData, ContractFunction<TBuySamplerFunctionArgs,TBuySamplerFunctionReturn>>[]>;
 }
 
 function createMultiHopCallInfo<TContract extends GeneratedContract, TArgs extends any[], TReturn, TFillData>(
