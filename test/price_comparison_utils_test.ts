@@ -74,9 +74,9 @@ describe(SUITE_NAME, () => {
                     savingsInEth: savingsInEthVsUniswapV1,
                 },
 
-                // Kyber sample not found
+                // Native sample not found
                 {
-                    name: ERC20BridgeSource.Kyber,
+                    name: ERC20BridgeSource.Native,
                     price: null,
                     gas: null,
                     savingsInEth: null,
@@ -116,9 +116,9 @@ describe(SUITE_NAME, () => {
                     savingsInEth: savingsInEthVsUniswapV1,
                 },
 
-                // Balancer sample not found
+                // Native sample not found
                 {
-                    name: ERC20BridgeSource.Balancer,
+                    name: ERC20BridgeSource.Native,
                     price: null,
                     gas: null,
                     savingsInEth: null,
@@ -168,9 +168,9 @@ describe(SUITE_NAME, () => {
                     savingsInEth: savingsInEthVsUniswapV1,
                 },
 
-                // MStable placeholder instead of invalid 0 amount result
+                // Native placeholder instead of invalid 0 amount result
                 {
-                    name: ERC20BridgeSource.MStable,
+                    name: ERC20BridgeSource.Native,
                     price: null,
                     gas: null,
                     savingsInEth: null,
@@ -216,9 +216,9 @@ describe(SUITE_NAME, () => {
                     savingsInEth: savingsInEthVsUniswapV1,
                 },
 
-                // MStable placeholder instead of invalid 0 amount result
+                // Native placeholder instead of invalid 0 amount result
                 {
-                    name: ERC20BridgeSource.MStable,
+                    name: ERC20BridgeSource.Native,
                     price: null,
                     gas: null,
                     savingsInEth: null,

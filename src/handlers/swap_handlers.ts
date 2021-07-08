@@ -1,7 +1,10 @@
 // tslint:disable:max-file-line-count
 import { isAPIError, isRevertError } from '@0x/api-utils';
 import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
-import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
+import {
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
+} from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import {
     findTokenAddressOrThrow,
     getTokenMetadataIfExists,
@@ -72,6 +75,13 @@ export class SwapHandlers {
         }));
         const filteredTokens = tokens.filter((t) => t.address !== NULL_ADDRESS);
         res.status(HttpStatus.OK).send({ records: filteredTokens });
+    }
+
+    public static getLiquiditySources(_req: express.Request, res: express.Response): void {
+        const sources = SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID].sources
+            .map((s) => (s === ERC20BridgeSource.Native ? '0x' : s))
+            .sort((a, b) => a.localeCompare(b));
+        res.status(HttpStatus.OK).send({ records: sources });
     }
 
     public static getRfqRegistry(req: express.Request, res: express.Response): void {

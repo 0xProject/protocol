@@ -3,6 +3,7 @@ import {
     ERC20BridgeSource,
     FeeSchedule,
     PriceComparisonsReport,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
@@ -11,6 +12,7 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
+import { CHAIN_ID } from '../config';
 import { GAS_LIMIT_BUFFER_MULTIPLIER, TX_BASE_GAS, ZERO } from '../constants';
 import { logger } from '../logger';
 import { ChainId, SourceComparison } from '../types';
@@ -39,18 +41,20 @@ const gasScheduleWithOverrides: FeeSchedule = {
     },
 };
 
-const NULL_SOURCE_COMPARISONS = Object.values(ERC20BridgeSource).reduce<SourceComparison[]>((memo, liquiditySource) => {
-    memo.push({
-        name: liquiditySource,
-        price: null,
-        gas: null,
-        savingsInEth: null,
-        buyAmount: null,
-        sellAmount: null,
-    });
-
-    return memo;
-}, []);
+const NULL_SOURCE_COMPARISONS = SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID].sources.reduce<SourceComparison[]>(
+    (memo, liquiditySource) => {
+        memo.push({
+            name: liquiditySource,
+            price: null,
+            gas: null,
+            savingsInEth: null,
+            buyAmount: null,
+            sellAmount: null,
+        });
+        return memo;
+    },
+    [],
+);
 
 export const priceComparisonUtils = {
     getPriceComparisonFromQuote(

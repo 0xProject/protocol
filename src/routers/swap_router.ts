@@ -15,6 +15,7 @@ export function createSwapRouter(swapService: SwapService): express.Router {
     router.get('/quote', asyncHandler(handlers.getQuoteAsync.bind(handlers)));
     router.get('/price', asyncHandler(handlers.getQuotePriceAsync.bind(handlers)));
     router.get('/depth', asyncHandler(handlers.getMarketDepthAsync.bind(handlers)));
+    router.get('/sources', asyncHandler(SwapHandlers.getLiquiditySources.bind(handlers)));
 
     return router;
 }
