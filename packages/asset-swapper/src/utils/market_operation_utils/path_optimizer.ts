@@ -1,12 +1,12 @@
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
-import { OptimizerCapture, route } from 'neon-router';
+import { OptimizerCapture, route, SerializedPath } from 'neon-router';
 import { performance } from 'perf_hooks';
 
 import { MarketOperation } from '../../types';
 
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
-import { ERC20BridgeSource, Fill } from './types';
+import { ERC20BridgeSource, Fill, FillData } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -49,19 +49,18 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
         return adjustedFills;
     });
 
-    // TODO(kimpers): Optimize: to one reduce
-    const pathsIn = adjustedParsedFills.map((fills: any) => ({
+    const pathsIn: SerializedPath[] = adjustedParsedFills.map((fills: Array<Fill<FillData>>) => ({
         ids: fills.map((f: Fill) => fillToSampleId(f)),
         inputs: fills.map((f: Fill) => f.input.toNumber()),
         outputs: fills.map((f: Fill) => f.output.toNumber()),
-        outputFees: fills.map((f: Fill) => f.output.minus(f.adjustedOutput).toNumber()),
+        // TODO(kimpers): Is this correct??
+        outputFees: fills.map((f: Fill) => f.adjustedOutput.minus(f.output).toNumber()),
     }));
 
     // TODO(kimpers): replace all numbers with BigNumber or BigInt?
     const rustArgs: OptimizerCapture = {
         side: 'Sell',
         // HACK: There can be off by 1 errors, somewhere...
-        // TODO(kimpers): use big num or something.
         targetInput: input.plus(1).toNumber(),
         pathsIn,
     };
