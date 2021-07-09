@@ -36,7 +36,7 @@ export class Path {
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _numDistinctFills: number = 0;
-    protected _fillsById: { [pathId: string]: Fill[] } = {};
+    protected _sourcePathIdsSeen: { [pathId: string]: true } = {};
 
     public static create(
         side: MarketOperation,
@@ -56,10 +56,7 @@ export class Path {
         clonedPath.collapsedFills = base.collapsedFills === undefined ? undefined : base.collapsedFills.slice();
         clonedPath.orders = base.orders === undefined ? undefined : base.orders.slice();
         clonedPath._numDistinctFills = base._numDistinctFills;
-        clonedPath._fillsById = Object.assign(
-            {},
-            ...Object.entries(base._fillsById).map(([k, v]) => ({ [k]: v.slice() })),
-        );
+        clonedPath._sourcePathIdsSeen = { ...base._sourcePathIdsSeen };
         return clonedPath;
     }
 
@@ -105,7 +102,7 @@ export class Path {
         const otherSourcePathIds = otherFills.map(f => f.sourcePathId);
         this.fills = [];
         this.sourceFlags = BigInt(0);
-        this._fillsById = {};
+        this._sourcePathIdsSeen = {};
         this._numDistinctFills = 0;
         const fillsToAdd = [
             // Append all of the native fills first
@@ -287,11 +284,10 @@ export class Path {
     private _addFill(fill: Fill): void {
         this.sourceFlags |= fill.flags;
         (this.fills as Fill[]).push(fill);
-        if (!(fill.sourcePathId in this._fillsById)) {
+        if (!(fill.sourcePathId in this._sourcePathIdsSeen)) {
             this._numDistinctFills++;
         }
-        this._fillsById[fill.sourcePathId] = this._fillsById[fill.sourcePathId] || [];
-        this._fillsById[fill.sourcePathId].push(fill);
+        this._sourcePathIdsSeen[fill.sourcePathId] = true;
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));

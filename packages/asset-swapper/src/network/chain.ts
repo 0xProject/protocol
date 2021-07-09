@@ -187,14 +187,14 @@ export class LiveChain implements Chain {
         {
             const queue = this._queue;
             this._queue = [];
-            await this._executeAsync(queue);
+            void this._executeAsync(queue);
         }
         this._tickTimer = setTimeout(async () => this._tickAsync(tickFrequency), tickFrequency);
     }
 
     private _pruneCache(): void {
         const now = Date.now();
-        for (const id of Object.keys(this._cachedCallResults)) {
+        for (const id in this._cachedCallResults) {
             if (now - this._cachedCallResults[id].cacheTimeMs >= this._maxCacheAgeMs) {
                 delete this._cachedCallResults[id];
             }
@@ -203,7 +203,8 @@ export class LiveChain implements Chain {
 
     private async _executeAsync(queue: QueuedEthCall[]): Promise<void> {
         // dispatch each batch of calls.
-        await Promise.all([...generateCallBatches(queue)].map(async b => this._dispatchBatchAsync(b)));
+        const batches = [...generateCallBatches(queue)];
+        await Promise.all(batches.map(async b => this._dispatchBatchAsync(b)));
     }
 
     private async _dispatchBatchAsync(calls: QueuedEthCall[]): Promise<void> {
@@ -271,24 +272,23 @@ function tryDecodeStringRevertErrorResult(rawResultData: Bytes): string | undefi
 }
 
 function canBatchCallWith(ethCall: QueuedEthCall, batch: QueuedEthCall[]): boolean {
-    const { overrides } = {
+    const { overrides, gasPrice } = {
         overrides: {},
         ...ethCall.opts,
     };
-    const gasPrice = batch[0] ? batch[0].opts.gasPrice : undefined;
-    for (const c of batch) {
-        // Overrides must not conflict.
-        for (const addr of Object.keys(overrides)) {
-            const a = overrides[addr];
-            const b = (c.opts.overrides || {})[addr];
-            if (a && b && a.code !== b.code) {
-                return false;
-            }
-        }
-        // Gas prices must not be in conflict.
-        if (c.opts.gasPrice && !c.opts.gasPrice.eq(gasPrice!)) {
+    // Overrides must not conflict.
+    const batchOverrides = Object.assign({}, ...batch.map(b => b.opts.overrides || {}));
+    for (const addr in overrides) {
+        const a = overrides[addr];
+        const b = batchOverrides[addr];
+        if (a && b && a.code !== b.code) {
             return false;
         }
+    }
+    // Gas prices must not be in conflict.
+    const batchGasPriceIfExists = batch.filter(b => b.opts.gasPrice).map(b => b.opts.gasPrice)[0];
+    if (batchGasPriceIfExists && gasPrice && !gasPrice.eq(batchGasPriceIfExists!)) {
+        return false;
     }
     return true;
 }

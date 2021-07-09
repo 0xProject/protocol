@@ -24,7 +24,7 @@ export interface ContractWrapperType<T> {
         _txDefaults: {},
         _logDeps: {},
         deployedBytecode: Bytes | undefined,
-        encoderOverrides: {
+        encoderOverrides?: {
             encodeInput: (fnName: string, values: any) => Bytes;
             decodeOutput: (fnName: string, data: Bytes) => any;
         },
@@ -68,6 +68,9 @@ export function valueByChainId<T>(rest: Partial<ValueByChainId<T>>, defaultValue
     };
 }
 
+// Cache to avoid creating tons of FastABI instances for commonly used contracts.
+const ABI_ENCODER_CACHE: { [k: string]: FastABI } = {};
+
 /**
  * Use this function to create a contract wrapper instance and its equivalent
  * helper (see below) . If no address is provided, the contract is assumed to be
@@ -81,7 +84,11 @@ export function createContractWrapperAndHelper<TContract extends GeneratedContra
     artifactName: string,
     address?: Address,
 ): [TContract, ContractHelper<TContract>] {
-    const fastAbi = new FastABI(contractType.ABI() as MethodAbi[], { BigNumber });
+    let fastAbi = ABI_ENCODER_CACHE[contractType.contractName];
+    if (!fastAbi) {
+        fastAbi = new FastABI(contractType.ABI() as MethodAbi[], { BigNumber });
+        ABI_ENCODER_CACHE[contractType.contractName] = fastAbi;
+    }
     const artifact = (artifacts as ArtifactsMap)[artifactName];
     const wrapper = new contractType(
         address || getDeterministicContractAddressFromArtifact(artifact),

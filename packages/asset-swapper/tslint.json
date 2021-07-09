@@ -11,7 +11,8 @@
         "max-classes-per-file": false,
         "prefer-function-over-method": false,
         "no-unbound-method": false,
-        "no-object-literal-type-assertion": false
+        "no-object-literal-type-assertion": false,
+        "forin": false
     },
     "linterOptions": {
         "exclude": ["src/artifacts.ts", "test/artifacts.ts"]
