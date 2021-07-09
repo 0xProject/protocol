@@ -6,13 +6,15 @@ import { performance } from 'perf_hooks';
 import { MarketOperation } from '../../types';
 
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
-import { ERC20BridgeSource, Fill, FillData } from './types';
+import { ERC20BridgeSource, Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
 const RUST_ROUTER_NUM_SAMPLES = 200;
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
+
+type FillWithOutputFee = Fill & { outputFee: BigNumber };
 
 function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
     // Track sample id's to integers (required by rust router)
@@ -29,32 +31,31 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
     };
 
     const adjustedParsedFills = allFills.map(fills => {
-        const adjustedFills: Fill[] = [];
+        const adjustedFills: FillWithOutputFee[] = [];
+        // NOTE: Output fee is negative for sells and positive for buys
+        const outputFee = fills[0].adjustedOutput.minus(fills[0].output);
         // Samples are turned into Fills
         // Fills are dependent on their parent and have their parents information "subtracted" from them
         // e.g a samples for [1,10,100] => [5,50,500] look like [1, 9, 91] => [5, 40, 400]
         for (let i = 0; i < fills.length; i++) {
-            const parsedFill: Fill = { ...fills[i] };
+            const parsedFill: FillWithOutputFee = { ...fills[i], outputFee };
             if (parsedFill.index !== 0) {
                 const parent = adjustedFills[i - 1];
                 parsedFill.parent = parent;
                 parsedFill.input = parsedFill.input.plus(parent.input);
                 parsedFill.output = parsedFill.output.plus(parent.output);
-                // Adjusted output is only modified for the first fill
-                const feePerc = parent.adjustedOutput.dividedBy(parent.output);
-                parsedFill.adjustedOutput = feePerc.times(parsedFill.output);
+                parsedFill.adjustedOutput = parsedFill.output.plus(outputFee);
             }
             adjustedFills.push(parsedFill);
         }
         return adjustedFills;
     });
 
-    const pathsIn: SerializedPath[] = adjustedParsedFills.map((fills: Array<Fill<FillData>>) => ({
-        ids: fills.map((f: Fill) => fillToSampleId(f)),
-        inputs: fills.map((f: Fill) => f.input.toNumber()),
-        outputs: fills.map((f: Fill) => f.output.toNumber()),
-        // TODO(kimpers): Is this correct??
-        outputFees: fills.map((f: Fill) => f.adjustedOutput.minus(f.output).toNumber()),
+    const pathsIn: SerializedPath[] = adjustedParsedFills.map(fills => ({
+        ids: fills.map(f => fillToSampleId(f)),
+        inputs: fills.map(f => f.input.toNumber()),
+        outputs: fills.map(f => f.output.toNumber()),
+        outputFees: fills.map(f => f.outputFee.toNumber()),
     }));
 
     // TODO(kimpers): replace all numbers with BigNumber or BigInt?
@@ -172,7 +173,8 @@ export async function findOptimalPathAsync(
     runLimit: number = 2 ** 8,
     opts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
 ): Promise<Path | undefined> {
-    if (SHOULD_USE_RUST_ROUTER) {
+    // NOTE: only sells are currently supported by the rust router
+    if (SHOULD_USE_RUST_ROUTER && side === MarketOperation.Sell) {
         console.log('-----USING RUST ROUTER!-------');
         return findOptimalRustPath(targetInput, fills);
     }
