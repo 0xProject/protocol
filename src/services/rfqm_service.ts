@@ -6,7 +6,7 @@ import { Fee, SubmitRequest } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import delay from 'delay';
-import { Counter, Gauge } from 'prom-client';
+import { Counter, Gauge, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import {
@@ -195,6 +195,11 @@ const RFQM_JOB_MM_REJECTED_LAST_LOOK = new Counter({
     name: 'rfqm_job_mm_rejected_last_look',
     help: 'A job rejected by market maker on last look',
     labelNames: ['makerUri'],
+});
+
+const RFQM_PROCESS_JOB_LATENCY = new Summary({
+    name: 'rfqm_process_job_latency',
+    help: 'Latency for the worker processing the job',
 });
 const PRICE_DECIMAL_PLACES = 6;
 
@@ -735,6 +740,7 @@ export class RfqmService {
      */
     public async processRfqmJobAsync(orderHash: string, workerAddress: string): Promise<void> {
         logger.info({ orderHash }, 'start processing job');
+        const timerStopFn = RFQM_PROCESS_JOB_LATENCY.startTimer();
 
         // Get job
         const job = await this._dbUtils.findJobByOrderHashAsync(orderHash);
@@ -819,6 +825,8 @@ export class RfqmService {
         await this._dbUtils.updateRfqmJobAsync(orderHash, true, {
             status: finalJobStatus,
         });
+
+        timerStopFn();
     }
 
     /**
