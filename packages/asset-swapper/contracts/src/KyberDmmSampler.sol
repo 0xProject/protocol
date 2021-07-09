@@ -152,7 +152,6 @@ contract KyberDmmSampler
         pools = new address[](path.length - 1);
         for (uint256 i = 0; i < pools.length; i++) {
             // find the best pool
-            address[] memory allPools;
             try
                 factory.getPools
                     {gas: KYBER_DMM_CALL_GAS}
@@ -160,7 +159,9 @@ contract KyberDmmSampler
                 returns (address[] memory allPools)
             {
                 uint256 maxSupply = 0;
-                require(allPools.length >= 1, "KyberDMMSampler/NO_POOLS_FOUND");
+                if (allPools.length == 0) {
+                    return new address[](0);
+                }
                 for (uint256 j = 0; j < allPools.length; j++) {
                     uint256 totalSupply = IKyberDmmPool(allPools[j]).totalSupply();
                     if (totalSupply > maxSupply) {

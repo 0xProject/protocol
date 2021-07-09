@@ -103,12 +103,12 @@ export abstract class OnChainSourceSampler<
         [this._sellContract, this._sellContractHelper] = createContractWrapperAndHelper(
             opts.chain,
             opts.sellSamplerContractType,
-            opts.sellSamplerContractType.name || opts.sellSamplerContractArtifactName!,
+            opts.sellSamplerContractType.contractName || opts.sellSamplerContractArtifactName!,
         );
         [this._buyContract, this._buyContractHelper] = createContractWrapperAndHelper(
             opts.chain,
             opts.buySamplerContractType,
-            opts.buySamplerContractType.name || opts.buySamplerContractArtifactName!,
+            opts.buySamplerContractType.contractName || opts.buySamplerContractArtifactName!,
         );
         // HACK: Is there a way to restrict `TSellSamplerContract[TSellSamplerFunctionName] = TSellSamplerFunction`?
         this._sellContractFunction = (this._sellContract[
