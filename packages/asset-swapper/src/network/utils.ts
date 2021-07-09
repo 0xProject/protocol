@@ -1,13 +1,13 @@
 import { BaseContract, ContractFunctionObj } from '@0x/base-contract';
 import { ChainId } from '@0x/contract-addresses';
-import { BigNumber, hexUtils } from '@0x/utils';
+import { hexUtils } from '@0x/utils';
 import { ContractAbi, ContractVersionData, MethodAbi, SupportedProvider } from 'ethereum-types';
-import { FastABI } from 'fast-abi';
 
 import { artifacts } from '../artifacts';
 
 import { Chain, ChainEthCallOpts } from './chain';
 import { DUMMY_PROVIDER } from './constants';
+import { createFastAbiEncoderOverrides } from './fast_abi';
 import { Address, Bytes, DexSample, MultiHopCallInfo } from './types';
 
 const ADDRESS_SIZE = 20;
@@ -68,9 +68,6 @@ export function valueByChainId<T>(rest: Partial<ValueByChainId<T>>, defaultValue
     };
 }
 
-// Cache to avoid creating tons of FastABI instances for commonly used contracts.
-const ABI_ENCODER_CACHE: { [k: string]: FastABI } = {};
-
 /**
  * Use this function to create a contract wrapper instance and its equivalent
  * helper (see below) . If no address is provided, the contract is assumed to be
@@ -84,11 +81,6 @@ export function createContractWrapperAndHelper<TContract extends GeneratedContra
     artifactName: string,
     address?: Address,
 ): [TContract, ContractHelper<TContract>] {
-    let fastAbi = ABI_ENCODER_CACHE[contractType.contractName];
-    if (!fastAbi) {
-        fastAbi = new FastABI(contractType.ABI() as MethodAbi[], { BigNumber });
-        ABI_ENCODER_CACHE[contractType.contractName] = fastAbi;
-    }
     const artifact = (artifacts as ArtifactsMap)[artifactName];
     const wrapper = new contractType(
         address || getDeterministicContractAddressFromArtifact(artifact),
@@ -96,10 +88,7 @@ export function createContractWrapperAndHelper<TContract extends GeneratedContra
         {},
         {},
         !address ? artifact.compilerOutput.evm.deployedBytecode.object : undefined,
-        {
-            encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
-            decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
-        },
+        createFastAbiEncoderOverrides(contractType),
     );
     return [wrapper, new ContractHelper(chain, wrapper)];
 }

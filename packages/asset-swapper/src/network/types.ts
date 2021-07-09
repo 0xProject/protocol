@@ -1,4 +1,5 @@
 import { BigNumber } from '@0x/utils';
+import { ContractAbi, MethodAbi, SupportedProvider } from 'ethereum-types';
 
 import { ChainEthCallOverrides } from './chain';
 
@@ -93,4 +94,20 @@ export interface SourceSamplerMap {
 export interface TokenAdjacencyGraph {
     [token: string]: Address[];
     default: Address[];
+}
+
+export interface ContractWrapperType<T> {
+    contractName: string;
+    new (
+        address: Address,
+        provider: SupportedProvider,
+        _txDefaults: {},
+        _logDeps: {},
+        deployedBytecode: Bytes | undefined,
+        encoderOverrides?: {
+            encodeInput: (fnName: string, values: any) => Bytes;
+            decodeOutput: (fnName: string, data: Bytes) => any;
+        },
+    ): T;
+    ABI(): ContractAbi | MethodAbi[];
 }

@@ -8,6 +8,7 @@ import { artifacts } from '../artifacts';
 import { CallDispatcherContract } from '../wrappers';
 
 import { DUMMY_PROVIDER, NULL_BYTES, ZERO_AMOUNT } from './constants';
+import { createFastAbiEncoderOverrides } from './fast_abi';
 import { Address, Bytes } from './types';
 
 export interface ChainEthCallOverrides {
@@ -42,8 +43,15 @@ export interface CreateChainOpts {
 const DEFAULT_CALL_GAS_LIMIT = 10e6;
 const DEFAULT_CALLER_ADDRESS = hexUtils.random(20);
 const DISPATCHER_CONTRACT_ADDRESS = hexUtils.random(20);
-const DISPATCHER_CONTRACT = new CallDispatcherContract(DISPATCHER_CONTRACT_ADDRESS, DUMMY_PROVIDER);
 const DISPATCHER_CONTRACT_BYTECODE = artifacts.CallDispatcher.compilerOutput.evm.deployedBytecode.object;
+const DISPATCHER_CONTRACT = new CallDispatcherContract(
+    DISPATCHER_CONTRACT_ADDRESS,
+    DUMMY_PROVIDER,
+    {},
+    {},
+    DISPATCHER_CONTRACT_BYTECODE,
+    createFastAbiEncoderOverrides(CallDispatcherContract),
+);
 
 export interface DispatchedCallResult {
     success: boolean;
