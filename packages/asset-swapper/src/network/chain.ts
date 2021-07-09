@@ -62,7 +62,6 @@ export interface Chain {
 }
 
 export class LiveChain implements Chain {
-
     public get provider(): SupportedProvider {
         return this._w3.getProvider();
     }

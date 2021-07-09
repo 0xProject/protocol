@@ -44,7 +44,6 @@ type SassySamplerCreateOpts = Partial<SassySamplerCreateFullOpts> & { chain: Cha
 const DEFAULT_SOURCES = SourceFilters.all().exclude([ERC20BridgeSource.Native, ERC20BridgeSource.MultiHop]).sources;
 
 export class SassySampler {
-
     public readonly availableSources: ERC20BridgeSource[];
     public static async createAsync(opts: SassySamplerCreateOpts): Promise<SassySampler> {
         const sources = opts.sources || DEFAULT_SOURCES;
@@ -125,7 +124,9 @@ export class SassySampler {
         const tokenPaths = this._getExpandedTokenPaths(takerToken, makerToken);
         return (
             await Promise.all(
-                sources.map(async s => Promise.all(tokenPaths.map(async p => this._sampleBuysFromSourceAsync(s, p, makerAmounts)))),
+                sources.map(async s =>
+                    Promise.all(tokenPaths.map(async p => this._sampleBuysFromSourceAsync(s, p, makerAmounts))),
+                ),
             )
         ).flat(2);
     }

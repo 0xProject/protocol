@@ -16,7 +16,6 @@ const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
 const DEFAULT_TIMEOUT_MS = ONE_SECOND_MS;
 
 export abstract class PoolsCache {
-
     private readonly _refreshPromises: { [pairId: string]: Promise<Pool[]> } = {};
     protected static _isExpired(value: CacheValue): boolean {
         return Date.now() >= value.expiresAt;

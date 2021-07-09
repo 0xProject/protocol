@@ -206,7 +206,9 @@ export abstract class OnChainSourceSampler<
     protected abstract _getSellQuoteCallsAsync(
         tokenAddressPath: Address[],
         takerFillAmounts: BigNumber[],
-    ): Promise<Array<SamplerEthCall<TFillData, ContractFunction<TSellSamplerFunctionArgs, TSellSamplerFunctionReturn>>>>;
+    ): Promise<
+        Array<SamplerEthCall<TFillData, ContractFunction<TSellSamplerFunctionArgs, TSellSamplerFunctionReturn>>>
+    >;
 
     protected abstract _getBuyQuoteCallsAsync(
         tokenAddressPath: Address[],
