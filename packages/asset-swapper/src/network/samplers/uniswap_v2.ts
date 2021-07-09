@@ -13,6 +13,7 @@ const UNISWAP_V2_ROUTER_BY_CHAIN_ID_BY_FORK = {
         [ERC20BridgeSource.SushiSwap]: '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f',
         [ERC20BridgeSource.CryptoCom]: '0xceb90e4c17d626be0facd78b79c9c87d7ca181b3',
         [ERC20BridgeSource.Linkswap]: '0xa7ece0911fe8c60bff9e99f8fafcdbe56e07aff1',
+        [ERC20BridgeSource.ShibaSwap]: '0x03f7724180aa6b939894b5ca4314783b0b36b329',
     },
     [ChainId.Ropsten]: {
         [ERC20BridgeSource.UniswapV2]: '0xf164fc0ec4e93095b804a4795bbe1e041497b92a',
