@@ -9,6 +9,15 @@
         ]
     },
     {
+        "version": "16.21.0",
+        "changes": [
+            {
+                "note": "JetSwap",
+                "pr": 280
+            }
+        ]
+    },
+    {
         "version": "16.20.0",
         "changes": [
             {
