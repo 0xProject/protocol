@@ -56,6 +56,7 @@ import {
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    FirebirdFillData,
     GenericRouterFillData,
     HopInfo,
     KyberDmmFillData,
@@ -626,6 +627,36 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromMStable,
             params: [router, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
+    public getFirebirdSellQuotes(
+        poolAddress: string,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<FirebirdFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Firebird,
+            fillData: { poolAddress },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromFirebird,
+            params: [poolAddress, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getFirebirdBuyQuotes(
+        poolAddress: string,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<FirebirdFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Firebird,
+            fillData: { poolAddress },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromFirebird,
+            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1446,6 +1477,11 @@ export class SamplerOperations {
 
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
+                    case ERC20BridgeSource.Firebird: {
+                        return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                            this.getFirebirdSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -1711,6 +1747,11 @@ export class SamplerOperations {
                         }
 
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
+                    }
+                    case ERC20BridgeSource.Firebird: {
+                        return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
+                            this.getFirebirdBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                        );
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);

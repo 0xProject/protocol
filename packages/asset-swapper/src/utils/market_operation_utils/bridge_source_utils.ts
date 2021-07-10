@@ -16,6 +16,7 @@ import {
     CURVE_V2_POLYGON_INFOS,
     DFYN_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
+    FIREBIRD_POOLS_BY_CHAIN_ID,
     FIREBIRDONESWAP_BSC_INFOS,
     FIREBIRDONESWAP_POLYGON_INFOS,
     JULSWAP_ROUTER_BY_CHAIN_ID,
@@ -103,6 +104,16 @@ export function getMStableForPair(chainId: ChainId, takerToken: string, makerTok
         return [];
     }
     return Object.values(MSTABLE_POOLS_BY_CHAIN_ID[chainId])
+        .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
+        .map(i => i.poolAddress);
+}
+
+// tslint:disable completed-docs
+export function getFirebirdForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
+    if (chainId !== ChainId.Polygon) {
+        return [];
+    }
+    return Object.values(FIREBIRD_POOLS_BY_CHAIN_ID[chainId])
         .filter(c => [makerToken, takerToken].every(t => c.tokens.includes(t)))
         .map(i => i.poolAddress);
 }
@@ -302,7 +313,7 @@ export function getShellLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
     makerToken: string,
-    source: ERC20BridgeSource.Shell | ERC20BridgeSource.Component | ERC20BridgeSource.MStable,
+    source: ERC20BridgeSource.Shell | ERC20BridgeSource.Component | ERC20BridgeSource.MStable | ERC20BridgeSource.Firebird,
 ): string[] {
     switch (source) {
         case ERC20BridgeSource.Shell:
@@ -311,6 +322,8 @@ export function getShellLikeInfosForPair(
             return getComponentForPair(chainId, takerToken, makerToken);
         case ERC20BridgeSource.MStable:
             return getMStableForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.Firebird:
+            return getFirebirdForPair(chainId, takerToken, makerToken);
         default:
             throw new Error(`Unknown Shell like source ${source}`);
     }

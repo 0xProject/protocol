@@ -151,6 +151,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Firebird,
         ]),
     },
     new SourceFilters([]),
@@ -247,6 +248,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Firebird,
         ]),
     },
     new SourceFilters([]),
@@ -1294,6 +1296,23 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
     },
 );
 
+export const FIREBIRD_POOLS_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Polygon]: {
+            weth_wbtc: {
+                poolAddress: '0x10f525cfbce668815da5142460af0fcfb5163c81',
+                tokens: [POLYGON_TOKENS.WETH, POLYGON_TOKENS.WBTC],
+            },
+        },
+    },
+    {
+        weth_wbtc: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+    },
+);
+
 export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
@@ -1556,6 +1575,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Polydex]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.Firebird]: () => 200e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

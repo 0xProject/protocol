@@ -245,6 +245,13 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
+        // } else if (protocolId == BridgeProtocols.FIREBIRD) {
+        //     boughtAmount = _tradeFirebird(
+        //         sellToken,
+        //         buyToken,
+        //         sellAmount,
+        //         order.bridgeData
+        //     );
         } else {
             boughtAmount = _tradeZeroExBridge(
                 sellToken,

@@ -46,6 +46,15 @@ contract SamplerUtils {
         arr[0] = v;
     }
 
+    function _toSingleAddressArray(address v)
+        internal
+        pure
+        returns (address[] memory arr)
+    {
+        arr = new address[](1);
+        arr[0] = v;
+    }
+
     /// @dev Assert that the tokens in a trade pair are valid.
     /// @param makerToken Address of the maker token.
     /// @param takerToken Address of the taker token.

@@ -15,6 +15,7 @@ import {
     DODOFillData,
     ERC20BridgeSource,
     FillData,
+    FirebirdFillData,
     FinalUniswapV3FillData,
     GenericRouterFillData,
     KyberDmmFillData,
@@ -174,6 +175,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Lido, 'Lido');
         case ERC20BridgeSource.ShibaSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'ShibaSwap');
+        case ERC20BridgeSource.Firebird:
+            return encodeBridgeSourceId(BridgeProtocol.Firebird, 'Firebird');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -308,6 +311,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Lido:
             const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
             bridgeData = encoder.encode([lidoFillData.stEthTokenAddress]);
+            break;
+        case ERC20BridgeSource.Firebird:
+            const firebirdFillData = (order as OptimizedMarketBridgeOrder<FirebirdFillData>).fillData;
+            bridgeData = encoder.encode([firebirdFillData.poolAddress]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -454,6 +461,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Balancer]: poolEncoder,
     [ERC20BridgeSource.Cream]: poolEncoder,
     [ERC20BridgeSource.Uniswap]: poolEncoder,
+    [ERC20BridgeSource.Firebird]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
     [ERC20BridgeSource.BalancerV2]: balancerV2Encoder,
