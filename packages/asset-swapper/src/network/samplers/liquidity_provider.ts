@@ -83,10 +83,10 @@ export class LiquidityProviderSampler extends OnChainSourceSampler<
         chain: Chain,
         registry?: LiquidityProviderRegistry,
     ): Promise<LiquidityProviderSampler> {
-        return new LiquidityProviderSampler(
-            chain,
-            registry || DEFAULT_LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID[chain.chainId],
-        );
+        return new LiquidityProviderSampler(chain, {
+            ...DEFAULT_LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID[chain.chainId],
+            ...registry,
+        });
     }
 
     protected constructor(chain: Chain, private readonly _registry: LiquidityProviderRegistry) {
