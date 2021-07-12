@@ -133,6 +133,9 @@ export class RfqmJobEntity {
     @Column({ name: 'last_look_result', type: 'boolean', nullable: true })
     public lastLookResult: boolean | null;
 
+    @Column({ name: 'affiliate_address', type: 'varchar', nullable: true })
+    public affiliateAddress: string | null;
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
@@ -143,6 +146,7 @@ export class RfqmJobEntity {
             this.createdAt = opts.createdAt;
         }
 
+        this.affiliateAddress = opts.affiliateAddress || null;
         this.calldata = opts.calldata;
         this.chainId = opts.chainId;
         this.expiry = opts.expiry;

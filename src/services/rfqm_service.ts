@@ -57,6 +57,7 @@ export interface FetchIndicativeQuoteParams {
     sellToken: string;
     sellTokenDecimals: number;
     takerAddress?: string;
+    affiliateAddress?: string;
 }
 
 export interface FetchIndicativeQuoteResponse {
@@ -78,6 +79,7 @@ export interface FetchFirmQuoteParams {
     sellToken: string;
     sellTokenDecimals: number;
     takerAddress: string;
+    affiliateAddress?: string;
 }
 
 export interface BaseRfqmQuoteResponse {
@@ -386,6 +388,7 @@ export class RfqmService {
             buyTokenDecimals: makerTokenDecimals,
             apiKey,
             takerAddress,
+            affiliateAddress,
         } = params;
 
         // Quote Requestor specific params
@@ -500,6 +503,7 @@ export class RfqmService {
                 fee: feeToStoredFee(fee),
                 order: v4RfqOrderToStoredOrder(rfqOrder),
                 makerUri,
+                affiliateAddress,
             }),
         );
         RFQM_QUOTE_INSERTED.labels(apiKey, makerUri).inc();
@@ -708,12 +712,17 @@ export class RfqmService {
             makerUri: quote.makerUri,
             status: RfqmJobStatus.PendingEnqueued,
             statusReason: null,
-            calldata: this._blockchainUtils.generateMetaTransactionCallData(params.metaTransaction, params.signature),
+            calldata: this._blockchainUtils.generateMetaTransactionCallData(
+                params.metaTransaction,
+                params.signature,
+                quote.affiliateAddress === null ? undefined : quote.affiliateAddress,
+            ),
             fee: quote.fee,
             order: quote.order,
             metadata: {
                 metaTransaction: params.metaTransaction,
             },
+            affiliateAddress: quote.affiliateAddress,
         };
 
         // this insert will fail if a job has already been created, ensuring

@@ -12,6 +12,7 @@ import { logger } from '../logger';
 import { ChainId } from '../types';
 
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
+import { serviceUtils } from './service_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
 
 // allow a wide range for gas price for flexibility
@@ -152,8 +153,13 @@ export class RfqBlockchainUtils {
         }
     }
 
-    public generateMetaTransactionCallData(metaTx: MetaTransaction, metaTxSig: Signature): string {
-        return this._exchangeProxy.executeMetaTransaction(metaTx, metaTxSig).getABIEncodedTransactionData();
+    public generateMetaTransactionCallData(
+        metaTx: MetaTransaction,
+        metaTxSig: Signature,
+        affiliateAddress?: string,
+    ): string {
+        const callData = this._exchangeProxy.executeMetaTransaction(metaTx, metaTxSig).getABIEncodedTransactionData();
+        return serviceUtils.attributeCallData(callData, affiliateAddress).affiliatedData;
     }
 
     public async getNonceAsync(workerAddress: string): Promise<number> {

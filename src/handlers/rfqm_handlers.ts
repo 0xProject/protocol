@@ -242,7 +242,7 @@ export class RfqmHandlers {
         const apiKey = this._validateAndReturnApiKey(req.header('0x-api-key'));
 
         // Parse string params
-        const { takerAddress } = req.query;
+        const { takerAddress, affiliateAddress } = req.query;
 
         // Parse tokens
         const sellTokenRaw = req.query.sellToken as string;
@@ -270,6 +270,7 @@ export class RfqmHandlers {
             sellToken,
             sellTokenDecimals,
             takerAddress: takerAddress as string,
+            affiliateAddress: affiliateAddress as string,
         };
     }
 

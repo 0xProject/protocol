@@ -11,6 +11,7 @@ import { RfqmJobStatus } from '../src/entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
 import { feeToStoredFee, RfqmDbUtils, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
 
+import { MATCHA_AFFILIATE_ADDRESS } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
@@ -116,6 +117,7 @@ describe(SUITE_NAME, () => {
                 makerUri,
                 fee: feeToStoredFee(fee),
                 order: v4RfqOrderToStoredOrder(order),
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
             });
 
             const quoteRepository = connection.getRepository(RfqmQuoteEntity);
@@ -139,6 +141,7 @@ describe(SUITE_NAME, () => {
                 calldata,
                 fee: feeToStoredFee(fee),
                 order: v4RfqOrderToStoredOrder(order),
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
             };
 
             const testRfqmJobEntity = new RfqmJobEntity(rfqmJobOpts);
@@ -164,6 +167,7 @@ describe(SUITE_NAME, () => {
                 calldata,
                 fee: feeToStoredFee(fee),
                 order: v4RfqOrderToStoredOrder(order),
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
             };
             await dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
 

@@ -11,7 +11,12 @@ import { PROTOCOL_FEE_MULTIPLIER } from '../src/config';
 import { ChainId } from '../src/types';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
-import { getProvider, TEST_RFQ_ORDER_FILLED_EVENT_LOG, TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT } from './constants';
+import {
+    getProvider,
+    MATCHA_AFFILIATE_ADDRESS,
+    TEST_RFQ_ORDER_FILLED_EVENT_LOG,
+    TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT,
+} from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 const SUITE_NAME = 'RFQ Blockchain Utils Test';
@@ -167,7 +172,11 @@ describe(SUITE_NAME, () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
+                metaTx,
+                metaTxSig,
+                MATCHA_AFFILIATE_ADDRESS,
+            );
             expect(
                 await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin),
             ).to.deep.eq([takerAmount, makerAmount]);
@@ -176,7 +185,11 @@ describe(SUITE_NAME, () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const invalidMetaTxSig = orderSig;
 
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, invalidMetaTxSig);
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
+                metaTx,
+                invalidMetaTxSig,
+                MATCHA_AFFILIATE_ADDRESS,
+            );
 
             try {
                 await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
@@ -195,7 +208,11 @@ describe(SUITE_NAME, () => {
             );
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
+                metaTx,
+                metaTxSig,
+                MATCHA_AFFILIATE_ADDRESS,
+            );
 
             try {
                 await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
@@ -240,7 +257,11 @@ describe(SUITE_NAME, () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
+                metaTx,
+                metaTxSig,
+                MATCHA_AFFILIATE_ADDRESS,
+            );
 
             const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, {
                 gasPrice: 1e9,
@@ -256,7 +277,11 @@ describe(SUITE_NAME, () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(metaTx, metaTxSig);
+            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
+                metaTx,
+                metaTxSig,
+                MATCHA_AFFILIATE_ADDRESS,
+            );
 
             const expectedTakerTokenFillAmount = rfqBlockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(callData);
             expect(expectedTakerTokenFillAmount).to.deep.eq(takerAmount);

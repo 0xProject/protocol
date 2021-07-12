@@ -42,6 +42,7 @@ import {
     CHAIN_ID,
     CONTRACT_ADDRESSES,
     getProvider,
+    MATCHA_AFFILIATE_ADDRESS,
     NULL_ADDRESS,
     TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
@@ -138,6 +139,7 @@ const MOCK_RFQM_JOB: RfqmJobEntity = {
     isCompleted: false,
     workerAddress: null,
     lastLookResult: null,
+    affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
 };
 
 describe(SUITE_NAME, () => {
@@ -189,10 +191,7 @@ describe(SUITE_NAME, () => {
         when(
             rfqBlockchainUtilsMock.generateMetaTransaction(anything(), anything(), anything(), anything(), anything()),
         ).thenCall((_rfqOrder, _signature, _taker, _takerAmount, chainId) => new MetaTransaction({ chainId }));
-        when(rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), anything())).thenReturn(
-            MOCK_META_TX_CALL_DATA,
-        );
-        when(rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), anything())).thenReturn(
+        when(rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), anything(), anything())).thenReturn(
             MOCK_META_TX_CALL_DATA,
         );
         when(
@@ -694,6 +693,7 @@ describe(SUITE_NAME, () => {
                 takerAddress,
                 intentOnFilling: 'false',
                 skipValidation: 'true',
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
             });
 
             const expectedPrice = '2';
@@ -766,6 +766,7 @@ describe(SUITE_NAME, () => {
                     expect(repositoryResponse).to.not.be.null();
                     expect(repositoryResponse?.orderHash).to.equal(appResponse.body.orderHash);
                     expect(repositoryResponse?.makerUri).to.equal(MARKET_MAKER_1);
+                    expect(repositoryResponse?.affiliateAddress).to.equal(MATCHA_AFFILIATE_ADDRESS);
                 },
                 axiosClient,
             );
@@ -940,6 +941,7 @@ describe(SUITE_NAME, () => {
                 fee: mockStoredFee,
                 order: mockStoredOrder,
                 chainId: 1337,
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
             });
 
             // write a corresponding quote entity to validate against
@@ -961,6 +963,7 @@ describe(SUITE_NAME, () => {
             expect(dbJobEntity).to.not.be.null();
             expect(dbJobEntity?.orderHash).to.equal(mockQuote.orderHash);
             expect(dbJobEntity?.makerUri).to.equal(MARKET_MAKER_1);
+            expect(dbJobEntity?.affiliateAddress).to.equal(MATCHA_AFFILIATE_ADDRESS);
         });
         it('should return status 404 not found if there is not a pre-existing quote', async () => {
             const mockMetaTx = createMockMetaTx();
@@ -1145,6 +1148,7 @@ describe(SUITE_NAME, () => {
                 },
             },
             chainId: 1337,
+            affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
         });
         const mmResponse = {
             fee: mockStoredFee,
