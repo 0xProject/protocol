@@ -691,7 +691,8 @@ export class RfqmService {
                 params.signature,
                 this._registryAddress,
             );
-        } catch (err) {
+        } catch (error) {
+            logger.error({ error }, 'RFQM quote failed eth_call validation.');
             RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION.inc();
             throw new ValidationError([
                 {
@@ -731,7 +732,8 @@ export class RfqmService {
             // make sure job data is persisted to Postgres before queueing task
             await this._dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
             await this._enqueueJobAsync(quote.orderHash!);
-        } catch (err) {
+        } catch (error) {
+            logger.error({ error }, 'Failed to queue the quote for submission.');
             throw new InternalServerError(
                 `failed to queue the quote for submission, it may have already been submitted`,
             );
