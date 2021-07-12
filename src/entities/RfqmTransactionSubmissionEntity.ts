@@ -68,7 +68,7 @@ export class RfqmTransactionSubmissionEntity {
         this.gasPrice = opts.gasPrice || null;
         this.gasUsed = opts.gasUsed || null;
         this.metadata = opts.metadata || null;
-        this.nonce = opts.nonce || null;
+        this.nonce = opts.nonce !== undefined ? opts.nonce : null;
         this.orderHash = opts.orderHash;
         this.status = opts.status || RfqmTransactionSubmissionStatus.Submitted;
         this.statusReason = opts.statusReason || null;

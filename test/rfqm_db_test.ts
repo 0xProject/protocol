@@ -60,7 +60,7 @@ describe(SUITE_NAME, () => {
     const gasPrice = new BigNumber('100');
     const gasUsed = null;
     const blockMined = null;
-    const nonce = 12;
+    const nonce = 0;
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
