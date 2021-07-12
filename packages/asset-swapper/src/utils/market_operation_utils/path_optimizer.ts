@@ -53,9 +53,9 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
 
     const pathsIn: SerializedPath[] = adjustedParsedFills.map(fills => ({
         ids: fills.map(f => fillToSampleId(f)),
-        inputs: fills.map(f => f.input.toNumber()),
-        outputs: fills.map(f => f.output.toNumber()),
-        outputFees: fills.map(f => f.outputFee.toNumber()),
+        inputs: fills.map(f => f.input.integerValue().toNumber()),
+        outputs: fills.map(f => f.output.integerValue().toNumber()),
+        outputFees: fills.map(f => f.outputFee.integerValue().toNumber()),
     }));
 
     // TODO(kimpers): replace all numbers with BigNumber or BigInt?
