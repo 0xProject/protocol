@@ -69,24 +69,13 @@ export interface ApiKeyStructure {
     };
 }
 
-export const getApiKeyWhitelistWithFallback = (
-    legacyEnvKey: string,
-    newEnvKey: string,
-    groupType: 'rfqt' | 'plp' | 'rfqm',
-): string[] => {
-    // Try the new path first
-    if (_.isEmpty(process.env[newEnvKey])) {
-        return _.isEmpty(process.env[legacyEnvKey])
-            ? []
-            : assertEnvVarType(legacyEnvKey, process.env[legacyEnvKey], EnvVarType.JsonStringList);
-    }
-
+export const getApiKeyWhitelist = (envKey: string, groupType: 'rfqt' | 'plp' | 'rfqm'): string[] => {
     let deserialized: ApiKeyStructure;
     try {
-        deserialized = JSON.parse(process.env[newEnvKey]!);
+        deserialized = JSON.parse(process.env[envKey] || '{}');
         schemaUtils.validateSchema(deserialized, schemas.apiKeySchema as any);
     } catch (e) {
-        throw new Error(`Key ${newEnvKey} was defined but is not valid JSON`);
+        throw new Error(`Key ${envKey} was defined but is not valid JSON`);
     }
 
     const result: string[] = [];
@@ -269,15 +258,9 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGI
     ? []
     : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
-export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistWithFallback(
-    'RFQT_API_KEY_WHITELIST_JSON',
-    'API_KEYS_ACL',
-    'rfqt',
-);
+export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelist('API_KEYS_ACL', 'rfqt');
 
-export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(
-    getApiKeyWhitelistWithFallback('RFQM_API_KEY_WHITELIST_JSON', 'API_KEYS_ACL', 'rfqm'),
-);
+export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelist('API_KEYS_ACL', 'rfqm'));
 
 export const MATCHA_KEY: string | undefined = getApiKeyFromLabel('Matcha');
 
@@ -301,11 +284,7 @@ export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
 
-export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistWithFallback(
-    'PLP_API_KEY_WHITELIST_JSON',
-    'API_KEYS_ACL',
-    'plp',
-);
+export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelist('API_KEYS_ACL', 'plp');
 
 export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
     ? {}

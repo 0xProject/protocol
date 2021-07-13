@@ -3,14 +3,13 @@ import { expect } from '@0x/contracts-test-utils';
 import { NULL_ADDRESS } from '@0x/utils';
 import 'mocha';
 
-import { ApiKeyStructure, getApiKeyWhitelistWithFallback } from '../src/config';
+import { ApiKeyStructure, getApiKeyWhitelist } from '../src/config';
 import { parseUtils } from '../src/utils/parse_utils';
 
 const SUITE_NAME = 'parseUtils';
 
 describe(SUITE_NAME, () => {
     beforeEach(() => {
-        delete process.env.TEST_LEGACY_KEY;
         delete process.env.TEST_NEW_KEY;
     });
 
@@ -120,16 +119,7 @@ describe(SUITE_NAME, () => {
         }).throws();
     });
 
-    it('getApiKeyWhitelistWithFallback() is able to correctly configure fallback', () => {
-        process.env.TEST_LEGACY_KEY = JSON.stringify(['foo', 'bar']);
-
-        const response = getApiKeyWhitelistWithFallback('TEST_LEGACY_KEY', 'TEST_NEW_KEY', 'plp');
-        expect(response.length).to.eql(2);
-        expect(response[0]).to.eql('foo');
-        expect(response[1]).to.eql('bar');
-    });
-
-    it('getApiKeyWhitelistWithFallback() is able to decode new format', () => {
+    it('getApiKeyWhitelist() is able to decode new format', () => {
         const keys: ApiKeyStructure = {
             foo: { rfqm: false, rfqt: true, plp: true, label: 'Foo key' },
             bar: { rfqm: false, rfqt: true, plp: false, label: 'Bar key' },
@@ -138,17 +128,17 @@ describe(SUITE_NAME, () => {
         };
         process.env.TEST_NEW_KEY = JSON.stringify(keys);
 
-        const plpResponse = getApiKeyWhitelistWithFallback('TEST_LEGACY_KEY', 'TEST_NEW_KEY', 'plp');
+        const plpResponse = getApiKeyWhitelist('TEST_NEW_KEY', 'plp');
         expect(plpResponse.length).to.eql(2);
         expect(plpResponse[0]).to.eql('baz');
         expect(plpResponse[1]).to.eql('foo');
 
-        const rfqtResponse = getApiKeyWhitelistWithFallback('TEST_LEGACY_KEY', 'TEST_NEW_KEY', 'rfqt');
+        const rfqtResponse = getApiKeyWhitelist('TEST_NEW_KEY', 'rfqt');
         expect(rfqtResponse.length).to.eql(2);
         expect(rfqtResponse[0]).to.eql('bar');
         expect(rfqtResponse[1]).to.eql('foo');
 
-        const rfqmResponse = getApiKeyWhitelistWithFallback('TEST_LEGACY_KEY', 'TEST_NEW_KEY', 'rfqm');
+        const rfqmResponse = getApiKeyWhitelist('TEST_NEW_KEY', 'rfqm');
         expect(rfqmResponse.length).to.eql(1);
         expect(rfqmResponse[0]).to.eql('barf');
     });
