@@ -359,6 +359,7 @@ export const MAINNET_TOKENS = {
     crETH: '0xcbc1065255cbc3ab41a6868c22d1f1c573ab89fd',
     ankrETH: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
     vETH: '0x898bad2774eb97cf6b94605677f43b41871410b1',
+    alETH: '0x0100546f2cd4c9d97f798ffc9755e47865ff7ee6',
     HT: '0x6f259637dcD74C767781E37Bc6133cd6A68aa161',
     // Mirror Protocol
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
@@ -369,6 +370,7 @@ export const MAINNET_TOKENS = {
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
+    FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
 };
 
 export const BSC_TOKENS = {
@@ -477,6 +479,8 @@ export const SMOOTHY_POOLS = {
 export const SADDLE_POOLS = {
     stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',
     bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',
+    alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
+    d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
 };
 
 export const IRONSWAP_POOLS = {
@@ -939,6 +943,24 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SADDLE_POOLS.bitcoins,
         tokens: [MAINNET_TOKENS.tBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
+    [SADDLE_POOLS.alETH]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.alETH,
+        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.alETH, MAINNET_TOKENS.sETH],
+        metaTokens: undefined,
+        gasSchedule: 200e3,
+    },
+    [SADDLE_POOLS.d4]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.d4,
+        tokens: [MAINNET_TOKENS.alUSD, MAINNET_TOKENS.FEI, MAINNET_TOKENS.FRAX, MAINNET_TOKENS.LUSD],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
