@@ -32,10 +32,6 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
     if (quote.isTwoHop) {
         return false;
     }
-    // batchFill does not support WETH wrapping/unwrapping at the moment
-    if (opts.isFromETH || opts.isToETH) {
-        return false;
-    }
     if (quote.orders.map(o => o.type).includes(FillQuoteTransformerOrderType.Limit)) {
         return false;
     }
@@ -49,6 +45,7 @@ const MULTIPLEX_MULTIHOP_FILL_SOURCES = [
     ERC20BridgeSource.UniswapV2,
     ERC20BridgeSource.SushiSwap,
     ERC20BridgeSource.LiquidityProvider,
+    ERC20BridgeSource.UniswapV3,
 ];
 
 /**

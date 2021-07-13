@@ -1,6 +1,6 @@
 {
     "schemaVersion": "2.0.0",
-    "contractName": "ITransformERC20",
+    "contractName": "ITransformERC20Feature",
     "compilerOutput": {
         "abi": [
             {
@@ -43,14 +43,14 @@
                                     { "internalType": "uint32", "name": "deploymentNonce", "type": "uint32" },
                                     { "internalType": "bytes", "name": "data", "type": "bytes" }
                                 ],
-                                "internalType": "struct ITransformERC20.Transformation[]",
+                                "internalType": "struct ITransformERC20Feature.Transformation[]",
                                 "name": "transformations",
                                 "type": "tuple[]"
                             },
-                            { "internalType": "bytes32", "name": "callDataHash", "type": "bytes32" },
-                            { "internalType": "bytes", "name": "callDataSignature", "type": "bytes" }
+                            { "internalType": "bool", "name": "useSelfBalance", "type": "bool" },
+                            { "internalType": "address payable", "name": "recipient", "type": "address" }
                         ],
-                        "internalType": "struct ITransformERC20.TransformERC20Args",
+                        "internalType": "struct ITransformERC20Feature.TransformERC20Args",
                         "name": "args",
                         "type": "tuple"
                     }
@@ -113,7 +113,7 @@
                             { "internalType": "uint32", "name": "deploymentNonce", "type": "uint32" },
                             { "internalType": "bytes", "name": "data", "type": "bytes" }
                         ],
-                        "internalType": "struct ITransformERC20.Transformation[]",
+                        "internalType": "struct ITransformERC20Feature.Transformation[]",
                         "name": "transformations",
                         "type": "tuple[]"
                     }
@@ -148,7 +148,7 @@
             },
             "kind": "dev",
             "methods": {
-                "_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bytes32,bytes))": {
+                "_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bool,address))": {
                     "details": "Internal version of `transformERC20()`. Only callable from within.",
                     "params": { "args": "A `TransformERC20Args` struct." },
                     "returns": { "outputTokenAmount": "The amount of `outputToken` received by the taker." }
@@ -212,7 +212,8 @@
                         "evm.bytecode.object",
                         "evm.bytecode.sourceMap",
                         "evm.deployedBytecode.object",
-                        "evm.deployedBytecode.sourceMap"
+                        "evm.deployedBytecode.sourceMap",
+                        "evm.methodIdentifiers"
                     ]
                 }
             },
