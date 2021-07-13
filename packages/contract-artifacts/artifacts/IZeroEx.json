@@ -8,16 +8,6 @@
                 "inputs": [
                     { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
                     { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
-                    { "indexed": false, "internalType": "uint64", "name": "expiry", "type": "uint64" }
-                ],
-                "name": "ExpiredRfqOrder",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    { "indexed": false, "internalType": "bytes32", "name": "orderHash", "type": "bytes32" },
-                    { "indexed": false, "internalType": "address", "name": "maker", "type": "address" },
                     { "indexed": false, "internalType": "address", "name": "taker", "type": "address" },
                     { "indexed": false, "internalType": "address", "name": "feeRecipient", "type": "address" },
                     { "indexed": false, "internalType": "address", "name": "makerToken", "type": "address" },
@@ -49,11 +39,26 @@
             {
                 "anonymous": false,
                 "inputs": [
-                    { "indexed": false, "internalType": "address", "name": "inputToken", "type": "address" },
-                    { "indexed": false, "internalType": "address", "name": "outputToken", "type": "address" },
+                    {
+                        "indexed": false,
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "inputToken",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "contract IERC20TokenV06",
+                        "name": "outputToken",
+                        "type": "address"
+                    },
                     { "indexed": false, "internalType": "uint256", "name": "inputTokenAmount", "type": "uint256" },
                     { "indexed": false, "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" },
-                    { "indexed": false, "internalType": "address", "name": "provider", "type": "address" },
+                    {
+                        "indexed": false,
+                        "internalType": "contract ILiquidityProvider",
+                        "name": "provider",
+                        "type": "address"
+                    },
                     { "indexed": false, "internalType": "address", "name": "recipient", "type": "address" }
                 ],
                 "name": "LiquidityProviderSwap",
@@ -303,13 +308,27 @@
                         "type": "tuple"
                     },
                     { "internalType": "uint128", "name": "takerTokenFillAmount", "type": "uint128" },
-                    { "internalType": "address", "name": "taker", "type": "address" }
+                    { "internalType": "address", "name": "taker", "type": "address" },
+                    { "internalType": "bool", "name": "useSelfBalance", "type": "bool" },
+                    { "internalType": "address", "name": "recipient", "type": "address" }
                 ],
                 "name": "_fillRfqOrder",
                 "outputs": [
                     { "internalType": "uint128", "name": "takerTokenFilledAmount", "type": "uint128" },
                     { "internalType": "uint128", "name": "makerTokenFilledAmount", "type": "uint128" }
                 ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "bytes", "name": "encodedPath", "type": "bytes" },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
+                    { "internalType": "address", "name": "recipient", "type": "address" }
+                ],
+                "name": "_sellHeldTokenForTokenToUniswapV3",
+                "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
                 "stateMutability": "nonpayable",
                 "type": "function"
             },
@@ -330,7 +349,9 @@
                                 "internalType": "struct ITransformERC20Feature.Transformation[]",
                                 "name": "transformations",
                                 "type": "tuple[]"
-                            }
+                            },
+                            { "internalType": "bool", "name": "useSelfBalance", "type": "bool" },
+                            { "internalType": "address payable", "name": "recipient", "type": "address" }
                         ],
                         "internalType": "struct ITransformERC20Feature.TransformERC20Args",
                         "name": "args",
@@ -477,35 +498,6 @@
                 ],
                 "name": "batchExecuteMetaTransactions",
                 "outputs": [{ "internalType": "bytes[]", "name": "returnResults", "type": "bytes[]" }],
-                "stateMutability": "payable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
-                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
-                            {
-                                "components": [
-                                    { "internalType": "bytes4", "name": "selector", "type": "bytes4" },
-                                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
-                                    { "internalType": "bytes", "name": "data", "type": "bytes" }
-                                ],
-                                "internalType": "struct IMultiplexFeature.WrappedBatchCall[]",
-                                "name": "calls",
-                                "type": "tuple[]"
-                            }
-                        ],
-                        "internalType": "struct IMultiplexFeature.BatchFillData",
-                        "name": "fillData",
-                        "type": "tuple"
-                    },
-                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
-                ],
-                "name": "batchFill",
-                "outputs": [{ "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" }],
                 "stateMutability": "payable",
                 "type": "function"
             },
@@ -1604,29 +1596,148 @@
             },
             {
                 "inputs": [
+                    { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
                     {
                         "components": [
-                            { "internalType": "address[]", "name": "tokens", "type": "address[]" },
-                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
                             {
-                                "components": [
-                                    { "internalType": "bytes4", "name": "selector", "type": "bytes4" },
-                                    { "internalType": "bytes", "name": "data", "type": "bytes" }
-                                ],
-                                "internalType": "struct IMultiplexFeature.WrappedMultiHopCall[]",
-                                "name": "calls",
-                                "type": "tuple[]"
-                            }
+                                "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                "name": "id",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                            { "internalType": "bytes", "name": "data", "type": "bytes" }
                         ],
-                        "internalType": "struct IMultiplexFeature.MultiHopFillData",
-                        "name": "fillData",
-                        "type": "tuple"
+                        "internalType": "struct IMultiplexFeature.BatchSellSubcall[]",
+                        "name": "calls",
+                        "type": "tuple[]"
                     },
                     { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
                 ],
-                "name": "multiHopFill",
-                "outputs": [{ "internalType": "uint256", "name": "outputTokenAmount", "type": "uint256" }],
+                "name": "multiplexBatchSellEthForToken",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
                 "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                "name": "id",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                            { "internalType": "bytes", "name": "data", "type": "bytes" }
+                        ],
+                        "internalType": "struct IMultiplexFeature.BatchSellSubcall[]",
+                        "name": "calls",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "multiplexBatchSellTokenForEth",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
+                    { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                "name": "id",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                            { "internalType": "bytes", "name": "data", "type": "bytes" }
+                        ],
+                        "internalType": "struct IMultiplexFeature.BatchSellSubcall[]",
+                        "name": "calls",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "multiplexBatchSellTokenForToken",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address[]", "name": "tokens", "type": "address[]" },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                "name": "id",
+                                "type": "uint8"
+                            },
+                            { "internalType": "bytes", "name": "data", "type": "bytes" }
+                        ],
+                        "internalType": "struct IMultiplexFeature.MultiHopSellSubcall[]",
+                        "name": "calls",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "multiplexMultiHopSellEthForToken",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address[]", "name": "tokens", "type": "address[]" },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                "name": "id",
+                                "type": "uint8"
+                            },
+                            { "internalType": "bytes", "name": "data", "type": "bytes" }
+                        ],
+                        "internalType": "struct IMultiplexFeature.MultiHopSellSubcall[]",
+                        "name": "calls",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "multiplexMultiHopSellTokenForEth",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address[]", "name": "tokens", "type": "address[]" },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                "name": "id",
+                                "type": "uint8"
+                            },
+                            { "internalType": "bytes", "name": "data", "type": "bytes" }
+                        ],
+                        "internalType": "struct IMultiplexFeature.MultiHopSellSubcall[]",
+                        "name": "calls",
+                        "type": "tuple[]"
+                    },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "multiplexMultiHopSellTokenForToken",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -1819,20 +1930,32 @@
                         "takerTokenFilledAmount": "How much maker token was filled."
                     }
                 },
-                "_fillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128,address)": {
+                "_fillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128,address,bool,address)": {
                     "details": "Fill an RFQ order. Internal variant.",
                     "params": {
                         "order": "The RFQ order.",
+                        "recipient": "The recipient of the maker tokens.",
                         "signature": "The order signature.",
                         "taker": "The order taker.",
-                        "takerTokenFillAmount": "Maximum taker token to fill this order with."
+                        "takerTokenFillAmount": "Maximum taker token to fill this order with.",
+                        "useSelfBalance": "Whether to use the ExchangeProxy's transient        balance of taker tokens to fill the order."
                     },
                     "returns": {
                         "makerTokenFilledAmount": "How much maker token was filled.",
                         "takerTokenFilledAmount": "How much maker token was filled."
                     }
                 },
-                "_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[]))": {
+                "_sellHeldTokenForTokenToUniswapV3(bytes,uint256,uint256,address)": {
+                    "details": "Sell a token for another token directly against uniswap v3.      Private variant, uses tokens held by `address(this)`.",
+                    "params": {
+                        "encodedPath": "Uniswap-encoded path.",
+                        "minBuyAmount": "Minimum amount of the last token in the path to buy.",
+                        "recipient": "The recipient of the bought tokens. Can be zero for sender.",
+                        "sellAmount": "amount of the first token in the path to sell."
+                    },
+                    "returns": { "buyAmount": "Amount of the last token in the path bought." }
+                },
+                "_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bool,address))": {
                     "details": "Internal version of `transformERC20()`. Only callable from within.",
                     "params": { "args": "A `TransformERC20Args` struct." },
                     "returns": { "outputTokenAmount": "The amount of `outputToken` received by the taker." }
@@ -1886,14 +2009,6 @@
                         "signatures": "The signature by each respective `mtx.signer`."
                     },
                     "returns": { "returnResults": "The ABI-encoded results of the underlying calls." }
-                },
-                "batchFill((address,address,uint256,(bytes4,uint256,bytes)[]),uint256)": {
-                    "details": "Executes a batch of fills selling `fillData.inputToken`      for `fillData.outputToken` in sequence. Refer to the      internal variant `_batchFill` for the allowed nested      operations.",
-                    "params": {
-                        "fillData": "Encodes the input/output tokens, the sell        amount, and the nested operations for this batch fill.",
-                        "minBuyAmount": "The minimum amount of `fillData.outputToken`        to buy. Reverts if this amount is not met."
-                    },
-                    "returns": { "outputTokenAmount": "The amount of the output token bought." }
                 },
                 "batchFillLimitOrders((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[],uint128[],bool)": {
                     "details": "Fills multiple limit orders.",
@@ -2184,13 +2299,62 @@
                         "target": "The migrator contract address."
                     }
                 },
-                "multiHopFill((address[],uint256,(bytes4,bytes)[]),uint256)": {
-                    "details": "Executes a sequence of fills \"hopping\" through the      path of tokens given by `fillData.tokens`. Refer to the      internal variant `_multiHopFill` for the allowed nested      operations.",
+                "multiplexBatchSellEthForToken(address,(uint8,uint256,bytes)[],uint256)": {
+                    "details": "Sells attached ETH for `outputToken` using the provided      calls.",
                     "params": {
-                        "fillData": "Encodes the path of tokens, the sell amount,        and the nested operations for this multi-hop fill.",
-                        "minBuyAmount": "The minimum amount of the output token        to buy. Reverts if this amount is not met."
+                        "calls": "The calls to use to sell the attached ETH.",
+                        "minBuyAmount": "The minimum amount of `outputToken` that        must be bought for this function to not revert.",
+                        "outputToken": "The token to buy."
                     },
-                    "returns": { "outputTokenAmount": "The amount of the output token bought." }
+                    "returns": { "boughtAmount": "The amount of `outputToken` bought." }
+                },
+                "multiplexBatchSellTokenForEth(address,(uint8,uint256,bytes)[],uint256,uint256)": {
+                    "details": "Sells `sellAmount` of the given `inputToken` for ETH      using the provided calls.",
+                    "params": {
+                        "calls": "The calls to use to sell the input tokens.",
+                        "inputToken": "The token to sell.",
+                        "minBuyAmount": "The minimum amount of ETH that        must be bought for this function to not revert.",
+                        "sellAmount": "The amount of `inputToken` to sell."
+                    },
+                    "returns": { "boughtAmount": "The amount of ETH bought." }
+                },
+                "multiplexBatchSellTokenForToken(address,address,(uint8,uint256,bytes)[],uint256,uint256)": {
+                    "details": "Sells `sellAmount` of the given `inputToken` for      `outputToken` using the provided calls.",
+                    "params": {
+                        "calls": "The calls to use to sell the input tokens.",
+                        "inputToken": "The token to sell.",
+                        "minBuyAmount": "The minimum amount of `outputToken`        that must be bought for this function to not revert.",
+                        "outputToken": "The token to buy.",
+                        "sellAmount": "The amount of `inputToken` to sell."
+                    },
+                    "returns": { "boughtAmount": "The amount of `outputToken` bought." }
+                },
+                "multiplexMultiHopSellEthForToken(address[],(uint8,bytes)[],uint256)": {
+                    "details": "Sells attached ETH via the given sequence of tokens      and calls. `tokens[0]` must be WETH.      The last token in `tokens` is the output token that      will ultimately be sent to `msg.sender`",
+                    "params": {
+                        "calls": "The sequence of calls to use for the sell.",
+                        "minBuyAmount": "The minimum amount of output tokens that        must be bought for this function to not revert.",
+                        "tokens": "The sequence of tokens to use for the sell,        i.e. `tokens[i]` will be sold for `tokens[i+1]` via        `calls[i]`."
+                    },
+                    "returns": { "boughtAmount": "The amount of output tokens bought." }
+                },
+                "multiplexMultiHopSellTokenForEth(address[],(uint8,bytes)[],uint256,uint256)": {
+                    "details": "Sells `sellAmount` of the input token (`tokens[0]`)      for ETH via the given sequence of tokens and calls.      The last token in `tokens` must be WETH.",
+                    "params": {
+                        "calls": "The sequence of calls to use for the sell.",
+                        "minBuyAmount": "The minimum amount of ETH that        must be bought for this function to not revert.",
+                        "tokens": "The sequence of tokens to use for the sell,        i.e. `tokens[i]` will be sold for `tokens[i+1]` via        `calls[i]`."
+                    },
+                    "returns": { "boughtAmount": "The amount of ETH bought." }
+                },
+                "multiplexMultiHopSellTokenForToken(address[],(uint8,bytes)[],uint256,uint256)": {
+                    "details": "Sells `sellAmount` of the input token (`tokens[0]`)      via the given sequence of tokens and calls.      The last token in `tokens` is the output token that      will ultimately be sent to `msg.sender`",
+                    "params": {
+                        "calls": "The sequence of calls to use for the sell.",
+                        "minBuyAmount": "The minimum amount of output tokens that        must be bought for this function to not revert.",
+                        "tokens": "The sequence of tokens to use for the sell,        i.e. `tokens[i]` will be sold for `tokens[i+1]` via        `calls[i]`."
+                    },
+                    "returns": { "boughtAmount": "The amount of output tokens bought." }
                 },
                 "owner()": {
                     "details": "The owner of this contract.",
