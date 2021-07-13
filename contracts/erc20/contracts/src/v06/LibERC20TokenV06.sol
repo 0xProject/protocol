@@ -28,7 +28,7 @@ library LibERC20TokenV06 {
     bytes constant private DECIMALS_CALL_DATA = hex"313ce567";
 
     /// @dev Calls `IERC20TokenV06(token).approve()`.
-    ///      Reverts if the result fails `isSuccessfulResult()` or the call reverts.
+    ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param allowance The allowance to set.
@@ -49,7 +49,7 @@ library LibERC20TokenV06 {
 
     /// @dev Calls `IERC20TokenV06(token).approve()` and sets the allowance to the
     ///      maximum if the current approval is not already >= an amount.
-    ///      Reverts if the result fails `isSuccessfulResult()` or the call reverts.
+    ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param amount The minimum allowance needed.
@@ -66,7 +66,7 @@ library LibERC20TokenV06 {
     }
 
     /// @dev Calls `IERC20TokenV06(token).transfer()`.
-    ///      Reverts if the result fails `isSuccessfulResult()` or the call reverts.
+    ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
@@ -86,7 +86,7 @@ library LibERC20TokenV06 {
     }
 
     /// @dev Calls `IERC20TokenV06(token).transferFrom()`.
-    ///      Reverts if the result fails `isSuccessfulResult()` or the call reverts.
+    ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param from The owner of the tokens.
     /// @param to The address that receives the tokens
@@ -168,27 +168,6 @@ library LibERC20TokenV06 {
         }
     }
 
-    /// @dev Check if the data returned by a non-static call to an ERC20 token
-    ///      is a successful result. Supported functions are `transfer()`,
-    ///      `transferFrom()`, and `approve()`.
-    /// @param resultData The raw data returned by a non-static call to the ERC20 token.
-    /// @return isSuccessful Whether the result data indicates success.
-    function isSuccessfulResult(bytes memory resultData)
-        internal
-        pure
-        returns (bool isSuccessful)
-    {
-        if (resultData.length == 0) {
-            return true;
-        }
-        if (resultData.length >= 32) {
-            uint256 result = LibBytesV06.readUint256(resultData, 0);
-            if (result == 1) {
-                return true;
-            }
-        }
-    }
-
     /// @dev Executes a call on address `target` with calldata `callData`
     ///      and asserts that either nothing was returned or a single boolean
     ///      was returned equal to `true`.
@@ -201,9 +180,27 @@ library LibERC20TokenV06 {
         private
     {
         (bool didSucceed, bytes memory resultData) = target.call(callData);
-        if (didSucceed && isSuccessfulResult(resultData)) {
+        // If we get back 0 returndata, this may be a non-standard ERC-20 that
+        // does not return a boolean. Check that it at least contains code.
+        if (resultData.length == 0) {
+            uint256 size;
+            assembly { size := extcodesize(target) }
+            require(size > 0, "invalid token address, contains no code");
             return;
         }
+        // If we get back at least 32 bytes, we know the target address
+        // contains code, and we assume it is a token that returned a boolean
+        // success value, which must be true.
+        if (resultData.length >= 32) {
+            uint256 result = LibBytesV06.readUint256(resultData, 0);
+            if (result == 1) {
+                return;
+            } else {
+                LibRichErrorsV06.rrevert(resultData);
+            }
+        }
+        // If 0 < returndatasize < 32, the target is a contract, but not a
+        // valid token.
         LibRichErrorsV06.rrevert(resultData);
     }
 }

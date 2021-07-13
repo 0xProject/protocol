@@ -68,6 +68,12 @@ abstract contract MultiplexUniswapV2 is
         payable
         returns (uint256 boughtAmount)
     {
+        // Revert is not a delegatecall.
+        require(
+            address(this) != _implementation,
+            "MultiplexLiquidityProvider::_batchSellUniswapV2External/ONLY_DELEGATECALL"
+        );
+
         (address[] memory tokens, bool isSushi) = abi.decode(
             wrappedCallData,
             (address[], bool)

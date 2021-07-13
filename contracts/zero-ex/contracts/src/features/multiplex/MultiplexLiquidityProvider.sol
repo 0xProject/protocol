@@ -67,6 +67,12 @@ abstract contract MultiplexLiquidityProvider is
         payable
         returns (uint256 boughtAmount)
     {
+        // Revert if not a delegatecall.
+        require(
+            address(this) != _implementation,
+            "MultiplexLiquidityProvider::_batchSellLiquidityProviderExternal/ONLY_DELEGATECALL"
+        );
+
         // Decode the provider address and auxiliary data.
         (address provider, bytes memory auxiliaryData) = abi.decode(
             wrappedCallData,
@@ -92,7 +98,7 @@ abstract contract MultiplexLiquidityProvider is
         }
         // Cache the recipient's balance of the output token.
         uint256 balanceBefore = params.outputToken
-            .compatBalanceOf(params.recipient);
+            .balanceOf(params.recipient);
         // Execute the swap.
         SANDBOX.executeSellTokenForToken(
             ILiquidityProvider(provider),
@@ -105,7 +111,7 @@ abstract contract MultiplexLiquidityProvider is
         // Compute amount of output token received by the
         // recipient.
         boughtAmount = params.outputToken
-            .compatBalanceOf(params.recipient)
+            .balanceOf(params.recipient)
             .safeSub(balanceBefore);
 
         emit LiquidityProviderSwap(
@@ -162,7 +168,7 @@ abstract contract MultiplexLiquidityProvider is
         );
         // Cache the recipient's balance of the output token.
         uint256 balanceBefore = outputToken
-            .compatBalanceOf(state.to);
+            .balanceOf(state.to);
         // Execute the swap.
         SANDBOX.executeSellTokenForToken(
             ILiquidityProvider(provider),
@@ -181,7 +187,7 @@ abstract contract MultiplexLiquidityProvider is
         // Compute amount of output token received by the
         // recipient.
         state.outputTokenAmount = outputToken
-            .compatBalanceOf(state.to)
+            .balanceOf(state.to)
             .safeSub(balanceBefore);
 
         emit LiquidityProviderSwap(

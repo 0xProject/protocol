@@ -216,14 +216,15 @@ contract MultiplexFeature is
         returns (uint256 boughtAmount)
     {
         // Cache the recipient's initial balance of the output token.
-        boughtAmount = params.outputToken.compatBalanceOf(params.recipient);
+        uint256 balanceBefore = params.outputToken.balanceOf(params.recipient);
         // Execute the batch sell.
-        _executeBatchSell(params);
-        // Compute the amount of `outputToken` that was bought. Note that
-        // we query the output token directly rather than use the `boughtAmount`
-        // returned by `_executeBatchSell` for maximum accuracy.
-        boughtAmount = params.outputToken.compatBalanceOf(params.recipient)
-            .safeSub(boughtAmount);
+        BatchSellState memory state = _executeBatchSell(params);
+        // Compute the change in balance of the output token.
+        uint256 balanceDelta = params.outputToken.balanceOf(params.recipient)
+            .safeSub(balanceBefore);
+        // Use the minimum of the balanceDelta and the returned bought
+        // amount in case of weird tokens and whatnot.
+        boughtAmount = LibSafeMathV06.min256(balanceDelta, state.boughtAmount);
         // Enforce `minBuyAmount`.
         require(
             boughtAmount >= minBuyAmount,
@@ -325,7 +326,7 @@ contract MultiplexFeature is
     ///        i.e. `tokens[i]` will be sold for `tokens[i+1]` via
     ///        `calls[i]`.
     /// @param calls The sequence of calls to use for the sell.
-    /// @param sellAmount The amount of `inputToken` to sell.    
+    /// @param sellAmount The amount of `inputToken` to sell.
     /// @param minBuyAmount The minimum amount of output tokens that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of output tokens bought.
@@ -376,14 +377,15 @@ contract MultiplexFeature is
             params.tokens[params.tokens.length - 1]
         );
         // Cache the recipient's balance of the output token.
-        boughtAmount = outputToken.compatBalanceOf(params.recipient);
+        uint256 balanceBefore = outputToken.balanceOf(params.recipient);
         // Execute the multi-hop sell.
-        _executeMultiHopSell(params);
-        // Compute the amount of `outputToken` that was bought. te that we
-        // query the output token directly rather than use the `outputTokenAmount`
-        // returned by `_executeMultiHopSell` for maximum accuracy.
-        boughtAmount = outputToken.compatBalanceOf(params.recipient)
-            .safeSub(boughtAmount);
+        MultiHopSellState memory state = _executeMultiHopSell(params);
+        // Compute the change in balance of the output token.
+        uint256 balanceDelta = outputToken.balanceOf(params.recipient)
+            .safeSub(balanceBefore);
+        // Use the minimum of the balanceDelta and the returned bought
+        // amount in case of weird tokens and whatnot.
+        boughtAmount = LibSafeMathV06.min256(balanceDelta, state.outputTokenAmount);
         // Enforce `minBuyAmount`.
         require(
             boughtAmount >= minBuyAmount,
