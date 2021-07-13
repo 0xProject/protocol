@@ -282,6 +282,7 @@ async function createSourceSamplerAsync(
         case ERC20BridgeSource.WaultSwap:
         case ERC20BridgeSource.Polydex:
         case ERC20BridgeSource.ShibaSwap:
+        case ERC20BridgeSource.JetSwap:
             return UniswapV2Sampler.createAsync(chain, source);
         case ERC20BridgeSource.UniswapV3:
             return UniswapV3Sampler.createAsync(chain);

@@ -29,6 +29,7 @@ const UNISWAP_V2_ROUTER_BY_CHAIN_ID_BY_FORK = {
         [ERC20BridgeSource.CheeseSwap]: '0x3047799262d8d2ef41ed2a222205968bc9b0d895',
         [ERC20BridgeSource.JulSwap]: '0xbd67d157502a23309db761c41965600c2ec788b2',
         [ERC20BridgeSource.WaultSwap]: '0xd48745e39bbed146eec15b79cbf964884f9877c2',
+        [ERC20BridgeSource.JetSwap]: '0xbe65b8f75b9f20f4c522e0067a3887fada714800',
     },
     [ChainId.Polygon]: {
         [ERC20BridgeSource.Dfyn]: '0xa102072a4c07f06ec3b4900fdc4c7b80b6c57429',
@@ -37,6 +38,7 @@ const UNISWAP_V2_ROUTER_BY_CHAIN_ID_BY_FORK = {
         [ERC20BridgeSource.ApeSwap]: '0xc0788a3ad43d79aa53b09c2eacc313a787d1d607',
         [ERC20BridgeSource.WaultSwap]: '0x3a1d87f206d12415f5b0a33e786967680aab4f6d',
         [ERC20BridgeSource.Polydex]: '0xe5c67ba380fb2f70a47b489e94bced486bb8fb74',
+        [ERC20BridgeSource.JetSwap]: '0x5c6ec38fb0e2609672bdf628b1fd605a523e5923',
     },
 };
 
