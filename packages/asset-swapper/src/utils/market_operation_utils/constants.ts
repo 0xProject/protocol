@@ -481,7 +481,7 @@ export const SADDLE_POOLS = {
 
 export const IRONSWAP_POOLS = {
     is3usd: '0x837503e8a8753ae17fb8c8151b8e6f586defcb57',
-}
+};
 
 export const NERVE_POOLS = {
     threePool: '0x1b3771a66ee31180906972580ade9b81afc5fcdc',
