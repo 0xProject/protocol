@@ -180,6 +180,10 @@ library LibERC20TokenV06 {
         private
     {
         (bool didSucceed, bytes memory resultData) = target.call(callData);
+        // Revert if the call reverted.
+        if (!didSucceed) {
+            LibRichErrorsV06.rrevert(resultData);
+        }
         // If we get back 0 returndata, this may be a non-standard ERC-20 that
         // does not return a boolean. Check that it at least contains code.
         if (resultData.length == 0) {
