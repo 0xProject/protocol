@@ -18,6 +18,7 @@ import {
     ELLIPSIS_BSC_INFOS,
     FIREBIRDONESWAP_BSC_INFOS,
     FIREBIRDONESWAP_POLYGON_INFOS,
+    IRONSWAP_POLYGON_INFOS,
     JETSWAP_ROUTER_BY_CHAIN_ID,
     JULSWAP_ROUTER_BY_CHAIN_ID,
     KYBER_BANNED_RESERVES,
@@ -286,6 +287,19 @@ export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, make
     );
 }
 
+export function getIronSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.Polygon) {
+        return [];
+    }
+    return Object.values(IRONSWAP_POLYGON_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+        ),
+    );
+}
+
 export function getXSigmaInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
@@ -336,6 +350,7 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Smoothy
         | ERC20BridgeSource.Saddle
+        | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
         | ERC20BridgeSource.FirebirdOneSwap,
 ): CurveDetailedInfo[] {
@@ -373,6 +388,9 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.FirebirdOneSwap:
             pools = getFirebirdOneSwapInfosForPair(chainId, takerToken, makerToken);
+            break;
+        case ERC20BridgeSource.IronSwap:
+            pools = getIronSwapInfosForPair(chainId, takerToken, makerToken);
             break;
         default:
             throw new Error(`Unknown Curve like source ${source}`);

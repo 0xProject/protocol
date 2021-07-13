@@ -153,6 +153,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.IronSwap,
         ]),
     },
     new SourceFilters([]),
@@ -251,6 +252,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.IronSwap,
         ]),
     },
     new SourceFilters([]),
@@ -476,6 +478,10 @@ export const SADDLE_POOLS = {
     stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',
     bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',
 };
+
+export const IRONSWAP_POOLS = {
+    is3usd: '0x837503e8a8753ae17fb8c8151b8e6f586defcb57',
+}
 
 export const NERVE_POOLS = {
     threePool: '0x1b3771a66ee31180906972580ade9b81afc5fcdc',
@@ -933,6 +939,18 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SADDLE_POOLS.bitcoins,
         tokens: [MAINNET_TOKENS.tBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
+};
+
+export const IRONSWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
+    [IRONSWAP_POOLS.is3usd]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: IRONSWAP_POOLS.is3usd,
+        tokens: [POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT, POLYGON_TOKENS.DAI],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
@@ -1486,6 +1504,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Ellipsis]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Smoothy]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Saddle]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.IronSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.FirebirdOneSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,

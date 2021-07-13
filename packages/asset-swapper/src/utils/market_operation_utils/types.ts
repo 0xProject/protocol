@@ -88,6 +88,7 @@ export enum ERC20BridgeSource {
     Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
     JetSwap = 'JetSwap',
+    IronSwap = 'IronSwap',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
