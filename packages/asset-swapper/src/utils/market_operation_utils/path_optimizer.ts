@@ -31,7 +31,7 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
     };
 
     const adjustedParsedFills = allFills.map(fills => {
-        const adjustedFills: FillWithOutputFee[] = [];
+        const _adjustedFills: FillWithOutputFee[] = [];
         // NOTE: Output fee is negative for sells and positive for buys
         const outputFee = fills[0].adjustedOutput.minus(fills[0].output);
         // Samples are turned into Fills
@@ -40,15 +40,15 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
         for (let i = 0; i < fills.length; i++) {
             const parsedFill: FillWithOutputFee = { ...fills[i], outputFee };
             if (parsedFill.index !== 0) {
-                const parent = adjustedFills[i - 1];
+                const parent = _adjustedFills[i - 1];
                 parsedFill.parent = parent;
                 parsedFill.input = parsedFill.input.plus(parent.input);
                 parsedFill.output = parsedFill.output.plus(parent.output);
                 parsedFill.adjustedOutput = parsedFill.output.plus(outputFee);
             }
-            adjustedFills.push(parsedFill);
+            _adjustedFills.push(parsedFill);
         }
-        return adjustedFills;
+        return _adjustedFills;
     });
 
     const pathsIn: SerializedPath[] = adjustedParsedFills.map(fills => ({
@@ -69,12 +69,13 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
     const before = performance.now();
     const rustRoute: number[] = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
     console.log('Rust perf (real):', performance.now() - before);
+    console.log(`SELLING ${input.toString()}`);
 
     const fillsByPathId = _.groupBy(_.flatten(adjustedParsedFills), o => o.sourcePathId);
 
     // TODO: is this safe with regard to ordering??
     const sourcePathKeys = Object.keys(fillsByPathId);
-    const fakeFills: Fill[] = [];
+    const adjustedFills: Fill[] = [];
     const totalInputs = BigNumber.sum(...rustRoute);
     for (let i = 0; i < rustRoute.length; i++) {
         if (rustRoute[i] === 0) {
@@ -84,7 +85,8 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
         // HACK: Handle the case where the router can under quote the input
         // Set the first fill just a tad higher
         const adjInput =
-            totalInputs.lt(input) && fakeFills.length === 0 ? rustInput.plus(input.minus(totalInputs)) : rustInput;
+            totalInputs.lt(input) && adjustedFills.length === 0 ? rustInput.plus(input.minus(totalInputs)) : rustInput;
+        console.log(`RUST ADJUSTED INPUT ${adjInput.toString()}, orig. ${rustInput.toString()}`);
         // Rust router has chosen this source;
         const sourcePathKey = sourcePathKeys[i];
         const fills = fillsByPathId[sourcePathKey];
@@ -102,14 +104,21 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
                 const left = fills[k];
                 const right = fills[k + 1];
                 if (left && right) {
-                    const midPrice = left.output
-                        .dividedBy(left.input)
-                        .plus(right.output.dividedBy(right.input))
-                        .dividedBy(2);
+                    const leftPrice = left.output.dividedBy(left.input);
+                    const rightPrice = right.output.dividedBy(right.input);
+                    const scaledPrice = leftPrice
+                        .minus(rightPrice)
+                        .dividedBy(left.input.minus(right.input))
+                        .times(rustInput.minus(right.input))
+                        .plus(rightPrice);
+                    const midPrice = leftPrice.plus(rightPrice).dividedBy(2);
+                    console.log(
+                        `Left price ${leftPrice.toString()}, right: ${rightPrice.toString()}, scaledPrice: ${scaledPrice.toString()}, midPrice ${midPrice.toString()}`,
+                    );
                     fill = {
                         ...right, // default to the greater (for gas used)
                         input: rustInput,
-                        output: midPrice.times(rustInput).decimalPlaces(0),
+                        output: scaledPrice.times(rustInput).decimalPlaces(0),
                     };
                 } else {
                     fill = left || right;
@@ -120,8 +129,8 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
         const adjustedOutput = fill.output
             .dividedBy(fill.input)
             .times(adjInput)
-            .decimalPlaces(0);
-        fakeFills.push({
+            .decimalPlaces(0, BigNumber.ROUND_FLOOR);
+        adjustedFills.push({
             ...fill,
             input: adjInput,
             output: adjustedOutput,
@@ -130,7 +139,7 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
         });
     }
 
-    const fakePath = Path.create(MarketOperation.Sell, fakeFills, input);
+    const fakePath = Path.create(MarketOperation.Sell, adjustedFills, input);
 
     return fakePath;
 }
