@@ -60,66 +60,50 @@ enum EnvVarType {
     JsonStringList,
 }
 
-export interface ApiKeyStructure {
-    [key: string]: {
-        label: string;
-        rfqt: boolean;
-        rfqm: boolean;
-        plp: boolean;
-    };
+/**
+ * A taker-integrator of the 0x API.
+ */
+export interface Integrator {
+    apiKeys: string[];
+    integratorId: string;
+    label: string;
+    plp: boolean;
+    rfqm: boolean;
+    rfqt: boolean;
 }
+export type IntegratorsAcl = Integrator[];
 
-export const getApiKeyWhitelist = (envKey: string, groupType: 'rfqt' | 'plp' | 'rfqm'): string[] => {
-    let deserialized: ApiKeyStructure;
+/**
+ * Configuration which represents taker-integrators of the 0x API. The configuration contains the label, id,
+ * api keys, and allowed liquidity sources for each integrator.
+ */
+export const INTEGRATORS_ACL: IntegratorsAcl = (() => {
+    let integrators: IntegratorsAcl;
     try {
-        deserialized = JSON.parse(process.env[envKey] || '{}');
-        schemaUtils.validateSchema(deserialized, schemas.apiKeySchema as any);
+        integrators = JSON.parse(process.env.INTEGRATORS_ACL || '[]');
+        schemaUtils.validateSchema(integrators, schemas.integratorsAclSchema);
     } catch (e) {
-        throw new Error(`Key ${envKey} was defined but is not valid JSON`);
+        throw new Error(`INTEGRATORS_ACL was defined but is not valid JSON per the schema: ${e}`);
     }
+    return integrators;
+})();
 
-    const result: string[] = [];
-    for (const apiKey of Object.keys(deserialized)) {
-        const keyMeta = deserialized[apiKey];
-        switch (groupType) {
-            case 'plp':
-                if (keyMeta.plp) {
-                    result.push(apiKey);
-                }
-                break;
-            case 'rfqm':
-                if (keyMeta.rfqm) {
-                    result.push(apiKey);
-                }
-                break;
-            case 'rfqt':
-                if (keyMeta.rfqt) {
-                    result.push(apiKey);
-                }
-                break;
-            default:
-                throw new Error(`Unknown group type inputted: ${groupType}`);
-        }
-    }
-    return result.sort();
+/**
+ * Extracts the integrator API keys from the `INTEGRATORS_ACL` environment variable for the provided group type.
+ */
+export const getApiKeyWhitelistFromIntegratorsAcl = (groupType: 'rfqt' | 'plp' | 'rfqm'): string[] => {
+    return INTEGRATORS_ACL.filter((i) => i[groupType])
+        .flatMap((i) => i.apiKeys)
+        .sort();
 };
 
-export const getApiKeyFromLabel = (label: string): string | undefined => {
-    if (process.env.API_KEYS_ACL === undefined) {
-        return undefined;
-    }
-    let deserialized: ApiKeyStructure;
-    try {
-        deserialized = JSON.parse(process.env.API_KEYS_ACL);
-        schemaUtils.validateSchema(deserialized, schemas.apiKeySchema as any);
-    } catch (e) {
-        throw new Error(`API_KEYS_ACL was defined but is not valid JSON`);
-    }
-
-    for (const apiKey of Object.keys(deserialized)) {
-        const keyMeta = deserialized[apiKey];
-        if (keyMeta.label === label) {
-            return apiKey;
+/**
+ * Gets the integrator ID for the provided label.
+ */
+export const getIntegratorIdFromLabel = (label: string): string | undefined => {
+    for (const integrator of INTEGRATORS_ACL) {
+        if (integrator.label === label) {
+            return integrator.integratorId;
         }
     }
 };
@@ -258,11 +242,11 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGI
     ? []
     : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
-export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelist('API_KEYS_ACL', 'rfqt');
+export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
+export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
+export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('plp');
 
-export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelist('API_KEYS_ACL', 'rfqm'));
-
-export const MATCHA_KEY: string | undefined = getApiKeyFromLabel('Matcha');
+export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = _.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST)
     ? new Set()
@@ -283,8 +267,6 @@ export const ALT_RFQ_MM_API_KEY: string | undefined = _.isEmpty(process.env.ALT_
 export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_PROFILE)
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
-
-export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelist('API_KEYS_ACL', 'plp');
 
 export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
     ? {}
@@ -617,6 +599,33 @@ export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {
     ...defaultHttpServiceConfig,
     metaTxnRateLimiters: META_TXN_RATE_LIMITER_CONFIG,
 };
+
+/**
+ * Gets the integrator ID for a given API key. If the API key is not in the configuration, returns `undefined`.
+ * `integratorsMap` is closed in so it only needs to be evaluated once. Much efficiency!
+ */
+export const getIntegratorIdForApiKey = (
+    (integratorsMap: Map<string, Integrator>) =>
+    (apiKey: string): string | undefined => {
+        const integrator = integratorsMap.get(apiKey);
+        return integrator ? integrator.integratorId : undefined;
+    }
+)(transformIntegratorsAcl(INTEGRATORS_ACL));
+
+/**
+ * Utility function to transform INTEGRATORS_ACL into a map of apiKey => integrator. The result can
+ * be used to optimize the lookup of the integrator when a request comes in with an api key. Lookup complexity
+ * becomes O(1) with the map instead of O(# integrators * # api keys) with the array.
+ */
+function transformIntegratorsAcl(integrators: IntegratorsAcl): Map<string, Integrator> {
+    const result = new Map<string, Integrator>();
+    integrators.forEach((integrator) => {
+        integrator.apiKeys.forEach((apiKey) => {
+            result.set(apiKey, integrator);
+        });
+    });
+    return result;
+}
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
     let returnValue;

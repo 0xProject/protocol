@@ -21,7 +21,8 @@ import { Counter } from 'prom-client';
 
 import {
     CHAIN_ID,
-    MATCHA_KEY,
+    getIntegratorIdForApiKey,
+    MATCHA_INTEGRATOR_ID,
     NATIVE_WRAPPED_TOKEN_SYMBOL,
     PLP_API_KEY_WHITELIST,
     RFQT_API_KEY_WHITELIST,
@@ -316,7 +317,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // tslint:disable:boolean-naming
     let skipValidation: boolean;
     skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
-    if (endpoint === 'quote' && apiKey !== undefined && apiKey === MATCHA_KEY) {
+    if (endpoint === 'quote' && apiKey !== undefined && getIntegratorIdForApiKey(apiKey) === MATCHA_INTEGRATOR_ID) {
         skipValidation = false;
     }
     const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;

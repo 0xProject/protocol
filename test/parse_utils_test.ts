@@ -3,7 +3,6 @@ import { expect } from '@0x/contracts-test-utils';
 import { NULL_ADDRESS } from '@0x/utils';
 import 'mocha';
 
-import { ApiKeyStructure, getApiKeyWhitelist } from '../src/config';
 import { parseUtils } from '../src/utils/parse_utils';
 
 const SUITE_NAME = 'parseUtils';
@@ -117,29 +116,5 @@ describe(SUITE_NAME, () => {
                 'quote',
             );
         }).throws();
-    });
-
-    it('getApiKeyWhitelist() is able to decode new format', () => {
-        const keys: ApiKeyStructure = {
-            foo: { rfqm: false, rfqt: true, plp: true, label: 'Foo key' },
-            bar: { rfqm: false, rfqt: true, plp: false, label: 'Bar key' },
-            baz: { rfqm: false, rfqt: false, plp: true, label: 'Baz key' },
-            barf: { rfqm: true, rfqt: false, plp: false, label: 'Barf key' },
-        };
-        process.env.TEST_NEW_KEY = JSON.stringify(keys);
-
-        const plpResponse = getApiKeyWhitelist('TEST_NEW_KEY', 'plp');
-        expect(plpResponse.length).to.eql(2);
-        expect(plpResponse[0]).to.eql('baz');
-        expect(plpResponse[1]).to.eql('foo');
-
-        const rfqtResponse = getApiKeyWhitelist('TEST_NEW_KEY', 'rfqt');
-        expect(rfqtResponse.length).to.eql(2);
-        expect(rfqtResponse[0]).to.eql('bar');
-        expect(rfqtResponse[1]).to.eql('foo');
-
-        const rfqmResponse = getApiKeyWhitelist('TEST_NEW_KEY', 'rfqm');
-        expect(rfqmResponse.length).to.eql(1);
-        expect(rfqmResponse[0]).to.eql('barf');
     });
 });
