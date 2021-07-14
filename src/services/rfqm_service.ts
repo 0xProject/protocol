@@ -38,6 +38,7 @@ import {
     storedOrderToRfqmOrder,
     v4RfqOrderToStoredOrder,
 } from '../utils/rfqm_db_utils';
+import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 
@@ -398,7 +399,8 @@ export class RfqmService {
 
         // Prepare gas estimate and fee
         const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
-        const feeAmount = gasPrice.times(RFQM_TX_GAS_ESTIMATE);
+        const gasEstimate = calculateGasEstimate(makerToken, takerToken);
+        const feeAmount = gasPrice.times(gasEstimate);
         const fee: Fee = {
             amount: feeAmount,
             token: this._contractAddresses.etherToken,
