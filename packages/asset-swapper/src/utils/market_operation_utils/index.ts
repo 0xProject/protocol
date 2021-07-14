@@ -523,13 +523,25 @@ export class MarketOperationUtils {
         // Find the optimal path
         const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, penaltyOpts);
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
+        // TODO(kimpers): something is wrong with the adjuted rate calcs
+        const optimalPathOutput = optimalPath!.fills.reduce((memo, fill) => fill.output.toNumber() + memo, 0);
 
         const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
             marketSideLiquidity,
             opts.gasPrice,
             opts.exchangeProxyOverhead,
         );
-        if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
+        console.log(`---------------------------------
+Rust Router adjusted rate: ${optimalPathRate.toString()}
+TwoHop adjusted rate: ${bestTwoHopRate.toString()}
+Diff ${optimalPathRate.minus(bestTwoHopRate).toString()}
+Rust   output: ${optimalPathRate.times(inputAmount)}
+Rust summed output ${optimalPathOutput.toString()}
+TwoHop output: ${bestTwoHopRate.times(inputAmount)}
+        ---------------------------`);
+        debugger;
+        console.log(optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT);
+        if (bestTwoHopQuote && bestTwoHopQuote.output.isGreaterThan(optimalPathOutput)) {
             const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
             return {
                 optimizedOrders: twoHopOrders,
