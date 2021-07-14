@@ -1,0 +1,28 @@
+{
+    "id": "/integratorAclSchema",
+    "properties": {
+        "apiKeys": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "integratorId": {
+            "type": "string"
+        },
+        "label": {
+            "type": "string"
+        },
+        "plp": {
+            "type": "boolean"
+        },
+        "rfqm": {
+            "type": "boolean"
+        },
+        "rfqt": {
+            "type": "boolean"
+        }
+    },
+    "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm", "plp"],
+    "type": "object"
+}
