@@ -49,7 +49,8 @@ export class Path {
     }
 
     public static clone(base: Path): Path {
-        const clonedPath = new Path(base.side, base.fills.slice(), base.targetInput, base.pathPenaltyOpts);
+        const clonedPath = new Path(base.side, [], base.targetInput, base.pathPenaltyOpts);
+        clonedPath.fills = base.fills.slice();
         clonedPath.sourceFlags = base.sourceFlags;
         clonedPath._size = { ...base._size };
         clonedPath._adjustedSize = { ...base._adjustedSize };
@@ -283,11 +284,11 @@ export class Path {
 
     private _addFill(fill: Fill): void {
         this.sourceFlags |= fill.flags;
-        (this.fills as Fill[]).push(fill);
+        this.fills.push(fill);
         if (!(fill.sourcePathId in this._sourcePathIdsSeen)) {
+            this._sourcePathIdsSeen[fill.sourcePathId] = true;
             this._numDistinctFills++;
         }
-        this._sourcePathIdsSeen[fill.sourcePathId] = true;
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));

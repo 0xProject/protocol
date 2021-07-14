@@ -68,12 +68,17 @@ export function valueByChainId<T>(rest: Partial<ValueByChainId<T>>, defaultValue
     };
 }
 
+// Contract wrapper and helper cache used by `createContractWrapperAndHelper`.
+// Only contracts with a deterministic default address will be cached.
+const CONTRACT_WRAPPER_CACHE: { [artifactName: string]: GeneratedContract } = {};
+
 /**
  * Use this function to create a contract wrapper instance and its equivalent
  * helper (see below) . If no address is provided, the contract is assumed to be
  * undeployed and the helper will use overrides to provide the bytecode during
  * execution. For undeployed contracts, a deterministic address will be used to
- * prevent uploading the same contract twice.
+ * prevent uploading the same contract twice. This function also caches and reuses
+ * contract wrapper instances to reduce memory consumption.
  */
 export function createContractWrapperAndHelper<TContract extends GeneratedContract>(
     chain: Chain,
@@ -82,14 +87,25 @@ export function createContractWrapperAndHelper<TContract extends GeneratedContra
     address?: Address,
 ): [TContract, ContractHelper<TContract>] {
     const artifact = (artifacts as ArtifactsMap)[artifactName];
-    const wrapper = new contractType(
-        address || getDeterministicContractAddressFromArtifact(artifact),
-        DUMMY_PROVIDER,
-        {},
-        {},
-        !address ? artifact.compilerOutput.evm.deployedBytecode.object : undefined,
-        createFastAbiEncoderOverrides(contractType),
-    );
+    const detAddress = getDeterministicContractAddressFromArtifact(artifact);
+    let wrapper: TContract | undefined;
+    // If a deterministic address is being used, use the cache.
+    if (!address || address.toLowerCase() === detAddress) {
+        wrapper = CONTRACT_WRAPPER_CACHE[artifactName] as TContract;
+    }
+    if (!wrapper) {
+        wrapper = new contractType(
+            address || detAddress,
+            DUMMY_PROVIDER,
+            {},
+            {},
+            !address ? artifact.compilerOutput.evm.deployedBytecode.object : undefined,
+            createFastAbiEncoderOverrides(contractType),
+        );
+    }
+    if (!address) {
+        CONTRACT_WRAPPER_CACHE[artifactName] = wrapper;
+    }
     return [wrapper, new ContractHelper(chain, wrapper)];
 }
 

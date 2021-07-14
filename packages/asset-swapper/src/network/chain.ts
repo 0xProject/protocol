@@ -40,7 +40,7 @@ export interface CreateChainOpts {
     maxCacheAgeMs?: number;
 }
 
-const DEFAULT_CALL_GAS_LIMIT = 10e6;
+const DEFAULT_CALL_GAS_LIMIT = 32e6;
 const DEFAULT_CALLER_ADDRESS = hexUtils.random(20);
 const DISPATCHER_CONTRACT_ADDRESS = hexUtils.random(20);
 const DISPATCHER_CONTRACT_BYTECODE = artifacts.CallDispatcher.compilerOutput.evm.deployedBytecode.object;
@@ -85,7 +85,7 @@ export class LiveChain implements Chain {
     private _queue: QueuedEthCall[] = [];
 
     public static async createAsync(opts: CreateChainOpts): Promise<Chain> {
-        const fullOpts = { tickFrequency: 100, maxCacheAgeMs: 30e3, ...opts };
+        const fullOpts = { tickFrequency: 50, maxCacheAgeMs: 30e3, ...opts };
         const w3 = new Web3Wrapper(opts.provider);
         const chainId = (await w3.getChainIdAsync()) as ChainId;
         const inst = new LiveChain(chainId, w3, fullOpts.maxCacheAgeMs);
@@ -280,12 +280,37 @@ function tryDecodeStringRevertErrorResult(rawResultData: Bytes): string | undefi
 }
 
 function canBatchCallWith(ethCall: QueuedEthCall, batch: QueuedEthCall[]): boolean {
+    if (batch.length === 0) {
+        return true;
+    }
+    // TODO: have the sources provide realistic gas limits and split based on that.
+    if (batch.length >= 48) { // TODO: Make this number configurable.
+        return false;
+    }
     const { overrides, gasPrice } = {
         overrides: {},
         ...ethCall.opts,
     };
-    // Overrides must not conflict.
     const batchOverrides = Object.assign({}, ...batch.map(b => b.opts.overrides || {}));
+    // Split if the estimated RPC payload size would be too large.
+    {
+        let estimatedRpcSize = ethCall.opts.data.length;
+        for (const c of batch) {
+            estimatedRpcSize += c.opts.data.length;
+        }
+        for (const a in overrides) {
+            estimatedRpcSize += (ethCall.opts.overrides![a].code || '').length;
+        }
+        for (const a in batchOverrides) {
+            if (!(a in overrides)) {
+                estimatedRpcSize += (batchOverrides[a].code || '').length;
+            }
+        }
+        if (estimatedRpcSize >= 512e3) { // TODO: Make this number configurable.
+            return false;
+        }
+    }
+    // Overrides must not conflict.
     for (const addr in overrides) {
         const a = overrides[addr];
         const b = batchOverrides[addr];
