@@ -43,7 +43,7 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
-    STABLESWAP_BSC_INFOS,
+    ACRYPTOS_BSC_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
 
@@ -314,11 +314,11 @@ export function getXSigmaInfosForPair(chainId: ChainId, takerToken: string, make
     );
 }
 
-export function getStableSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+export function getAcryptosInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.BSC) {
         return [];
     }
-    return Object.values(STABLESWAP_BSC_INFOS).filter(c =>
+    return Object.values(ACRYPTOS_BSC_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
@@ -367,7 +367,7 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
         | ERC20BridgeSource.FirebirdOneSwap
-        | ERC20BridgeSource.StableSwap,
+        | ERC20BridgeSource.ACryptoS,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
     switch (source) {
@@ -407,8 +407,8 @@ export function getCurveLikeInfosForPair(
         case ERC20BridgeSource.IronSwap:
             pools = getIronSwapInfosForPair(chainId, takerToken, makerToken);
             break;
-        case ERC20BridgeSource.StableSwap:
-            pools = getStableSwapInfosForPair(chainId, takerToken, makerToken);
+        case ERC20BridgeSource.ACryptoS:
+            pools = getAcryptosInfosForPair(chainId, takerToken, makerToken);
             break;
         default:
             throw new Error(`Unknown Curve like source ${source}`);
