@@ -124,6 +124,10 @@ const FIREBIRDONESWAP_POLYGON_POOLS = {
     oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
 };
 
+export const IRONSWAP_POOLS = {
+    is3usd: '0x837503e8a8753ae17fb8c8151b8e6f586defcb57',
+};
+
 const SWERVE_POOLS = {
     y: '0x329239599afb305da0a2ec69c58f8a6697f9f88d',
 };
@@ -142,6 +146,8 @@ const SNOWSWAP_POOLS = {
 const SADDLE_POOLS = {
     stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',
     bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',
+    alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
+    d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
 };
 
 const NERVE_POOLS = {
@@ -511,6 +517,24 @@ const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
+    [SADDLE_POOLS.alETH]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.alETH,
+        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.alETH, MAINNET_TOKENS.sETH],
+        metaTokens: undefined,
+        gasSchedule: 200e3,
+    },
+    [SADDLE_POOLS.d4]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.d4,
+        tokens: [MAINNET_TOKENS.alUSD, MAINNET_TOKENS.FEI, MAINNET_TOKENS.FRAX, MAINNET_TOKENS.LUSD],
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
 };
 
 export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
@@ -556,6 +580,19 @@ const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 100e3,
     },
 };
+
+export const IRONSWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
+    [IRONSWAP_POOLS.is3usd]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: IRONSWAP_POOLS.is3usd,
+        tokens: [POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT, POLYGON_TOKENS.DAI],
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
+};
+
 const CURVELIKE_INFOS_BY_CHAIN_ID = (valueByChainId(
     {
         [ChainId.Mainnet]: {
@@ -576,6 +613,7 @@ const CURVELIKE_INFOS_BY_CHAIN_ID = (valueByChainId(
             [ERC20BridgeSource.Curve]: CURVE_POLYGON_INFOS,
             [ERC20BridgeSource.CurveV2]: CURVE_V2_POLYGON_INFOS,
             [ERC20BridgeSource.FirebirdOneSwap]: FIREBIRDONESWAP_POLYGON_INFOS,
+            [ERC20BridgeSource.IronSwap]: IRONSWAP_POLYGON_INFOS,
         },
     },
     {},

@@ -62,6 +62,7 @@ export enum ERC20BridgeSource {
     WaultSwap = 'WaultSwap',
     Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
+    IronSwap = 'IronSwap',
 }
 
 export interface FillData {}

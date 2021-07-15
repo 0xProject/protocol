@@ -76,6 +76,7 @@ export const MAINNET_TOKENS = {
     crETH: '0xcbc1065255cbc3ab41a6868c22d1f1c573ab89fd',
     ankrETH: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
     vETH: '0x898bad2774eb97cf6b94605677f43b41871410b1',
+    alETH: '0x0100546f2cd4c9d97f798ffc9755e47865ff7ee6',
     HT: '0x6f259637dcD74C767781E37Bc6133cd6A68aa161',
     // Mirror Protocol
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
@@ -86,6 +87,7 @@ export const MAINNET_TOKENS = {
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
+    FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
 };
 
 export const ROPSTEN_TOKENS = {

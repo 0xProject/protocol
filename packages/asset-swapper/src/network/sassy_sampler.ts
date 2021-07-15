@@ -237,6 +237,7 @@ async function createSourceSamplerAsync(
         case ERC20BridgeSource.XSigma:
         case ERC20BridgeSource.CurveV2:
         case ERC20BridgeSource.FirebirdOneSwap:
+        case ERC20BridgeSource.IronSwap:
             return CurveSampler.createAsync(chain, source);
         case ERC20BridgeSource.Dodo:
             return DodoV1Sampler.createAsync(chain);
