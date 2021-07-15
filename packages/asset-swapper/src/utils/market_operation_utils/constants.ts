@@ -21,8 +21,6 @@ import { FeeSchedule, GetMarketOrdersOpts } from './types';
 
 // tslint:disable: custom-no-magic-numbers no-bitwise
 
-export const ERC20_PROXY_ID = '0xf47261b0';
-export const WALLET_SIGNATURE = '0x04';
 export const ONE_ETHER = new BigNumber(1e18);
 export const NEGATIVE_INF = new BigNumber('-Infinity');
 export const POSITIVE_INF = new BigNumber('Infinity');
@@ -269,57 +267,6 @@ export const NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID = valueByChainId(
     ONE_ETHER,
 );
 
-/**
- * Mainnet Curve configuration
- * The tokens are in order of their index, which each curve defines
- * I.e DaiUsdc curve has DAI as index 0 and USDC as index 1
- */
-
-const ACRYPTOS_ACS4USD_POOL_BSC_TOKENS = [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC];
-
-const createAcryptosMetaUsdPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
-    exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
-    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
-    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-    tokens: [...info.tokens, ...ACRYPTOS_ACS4USD_POOL_BSC_TOKENS],
-    metaTokens: info.tokens,
-    poolAddress: info.pool,
-    gasSchedule: info.gasSchedule,
-});
-
-export const ACRYPTOS_BSC_INFOS: { [name: string]: CurveInfo } = {
-    [ACRYPTOS_POOLS.acs4usd]: createCurveExchangePool({
-        tokens: ACRYPTOS_ACS4USD_POOL_BSC_TOKENS,
-        pool: ACRYPTOS_POOLS.acs4usd,
-        gasSchedule: 145e3,
-    }),
-
-    [ACRYPTOS_POOLS.acs4vai]: createAcryptosMetaUsdPool({
-        tokens: [BSC_TOKENS.VAI],
-        pool: ACRYPTOS_POOLS.acs4vai,
-        gasSchedule: 300e3,
-    }),
-
-    [ACRYPTOS_POOLS.acs4ust]: createAcryptosMetaUsdPool({
-        tokens: [BSC_TOKENS.UST],
-        pool: ACRYPTOS_POOLS.acs4ust,
-        gasSchedule: 300e3,
-    }),
-
-    [ACRYPTOS_POOLS.acs3btc]: createCurveExchangePool({
-        tokens: [BSC_TOKENS.BTCB, BSC_TOKENS.renBTC, BSC_TOKENS.pBTC],
-        pool: ACRYPTOS_POOLS.acs3btc,
-        gasSchedule: 145e3,
-    }),
-};
-
-/**
- * Kyber reserve prefixes
- * 0xff Fed price reserve
- * 0xaa Automated price reserve
- * 0xbb Bridged price reserve (i.e Uniswap/Curve)
- */
-
 export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0x561b94454b65614ae3db0897b74303f4acf7cc75',
@@ -332,22 +279,6 @@ export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
         [ChainId.Ropsten]: '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
-    },
-    NULL_ADDRESS,
-);
-
-//
-// BSC
-//
-
-//
-// Polygon
-//
-
-export const JETSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.BSC]: '0xbe65b8f75b9f20f4c522e0067a3887fada714800',
-        [ChainId.Polygon]: '0x5c6ec38fb0e2609672bdf628b1fd605a523e5923',
     },
     NULL_ADDRESS,
 );

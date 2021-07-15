@@ -594,19 +594,19 @@ export const ACRYPTOS_BSC_INFOS: { [name: string]: CurveInfo } = {
     [ACRYPTOS_POOLS.acs4usd]: createCurveExchangePool({
         tokens: ACRYPTOS_ACS4USD_POOL_BSC_TOKENS,
         pool: ACRYPTOS_POOLS.acs4usd,
-        gasSchedule: 176e3,
+        gasSchedule: 145e3,
     }),
 
     [ACRYPTOS_POOLS.acs4vai]: createAcryptosMetaUsdPool({
         tokens: [BSC_TOKENS.VAI],
         pool: ACRYPTOS_POOLS.acs4vai,
-        gasSchedule: 387e3,
+        gasSchedule: 300e3,
     }),
 
     [ACRYPTOS_POOLS.acs4ust]: createAcryptosMetaUsdPool({
         tokens: [BSC_TOKENS.UST],
         pool: ACRYPTOS_POOLS.acs4ust,
-        gasSchedule: 387e3,
+        gasSchedule: 145e3,
     }),
 
     [ACRYPTOS_POOLS.acs3btc]: createCurveExchangePool({
