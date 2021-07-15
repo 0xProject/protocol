@@ -1,39 +1,39 @@
 import { BridgeProtocol, encodeBridgeSourceId, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
-import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
-
-import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
-    AggregationError,
     BalancerFillData,
     BalancerV2FillData,
     BancorFillData,
-    CollapsedFill,
     CurveFillData,
-    DexSample,
-    DODOFillData,
-    ERC20BridgeSource,
-    FillData,
-    FinalUniswapV3FillData,
-    GenericRouterFillData,
+    DodoV1FillData,
+    DodoV2FillData,
     KyberDmmFillData,
     KyberFillData,
     LidoFillData,
     LiquidityProviderFillData,
     MakerPsmFillData,
     MooniswapFillData,
-    MultiHopFillData,
+    OasisFillData,
+    ShellFillData,
+    UniswapV1FillData,
+    UniswapV2FillData,
+} from '../../network/samplers';
+import { UniswapV3FillData } from '../../network/samplers/uniswap_v3';
+import { TwoHopFillData } from '../../network/two_hop_sampler';
+import { DexSample, ERC20BridgeSource, FillData } from '../../network/types';
+import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
+
+import { MAX_UINT256, ZERO_AMOUNT } from './constants';
+import {
+    AggregationError,
+    CollapsedFill,
     NativeCollapsedFill,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
-    OrderDomain,
-    ShellFillData,
-    UniswapV2FillData,
-    UniswapV3FillData,
 } from './types';
 
 // tslint:disable completed-docs
@@ -42,34 +42,38 @@ export interface CreateOrderFromPathOpts {
     side: MarketOperation;
     inputToken: string;
     outputToken: string;
-    orderDomain: OrderDomain;
     contractAddresses: AssetSwapperContractAddresses;
     bridgeSlippage: number;
 }
 
+export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
+    // The uniswap-encoded path that can fll the maximum input amount.
+    uniswapPath: string;
+}
+
 export function createOrdersFromTwoHopSample(
-    sample: DexSample<MultiHopFillData>,
+    sample: DexSample<TwoHopFillData>,
     opts: CreateOrderFromPathOpts,
 ): OptimizedMarketOrder[] {
     const [makerToken, takerToken] = getMakerTakerTokens(opts);
-    const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
+    const { firstHop, secondHop, intermediateToken } = sample.fillData;
     const firstHopFill: CollapsedFill = {
         sourcePathId: '',
-        source: firstHopSource.source,
+        source: firstHop.source,
         type: FillQuoteTransformerOrderType.Bridge,
         input: opts.side === MarketOperation.Sell ? sample.input : ZERO_AMOUNT,
         output: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
         subFills: [],
-        fillData: firstHopSource.fillData,
+        fillData: firstHop.fillData,
     };
     const secondHopFill: CollapsedFill = {
         sourcePathId: '',
-        source: secondHopSource.source,
+        source: secondHop.source,
         type: FillQuoteTransformerOrderType.Bridge,
         input: opts.side === MarketOperation.Sell ? MAX_UINT256 : sample.input,
         output: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
         subFills: [],
-        fillData: secondHopSource.fillData,
+        fillData: secondHop.fillData,
     };
     return [
         createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
@@ -266,7 +270,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([mooniswapFillData.poolAddress]);
             break;
         case ERC20BridgeSource.Dodo:
-            const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
+            const dodoFillData = (order as OptimizedMarketBridgeOrder<DodoV1FillData>).fillData;
             bridgeData = encoder.encode([
                 dodoFillData.helperAddress,
                 dodoFillData.poolAddress,
@@ -274,11 +278,12 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             ]);
             break;
         case ERC20BridgeSource.DodoV2:
-            const dodoV2FillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
+            const dodoV2FillData = (order as OptimizedMarketBridgeOrder<DodoV2FillData>).fillData;
             bridgeData = encoder.encode([dodoV2FillData.poolAddress, dodoV2FillData.isSellBase]);
             break;
         case ERC20BridgeSource.Shell:
         case ERC20BridgeSource.Component:
+        case ERC20BridgeSource.MStable:
             const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
             bridgeData = encoder.encode([shellFillData.poolAddress]);
             break;
@@ -287,16 +292,12 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([lpFillData.poolAddress, tokenAddressEncoder.encode([order.takerToken])]);
             break;
         case ERC20BridgeSource.Uniswap:
-            const uniFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
+            const uniFillData = (order as OptimizedMarketBridgeOrder<UniswapV1FillData>).fillData;
             bridgeData = encoder.encode([uniFillData.router]);
             break;
         case ERC20BridgeSource.Eth2Dai:
-            const oasisFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
+            const oasisFillData = (order as OptimizedMarketBridgeOrder<OasisFillData>).fillData;
             bridgeData = encoder.encode([oasisFillData.router]);
-            break;
-        case ERC20BridgeSource.MStable:
-            const mStableFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
-            bridgeData = encoder.encode([mStableFillData.router]);
             break;
         case ERC20BridgeSource.MakerPsm:
             const psmFillData = (order as OptimizedMarketBridgeOrder<MakerPsmFillData>).fillData;
@@ -351,27 +352,13 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): F
             return {
                 router: fd.router,
                 tokenAddressPath: fd.tokenAddressPath,
-                uniswapPath: getBestUniswapV3PathForInputAmount(fd, fill.input),
+                uniswapPath: fd.uniswapPath,
             };
         }
         default:
             break;
     }
     return fill.fillData;
-}
-
-function getBestUniswapV3PathForInputAmount(fillData: UniswapV3FillData, inputAmount: BigNumber): string {
-    if (fillData.pathAmounts.length === 0) {
-        throw new Error(`No Uniswap V3 paths`);
-    }
-    // Find the best path that can satisfy `inputAmount`.
-    // Assumes `fillData.pathAmounts` is sorted ascending.
-    for (const { inputAmount: pathInputAmount, uniswapPath } of fillData.pathAmounts) {
-        if (pathInputAmount.gte(inputAmount)) {
-            return uniswapPath;
-        }
-    }
-    return fillData.pathAmounts[fillData.pathAmounts.length - 1].uniswapPath;
 }
 
 export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, string] {

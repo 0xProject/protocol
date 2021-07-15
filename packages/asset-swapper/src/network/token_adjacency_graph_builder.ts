@@ -1,6 +1,6 @@
 import _ = require('lodash');
 
-import { TokenAdjacencyGraph } from './market_operation_utils/types';
+import { TokenAdjacencyGraph } from './types';
 
 export class TokenAdjacencyGraphBuilder {
     constructor(private readonly tokenAdjacency: TokenAdjacencyGraph) {}

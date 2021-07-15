@@ -1,17 +1,17 @@
-import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
-import { BlockParamLiteral, MethodAbi, SupportedProvider, ZeroExProvider } from 'ethereum-types';
-import { FastABI } from 'fast-abi';
+import { SupportedProvider } from 'ethereum-types';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
-import { artifacts } from './artifacts';
 import { constants, INVALID_SIGNATURE, KEEP_ALIVE_TTL } from './constants';
+import { Chain, LiveChain } from './network/chain';
+import { SourceFilters } from './network/source_filters';
+import { ERC20BridgeSource, FillData } from './network/types';
 import {
-    AssetSwapperContractAddresses,
     MarketBuySwapQuote,
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
@@ -26,14 +26,9 @@ import {
 } from './types';
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
-import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
-import { DexOrderSampler } from './utils/market_operation_utils/sampler';
-import { SourceFilters } from './utils/market_operation_utils/source_filters';
+import { SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
 import {
-    ERC20BridgeSource,
     FeeSchedule,
-    FillData,
     GetMarketOrdersOpts,
     MarketDepth,
     MarketDepthSide,
@@ -44,7 +39,6 @@ import {
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';
-import { ERC20BridgeSamplerContract } from './wrappers';
 
 export abstract class Orderbook {
     public abstract getOrdersAsync(
@@ -65,12 +59,9 @@ export abstract class Orderbook {
 
 // tslint:disable:max-classes-per-file
 export class SwapQuoter {
-    public readonly provider: ZeroExProvider;
     public readonly orderbook: Orderbook;
     public readonly expiryBufferMs: number;
-    public readonly chainId: number;
     public readonly permittedOrderFeeTypes: Set<OrderPrunerPermittedFeeTypes>;
-    private readonly _contractAddresses: AssetSwapperContractAddresses;
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
     private readonly _marketOperationUtils: MarketOperationUtils;
     private readonly _rfqtOptions?: SwapQuoterRfqOpts;
@@ -80,85 +71,49 @@ export class SwapQuoter {
      * Instantiates a new SwapQuoter instance
      * @param   supportedProvider   The Provider instance you would like to use for interacting with the Ethereum network.
      * @param   orderbook           An object that conforms to Orderbook, see type for definition.
-     * @param   options             Initialization options for the SwapQuoter. See type definition for details.
+     * @param   opts                Initialization opts for the SwapQuoter. See type definition for details.
      *
      * @return  An instance of SwapQuoter
      */
-    constructor(supportedProvider: SupportedProvider, orderbook: Orderbook, options: Partial<SwapQuoterOpts> = {}) {
-        const {
-            chainId,
-            expiryBufferMs,
-            permittedOrderFeeTypes,
-            samplerGasLimit,
-            rfqt,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistry,
-        } = { ...constants.DEFAULT_SWAP_QUOTER_OPTS, ...options };
-        const provider = providerUtils.standardizeOrThrow(supportedProvider);
+    public static async createAsync(
+        supportedProvider: SupportedProvider,
+        orderbook: Orderbook,
+        opts: Partial<SwapQuoterOpts> = {},
+    ): Promise<SwapQuoter> {
+        const chain = await LiveChain.createAsync({ provider: providerUtils.standardizeOrThrow(supportedProvider) });
+        const contractAddresses = opts.contractAddresses || getContractAddressesForChainOrThrow(chain.chainId);
+        const marketUtils = await MarketOperationUtils.createAsync({
+            chain,
+            contractAddresses,
+            liquidityProviderRegistry: opts.liquidityProviderRegistry,
+            tokenAdjacencyGraph: opts.tokenAdjacencyGraph,
+        });
+        return new SwapQuoter({ ...opts, chain, orderbook, marketUtils });
+    }
+
+    protected constructor(
+        opts: {
+            chain: Chain;
+            orderbook: Orderbook;
+            marketUtils: MarketOperationUtils;
+        } & Partial<SwapQuoterOpts>,
+    ) {
+        const { expiryBufferMs, orderbook, permittedOrderFeeTypes, marketUtils, rfqt } = {
+            ...constants.DEFAULT_SWAP_QUOTER_OPTS,
+            ...opts,
+        };
         assert.isValidOrderbook('orderbook', orderbook);
-        assert.isNumber('chainId', chainId);
         assert.isNumber('expiryBufferMs', expiryBufferMs);
-        this.chainId = chainId;
-        this.provider = provider;
         this.orderbook = orderbook;
         this.expiryBufferMs = expiryBufferMs;
         this.permittedOrderFeeTypes = permittedOrderFeeTypes;
 
         this._rfqtOptions = rfqt;
-        this._contractAddresses = options.contractAddresses || {
-            ...getContractAddressesForChainOrThrow(chainId),
-        };
         this._protocolFeeUtils = ProtocolFeeUtils.getInstance(
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-            options.ethGasStationUrl,
+            opts.ethGasStationUrl,
         );
-        // Allow the sampler bytecode to be overwritten using geths override functionality
-        const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
-        // Allow address of the Sampler to be overridden, i.e in Ganache where overrides do not work
-        const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
-        const defaultCodeOverrides = samplerBytecode
-            ? {
-                  [samplerAddress]: { code: samplerBytecode },
-              }
-            : {};
-        const samplerOverrides = _.assign(
-            { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
-            options.samplerOverrides,
-        );
-        const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[], { BigNumber });
-        const samplerContract = new ERC20BridgeSamplerContract(
-            samplerAddress,
-            this.provider,
-            {
-                gas: samplerGasLimit,
-            },
-            {},
-            undefined,
-            {
-                encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
-                decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
-            },
-        );
-
-        this._marketOperationUtils = new MarketOperationUtils(
-            new DexOrderSampler(
-                this.chainId,
-                samplerContract,
-                samplerOverrides,
-                undefined, // pools caches for balancer and cream
-                tokenAdjacencyGraph,
-                liquidityProviderRegistry,
-                this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet
-                    ? async () => BancorService.createAsync(provider)
-                    : async () => undefined,
-            ),
-            this._contractAddresses,
-            {
-                chainId,
-                exchangeAddress: this._contractAddresses.exchange,
-            },
-        );
-
+        this._marketOperationUtils = marketUtils;
         this._quoteRequestorHttpClient = Axios.create({
             httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
             httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
@@ -170,12 +125,12 @@ export class SwapQuoter {
         makerTokens: string[],
         targetTakerToken: string,
         makerTokenBuyAmounts: BigNumber[],
-        options: Partial<SwapQuoteRequestOpts> = {},
+        opts: Partial<SwapQuoteRequestOpts> = {},
     ): Promise<MarketBuySwapQuote[]> {
         makerTokenBuyAmounts.map((a, i) => assert.isBigNumber(`makerAssetBuyAmounts[${i}]`, a));
         let gasPrice: BigNumber;
-        if (!!options.gasPrice) {
-            gasPrice = options.gasPrice;
+        if (!!opts.gasPrice) {
+            gasPrice = opts.gasPrice;
             assert.isBigNumber('gasPrice', gasPrice);
         } else {
             gasPrice = await this.getGasPriceEstimationOrThrowAsync();
@@ -194,11 +149,11 @@ export class SwapQuoter {
             }
         });
 
-        const opts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
+        const fullOpts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...opts };
         const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
             allOrders,
             makerTokenBuyAmounts,
-            opts as GetMarketOrdersOpts,
+            fullOpts as GetMarketOrdersOpts,
         );
 
         const batchSwapQuotes = await Promise.all(
@@ -212,8 +167,8 @@ export class SwapQuoter {
                         MarketOperation.Buy,
                         makerTokenBuyAmounts[i],
                         gasPrice,
-                        opts.gasSchedule,
-                        opts.bridgeSlippage,
+                        fullOpts.gasSchedule,
+                        fullOpts.bridgeSlippage,
                     );
                 } else {
                     return undefined;
@@ -237,11 +192,11 @@ export class SwapQuoter {
         makerToken: string,
         takerToken: string,
         takerAssetAmount: BigNumber,
-        options: Partial<SwapQuoteRequestOpts> = {},
+        opts: Partial<SwapQuoteRequestOpts> = {},
     ): Promise<MarketDepth> {
         assert.isString('makerToken', makerToken);
         assert.isString('takerToken', takerToken);
-        const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
+        const sourceFilters = new SourceFilters([], opts.excludedSources, opts.includedSources);
 
         let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
             ? [[], []]
@@ -273,8 +228,8 @@ export class SwapQuoter {
             ];
         };
         const [bids, asks] = await Promise.all([
-            this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
-            this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
+            this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, opts),
+            this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, opts),
         ]);
         return {
             bids: getMarketDepthSide(bids),
@@ -300,20 +255,13 @@ export class SwapQuoter {
     }
 
     /**
-     * Utility function to get Ether token address
-     */
-    public getEtherToken(): string {
-        return this._contractAddresses.etherToken;
-    }
-
-    /**
      * Get a `SwapQuote` containing all information relevant to fulfilling a swap between a desired ERC20 token address and ERC20 owned by a provided address.
      * You can then pass the `SwapQuote` to a `SwapQuoteConsumer` to execute a buy, or process SwapQuote for on-chain consumption.
      * @param   makerToken       The address of the maker asset
      * @param   takerToken       The address of the taker asset
      * @param   assetFillAmount  If a buy, the amount of maker asset to buy. If a sell, the amount of taker asset to sell.
      * @param   marketOperation  Either a Buy or a Sell quote
-     * @param   options          Options for the request. See type definition for more information.
+     * @param   opts          Options for the request. See type definition for more information.
      *
      * @return  An object that conforms to SwapQuote that satisfies the request. See type definition for more information.
      */
@@ -322,29 +270,29 @@ export class SwapQuoter {
         takerToken: string,
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
-        options: Partial<SwapQuoteRequestOpts>,
+        opts: Partial<SwapQuoteRequestOpts>,
     ): Promise<SwapQuote> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
         assert.isBigNumber('assetFillAmount', assetFillAmount);
-        const opts = _.merge({}, constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, options);
+        const fullOpts = _.merge({}, constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, opts);
         let gasPrice: BigNumber;
-        if (!!opts.gasPrice) {
-            gasPrice = opts.gasPrice;
+        if (!!fullOpts.gasPrice) {
+            gasPrice = fullOpts.gasPrice;
             assert.isBigNumber('gasPrice', gasPrice);
         } else {
             gasPrice = await this.getGasPriceEstimationOrThrowAsync();
         }
 
-        const sourceFilters = new SourceFilters([], opts.excludedSources, opts.includedSources);
+        const sourceFilters = new SourceFilters([], fullOpts.excludedSources, fullOpts.includedSources);
 
-        opts.rfqt = this._validateRfqtOpts(sourceFilters, opts.rfqt);
+        fullOpts.rfqt = this._validateRfqtOpts(sourceFilters, fullOpts.rfqt);
         const rfqtOptions = this._rfqtOptions;
 
         // Get SRA orders (limit orders)
         const shouldSkipOpenOrderbook =
             !sourceFilters.isAllowed(ERC20BridgeSource.Native) ||
-            (opts.rfqt && opts.rfqt.nativeExclusivelyRFQ === true);
+            (fullOpts.rfqt && fullOpts.rfqt.nativeExclusivelyRFQ === true);
         const nativeOrders = shouldSkipOpenOrderbook
             ? await Promise.resolve([])
             : await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
@@ -354,15 +302,15 @@ export class SwapQuoter {
             nativeOrders.push(createDummyOrder(makerToken, takerToken));
         }
 
-        //  ** Prepare options for fetching market side liquidity **
+        //  ** Prepare opts for fetching market side liquidity **
         // Scale fees by gas price.
-        const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;
+        const cloneOpts = _.omit(fullOpts, 'gasPrice') as GetMarketOrdersOpts;
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
-            feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData: FillData) =>
+            feeSchedule: _.mapValues(fullOpts.feeSchedule, gasCost => (fillData: FillData) =>
                 gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
             ),
-            exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
+            exchangeProxyOverhead: (...args) => gasPrice.times(fullOpts.exchangeProxyOverhead(...args)),
         };
         // pass the QuoteRequestor on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
@@ -391,12 +339,14 @@ export class SwapQuoter {
             marketOperation,
             assetFillAmount,
             gasPrice,
-            opts.gasSchedule,
-            opts.bridgeSlippage,
+            fullOpts.gasSchedule,
+            fullOpts.bridgeSlippage,
         );
 
         // Use the raw gas, not scaled by gas price
-        const exchangeProxyOverhead = opts.exchangeProxyOverhead(result.sourceFlags).toNumber();
+        const exchangeProxyOverhead = fullOpts
+            .exchangeProxyOverhead(result.sourceFlags, result.numDistinctFills)
+            .toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
 
@@ -470,7 +420,7 @@ export class SwapQuoter {
             return undefined;
         }
 
-        // Otherwise check other RFQ options
+        // Otherwise check other RFQ opts
         if (
             intentOnFilling && // The requestor is asking for a firm quote
             this._isApiKeyWhitelisted(apiKey) && // A valid API key was provided
@@ -588,8 +538,8 @@ function calculateTwoHopQuoteInfo(
     const [secondHopFill] = secondHopOrder.fills;
     const gas = new BigNumber(
         gasSchedule[ERC20BridgeSource.MultiHop]!({
-            firstHopSource: _.pick(firstHopFill, 'source', 'fillData'),
-            secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
+            firstHop: _.pick(firstHopFill, 'source', 'fillData'),
+            secondHop: _.pick(secondHopFill, 'source', 'fillData'),
         }),
     ).toNumber();
     return {

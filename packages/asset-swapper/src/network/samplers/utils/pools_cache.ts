@@ -1,22 +1,26 @@
 import { Pool } from '@balancer-labs/sor/dist/types';
 
-import { ONE_HOUR_IN_SECONDS, ONE_SECOND_MS } from '../constants';
 export { Pool };
+
 export interface CacheValue {
     expiresAt: number;
     pools: Pool[];
 }
 
-// tslint:disable:custom-no-magic-numbers
+export const ONE_SECOND_MS = 1000;
+export const ONE_HOUR_IN_SECONDS = 60 * 60;
+
 // Cache results for 30mins
 const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
-const DEFAULT_TIMEOUT_MS = 1000;
-// tslint:enable:custom-no-magic-numbers
+
+const DEFAULT_TIMEOUT_MS = ONE_SECOND_MS;
 
 export abstract class PoolsCache {
+    private readonly _refreshPromises: { [pairId: string]: Promise<Pool[]> } = {};
     protected static _isExpired(value: CacheValue): boolean {
         return Date.now() >= value.expiresAt;
     }
+
     constructor(
         protected readonly _cache: { [key: string]: CacheValue },
         protected readonly _cacheTimeMs: number = DEFAULT_CACHE_TIME_MS,
@@ -27,8 +31,17 @@ export abstract class PoolsCache {
         makerToken: string,
         timeoutMs: number = DEFAULT_TIMEOUT_MS,
     ): Promise<Pool[]> {
-        const timeout = new Promise<Pool[]>(resolve => setTimeout(resolve, timeoutMs, []));
-        return Promise.race([this._getAndSaveFreshPoolsForPairAsync(takerToken, makerToken), timeout]);
+        // Only allow one outstanding refresh per pair at a time.
+        const pairId = [takerToken, makerToken].sort().join('/');
+        if (this._refreshPromises[pairId]) {
+            return this._refreshPromises[pairId];
+        }
+        return (this._refreshPromises[pairId] = (async () => {
+            const timeout = new Promise<Pool[]>(resolve => setTimeout(resolve, timeoutMs, []));
+            const r = await Promise.race([this._getAndSaveFreshPoolsForPairAsync(takerToken, makerToken), timeout]);
+            delete this._refreshPromises[pairId];
+            return r;
+        })());
     }
 
     public getCachedPoolAddressesForPair(
@@ -45,6 +58,9 @@ export abstract class PoolsCache {
             return undefined;
         }
         if (PoolsCache._isExpired(value)) {
+            // Auto-refresh the pools if expired.
+            // tslint:disable-next-line: no-console
+            this.getFreshPoolsForPairAsync(takerToken, makerToken).catch(err => console.error(err));
             return undefined;
         }
         return (value || []).pools.map(pool => pool.id);

@@ -1,10 +1,11 @@
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { ERC20BridgeSource } from '../../network/types';
 import { MarketOperation } from '../../types';
 
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
-import { ERC20BridgeSource, Fill } from './types';
+import { Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -23,7 +24,7 @@ export async function findOptimalPathAsync(
 ): Promise<Path | undefined> {
     // Sort fill arrays by descending adjusted completed rate.
     // Remove any paths which cannot impact the optimal path
-    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts), side);
+    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts));
     if (sortedPaths.length === 0) {
         return undefined;
     }
@@ -62,7 +63,7 @@ export function fillsToSortedPaths(
 }
 
 // Remove paths which have no impact on the optimal path
-export function reducePaths(sortedPaths: Path[], side: MarketOperation): Path[] {
+export function reducePaths(sortedPaths: Path[]): Path[] {
     // Any path which has a min rate that is less than the best adjusted completed rate has no chance of improving
     // the overall route.
     const bestNonNativeCompletePath = sortedPaths.filter(
@@ -92,7 +93,7 @@ function mixPaths(
     pathB: Path,
     targetInput: BigNumber,
     maxSteps: number,
-    rates: { [id: string]: BigNumber },
+    rates: { [id: string]: number },
 ): Path {
     const _maxSteps = Math.max(maxSteps, 32);
     let steps = 0;
@@ -125,7 +126,7 @@ function mixPaths(
     // chances of walking ideal, valid paths first.
     const sortedFills = allFills.sort((a, b) => {
         if (a.sourcePathId !== b.sourcePathId) {
-            return rates[b.sourcePathId].comparedTo(rates[a.sourcePathId]);
+            return rates[b.sourcePathId] - rates[a.sourcePathId];
         }
         return a.index - b.index;
     });
@@ -136,6 +137,6 @@ function mixPaths(
     return bestPath;
 }
 
-function rateBySourcePathId(paths: Path[]): { [id: string]: BigNumber } {
-    return _.fromPairs(paths.map(p => [p.fills[0].sourcePathId, p.adjustedRate()]));
+function rateBySourcePathId(paths: Path[]): { [id: string]: number } {
+    return _.fromPairs(paths.map(p => [p.fills[0].sourcePathId, p.adjustedRate().toNumber()]));
 }

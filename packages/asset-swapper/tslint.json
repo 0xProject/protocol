@@ -2,7 +2,17 @@
     "extends": ["@0x/tslint-config"],
     "rules": {
         "max-file-line-count": false,
-        "binary-expression-operand-order": false
+        "binary-expression-operand-order": false,
+        "custom-no-magic-numbers": false,
+        "no-non-null-assertion": false,
+        "no-unnecessary-type-assertion": false,
+        "number-literal-format": false,
+        "completed-docs": false,
+        "max-classes-per-file": false,
+        "prefer-function-over-method": false,
+        "no-unbound-method": false,
+        "no-object-literal-type-assertion": false,
+        "forin": false
     },
     "linterOptions": {
         "exclude": ["src/artifacts.ts", "test/artifacts.ts"]

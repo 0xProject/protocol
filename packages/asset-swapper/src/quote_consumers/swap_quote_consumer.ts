@@ -1,4 +1,4 @@
-import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ChainId, ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import * as _ from 'lodash';
 
 import { constants } from '../constants';
@@ -20,11 +20,13 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _contractAddresses: ContractAddresses;
     private readonly _exchangeProxyConsumer: ExchangeProxySwapQuoteConsumer;
 
-    public static getSwapQuoteConsumer(options: Partial<SwapQuoteConsumerOpts> = {}): SwapQuoteConsumer {
+    public static getSwapQuoteConsumer(
+        options: Partial<SwapQuoteConsumerOpts> & { chainId: ChainId },
+    ): SwapQuoteConsumer {
         return new SwapQuoteConsumer(options);
     }
 
-    constructor(options: Partial<SwapQuoteConsumerOpts> = {}) {
+    constructor(options: Partial<SwapQuoteConsumerOpts> & { chainId: ChainId }) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         assert.isNumber('chainId', chainId);
 
@@ -59,7 +61,9 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         return consumer.executeSwapQuoteOrThrowAsync(quote, opts);
     }
 
-    private async _getConsumerForSwapQuoteAsync(opts: Partial<SwapQuoteGetOutputOpts>): Promise<SwapQuoteConsumerBase> {
+    private async _getConsumerForSwapQuoteAsync(
+        _opts: Partial<SwapQuoteGetOutputOpts>,
+    ): Promise<SwapQuoteConsumerBase> {
         return this._exchangeProxyConsumer;
     }
 }

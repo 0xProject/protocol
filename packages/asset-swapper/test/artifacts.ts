@@ -10,6 +10,7 @@ import * as BalanceChecker from '../test/generated-artifacts/BalanceChecker.json
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
 import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
+import * as CallDispatcher from '../test/generated-artifacts/CallDispatcher.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
@@ -37,23 +38,25 @@ import * as MakerPSMSampler from '../test/generated-artifacts/MakerPSMSampler.js
 import * as MooniswapSampler from '../test/generated-artifacts/MooniswapSampler.json';
 import * as MStableSampler from '../test/generated-artifacts/MStableSampler.json';
 import * as MultiBridgeSampler from '../test/generated-artifacts/MultiBridgeSampler.json';
-import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSampler.json';
+import * as NativeOrderUtils from '../test/generated-artifacts/NativeOrderUtils.json';
+import * as NetworkUtils from '../test/generated-artifacts/NetworkUtils.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
 import * as SmoothySampler from '../test/generated-artifacts/SmoothySampler.json';
-import * as TestERC20BridgeSampler from '../test/generated-artifacts/TestERC20BridgeSampler.json';
-import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
-import * as UniswapV3Sampler from '../test/generated-artifacts/UniswapV3Sampler.json';
-import * as UtilitySampler from '../test/generated-artifacts/UtilitySampler.json';
+import * as UniswapV3 from '../test/generated-artifacts/UniswapV3.json';
+import * as UniswapV3BuySampler from '../test/generated-artifacts/UniswapV3BuySampler.json';
+import * as UniswapV3SamplerCommon from '../test/generated-artifacts/UniswapV3SamplerCommon.json';
+import * as UniswapV3SellSampler from '../test/generated-artifacts/UniswapV3SellSampler.json';
 export const artifacts = {
     ApproximateBuys: ApproximateBuys as ContractArtifact,
     BalanceChecker: BalanceChecker as ContractArtifact,
     BalancerSampler: BalancerSampler as ContractArtifact,
     BalancerV2Sampler: BalancerV2Sampler as ContractArtifact,
     BancorSampler: BancorSampler as ContractArtifact,
+    CallDispatcher: CallDispatcher as ContractArtifact,
     CurveSampler: CurveSampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,
     DODOV2Sampler: DODOV2Sampler as ContractArtifact,
@@ -68,15 +71,14 @@ export const artifacts = {
     MakerPSMSampler: MakerPSMSampler as ContractArtifact,
     MooniswapSampler: MooniswapSampler as ContractArtifact,
     MultiBridgeSampler: MultiBridgeSampler as ContractArtifact,
-    NativeOrderSampler: NativeOrderSampler as ContractArtifact,
+    NativeOrderUtils: NativeOrderUtils as ContractArtifact,
+    NetworkUtils: NetworkUtils as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
     SmoothySampler: SmoothySampler as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
-    UniswapV3Sampler: UniswapV3Sampler as ContractArtifact,
-    UtilitySampler: UtilitySampler as ContractArtifact,
     IBalancer: IBalancer as ContractArtifact,
     IBancor: IBancor as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
@@ -89,7 +91,9 @@ export const artifacts = {
     ISmoothy: ISmoothy as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
     IUniswapV2Router01: IUniswapV2Router01 as ContractArtifact,
+    UniswapV3: UniswapV3 as ContractArtifact,
+    UniswapV3BuySampler: UniswapV3BuySampler as ContractArtifact,
+    UniswapV3SamplerCommon: UniswapV3SamplerCommon as ContractArtifact,
+    UniswapV3SellSampler: UniswapV3SellSampler as ContractArtifact,
     DummyLiquidityProvider: DummyLiquidityProvider as ContractArtifact,
-    TestERC20BridgeSampler: TestERC20BridgeSampler as ContractArtifact,
-    TestNativeOrderSampler: TestNativeOrderSampler as ContractArtifact,
 };

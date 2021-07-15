@@ -1,13 +1,9 @@
-import { ChainId } from '@0x/contract-addresses';
 import * as chai from 'chai';
 import 'mocha';
 
-import {
-    BalancerPoolsCache,
-    BalancerV2PoolsCache,
-    CreamPoolsCache,
-    PoolsCache,
-} from '../src/utils/market_operation_utils/pools_cache';
+import { BalancerPoolsCache, CreamPoolsCache } from '../src/network/samplers/balancer';
+import { BalancerV2PoolsCache } from '../src/network/samplers/balancer_v2';
+import { PoolsCache } from '../src/network/samplers/utils/pools_cache';
 
 import { chaiSetup } from './utils/chai_setup';
 
@@ -24,7 +20,8 @@ const creamAddress = '0x2ba592f78db6436527729929aaf6c908497cb200';
 const timeoutMs = 5000;
 const poolKeys: string[] = ['id', 'balanceIn', 'balanceOut', 'weightIn', 'weightOut', 'swapFee'];
 
-describe('Pools Caches for Balancer-based sampling', () => {
+// TODO(dorothy-zbornak): Rewrite these tests to not rely on external services.
+describe.skip('Pools Caches for Balancer-based sampling', () => {
     async function fetchAndAssertPoolsAsync(cache: PoolsCache, takerToken: string, makerToken: string): Promise<void> {
         const pools = await cache.getFreshPoolsForPairAsync(takerToken, makerToken, timeoutMs);
         expect(pools.length).greaterThan(0, `Failed to find any pools for ${takerToken} and ${makerToken}`);
@@ -50,7 +47,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
     });
 
     describe('BalancerV2PoolsCache', () => {
-        const cache = new BalancerV2PoolsCache(ChainId.Mainnet);
+        const cache = new BalancerV2PoolsCache('https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2');
         it('fetches pools', async () => {
             const pairs = [
                 [wethAddress, wbtcAddress],
