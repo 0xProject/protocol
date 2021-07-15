@@ -18,6 +18,7 @@ export interface KyberDmmFillData extends UniswapV2FillData {
 const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<Address>(
     {
         [ChainId.Mainnet]: '0x1c87257f5e8609940bc751a07bb085bb7f8cdbe6',
+        [ChainId.Polygon]: '0x546c79662e028b661dfb4767664d0273184e4dd1',
     },
     NULL_ADDRESS,
 );
@@ -37,7 +38,11 @@ export class KyberDmmSampler extends OnChainSourceSampler<
     KyberDmmFillData
 > {
     public static async createAsync(chain: Chain): Promise<KyberDmmSampler> {
-        return new KyberDmmSampler(chain, KYBER_DMM_ROUTER_BY_CHAIN_ID[chain.chainId]);
+        const router = KYBER_DMM_ROUTER_BY_CHAIN_ID[chain.chainId];
+        if (!router || router === NULL_ADDRESS) {
+            throw new Error(`No KyberDMM router found for chain ${chain.chainId}`);
+        }
+        return new KyberDmmSampler(chain, router);
     }
 
     protected constructor(chain: Chain, private readonly _router: Address) {

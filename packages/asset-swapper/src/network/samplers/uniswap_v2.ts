@@ -32,6 +32,7 @@ const UNISWAP_V2_ROUTER_BY_CHAIN_ID_BY_FORK = {
         [ERC20BridgeSource.JetSwap]: '0xbe65b8f75b9f20f4c522e0067a3887fada714800',
     },
     [ChainId.Polygon]: {
+        [ERC20BridgeSource.SushiSwap]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ERC20BridgeSource.Dfyn]: '0xa102072a4c07f06ec3b4900fdc4c7b80b6c57429',
         [ERC20BridgeSource.ComethSwap]: '0x93bcdc45f7e62f89a8e901dc4a0e2c6c427d9f25',
         [ERC20BridgeSource.QuickSwap]: '0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff',
@@ -76,6 +77,9 @@ export class UniswapV2Sampler extends OnChainSourceSampler<
             buyContractBuyFunctionName: 'sampleBuysFromUniswapV2',
         });
         this._router = (UNISWAP_V2_ROUTER_BY_CHAIN_ID_BY_FORK as any)[chain.chainId]?.[fork]! as Address;
+        if (!this._router) {
+            throw new Error(`No UniswapV2 router found for fork ${fork} on chain ${chain.chainId}`);
+        }
     }
 
     protected async _getSellQuoteCallsAsync(

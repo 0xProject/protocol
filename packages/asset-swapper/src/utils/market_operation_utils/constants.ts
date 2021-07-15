@@ -469,7 +469,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ACryptoS]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-
     //
     // Polygon
     //

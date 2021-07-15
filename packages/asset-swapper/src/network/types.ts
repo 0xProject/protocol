@@ -6,6 +6,7 @@ import { ChainEthCallOverrides } from './chain';
 export type Bytes = string;
 export type Address = Bytes;
 
+// tslint:disable: enum-naming
 /**
  * DEX sources to aggregate.
  */
@@ -55,6 +56,7 @@ export enum ERC20BridgeSource {
     CafeSwap = 'CafeSwap',
     CheeseSwap = 'CheeseSwap',
     JulSwap = 'JulSwap',
+    ACryptoS = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',
     ComethSwap = 'ComethSwap',
@@ -64,6 +66,7 @@ export enum ERC20BridgeSource {
     FirebirdOneSwap = 'FirebirdOneSwap',
     IronSwap = 'IronSwap',
 }
+// tslint:enable: enum-naming
 
 export interface FillData {}
 

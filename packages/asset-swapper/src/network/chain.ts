@@ -284,7 +284,8 @@ function canBatchCallWith(ethCall: QueuedEthCall, batch: QueuedEthCall[]): boole
         return true;
     }
     // TODO: have the sources provide realistic gas limits and split based on that.
-    if (batch.length >= 48) { // TODO: Make this number configurable.
+    if (batch.length >= 48) {
+        // TODO: Make this number configurable.
         return false;
     }
     const { overrides, gasPrice } = {
@@ -306,7 +307,8 @@ function canBatchCallWith(ethCall: QueuedEthCall, batch: QueuedEthCall[]): boole
                 estimatedRpcSize += (batchOverrides[a].code || '').length;
             }
         }
-        if (estimatedRpcSize >= 512e3) { // TODO: Make this number configurable.
+        if (estimatedRpcSize >= 512e3) {
+            // TODO: Make this number configurable.
             return false;
         }
     }

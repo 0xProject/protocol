@@ -106,6 +106,10 @@ export const BSC_TOKENS = {
     UST: '0x23396cf899ca06c4472205fc903bdb4de249d6fc',
     WEX: '0xa9c41a46a6b3531d28d5c32f6633dd2ff05dfb90',
     WETH: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
+    VAI: '0x4bd17003473389a42daf6a0a729f6fdb328bbbd7',
+    BTCB: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
+    renBTC: '0xfce146bf3146100cfe5db4129cf6c82b0ef4ad8c',
+    pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
 };
 
 export const POLYGON_TOKENS = {

@@ -169,6 +169,14 @@ const XSIGMA_POOLS = {
 const CURVE_V2_POOLS = {
     tricrypto: '0x80466c64868e1ab14a1ddf27a676c3fcbe638fe5',
 };
+
+export const ACRYPTOS_POOLS = {
+    acs4usd: '0xb3f0c9ea1f05e312093fdb031e789a756659b0ac',
+    acs4vai: '0x191409d5a4effe25b0f4240557ba2192d18a191e',
+    acs4ust: '0x99c92765efc472a9709ced86310d64c4573c4b77',
+    acs3btc: '0xbe7caa236544d1b9a0e7f91e94b9f5bfd3b5ca81',
+};
+
 // Order dependent
 const CURVE_TRI_POOL_MAINNET_TOKENS = [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT];
 const CURVE_TRI_BTC_POOL_TOKEN = [MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.sBTC];
@@ -234,6 +242,19 @@ const createCurveV2MetaTriPool = (info: { tokens: string[]; pool: string; gasSch
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
+
+const ACRYPTOS_ACS4USD_POOL_BSC_TOKENS = [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC];
+
+const createAcryptosMetaUsdPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: [...info.tokens, ...ACRYPTOS_ACS4USD_POOL_BSC_TOKENS],
+    metaTokens: info.tokens,
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
 /**
  * Mainnet Curve configuration
  * The tokens are in order of their index, which each curve defines
@@ -569,6 +590,32 @@ const FIREBIRDONESWAP_BSC_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
+export const ACRYPTOS_BSC_INFOS: { [name: string]: CurveInfo } = {
+    [ACRYPTOS_POOLS.acs4usd]: createCurveExchangePool({
+        tokens: ACRYPTOS_ACS4USD_POOL_BSC_TOKENS,
+        pool: ACRYPTOS_POOLS.acs4usd,
+        gasSchedule: 176e3,
+    }),
+
+    [ACRYPTOS_POOLS.acs4vai]: createAcryptosMetaUsdPool({
+        tokens: [BSC_TOKENS.VAI],
+        pool: ACRYPTOS_POOLS.acs4vai,
+        gasSchedule: 387e3,
+    }),
+
+    [ACRYPTOS_POOLS.acs4ust]: createAcryptosMetaUsdPool({
+        tokens: [BSC_TOKENS.UST],
+        pool: ACRYPTOS_POOLS.acs4ust,
+        gasSchedule: 387e3,
+    }),
+
+    [ACRYPTOS_POOLS.acs3btc]: createCurveExchangePool({
+        tokens: [BSC_TOKENS.BTCB, BSC_TOKENS.renBTC, BSC_TOKENS.pBTC],
+        pool: ACRYPTOS_POOLS.acs3btc,
+        gasSchedule: 350e3,
+    }),
+};
+
 const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     [FIREBIRDONESWAP_POLYGON_POOLS.oneswap]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
@@ -608,6 +655,7 @@ const CURVELIKE_INFOS_BY_CHAIN_ID = (valueByChainId(
             [ERC20BridgeSource.Belt]: BELT_BSC_INFOS,
             [ERC20BridgeSource.Ellipsis]: ELLIPSIS_BSC_INFOS,
             [ERC20BridgeSource.FirebirdOneSwap]: FIREBIRDONESWAP_BSC_INFOS,
+            [ERC20BridgeSource.ACryptoS]: ACRYPTOS_BSC_INFOS,
         },
         [ChainId.Polygon]: {
             [ERC20BridgeSource.Curve]: CURVE_POLYGON_INFOS,
@@ -636,7 +684,7 @@ export class CurveSampler extends OnChainSourceSampler<
     public static async createAsync(chain: Chain, fork: ERC20BridgeSource): Promise<CurveSampler> {
         const curveInfos = CURVELIKE_INFOS_BY_CHAIN_ID[chain.chainId];
         if (!curveInfos) {
-            throw new Error(`No curve configs for chain ${chain.chainId}`);
+            throw new Error(`No curve configs for ${fork} on chain ${chain.chainId}`);
         }
         return new CurveSampler(chain, fork, Object.values(curveInfos[fork] || {}));
     }
