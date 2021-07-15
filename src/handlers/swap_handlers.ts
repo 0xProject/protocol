@@ -131,7 +131,10 @@ export class SwapHandlers {
             req.log.info({
                 firmQuoteServed: {
                     taker: params.takerAddress,
-                    apiKey: params.apiKey,
+                    // TODO (MKR-123): remove once the log consumers have been updated
+                    apiKey: params.integratorId,
+                    integratorId: params.integratorId,
+                    rawApiKey: params.apiKey,
                     buyToken: params.buyToken,
                     sellToken: params.sellToken,
                     buyAmount: params.buyAmount,
@@ -149,7 +152,7 @@ export class SwapHandlers {
                         sellTokenAddress: quote.sellTokenAddress,
                         buyAmount: params.buyAmount,
                         sellAmount: params.sellAmount,
-                        apiKey: params.apiKey,
+                        apiKey: params.integratorId, // TODO (rhinodavid): update to align apiKey/integratorId
                     },
                     req.log,
                 );
@@ -179,7 +182,10 @@ export class SwapHandlers {
         req.log.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
-                apiKey: params.apiKey,
+                // TODO (MKR-123): remove once the log source is updated
+                apiKey: params.integratorId,
+                integratorId: params.integratorId,
+                rawApiKey: params.apiKey,
                 buyToken: params.buyToken,
                 sellToken: params.sellToken,
                 buyAmount: params.buyAmount,
@@ -309,6 +315,10 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // HACK typescript typing does not allow this valid json-schema
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
     const apiKey: string | undefined = req.header('0x-api-key');
+    let integratorId: string | undefined;
+    if (apiKey) {
+        integratorId = getIntegratorIdForApiKey(apiKey);
+    }
 
     // Parse string params
     const { takerAddress, affiliateAddress } = req.query;
@@ -317,7 +327,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // tslint:disable:boolean-naming
     let skipValidation: boolean;
     skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
-    if (endpoint === 'quote' && apiKey !== undefined && getIntegratorIdForApiKey(apiKey) === MATCHA_INTEGRATOR_ID) {
+    if (endpoint === 'quote' && integratorId === MATCHA_INTEGRATOR_ID) {
         skipValidation = false;
     }
     const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;
@@ -426,7 +436,10 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         endpoint,
         updatedExcludedSources,
         nativeExclusivelyRFQT,
-        apiKey: apiKey || 'N/A',
+        // TODO (MKR-123): Remove once the log source has been updated.
+        apiKey: integratorId || 'N/A',
+        integratorId: integratorId || 'N/A',
+        rawApiKey: apiKey || 'N/A',
     });
 
     const rfqt: Pick<RfqRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQ'> | undefined = (() => {
@@ -464,6 +477,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         rfqt,
         skipValidation,
         apiKey,
+        integratorId,
         affiliateFee,
         includePriceComparisons,
         shouldSellEntireBalance,

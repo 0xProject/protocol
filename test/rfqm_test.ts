@@ -55,6 +55,7 @@ delete require.cache[require.resolve('../src/app')];
 const SUITE_NAME = 'RFQM Integration Tests';
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const API_KEY = 'koolApiKey';
+const INTEGRATOR_ID = 'koolIntegratorId';
 const contractAddresses: ContractAddresses = CONTRACT_ADDRESSES;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 
@@ -171,6 +172,7 @@ describe(SUITE_NAME, () => {
         // Create the mock ConfigManager
         const configManagerMock = mock(ConfigManager);
         when(configManagerMock.getRfqmApiKeyWhitelist()).thenReturn(new Set([API_KEY]));
+        when(configManagerMock.getIntegratorIdForApiKey(API_KEY)).thenReturn(INTEGRATOR_ID);
         const configManager = instance(configManagerMock);
 
         // Create Axios client
@@ -325,7 +327,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 1
                         endpoint: MARKET_MAKER_1,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             sellAmountBaseUnits: sellAmount.toString(),
@@ -344,7 +346,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 2
                         endpoint: MARKET_MAKER_2,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             sellAmountBaseUnits: sellAmount.toString(),
@@ -394,7 +396,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 1
                         endpoint: MARKET_MAKER_1,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             buyAmountBaseUnits: buyAmount.toString(),
@@ -413,7 +415,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 2
                         endpoint: MARKET_MAKER_2,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             buyAmountBaseUnits: buyAmount.toString(),
@@ -461,7 +463,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 1
                         endpoint: MARKET_MAKER_1,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             sellAmountBaseUnits: sellAmount.toString(),
@@ -480,7 +482,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 2
                         endpoint: MARKET_MAKER_2,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             sellAmountBaseUnits: sellAmount.toString(),
@@ -616,7 +618,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Bogus error from MM 1
                         endpoint: MARKET_MAKER_1,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             sellAmountBaseUnits: sellAmount.toString(),
@@ -635,7 +637,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Bogus error from MM 2
                         endpoint: MARKET_MAKER_2,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             sellAmountBaseUnits: sellAmount.toString(),
@@ -702,7 +704,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 1
                         endpoint: MARKET_MAKER_1,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             takerAddress,
@@ -725,7 +727,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 2
                         endpoint: MARKET_MAKER_2,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             takerAddress,
@@ -803,7 +805,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 1
                         endpoint: MARKET_MAKER_1,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             takerAddress,
@@ -826,7 +828,7 @@ describe(SUITE_NAME, () => {
                     {
                         // Quote from MM 2
                         endpoint: MARKET_MAKER_2,
-                        requestApiKey: API_KEY,
+                        requestApiKey: INTEGRATOR_ID,
                         requestParams: {
                             ...BASE_RFQM_REQUEST_PARAMS,
                             takerAddress,

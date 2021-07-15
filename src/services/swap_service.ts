@@ -196,7 +196,7 @@ export class SwapService {
             isETHBuy,
             excludedSources,
             includedSources,
-            apiKey,
+            integratorId,
             rfqt,
             affiliateAddress,
             affiliateFee,
@@ -212,7 +212,7 @@ export class SwapService {
         // forwarder transaction (isETHSell===true), (b) there's a taker
         // address present, or (c) it's an indicative quote.
         const shouldEnableRfqt =
-            apiKey !== undefined && (isETHSell || takerAddress !== undefined || (rfqt && rfqt.isIndicative));
+            integratorId !== undefined && (isETHSell || takerAddress !== undefined || (rfqt && rfqt.isIndicative));
         if (shouldEnableRfqt) {
             // tslint:disable-next-line:custom-no-magic-numbers
             const altRfqAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
@@ -220,7 +220,7 @@ export class SwapService {
             _rfqt = {
                 ...rfqt,
                 intentOnFilling: rfqt && rfqt.intentOnFilling ? true : false,
-                apiKey: apiKey!,
+                apiKey: integratorId!, // Send the integrator ID to market makers instead of the raw API key
                 makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
                 // Note 0xAPI maps takerAddress query parameter to txOrigin as takerAddress is always Exchange Proxy or a VIP
                 takerAddress: NULL_ADDRESS,
