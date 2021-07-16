@@ -94,6 +94,53 @@ interface IOtcOrdersFeature {
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
+    /// @dev Fills multiple taker-signed OTC orders.
+    /// @param orders Array of OTC orders.
+    /// @param makerSignatures Array of maker signatures for each order.
+    /// @param takerSignatures Array of taker signatures for each order.
+    /// @param unwrapWeth Array of booleans representing whether or not 
+    ///        to unwrap bought WETH into ETH for each order. Should be set 
+    ///        to false if the maker token is not WETH.
+    /// @param revertIfIncomplete If true, reverts if this function fails to
+    ///        fill any individual order.
+    /// @return takerTokenFilledAmounts Array of amounts filled, in taker token.
+    /// @return makerTokenFilledAmounts Array of amounts filled, in maker token.
+    function batchFillTakerSignedOtcOrders(
+        LibNativeOrder.OtcOrder[] calldata orders,
+        LibSignature.Signature[] calldata makerSignatures,
+        LibSignature.Signature[] calldata takerSignatures,
+        bool[] calldata unwrapWeth,
+        bool revertIfIncomplete
+    )
+        external
+        returns (
+            uint128[] memory takerTokenFilledAmounts,
+            uint128[] memory makerTokenFilledAmounts
+        );
+
+    /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
+    ///      Internal variant.
+    /// @param order The OTC order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerTokenFillAmount Maximum taker token amount to fill this
+    ///        order with.
+    /// @param taker The address to fill the order in the context of.
+    /// @param useSelfBalance Whether to use the Exchange Proxy's balance
+    ///        of input tokens.
+    /// @param recipient The recipient of the bought maker tokens.
+    /// @return takerTokenFilledAmount How much taker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function _fillOtcOrder(
+        LibNativeOrder.OtcOrder calldata order,
+        LibSignature.Signature calldata makerSignature,
+        uint128 takerTokenFillAmount,
+        address taker,
+        bool useSelfBalance,
+        address recipient
+    )
+        external
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+
     /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.
     /// @return orderInfo Info about the order.

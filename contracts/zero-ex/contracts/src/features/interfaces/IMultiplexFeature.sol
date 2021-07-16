@@ -28,6 +28,7 @@ interface IMultiplexFeature {
     enum MultiplexSubcall {
         Invalid,
         RFQ,
+        OTC,
         UniswapV2,
         UniswapV3,
         LiquidityProvider,

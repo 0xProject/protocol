@@ -6,7 +6,7 @@ import {
     toBaseUnitAmount,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { RfqOrder, SIGNATURE_ABI } from '@0x/protocol-utils';
+import { OtcOrder, RfqOrder, SIGNATURE_ABI } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber, hexUtils } from '@0x/utils';
 import { LogWithDecodedArgs } from 'ethereum-types';
 
@@ -14,12 +14,13 @@ import { IZeroExContract, IZeroExEvents } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
-import { getRandomRfqOrder } from '../utils/orders';
+import { getRandomOtcOrder, getRandomRfqOrder } from '../utils/orders';
 import {
     IOwnableFeatureContract,
     LiquidityProviderSandboxContract,
     MultiplexFeatureContract,
     MultiplexFeatureEvents,
+    OtcOrdersFeatureContract,
     TestLiquidityProviderContract,
     TestMintableERC20TokenContract,
     TestMintableERC20TokenEvents,
@@ -46,6 +47,7 @@ interface TransferEvent {
 enum MultiplexSubcall {
     Invalid,
     Rfq,
+    Otc,
     UniswapV2,
     UniswapV3,
     LiquidityProvider,
@@ -89,6 +91,19 @@ blockchainTests.resets('MultiplexFeature', env => {
     let transformerNonce: number;
 
     //////////////// Deployment utility functions ////////////////
+    async function migrateOtcOrdersFeatureAsync(): Promise<void> {
+        const featureImpl = await OtcOrdersFeatureContract.deployFrom0xArtifactAsync(
+            artifacts.OtcOrdersFeature,
+            env.provider,
+            env.txDefaults,
+            artifacts,
+            zeroEx.address,
+            weth.address,
+        );
+        await new IOwnableFeatureContract(zeroEx.address, env.provider, env.txDefaults)
+            .migrate(featureImpl.address, featureImpl.migrate().getABIEncodedTransactionData(), owner)
+            .awaitTransactionSuccessAsync();
+    }
 
     async function migrateLiquidityProviderContractsAsync(): Promise<void> {
         sandbox = await LiquidityProviderSandboxContract.deployFrom0xArtifactAsync(
@@ -238,6 +253,43 @@ blockchainTests.resets('MultiplexFeature', env => {
             data: rfqDataEncoder.encode({
                 order: rfqOrder,
                 signature: await rfqOrder.getSignatureWithProviderAsync(env.provider),
+            }),
+        };
+    }
+
+    function getTestOtcOrder(fields: Partial<OtcOrder> = {}): OtcOrder {
+        return getRandomOtcOrder({
+            maker,
+            verifyingContract: zeroEx.address,
+            chainId: 1337,
+            takerToken: dai.address,
+            makerToken: zrx.address,
+            makerAmount: toBaseUnitAmount(1),
+            takerAmount: toBaseUnitAmount(1),
+            taker,
+            txOrigin: taker,
+            ...fields,
+        });
+    }
+    async function getOtcSubcallAsync(
+        otcOrder: OtcOrder,
+        sellAmount: BigNumber = otcOrder.takerAmount,
+    ): Promise<BatchSellSubcall> {
+        const otcDataEncoder = AbiEncoder.create([
+            { name: 'order', type: 'tuple', components: OtcOrder.STRUCT_ABI },
+            { name: 'signature', type: 'tuple', components: SIGNATURE_ABI },
+        ]);
+        const makerToken =
+            otcOrder.makerToken === weth.address
+                ? weth
+                : new TestMintableERC20TokenContract(otcOrder.makerToken, env.provider, env.txDefaults);
+        await mintToAsync(makerToken, otcOrder.maker, otcOrder.makerAmount);
+        return {
+            id: MultiplexSubcall.Otc,
+            sellAmount,
+            data: otcDataEncoder.encode({
+                order: otcOrder,
+                signature: await otcOrder.getSignatureWithProviderAsync(env.provider),
             }),
         };
     }
@@ -437,6 +489,7 @@ blockchainTests.resets('MultiplexFeature', env => {
                 t.approve(zeroEx.address, constants.MAX_UINT256).awaitTransactionSuccessAsync({ from: maker }),
             ),
         ]);
+        await migrateOtcOrdersFeatureAsync();
         await migrateLiquidityProviderContractsAsync();
         await migrateUniswapV2ContractsAsync();
         await migrateUniswapV3ContractsAsync();
@@ -550,6 +603,37 @@ blockchainTests.resets('MultiplexFeature', env => {
                     IZeroExEvents.RfqOrderFilled,
                 );
             });
+            it('OTC, fallback(UniswapV2)', async () => {
+                const order = getTestOtcOrder();
+                const otcSubcall = await getOtcSubcallAsync(order);
+                await createUniswapV2PoolAsync(uniV2Factory, dai, zrx);
+                await mintToAsync(dai, taker, otcSubcall.sellAmount);
+
+                const tx = await multiplex
+                    .multiplexBatchSellTokenForToken(
+                        dai.address,
+                        zrx.address,
+                        [otcSubcall, getUniswapV2BatchSubcall([dai.address, zrx.address], order.takerAmount)],
+                        order.takerAmount,
+                        constants.ZERO_AMOUNT,
+                    )
+                    .awaitTransactionSuccessAsync({ from: taker });
+                verifyEventsFromLogs(
+                    tx.logs,
+                    [
+                        {
+                            orderHash: order.getHash(),
+                            maker,
+                            taker,
+                            makerToken: order.makerToken,
+                            takerToken: order.takerToken,
+                            takerTokenFilledAmount: order.takerAmount,
+                            makerTokenFilledAmount: order.makerAmount,
+                        },
+                    ],
+                    IZeroExEvents.OtcOrderFilled,
+                );
+            });
             it('expired RFQ, fallback(UniswapV2)', async () => {
                 const order = getTestRfqOrder({ expiry: constants.ZERO_AMOUNT });
                 const rfqSubcall = await getRfqSubcallAsync(order);
@@ -575,6 +659,50 @@ blockchainTests.resets('MultiplexFeature', env => {
                         },
                     ],
                     MultiplexFeatureEvents.ExpiredRfqOrder,
+                );
+                verifyEventsFromLogs<TransferEvent>(
+                    tx.logs,
+                    [
+                        {
+                            token: dai.address,
+                            from: taker,
+                            to: uniswap.address,
+                            value: order.takerAmount,
+                        },
+                        {
+                            token: zrx.address,
+                            from: uniswap.address,
+                            to: taker,
+                        },
+                    ],
+                    TestMintableERC20TokenEvents.Transfer,
+                );
+            });
+            it('expired OTC, fallback(UniswapV2)', async () => {
+                const order = getTestOtcOrder({ expiry: constants.ZERO_AMOUNT });
+                const otcSubcall = await getOtcSubcallAsync(order);
+                const uniswap = await createUniswapV2PoolAsync(uniV2Factory, dai, zrx);
+                await mintToAsync(dai, taker, otcSubcall.sellAmount);
+
+                const tx = await multiplex
+                    .multiplexBatchSellTokenForToken(
+                        dai.address,
+                        zrx.address,
+                        [otcSubcall, getUniswapV2BatchSubcall([dai.address, zrx.address], order.takerAmount)],
+                        order.takerAmount,
+                        constants.ZERO_AMOUNT,
+                    )
+                    .awaitTransactionSuccessAsync({ from: taker });
+                verifyEventsFromLogs(
+                    tx.logs,
+                    [
+                        {
+                            orderHash: order.getHash(),
+                            maker,
+                            expiry: order.expiry,
+                        },
+                    ],
+                    MultiplexFeatureEvents.ExpiredOtcOrder,
                 );
                 verifyEventsFromLogs<TransferEvent>(
                     tx.logs,
@@ -851,6 +979,37 @@ blockchainTests.resets('MultiplexFeature', env => {
                     TestMintableERC20TokenEvents.Transfer,
                 );
             });
+            it('OTC', async () => {
+                const order = getTestOtcOrder({ takerToken: weth.address });
+                const otcSubcall = await getOtcSubcallAsync(order);
+
+                const tx = await multiplex
+                    .multiplexBatchSellEthForToken(zrx.address, [otcSubcall], constants.ZERO_AMOUNT)
+                    .awaitTransactionSuccessAsync({ from: taker, value: order.takerAmount });
+                verifyEventsFromLogs(
+                    tx.logs,
+                    [{ owner: zeroEx.address, value: order.takerAmount }],
+                    TestWethEvents.Deposit,
+                );
+                verifyEventsFromLogs<TransferEvent>(
+                    tx.logs,
+                    [
+                        {
+                            token: weth.address,
+                            from: zeroEx.address,
+                            to: order.maker,
+                            value: order.takerAmount,
+                        },
+                        {
+                            token: zrx.address,
+                            from: order.maker,
+                            to: taker,
+                            value: order.makerAmount,
+                        },
+                    ],
+                    TestMintableERC20TokenEvents.Transfer,
+                );
+            });
             it('UniswapV2', async () => {
                 const uniswap = await createUniswapV2PoolAsync(uniV2Factory, weth, zrx);
                 const uniswapV2Subcall = getUniswapV2BatchSubcall([weth.address, zrx.address]);
@@ -1030,6 +1189,33 @@ blockchainTests.resets('MultiplexFeature', env => {
                 await mintToAsync(dai, taker, order.takerAmount);
                 const tx = await multiplex
                     .multiplexBatchSellTokenForEth(dai.address, [rfqSubcall], order.takerAmount, constants.ZERO_AMOUNT)
+                    .awaitTransactionSuccessAsync({ from: taker });
+                verifyEventsFromLogs(tx.logs, [{ owner: zeroEx.address }], TestWethEvents.Withdrawal);
+                verifyEventsFromLogs<TransferEvent>(
+                    tx.logs,
+                    [
+                        {
+                            token: dai.address,
+                            from: taker,
+                            to: order.maker,
+                            value: order.takerAmount,
+                        },
+                        {
+                            token: weth.address,
+                            from: order.maker,
+                            to: zeroEx.address,
+                            value: order.makerAmount,
+                        },
+                    ],
+                    TestMintableERC20TokenEvents.Transfer,
+                );
+            });
+            it('OTC', async () => {
+                const order = getTestOtcOrder({ makerToken: weth.address });
+                const otcSubcall = await getOtcSubcallAsync(order);
+                await mintToAsync(dai, taker, order.takerAmount);
+                const tx = await multiplex
+                    .multiplexBatchSellTokenForEth(dai.address, [otcSubcall], order.takerAmount, constants.ZERO_AMOUNT)
                     .awaitTransactionSuccessAsync({ from: taker });
                 verifyEventsFromLogs(tx.logs, [{ owner: zeroEx.address }], TestWethEvents.Withdrawal);
                 verifyEventsFromLogs<TransferEvent>(
