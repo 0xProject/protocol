@@ -480,9 +480,9 @@ export const BRIDGE_ENCODERS: {
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
     return [
         // Maker asset amount.
-        side === MarketOperation.Sell ? fill.output : fill.input,
+        side === MarketOperation.Sell ? fill.output.integerValue(BigNumber.ROUND_DOWN) : fill.input,
         // Taker asset amount.
-        side === MarketOperation.Sell ? fill.input : fill.output,
+        side === MarketOperation.Sell ? fill.input : fill.output.integerValue(BigNumber.ROUND_UP),
     ];
 }
 
