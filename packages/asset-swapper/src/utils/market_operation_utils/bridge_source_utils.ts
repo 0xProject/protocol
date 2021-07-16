@@ -2,6 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
+    ACRYPTOS_BSC_INFOS,
     APESWAP_ROUTER_BY_CHAIN_ID,
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
@@ -43,7 +44,6 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
-    ACRYPTOS_BSC_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
 
@@ -367,7 +367,7 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
         | ERC20BridgeSource.FirebirdOneSwap
-        | ERC20BridgeSource.ACryptoS,
+        | ERC20BridgeSource.ACryptos,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
     switch (source) {
@@ -407,7 +407,7 @@ export function getCurveLikeInfosForPair(
         case ERC20BridgeSource.IronSwap:
             pools = getIronSwapInfosForPair(chainId, takerToken, makerToken);
             break;
-        case ERC20BridgeSource.ACryptoS:
+        case ERC20BridgeSource.ACryptos:
             pools = getAcryptosInfosForPair(chainId, takerToken, makerToken);
             break;
         default:

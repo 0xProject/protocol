@@ -133,7 +133,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.JetSwap,
-            ERC20BridgeSource.ACryptoS,
+            ERC20BridgeSource.ACryptos,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -233,7 +233,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.JetSwap,
-            ERC20BridgeSource.ACryptoS,
+            ERC20BridgeSource.ACryptos,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -1652,7 +1652,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.ACryptoS]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
 
     //
     // Polygon
