@@ -57,7 +57,7 @@ contract FirebirdSampler is
                     (takerToken, makerToken, takerTokenAmounts[i], _toSingleAddressArray(pool))
                 returns (uint256[] memory amounts)
             {
-                makerTokenAmounts[i] = amounts[0];
+                makerTokenAmounts[i] = amounts[1]; // element 0 is input, element 1 is output
                 // Break early if there are 0 amounts
                 if (makerTokenAmounts[i] == 0) {
                     break;
