@@ -23,22 +23,22 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../fixins/FixinEIP712.sol";
 import "../interfaces/IMultiplexFeature.sol";
-import "../interfaces/INativeOrdersFeature.sol";
+import "../interfaces/IOtcOrdersFeature.sol";
 import "../libs/LibNativeOrder.sol";
 
 
-abstract contract MultiplexRfq is
+abstract contract MultiplexOtc is
     FixinEIP712
 {
     using LibSafeMathV06 for uint256;
 
-    event ExpiredRfqOrder(
+    event ExpiredOtcOrder(
         bytes32 orderHash,
         address maker,
         uint64 expiry
     );
 
-    function _batchSellRfqOrder(
+    function _batchSellOtcOrder(
         IMultiplexFeature.BatchSellState memory state,
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory wrappedCallData,
@@ -46,23 +46,24 @@ abstract contract MultiplexRfq is
     )
         internal
     {
-        // Decode the RFQ order and signature.
+        // Decode the Otc order and signature.
         (
-            LibNativeOrder.RfqOrder memory order,
+            LibNativeOrder.OtcOrder memory order,
             LibSignature.Signature memory signature
         ) = abi.decode(
             wrappedCallData,
-            (LibNativeOrder.RfqOrder, LibSignature.Signature)
+            (LibNativeOrder.OtcOrder, LibSignature.Signature)
         );
         // Pre-emptively check if the order is expired.
-        if (order.expiry <= uint64(block.timestamp)) {
+        uint64 expiry = uint64(order.expiryAndNonce >> 192);
+        if (expiry <= uint64(block.timestamp)) {
             bytes32 orderHash = _getEIP712Hash(
-                LibNativeOrder.getRfqOrderStructHash(order)
+                LibNativeOrder.getOtcOrderStructHash(order)
             );
-            emit ExpiredRfqOrder(
+            emit ExpiredOtcOrder(
                 orderHash,
                 order.maker,
-                order.expiry
+                expiry
             );
             return;
         }
@@ -70,11 +71,11 @@ abstract contract MultiplexRfq is
         require(
             order.takerToken == params.inputToken &&
             order.makerToken == params.outputToken,
-            "MultiplexRfq::_batchSellRfqOrder/RFQ_ORDER_INVALID_TOKENS"
+            "MultiplexOtc::_batchSellOtcOrder/OTC_ORDER_INVALID_TOKENS"
         );
-        // Try filling the RFQ order. Swallows reverts.
+        // Try filling the Otc order. Swallows reverts.
         try
-            INativeOrdersFeature(address(this))._fillRfqOrder
+            IOtcOrdersFeature(address(this))._fillOtcOrder
                 (
                     order,
                     signature,
@@ -88,6 +89,10 @@ abstract contract MultiplexRfq is
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(takerTokenFilledAmount);
             state.boughtAmount = state.boughtAmount.safeAdd(makerTokenFilledAmount);
-        } catch {}
+        } catch (bytes memory errorData) {
+            assembly {
+                revert(add(errorData, 0x20), mload(errorData))
+            }
+        }
     }
 }

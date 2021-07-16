@@ -25,10 +25,12 @@ import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../external/ILiquidityProviderSandbox.sol";
 import "../../fixins/FixinCommon.sol";
+import "../../fixins/FixinEIP712.sol";
 import "../../migrations/LibMigrate.sol";
 import "../interfaces/IFeature.sol";
 import "../interfaces/IMultiplexFeature.sol";
 import "./MultiplexLiquidityProvider.sol";
+import "./MultiplexOtc.sol";
 import "./MultiplexRfq.sol";
 import "./MultiplexTransformERC20.sol";
 import "./MultiplexUniswapV2.sol";
@@ -42,6 +44,7 @@ contract MultiplexFeature is
     IMultiplexFeature,
     FixinCommon,
     MultiplexLiquidityProvider,
+    MultiplexOtc,
     MultiplexRfq,
     MultiplexTransformERC20,
     MultiplexUniswapV2,
@@ -69,7 +72,7 @@ contract MultiplexFeature is
         bytes32 sushiswapPairInitCodeHash
     )
         public
-        MultiplexRfq(zeroExAddress)
+        FixinEIP712(zeroExAddress)
         MultiplexLiquidityProvider(sandbox)
         MultiplexUniswapV2(
             uniswapFactory,
@@ -417,6 +420,13 @@ contract MultiplexFeature is
             );
             if (subcall.id == MultiplexSubcall.RFQ) {
                 _batchSellRfqOrder(
+                    state,
+                    params,
+                    subcall.data,
+                    inputTokenAmount
+                );
+            } else if (subcall.id == MultiplexSubcall.OTC) {
+                _batchSellOtcOrder(
                     state,
                     params,
                     subcall.data,

@@ -357,7 +357,7 @@ contract OtcOrdersFeature is
             makerSignature,
             taker
         );
-        _settleOtcOrder(
+        (takerTokenFilledAmount, makerTokenFilledAmount) = _settleOtcOrder(
             order,
             takerTokenFillAmount,
             useSelfBalance ? address(this) : taker,
