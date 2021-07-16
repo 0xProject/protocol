@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.23.0 - _July 16, 2021_
+
+    * ACryptoS (#284)
+
 ## v16.22.0 - _July 13, 2021_
 
     * IronSwap (#281)
