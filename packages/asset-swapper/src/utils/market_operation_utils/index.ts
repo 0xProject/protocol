@@ -529,6 +529,16 @@ export class MarketOperationUtils {
             opts.gasPrice,
             opts.exchangeProxyOverhead,
         );
+        // TODO(kimpers): REMOVE THIS
+        console.log(`
+            ---------------------------------\n
+            Rust Router adjusted rate: ${optimalPathRate.toString()}
+            TwoHop adjusted rate: ${bestTwoHopRate.toString()}
+            Diff ${optimalPathRate.minus(bestTwoHopRate).toString()}
+            Rust   output: ${optimalPathRate.times(inputAmount)}
+            TwoHop output: ${bestTwoHopRate.times(inputAmount)}
+            ---------------------------`);
+
         if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
             const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
             return {

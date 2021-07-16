@@ -9,6 +9,55 @@
         ]
     },
     {
+        "version": "16.21.0",
+        "changes": [
+            {
+                "note": "JetSwap",
+                "pr": 280
+            }
+        ],
+        "timestamp": 1625904026
+    },
+    {
+        "version": "16.20.0",
+        "changes": [
+            {
+                "note": "ShibaSwap",
+                "pr": 276
+            }
+        ],
+        "timestamp": 1625607277
+    },
+    {
+        "version": "16.19.1",
+        "changes": [
+            {
+                "note": "Fix LiquidityProvider fallback",
+                "pr": 272
+            }
+        ],
+        "timestamp": 1625544188
+    },
+    {
+        "version": "16.19.0",
+        "changes": [
+            {
+                "note": "Add LiquidityProvider to Polygon sources",
+                "pr": 270
+            }
+        ],
+        "timestamp": 1625190486
+    },
+    {
+        "version": "6.18.3",
+        "changes": [
+            {
+                "note": "Polygon Balance V2"
+            }
+        ],
+        "timestamp": 1624987208
+    },
+    {
         "timestamp": 1624562704,
         "version": "6.18.2",
         "changes": [

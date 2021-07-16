@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 // import { parsePoolData } from '@balancer-labs'; // TODO - upgrade to v2
 import { Pool } from '@balancer-labs/sor/dist/types';
@@ -5,7 +6,11 @@ import { gql, request } from 'graphql-request';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
-import { BALANCER_MAX_POOLS_FETCHED, BALANCER_TOP_POOLS_FETCHED, BALANCER_V2_SUBGRAPH_URL } from '../constants';
+import {
+    BALANCER_MAX_POOLS_FETCHED,
+    BALANCER_TOP_POOLS_FETCHED,
+    BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
+} from '../constants';
 
 import { parsePoolData } from './balancer_sor_v2';
 import { CacheValue, PoolsCache } from './pools_cache';
@@ -45,7 +50,8 @@ export class BalancerV2PoolsCache extends PoolsCache {
     }
 
     constructor(
-        private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL,
+        chainId: ChainId,
+        private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[chainId],
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
         private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,

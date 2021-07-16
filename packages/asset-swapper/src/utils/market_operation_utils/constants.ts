@@ -86,6 +86,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -120,6 +121,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.JetSwap,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -135,6 +137,11 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.JetSwap,
         ]),
     },
     new SourceFilters([]),
@@ -177,6 +184,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -211,6 +219,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.JetSwap,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -226,6 +235,11 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.JetSwap,
         ]),
     },
     new SourceFilters([]),
@@ -506,10 +520,6 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             POLYGON_TOKENS.DAI,
             POLYGON_TOKENS.USDT,
             POLYGON_TOKENS.WBTC,
-            POLYGON_TOKENS.QUICK,
-            POLYGON_TOKENS.DFYN,
-            POLYGON_TOKENS.BANANA,
-            POLYGON_TOKENS.WEXPOLY,
         ],
     },
     [],
@@ -1053,6 +1063,13 @@ export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const SHIBASWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x03f7724180aa6b939894b5ca4314783b0b36b329',
+    },
+    NULL_ADDRESS,
+);
+
 export const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: {
@@ -1098,6 +1115,7 @@ export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0x1c87257f5e8609940bc751a07bb085bb7f8cdbe6',
+        [ChainId.Polygon]: '0x546c79662e028b661dfb4767664d0273184e4dd1',
     },
     NULL_ADDRESS,
 );
@@ -1242,6 +1260,7 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
 export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+        [ChainId.Polygon]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
     },
     NULL_ADDRESS,
 );
@@ -1262,7 +1281,13 @@ export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
-export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2';
+
+export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',
+    },
+    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
+);
 
 export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
@@ -1366,6 +1391,14 @@ export const WAULTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const POLYDEX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Polygon]: '0xe5c67ba380fb2f70a47b489e94bced486bb8fb74',
+    },
+    NULL_ADDRESS,
+);
+
+export const JETSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0xbe65b8f75b9f20f4c522e0067a3887fada714800',
+        [ChainId.Polygon]: '0x5c6ec38fb0e2609672bdf628b1fd605a523e5923',
     },
     NULL_ADDRESS,
 );

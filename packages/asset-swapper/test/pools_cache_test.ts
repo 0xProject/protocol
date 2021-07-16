@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import * as chai from 'chai';
 import 'mocha';
 
@@ -49,7 +50,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
     });
 
     describe('BalancerV2PoolsCache', () => {
-        const cache = new BalancerV2PoolsCache();
+        const cache = new BalancerV2PoolsCache(ChainId.Mainnet);
         it('fetches pools', async () => {
             const pairs = [
                 [wethAddress, wbtcAddress],

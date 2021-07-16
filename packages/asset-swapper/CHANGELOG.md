@@ -5,6 +5,26 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.21.0 - _July 10, 2021_
+
+    * JetSwap (#280)
+
+## v16.20.0 - _July 6, 2021_
+
+    * ShibaSwap (#276)
+
+## v16.19.1 - _July 6, 2021_
+
+    * Fix LiquidityProvider fallback (#272)
+
+## v16.19.0 - _July 2, 2021_
+
+    * Add LiquidityProvider to Polygon sources (#270)
+
+## v6.18.3 - _June 29, 2021_
+
+    * Polygon Balance V2
+
 ## v6.18.2 - _June 24, 2021_
 
     * Dependencies updated

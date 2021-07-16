@@ -123,7 +123,7 @@ export class SamplerOperations {
         this.poolsCaches = poolsCaches
             ? poolsCaches
             : {
-                  [ERC20BridgeSource.BalancerV2]: new BalancerV2PoolsCache(),
+                  [ERC20BridgeSource.BalancerV2]: new BalancerV2PoolsCache(chainId),
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
               };
@@ -1278,6 +1278,8 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Dfyn:
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
+                    case ERC20BridgeSource.ShibaSwap:
+                    case ERC20BridgeSource.JetSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1538,6 +1540,8 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Dfyn:
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
+                    case ERC20BridgeSource.ShibaSwap:
+                    case ERC20BridgeSource.JetSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
