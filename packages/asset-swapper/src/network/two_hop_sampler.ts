@@ -21,6 +21,8 @@ export interface TwoHopFillData extends FillData {
     intermediateToken: Address;
 }
 
+const DEFAULT_SAMPLE_GAS = 500e3;
+
 export class TwoHopSampler {
     protected readonly _sellContract: ERC20BridgeSamplerContract;
     protected readonly _buyContract: ERC20BridgeSamplerContract;
@@ -59,26 +61,40 @@ export class TwoHopSampler {
         const [firstHopPath, secondHopPath] = [tokenAddressPath.slice(0, 2), tokenAddressPath.slice(1)];
         const firstHopCalls = await this._getMultiHopSellCallInfosAsync(sources, firstHopPath);
         const secondHopCalls = await this._getMultiHopSellCallInfosAsync(sources, secondHopPath);
+        if (firstHopCalls.length === 0 || secondHopCalls.length === 0) {
+            return null;
+        }
+        const gas = (firstHopCalls.length + secondHopCalls.length) * 500e3;
 
-        const result = await this._sellContractHelper.ethCallAsync(
-            this._sellContract.sampleTwoHopSell,
-            [
-                firstHopCalls.map(c => ({
-                    data: c.quoterData,
-                    to: c.quoterTarget,
-                })),
-                secondHopCalls.map(c => ({
-                    data: c.quoterData,
-                    to: c.quoterTarget,
-                })),
-                takerFillAmount,
-            ],
-            {
-                overrides: {
-                    ...Object.assign({}, ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides)),
+        let result;
+        try {
+            result = await this._sellContractHelper.ethCallAsync(
+                this._sellContract.sampleTwoHopSell,
+                [
+                    firstHopCalls.map(c => ({
+                        data: c.quoterData,
+                        to: c.quoterTarget,
+                        gas: new BigNumber(c.gas || DEFAULT_SAMPLE_GAS),
+                    })),
+                    secondHopCalls.map(c => ({
+                        data: c.quoterData,
+                        to: c.quoterTarget,
+                        gas: new BigNumber(c.gas || DEFAULT_SAMPLE_GAS),
+                    })),
+                    takerFillAmount,
+                ],
+                {
+                    gas,
+                    overrides: {
+                        ...Object.assign({}, ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides)),
+                    },
                 },
-            },
-        );
+            );
+        } catch (err) {
+            // tslint:disable-next-line: no-console
+            console.error(`Failed to fetch two-hop sell samples for ${sources.join(', ')}: ${err.message}`);
+            return null;
+        }
 
         if (result.outputAmount.eq(0)) {
             return null;
@@ -114,34 +130,49 @@ export class TwoHopSampler {
         const firstHopCalls = await this._getMultiHopBuyCallInfosAsync(sources, firstHopPath);
         const secondHopCalls = await this._getMultiHopBuyCallInfosAsync(sources, secondHopPath);
 
-        const result = await this._buyContractHelper.ethCallAsync(
-            this._buyContract.sampleTwoHopBuy,
-            [
-                firstHopCalls.map(c => ({
-                    data: c.quoterData,
-                    to: c.quoterTarget,
-                })),
-                secondHopCalls.map(c => ({
-                    data: c.quoterData,
-                    to: c.quoterTarget,
-                })),
-                makerFillAmount,
-            ],
-            {
-                overrides: {
-                    ...Object.assign({}, ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides)),
+        let result;
+        try {
+            result = await this._buyContractHelper.ethCallAsync(
+                this._buyContract.sampleTwoHopBuy,
+                [
+                    firstHopCalls.map(c => ({
+                        data: c.quoterData,
+                        to: c.quoterTarget,
+                        gas: new BigNumber(c.gas || DEFAULT_SAMPLE_GAS),
+                    })),
+                    secondHopCalls.map(c => ({
+                        data: c.quoterData,
+                        to: c.quoterTarget,
+                        gas: new BigNumber(c.gas || DEFAULT_SAMPLE_GAS),
+                    })),
+                    makerFillAmount,
+                ],
+                {
+                    overrides: {
+                        ...Object.assign({}, ...[...firstHopCalls, ...secondHopCalls].map(c => c.overrides)),
+                    },
                 },
-            },
-        );
+            );
+        } catch (err) {
+            // tslint:disable-next-line: no-console
+            console.error(`Failed to fetch two-hop buy samples for ${sources.join(', ')}: ${err.message}`);
+            return null;
+        }
 
         if (result.outputAmount.eq(MAX_UINT256)) {
             return null;
         }
 
+        const firstHop = firstHopCalls[result.firstHopIndex.toNumber()].resultHandler(result.firstHopResult);
+        const secondHop = secondHopCalls[result.secondHopIndex.toNumber()].resultHandler(result.secondHopResult);
+        if (!firstHop || !secondHop) {
+            return null;
+        }
+
         return {
             fillData: {
-                firstHop: firstHopCalls[result.firstHopIndex.toNumber()].resultHandler(result.firstHopResult),
-                secondHop: secondHopCalls[result.secondHopIndex.toNumber()].resultHandler(result.secondHopResult),
+                firstHop,
+                secondHop,
                 intermediateToken: tokenAddressPath[1],
             },
             input: makerFillAmount,

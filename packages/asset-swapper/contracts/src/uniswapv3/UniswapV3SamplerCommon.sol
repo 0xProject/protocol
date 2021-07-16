@@ -25,7 +25,7 @@ import "./UniswapV3.sol";
 
 contract UniswapV3SamplerCommon {
     /// @dev Gas limit for UniswapV3 calls. This is 100% a guess.
-    uint256 constant internal QUOTE_GAS = 300e3;
+    uint256 constant internal QUOTE_GAS = 500e3;
 
     function _getValidPoolPaths(
         IUniswapV3Factory factory,

@@ -47,24 +47,34 @@ contract UniswapV3SellSampler is UniswapV3SamplerCommon
 
         makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         uniswapPaths = new bytes[](takerTokenAmounts.length);
+        bytes[] memory poolUniswapPaths  = new bytes[](poolPaths.length);
+        for (uint256 i = 0; i < poolPaths.length; ++i) {
+            poolUniswapPaths[i] = _toUniswapPath(path, poolPaths[i]);
+        }
 
         for (uint256 i = 0; i < takerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
             bytes memory topUniswapPath;
             uint256 topBuyAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
-                bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
+                if (poolUniswapPaths[j].length == 0) {
+                    // Skip pools that failed previously.
+                    continue;
+                }
                 try
                     quoter.quoteExactInput
                         { gas: QUOTE_GAS }
-                        (uniswapPath, takerTokenAmounts[i])
+                        (poolUniswapPaths[j], takerTokenAmounts[i])
                         returns (uint256 buyAmount)
                 {
                     if (topBuyAmount <= buyAmount) {
                         topBuyAmount = buyAmount;
-                        topUniswapPath = uniswapPath;
+                        topUniswapPath = poolUniswapPaths[j];
                     }
-                } catch { }
+                } catch {
+                    // Blacklist the pool if it fails.
+                    poolUniswapPaths[j] = "";
+                }
             }
             // Break early if we can't complete the buys.
             if (topBuyAmount == 0) {

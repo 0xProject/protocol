@@ -10,6 +10,8 @@ import { Address, Bytes, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
 const { NULL_ADDRESS } = constants;
+const BASE_GAS = 1e6;
+const GAS_PER_SAMPLE = 3 * 500e3;
 
 interface SamplerConfig {
     quoter: Address;
@@ -72,16 +74,17 @@ export class UniswapV3Sampler extends OnChainSourceSampler<
             {
                 args: [this._config.quoter, tokenAddressPath, takerFillAmounts],
                 getDexSamplesFromResult: ([uniswapPaths, samples]) =>
-                    takerFillAmounts.map((a, i) => ({
+                    uniswapPaths.map((path, i) => ({
                         source: ERC20BridgeSource.UniswapV3,
                         fillData: {
                             router: this._config.router,
                             tokenAddressPath,
-                            uniswapPath: uniswapPaths[i],
+                            uniswapPath: path,
                         },
-                        input: a,
+                        input: takerFillAmounts[i],
                         output: samples[i],
                     })),
+                gas: BASE_GAS + GAS_PER_SAMPLE * takerFillAmounts.length * (tokenAddressPath.length - 1),
             },
         ];
     }
@@ -94,16 +97,17 @@ export class UniswapV3Sampler extends OnChainSourceSampler<
             {
                 args: [this._config.quoter, tokenAddressPath, makerFillAmounts],
                 getDexSamplesFromResult: ([uniswapPaths, samples]) =>
-                    makerFillAmounts.map((a, i) => ({
+                    uniswapPaths.map((path, i) => ({
                         source: ERC20BridgeSource.UniswapV3,
                         fillData: {
                             router: this._config.router,
                             tokenAddressPath,
-                            uniswapPath: uniswapPaths[i],
+                            uniswapPath: path,
                         },
-                        input: a,
+                        input: makerFillAmounts[i],
                         output: samples[i],
                     })),
+                gas: BASE_GAS + GAS_PER_SAMPLE * makerFillAmounts.length * (tokenAddressPath.length - 1),
             },
         ];
     }

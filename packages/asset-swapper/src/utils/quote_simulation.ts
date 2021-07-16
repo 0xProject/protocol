@@ -172,7 +172,7 @@ export function fillQuoteOrders(
                     fo.totalOrderInput,
                     fo.totalOrderInputFee,
                 );
-                const filledOutput = subFill.output.times(filledInput.div(subFill.input));
+                const filledOutput = subFill.output.times(filledInput.div(BigNumber.max(1, subFill.input)));
                 const filledInputFee = filledInput.div(fo.totalOrderInput).times(fo.totalOrderInputFee);
                 const filledOutputFee = filledOutput.div(fo.totalOrderOutput).times(fo.totalOrderOutputFee);
 

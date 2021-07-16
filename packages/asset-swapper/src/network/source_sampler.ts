@@ -62,6 +62,7 @@ export interface SamplerEthCall<
 > {
     args: Parameters<TSamplerFunction>;
     getDexSamplesFromResult(result: TReturn): Array<DexSample<TFillData>>;
+    gas?: number;
 }
 
 // Base class for a standard sampler with on-chain quote functions.
@@ -133,7 +134,7 @@ export abstract class OnChainSourceSampler<
             calls.map(async c =>
                 c
                     .getDexSamplesFromResult(
-                        await this._sellContractHelper.ethCallAsync(this._sellContractFunction, c.args),
+                        await this._sellContractHelper.ethCallAsync(this._sellContractFunction, c.args, { gas: c.gas }),
                     )
                     .filter(s => s.output),
             ),
@@ -152,7 +153,7 @@ export abstract class OnChainSourceSampler<
             calls.map(async c =>
                 c
                     .getDexSamplesFromResult(
-                        await this._buyContractHelper.ethCallAsync(this._buyContractFunction, c.args),
+                        await this._buyContractHelper.ethCallAsync(this._buyContractFunction, c.args, { gas: c.gas }),
                     )
                     .filter(s => s.output),
             ),
@@ -227,6 +228,7 @@ function createMultiHopCallInfo<TContract extends GeneratedContract, TArgs exten
     return {
         quoterData: c.data,
         quoterTarget: c.to,
+        gas: c.gas,
         overrides: c.overrides || {},
         resultHandler: resultData => resultHandler(helper.decodeCallResult(fn, resultData)),
     };

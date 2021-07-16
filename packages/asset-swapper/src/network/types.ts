@@ -80,6 +80,7 @@ export interface DexSample<TFillData extends FillData = FillData> {
 export interface MultiHopCallInfo {
     quoterData: Bytes;
     quoterTarget: Address;
+    gas?: number;
     overrides: ChainEthCallOverrides;
     resultHandler: (resultData: Bytes) => DexSample;
 }

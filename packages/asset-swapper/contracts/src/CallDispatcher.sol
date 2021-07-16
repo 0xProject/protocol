@@ -45,7 +45,7 @@ contract CallDispatcher {
             CallInfo memory c = calls[i];
             uint256 callGas = c.gas == 0 ? gasleft() : c.gas;
             (callResults[i].success, callResults[i].resultData) =
-                c.to.call{ value: c.value, gas: callGas }(c.data);
+                c.to.call{ gas: c.gas }(c.data);
         }
     }
 }

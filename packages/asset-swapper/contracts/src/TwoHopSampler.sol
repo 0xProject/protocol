@@ -29,6 +29,7 @@ contract TwoHopSampler {
     struct HopInfo {
         address to;
         bytes data;
+        uint256 gas;
     }
 
     struct TwoHopResult {
@@ -51,7 +52,8 @@ contract TwoHopSampler {
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
             bytes memory data = firstHopCalls[i].data;
             data.writeUint256(data.length - 32, sellAmount);
-            (bool didSucceed, bytes memory returnData) = address(firstHopCalls[i].to).call(data);
+            (bool didSucceed, bytes memory returnData) =
+                address(firstHopCalls[i].to).call{gas: firstHopCalls[i].gas}(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (amount > intermediateAssetAmount) {
@@ -67,7 +69,8 @@ contract TwoHopSampler {
         for (uint256 i = 0; i != secondHopCalls.length; ++i) {
             bytes memory data = secondHopCalls[i].data;
             data.writeUint256(data.length - 32, intermediateAssetAmount);
-            (bool didSucceed, bytes memory returnData) = address(secondHopCalls[i].to).call(data);
+            (bool didSucceed, bytes memory returnData) =
+                address(secondHopCalls[i].to).call{gas: secondHopCalls[i].gas}(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (amount > result.outputAmount) {
@@ -92,7 +95,8 @@ contract TwoHopSampler {
         for (uint256 i = 0; i != secondHopCalls.length; ++i) {
             bytes memory data = secondHopCalls[i].data;
             data.writeUint256(data.length - 32, buyAmount);
-            (bool didSucceed, bytes memory returnData) = address(secondHopCalls[i].to).call(data);
+            (bool didSucceed, bytes memory returnData) =
+                address(secondHopCalls[i].to).call{gas: secondHopCalls[i].gas}(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (
@@ -111,7 +115,8 @@ contract TwoHopSampler {
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
             bytes memory data = firstHopCalls[i].data;
             data.writeUint256(data.length - 32, intermediateAssetAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).call(data);
+            (bool didSucceed, bytes memory returnData) =
+                address(firstHopCalls[i].to).call{gas: firstHopCalls[i].gas}(data);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
                 if (

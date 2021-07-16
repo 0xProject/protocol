@@ -31,7 +31,7 @@ export interface ChainEthCallOpts {
 interface QueuedEthCall {
     opts: ChainEthCallOpts;
     accept: (v: Bytes) => void;
-    reject: (v: string | Bytes) => void;
+    reject: (v: Error) => void;
 }
 
 export interface CreateChainOpts {
@@ -40,7 +40,7 @@ export interface CreateChainOpts {
     maxCacheAgeMs?: number;
 }
 
-const DEFAULT_CALL_GAS_LIMIT = 32e6;
+const DEFAULT_CALL_GAS_LIMIT = 4e6;
 const DEFAULT_CALLER_ADDRESS = hexUtils.random(20);
 const DISPATCHER_CONTRACT_ADDRESS = hexUtils.random(20);
 const DISPATCHER_CONTRACT_BYTECODE = artifacts.CallDispatcher.compilerOutput.evm.deployedBytecode.object;
@@ -81,7 +81,7 @@ export class LiveChain implements Chain {
     private readonly _chainId: ChainId;
     private readonly _cachedCallResults: { [id: string]: CachedDispatchedCallResult } = {};
     private readonly _maxCacheAgeMs: number = 0;
-    private _tickTimer: NodeJS.Timeout | null = null;
+    private _lastTickTime: number = 0;
     private _queue: QueuedEthCall[] = [];
 
     public static async createAsync(opts: CreateChainOpts): Promise<Chain> {
@@ -109,11 +109,11 @@ export class LiveChain implements Chain {
         const callInfos = calls.map(c => ({
             data: c.opts.data,
             to: c.opts.to,
-            gas: new BigNumber(c.opts.gas || 0),
+            gas: new BigNumber(c.opts.gas || DEFAULT_CALL_GAS_LIMIT),
             value: c.opts.value || ZERO_AMOUNT,
         }));
         return {
-            gas: calls.reduce((s, c) => (c.opts.gas || DEFAULT_CALL_GAS_LIMIT) + s, 0) || DEFAULT_CALL_GAS_LIMIT,
+            gas: calls.reduce((s, c) => (c.opts.gas || DEFAULT_CALL_GAS_LIMIT) + s, 0) + calls.length * 50e3,
             from: DEFAULT_CALLER_ADDRESS,
             gasPrice: BigNumber.sum(...calls.map(c => c.opts.gasPrice || 0)),
             to: DISPATCHER_CONTRACT.address,
@@ -133,7 +133,7 @@ export class LiveChain implements Chain {
     }
 
     protected async _startAsync(tickFrequency: number): Promise<void> {
-        await this._tickAsync(tickFrequency, true);
+        await this._tickAsync(tickFrequency);
     }
 
     public async ethCallAsync(opts: ChainEthCallOpts): Promise<Bytes> {
@@ -186,18 +186,18 @@ export class LiveChain implements Chain {
         };
     }
 
-    private async _tickAsync(tickFrequency: number, bootstrap: boolean = false): Promise<void> {
-        if (!bootstrap && !this._tickTimer) {
+    private async _tickAsync(tickFrequency: number): Promise<void> {
+        if (Date.now() - this._lastTickTime < tickFrequency) {
             return;
         }
-        this._tickTimer = null;
         this._pruneCache();
         {
             const queue = this._queue;
             this._queue = [];
             void this._executeAsync(queue);
         }
-        this._tickTimer = setTimeout(async () => this._tickAsync(tickFrequency), tickFrequency);
+        this._lastTickTime = Date.now();
+        setTimeout(async () => this._tickAsync(tickFrequency), tickFrequency + 1);
     }
 
     private _pruneCache(): void {
@@ -216,6 +216,9 @@ export class LiveChain implements Chain {
     }
 
     private async _dispatchBatchAsync(calls: QueuedEthCall[]): Promise<void> {
+        if (calls.length === 0) {
+            return;
+        }
         const rejectBatch = (err: any) => {
             calls.forEach(c => c.reject(err));
         };
@@ -238,7 +241,7 @@ export class LiveChain implements Chain {
         }
         const results = DISPATCHER_CONTRACT.getABIDecodedReturnData<DispatchedCallResult[]>('dispatch', rawResultData);
         if (results.length !== calls.length) {
-            rejectBatch(`Expected dispatcher result to be the same length as number of calls`);
+            rejectBatch(new Error(`Expected dispatcher result to be the same length as number of calls`));
             return;
         }
         // resolve each call in the batch.
@@ -259,6 +262,9 @@ function* generateCallBatches(queue: QueuedEthCall[]): Generator<QueuedEthCall[]
                 nextQueue.push(c);
             }
         }
+        if (batch.length === 0) {
+            break;
+        }
         yield batch;
     }
 }
@@ -267,14 +273,16 @@ function resolveQueuedCall(c: QueuedEthCall, r: DispatchedCallResult): void {
     if (r.success) {
         c.accept(r.resultData);
     } else {
-        c.reject(tryDecodeStringRevertErrorResult(r.resultData) || `EVM call reverted: ${r.resultData}`);
+        c.reject(new Error(tryDecodeStringRevertErrorResult(r.resultData) || `EVM call reverted: ${r.resultData}`));
     }
 }
 
 function tryDecodeStringRevertErrorResult(rawResultData: Bytes): string | undefined {
     if (rawResultData.startsWith('0x08c379a0')) {
         const strLen: number = new BigNumber(hexUtils.slice(rawResultData, 4, 36)).toNumber();
-        return Buffer.from(hexUtils.slice(rawResultData, 68, 68 + strLen).slice(2), 'hex').toString();
+        return Buffer.from(hexUtils.slice(rawResultData, 68, 68 + strLen).slice(2), 'hex')
+            .filter(b => b === 0)
+            .toString();
     }
     return;
 }
@@ -283,8 +291,9 @@ function canBatchCallWith(ethCall: QueuedEthCall, batch: QueuedEthCall[]): boole
     if (batch.length === 0) {
         return true;
     }
+    const batchGas = batch.reduce((a, v) => a + (v.opts.gas || DEFAULT_CALL_GAS_LIMIT), 0);
     // TODO: have the sources provide realistic gas limits and split based on that.
-    if (batch.length >= 48) {
+    if ((ethCall.opts.gas || DEFAULT_CALL_GAS_LIMIT) + batchGas >= 512e6) {
         // TODO: Make this number configurable.
         return false;
     }

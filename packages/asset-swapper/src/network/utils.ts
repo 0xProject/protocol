@@ -145,8 +145,12 @@ export class ContractHelper<TBaseContract extends GeneratedContract> {
         args: Parameters<TContractFunction>,
         callOpts: Partial<ChainEthCallOpts> = {},
     ): Promise<TReturn> {
-        const resultData = await this.chain.ethCallAsync(this.encodeCall(fn, args, callOpts));
-        return this.decodeCallResult(fn, resultData);
+        try {
+            const resultData = await this.chain.ethCallAsync(this.encodeCall(fn, args, callOpts));
+            return this.decodeCallResult(fn, resultData);
+        } catch (err) {
+            throw new Error(`Failed to call ${fn.name}: ${err.message || err}`);
+        }
     }
 
     public encodeCall<TArgs extends any[], TReturn>(

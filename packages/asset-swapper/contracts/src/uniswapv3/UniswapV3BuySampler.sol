@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./UniswapV3SamplerCommon.sol";
 
 contract UniswapV3BuySampler is UniswapV3SamplerCommon {
+
     /// @dev Sample buy quotes from UniswapV3.
     /// @param quoter UniswapV3 Quoter contract.
     /// @param path Token route. Should be takerToken -> makerToken.
@@ -47,21 +48,28 @@ contract UniswapV3BuySampler is UniswapV3SamplerCommon {
 
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         uniswapPaths = new bytes[](makerTokenAmounts.length);
+        bytes[] memory poolUniswapPaths = new bytes[](poolPaths.length);
+        for (uint256 i = 0; i < poolPaths.length; ++i) {
+            // quoter requires path to be reversed for buys.
+            poolUniswapPaths[i] = _toUniswapPath(
+                reversedPath,
+                _reversePoolPath(poolPaths[i])
+            );
+        }
 
         for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
             bytes memory topUniswapPath;
             uint256 topSellAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
-                // quoter requires path to be reversed for buys.
-                bytes memory uniswapPath = _toUniswapPath(
-                    reversedPath,
-                    _reversePoolPath(poolPaths[j])
-                );
+                if (poolUniswapPaths[j].length == 0) {
+                    // Skip pools that failed previously.
+                    continue;
+                }
                 try
                     quoter.quoteExactOutput
                         { gas: QUOTE_GAS }
-                        (uniswapPath, makerTokenAmounts[i])
+                        (poolUniswapPaths[j], makerTokenAmounts[i])
                         returns (uint256 sellAmount)
                 {
                     if (topSellAmount == 0 || topSellAmount >= sellAmount) {
@@ -69,7 +77,10 @@ contract UniswapV3BuySampler is UniswapV3SamplerCommon {
                         // But the output path should still be encoded for sells.
                         topUniswapPath = _toUniswapPath(path, poolPaths[j]);
                     }
-                } catch {}
+                } catch {
+                    // Blacklist the pool if it fails.
+                    poolUniswapPaths[j] = "";
+                }
             }
             // Break early if we can't complete the buys.
             if (topSellAmount == 0) {
