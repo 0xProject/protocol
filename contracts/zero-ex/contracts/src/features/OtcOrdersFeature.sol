@@ -73,6 +73,8 @@ contract OtcOrdersFeature is
         _registerFeatureFunction(this.fillOtcOrder.selector);
         _registerFeatureFunction(this.fillOtcOrderWithEth.selector);
         _registerFeatureFunction(this.fillTakerSignedOtcOrder.selector);
+        _registerFeatureFunction(this.batchFillTakerSignedOtcOrders.selector);
+        _registerFeatureFunction(this._fillOtcOrder.selector);
         _registerFeatureFunction(this.getOtcOrderInfo.selector);
         _registerFeatureFunction(this.getOtcOrderHash.selector);
         _registerFeatureFunction(this.lastOtcTxOriginNonce.selector);
@@ -263,6 +265,64 @@ contract OtcOrdersFeature is
             takerTokenFilledAmount,
             makerTokenFilledAmount
         );
+    }
+
+    /// @dev Fills multiple taker-signed OTC orders.
+    /// @param orders Array of OTC orders.
+    /// @param makerSignatures Array of maker signatures for each order.
+    /// @param takerSignatures Array of taker signatures for each order.
+    /// @param unwrapWeth Array of booleans representing whether or not 
+    ///        to unwrap bought WETH into ETH for each order. Should be set 
+    ///        to false if the maker token is not WETH.
+    /// @param revertIfIncomplete If true, reverts if this function fails to
+    ///        fill any individual order.
+    /// @return takerTokenFilledAmounts Array of amounts filled, in taker token.
+    /// @return makerTokenFilledAmounts Array of amounts filled, in maker token.
+    function batchFillTakerSignedOtcOrders(
+        LibNativeOrder.OtcOrder[] memory orders,
+        LibSignature.Signature[] memory makerSignatures,
+        LibSignature.Signature[] memory takerSignatures,
+        bool[] memory unwrapWeth,
+        bool revertIfIncomplete
+    )
+        public
+        override
+        returns (
+            uint128[] memory takerTokenFilledAmounts,
+            uint128[] memory makerTokenFilledAmounts
+        )
+    {
+        require(
+            orders.length == makerSignatures.length && 
+            orders.length == takerSignatures.length &&
+            orders.length == unwrapWeth.length,
+            "OtcOrdersFeature::batchFillTakerSignedOtcOrders/MISMATCHED_ARRAY_LENGTHS"
+        );
+        takerTokenFilledAmounts = new uint128[](orders.length);
+        makerTokenFilledAmounts = new uint128[](orders.length);
+        for (uint256 i = 0; i != orders.length; i++) {
+            // Swallow reverts
+            (bool success, ) = _implementation.delegatecall(
+                abi.encodeWithSelector(
+                    this.fillTakerSignedOtcOrder.selector,
+                    orders[i],
+                    makerSignatures[i],
+                    takerSignatures[i],
+                    unwrapWeth[i]
+                )
+            );
+            if (success) {
+                takerTokenFilledAmounts[i] = orders[i].takerAmount;
+                makerTokenFilledAmounts[i] = orders[i].makerAmount;
+            } else if (revertIfIncomplete) {
+                bytes32 orderHash = getOtcOrderHash(orders[i]);
+                LibNativeOrdersRichErrors.BatchFillIncompleteError(
+                    orderHash,
+                    0,
+                    orders[i].takerAmount
+                ).rrevert();
+            }
+        }
     }
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.

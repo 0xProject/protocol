@@ -143,8 +143,6 @@ abstract contract MultiplexUniswapV2 is
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(sellAmount);
             state.boughtAmount = state.boughtAmount.safeAdd(boughtAmount);
-        } else {
-            assembly { revert(add(resultData, 32), mload(resultData)) }
         }
     }
 
