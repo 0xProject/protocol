@@ -16,7 +16,18 @@ const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
 
 type FillWithOutputFee = Fill & { outputFee: BigNumber };
 
+const toAdjustedOutput = (side: MarketOperation, output: BigNumber, outputFee: BigNumber) => {
+    if (side === MarketOperation.Buy) {
+        throw new Error('Buys not yet implemented in the Rust router');
+    }
+
+    // TODO(kimpers): change for u64 fee refactor
+    return output.plus(outputFee);
+};
+
 function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
+    // TODO: handle buys
+    const side = MarketOperation.Sell;
     // Track sample id's to integers (required by rust router)
     const sampleIdLookup: { [key: string]: number } = {};
     let sampleIdCounter = 0;
@@ -44,7 +55,7 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
                 parsedFill.parent = parent;
                 parsedFill.input = parsedFill.input.plus(parent.input);
                 parsedFill.output = parsedFill.output.plus(parent.output);
-                parsedFill.adjustedOutput = parsedFill.output.plus(outputFee);
+                parsedFill.adjustedOutput = toAdjustedOutput(side, parsedFill.output, outputFee);
             }
             _adjustedFills.push(parsedFill);
         }
@@ -60,7 +71,7 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
 
     // TODO(kimpers): replace all numbers with BigNumber or BigInt?
     const rustArgs: OptimizerCapture = {
-        side: 'Sell',
+        side,
         // HACK: There can be off by 1 errors, somewhere...
         targetInput: input.plus(1).toNumber(),
         pathsIn,
@@ -69,7 +80,6 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
     const before = performance.now();
     const rustRoute: number[] = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
     console.log('Rust perf (real):', performance.now() - before);
-    console.log(`SELLING ${input.toString()}`);
 
     const fillsByPathId = _.groupBy(_.flatten(adjustedParsedFills), o => o.sourcePathId);
 
@@ -86,7 +96,6 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
         // Set the first fill just a tad higher
         const adjInput =
             totalInputs.lt(input) && adjustedFills.length === 0 ? rustInput.plus(input.minus(totalInputs)) : rustInput;
-        console.log(`RUST ADJUSTED INPUT ${adjInput.toString()}, orig. ${rustInput.toString()}`);
         // Rust router has chosen this source;
         const sourcePathKey = sourcePathKeys[i];
         const fills = fillsByPathId[sourcePathKey];
@@ -111,14 +120,17 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
                         .dividedBy(left.input.minus(right.input))
                         .times(rustInput.minus(right.input))
                         .plus(rightPrice);
+                    // TODO(kimpers): REMOVE THIS
                     const midPrice = leftPrice.plus(rightPrice).dividedBy(2);
                     console.log(
                         `Left price ${leftPrice.toString()}, right: ${rightPrice.toString()}, scaledPrice: ${scaledPrice.toString()}, midPrice ${midPrice.toString()}`,
                     );
+                    const output = scaledPrice.times(rustInput).decimalPlaces(0);
                     fill = {
                         ...right, // default to the greater (for gas used)
                         input: rustInput,
-                        output: scaledPrice.times(rustInput).decimalPlaces(0),
+                        output,
+                        adjustedOutput: toAdjustedOutput(side, output, right.outputFee),
                     };
                 } else {
                     fill = left || right;
