@@ -1,7 +1,6 @@
 import { blockchainTests, constants, describe, expect, verifyEventsFromLogs } from '@0x/contracts-test-utils';
 import { OrderStatus, OtcOrder, RevertErrors, SignatureType } from '@0x/protocol-utils';
-import { BigNumber } from '@0x/utils';
-
+import { BigNumber, logUtils } from '@0x/utils';
 import { IOwnableFeatureContract, IZeroExContract, IZeroExEvents } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { abis } from '../utils/abis';
@@ -19,8 +18,9 @@ import {
     TestWethContract,
 } from '../wrappers';
 
-blockchainTests.resets('OtcOrdersFeature', env => {
+blockchainTests.resets.only('OtcOrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT: ZERO } = constants;
+    const ETH_TOKEN_ADDRESS = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
     let maker: string;
     let taker: string;
     let notMaker: string;
@@ -395,7 +395,7 @@ blockchainTests.resets('OtcOrdersFeature', env => {
         it('reverts if `unwrapWeth` is true but maker token is not WETH', async () => {
             const order = getTestOtcOrder();
             const tx = testUtils.fillOtcOrderAsync(order, order.takerAmount, taker, true);
-            return expect(tx).to.revertWith('OtcOrdersFeature/INVALID_UNWRAP_WETH');
+            return expect(tx).to.revertWith('OtcOrdersFeature::fillOtcOrder/MAKER_TOKEN_NOT_WETH');
         });
 
         it('allows for fills on orders signed by a approved signer', async () => {
@@ -474,7 +474,7 @@ blockchainTests.resets('OtcOrdersFeature', env => {
         });
     });
     describe('fillOtcOrderWithEth()', () => {
-        it('Can fill an order with ETH', async () => {
+        it('Can fill an order with ETH (takerToken=WETH)', async () => {
             const order = getTestOtcOrder({ takerToken: wethToken.address });
             const receipt = await testUtils.fillOtcOrderWithEthAsync(order);
             verifyEventsFromLogs(
@@ -484,7 +484,25 @@ blockchainTests.resets('OtcOrdersFeature', env => {
             );
             await assertExpectedFinalBalancesFromOtcOrderFillAsync(order);
         });
-        it('Can partially fill an order with ETH', async () => {
+        it('Can fill an order with ETH (takerToken=ETH)', async () => {
+            const order = getTestOtcOrder({ takerToken: ETH_TOKEN_ADDRESS });
+            const makerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(maker);
+            const receipt = await testUtils.fillOtcOrderWithEthAsync(order);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [testUtils.createOtcOrderFilledEventArgs(order)],
+                IZeroExEvents.OtcOrderFilled,
+            );
+            const takerBalance = await new TestMintableERC20TokenContract(order.makerToken, env.provider)
+                .balanceOf(taker)
+                .callAsync();
+            expect(takerBalance, 'taker balance').to.bignumber.eq(order.makerAmount);
+            const makerEthBalanceAfter = await env.web3Wrapper.getBalanceInWeiAsync(maker);
+            expect(makerEthBalanceAfter.minus(makerEthBalanceBefore), 'maker balance').to.bignumber.equal(
+                order.takerAmount,
+            );
+        });
+        it('Can partially fill an order with ETH (takerToken=WETH)', async () => {
             const order = getTestOtcOrder({ takerToken: wethToken.address });
             const fillAmount = order.takerAmount.minus(1);
             const receipt = await testUtils.fillOtcOrderWithEthAsync(order, fillAmount);
@@ -495,7 +513,27 @@ blockchainTests.resets('OtcOrdersFeature', env => {
             );
             await assertExpectedFinalBalancesFromOtcOrderFillAsync(order, fillAmount);
         });
-        it('Can refund excess ETH is msg.value > order.takerAmount', async () => {
+        it('Can partially fill an order with ETH (takerToken=ETH)', async () => {
+            const order = getTestOtcOrder({ takerToken: ETH_TOKEN_ADDRESS });
+            const fillAmount = order.takerAmount.minus(1);
+            const makerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(maker);
+            const receipt = await testUtils.fillOtcOrderWithEthAsync(order, fillAmount);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [testUtils.createOtcOrderFilledEventArgs(order, fillAmount)],
+                IZeroExEvents.OtcOrderFilled,
+            );
+            const { makerTokenFilledAmount, takerTokenFilledAmount } = computeOtcOrderFilledAmounts(order, fillAmount);
+            const takerBalance = await new TestMintableERC20TokenContract(order.makerToken, env.provider)
+                .balanceOf(taker)
+                .callAsync();
+            expect(takerBalance, 'taker balance').to.bignumber.eq(makerTokenFilledAmount);
+            const makerEthBalanceAfter = await env.web3Wrapper.getBalanceInWeiAsync(maker);
+            expect(makerEthBalanceAfter.minus(makerEthBalanceBefore), 'maker balance').to.bignumber.equal(
+                takerTokenFilledAmount,
+            );
+        });
+        it('Can refund excess ETH is msg.value > order.takerAmount (takerToken=WETH)', async () => {
             const order = getTestOtcOrder({ takerToken: wethToken.address });
             const fillAmount = order.takerAmount.plus(420);
             const takerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(taker);
@@ -509,10 +547,34 @@ blockchainTests.resets('OtcOrdersFeature', env => {
             expect(takerEthBalanceBefore.minus(takerEthBalanceAfter)).to.bignumber.equal(order.takerAmount);
             await assertExpectedFinalBalancesFromOtcOrderFillAsync(order);
         });
-        it('Cannot fill an order if taker token is not WETH', async () => {
+        it('Can refund excess ETH is msg.value > order.takerAmount (takerToken=ETH)', async () => {
+            const order = getTestOtcOrder({ takerToken: ETH_TOKEN_ADDRESS });
+            const fillAmount = order.takerAmount.plus(420);
+            const takerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(taker);
+            const makerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(maker);
+            const receipt = await testUtils.fillOtcOrderWithEthAsync(order, fillAmount);
+            verifyEventsFromLogs(
+                receipt.logs,
+                [testUtils.createOtcOrderFilledEventArgs(order)],
+                IZeroExEvents.OtcOrderFilled,
+            );
+            const takerEthBalanceAfter = await env.web3Wrapper.getBalanceInWeiAsync(taker);
+            expect(takerEthBalanceBefore.minus(takerEthBalanceAfter), 'taker eth balance').to.bignumber.equal(
+                order.takerAmount,
+            );
+            const takerBalance = await new TestMintableERC20TokenContract(order.makerToken, env.provider)
+                .balanceOf(taker)
+                .callAsync();
+            expect(takerBalance, 'taker balance').to.bignumber.eq(order.makerAmount);
+            const makerEthBalanceAfter = await env.web3Wrapper.getBalanceInWeiAsync(maker);
+            expect(makerEthBalanceAfter.minus(makerEthBalanceBefore), 'maker balance').to.bignumber.equal(
+                order.takerAmount,
+            );
+        });
+        it('Cannot fill an order if taker token is not ETH or WETH', async () => {
             const order = getTestOtcOrder();
             const tx = testUtils.fillOtcOrderWithEthAsync(order);
-            return expect(tx).to.revertWith('OtcOrdersFeature/INVALID_WRAP_ETH');
+            return expect(tx).to.revertWith('OtcOrdersFeature::fillOtcOrderWithEth/INVALID_TAKER_TOKEN');
         });
     });
 
@@ -578,15 +640,23 @@ blockchainTests.resets('OtcOrdersFeature', env => {
             const order = getTestOtcOrder({ taker, txOrigin });
             const tx = testUtils.fillTakerSignedOtcOrderAsync(order, txOrigin, notTaker);
             return expect(tx).to.revertWith(
-                new RevertErrors.NativeOrders.OrderNotSignedByTakerError(order.getHash(), notTaker, taker),
+                new RevertErrors.NativeOrders.OrderNotFillableByTakerError(order.getHash(), notTaker, taker),
             );
         });
 
         it('cannot fill order with bad maker signature', async () => {
             const order = getTestOtcOrder({ taker, txOrigin });
-            // Overwrite chainId to result in a different hash and therefore different
-            // signature.
-            const tx = testUtils.fillTakerSignedOtcOrderAsync(order.clone({ chainId: 1234 }));
+            const anotherOrder = getTestOtcOrder({ taker, txOrigin });
+            await testUtils.prepareBalancesForOrdersAsync([order], taker);
+            const tx = zeroEx
+                .fillTakerSignedOtcOrder(
+                    order,
+                    await anotherOrder.getSignatureWithProviderAsync(env.provider),
+                    await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, taker),
+                    false,
+                )
+                .awaitTransactionSuccessAsync({ from: txOrigin });
+
             return expect(tx).to.revertWith(
                 new RevertErrors.NativeOrders.OrderNotSignedByMakerError(order.getHash(), undefined, order.maker),
             );
@@ -702,52 +772,7 @@ blockchainTests.resets('OtcOrdersFeature', env => {
         it('reverts if `unwrapWeth` is true but maker token is not WETH', async () => {
             const order = getTestOtcOrder({ taker, txOrigin });
             const tx = testUtils.fillTakerSignedOtcOrderAsync(order, txOrigin, taker, true);
-            return expect(tx).to.revertWith('OtcOrdersFeature/INVALID_UNWRAP_WETH');
-        });
-
-        it('allows for fills on orders signed by a approved signer (taker)', async () => {
-            const order = getTestOtcOrder({ txOrigin, taker: contractWallet.address });
-            await testUtils.prepareBalancesForOrdersAsync([order], contractWallet.address);
-            // allow signer
-            await contractWallet
-                .registerAllowedOrderSigner(contractWalletSigner, true)
-                .awaitTransactionSuccessAsync({ from: contractWalletOwner });
-            // fill should succeed
-            const receipt = await zeroEx
-                .fillTakerSignedOtcOrder(
-                    order,
-                    await order.getSignatureWithProviderAsync(env.provider),
-                    await order.getSignatureWithProviderAsync(
-                        env.provider,
-                        SignatureType.EthSign,
-                        contractWalletSigner,
-                    ),
-                    false,
-                )
-                .awaitTransactionSuccessAsync({ from: txOrigin });
-            verifyEventsFromLogs(
-                receipt.logs,
-                [testUtils.createOtcOrderFilledEventArgs(order)],
-                IZeroExEvents.OtcOrderFilled,
-            );
-            await assertExpectedFinalBalancesFromOtcOrderFillAsync(order);
-        });
-
-        it(`doesn't allow fills with an unapproved signer (taker)`, async () => {
-            const order = getTestOtcOrder({ txOrigin, taker: contractWallet.address });
-            await testUtils.prepareBalancesForOrdersAsync([order], contractWallet.address);
-            // fill should succeed
-            const tx = zeroEx
-                .fillTakerSignedOtcOrder(
-                    order,
-                    await order.getSignatureWithProviderAsync(env.provider),
-                    await order.getSignatureWithProviderAsync(env.provider, SignatureType.EthSign, notTaker),
-                    false,
-                )
-                .awaitTransactionSuccessAsync({ from: txOrigin });
-            return expect(tx).to.revertWith(
-                new RevertErrors.NativeOrders.OrderNotSignedByTakerError(order.getHash(), notTaker, order.taker),
-            );
+            return expect(tx).to.revertWith('OtcOrdersFeature::fillTakerSignedOtcOrder/MAKER_TOKEN_NOT_WETH');
         });
     });
 });

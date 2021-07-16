@@ -94,6 +94,29 @@ interface IOtcOrdersFeature {
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
+    /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
+    ///      Internal variant.
+    /// @param order The OTC order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerTokenFillAmount Maximum taker token amount to fill this
+    ///        order with.
+    /// @param taker The address to fill the order in the context of.
+    /// @param useSelfBalance Whether to use the Exchange Proxy's balance
+    ///        of input tokens.
+    /// @param recipient The recipient of the bought maker tokens.
+    /// @return takerTokenFilledAmount How much taker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function _fillOtcOrder(
+        LibNativeOrder.OtcOrder calldata order,
+        LibSignature.Signature calldata makerSignature,
+        uint128 takerTokenFillAmount,
+        address taker,
+        bool useSelfBalance,
+        address recipient
+    )
+        external
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+
     /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.
     /// @return orderInfo Info about the order.
