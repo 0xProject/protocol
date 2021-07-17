@@ -293,7 +293,7 @@ function canBatchCallWith(ethCall: QueuedEthCall, batch: QueuedEthCall[]): boole
     }
     const batchGas = batch.reduce((a, v) => a + (v.opts.gas || DEFAULT_CALL_GAS_LIMIT), 0);
     // TODO: have the sources provide realistic gas limits and split based on that.
-    if ((ethCall.opts.gas || DEFAULT_CALL_GAS_LIMIT) + batchGas >= 512e6) {
+    if ((ethCall.opts.gas || DEFAULT_CALL_GAS_LIMIT) + batchGas >= 384e6) {
         // TODO: Make this number configurable.
         return false;
     }

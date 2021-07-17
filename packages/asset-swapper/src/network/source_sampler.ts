@@ -61,8 +61,8 @@ export interface SamplerEthCall<
     TReturn = UnwrapContractFunctionReturnType<ReturnType<TSamplerFunction>>
 > {
     args: Parameters<TSamplerFunction>;
-    getDexSamplesFromResult(result: TReturn): Array<DexSample<TFillData>>;
     gas?: number;
+    getDexSamplesFromResult(result: TReturn): Array<DexSample<TFillData>>;
 }
 
 // Base class for a standard sampler with on-chain quote functions.

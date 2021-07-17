@@ -45,6 +45,8 @@ const DEFAULT_SOURCES = SourceFilters.all().exclude([ERC20BridgeSource.Native, E
 
 export class SassySampler {
     public readonly availableSources: ERC20BridgeSource[];
+    private readonly _liquidityScores: { [k in ERC20BridgeSource]: { [tokenPath: string]: number } };
+
     public static async createAsync(opts: SassySamplerCreateOpts): Promise<SassySampler> {
         const sources = opts.sources || DEFAULT_SOURCES;
         const samplers = Object.assign(
@@ -62,8 +64,6 @@ export class SassySampler {
         );
     }
 
-    private _liquidityScores: { [k in ERC20BridgeSource]: { [tokenPath: string]: number } };
-
     protected constructor(
         public readonly chain: Chain,
         private readonly _samplers: SourceSamplerMap,
@@ -72,8 +72,8 @@ export class SassySampler {
     ) {
         this.availableSources = Object.keys(_samplers) as ERC20BridgeSource[];
         this._liquidityScores = Object.assign({}, ...Object.values(ERC20BridgeSource).map(s => ({ [s]: {} })));
-        // Heal liquidity scores by 5% every 10 seconds.
-        setInterval(() => this._healLiquidityScores(0.05), 10e3);
+        // Heal liquidity scores by 1% every 10 seconds.
+        setInterval(() => this._healLiquidityScores(0.01), 10e3);
     }
 
     public async getMedianSellRateAsync(
@@ -187,6 +187,9 @@ export class SassySampler {
         tokenPath: Address[],
         takerAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
+        if (takerAmounts.every(t => t.lte(0))) {
+            return [];
+        }
         const sampler = this._findSampler(source);
         if (!sampler) {
             return [];
@@ -207,6 +210,9 @@ export class SassySampler {
         tokenPath: Address[],
         takerAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
+        if (takerAmounts.every(t => t.lte(0))) {
+            return [];
+        }
         const sampler = this._findSampler(source);
         if (!sampler) {
             return [];
@@ -274,9 +280,9 @@ export class SassySampler {
 
     private _healLiquidityScores(healAmount: number): void {
         for (const source in this._liquidityScores) {
-            const paths = this._liquidityScores[source as ERC20BridgeSource];
-            for (const pathId in paths) {
-                paths[pathId] *= 1 + healAmount;
+            const scores = this._liquidityScores[source as ERC20BridgeSource];
+            for (const pathId in scores) {
+                scores[pathId] = Math.min(scores[pathId] + healAmount, 1);
             }
         }
     }
@@ -317,7 +323,7 @@ async function createSourceSamplerAsync(
         case ERC20BridgeSource.CurveV2:
         case ERC20BridgeSource.FirebirdOneSwap:
         case ERC20BridgeSource.IronSwap:
-        case ERC20BridgeSource.ACryptoS:
+        case ERC20BridgeSource.ACryptos:
             return CurveSampler.createAsync(chain, source);
         case ERC20BridgeSource.Dodo:
             return DodoV1Sampler.createAsync(chain);
