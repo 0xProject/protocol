@@ -75,6 +75,11 @@
         "wsrun": "^5.2.4"
     },
     "resolutions": {
-        "merkle-patricia-tree": "^2.3.2"
+        "merkle-patricia-tree": "^2.3.2",
+        "typeorm": "^0.2.25",
+        "underscore": "^1.12.1",
+        "url-parse": "^1.5.0",
+        "elliptic": "^6.5.4",
+        "bl": "^1.2.3"
     }
 }
