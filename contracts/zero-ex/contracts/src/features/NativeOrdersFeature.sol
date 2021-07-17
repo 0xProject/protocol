@@ -34,7 +34,7 @@ contract NativeOrdersFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LimitOrders";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 2, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 3, 0);
 
     constructor(
         address zeroExAddress,

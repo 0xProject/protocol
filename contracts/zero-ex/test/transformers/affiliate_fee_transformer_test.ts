@@ -89,7 +89,7 @@ blockchainTests.resets('AffiliateFeeTransformer', env => {
             .rawExecuteTransform(transformer.address, {
                 data,
                 sender: randomAddress(),
-                taker: randomAddress(),
+                recipient: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
         expect(await getBalancesAsync(host.address)).to.deep.eq(ZERO_BALANCES);
@@ -119,7 +119,7 @@ blockchainTests.resets('AffiliateFeeTransformer', env => {
             .rawExecuteTransform(transformer.address, {
                 data,
                 sender: randomAddress(),
-                taker: randomAddress(),
+                recipient: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
         expect(await getBalancesAsync(host.address)).to.deep.eq(ZERO_BALANCES);
@@ -149,7 +149,7 @@ blockchainTests.resets('AffiliateFeeTransformer', env => {
             .rawExecuteTransform(transformer.address, {
                 data,
                 sender: randomAddress(),
-                taker: randomAddress(),
+                recipient: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
         expect(await getBalancesAsync(host.address)).to.deep.eq({

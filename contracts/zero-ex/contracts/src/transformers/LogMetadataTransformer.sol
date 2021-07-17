@@ -41,7 +41,7 @@ contract LogMetadataTransformer is
         override
         returns (bytes4 success)
     {
-        emit TransformerMetadata(context.sender, context.taker, context.data);
+        emit TransformerMetadata(context.sender, context.recipient, context.data);
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
 }

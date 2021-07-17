@@ -22,6 +22,12 @@ pragma experimental ABIEncoderV2;
 
 
 contract TestMintableERC20Token {
+    event Transfer(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    );
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -81,6 +87,7 @@ contract TestMintableERC20Token {
         require(balanceOf[from] >= amount, "TestMintableERC20Token/INSUFFICIENT_FUNDS");
         balanceOf[from] -= amount;
         balanceOf[to] += amount;
+        emit Transfer(address(this), from, to, amount);
         return true;
     }
 

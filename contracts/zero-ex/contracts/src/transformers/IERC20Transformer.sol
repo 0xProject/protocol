@@ -30,9 +30,9 @@ interface IERC20Transformer {
     struct TransformContext {
         // The caller of `TransformERC20.transformERC20()`.
         address payable sender;
-        // taker The taker address, which may be distinct from `sender` in the case
+        // The recipient address, which may be distinct from `sender` e.g. in
         // meta-transactions.
-        address payable taker;
+        address payable recipient;
         // Arbitrary data to pass to the transformer.
         bytes data;
     }

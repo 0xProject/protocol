@@ -72,8 +72,6 @@ blockchainTests('LiquidityProvider feature', env => {
             env.provider,
             env.txDefaults,
             artifacts,
-            token.address,
-            weth.address,
         );
     });
     blockchainTests.resets('Sandbox', () => {

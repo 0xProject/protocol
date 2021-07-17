@@ -126,13 +126,18 @@ interface INativeOrdersFeature is
     /// @param signature The order signature.
     /// @param takerTokenFillAmount Maximum taker token to fill this order with.
     /// @param taker The order taker.
+    /// @param useSelfBalance Whether to use the ExchangeProxy's transient
+    ///        balance of taker tokens to fill the order.
+    /// @param recipient The recipient of the maker tokens.
     /// @return takerTokenFilledAmount How much maker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function _fillRfqOrder(
         LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount,
-        address taker
+        address taker,
+        bool useSelfBalance,
+        address recipient
     )
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);

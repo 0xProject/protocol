@@ -80,7 +80,7 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                taker,
+                recipient: taker,
                 sender: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
@@ -102,7 +102,7 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                taker,
+                recipient: taker,
                 sender: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
@@ -124,7 +124,7 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                taker,
+                recipient: taker,
                 sender: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
@@ -146,7 +146,7 @@ blockchainTests.resets('PayTakerTransformer', env => {
         await host
             .rawExecuteTransform(transformer.address, {
                 data,
-                taker,
+                recipient: taker,
                 sender: randomAddress(),
             })
             .awaitTransactionSuccessAsync();

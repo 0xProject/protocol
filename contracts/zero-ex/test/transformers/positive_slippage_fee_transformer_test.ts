@@ -70,7 +70,7 @@ blockchainTests.resets('PositiveSlippageFeeTransformer', env => {
             .rawExecuteTransform(transformer.address, {
                 data,
                 sender: randomAddress(),
-                taker: randomAddress(),
+                recipient: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
         expect(await getBalancesAsync(host.address)).to.deep.eq(beforeBalanceHost);
@@ -92,7 +92,7 @@ blockchainTests.resets('PositiveSlippageFeeTransformer', env => {
             .rawExecuteTransform(transformer.address, {
                 data,
                 sender: randomAddress(),
-                taker: randomAddress(),
+                recipient: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
         expect(await getBalancesAsync(host.address)).to.deep.eq(beforeBalanceHost);
@@ -112,7 +112,7 @@ blockchainTests.resets('PositiveSlippageFeeTransformer', env => {
             .rawExecuteTransform(transformer.address, {
                 data,
                 sender: randomAddress(),
-                taker: randomAddress(),
+                recipient: randomAddress(),
             })
             .awaitTransactionSuccessAsync();
         expect(await getBalancesAsync(host.address)).to.deep.eq({

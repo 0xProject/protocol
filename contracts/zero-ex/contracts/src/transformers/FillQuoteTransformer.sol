@@ -137,8 +137,8 @@ contract FillQuoteTransformer is
     /// @dev Mask of the lower 255 bits of a uint256 value.
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
     /// @dev If `refundReceiver` is set to this address, unpsent
-    ///      protocol fees will be sent to the taker.
-    address private constant REFUND_RECEIVER_TAKER = address(1);
+    ///      protocol fees will be sent to the transform recipient.
+    address private constant REFUND_RECEIVER_RECIPIENT = address(1);
     /// @dev If `refundReceiver` is set to this address, unpsent
     ///      protocol fees will be sent to the sender.
     address private constant REFUND_RECEIVER_SENDER = address(2);
@@ -272,8 +272,8 @@ contract FillQuoteTransformer is
         // Refund unspent protocol fees.
         if (state.ethRemaining > 0 && data.refundReceiver != address(0)) {
             bool transferSuccess;
-            if (data.refundReceiver == REFUND_RECEIVER_TAKER) {
-                (transferSuccess,) = context.taker.call{value: state.ethRemaining}("");
+            if (data.refundReceiver == REFUND_RECEIVER_RECIPIENT) {
+                (transferSuccess,) = context.recipient.call{value: state.ethRemaining}("");
             } else if (data.refundReceiver == REFUND_RECEIVER_SENDER) {
                 (transferSuccess,) = context.sender.call{value: state.ethRemaining}("");
             } else {

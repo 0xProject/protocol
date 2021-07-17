@@ -26,11 +26,15 @@ import "./TestMintableERC20Token.sol";
 contract TestWeth is
     TestMintableERC20Token
 {
+    event Deposit(address owner, uint256 value);
+    event Withdrawal(address owner, uint256 value);
+
     function deposit()
         external
         payable
     {
         this.mint(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
     }
 
     function depositTo(address owner)
@@ -38,6 +42,7 @@ contract TestWeth is
         payable
     {
         this.mint(owner, msg.value);
+        emit Deposit(owner, msg.value);
     }
 
     function withdraw(uint256 amount)
@@ -46,5 +51,6 @@ contract TestWeth is
         require(balanceOf[msg.sender] >= amount, "TestWeth/INSUFFICIENT_FUNDS");
         balanceOf[msg.sender] -= amount;
         msg.sender.transfer(amount);
+        emit Withdrawal(msg.sender, amount);
     }
 }

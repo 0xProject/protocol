@@ -53,7 +53,7 @@ contract TestWethTransformerHost is
             transformer,
             IERC20Transformer.TransformContext({
                 sender: msg.sender,
-                taker: msg.sender,
+                recipient: msg.sender,
                 data: data
             })
         );

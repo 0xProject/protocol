@@ -148,6 +148,9 @@ blockchainTests.resets('Full migration', env => {
         if (item.type === 'byte') {
             return hexUtils.random(1);
         }
+        if (item.type === 'bool') {
+            return Math.random() > 0.5;
+        }
         if (/^bytes$/.test(item.type)) {
             return hexUtils.random(_.random(0, 128));
         }
