@@ -655,7 +655,7 @@ const CURVELIKE_INFOS_BY_CHAIN_ID = (valueByChainId(
             [ERC20BridgeSource.Belt]: BELT_BSC_INFOS,
             [ERC20BridgeSource.Ellipsis]: ELLIPSIS_BSC_INFOS,
             [ERC20BridgeSource.FirebirdOneSwap]: FIREBIRDONESWAP_BSC_INFOS,
-            [ERC20BridgeSource.ACryptoS]: ACRYPTOS_BSC_INFOS,
+            [ERC20BridgeSource.ACryptos]: ACRYPTOS_BSC_INFOS,
         },
         [ChainId.Polygon]: {
             [ERC20BridgeSource.Curve]: CURVE_POLYGON_INFOS,

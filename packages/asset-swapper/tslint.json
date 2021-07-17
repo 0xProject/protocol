@@ -12,7 +12,9 @@
         "prefer-function-over-method": false,
         "no-unbound-method": false,
         "no-object-literal-type-assertion": false,
-        "forin": false
+        "forin": false,
+        "no-empty": false,
+        "prefer-conditional-expression": false
     },
     "linterOptions": {
         "exclude": ["src/artifacts.ts", "test/artifacts.ts"]
