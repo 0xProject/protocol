@@ -6,10 +6,20 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as BalanceChecker from '../generated-artifacts/BalanceChecker.json';
+import * as CallDispatcher from '../generated-artifacts/CallDispatcher.json';
 import * as ERC20BridgeSampler from '../generated-artifacts/ERC20BridgeSampler.json';
 import * as FakeTaker from '../generated-artifacts/FakeTaker.json';
+import * as NativeOrderUtils from '../generated-artifacts/NativeOrderUtils.json';
+import * as NetworkUtils from '../generated-artifacts/NetworkUtils.json';
+import * as UniswapV3BuySampler from '../generated-artifacts/UniswapV3BuySampler.json';
+import * as UniswapV3SellSampler from '../generated-artifacts/UniswapV3SellSampler.json';
 export const artifacts = {
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     BalanceChecker: BalanceChecker as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,
+    CallDispatcher: CallDispatcher as ContractArtifact,
+    UniswapV3SellSampler: UniswapV3SellSampler as ContractArtifact,
+    UniswapV3BuySampler: UniswapV3BuySampler as ContractArtifact,
+    NetworkUtils: NetworkUtils as ContractArtifact,
+    NativeOrderUtils: NativeOrderUtils as ContractArtifact,
 };

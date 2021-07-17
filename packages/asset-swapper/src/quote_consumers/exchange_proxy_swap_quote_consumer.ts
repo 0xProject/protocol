@@ -16,7 +16,10 @@ import {
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
+import { constants, DUMMY_PROVIDER, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
+import { CurveFillData, LiquidityProviderFillData, MooniswapFillData, UniswapV2FillData } from '../network/samplers';
+import { WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from '../network/tokens';
+import { ERC20BridgeSource } from '../network/types';
 import {
     AffiliateFeeType,
     CalldataInfo,
@@ -34,19 +37,9 @@ import { assert } from '../utils/assert';
 import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
-    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
-import { poolEncoder } from '../utils/market_operation_utils/orders';
-import {
-    CurveFillData,
-    ERC20BridgeSource,
-    FinalUniswapV3FillData,
-    LiquidityProviderFillData,
-    MooniswapFillData,
-    OptimizedMarketBridgeOrder,
-    OptimizedMarketOrder,
-    UniswapV2FillData,
-} from '../utils/market_operation_utils/types';
+import { FinalUniswapV3FillData, poolEncoder } from '../utils/market_operation_utils/orders';
+import { OptimizedMarketBridgeOrder, OptimizedMarketOrder } from '../utils/market_operation_utils/types';
 
 import {
     multiplexPlpEncoder,
@@ -77,12 +70,7 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.CheeseSwap,
     ERC20BridgeSource.JulSwap,
 ];
-const FAKE_PROVIDER: any = {
-    sendAsync(): void {
-        return;
-    },
-};
-const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, FAKE_PROVIDER);
+const DUMMY_WETH_CONTRACT = new WETH9Contract(NULL_ADDRESS, DUMMY_PROVIDER);
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly chainId: ChainId;
@@ -97,13 +85,16 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _multiplex: MultiplexFeatureContract;
 
-    constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> = {}) {
+    constructor(
+        public readonly contractAddresses: ContractAddresses,
+        options: Partial<SwapQuoteConsumerOpts> & { chainId: ChainId },
+    ) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
         assert.isNumber('chainId', chainId);
         this.chainId = chainId;
         this.contractAddresses = contractAddresses;
-        this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
-        this._multiplex = new MultiplexFeatureContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
+        this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, DUMMY_PROVIDER);
+        this._multiplex = new MultiplexFeatureContract(contractAddresses.exchangeProxy, DUMMY_PROVIDER);
         this.transformerNonces = {
             wethTransformer: findTransformerNonce(
                 contractAddresses.transformers.wethTransformer,
@@ -285,7 +276,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
             // into WETH prior/post the trade.
             // ETH buy/sell is supported
-            ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
+            ![sellToken, buyToken].includes(WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
         ) {
             const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
             return {
@@ -419,7 +410,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             transforms.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
-                    token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
+                    token: WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID[this.chainId],
                     amount: MAX_UINT256,
                 }),
             });
@@ -550,12 +541,14 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     });
                     break switch_statement;
                 case ERC20BridgeSource.UniswapV3:
-                    const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
-                    wrappedBatchCalls.push({
-                        selector: this._exchangeProxy.getSelector('sellTokenForTokenToUniswapV3'),
-                        sellAmount: order.takerAmount,
-                        data: fillData.uniswapPath,
-                    });
+                    {
+                        const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
+                        wrappedBatchCalls.push({
+                            selector: this._exchangeProxy.getSelector('sellTokenForTokenToUniswapV3'),
+                            sellAmount: order.takerAmount,
+                            data: fillData.uniswapPath,
+                        });
+                    }
                     break switch_statement;
                 default:
                     const fqtData = encodeFillQuoteTransformerData({

@@ -3,10 +3,10 @@ import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { ERC20BridgeSource } from '../src/network/types';
 import { MarketOperation } from '../src/types';
 import {
     CollapsedFill,
-    ERC20BridgeSource,
     NativeLimitOrderFillData,
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,

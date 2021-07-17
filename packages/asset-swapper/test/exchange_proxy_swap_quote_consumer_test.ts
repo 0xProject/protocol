@@ -19,13 +19,10 @@ import * as _ from 'lodash';
 import 'mocha';
 
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../src/constants';
+import { ERC20BridgeSource } from '../src/network/types';
 import { ExchangeProxySwapQuoteConsumer } from '../src/quote_consumers/exchange_proxy_swap_quote_consumer';
 import { AffiliateFeeType, MarketBuySwapQuote, MarketOperation, MarketSellSwapQuote } from '../src/types';
-import {
-    ERC20BridgeSource,
-    OptimizedLimitOrder,
-    OptimizedMarketOrder,
-} from '../src/utils/market_operation_utils/types';
+import { OptimizedLimitOrder, OptimizedMarketOrder } from '../src/utils/market_operation_utils/types';
 
 import { chaiSetup } from './utils/chai_setup';
 import { getRandomAmount, getRandomSignature } from './utils/utils';

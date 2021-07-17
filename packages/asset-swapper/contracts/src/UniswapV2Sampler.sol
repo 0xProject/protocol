@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IUniswapV2Router01.sol";
 
-
 contract UniswapV2Sampler
 {
     /// @dev Gas limit for UniswapV2 calls.

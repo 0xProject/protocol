@@ -77,6 +77,7 @@ export {
 export { artifacts } from './artifacts';
 export { InsufficientAssetLiquidityError } from './errors';
 export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
+export { DexSample, ERC20BridgeSource, FillData, TokenAdjacencyGraph } from './network/types';
 export { SwapQuoter, Orderbook } from './swap_quoter';
 export {
     AltOffering,
@@ -115,49 +116,41 @@ export {
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
-    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
     DEFAULT_GAS_SCHEDULE,
     SOURCE_FLAGS,
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
-    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
+export { DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID, WRAPPED_NETWORK_TOKEN_BY_CHAIN_ID } from './network/tokens';
 export {
-    Parameters,
-    SamplerContractCall,
-    SamplerContractOperation,
-} from './utils/market_operation_utils/sampler_contract_operation';
-export {
-    BalancerFillData,
-    BancorFillData,
     CollapsedFill,
-    CurveFillData,
-    CurveFunctionSelectors,
-    CurveInfo,
-    DexSample,
-    DODOFillData,
-    ERC20BridgeSource,
     ExchangeProxyOverhead,
     FeeSchedule,
     Fill,
-    FillData,
     GetMarketOrdersRfqOpts,
-    KyberFillData,
-    LiquidityProviderFillData,
-    LiquidityProviderRegistry,
     MarketDepth,
     MarketDepthSide,
-    MooniswapFillData,
-    MultiHopFillData,
     NativeCollapsedFill,
     NativeRfqOrderFillData,
     NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
-    SourceQuoteOperation,
-    TokenAdjacencyGraph,
-    UniswapV2FillData,
 } from './utils/market_operation_utils/types';
+export {
+    BalancerFillData,
+    BancorFillData,
+    CurveFillData,
+    DodoV1FillData,
+    DodoV2FillData,
+    KyberFillData,
+    LiquidityProviderFillData,
+    LiquidityProviderRegistry,
+    MooniswapFillData,
+    UniswapV1FillData,
+    UniswapV2FillData,
+    UniswapV3FillData,
+} from './network/samplers';
+export { TwoHopFillData } from './network/two_hop_sampler';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {
     BridgeQuoteReportEntry,
@@ -170,7 +163,7 @@ export {
 } from './utils/quote_report_generator';
 export { QuoteRequestor } from './utils/quote_requestor';
 export { ERC20BridgeSamplerContract, BalanceCheckerContract, FakeTakerContract } from './wrappers';
-import { ERC20BridgeSource } from './utils/market_operation_utils/types';
+import { ERC20BridgeSource } from './network/types';
 export type Native = ERC20BridgeSource.Native;
 export type MultiHop = ERC20BridgeSource.MultiHop;
 

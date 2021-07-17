@@ -3,17 +3,11 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { ERC20BridgeSource } from '../../network/types';
 import { MarketOperation } from '../../types';
 
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
-import {
-    ComparisonPrice,
-    ERC20BridgeSource,
-    ExchangeProxyOverhead,
-    FeeEstimate,
-    FeeSchedule,
-    MarketSideLiquidity,
-} from './types';
+import { ComparisonPrice, ExchangeProxyOverhead, FeeEstimate, FeeSchedule, MarketSideLiquidity } from './types';
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat
@@ -50,7 +44,7 @@ export function getComparisonPrices(
             const fillFeeInEth = new BigNumber(
                 (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }),
             );
-            const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.RfqOrder));
+            const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.RfqOrder, 1));
             feeInEth = fillFeeInEth.plus(exchangeProxyOverheadInEth);
         } catch {
             logUtils.warn('Native order fee schedule requires fill data');

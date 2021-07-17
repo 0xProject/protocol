@@ -1,9 +1,10 @@
 import { expect } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 
+import { ERC20BridgeSource } from '../src/network/types';
 import { MarketOperation } from '../src/types';
 import { Path } from '../src/utils/market_operation_utils/path';
-import { ERC20BridgeSource, Fill } from '../src/utils/market_operation_utils/types';
+import { Fill } from '../src/utils/market_operation_utils/types';
 
 const createFill = (
     source: ERC20BridgeSource,

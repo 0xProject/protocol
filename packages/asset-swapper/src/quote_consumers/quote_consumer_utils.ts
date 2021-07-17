@@ -1,12 +1,12 @@
 import { FillQuoteTransformerData, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 
+import { ERC20BridgeSource } from '../network/types';
 import { ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
 import {
     createBridgeDataForBridgeOrder,
     getErc20BridgeSourceToBridgeSource,
 } from '../utils/market_operation_utils/orders';
 import {
-    ERC20BridgeSource,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,

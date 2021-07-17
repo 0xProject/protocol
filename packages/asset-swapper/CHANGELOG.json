@@ -1,7 +1,11 @@
 [
     {
-        "version": "16.23.0",
+        "version": "17.0.0",
         "changes": [
+            {
+                "note": "AS Refactor 1/X",
+                "pr": 250
+            },
             {
                 "note": "ACryptoS",
                 "pr": 284
