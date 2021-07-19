@@ -156,14 +156,23 @@ export class NativeOrdersTestEnvironment {
         unwrapWeth: boolean = false,
     ): Promise<TransactionReceiptWithDecodedLogs> {
         await this.prepareBalancesForOrdersAsync([order], taker);
-        return this.zeroEx
-            .fillOtcOrder(
-                order,
-                await order.getSignatureWithProviderAsync(this._env.provider),
-                new BigNumber(fillAmount),
-                unwrapWeth,
-            )
-            .awaitTransactionSuccessAsync({ from: taker });
+        if (unwrapWeth) {
+            return this.zeroEx
+                .fillOtcOrderForEth(
+                    order,
+                    await order.getSignatureWithProviderAsync(this._env.provider),
+                    new BigNumber(fillAmount),
+                )
+                .awaitTransactionSuccessAsync({ from: taker });
+        } else {
+            return this.zeroEx
+                .fillOtcOrder(
+                    order,
+                    await order.getSignatureWithProviderAsync(this._env.provider),
+                    new BigNumber(fillAmount),
+                )
+                .awaitTransactionSuccessAsync({ from: taker });
+        }
     }
 
     public async fillTakerSignedOtcOrderAsync(
@@ -173,14 +182,23 @@ export class NativeOrdersTestEnvironment {
         unwrapWeth: boolean = false,
     ): Promise<TransactionReceiptWithDecodedLogs> {
         await this.prepareBalancesForOrdersAsync([order], taker);
-        return this.zeroEx
-            .fillTakerSignedOtcOrder(
-                order,
-                await order.getSignatureWithProviderAsync(this._env.provider),
-                await order.getSignatureWithProviderAsync(this._env.provider, SignatureType.EthSign, taker),
-                unwrapWeth,
-            )
-            .awaitTransactionSuccessAsync({ from: origin });
+        if (unwrapWeth) {
+            return this.zeroEx
+                .fillTakerSignedOtcOrderForEth(
+                    order,
+                    await order.getSignatureWithProviderAsync(this._env.provider),
+                    await order.getSignatureWithProviderAsync(this._env.provider, SignatureType.EthSign, taker),
+                )
+                .awaitTransactionSuccessAsync({ from: origin });
+        } else {
+            return this.zeroEx
+                .fillTakerSignedOtcOrder(
+                    order,
+                    await order.getSignatureWithProviderAsync(this._env.provider),
+                    await order.getSignatureWithProviderAsync(this._env.provider, SignatureType.EthSign, taker),
+                )
+                .awaitTransactionSuccessAsync({ from: origin });
+        }
     }
 
     public async fillOtcOrderWithEthAsync(

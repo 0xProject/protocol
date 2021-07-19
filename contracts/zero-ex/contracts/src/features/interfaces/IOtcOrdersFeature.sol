@@ -31,16 +31,16 @@ interface IOtcOrdersFeature {
     /// @param orderHash The canonical hash of the order.
     /// @param maker The maker of the order.
     /// @param taker The taker of the order.
-    /// @param takerTokenFilledAmount How much taker token was filled.
     /// @param makerTokenFilledAmount How much maker token was filled.
+    /// @param takerTokenFilledAmount How much taker token was filled.
     event OtcOrderFilled(
         bytes32 orderHash,
         address maker,
         address taker,
         address makerToken,
         address takerToken,
-        uint128 takerTokenFilledAmount,
-        uint128 makerTokenFilledAmount
+        uint128 makerTokenFilledAmount,
+        uint128 takerTokenFilledAmount
     );
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
@@ -48,15 +48,29 @@ interface IOtcOrdersFeature {
     /// @param makerSignature The order signature from the maker.
     /// @param takerTokenFillAmount Maximum taker token amount to fill this
     ///        order with.
-    /// @param unwrapWeth Whether or not to unwrap bought WETH into ETH
-    ///        before transferring it to the taker. Should be set to false
     /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
     function fillOtcOrder(
         LibNativeOrder.OtcOrder calldata order,
         LibSignature.Signature calldata makerSignature,
-        uint128 takerTokenFillAmount,
-        bool unwrapWeth
+        uint128 takerTokenFillAmount
+    )
+        external
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+
+    /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
+    ///      Unwraps bought WETH into ETH before sending it to 
+    ///      the taker.
+    /// @param order The OTC order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerTokenFillAmount Maximum taker token amount to fill this
+    ///        order with.
+    /// @return takerTokenFilledAmount How much taker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function fillOtcOrderForEth(
+        LibNativeOrder.OtcOrder calldata order,
+        LibSignature.Signature calldata makerSignature,
+        uint128 takerTokenFillAmount
     )
         external
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
@@ -80,19 +94,26 @@ interface IOtcOrdersFeature {
     /// @param order The OTC order.
     /// @param makerSignature The order signature from the maker.
     /// @param takerSignature The order signature from the taker.
-    /// @param unwrapWeth Whether or not to unwrap bought WETH into ETH
-    ///        before transferring it to the taker. Should be set to false
-    ///        if the maker token is not WETH.
-    /// @return takerTokenFilledAmount How much taker token was filled.
-    /// @return makerTokenFilledAmount How much maker token was filled.
     function fillTakerSignedOtcOrder(
         LibNativeOrder.OtcOrder calldata order,
         LibSignature.Signature calldata makerSignature,
-        LibSignature.Signature calldata takerSignature,
-        bool unwrapWeth
+        LibSignature.Signature calldata takerSignature
     )
-        external
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        external;
+
+    /// @dev Fully fill an OTC order. "Meta-transaction" variant,
+    ///      requires order to be signed by both maker and taker.
+    ///      Unwraps bought WETH into ETH before sending it to 
+    ///      the taker.
+    /// @param order The OTC order.
+    /// @param makerSignature The order signature from the maker.
+    /// @param takerSignature The order signature from the taker.
+    function fillTakerSignedOtcOrderForEth(
+        LibNativeOrder.OtcOrder calldata order,
+        LibSignature.Signature calldata makerSignature,
+        LibSignature.Signature calldata takerSignature
+    )
+        external;
 
     /// @dev Fills multiple taker-signed OTC orders.
     /// @param orders Array of OTC orders.
@@ -101,22 +122,16 @@ interface IOtcOrdersFeature {
     /// @param unwrapWeth Array of booleans representing whether or not 
     ///        to unwrap bought WETH into ETH for each order. Should be set 
     ///        to false if the maker token is not WETH.
-    /// @param revertIfIncomplete If true, reverts if this function fails to
-    ///        fill any individual order.
-    /// @return takerTokenFilledAmounts Array of amounts filled, in taker token.
-    /// @return makerTokenFilledAmounts Array of amounts filled, in maker token.
+    /// @return successes Array of booleans representing whether or not
+    ///         each order in `orders` was filled successfully.
     function batchFillTakerSignedOtcOrders(
         LibNativeOrder.OtcOrder[] calldata orders,
         LibSignature.Signature[] calldata makerSignatures,
         LibSignature.Signature[] calldata takerSignatures,
-        bool[] calldata unwrapWeth,
-        bool revertIfIncomplete
+        bool[] calldata unwrapWeth
     )
         external
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        );
+        returns (bool[] memory successes);
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
     ///      Internal variant.

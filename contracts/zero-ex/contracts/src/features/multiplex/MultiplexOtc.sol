@@ -54,6 +54,12 @@ abstract contract MultiplexOtc is
             wrappedCallData,
             (LibNativeOrder.OtcOrder, LibSignature.Signature)
         );
+        // Validate tokens.
+        require(
+            order.takerToken == params.inputToken &&
+            order.makerToken == params.outputToken,
+            "MultiplexOtc::_batchSellOtcOrder/OTC_ORDER_INVALID_TOKENS"
+        );
         // Pre-emptively check if the order is expired.
         uint64 expiry = uint64(order.expiryAndNonce >> 192);
         if (expiry <= uint64(block.timestamp)) {
@@ -67,12 +73,6 @@ abstract contract MultiplexOtc is
             );
             return;
         }
-        // Validate tokens.
-        require(
-            order.takerToken == params.inputToken &&
-            order.makerToken == params.outputToken,
-            "MultiplexOtc::_batchSellOtcOrder/OTC_ORDER_INVALID_TOKENS"
-        );
         // Try filling the Otc order. Swallows reverts.
         try
             IOtcOrdersFeature(address(this))._fillOtcOrder
@@ -89,10 +89,6 @@ abstract contract MultiplexOtc is
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(takerTokenFilledAmount);
             state.boughtAmount = state.boughtAmount.safeAdd(makerTokenFilledAmount);
-        } catch (bytes memory errorData) {
-            assembly {
-                revert(add(errorData, 0x20), mload(errorData))
-            }
-        }
+        } catch {}
     }
 }
