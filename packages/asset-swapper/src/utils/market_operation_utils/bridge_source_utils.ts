@@ -109,7 +109,7 @@ export function getMStableForPair(chainId: ChainId, takerToken: string, makerTok
 }
 
 // tslint:disable completed-docs
-export function getFirebirdForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
+export function getFirebirdInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
     if (chainId !== ChainId.Polygon) {
         return [];
     }
@@ -313,7 +313,7 @@ export function getShellLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
     makerToken: string,
-    source: ERC20BridgeSource.Shell | ERC20BridgeSource.Component | ERC20BridgeSource.MStable | ERC20BridgeSource.Firebird,
+    source: ERC20BridgeSource.Shell | ERC20BridgeSource.Component | ERC20BridgeSource.MStable,
 ): string[] {
     switch (source) {
         case ERC20BridgeSource.Shell:
@@ -322,8 +322,6 @@ export function getShellLikeInfosForPair(
             return getComponentForPair(chainId, takerToken, makerToken);
         case ERC20BridgeSource.MStable:
             return getMStableForPair(chainId, takerToken, makerToken);
-        case ERC20BridgeSource.Firebird:
-            return getFirebirdForPair(chainId, takerToken, makerToken);
         default:
             throw new Error(`Unknown Shell like source ${source}`);
     }
@@ -414,7 +412,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.Dfyn
         | ERC20BridgeSource.WaultSwap
         | ERC20BridgeSource.Polydex
-        | ERC20BridgeSource.ShibaSwap,
+        | ERC20BridgeSource.ShibaSwap
+        ,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:

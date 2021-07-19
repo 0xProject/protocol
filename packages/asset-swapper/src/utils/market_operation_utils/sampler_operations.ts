@@ -10,6 +10,7 @@ import { BancorService } from './bancor_service';
 import {
     getCurveLikeInfosForPair,
     getDodoV2Offsets,
+    getFirebirdInfosForPair,
     getKyberOffsets,
     getShellLikeInfosForPair,
     isAllowedKyberReserveId,
@@ -22,6 +23,7 @@ import {
     BANCOR_REGISTRY_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
+    FIREBIRD_ROUTER_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
@@ -631,32 +633,34 @@ export class SamplerOperations {
     }
 
     public getFirebirdSellQuotes(
-        poolAddress: string,
+        router: string,
+        pool: string,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<FirebirdFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Firebird,
-            fillData: { poolAddress },
+            fillData: { router, pool },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromFirebird,
-            params: [poolAddress, takerToken, makerToken, takerFillAmounts],
+            params: [pool, takerToken, makerToken, takerFillAmounts],
         });
     }
 
     public getFirebirdBuyQuotes(
-        poolAddress: string,
+        router: string,
+        pool: string,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<FirebirdFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Firebird,
-            fillData: { poolAddress },
+            fillData: { router, pool },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromFirebird,
-            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
+            params: [pool, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1478,10 +1482,15 @@ export class SamplerOperations {
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.Firebird: {
-                        return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
-                            this.getFirebirdSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
+                        const router = FIREBIRD_ROUTER_BY_CHAIN_ID[this.chainId];
+                        if (!isValidAddress(router)) {
+                            return [];
+                        }
+                        return getFirebirdInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
+                            this.getFirebirdSellQuotes(router, pool, makerToken, takerToken, takerFillAmounts),
                         );
                     }
+
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -1749,8 +1758,12 @@ export class SamplerOperations {
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Firebird: {
-                        return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
-                            this.getFirebirdBuyQuotes(pool, makerToken, takerToken, makerFillAmounts),
+                        const router = FIREBIRD_ROUTER_BY_CHAIN_ID[this.chainId];
+                        if (!isValidAddress(router)) {
+                            return [];
+                        }
+                        return getFirebirdInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
+                            this.getFirebirdBuyQuotes(router, pool, makerToken, takerToken, makerFillAmounts),
                         );
                     }
                     default:

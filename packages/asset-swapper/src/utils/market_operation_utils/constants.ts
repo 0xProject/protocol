@@ -394,6 +394,9 @@ export const POLYGON_TOKENS = {
     DFYN: '0xc168e40227e4ebd8c1cae80f7a55a4f0e6d66c97',
     BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
+    ICE: '0x4a81f8796e0c6ad4877a51c86693b0de8093f2ef',
+    FISH: '0x3a3df212b7aa91aa0402b9035b098891d276572b',
+    HOPE: '0xd78c475133731cd54dadcb430f7aae4f03c1e660',
 };
 
 export const CURVE_POOLS = {
@@ -1105,6 +1108,13 @@ export const SHIBASWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const FIREBIRD_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: '0xf6fa9ea1f64f1bbfa8d71f7f43faf6d45520bfac',
+    },
+    NULL_ADDRESS,
+);
+
 export const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: {
@@ -1303,10 +1313,66 @@ export const FIREBIRD_POOLS_BY_CHAIN_ID = valueByChainId(
                 poolAddress: '0x10f525cfbce668815da5142460af0fcfb5163c81',
                 tokens: [POLYGON_TOKENS.WETH, POLYGON_TOKENS.WBTC],
             },
+            weth_usdc: {
+                poolAddress: '0x39d736d2b254ee30796f43ec665143010b558f82',
+                tokens: [POLYGON_TOKENS.WETH, POLYGON_TOKENS.USDC],
+            },
+            weth_matic: {
+                poolAddress: '0x7887a048a2e5995ccfc3b1f2e9c23ab2eca40bcf',
+                tokens: [POLYGON_TOKENS.WETH, POLYGON_TOKENS.WMATIC],
+            },
+            usdc_matic: {
+                poolAddress: '0xce2cb67b11ec0399e39af20433927424f9033233',
+                tokens: [POLYGON_TOKENS.USDC, POLYGON_TOKENS.WMATIC],
+            },
+            weth_ice: {
+                poolAddress: '0xf1ee78544a1118f2efb87f7eacd9f1e6e80e1ea5',
+                tokens: [POLYGON_TOKENS.WETH, POLYGON_TOKENS.ICE],
+            },
+            fish_matic: {
+                poolAddress: '0x46c8be37ff8cedf09b88e457369033876087197e',
+                tokens: [POLYGON_TOKENS.FISH, POLYGON_TOKENS.WMATIC],
+            },
+            hope_weth: {
+                poolAddress: '0xdd600f769a6bfe5dac39f5da23c18433e6d92cba',
+                tokens: [POLYGON_TOKENS.HOPE, POLYGON_TOKENS.WETH],
+            },
+            hope_matic: {
+                poolAddress: '0x5e9cd0861f927adeccfeb2c0124879b277dd66ac',
+                tokens: [POLYGON_TOKENS.HOPE, POLYGON_TOKENS.WMATIC],
+            },
         },
     },
     {
         weth_wbtc: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        weth_usdc: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        weth_matic: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        usdc_matic: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        weth_ice: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        fish_matic: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        hope_weth: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        hope_matic: {
             poolAddress: NULL_ADDRESS,
             tokens: [] as string[],
         },
@@ -1575,7 +1641,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Polydex]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.Firebird]: () => 200e3,
+    [ERC20BridgeSource.Firebird]: () => 140e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

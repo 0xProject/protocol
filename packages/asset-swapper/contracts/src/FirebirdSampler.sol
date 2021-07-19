@@ -27,10 +27,10 @@ contract FirebirdSampler is
     SamplerUtils
 {
     /// @dev Gas limit for Firebird calls.
-    uint256 constant private FIREBIRD_CALL_GAS = 150e3; // 150k
+    uint256 constant private FIREBIRD_CALL_GAS = 120e3; // 120k
 
     /// @dev Sample sell quotes from Firebird.
-    /// @param pool Address of the Shell pool contract
+    /// @param pool Address of the pool contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
@@ -70,7 +70,7 @@ contract FirebirdSampler is
     }
 
     /// @dev Sample buy quotes from Firebird.
-    /// @param pool Address of the Shell pool contract
+    /// @param pool Address of the pool contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
@@ -88,8 +88,6 @@ contract FirebirdSampler is
     {
         _assertValidPair(makerToken, takerToken);
         IFirebirdFormula formula = IFirebirdFormula(IFirebirdPool(pool).formula());
-        address[] memory path;
-        path[0] = pool;
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {

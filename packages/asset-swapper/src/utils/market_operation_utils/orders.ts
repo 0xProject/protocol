@@ -15,8 +15,8 @@ import {
     DODOFillData,
     ERC20BridgeSource,
     FillData,
-    FirebirdFillData,
     FinalUniswapV3FillData,
+    FirebirdFillData,
     GenericRouterFillData,
     KyberDmmFillData,
     KyberFillData,
@@ -314,8 +314,9 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Firebird:
             const firebirdFillData = (order as OptimizedMarketBridgeOrder<FirebirdFillData>).fillData;
-            bridgeData = encoder.encode([firebirdFillData.poolAddress]);
+            bridgeData = encoder.encode([firebirdFillData.router, firebirdFillData.pool]);
             break;
+
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -461,7 +462,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Balancer]: poolEncoder,
     [ERC20BridgeSource.Cream]: poolEncoder,
     [ERC20BridgeSource.Uniswap]: poolEncoder,
-    [ERC20BridgeSource.Firebird]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
     [ERC20BridgeSource.BalancerV2]: balancerV2Encoder,
@@ -471,6 +471,10 @@ export const BRIDGE_ENCODERS: {
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.Firebird]: AbiEncoder.create([
+        { name: 'router', type: 'address' },
+        { name: 'pool', type: 'address' },
+    ]),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

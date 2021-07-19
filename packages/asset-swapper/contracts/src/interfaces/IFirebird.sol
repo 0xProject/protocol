@@ -20,10 +20,10 @@
 pragma solidity ^0.6;
 
 interface IFirebird{}
+
 interface IFirebirdPool {
 
     function formula() external view returns (address);
-
 }
 
 interface IFirebirdFormula {

@@ -43,6 +43,7 @@ import "./mixins/MixinShell.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
+import "./mixins/MixinFirebird.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract BridgeAdapter is
@@ -68,6 +69,7 @@ contract BridgeAdapter is
     MixinUniswap,
     MixinUniswapV2,
     MixinUniswapV3,
+    MixinFirebird,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
@@ -92,6 +94,7 @@ contract BridgeAdapter is
         MixinUniswap(weth)
         MixinUniswapV2()
         MixinUniswapV3()
+        MixinFirebird()
         MixinZeroExBridge()
     {}
 
@@ -246,12 +249,12 @@ contract BridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.FIREBIRD) {
-            // boughtAmount = _tradeFirebird(
-            //     sellToken,
-            //     buyToken,
-            //     sellAmount,
-            //     order.bridgeData
-            // );
+             boughtAmount = _tradeFirebird(
+                 sellToken,
+                 buyToken,
+                 sellAmount,
+                 order.bridgeData
+             );
         } else {
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
