@@ -26,6 +26,7 @@ import {
     NATIVE_WRAPPED_TOKEN_SYMBOL,
     PLP_API_KEY_WHITELIST,
     RFQT_API_KEY_WHITELIST,
+    RFQT_INTEGRATOR_IDS,
     RFQT_REGISTRY_PASSWORDS,
 } from '../config';
 import {
@@ -99,7 +100,7 @@ export class SwapHandlers {
         if (!REGISTRY_SET.has(authToken)) {
             return res.status(HttpStatus.UNAUTHORIZED).end();
         }
-        res.status(HttpStatus.OK).send(RFQT_API_KEY_WHITELIST).end();
+        res.status(HttpStatus.OK).send(RFQT_INTEGRATOR_IDS).end();
     }
 
     constructor(swapService: SwapService) {
