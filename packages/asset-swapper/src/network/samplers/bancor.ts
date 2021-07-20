@@ -47,6 +47,8 @@ export class BancorService {
     }
 }
 
+const GAS_PER_SAMPLE = 500e3;
+
 const BANCOR_REGISTRY_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0x52Ae12ABe5D8BD778BD5397F99cA900624CfADD4',
@@ -113,30 +115,16 @@ export class BancorSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: takerFillAmounts.length * GAS_PER_SAMPLE,
             },
         ];
     }
 
     protected async _getBuyQuoteCallsAsync(
-        tokenAddressPath: string[],
-        makerFillAmounts: BigNumber[],
+        _tokenAddressPath: string[],
+        _makerFillAmounts: BigNumber[],
     ): Promise<SamplerBuyEthCall[]> {
-        const [takerToken, makerToken] = tokenAddressPath;
-        const paths = this._bancorService ? this._bancorService.getPaths(takerToken, makerToken) : [];
-        return [
-            {
-                args: [{ registry: this._registry, paths }, takerToken, makerToken, makerFillAmounts],
-                getDexSamplesFromResult: ([networkAddress, path, samples]) =>
-                    makerFillAmounts.map((a, i) => ({
-                        source: ERC20BridgeSource.Bancor,
-                        fillData: {
-                            networkAddress,
-                            path,
-                        },
-                        input: a,
-                        output: samples[i],
-                    })),
-            },
-        ];
+        // Not implemented for Bancor.
+        return [];
     }
 }

@@ -667,6 +667,8 @@ const CURVELIKE_INFOS_BY_CHAIN_ID = (valueByChainId(
     {},
 ) as any) as { [k in ChainId]: { [k2 in ERC20BridgeSource]: { [name: string]: CurveInfo } } };
 
+const GAS_PER_TOKEN_IN_POOL = 300e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromCurve'];
@@ -738,6 +740,7 @@ export class CurveSampler extends OnChainSourceSampler<
                         output: samples[i],
                     }));
                 },
+                gas: GAS_PER_TOKEN_IN_POOL * c.tokens.length * takerFillAmounts.length,
             } as SamplerSellEthCall;
         });
     }
@@ -769,6 +772,7 @@ export class CurveSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_TOKEN_IN_POOL * c.tokens.length * makerFillAmounts.length * 2,
             } as SamplerSellEthCall;
         });
     }

@@ -40,6 +40,8 @@ function packStringAsBytes32(s: string): Bytes {
     return hexUtils.rightPad(hexUtils.toHex(Buffer.from(s)), 32);
 }
 
+const GAS_PER_SAMPLE = 400e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromMakerPsm'];
@@ -87,6 +89,7 @@ export class MakerPsmSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * takerFillAmounts.length,
             },
         ];
     }
@@ -106,6 +109,7 @@ export class MakerPsmSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * makerFillAmounts.length,
             },
         ];
     }

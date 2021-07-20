@@ -10,6 +10,8 @@ import { MAINNET_TOKENS, ROPSTEN_TOKENS } from '../tokens';
 import { Address, Bytes, ERC20BridgeSource, FillData } from '../types';
 import { valueByChainId } from '../utils';
 
+const GAS_PER_SAMPLE = 6500e3;
+
 interface KyberSamplerOpts {
     networkProxy: Address;
     hintHandler: Address;
@@ -114,6 +116,7 @@ export class KyberSampler extends OnChainSourceSampler<
                           output: samples[i],
                       }))
                     : [],
+            gas: takerFillAmounts.length * GAS_PER_SAMPLE,
         }));
     }
 
@@ -146,6 +149,7 @@ export class KyberSampler extends OnChainSourceSampler<
                           output: samples[i],
                       }))
                     : [],
+            gas: makerFillAmounts.length * GAS_PER_SAMPLE * 2,
         }));
     }
 }

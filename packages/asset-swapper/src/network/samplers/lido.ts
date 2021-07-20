@@ -33,6 +33,8 @@ const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     },
 );
 
+const GAS_PER_SAMPLE = 30e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromLido'];
@@ -62,7 +64,10 @@ export class LidoSampler extends OnChainSourceSampler<
     }
 
     public canConvertTokens(tokenAddressPath: Address[]): boolean {
-        return tokenAddressPath.length === 2;
+        if (tokenAddressPath.length !== 2) {
+            return false;
+        }
+        return [MAINNET_TOKENS.stETH, MAINNET_TOKENS.WETH].every(t => tokenAddressPath.includes(t));
     }
 
     protected async _getSellQuoteCallsAsync(
@@ -80,6 +85,7 @@ export class LidoSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * takerFillAmounts.length,
             },
         ];
     }
@@ -99,6 +105,7 @@ export class LidoSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * makerFillAmounts.length,
             },
         ];
     }

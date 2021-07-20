@@ -38,6 +38,8 @@ const DODOV1_CONFIG_BY_CHAIN_ID = valueByChainId(
     { helper: NULL_ADDRESS, registry: NULL_ADDRESS },
 );
 
+const GAS_PER_SAMPLE = 400e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromDODO'];
@@ -89,6 +91,7 @@ export class DodoV1Sampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * takerFillAmounts.length,
             } as SamplerSellEthCall,
         ];
     }
@@ -112,6 +115,7 @@ export class DodoV1Sampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * makerFillAmounts.length,
             } as SamplerBuyEthCall,
         ];
     }

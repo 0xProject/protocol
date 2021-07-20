@@ -152,6 +152,8 @@ export class MarketOperationUtils {
     ): Promise<MarketSideLiquidity> {
         const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const { makerToken, takerToken } = nativeOrders[0].order;
+        // tslint:disable-next-line: no-parameter-reassignment
+        nativeOrders = nativeOrders.filter(o => !o.order.makerAmount.eq(0));
         const sampleAmounts = getSampleAmounts(takerAmount, _opts.numSamples, _opts.sampleDistributionBase);
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
@@ -245,6 +247,8 @@ export class MarketOperationUtils {
     ): Promise<MarketSideLiquidity> {
         const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const { makerToken, takerToken } = nativeOrders[0].order;
+        // tslint:disable-next-line: no-parameter-reassignment
+        nativeOrders = nativeOrders.filter(o => !o.order.makerAmount.eq(0));
         const sampleAmounts = getSampleAmounts(makerAmount, _opts.numSamples, _opts.sampleDistributionBase);
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
@@ -496,7 +500,10 @@ export class MarketOperationUtils {
         const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
 
         // Find the optimal path
-        const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, opts.runLimit, penaltyOpts);
+        const optimalPath = await findOptimalPathAsync(side, fills, inputAmount, {
+            runLimit: opts.runLimit,
+            pathPenaltyOpts: penaltyOpts,
+        });
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
         const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
@@ -533,11 +540,14 @@ export class MarketOperationUtils {
             // We create a fallback path that is exclusive of Native liquidity
             // This is the optimal on-chain path for the entire input amount
             const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
-            const sturdyOptimalPath = await findOptimalPathAsync(side, sturdyFills, inputAmount, opts.runLimit, {
-                ...penaltyOpts,
-                exchangeProxyOverhead: (sourceFlags: bigint, numDistinctFills: number) =>
-                    // tslint:disable-next-line: no-bitwise
-                    penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags, numDistinctFills),
+            const sturdyOptimalPath = await findOptimalPathAsync(side, sturdyFills, inputAmount, {
+                runLimit: opts.runLimit,
+                pathPenaltyOpts: {
+                    ...penaltyOpts,
+                    exchangeProxyOverhead: (sourceFlags: bigint, numDistinctFills: number) =>
+                        // tslint:disable-next-line: no-bitwise
+                        penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags, numDistinctFills),
+                },
             });
             // Calculate the slippage of on-chain sources compared to the most optimal path
             // if within an acceptable threshold we enable a fallback to prevent reverts

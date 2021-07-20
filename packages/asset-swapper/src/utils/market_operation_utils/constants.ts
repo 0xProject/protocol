@@ -41,7 +41,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Eth2Dai,
+            // ERC20BridgeSource.Eth2Dai, // Disabled for poor liquidity.
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
@@ -141,7 +141,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Eth2Dai,
+            // ERC20BridgeSource.Eth2Dai, // Disabled for poor liquidity.
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,

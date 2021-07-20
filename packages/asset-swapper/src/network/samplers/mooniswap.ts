@@ -26,6 +26,8 @@ const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     [] as Address[],
 );
 
+const GAS_PER_SAMPLE = 200e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromMooniswap'];
@@ -76,6 +78,7 @@ export class MooniswapSampler extends OnChainSourceSampler<
                     input: a,
                     output: samples[i],
                 })),
+            gas: GAS_PER_SAMPLE * takerFillAmounts.length,
         }));
     }
 
@@ -93,6 +96,7 @@ export class MooniswapSampler extends OnChainSourceSampler<
                     input: a,
                     output: samples[i],
                 })),
+            gas: GAS_PER_SAMPLE * makerFillAmounts.length * 2,
         }));
     }
 

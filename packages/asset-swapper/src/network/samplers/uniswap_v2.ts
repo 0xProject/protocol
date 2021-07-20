@@ -7,6 +7,8 @@ import { Chain } from '../chain';
 import { OnChainSourceSampler, SamplerEthCall } from '../source_sampler';
 import { Address, ERC20BridgeSource, FillData } from '../types';
 
+const GAS_PER_SAMPLE = 200e3;
+
 const UNISWAP_V2_ROUTER_BY_CHAIN_ID_BY_FORK = {
     [ChainId.Mainnet]: {
         [ERC20BridgeSource.UniswapV2]: '0xf164fc0ec4e93095b804a4795bbe1e041497b92a',
@@ -99,6 +101,7 @@ export class UniswapV2Sampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: takerFillAmounts.length * GAS_PER_SAMPLE,
             },
         ];
     }
@@ -120,6 +123,7 @@ export class UniswapV2Sampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: makerFillAmounts.length * GAS_PER_SAMPLE,
             },
         ];
     }

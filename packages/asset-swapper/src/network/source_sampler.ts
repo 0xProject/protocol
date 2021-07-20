@@ -37,6 +37,9 @@ export abstract class SourceSamplerBase implements SourceSampler {
         tokenAddressPath: Address[],
         makerFillAmount: BigNumber,
     ): Promise<MultiHopCallInfo[]>;
+
+    public abstract pump(tokenAddressPath: Address[]): void;
+    public abstract dump(tokenAddressPath: Address[]): void;
 }
 
 interface OnChainSourceSamplerOptions<
@@ -52,6 +55,7 @@ interface OnChainSourceSamplerOptions<
     buySamplerContractType: ContractWrapperType<TBuySamplerContract>;
     sellContractSellFunctionName: TSellSamplerFunctionName;
     buyContractBuyFunctionName: TBuySamplerFunctionName;
+    maxCacheAgeMs?: number;
 }
 
 export interface SamplerEthCall<
@@ -64,6 +68,13 @@ export interface SamplerEthCall<
     gas?: number;
     getDexSamplesFromResult(result: TReturn): Array<DexSample<TFillData>>;
 }
+
+interface LiquidtyScore {
+    lastTouchedBlock: number;
+    chance: number;
+}
+
+const DEFAULT_MAX_CACHE_AGE_MS = 10e3;
 
 // Base class for a standard sampler with on-chain quote functions.
 export abstract class OnChainSourceSampler<
@@ -97,6 +108,8 @@ export abstract class OnChainSourceSampler<
     protected readonly _buyContractHelper: ContractHelper<TBuySamplerContract>;
     protected readonly _sellContractFunction: ContractFunction<TSellSamplerFunctionArgs, TSellSamplerFunctionReturn>;
     protected readonly _buyContractFunction: ContractFunction<TBuySamplerFunctionArgs, TBuySamplerFunctionReturn>;
+    protected readonly _maxCacheAgeMs: number;
+    protected readonly _liquidityScores: { [tokenPathId: string]: LiquidtyScore | undefined } = {};
 
     protected constructor(opts: TOpts) {
         super();
@@ -116,6 +129,9 @@ export abstract class OnChainSourceSampler<
             opts.sellContractSellFunctionName
         ] as any) as TSellSamplerFunction;
         this._buyContractFunction = (this._buyContract[opts.buyContractBuyFunctionName] as any) as TBuySamplerFunction;
+        this._maxCacheAgeMs = opts.maxCacheAgeMs === undefined ? DEFAULT_MAX_CACHE_AGE_MS : opts.maxCacheAgeMs;
+        // Heal liquidity scores by 1% every 10 seconds.
+        setInterval(() => this._healLiquidityScores(0.01), 10e3);
     }
 
     public canConvertTokens(_tokenAddressPath: Address[]): boolean {
@@ -126,38 +142,66 @@ export abstract class OnChainSourceSampler<
         tokenAddressPath: Address[],
         takerFillAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
-        if (!this.canConvertTokens(tokenAddressPath)) {
+        const tokenPathId = getTokenPathId(tokenAddressPath);
+        if (!this.canConvertTokens(tokenAddressPath) || !this._isLuckyForPath(tokenPathId)) {
             return [];
         }
         const calls = await this._getSellQuoteCallsAsync(tokenAddressPath, takerFillAmounts);
-        return Promise.all(
-            calls.map(async c =>
-                c
-                    .getDexSamplesFromResult(
-                        await this._sellContractHelper.ethCallAsync(this._sellContractFunction, c.args, { gas: c.gas }),
-                    )
-                    .filter(s => s.output),
-            ),
-        );
+        let samples: DexSample[][] = [];
+        try {
+            samples = await Promise.all(
+                calls.map(async c =>
+                    c
+                        .getDexSamplesFromResult(
+                            await this._sellContractHelper.ethCallAsync(this._sellContractFunction, c.args, {
+                                gas: c.gas,
+                                maxCacheAgeMs: this._maxCacheAgeMs,
+                            }),
+                        )
+                        .filter(s => s.output),
+                ),
+            );
+        } catch (err) {
+            // Only allow reverts to be scored.
+            if (!err.message.includes('reverted')) {
+                return [];
+            }
+        }
+        this._scoreLiquidity(tokenPathId, samples);
+        return samples;
     }
 
     public async getBuySamplesAsync(
         tokenAddressPath: Address[],
         makerFillAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
-        if (!this.canConvertTokens(tokenAddressPath)) {
+        const tokenPathId = getTokenPathId(tokenAddressPath);
+        if (!this.canConvertTokens(tokenAddressPath) || !this._isLuckyForPath(tokenPathId)) {
             return [];
         }
         const calls = await this._getBuyQuoteCallsAsync(tokenAddressPath, makerFillAmounts);
-        return Promise.all(
-            calls.map(async c =>
-                c
-                    .getDexSamplesFromResult(
-                        await this._buyContractHelper.ethCallAsync(this._buyContractFunction, c.args, { gas: c.gas }),
-                    )
-                    .filter(s => s.output),
-            ),
-        );
+        let samples: DexSample[][] = [];
+        try {
+            samples = await Promise.all(
+                calls.map(async c =>
+                    c
+                        .getDexSamplesFromResult(
+                            await this._buyContractHelper.ethCallAsync(this._buyContractFunction, c.args, {
+                                gas: c.gas,
+                                maxCacheAgeMs: this._maxCacheAgeMs,
+                            }),
+                        )
+                        .filter(s => s.output),
+                ),
+            );
+        } catch (err) {
+            // Only allow reverts to be scored.
+            if (!err.message.includes('reverted')) {
+                return [];
+            }
+        }
+        this._scoreLiquidity(tokenPathId, samples);
+        return samples;
     }
 
     public async getMultiHopSellCallInfosAsync(
@@ -165,7 +209,8 @@ export abstract class OnChainSourceSampler<
         takerFillAmount: BigNumber,
         callOpts: Partial<ChainEthCallOpts> = {},
     ): Promise<MultiHopCallInfo[]> {
-        if (!this.canConvertTokens(tokenAddressPath)) {
+        const tokenPathId = getTokenPathId(tokenAddressPath);
+        if (!this.canConvertTokens(tokenAddressPath) || !this._isLuckyForPath(tokenPathId)) {
             return [];
         }
         const calls = await this._getSellQuoteCallsAsync(tokenAddressPath, [takerFillAmount]);
@@ -177,7 +222,7 @@ export abstract class OnChainSourceSampler<
                     this._sellContractFunction,
                     c.args,
                     (...args) => c.getDexSamplesFromResult(...args)[0],
-                    callOpts,
+                    { ...callOpts, gas: c.gas },
                 ),
             );
     }
@@ -187,7 +232,8 @@ export abstract class OnChainSourceSampler<
         makerFillAmount: BigNumber,
         callOpts: Partial<ChainEthCallOpts> = {},
     ): Promise<MultiHopCallInfo[]> {
-        if (!this.canConvertTokens(tokenAddressPath)) {
+        const tokenPathId = getTokenPathId(tokenAddressPath);
+        if (!this.canConvertTokens(tokenAddressPath) || !this._isLuckyForPath(tokenPathId)) {
             return [];
         }
         const calls = await this._getBuyQuoteCallsAsync(tokenAddressPath, [makerFillAmount]);
@@ -199,9 +245,34 @@ export abstract class OnChainSourceSampler<
                     this._buyContractFunction,
                     c.args,
                     (...args) => c.getDexSamplesFromResult(...args)[0],
-                    callOpts,
+                    { ...callOpts, gas: c.gas },
                 ),
             );
+    }
+
+    public pump(tokenPathOrId: Address[] | string): void {
+        const tokenPathId = typeof tokenPathOrId === 'string' ? tokenPathOrId : getTokenPathId(tokenPathOrId);
+        const ls = this._getLiquidityScoreByPathId(tokenPathId);
+        if (ls.lastTouchedBlock === this._chain.blockNumber) {
+            // Only pump or dump once per block.
+            return;
+        }
+        // Restore to 100%.
+        ls.lastTouchedBlock = this._chain.blockNumber;
+        ls.chance = 1;
+    }
+
+    public dump(tokenPathOrId: Address[] | string): void {
+        const tokenPathId = typeof tokenPathOrId === 'string' ? tokenPathOrId : getTokenPathId(tokenPathOrId);
+        const ls = this._getLiquidityScoreByPathId(tokenPathId);
+        if (ls.lastTouchedBlock === this._chain.blockNumber) {
+            // Only pump or dump once per block.
+            return;
+        }
+        // Half the current score.
+        // Lowest it can go is 5%.
+        ls.lastTouchedBlock = this._chain.blockNumber;
+        ls.chance = Math.max(ls.chance / 2, 0.05);
     }
 
     protected abstract _getSellQuoteCallsAsync(
@@ -215,6 +286,42 @@ export abstract class OnChainSourceSampler<
         tokenAddressPath: Address[],
         takerFillAmounts: BigNumber[],
     ): Promise<Array<SamplerEthCall<TFillData, ContractFunction<TBuySamplerFunctionArgs, TBuySamplerFunctionReturn>>>>;
+
+    protected _isLuckyForPath(tokenPathOrId: Address[] | string): boolean {
+        const tokenPathId = typeof tokenPathOrId === 'string' ? tokenPathOrId : getTokenPathId(tokenPathOrId);
+        const ls = this._getLiquidityScoreByPathId(tokenPathId);
+        return Math.random() < ls.chance;
+    }
+
+    private _healLiquidityScores(healAmount: number): void {
+        for (const pathId in this._liquidityScores) {
+            const ls = this._liquidityScores[pathId]!;
+            ls.chance = Math.min(ls?.chance || 1 + healAmount, 1);
+        }
+    }
+
+    private _getLiquidityScoreByPathId(pathId: string): LiquidtyScore {
+        return (this._liquidityScores[pathId] = this._liquidityScores[pathId] || {
+            lastTouchedBlock: 0,
+            chance: 1.0,
+        });
+    }
+
+    private _scoreLiquidity(tokenPathId: string, samples: DexSample[][]): void {
+        if (areSamplesEmpty(samples)) {
+            this.dump(tokenPathId);
+        } else {
+            this.pump(tokenPathId);
+        }
+    }
+}
+
+function getTokenPathId(tokenPath: Address[]): string {
+    return tokenPath.join(':');
+}
+
+function areSamplesEmpty(samples: DexSample[][]): boolean {
+    return samples.every(s => s.every(ss => ss.output.eq(0)));
 }
 
 function createMultiHopCallInfo<TContract extends GeneratedContract, TArgs extends any[], TReturn, TFillData>(

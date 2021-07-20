@@ -37,6 +37,7 @@ interface SassySamplerCreateFullOpts {
     sources: ERC20BridgeSource[];
     tokenAdjacencyGraph: TokenAdjacencyGraph;
     liquidityProviderRegistry?: LiquidityProviderRegistry;
+    maxPriceCacheAgeMs?: number;
 }
 
 type SassySamplerCreateOpts = Partial<SassySamplerCreateFullOpts> & { chain: Chain };
@@ -45,7 +46,7 @@ const DEFAULT_SOURCES = SourceFilters.all().exclude([ERC20BridgeSource.Native, E
 
 export class SassySampler {
     public readonly availableSources: ERC20BridgeSource[];
-    private readonly _liquidityScores: { [k in ERC20BridgeSource]: { [tokenPath: string]: number } };
+    private readonly _priceCache: { [pairId: string]: { cacheTime: number; value: BigNumber } } = {};
 
     public static async createAsync(opts: SassySamplerCreateOpts): Promise<SassySampler> {
         const sources = opts.sources || DEFAULT_SOURCES;
@@ -61,6 +62,7 @@ export class SassySampler {
             samplers,
             opts.tokenAdjacencyGraph || DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[opts.chain.chainId],
             twoHopSampler,
+            opts.maxPriceCacheAgeMs || 10e3,
         );
     }
 
@@ -69,11 +71,9 @@ export class SassySampler {
         private readonly _samplers: SourceSamplerMap,
         private readonly _tokenAdjacencyGraph: TokenAdjacencyGraph,
         private readonly _twoHopSampler: TwoHopSampler,
+        private readonly _maxPriceCacheAgeMs: number,
     ) {
         this.availableSources = Object.keys(_samplers) as ERC20BridgeSource[];
-        this._liquidityScores = Object.assign({}, ...Object.values(ERC20BridgeSource).map(s => ({ [s]: {} })));
-        // Heal liquidity scores by 1% every 10 seconds.
-        setInterval(() => this._healLiquidityScores(0.01), 10e3);
     }
 
     public async getMedianSellRateAsync(
@@ -85,29 +85,40 @@ export class SassySampler {
         if (takerToken.toLowerCase() === makerToken.toLowerCase()) {
             return new BigNumber(1);
         }
-        const filteredSources = this._filterSourcesByLiquidityChance(sources, [takerToken, makerToken]);
+        if (takerAmount.eq(0)) {
+            return ZERO_AMOUNT;
+        }
+        const cacheId = `${takerToken}/${makerToken}/${takerAmount.toString(10)}/${sources.join(',')}`;
+        const cachedPrice = (this._priceCache[cacheId] = this._priceCache[cacheId] || {
+            cacheTime: 0,
+            value: ZERO_AMOUNT,
+        });
+        if (Date.now() - cachedPrice.cacheTime < this._maxPriceCacheAgeMs) {
+            return cachedPrice.value;
+        }
         let samples;
         try {
             samples = (
                 await Promise.all(
-                    filteredSources.map(async s =>
+                    sources.map(async s =>
                         this._sampleSellsFromSourceAsync(s, [takerToken, makerToken], [takerAmount]),
                     ),
                 )
             ).flat(1);
         } catch {}
+        cachedPrice.cacheTime = Date.now();
         if (!samples || samples.length === 0) {
-            return ZERO_AMOUNT;
+            return (cachedPrice.value = ZERO_AMOUNT);
         }
         const flatSortedSamples = samples
             .flat(1)
             .map(v => v.output)
             .sort((a, b) => a.comparedTo(b));
         if (flatSortedSamples.length === 0) {
-            return ZERO_AMOUNT;
+            return (cachedPrice.value = ZERO_AMOUNT);
         }
         const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
-        return medianSample.div(takerAmount);
+        return (cachedPrice.value = medianSample.div(takerAmount));
     }
 
     public async getSellSamplesAsync(
@@ -116,11 +127,13 @@ export class SassySampler {
         makerToken: Address,
         takerAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
-        const filteredSources = this._filterSourcesByLiquidityChance(sources, [takerToken, makerToken]);
+        if (takerAmounts.every(a => a.eq(0))) {
+            return [];
+        }
         const tokenPaths = this._getExpandedTokenPaths(takerToken, makerToken);
         return (
             await Promise.all(
-                filteredSources.map(async s =>
+                sources.map(async s =>
                     Promise.all(tokenPaths.map(async p => this._sampleSellsFromSourceAsync(s, p, takerAmounts))),
                 ),
             )
@@ -133,11 +146,13 @@ export class SassySampler {
         makerToken: Address,
         makerAmounts: BigNumber[],
     ): Promise<DexSample[][]> {
-        const filteredSources = this._filterSourcesByLiquidityChance(sources, [takerToken, makerToken]);
+        if (makerAmounts.every(a => a.eq(0))) {
+            return [];
+        }
         const tokenPaths = this._getExpandedTokenPaths(takerToken, makerToken);
         return (
             await Promise.all(
-                filteredSources.map(async s =>
+                sources.map(async s =>
                     Promise.all(tokenPaths.map(async p => this._sampleBuysFromSourceAsync(s, p, makerAmounts))),
                 ),
             )
@@ -150,14 +165,13 @@ export class SassySampler {
         makerToken: Address,
         takerAmount: BigNumber,
     ): Promise<Array<DexSample<TwoHopFillData>>> {
+        if (takerAmount.eq(0)) {
+            return [];
+        }
         const tokenPaths = this._getTwoHopTokenPaths(takerToken, makerToken);
         const hopResults = await Promise.all(
             tokenPaths.map(async tokenPath =>
-                this._twoHopSampler.getTwoHopSellSampleAsync(
-                    this._filterSourcesByLiquidityChance(sources, tokenPath),
-                    tokenPath,
-                    takerAmount,
-                ),
+                this._twoHopSampler.getTwoHopSellSampleAsync(sources, tokenPath, takerAmount),
             ),
         );
         return hopResults.filter(h => !!h) as Array<DexSample<TwoHopFillData>>;
@@ -169,14 +183,13 @@ export class SassySampler {
         makerToken: Address,
         makerAmount: BigNumber,
     ): Promise<Array<DexSample<TwoHopFillData>>> {
+        if (makerAmount.eq(0)) {
+            return [];
+        }
         const tokenPaths = this._getTwoHopTokenPaths(takerToken, makerToken);
         const hopResults = await Promise.all(
             tokenPaths.map(async tokenPath =>
-                this._twoHopSampler.getTwoHopBuySampleAsync(
-                    this._filterSourcesByLiquidityChance(sources, tokenPath),
-                    tokenPath,
-                    makerAmount,
-                ),
+                this._twoHopSampler.getTwoHopBuySampleAsync(sources, tokenPath, makerAmount),
             ),
         );
         return hopResults.filter(h => !!h) as Array<DexSample<TwoHopFillData>>;
@@ -201,7 +214,6 @@ export class SassySampler {
             // tslint:disable-next-line: no-console
             console.error(`Failed to fetch sell samples for ${source} (${tokenPath.join('->')}): ${err.message}`);
         }
-        this._scoreLiquidity(source, tokenPath, samples);
         return samples;
     }
 
@@ -224,7 +236,6 @@ export class SassySampler {
             // tslint:disable-next-line: no-console
             console.error(`Failed to fetch sell samples for ${source} (${tokenPath.join('->')}: ${err.message}`);
         }
-        this._scoreLiquidity(source, tokenPath, samples);
         return samples;
     }
 
@@ -248,48 +259,6 @@ export class SassySampler {
     private _findSampler(source: ERC20BridgeSource): SourceSampler | undefined {
         return this._samplers[source];
     }
-
-    private _filterSourcesByLiquidityChance(sources: ERC20BridgeSource[], tokenPath: Address[]): ERC20BridgeSource[] {
-        const pathId = tokenPath.join(':');
-        return sources.filter(source => {
-            let score = this._liquidityScores[source][pathId];
-            if (score === undefined) {
-                score = 1.0;
-            }
-            // score = 1.0 = 100% chance, etc.
-            return Math.random() < score;
-        });
-    }
-
-    private _scoreLiquidity(source: ERC20BridgeSource, tokenPath: Address[], samples: DexSample[][]): void {
-        const pathId = tokenPath.join(':');
-        let score = this._liquidityScores[source][pathId];
-        if (score === undefined) {
-            score = 1.0;
-        }
-        if (areSamplesEmpty(samples)) {
-            // If no liquidity, half the score.
-            // Lowst it can go is 1%.
-            score = Math.max(score / 2, 0.01);
-        } else {
-            // If any liquidity appears, restore to 100%.
-            score = 1.0;
-        }
-        this._liquidityScores[source][pathId] = score;
-    }
-
-    private _healLiquidityScores(healAmount: number): void {
-        for (const source in this._liquidityScores) {
-            const scores = this._liquidityScores[source as ERC20BridgeSource];
-            for (const pathId in scores) {
-                scores[pathId] = Math.min(scores[pathId] + healAmount, 1);
-            }
-        }
-    }
-}
-
-function areSamplesEmpty(samples: DexSample[][]): boolean {
-    return samples.every(s => s.every(ss => ss.output.eq(0)));
 }
 
 interface CreateSourceSamplerOpts {

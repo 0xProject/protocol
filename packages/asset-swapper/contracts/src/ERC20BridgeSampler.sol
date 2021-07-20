@@ -63,27 +63,4 @@ contract ERC20BridgeSampler is
     TwoHopSampler,
     UniswapSampler,
     UniswapV2Sampler
-{
-
-    struct CallResults {
-        bytes data;
-        bool success;
-    }
-
-    /// @dev Call multiple public functions on this contract in a single transaction.
-    /// @param callDatas ABI-encoded call data for each function call.
-    /// @return callResults ABI-encoded results data for each call.
-    function batchCall(bytes[] calldata callDatas)
-        external
-        returns (CallResults[] memory callResults)
-    {
-        callResults = new CallResults[](callDatas.length);
-        for (uint256 i = 0; i != callDatas.length; ++i) {
-            callResults[i].success = true;
-            if (callDatas[i].length == 0) {
-                continue;
-            }
-            (callResults[i].success, callResults[i].data) = address(this).call(callDatas[i]);
-        }
-    }
-}
+{ }

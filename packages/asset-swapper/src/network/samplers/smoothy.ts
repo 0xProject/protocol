@@ -62,6 +62,8 @@ const SMOOTHYLIKE_INFOS_BY_CHAIN_ID = valueByChainId(
     {},
 );
 
+const GAS_PER_SAMPLE = 700e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromSmoothy'];
@@ -135,6 +137,7 @@ export class SmoothySampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * takerFillAmounts.length,
             };
         });
     }
@@ -166,6 +169,7 @@ export class SmoothySampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * makerFillAmounts.length * 2,
             };
         });
     }

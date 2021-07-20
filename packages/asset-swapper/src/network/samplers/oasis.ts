@@ -20,6 +20,8 @@ export interface OasisFillData extends FillData {
     router: Address;
 }
 
+const GAS_PER_SAMPLE = 800e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromEth2Dai'];
@@ -67,6 +69,7 @@ export class OasisSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * takerFillAmounts.length,
             },
         ];
     }
@@ -86,6 +89,7 @@ export class OasisSampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * makerFillAmounts.length,
             },
         ];
     }

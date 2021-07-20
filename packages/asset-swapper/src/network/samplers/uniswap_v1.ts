@@ -26,6 +26,8 @@ const BAD_TOKENS = [
     '0xb8c77482e45f1f44de1745f52c74426c631bdd52', // BNB
 ];
 
+const GAS_PER_SAMPLE = 250e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromUniswap'];
@@ -82,6 +84,7 @@ export class UniswapV1Sampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * takerFillAmounts.length,
             },
         ];
     }
@@ -106,6 +109,7 @@ export class UniswapV1Sampler extends OnChainSourceSampler<
                         input: a,
                         output: samples[i],
                     })),
+                gas: GAS_PER_SAMPLE * makerFillAmounts.length,
             },
         ];
     }

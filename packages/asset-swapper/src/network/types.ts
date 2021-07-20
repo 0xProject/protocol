@@ -91,6 +91,8 @@ export interface SourceSampler {
     getBuySamplesAsync(tokenAddressPath: Address[], makerFillAmounts: BigNumber[]): Promise<DexSample[][]>;
     getMultiHopSellCallInfosAsync(tokenAddressPath: Address[], takerFillAmount: BigNumber): Promise<MultiHopCallInfo[]>;
     getMultiHopBuyCallInfosAsync(tokenAddressPath: Address[], makerFillAmount: BigNumber): Promise<MultiHopCallInfo[]>;
+    pump(tokenAddressPath: Address[]): void;
+    dump(tokenAddressPath: Address[]): void;
 }
 
 export interface SourceSamplerMap {

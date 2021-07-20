@@ -36,6 +36,7 @@ const DODOV2_FACTORIES_BY_CHAIN_ID = valueByChainId<string[]>(
 
 const MAX_DODOV2_POOLS_QUERIED = 3;
 const DODO_V2_OFFSETS = [...new Array(MAX_DODOV2_POOLS_QUERIED)].map((_v, i) => new BigNumber(i));
+const GAS_PER_SAMPLE = 400e3;
 
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
@@ -69,6 +70,11 @@ export class DodoV2Sampler extends OnChainSourceSampler<
         return tokenAddressPath.length === 2;
     }
 
+    protected _isLuckyForPath(_tokenAddressPath: Address[]): boolean {
+        // DODO V2 has minimums so liquidity scoring is unreliable.
+        return true;
+    }
+
     protected async _getSellQuoteCallsAsync(
         tokenAddressPath: string[],
         takerFillAmounts: BigNumber[],
@@ -88,6 +94,7 @@ export class DodoV2Sampler extends OnChainSourceSampler<
                                     output: samples[i],
                                 }));
                             },
+                            gas: GAS_PER_SAMPLE * takerFillAmounts.length,
                         } as SamplerSellEthCall),
                 ),
             )
@@ -113,6 +120,7 @@ export class DodoV2Sampler extends OnChainSourceSampler<
                                     output: samples[i],
                                 }));
                             },
+                            gas: GAS_PER_SAMPLE * makerFillAmounts.length * 2,
                         } as SamplerBuyEthCall),
                 ),
             )

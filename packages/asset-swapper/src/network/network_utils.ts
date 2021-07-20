@@ -19,6 +19,9 @@ export class NetworkUtils {
     }
 
     public async getTokenDecimalsAsync(tokens: Address[]): Promise<number[]> {
+        if (tokens.length === 0) {
+            return [];
+        }
         const tokensToFetch = tokens.filter(t => this._tokenDecimalsCache[t] === undefined);
         let fetchedDecimals: number[] = [];
         if (tokensToFetch.length > 0) {

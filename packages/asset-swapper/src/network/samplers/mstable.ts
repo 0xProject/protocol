@@ -49,6 +49,8 @@ const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
     },
 );
 
+const GAS_PER_SAMPLE = 900e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromMStable'];
@@ -103,6 +105,7 @@ export class MStableSampler extends OnChainSourceSampler<
                     input: a,
                     output: samples[i],
                 })),
+            gas: GAS_PER_SAMPLE * takerFillAmounts.length,
         }));
     }
 
@@ -121,6 +124,7 @@ export class MStableSampler extends OnChainSourceSampler<
                     input: a,
                     output: samples[i],
                 })),
+            gas: GAS_PER_SAMPLE * makerFillAmounts.length * 2,
         }));
     }
 

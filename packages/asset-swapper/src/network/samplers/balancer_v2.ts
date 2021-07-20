@@ -205,6 +205,8 @@ export class BalancerV2PoolsCache extends PoolsCache {
     }
 }
 
+const GAS_PER_SAMPLE = 500e3;
+
 type SellContract = ERC20BridgeSamplerContract;
 type BuyContract = ERC20BridgeSamplerContract;
 type SellContractSellFunction = SellContract['sampleSellsFromBalancerV2'];
@@ -261,6 +263,7 @@ export class BalancerV2Sampler extends OnChainSourceSampler<
                     input: a,
                     output: samples[i],
                 })),
+            gas: GAS_PER_SAMPLE * takerFillAmounts.length,
         }));
     }
 
@@ -279,6 +282,7 @@ export class BalancerV2Sampler extends OnChainSourceSampler<
                     input: a,
                     output: samples[i],
                 })),
+            gas: GAS_PER_SAMPLE * makerFillAmounts.length,
         }));
     }
 }

@@ -38,14 +38,18 @@ contract CallDispatcher {
     function dispatch(CallInfo[] memory calls)
         public
         payable
-        returns (DispatchedCallResult[] memory callResults)
+        returns (DispatchedCallResult[] memory callResults, uint256 currentBlock)
     {
+        currentBlock = block.number;
         callResults = new DispatchedCallResult[](calls.length);
         for (uint256 i = 0; i != calls.length; ++i) {
             CallInfo memory c = calls[i];
+            if (gasleft() < 5.5e3) {
+                break;
+            }
             uint256 callGas = c.gas == 0 ? gasleft() : c.gas;
             (callResults[i].success, callResults[i].resultData) =
-                c.to.call{ value: c.value, gas: c.gas }(c.data);
+                c.to.call{ value: c.value, gas: callGas }(c.data);
         }
     }
 }
