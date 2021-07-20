@@ -281,7 +281,7 @@ function tryDecodeStringRevertErrorResult(rawResultData: Bytes): string | undefi
     if (rawResultData.startsWith('0x08c379a0')) {
         const strLen: number = new BigNumber(hexUtils.slice(rawResultData, 4, 36)).toNumber();
         return Buffer.from(hexUtils.slice(rawResultData, 68, 68 + strLen).slice(2), 'hex')
-            .filter(b => b === 0)
+            .filter(b => b !== 0)
             .toString();
     }
     return;
