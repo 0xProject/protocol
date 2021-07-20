@@ -199,7 +199,7 @@ export class SassySampler {
             samples = (await sampler.getSellSamplesAsync(tokenPath, takerAmounts)).filter(s => !!s.length);
         } catch (err) {
             // tslint:disable-next-line: no-console
-            console.error(`Failed to fetch sell samples for ${source}: ${err.message}`);
+            console.error(`Failed to fetch sell samples for ${source} (${tokenPath.join('->')}): ${err.message}`);
         }
         this._scoreLiquidity(source, tokenPath, samples);
         return samples;
@@ -222,7 +222,7 @@ export class SassySampler {
             samples = (await sampler.getBuySamplesAsync(tokenPath, takerAmounts)).filter(s => !!s.length);
         } catch (err) {
             // tslint:disable-next-line: no-console
-            console.error(`Failed to fetch sell samples for ${source}: ${err.message}`);
+            console.error(`Failed to fetch sell samples for ${source} (${tokenPath.join('->')}: ${err.message}`);
         }
         this._scoreLiquidity(source, tokenPath, samples);
         return samples;
@@ -269,8 +269,8 @@ export class SassySampler {
         }
         if (areSamplesEmpty(samples)) {
             // If no liquidity, half the score.
-            // Lowst it can go is 5%.
-            score = Math.max(score / 2, 0.05);
+            // Lowst it can go is 1%.
+            score = Math.max(score / 2, 0.01);
         } else {
             // If any liquidity appears, restore to 100%.
             score = 1.0;

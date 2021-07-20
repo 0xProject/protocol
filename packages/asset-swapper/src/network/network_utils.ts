@@ -26,7 +26,7 @@ export class NetworkUtils {
                 await this._networkUtilsContractHelper.ethCallAsync(
                     this._networkUtilsContract.getTokenDecimals,
                     [tokensToFetch],
-                    { gas: tokensToFetch.length * 20e3 },
+                    { gas: tokensToFetch.length * 64e3 },
                 )
             ).map(d => d.toNumber());
         }
@@ -41,7 +41,7 @@ export class NetworkUtils {
             this._isAddressContractCache[address] = await this._networkUtilsContractHelper.ethCallAsync(
                 this._networkUtilsContract.isContract,
                 [address],
-                { gas: 20e3 },
+                { gas: 32e3 },
             );
         }
         return this._isAddressContractCache[address];

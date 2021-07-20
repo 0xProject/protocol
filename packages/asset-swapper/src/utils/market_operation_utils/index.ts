@@ -369,7 +369,7 @@ export class MarketOperationUtils {
                     [makerAmounts[i]],
                 ),
             ),
-            batchNativeOrders.map(async orders =>
+            ...batchNativeOrders.map(async orders =>
                 this._networkUtils.getTokenDecimalsAsync([orders[0].order.makerToken, orders[0].order.takerToken]),
             ),
         ] as any);

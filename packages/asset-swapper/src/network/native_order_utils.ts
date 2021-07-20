@@ -27,7 +27,7 @@ export class NativeOrderUtils {
         return this._nativeOrderUtilsContractHelper.ethCallAsync(
             this._nativeOrderUtilsContract.getLimitOrderFillableTakerAssetAmounts,
             [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), this.exchangeProxyAddress],
-            { gas: 100e3 },
+            { gas: orders.length * 300e3 },
         );
     }
 
@@ -35,7 +35,7 @@ export class NativeOrderUtils {
         return this._nativeOrderUtilsContractHelper.ethCallAsync(
             this._nativeOrderUtilsContract.getLimitOrderFillableMakerAssetAmounts,
             [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), this.exchangeProxyAddress],
-            { gas: 100e3 },
+            { gas: orders.length * 300e3 },
         );
     }
 }
