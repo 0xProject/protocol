@@ -5,6 +5,18 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.23.0 - _July 16, 2021_
+
+    * ACryptoS (#284)
+
+## v16.22.0 - _July 13, 2021_
+
+    * IronSwap (#281)
+
+## v16.21.0 - _July 10, 2021_
+
+    * JetSwap (#280)
+
 ## v16.20.0 - _July 6, 2021_
 
     * ShibaSwap (#276)

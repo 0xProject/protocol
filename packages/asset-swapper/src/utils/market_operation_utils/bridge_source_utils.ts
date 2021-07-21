@@ -2,6 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
+    ACRYPTOS_BSC_INFOS,
     APESWAP_ROUTER_BY_CHAIN_ID,
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
@@ -19,6 +20,8 @@ import {
     FIREBIRD_POOLS_BY_CHAIN_ID,
     FIREBIRDONESWAP_BSC_INFOS,
     FIREBIRDONESWAP_POLYGON_INFOS,
+    IRONSWAP_POLYGON_INFOS,
+    JETSWAP_ROUTER_BY_CHAIN_ID,
     JULSWAP_ROUTER_BY_CHAIN_ID,
     KYBER_BANNED_RESERVES,
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
@@ -296,11 +299,37 @@ export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, make
     );
 }
 
+export function getIronSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.Polygon) {
+        return [];
+    }
+    return Object.values(IRONSWAP_POLYGON_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+        ),
+    );
+}
+
 export function getXSigmaInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
     }
     return Object.values(XSIGMA_MAINNET_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+        ),
+    );
+}
+
+export function getAcryptosInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.BSC) {
+        return [];
+    }
+    return Object.values(ACRYPTOS_BSC_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
@@ -346,8 +375,10 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Smoothy
         | ERC20BridgeSource.Saddle
+        | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
-        | ERC20BridgeSource.FirebirdOneSwap,
+        | ERC20BridgeSource.FirebirdOneSwap
+        | ERC20BridgeSource.ACryptos,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
     switch (source) {
@@ -384,6 +415,12 @@ export function getCurveLikeInfosForPair(
         case ERC20BridgeSource.FirebirdOneSwap:
             pools = getFirebirdOneSwapInfosForPair(chainId, takerToken, makerToken);
             break;
+        case ERC20BridgeSource.IronSwap:
+            pools = getIronSwapInfosForPair(chainId, takerToken, makerToken);
+            break;
+        case ERC20BridgeSource.ACryptos:
+            pools = getAcryptosInfosForPair(chainId, takerToken, makerToken);
+            break;
         default:
             throw new Error(`Unknown Curve like source ${source}`);
     }
@@ -413,7 +450,7 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.WaultSwap
         | ERC20BridgeSource.Polydex
         | ERC20BridgeSource.ShibaSwap
-        ,
+        | ERC20BridgeSource.JetSwap,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -448,6 +485,8 @@ export function uniswapV2LikeRouterAddress(
             return POLYDEX_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ShibaSwap:
             return SHIBASWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.JetSwap:
+            return JETSWAP_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

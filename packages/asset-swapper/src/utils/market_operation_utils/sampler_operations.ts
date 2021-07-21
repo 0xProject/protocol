@@ -1265,6 +1265,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
                     case ERC20BridgeSource.ShibaSwap:
+                    case ERC20BridgeSource.JetSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1299,6 +1300,8 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Saddle:
                     case ERC20BridgeSource.XSigma:
                     case ERC20BridgeSource.FirebirdOneSwap:
+                    case ERC20BridgeSource.IronSwap:
+                    case ERC20BridgeSource.ACryptos:
                         return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                             this.getCurveSellQuotes(
                                 pool,
@@ -1546,6 +1549,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
                     case ERC20BridgeSource.ShibaSwap:
+                    case ERC20BridgeSource.JetSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1580,6 +1584,8 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Saddle:
                     case ERC20BridgeSource.XSigma:
                     case ERC20BridgeSource.FirebirdOneSwap:
+                    case ERC20BridgeSource.IronSwap:
+                    case ERC20BridgeSource.ACryptos:
                         return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                             this.getCurveBuyQuotes(
                                 pool,

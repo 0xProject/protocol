@@ -80,6 +80,7 @@ export enum ERC20BridgeSource {
     CafeSwap = 'CafeSwap',
     CheeseSwap = 'CheeseSwap',
     JulSwap = 'JulSwap',
+    ACryptos = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',
     ComethSwap = 'ComethSwap',
@@ -88,6 +89,8 @@ export enum ERC20BridgeSource {
     Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
     Firebird = 'Firebird',
+    JetSwap = 'JetSwap',
+    IronSwap = 'IronSwap',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
