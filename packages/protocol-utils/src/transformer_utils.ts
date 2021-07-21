@@ -131,6 +131,7 @@ export enum BridgeProtocol {
     KyberDmm,
     CurveV2,
     Lido,
+    AaveV2,
 }
 // tslint:enable: enum-naming
 

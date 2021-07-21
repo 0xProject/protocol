@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
+import { AaveReservesCache } from './aave_reserves_cache';
 import { BancorService } from './bancor_service';
 import {
     CurveDetailedInfo,
@@ -19,6 +20,7 @@ import {
     uniswapV2LikeRouterAddress,
 } from './bridge_source_utils';
 import {
+    AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID,
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
@@ -47,6 +49,7 @@ import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache }
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SourceFilters } from './source_filters';
 import {
+    AaveReservesFillData,
     BalancerFillData,
     BalancerV2FillData,
     BalancerV2PoolInfo,
@@ -99,6 +102,7 @@ export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSour
 export class SamplerOperations {
     public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
     public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
+    public readonly aaveReservesCache: AaveReservesCache | undefined;
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
@@ -127,6 +131,11 @@ export class SamplerOperations {
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
               };
+
+        const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
+        if (aaveSubgraphUrl) {
+            this.aaveReservesCache = new AaveReservesCache(aaveSubgraphUrl);
+        }
         // Initialize the Bancor service, fetching paths in the background
         bancorServiceFn()
             .then(service => (this._bancorService = service))
@@ -1143,6 +1152,40 @@ export class SamplerOperations {
         });
     }
 
+    public getAaveReservesSellQuotes(
+        lendingPool: string,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): MeasuredSourceQuoteOperation<AaveReservesFillData> {
+        return new MeasuredSamplerContractOperation({
+            source: ERC20BridgeSource.AaveV2,
+            fillData: {
+                lendingPool,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromAaveV2,
+            params: [lendingPool, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getAaveReservesBuyQuotes(
+        lendingPool: string,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): MeasuredSourceQuoteOperation<AaveReservesFillData> {
+        return new MeasuredSamplerContractOperation({
+            source: ERC20BridgeSource.AaveV2,
+            fillData: {
+                lendingPool,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromAaveV2,
+            params: [lendingPool, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1483,6 +1526,21 @@ export class SamplerOperations {
 
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
+                    case ERC20BridgeSource.AaveV2: {
+                        if (!this.aaveReservesCache) {
+                            return [];
+                        }
+                        const reserve = this.aaveReservesCache.get(takerToken, makerToken);
+                        if (!reserve) {
+                            return [];
+                        }
+                        return this.getAaveReservesSellQuotes(
+                            reserve.pool.lendingPool,
+                            makerToken,
+                            takerToken,
+                            takerFillAmounts,
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -1737,6 +1795,21 @@ export class SamplerOperations {
                         }
 
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
+                    }
+                    case ERC20BridgeSource.AaveV2: {
+                        if (!this.aaveReservesCache) {
+                            return [];
+                        }
+                        const reserve = this.aaveReservesCache.get(takerToken, makerToken);
+                        if (!reserve) {
+                            return [];
+                        }
+                        return this.getAaveReservesBuyQuotes(
+                            reserve.pool.lendingPool,
+                            makerToken,
+                            takerToken,
+                            makerFillAmounts,
+                        );
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);
