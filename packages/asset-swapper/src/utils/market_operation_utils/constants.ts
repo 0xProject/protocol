@@ -99,6 +99,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Clipper,
+            ERC20BridgeSource.AaveV2,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -156,6 +157,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
+            ERC20BridgeSource.AaveV2,
         ]),
     },
     new SourceFilters([]),
@@ -200,6 +202,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Clipper,
+            ERC20BridgeSource.AaveV2,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -257,6 +260,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
+            ERC20BridgeSource.AaveV2,
         ]),
     },
     new SourceFilters([]),
@@ -1465,6 +1469,14 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
         },
     },
     { quoter: NULL_ADDRESS, router: NULL_ADDRESS },
+);
+
+export const AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Mainnet]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2',
+        [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2-kovan',
+    },
+    null,
 );
 
 //

@@ -70,6 +70,7 @@ export enum ERC20BridgeSource {
     Lido = 'Lido',
     ShibaSwap = 'ShibaSwap',
     Clipper = 'Clipper',
+    AaveV2 = 'Aave_V2',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -263,6 +264,10 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswap
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
     takerToken: string;
+}
+
+export interface AaveReservesFillData extends FillData {
+    lendingPool: string;
 }
 
 /**
