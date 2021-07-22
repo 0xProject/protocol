@@ -54,6 +54,7 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Kovan]: defaultValue,
         [ChainId.Ganache]: defaultValue,
         [ChainId.BSC]: defaultValue,
+        [ChainId.Chapel]: defaultValue,
         [ChainId.Polygon]: defaultValue,
         [ChainId.PolygonMumbai]: defaultValue,
         ...(rest || {}),
