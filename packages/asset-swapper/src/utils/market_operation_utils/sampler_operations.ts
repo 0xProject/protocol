@@ -49,6 +49,7 @@ import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache }
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SourceFilters } from './source_filters';
 import {
+    AaveV2Info,
     AaveReservesFillData,
     BalancerFillData,
     BalancerV2FillData,
@@ -1111,36 +1112,32 @@ export class SamplerOperations {
     }
 
     public getAaveReservesSellQuotes(
-        lendingPool: string,
+        aaveInfo: AaveV2Info,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
     ): MeasuredSourceQuoteOperation<AaveReservesFillData> {
         return new MeasuredSamplerContractOperation({
             source: ERC20BridgeSource.AaveV2,
-            fillData: {
-                lendingPool,
-            },
+            fillData: aaveInfo,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromAaveV2,
-            params: [lendingPool, takerToken, makerToken, takerFillAmounts],
+            params: [aaveInfo, takerToken, makerToken, takerFillAmounts],
         });
     }
 
     public getAaveReservesBuyQuotes(
-        lendingPool: string,
+        aaveInfo: AaveV2Info,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): MeasuredSourceQuoteOperation<AaveReservesFillData> {
         return new MeasuredSamplerContractOperation({
             source: ERC20BridgeSource.AaveV2,
-            fillData: {
-                lendingPool,
-            },
+            fillData: aaveInfo,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromAaveV2,
-            params: [lendingPool, takerToken, makerToken, makerFillAmounts],
+            params: [aaveInfo, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1529,12 +1526,12 @@ export class SamplerOperations {
                         if (!reserve) {
                             return [];
                         }
-                        return this.getAaveReservesSellQuotes(
-                            reserve.pool.lendingPool,
-                            makerToken,
-                            takerToken,
-                            takerFillAmounts,
-                        );
+
+                        const info: AaveV2Info = {
+                            lendingPool: reserve.pool.lendingPool,
+                            aToken: reserve.aToken.id,
+                        };
+                        return this.getAaveReservesSellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
@@ -1839,12 +1836,11 @@ export class SamplerOperations {
                         if (!reserve) {
                             return [];
                         }
-                        return this.getAaveReservesBuyQuotes(
-                            reserve.pool.lendingPool,
-                            makerToken,
-                            takerToken,
-                            makerFillAmounts,
-                        );
+                        const info: AaveV2Info = {
+                            lendingPool: reserve.pool.lendingPool,
+                            aToken: reserve.aToken.id,
+                        };
+                        return this.getAaveReservesBuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);
