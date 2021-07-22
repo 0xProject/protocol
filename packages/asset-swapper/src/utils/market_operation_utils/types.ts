@@ -144,6 +144,11 @@ export interface BalancerV2PoolInfo {
     vault: string;
 }
 
+export interface AaveV2Info {
+    lendingPool: string;
+    aToken: string;
+}
+
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
 
@@ -255,6 +260,7 @@ export interface LidoFillData extends FillData {
 
 export interface AaveReservesFillData extends FillData {
     lendingPool: string;
+    aToken: string;
 }
 
 /**

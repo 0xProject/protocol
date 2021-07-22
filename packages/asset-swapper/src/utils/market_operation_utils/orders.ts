@@ -313,7 +313,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.AaveV2:
             const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveReservesFillData>).fillData;
-            bridgeData = encoder.encode([aaveFillData.lendingPool]);
+            bridgeData = encoder.encode([aaveFillData.lendingPool, aaveFillData.aToken]);
             break;
 
         default:
@@ -470,7 +470,7 @@ export const BRIDGE_ENCODERS: {
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
-    [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

@@ -59,46 +59,9 @@ interface ILendingPool {
     uint256 amount,
     address to
   ) external returns (uint256);
-
-    /**
-   * @dev Returns the state and configuration of the reserve
-   * @param asset The address of the underlying asset of the reserve
-   * @return The state of the reserve
-   **/
-  function getReserveData(address asset) external view returns (IReserveData memory);
-
-}
-
-struct IReserveData {
-  //stores the reserve configuration
-  IReserveConfigurationMap configuration;
-  //the liquidity index. Expressed in ray
-  uint128 liquidityIndex;
-  //variable borrow index. Expressed in ray
-  uint128 variableBorrowIndex;
-  //the current supply rate. Expressed in ray
-  uint128 currentLiquidityRate;
-  //the current variable borrow rate. Expressed in ray
-  uint128 currentVariableBorrowRate;
-  //the current stable borrow rate. Expressed in ray
-  uint128 currentStableBorrowRate;
-  uint40 lastUpdateTimestamp;
-  //tokens addresses
-  address aTokenAddress;
-  address stableDebtTokenAddress;
-  address variableDebtTokenAddress;
-  //address of the interest rate strategy
-  address interestRateStrategyAddress;
-  //the id of the reserve. Represents the position in the list of the active reserves
-  uint8 id;
-}
-
-struct IReserveConfigurationMap {
-  uint256 data;
 }
 
 contract MixinAaveV2 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeAaveV2(
@@ -108,27 +71,23 @@ contract MixinAaveV2 {
         bytes memory bridgeData
     )
         internal
-        returns (uint256 boughtAmount)
+        returns (uint256)
     {
-        (ILendingPool lendingPool) = abi.decode(bridgeData, (ILendingPool));
-        IReserveData memory sellTokenReserve = lendingPool.getReserveData(address(sellToken));
-        IReserveData memory buyTokenReserve = lendingPool.getReserveData(address(buyToken));
+        (ILendingPool lendingPool, address aToken) = abi.decode(bridgeData, (ILendingPool, address));
 
+          sellToken.approveIfBelow(
+              address(lendingPool),
+              sellAmount
+          );
 
-        if (address(buyToken) == sellTokenReserve.aTokenAddress) {
-            sellToken.approveIfBelow(
-                address(lendingPool),
-                sellAmount
-            );
+        if (address(buyToken) == aToken) {
             lendingPool.deposit(address(sellToken), sellAmount, address(this), 0);
             // 1:1 mapping token -> aToken and have the same number of decimals as the underlying token
-            boughtAmount = sellAmount;
-        } else if (address(sellToken) == buyTokenReserve.aTokenAddress) {
-            sellToken.approveIfBelow(
-                address(lendingPool),
-                sellAmount
-            );
-            boughtAmount = lendingPool.withdraw(address(buyToken), sellAmount, address(this));
+            return sellAmount;
+        } else if (address(sellToken) == aToken) {
+            return lendingPool.withdraw(address(buyToken), sellAmount, address(this));
         }
+
+        revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
     }
 }

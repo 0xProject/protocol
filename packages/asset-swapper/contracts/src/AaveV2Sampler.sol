@@ -45,9 +45,14 @@ contract AaveV2Sampler is
         );
     }
 
+    struct AaveInfo {
+        address lendingPool;
+        address aToken;
+    }
+
     /// @dev Sample sell quotes from Aave
     function sampleSellsFromAaveV2(
-        address lendingPool,
+        AaveInfo memory aaveInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -59,7 +64,7 @@ contract AaveV2Sampler is
             SwapRevertSamplerQuoteOpts({
                 sellToken: takerToken,
                 buyToken: makerToken,
-                bridgeData: abi.encode(lendingPool),
+                bridgeData: abi.encode(aaveInfo.lendingPool, aaveInfo.aToken),
                 getSwapQuoteCallback: this.sampleSwapFromAaveV2
             }),
             takerTokenAmounts
@@ -67,7 +72,7 @@ contract AaveV2Sampler is
     }
 
     function sampleBuysFromAaveV2(
-        address lendingPool,
+        AaveInfo memory aaveInfo,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -79,8 +84,8 @@ contract AaveV2Sampler is
             SwapRevertSamplerBuyQuoteOpts({
                 sellToken: takerToken,
                 buyToken: makerToken,
-                sellTokenData: abi.encode(lendingPool),
-                buyTokenData: abi.encode(lendingPool),
+                sellTokenData: abi.encode(aaveInfo.lendingPool, aaveInfo.aToken),
+                buyTokenData: abi.encode(aaveInfo.lendingPool, aaveInfo.aToken),
                 getSwapQuoteCallback: this.sampleSwapFromAaveV2
             }),
             makerTokenAmounts
