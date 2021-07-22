@@ -35,7 +35,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
     }
 
     describe('BalancerPoolsCache', () => {
-        const cache = new BalancerPoolsCache();
+        const cache = new BalancerPoolsCache(ChainId.Mainnet);
         it('fetches pools', async () => {
             const pairs = [
                 [usdcAddress, daiAddress],
