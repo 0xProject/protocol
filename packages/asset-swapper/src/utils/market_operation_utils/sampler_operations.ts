@@ -1771,7 +1771,7 @@ export class SamplerOperations {
                             return [];
                         }
                         return getFirebirdInfosForPair(this.chainId, takerToken, makerToken).map(pool =>
-                            this.getFirebirdBuyQuotes(router, pool, makerToken, takerToken, makerFillAmounts),
+                            this.getFirebirdBuyQuotes(router, pool, takerToken, makerToken, makerFillAmounts),
                         );
                     }
                     default:
