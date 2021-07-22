@@ -1449,6 +1449,7 @@ export const PANCAKESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const PANCAKESWAPV2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0x10ed43c718714eb63d5aa57b78b54704e256024e',
+        [ChainId.Chapel]: '0x9ac64cc6e4415144c455bd8e4837fea55603e5c3',
     },
     NULL_ADDRESS,
 );
