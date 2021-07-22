@@ -66,7 +66,7 @@ typings/
 .env
 
 # built library using in commonjs module syntax
-/lib/
+lib/
 # UMD bundles that export the global variable
 _bundles
 
