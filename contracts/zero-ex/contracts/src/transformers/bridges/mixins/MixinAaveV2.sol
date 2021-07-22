@@ -20,6 +20,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+
 // Minimal Aave V2 LendingPool interface
 interface ILendingPool {
     /**
@@ -95,9 +98,12 @@ struct IReserveConfigurationMap {
 }
 
 contract MixinAaveV2 {
+
+    using LibERC20TokenV06 for IERC20TokenV06;
+
     function _tradeAaveV2(
-        address sellToken,
-        address buyToken,
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     )
@@ -108,14 +114,21 @@ contract MixinAaveV2 {
         IReserveData memory sellTokenReserve = lendingPool.getReserveData(address(sellToken));
         IReserveData memory buyTokenReserve = lendingPool.getReserveData(address(buyToken));
 
+
         if (address(buyToken) == sellTokenReserve.aTokenAddress) {
+            sellToken.approveIfBelow(
+                address(lendingPool),
+                sellAmount
+            );
             lendingPool.deposit(address(sellToken), sellAmount, address(this), 0);
             // 1:1 mapping token -> aToken and have the same number of decimals as the underlying token
-            return sellAmount;
+            boughtAmount = sellAmount;
         } else if (address(sellToken) == buyTokenReserve.aTokenAddress) {
-            return lendingPool.withdraw(address(buyToken), sellAmount, address(this));
+            sellToken.approveIfBelow(
+                address(lendingPool),
+                sellAmount
+            );
+            boughtAmount = lendingPool.withdraw(address(buyToken), sellAmount, address(this));
         }
-
-        return 0;
     }
 }
