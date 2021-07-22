@@ -137,7 +137,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ACryptos,
         ]),
         [ChainId.Chapel]: new SourceFilters([
-            ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.Balancer,
             ERC20BridgeSource.BakerySwap,
             ERC20BridgeSource.Belt,
             ERC20BridgeSource.Dodo,
