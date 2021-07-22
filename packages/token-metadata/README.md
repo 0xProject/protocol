@@ -1,3 +1,5 @@
-## @0x/token-metadata
+# token-metadata
 
--   Cannot find source code on 0x github. Rebuild myself
+Convenience library for tracking token metadata.
+
+Run `yarn run:publish` to update.

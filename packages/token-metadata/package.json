@@ -1,42 +1,37 @@
 {
     "name": "@0x/token-metadata",
-    "version": "6.4.0",
-    "engines": {
-        "node": ">=6.12"
-    },
-    "description": "Used to get known addresses of deployed 0x contracts",
-    "main": "lib/src/index.js",
-    "directories": {
-        "test": "test"
-    },
+    "version": "0.1.4",
+    "description": "list of tokens for 0x microservices",
+    "main": "lib/index.js",
+    "repository": "https://github.com/0xProject/token-metadata",
+    "author": "xianny",
+    "license": "MIT",
+    "files": [
+        "lib/*"
+    ],
     "scripts": {
-        "build": "yarn tsc -b",
-        "build:ci": "yarn build",
-        "clean": "shx rm -rf lib",
+        "build": "tsc -p tsconfig.json",
+        "run:publish": "yarn build && yarn publish --access public",
+        "fix": "tslint --project . --format stylish --fix && yarn prettier",
+        "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
+        "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",
+        "lint": "tslint --project . --format stylish && yarn prettier:ci",
         "publish:private": "yarn build && gitpkg publish"
+    },
+    "config": {
+        "prettier_target": "{.,src}/*.{ts,json,md}"
+    },
+    "dependencies": {
+        "@0x/contract-addresses": "^6.3.0",
+        "typescript": "^4.2.4"
     },
     "gitpkg": {
         "registry": "git@github-work.com:Sotatek-DucPham/gitpkg-registry.git"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/0xProject/protocol.git"
-    },
-    "license": "Apache-2.0",
-    "bugs": {
-        "url": "https://github.com/0xProject/protocol/issues"
-    },
-    "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-addresses",
-    "dependencies": {
-        "@0x/contract-addresses": "^6.4.0"
-    },
     "devDependencies": {
+        "@0x/tslint-config": "^4.1.4",
         "gitpkg": "https://github.com/0xProject/gitpkg.git",
-        "shx": "^0.2.2",
-        "typescript": "4.2.2"
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "gitHead": "4f91bfd907996b2f4dd383778b50c479c2602b56"
+        "prettier": "^2.3.0",
+        "tslint": "^6.1.3"
+    }
 }
