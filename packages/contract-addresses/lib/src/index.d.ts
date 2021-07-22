@@ -1,5 +1,3 @@
-import addresses from '../addresses.json';
-
 export interface ContractAddresses {
     erc20Proxy: string;
     erc721Proxy: string;
@@ -41,8 +39,7 @@ export interface ContractAddresses {
         positiveSlippageFeeTransformer: string;
     };
 }
-
-export enum ChainId {
+export declare enum ChainId {
     Mainnet = 1,
     Ropsten = 3,
     Rinkeby = 4,
@@ -51,9 +48,8 @@ export enum ChainId {
     BSC = 56,
     Chapel = 97,
     Polygon = 137,
-    PolygonMumbai = 80001,
+    PolygonMumbai = 80001
 }
-
 /**
  * Used to get addresses of contracts that have been deployed to either the
  * Ethereum mainnet or a supported testnet. Throws if there are no known
@@ -62,11 +58,5 @@ export enum ChainId {
  * @returns The set of addresses for contracts which have been deployed on the
  * given chainId.
  */
-export function getContractAddressesForChainOrThrow(chainId: ChainId): ContractAddresses {
-    const chainToAddresses: { [chainId: number]: ContractAddresses } = addresses;
-
-    if (chainToAddresses[chainId] === undefined) {
-        throw new Error(`Unknown chain id (${chainId}). No known 0x contracts have been deployed on this chain.`);
-    }
-    return chainToAddresses[chainId];
-}
+export declare function getContractAddressesForChainOrThrow(chainId: ChainId): ContractAddresses;
+//# sourceMappingURL=index.d.ts.map
