@@ -238,9 +238,9 @@
         "exchangeProxyFlashWallet": "0x4c1e716f4127cb5e460a728aa2db145c3933b1c1",
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0x0000000000000000000000000000000000000000",
+            "wethTransformer": "0x8393dd22b464e32e9556fcc8718430964c09db47",
             "payTakerTransformer": "0x8393dd22b464e32e9556fcc8718430964c09db47",
-            "affiliateFeeTransformer": "0x0000000000000000000000000000000000000000",
+            "affiliateFeeTransformer": "0x8393dd22b464e32e9556fcc8718430964c09db47",
             "fillQuoteTransformer": "0x663faf77b4bd3e2b6ec7489c76610e3c0e36fbda",
             "positiveSlippageFeeTransformer": "0x088aa6c0d98f0e6d45e841521d4983ab54eb11a5"
         }
