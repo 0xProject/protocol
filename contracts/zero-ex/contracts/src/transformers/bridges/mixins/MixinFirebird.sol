@@ -36,7 +36,7 @@ interface FirebirdRouter {
     /// @param buyToken The address of the token to buy.
     /// @param amountIn The amount of input tokens to send.
     /// @param amountOutMin The minimum amount of output tokens that must be received for the transaction not to revert.
-    /// @param path Array with the liquidity pool addresses for trading sellToken to buyToken. 
+    /// @param path Array with the liquidity pool addresses for trading sellToken to buyToken.
     /// @param to Recipient of the output tokens.
     /// @param deadline Unix timestamp after which the transaction will revert.
     /// @return amounts The input token amount and all subsequent output token amounts.
