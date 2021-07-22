@@ -90,6 +90,7 @@ export function getTokenMetadataIfExists(tokenAddressOrSymbol: string, chainId: 
             tokenAddress: entry.tokenAddresses[chainId],
         };
     }
+    return undefined;
 }
 
 /**
@@ -158,4 +159,5 @@ export function findTokenDecimalsIfExists(symbolOrAddress: string, chainId: Chai
     if (entry) {
         return entry.decimals;
     }
+    return undefined;
 }
