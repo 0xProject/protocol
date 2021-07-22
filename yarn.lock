@@ -719,6 +719,10 @@
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-4.12.0.tgz#2adb0bcde763ad13437f782adf25c403107ff428"
 
+"@0x/contract-addresses@https://gitpkg.now.sh/Sotatek-DucPham/0x-protocol/packages/contract-addresses?6be98f9":
+  version "6.4.0"
+  resolved "https://gitpkg.now.sh/Sotatek-DucPham/0x-protocol/packages/contract-addresses?6be98f9#c00202fdbc970da371463a4518819a65446f5e07"
+
 "@0x/contracts-gen@^2.0.38":
   version "2.0.38"
   resolved "https://registry.yarnpkg.com/@0x/contracts-gen/-/contracts-gen-2.0.38.tgz#6f2977e2bcb299b5e8a32f45d7eca73d19e34c50"

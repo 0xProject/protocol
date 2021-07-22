@@ -27,6 +27,9 @@
         "url": "https://github.com/0xProject/protocol/issues"
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-addresses",
+    "dependencies": {
+        "@0x/contract-addresses": "https://gitpkg.now.sh/Sotatek-DucPham/0x-protocol/packages/contract-addresses?6be98f9"
+    },
     "devDependencies": {
         "gitpkg": "https://github.com/0xProject/gitpkg.git",
         "shx": "^0.2.2",
