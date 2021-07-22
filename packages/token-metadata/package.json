@@ -16,7 +16,7 @@
         "publish:private": "yarn build && gitpkg publish"
     },
     "gitpkg": {
-        "registry": "git@github.com:0xProject/gitpkg-registry.git"
+        "registry": "git@github-work.com:Sotatek-DucPham/gitpkg-registry.git"
     },
     "repository": {
         "type": "git",
