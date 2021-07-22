@@ -259,10 +259,9 @@ contract BridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.AAVEV2) {
-            // TODO: Fix this
             boughtAmount = _tradeAaveV2(
-                address(sellToken),
-                address(buyToken),
+                sellToken,
+                buyToken,
                 sellAmount,
                 order.bridgeData
             );

@@ -38,8 +38,8 @@ contract AaveV2Sampler is
         returns (uint256)
     {
         return _tradeAaveV2(
-            sellToken,
-            buyToken,
+            IERC20TokenV06(sellToken),
+            IERC20TokenV06(buyToken),
             takerTokenAmount,
             bridgeData
         );
