@@ -1,8 +1,14 @@
 import { getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
 import { Pool } from '@balancer-labs/sor/dist/types';
 import { gql, request } from 'graphql-request';
+import { ChainId } from '@0x/contract-addresses';
 
-import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from '../constants';
+import {
+    BALANCER_MAX_POOLS_FETCHED,
+    BALANCER_SUBGRAPH_URL,
+    BALANCER_SUBGRAPH_URL_BY_CHAIN,
+    BALANCER_TOP_POOLS_FETCHED,
+} from '../constants';
 
 import { CacheValue, PoolsCache } from './pools_cache';
 
@@ -20,7 +26,8 @@ interface BalancerPoolResponse {
 
 export class BalancerPoolsCache extends PoolsCache {
     constructor(
-        private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL,
+        chainId: ChainId,
+        private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL_BY_CHAIN[chainId],
         cache: { [key: string]: CacheValue } = {},
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,

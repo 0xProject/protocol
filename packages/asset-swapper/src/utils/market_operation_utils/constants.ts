@@ -1465,6 +1465,13 @@ export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/ba
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
 
+export const BALANCER_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Chapel]: 'http://192.168.1.208:8000/subgraphs/name/balancer-labs/balancer-chapel',
+    },
+    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer',
+);
+
 export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
     {
         [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',

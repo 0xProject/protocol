@@ -123,7 +123,7 @@ export class SamplerOperations {
             ? poolsCaches
             : {
                   [ERC20BridgeSource.BalancerV2]: new BalancerV2PoolsCache(chainId),
-                  [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
+                  [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(chainId),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
               };
         // Initialize the Bancor service, fetching paths in the background
