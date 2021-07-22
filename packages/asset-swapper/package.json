@@ -55,7 +55,7 @@
     },
     "homepage": "https://0x.org/asset-swapper",
     "gitpkg": {
-        "registry": "git@github.com:0xProject/gitpkg-registry.git"
+        "registry": "git@github-work.com:Sotatek-DucPham/gitpkg-registry.git"
     },
     "dependencies": {
         "@0x/assert": "^3.0.27",
