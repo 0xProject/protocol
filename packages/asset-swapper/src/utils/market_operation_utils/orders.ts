@@ -323,7 +323,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Firebird:
             const firebirdFillData = (order as OptimizedMarketBridgeOrder<FirebirdFillData>).fillData;
-            bridgeData = encoder.encode([firebirdFillData.router, firebirdFillData.pool]);
+            bridgeData = encoder.encode([firebirdFillData.router, firebirdFillData.pools]);
             break;
 
         default:
@@ -485,7 +485,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.Firebird]: AbiEncoder.create([
         { name: 'router', type: 'address' },
-        { name: 'pool', type: 'address' },
+        { name: 'pools', type: 'address[]' },
     ]),
 };
 

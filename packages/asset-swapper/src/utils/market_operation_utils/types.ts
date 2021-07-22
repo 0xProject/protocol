@@ -267,7 +267,7 @@ export interface LidoFillData extends FillData {
 
 export interface FirebirdFillData extends FillData {
     router: string;
-    pool: string;
+    pools: string[];
 }
 
 /**

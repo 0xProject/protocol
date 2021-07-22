@@ -639,9 +639,10 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<FirebirdFillData> {
+        const pools = [pool];
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Firebird,
-            fillData: { router, pool },
+            fillData: { router, pools },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromFirebird,
             params: [pool, takerToken, makerToken, takerFillAmounts],
@@ -655,9 +656,10 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<FirebirdFillData> {
+        const pools = [pool];
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Firebird,
-            fillData: { router, pool },
+            fillData: { router, pools },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromFirebird,
             params: [pool, takerToken, makerToken, makerFillAmounts],

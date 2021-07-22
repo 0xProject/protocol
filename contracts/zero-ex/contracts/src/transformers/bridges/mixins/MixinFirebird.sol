@@ -36,7 +36,7 @@ interface FirebirdRouter {
     /// @param buyToken The address of the token to buy.
     /// @param amountIn The amount of input tokens to send.
     /// @param amountOutMin The minimum amount of output tokens that must be received for the transaction not to revert.
-    /// @param path Single element array with the address of the pool for sellToken and buyToken.
+    /// @param path Array with the liquidity pool addresses for trading sellToken to buyToken. 
     /// @param to Recipient of the output tokens.
     /// @param deadline Unix timestamp after which the transaction will revert.
     /// @return amounts The input token amount and all subsequent output token amounts.
@@ -45,7 +45,7 @@ interface FirebirdRouter {
         IERC20TokenV06 buyToken,
         uint amountIn,
         uint amountOutMin,
-        IERC20TokenV06[] calldata path,
+        address[] calldata path,
         address to,
         uint deadline
     ) external returns (uint[] memory amounts);
@@ -54,11 +54,6 @@ interface FirebirdRouter {
 contract MixinFirebird {
 
     using LibERC20TokenV06 for IERC20TokenV06;
-
-    struct FirebirdBridgeData {
-        address router;
-        address pool;
-    }
 
     function _tradeFirebird(
         IERC20TokenV06 sellToken,
@@ -69,17 +64,7 @@ contract MixinFirebird {
         internal
         returns (uint256 boughtAmount)
     {
-        FirebirdBridgeData memory data = abi.decode(bridgeData, (FirebirdBridgeData));
-        FirebirdRouter router = FirebirdRouter(data.router);
-
-        IERC20TokenV06 pool;
-        address _pool = data.pool;
-        {
-            assembly {pool := _pool}
-        }
-        IERC20TokenV06[] memory path = new IERC20TokenV06[](1);
-        path[0] = pool;
-
+        (FirebirdRouter router, address[] memory pools) = abi.decode(bridgeData, (FirebirdRouter, address[]));
         // Grant the router an allowance to sell the first token.
         sellToken.approveIfBelow(address(router), sellAmount);
 
@@ -92,8 +77,8 @@ contract MixinFirebird {
             sellAmount,
              // Minimum buy amount.
             1,
-            // Single element array with the liquidity pool address for sellToken-buyToken.
-            path,
+            // Array with the liquidity pool addresses for trading sellToken to buyToken.
+            pools,
             // Recipient is `this`.
             address(this),
             // Expires after this block.
