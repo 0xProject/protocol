@@ -1,3 +1,4 @@
+import { logUtils } from '@0x/utils';
 import { gql, request } from 'graphql-request';
 
 import { constants } from '../../constants';
@@ -48,9 +49,15 @@ interface Cache {
     [key: string]: AaveReserve[];
 }
 
+// tslint:disable-next-line:custom-no-magic-numbers
 const RESERVES_REFRESH_INTERVAL_MS = 30 * constants.ONE_MINUTE_MS;
 
-export class AaveReservesCache {
+/**
+ * Fetches Aave V2 reserve information from the official subgraph(s).
+ * The reserve information is updated every 30 minutes and cached
+ * so that it can be accessed with the underlying token's address
+ */
+export class AaveV2ReservesCache {
     private _cache: Cache = {};
     constructor(private readonly _subgraphUrl: string) {
         const resfreshReserves = async () => this.fetchAndUpdateReservesAsync();
@@ -58,7 +65,10 @@ export class AaveReservesCache {
         resfreshReserves();
         setInterval(resfreshReserves, RESERVES_REFRESH_INTERVAL_MS);
     }
-    public async fetchAndUpdateReservesAsync() {
+    /**
+     * Fetches Aave V2 reserves from the subgraph and updates the cache
+     */
+    public async fetchAndUpdateReservesAsync(): Promise<void> {
         try {
             const { reserves } = await request<{ reserves: AaveReserve[] }>(this._subgraphUrl, RESERVES_GQL_QUERY);
             const newCache = reserves.reduce<Cache>((memo, reserve) => {
@@ -73,9 +83,7 @@ export class AaveReservesCache {
 
             this._cache = newCache;
         } catch (err) {
-            // TODO(kimpers): handle this properly
-            // tslint:disable-next-line:no-console
-            console.error(err);
+            logUtils.warn(`Failed to update Aave V2 reserves cache: ${err.message}`);
             // Empty cache just to be safe
             this._cache = {};
         }

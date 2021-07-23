@@ -272,9 +272,11 @@ export interface LidoFillData extends FillData {
     takerToken: string;
 }
 
-export interface AaveReservesFillData extends FillData {
+export interface AaveV2FillData extends FillData {
     lendingPool: string;
     aToken: string;
+    underlyingToken: string;
+    takerToken: string;
 }
 
 /**

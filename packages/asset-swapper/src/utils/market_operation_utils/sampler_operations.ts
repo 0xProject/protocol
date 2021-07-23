@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
-import { AaveReservesCache } from './aave_reserves_cache';
+import { AaveV2ReservesCache } from './aave_reserves_cache';
 import { BancorService } from './bancor_service';
 import {
     getCurveLikeInfosForPair,
@@ -49,7 +49,7 @@ import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache }
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SourceFilters } from './source_filters';
 import {
-    AaveReservesFillData,
+    AaveV2FillData,
     AaveV2Info,
     BalancerFillData,
     BalancerV2FillData,
@@ -103,7 +103,7 @@ export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSour
 export class SamplerOperations {
     public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
     public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
-    public readonly aaveReservesCache: AaveReservesCache | undefined;
+    public readonly aaveReservesCache: AaveV2ReservesCache | undefined;
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
@@ -135,7 +135,7 @@ export class SamplerOperations {
 
         const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
         if (aaveSubgraphUrl) {
-            this.aaveReservesCache = new AaveReservesCache(aaveSubgraphUrl);
+            this.aaveReservesCache = new AaveV2ReservesCache(aaveSubgraphUrl);
         }
         // Initialize the Bancor service, fetching paths in the background
         bancorServiceFn()
@@ -1111,30 +1111,30 @@ export class SamplerOperations {
         });
     }
 
-    public getAaveReservesSellQuotes(
+    public getAaveV2SellQuotes(
         aaveInfo: AaveV2Info,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<AaveReservesFillData> {
+    ): SourceQuoteOperation<AaveV2FillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.AaveV2,
-            fillData: aaveInfo,
+            fillData: { ...aaveInfo, takerToken },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromAaveV2,
             params: [aaveInfo, takerToken, makerToken, takerFillAmounts],
         });
     }
 
-    public getAaveReservesBuyQuotes(
+    public getAaveV2BuyQuotes(
         aaveInfo: AaveV2Info,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<AaveReservesFillData> {
+    ): SourceQuoteOperation<AaveV2FillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.AaveV2,
-            fillData: aaveInfo,
+            fillData: { ...aaveInfo, takerToken },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromAaveV2,
             params: [aaveInfo, takerToken, makerToken, makerFillAmounts],
@@ -1532,7 +1532,7 @@ export class SamplerOperations {
                             aToken: reserve.aToken.id,
                             underlyingToken: reserve.underlyingAsset,
                         };
-                        return this.getAaveReservesSellQuotes(info, makerToken, takerToken, takerFillAmounts);
+                        return this.getAaveV2SellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
@@ -1842,7 +1842,7 @@ export class SamplerOperations {
                             aToken: reserve.aToken.id,
                             underlyingToken: reserve.underlyingAsset,
                         };
-                        return this.getAaveReservesBuyQuotes(info, makerToken, takerToken, makerFillAmounts);
+                        return this.getAaveV2BuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);
