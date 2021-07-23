@@ -20,37 +20,16 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-zero-ex/contracts/src/transformers/bridges/mixins/MixinAaveV2.sol";
-import "./SwapRevertSampler.sol";
+import "./SamplerUtils.sol";
 
-contract AaveV2Sampler is
-    MixinAaveV2,
-    SwapRevertSampler
-{
-
-    function sampleSwapFromAaveV2(
-        address sellToken,
-        address buyToken,
-        bytes memory bridgeData,
-        uint256 takerTokenAmount
-    )
-        external
-        returns (uint256)
-    {
-        return _tradeAaveV2(
-            IERC20TokenV06(sellToken),
-            IERC20TokenV06(buyToken),
-            takerTokenAmount,
-            bridgeData
-        );
-    }
+contract AaveV2Sampler is SamplerUtils {
 
     struct AaveInfo {
         address lendingPool;
         address aToken;
+        address underlyingToken;
     }
 
-    /// @dev Sample sell quotes from Aave
     function sampleSellsFromAaveV2(
         AaveInfo memory aaveInfo,
         address takerToken,
@@ -58,17 +37,19 @@ contract AaveV2Sampler is
         uint256[] memory takerTokenAmounts
     )
         public
-        returns (uint256[] memory gasUsed, uint256[] memory makerTokenAmounts)
+        pure
+        returns (uint256[] memory)
     {
-        (gasUsed, makerTokenAmounts) = _sampleSwapQuotesRevert(
-            SwapRevertSamplerQuoteOpts({
-                sellToken: takerToken,
-                buyToken: makerToken,
-                bridgeData: abi.encode(aaveInfo.lendingPool, aaveInfo.aToken),
-                getSwapQuoteCallback: this.sampleSwapFromAaveV2
-            }),
-            takerTokenAmounts
-        );
+        // Deposit/Withdrawal underlying <-> aToken is always 1:1
+        if (takerToken == aaveInfo.aToken && makerToken == aaveInfo.underlyingToken ||
+            takerToken == aaveInfo.underlyingToken && makerToken == aaveInfo.aToken) {
+            return takerTokenAmounts;
+        }
+
+        // Not matching the reserve return 0 results
+        uint256 numSamples = takerTokenAmounts.length;
+        uint256[] memory makerTokenAmounts = new uint256[](numSamples);
+        return makerTokenAmounts;
     }
 
     function sampleBuysFromAaveV2(
@@ -78,17 +59,18 @@ contract AaveV2Sampler is
         uint256[] memory makerTokenAmounts
     )
         public
-        returns (uint256[] memory gasUsed, uint256[] memory takerTokenAmounts)
+        pure
+        returns (uint256[] memory)
     {
-        (gasUsed, takerTokenAmounts) = _sampleSwapApproximateBuys(
-            SwapRevertSamplerBuyQuoteOpts({
-                sellToken: takerToken,
-                buyToken: makerToken,
-                sellTokenData: abi.encode(aaveInfo.lendingPool, aaveInfo.aToken),
-                buyTokenData: abi.encode(aaveInfo.lendingPool, aaveInfo.aToken),
-                getSwapQuoteCallback: this.sampleSwapFromAaveV2
-            }),
-            makerTokenAmounts
-        );
+        // Deposit/Withdrawal underlying <-> aToken is always 1:1
+        if (takerToken == aaveInfo.aToken && makerToken == aaveInfo.underlyingToken ||
+            takerToken == aaveInfo.underlyingToken && makerToken == aaveInfo.aToken) {
+            return makerTokenAmounts;
+        }
+
+        // Not matching the reserve return 0 results
+        uint256 numSamples = makerTokenAmounts.length;
+        uint256[] memory takerTokenAmounts = new uint256[](numSamples);
+        return takerTokenAmounts;
     }
 }

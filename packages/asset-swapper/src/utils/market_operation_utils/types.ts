@@ -162,6 +162,7 @@ export interface BalancerV2PoolInfo {
 export interface AaveV2Info {
     lendingPool: string;
     aToken: string;
+    underlyingToken: string;
 }
 
 // Internal `fillData` field for `Fill` objects.

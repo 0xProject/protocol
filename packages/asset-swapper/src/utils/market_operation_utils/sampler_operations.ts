@@ -49,8 +49,8 @@ import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache }
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SourceFilters } from './source_filters';
 import {
-    AaveV2Info,
     AaveReservesFillData,
+    AaveV2Info,
     BalancerFillData,
     BalancerV2FillData,
     BalancerV2PoolInfo,
@@ -1116,8 +1116,8 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
-    ): MeasuredSourceQuoteOperation<AaveReservesFillData> {
-        return new MeasuredSamplerContractOperation({
+    ): SourceQuoteOperation<AaveReservesFillData> {
+        return new SamplerContractOperation({
             source: ERC20BridgeSource.AaveV2,
             fillData: aaveInfo,
             contract: this._samplerContract,
@@ -1131,8 +1131,8 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
-    ): MeasuredSourceQuoteOperation<AaveReservesFillData> {
-        return new MeasuredSamplerContractOperation({
+    ): SourceQuoteOperation<AaveReservesFillData> {
+        return new SamplerContractOperation({
             source: ERC20BridgeSource.AaveV2,
             fillData: aaveInfo,
             contract: this._samplerContract,
@@ -1530,6 +1530,7 @@ export class SamplerOperations {
                         const info: AaveV2Info = {
                             lendingPool: reserve.pool.lendingPool,
                             aToken: reserve.aToken.id,
+                            underlyingToken: reserve.underlyingAsset,
                         };
                         return this.getAaveReservesSellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
@@ -1839,6 +1840,7 @@ export class SamplerOperations {
                         const info: AaveV2Info = {
                             lendingPool: reserve.pool.lendingPool,
                             aToken: reserve.aToken.id,
+                            underlyingToken: reserve.underlyingAsset,
                         };
                         return this.getAaveReservesBuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }

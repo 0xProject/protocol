@@ -1685,6 +1685,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.Lido]: () => 226e3,
     [ERC20BridgeSource.Clipper]: () => 170e3,
+    [ERC20BridgeSource.AaveV2]: () => 300e3, // TODO(kimpers): update with real value
 
     //
     // BSC
