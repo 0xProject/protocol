@@ -9,6 +9,7 @@ import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,
     BancorFillData,
+    CompoundFillData,
     CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
@@ -101,6 +102,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Clipper,
             ERC20BridgeSource.AaveV2,
+            ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -204,6 +206,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Clipper,
             ERC20BridgeSource.AaveV2,
+            ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -1480,6 +1483,13 @@ export const AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
     null,
 );
 
+export const COMPOUND_API_URL_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Mainnet]: 'https://api.compound.finance/api/v2',
+    },
+    null,
+);
+
 //
 // BSC
 //
@@ -1691,6 +1701,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         // NOTE: The Aave deposit method is more expensive than the withdraw
         return aaveFillData.takerToken === aaveFillData.underlyingToken ? 400e3 : 300e3;
     },
+    [ERC20BridgeSource.Compound]: () => 300e3, // TODO(kimpers): add correct value here
     //
     // BSC
     //

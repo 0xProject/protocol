@@ -32,13 +32,9 @@ interface ICToken {
 }
 
 contract CompoundSampler is SamplerUtils {
-    struct CompoundInfo {
-        ICToken cToken;
-        address underlyingToken;
-    }
 
     function sampleSellsFromCompound(
-        CompoundInfo memory info,
+        ICToken cToken,
         IERC20TokenV06 takerToken,
         IERC20TokenV06 makerToken,
         uint256[] memory takerTokenAmounts
@@ -49,27 +45,29 @@ contract CompoundSampler is SamplerUtils {
     {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
-        uint256 exchangeRate = info.cToken.exchangeRateStored() / 1e10;
+        uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
 
-         if (address(makerToken) == address(info.cToken)) {
+         if (address(makerToken) == address(cToken)) {
              // mint
             // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
             uint256 underlyingTokenDecimals = takerToken.decimals();
             for (uint256 i = 0; i < numSamples; i++) {
+                // TODO: This is not correct
                 makerTokenAmounts[i] = (takerTokenAmounts[i] * 10 ** underlyingTokenDecimals) / exchangeRate;
             }
 
-        } else if (address(takerToken) == address(info.cToken)) {
+        } else if (address(takerToken) == address(cToken)) {
             // redeem
             uint256 underlyingTokenDecimals = makerToken.decimals();
             for (uint256 i = 0; i < numSamples; i++) {
+                // TODO: This is not correct
                 makerTokenAmounts[i] = (takerTokenAmounts[i] * exchangeRate) / (10 ** underlyingTokenDecimals);
             }
         }
     }
 
     function sampleBuysFromCompound(
-        CompoundInfo memory info,
+        ICToken cToken,
         IERC20TokenV06 takerToken,
         IERC20TokenV06 makerToken,
         uint256[] memory makerTokenAmounts
@@ -80,18 +78,18 @@ contract CompoundSampler is SamplerUtils {
     {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
-        if (address(makerToken) == address(info.cToken)) {
+        if (address(makerToken) == address(cToken)) {
             // mint
            // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
-           uint256 exchangeRate = info.cToken.exchangeRateStored() / 1e10;
+           uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
            uint256 underlyingTokenDecimals = takerToken.decimals();
            for (uint256 i = 0; i < numSamples; i++) {
                takerTokenAmounts[i] = makerTokenAmounts[i] * exchangeRate / (10 ** underlyingTokenDecimals);
            }
 
-        } else if (address(takerToken) == address(info.cToken)) {
+        } else if (address(takerToken) == address(cToken)) {
             // redeem
-            uint256 exchangeRate = info.cToken.exchangeRateStored() / 1e10;
+            uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
             uint256 underlyingTokenDecimals = makerToken.decimals();
             for (uint256 i = 0; i < numSamples; i++) {
                 takerTokenAmounts[i] = (makerTokenAmounts[i] * 10 ** underlyingTokenDecimals)/exchangeRate;
