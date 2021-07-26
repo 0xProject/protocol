@@ -28,7 +28,6 @@ interface ICToken {
     function mint(uint mintAmount) external returns (uint);
     function redeem(uint redeemTokens) external returns (uint);
     function redeemUnderlying(uint redeemAmount) external returns (uint);
-    //function exchangeRateCurrent() external returns (uint);
     function exchangeRateStored() external view returns (uint);
 }
 
