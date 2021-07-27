@@ -1161,7 +1161,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<CompoundFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Compound,
-            fillData: { cToken },
+            fillData: { cToken, takerToken, makerToken },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromCompound,
             params: [cToken, takerToken, makerToken, takerFillAmounts],
@@ -1176,7 +1176,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<CompoundFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Compound,
-            fillData: { cToken },
+            fillData: { cToken, takerToken, makerToken },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromCompound,
             params: [cToken, takerToken, makerToken, makerFillAmounts],

@@ -282,6 +282,8 @@ export interface AaveV2FillData extends FillData {
 
 export interface CompoundFillData extends FillData {
     cToken: string;
+    takerToken: string;
+    makerToken: string;
 }
 
 /**

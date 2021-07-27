@@ -9,6 +9,7 @@ import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,
     BancorFillData,
+    CompoundFillData,
     CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
@@ -1700,7 +1701,16 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         // NOTE: The Aave deposit method is more expensive than the withdraw
         return aaveFillData.takerToken === aaveFillData.underlyingToken ? 400e3 : 300e3;
     },
-    [ERC20BridgeSource.Compound]: () => 300e3, // TODO(kimpers): add correct value here
+    [ERC20BridgeSource.Compound]: (fillData?: FillData) => {
+        // NOTE: cETH is handled differently than other cTokens
+        const wethAddress = NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet];
+        const compoundFillData = fillData as CompoundFillData;
+        if (compoundFillData.takerToken === compoundFillData.cToken) {
+            return compoundFillData.makerToken === wethAddress ? 120e3 : 150e3;
+        } else {
+            return compoundFillData.takerToken === wethAddress ? 210e3 : 250e3;
+        }
+    },
     //
     // BSC
     //
