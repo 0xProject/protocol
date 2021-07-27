@@ -1,5 +1,4 @@
 import { logUtils } from '@0x/utils';
-import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
 import axios from 'axios';
 
 import { constants } from '../../constants';
@@ -29,7 +28,7 @@ const RESERVES_REFRESH_INTERVAL_MS = 30 * constants.ONE_MINUTE_MS;
 
 export class CompoundCTokenCache {
     private _cache: Cache = {};
-    constructor(private readonly _apiUrl: string) {
+    constructor(private readonly _apiUrl: string, private readonly _wethAddress: string) {
         const resfreshReserves = async () => this.fetchAndUpdateCTokensAsync();
         // tslint:disable-next-line:no-floating-promises
         resfreshReserves();
@@ -40,10 +39,10 @@ export class CompoundCTokenCache {
         try {
             const { data } = await axios.get<CTokenApiResponse>(`${this._apiUrl}/ctoken`);
             const newCache = data?.cToken.reduce<Cache>((memo, cToken) => {
-                // Re-map null underlying to internal ETH address
+                // NOTE: Re-map null underlying (ETH) to WETH address (as we only deal with WETH internally)
                 const underlyingAddressClean = cToken.underlying_address
                     ? cToken.underlying_address.toLowerCase()
-                    : ETH_TOKEN_ADDRESS;
+                    : this._wethAddress;
 
                 const tokenData: CToken = {
                     symbol: cToken.symbol,

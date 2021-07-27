@@ -22,18 +22,31 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 
-// Minimal CToken interface
+// Minimal CToken/CEther interfaces
 interface ICToken {
     function mint(uint mintAmountInUnderlying) external returns (uint);
-    function redeem(uint redeemTokens) external returns (uint);
+    function redeem(uint redeemTokensInCtokens) external returns (uint);
+}
+interface ICEther {
+  function mint() payable external;
+  function redeem(uint redeemTokens) external returns (uint);
 }
 
 contract MixinCompound {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
+
+    IEtherTokenV06 private immutable WETH;
+
+    constructor(IEtherTokenV06 weth)
+        public
+    {
+        WETH = weth;
+    }
 
     uint256 constant private COMPOUND_SUCCESS_CODE = 0;
 
@@ -46,20 +59,39 @@ contract MixinCompound {
         internal
         returns (uint256)
     {
-        (ICToken cToken) = abi.decode(bridgeData, (ICToken));
+        (address cTokenAddress) = abi.decode(bridgeData, (address));
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
 
-        if (address(buyToken) == address(cToken)) {
+        if (address(buyToken) == cTokenAddress) {
           sellToken.approveIfBelow(
-              address(cToken),
+              cTokenAddress,
               sellAmount
           );
-          // TODO: handle (W)ETH -> cETH
-          require(cToken.mint(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_MINT_CTOKEN");
+          if (address(sellToken) == address(WETH)) {
+            // ETH/WETH -> cETH
+            ICEther cETH = ICEther(cTokenAddress);
+            // Compound expects ETH to be sent with mint call
+            WETH.withdraw(sellAmount);
+            // NOTE: cETH mint will revert on failure instead of returning a status code
+            cETH.mint{value: sellAmount}();
+          } else {
+            // Token -> cToken
+            ICToken cToken = ICToken(cTokenAddress);
+            require(cToken.mint(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_MINT_CTOKEN");
+          }
           return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
-        } else if (address(sellToken) == address(cToken)) {
-          require(cToken.redeem(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_REDEEM_CTOKEN");
+        } else if (address(sellToken) == address(cTokenAddress)) {
+          if (address(buyToken) == address(WETH)) {
+            // cETH -> ETH/WETH
+            ICEther cETH = ICEther(cTokenAddress);
+            require(cETH.redeem(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_REDEEM_CETHER");
+            uint256 receivedEtherBalance = address(this).balance;
+            WETH.deposit{value: receivedEtherBalance}();
+          } else {
+            ICToken cToken = ICToken(cTokenAddress);
+            require(cToken.redeem(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_REDEEM_CTOKEN");
+          }
           return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
         }
 

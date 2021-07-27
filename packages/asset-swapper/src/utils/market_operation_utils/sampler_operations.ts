@@ -146,7 +146,10 @@ export class SamplerOperations {
 
         const compoundApiUrl = COMPOUND_API_URL_BY_CHAIN_ID[chainId];
         if (compoundApiUrl) {
-            this.compoundCTokenCache = new CompoundCTokenCache(compoundApiUrl);
+            this.compoundCTokenCache = new CompoundCTokenCache(
+                compoundApiUrl,
+                NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
+            );
         }
         // Initialize the Bancor service, fetching paths in the background
         bancorServiceFn()

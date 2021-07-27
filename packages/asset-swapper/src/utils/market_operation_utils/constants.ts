@@ -9,7 +9,6 @@ import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,
     BancorFillData,
-    CompoundFillData,
     CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
