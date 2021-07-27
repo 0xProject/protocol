@@ -29,6 +29,7 @@ interface ICToken {
     function redeem(uint redeemTokens) external returns (uint);
     function redeemUnderlying(uint redeemAmount) external returns (uint);
     function exchangeRateStored() external view returns (uint);
+    function decimals() external view returns (uint8);
 }
 
 contract CompoundSampler is SamplerUtils {
@@ -45,23 +46,20 @@ contract CompoundSampler is SamplerUtils {
     {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
+        // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
         uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
+        uint256 cTokenDecimals = uint256(cToken.decimals());
 
-         if (address(makerToken) == address(cToken)) {
-             // mint
-            // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
-            uint256 underlyingTokenDecimals = takerToken.decimals();
+        if (address(makerToken) == address(cToken)) {
+            // mint
             for (uint256 i = 0; i < numSamples; i++) {
-                // TODO: This is not correct
-                makerTokenAmounts[i] = (takerTokenAmounts[i] * 10 ** underlyingTokenDecimals) / exchangeRate;
+                makerTokenAmounts[i] = (takerTokenAmounts[i] * 10 ** cTokenDecimals) / exchangeRate;
             }
 
         } else if (address(takerToken) == address(cToken)) {
             // redeem
-            uint256 underlyingTokenDecimals = makerToken.decimals();
             for (uint256 i = 0; i < numSamples; i++) {
-                // TODO: This is not correct
-                makerTokenAmounts[i] = (takerTokenAmounts[i] * exchangeRate) / (10 ** underlyingTokenDecimals);
+                makerTokenAmounts[i] = (takerTokenAmounts[i] * exchangeRate) / (10 ** cTokenDecimals);
             }
         }
     }
@@ -78,21 +76,19 @@ contract CompoundSampler is SamplerUtils {
     {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
+        // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
+        uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
+        uint256 cTokenDecimals = uint256(cToken.decimals());
+
         if (address(makerToken) == address(cToken)) {
             // mint
-           // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
-           uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
-           uint256 underlyingTokenDecimals = takerToken.decimals();
-           for (uint256 i = 0; i < numSamples; i++) {
-               takerTokenAmounts[i] = makerTokenAmounts[i] * exchangeRate / (10 ** underlyingTokenDecimals);
-           }
-
+            for (uint256 i = 0; i < numSamples; i++) {
+                takerTokenAmounts[i] = makerTokenAmounts[i] * exchangeRate / (10 ** cTokenDecimals);
+            }
         } else if (address(takerToken) == address(cToken)) {
             // redeem
-            uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
-            uint256 underlyingTokenDecimals = makerToken.decimals();
             for (uint256 i = 0; i < numSamples; i++) {
-                takerTokenAmounts[i] = (makerTokenAmounts[i] * 10 ** underlyingTokenDecimals)/exchangeRate;
+                takerTokenAmounts[i] = (makerTokenAmounts[i] * 10 ** cTokenDecimals)/exchangeRate;
             }
         }
     }
