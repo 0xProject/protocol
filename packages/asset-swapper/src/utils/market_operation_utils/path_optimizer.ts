@@ -21,8 +21,8 @@ const toAdjustedOutput = (side: MarketOperation, output: BigNumber, outputFee: B
         throw new Error('Buys not yet implemented in the Rust router');
     }
 
-    // TODO(kimpers): change for u64 fee refactor
-    return output.plus(outputFee);
+    // TODO: fix for buys
+    return output.minus(outputFee);
 };
 
 function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
@@ -43,8 +43,7 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][]): Path {
 
     const adjustedParsedFills = allFills.map(fills => {
         const _adjustedFills: FillWithOutputFee[] = [];
-        // NOTE: Output fee is negative for sells and positive for buys
-        const outputFee = fills[0].adjustedOutput.minus(fills[0].output);
+        const outputFee = fills[0].output.minus(fills[0].adjustedOutput);
         // Samples are turned into Fills
         // Fills are dependent on their parent and have their parents information "subtracted" from them
         // e.g a samples for [1,10,100] => [5,50,500] look like [1, 9, 91] => [5, 40, 400]
