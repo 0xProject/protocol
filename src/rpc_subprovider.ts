@@ -6,10 +6,39 @@ import * as http from 'http';
 import * as https from 'https';
 import JsonRpcError = require('json-rpc-error');
 import fetch, { Headers, Response } from 'node-fetch';
+import { Counter, Summary } from 'prom-client';
+
+import { ONE_SECOND_MS } from './constants';
 
 const httpAgent = new http.Agent({ keepAlive: true });
 const httpsAgent = new https.Agent({ keepAlive: true });
 const agent = (_parsedURL: any) => (_parsedURL.protocol === 'http:' ? httpAgent : httpsAgent);
+
+const ETH_RPC_RESPONSE_TIME = new Summary({
+    name: 'eth_rpc_response_time',
+    help: 'The response time of an RPC request',
+    labelNames: ['method'],
+    // tslint:disable-next-line:custom-no-magic-numbers
+    percentiles: [0.01, 0.1, 0.5, 0.75, 0.9, 0.95, 0.98, 0.99],
+});
+
+const ETH_RPC_REQUESTS = new Counter({
+    name: 'eth_rpc_requests',
+    help: 'The count of RPC requests',
+    labelNames: ['method'],
+});
+
+const ETH_RPC_REQUEST_SUCCESS = new Counter({
+    name: 'eth_rpc_request_success',
+    help: 'The count of successful RPC requests',
+    labelNames: ['method'],
+});
+
+const ETH_RPC_REQUEST_ERROR = new Counter({
+    name: 'eth_rpc_request_error',
+    help: 'The count of RPC request errors',
+    labelNames: ['method'],
+});
 
 /**
  * This class implements the [web3-provider-engine](https://github.com/MetaMask/provider-engine) subprovider interface.
@@ -47,6 +76,9 @@ export class RPCSubprovider extends Subprovider {
             'Content-Type': 'application/json',
         });
 
+        ETH_RPC_REQUESTS.labels(finalPayload.method!).inc();
+        const begin = Date.now();
+
         let response: Response;
         const rpcUrl = this._rpcUrls[Math.floor(Math.random() * this._rpcUrls.length)];
         try {
@@ -59,12 +91,17 @@ export class RPCSubprovider extends Subprovider {
                 agent,
             });
         } catch (err) {
+            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             end(new JsonRpcError.InternalError(err));
             return;
+        } finally {
+            const durationMs = (Date.now() - begin) / ONE_SECOND_MS;
+            ETH_RPC_RESPONSE_TIME.labels(finalPayload.method!).observe(durationMs);
         }
 
         const text = await response.text();
         if (!response.ok) {
+            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             const statusCode = response.status;
             switch (statusCode) {
                 case StatusCodes.MethodNotAllowed:
@@ -86,14 +123,17 @@ export class RPCSubprovider extends Subprovider {
         try {
             data = JSON.parse(text);
         } catch (err) {
+            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             end(new JsonRpcError.InternalError(err));
             return;
         }
 
         if (data.error) {
+            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             end(data.error);
             return;
         }
+        ETH_RPC_REQUEST_SUCCESS.labels(finalPayload.method!).inc();
         end(null, data.result);
     }
 }
