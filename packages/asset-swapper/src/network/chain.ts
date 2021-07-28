@@ -45,9 +45,8 @@ export interface CreateChainOpts {
     maxCacheAgeMs?: number;
     maxBatchGas?: number;
     maxBatchBytes?: number;
-    burstFullness?: number;
-    maxOutstandingCalls?: number;
-    maxBurstOutstandingCalls?: number;
+    targetFullness?: number;
+    minOutstandingCalls?: number;
     callTimeoutMs?: number;
 }
 
@@ -101,9 +100,8 @@ export class LiveChain implements Chain {
     private readonly _callTimeoutMs: number;
     private readonly _maxBatchGas: number;
     private readonly _maxBatchBytes: number;
-    private readonly _burstFullness: number;
-    private readonly _maxOutstandingCalls: number;
-    private readonly _maxBurstOutstandingCalls: number;
+    private readonly _targetFullness: number;
+    private readonly _minOutstandingCalls: number;
     private _queue: QueuedEthCall[] = [];
     // How many outstanding eth_calls there are.
     private _outstandingCalls: Promise<void>[] = [];
@@ -114,17 +112,16 @@ export class LiveChain implements Chain {
 
     public static async createAsync(opts: CreateChainOpts): Promise<Chain> {
         const fullOpts = {
-            maxCacheAgeMs: 30e3,
+            maxCacheAgeMs: 600e3,
             pruneFrequencyMs: 5e3,
             callTimeoutMs: 5e3,
             // These numbers will all affect how calls are batched across
             // RPC calls.
             flushFrequencyMs: 100,
-            maxBatchGas: 800e6,
+            maxBatchGas: 1e9,
             maxBatchBytes: 0.750e6,
-            burstFullness: 16,
-            maxOutstandingCalls: 4,
-            maxBurstOutstandingCalls: 8,
+            targetFullness: 2,
+            minOutstandingCalls: 2,
             ...opts,
         };
         const w3 = new Web3Wrapper(opts.provider);
@@ -146,9 +143,8 @@ export class LiveChain implements Chain {
         callTimeoutMs: number;
         maxBatchGas: number;
         maxBatchBytes: number;
-        burstFullness: number;
-        maxOutstandingCalls: number;
-        maxBurstOutstandingCalls: number;
+        targetFullness: number;
+        minOutstandingCalls: number;
     }) {
         this._chainId = opts.chainId;
         this._w3 = opts.w3;
@@ -156,9 +152,8 @@ export class LiveChain implements Chain {
         this._callTimeoutMs = opts.callTimeoutMs;
         this._maxBatchGas = opts.maxBatchGas;
         this._maxBatchBytes = opts.maxBatchBytes;
-        this._burstFullness = opts.burstFullness;
-        this._maxOutstandingCalls = opts.maxOutstandingCalls;
-        this._maxBurstOutstandingCalls = opts.maxBurstOutstandingCalls;
+        this._targetFullness = opts.targetFullness;
+        this._minOutstandingCalls = opts.minOutstandingCalls;
     }
 
     public async ethCallAsync(opts: ChainEthCallOpts): Promise<Bytes> {
@@ -235,8 +230,11 @@ export class LiveChain implements Chain {
 
     private async _flushAsync(frequency: number): Promise<void> {
         let nextFlushTime = Date.now() + frequency;
-        const maxBatches = (this._queueFullness > this._burstFullness ?
-            this._maxBurstOutstandingCalls : this._maxOutstandingCalls) - this._outstandingCalls.length;
+        const maxBatches = Math.max(0,
+            this._minOutstandingCalls +
+                Math.round(this._queueFullness / this._targetFullness)
+                - this._outstandingCalls.length,
+        );
         const batches = timeIt(() => this._generateCallBatches(maxBatches),
             dt => `_generateCallBatches took ${dt}ms`);
         const dispatchPromises = batches.map(b => this._dispatchBatchAsync(b));
@@ -304,11 +302,11 @@ export class LiveChain implements Chain {
             // Direct call (not batched).
             return calls[0].accept(rawResultData);
         }
-        const [results, blockNumber] = timeIt(() =>
-        DISPATCHER_CONTRACT.getABIDecodedReturnData<[DispatchedCallResult[], BigNumber]>(
-            'dispatch',
-            rawResultData,
-        ), dt => `dispatch ABI decode took ${dt}ms`);
+        const [results, blockNumber] =
+            DISPATCHER_CONTRACT.getABIDecodedReturnData<[DispatchedCallResult[], BigNumber]>(
+                'dispatch',
+                rawResultData,
+            );
         if (results.length !== calls.length) {
             rejectBatch(new Error(`Expected dispatcher result to be the same length as number of calls`));
             return;
@@ -463,8 +461,7 @@ function mergeBatchCalls(calls: QueuedEthCall[]): BatchedChainEthCallOpts {
             }
             return {
                 ...merged,
-                data: timeIt(() => DISPATCHER_CONTRACT.dispatch(callInfos).getABIEncodedTransactionData(),
-                    dt => `dispatch ABI encode took ${dt}ms (${calls.length} calls)`),
+                data: DISPATCHER_CONTRACT.dispatch(callInfos).getABIEncodedTransactionData(),
                 gasPrice: merged.gasPrice || ZERO_AMOUNT,
             };
         },

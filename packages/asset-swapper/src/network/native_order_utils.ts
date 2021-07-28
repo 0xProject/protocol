@@ -34,7 +34,7 @@ export class NativeOrderUtils {
             return this._nativeOrderUtilsContractHelper.ethCallAsync(
                 this._nativeOrderUtilsContract.getLimitOrderFillableTakerAssetAmounts,
                 [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), this.exchangeProxyAddress],
-                { gas: orders.length * 300e3 },
+                { gas: orders.length * 300e3, maxCacheAgeMs: 10e3 },
             );
         } catch (err) {
             // tslint:disable-next-line: no-console
@@ -51,7 +51,7 @@ export class NativeOrderUtils {
             return this._nativeOrderUtilsContractHelper.ethCallAsync(
                 this._nativeOrderUtilsContract.getLimitOrderFillableMakerAssetAmounts,
                 [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), this.exchangeProxyAddress],
-                { gas: orders.length * 300e3 },
+                { gas: orders.length * 300e3, maxCacheAgeMs: 10e3 },
             );
         } catch (err) {
             // tslint:disable-next-line: no-console

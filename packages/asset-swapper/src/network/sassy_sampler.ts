@@ -46,7 +46,6 @@ const DEFAULT_SOURCES = SourceFilters.all().exclude([ERC20BridgeSource.Native, E
 
 export class SassySampler {
     public readonly availableSources: ERC20BridgeSource[];
-    private readonly _priceCache: { [pairId: string]: { cacheTime: number; value: BigNumber } } = {};
 
     public static async createAsync(opts: SassySamplerCreateOpts): Promise<SassySampler> {
         const sources = opts.sources || DEFAULT_SOURCES;
@@ -62,7 +61,6 @@ export class SassySampler {
             samplers,
             opts.tokenAdjacencyGraph || DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[opts.chain.chainId],
             twoHopSampler,
-            opts.maxPriceCacheAgeMs || 10e3,
         );
     }
 
@@ -71,7 +69,6 @@ export class SassySampler {
         private readonly _samplers: SourceSamplerMap,
         private readonly _tokenAdjacencyGraph: TokenAdjacencyGraph,
         private readonly _twoHopSampler: TwoHopSampler,
-        private readonly _maxPriceCacheAgeMs: number,
     ) {
         this.availableSources = Object.keys(_samplers) as ERC20BridgeSource[];
     }
@@ -88,14 +85,6 @@ export class SassySampler {
         if (takerAmount.eq(0)) {
             return ZERO_AMOUNT;
         }
-        const cacheId = `${takerToken}/${makerToken}/${takerAmount.toString(10)}/${sources.join(',')}`;
-        const cachedPrice = (this._priceCache[cacheId] = this._priceCache[cacheId] || {
-            cacheTime: 0,
-            value: ZERO_AMOUNT,
-        });
-        if (Date.now() - cachedPrice.cacheTime < this._maxPriceCacheAgeMs) {
-            return cachedPrice.value;
-        }
         let samples;
         try {
             samples = (
@@ -105,20 +94,14 @@ export class SassySampler {
                     ),
                 )
             ).flat(1);
-        } catch {}
-        cachedPrice.cacheTime = Date.now();
-        if (!samples || samples.length === 0) {
-            return (cachedPrice.value = ZERO_AMOUNT);
+        } catch {
+            return ZERO_AMOUNT;
         }
         const flatSortedSamples = samples
             .flat(1)
             .map(v => v.output)
             .sort((a, b) => a.comparedTo(b));
-        if (flatSortedSamples.length === 0) {
-            return (cachedPrice.value = ZERO_AMOUNT);
-        }
-        const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
-        return (cachedPrice.value = medianSample.div(takerAmount));
+        return flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
     }
 
     public async getSellSamplesAsync(
