@@ -10,6 +10,7 @@ import { DUMMY_PROVIDER } from './constants';
 import { createFastAbiEncoderOverrides } from './fast_abi';
 import { Address, Bytes, DexSample, MultiHopCallInfo } from './types';
 
+
 const ADDRESS_SIZE = 20;
 
 interface ArtifactsMap {

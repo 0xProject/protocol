@@ -165,6 +165,7 @@ export class SassySampler {
         makerToken: Address,
         takerAmount: BigNumber,
     ): Promise<Array<DexSample<TwoHopFillData>>> {
+
         if (takerAmount.eq(0)) {
             return [];
         }

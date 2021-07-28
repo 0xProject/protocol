@@ -98,3 +98,29 @@ export function getNativeAdjustedFillableAmountsFromMakerAmount(
                 : ZERO_AMOUNT,
     };
 }
+
+export async function timeItAsync<TReturn>(
+    cb: () => TReturn | Promise<TReturn>,
+    handler?: (dt: number) => string,
+    threshold: number = 100,
+): Promise<TReturn> {
+    let dt = Date.now();
+    const r = await cb();
+    dt = Date.now() - dt;
+    if (dt >= threshold) {
+        const msg = (handler || ((..._args: any[]) => {}))(dt);
+        console.debug(`[DEBUG] ${msg}`);
+    }
+    return r;
+}
+
+export function timeIt<TReturn>(cb: () => TReturn, handler?: (dt: number) => string, threshold: number = 100): TReturn {
+    let dt = Date.now();
+    const r = cb();
+    dt = Date.now() - dt;
+    if (dt >= threshold) {
+        const msg = (handler || ((..._args: any[]) => {}))(dt);
+        console.debug(`[DEBUG] ${msg}`);
+    }
+    return r;
+}

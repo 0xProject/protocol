@@ -14,7 +14,6 @@ const RUN_LIMIT_DECAY_FACTOR = 0.5;
 export interface FindOptimalPathOpts {
     runLimit: number;
     pathPenaltyOpts: PathPenaltyOpts;
-    timeLimitMs: number;
 }
 
 /**
@@ -27,9 +26,8 @@ export async function findOptimalPathAsync(
     targetInput: BigNumber,
     opts: Partial<FindOptimalPathOpts> = {},
 ): Promise<Path | undefined> {
-    const { runLimit, pathPenaltyOpts, timeLimitMs } = {
+    const { runLimit, pathPenaltyOpts } = {
         runLimit: opts.runLimit || 2 ** 8,
-        timeLimitMs: opts.timeLimitMs || 1000,
         pathPenaltyOpts: opts.pathPenaltyOpts || DEFAULT_PATH_PENALTY_OPTS,
     };
     // Sort fill arrays by descending adjusted completed rate.
@@ -40,15 +38,10 @@ export async function findOptimalPathAsync(
     }
     const rates = rateBySourcePathId(sortedPaths);
     let optimalPath = sortedPaths[0];
-    const startTime = Date.now();
     for (const [i, path] of sortedPaths.slice(1).entries()) {
         optimalPath = mixPaths(side, optimalPath, path, targetInput, runLimit * RUN_LIMIT_DECAY_FACTOR ** i, rates);
         // Yield to event loop.
         await Promise.resolve();
-        // Break early if we're taking too long.
-        if (Date.now() - startTime > timeLimitMs) {
-            break;
-        }
     }
     return optimalPath.isComplete() ? optimalPath : undefined;
 }

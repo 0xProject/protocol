@@ -4,6 +4,7 @@ import { MethodAbi } from 'ethereum-types';
 import { FastABI } from 'fast-abi';
 
 import { ContractWrapperType } from './types';
+import { timeIt } from '../utils/utils';
 
 // Cache to avoid creating tons of FastABI instances for commonly used contracts.
 const ABI_ENCODER_CACHE: { [k: string]: EncoderOverrides } = {};
@@ -15,7 +16,7 @@ export function createFastAbiEncoderOverrides<T extends any>(contractType: Contr
         ABI_ENCODER_CACHE[contractType.contractName] = fastAbi;
     }
     return {
-        encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
-        decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
+        encodeInput: (fnName: string, values: any) => timeIt(() => fastAbi.encodeInput(fnName, values), dt => `${fnName} encode took ${dt}ms`),
+        decodeOutput: (fnName: string, data: string) => timeIt(() => fastAbi.decodeOutput(fnName, data), dt => `${fnName} decode too ${dt}ms`),
     };
 }

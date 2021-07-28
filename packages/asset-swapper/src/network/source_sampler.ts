@@ -74,7 +74,7 @@ interface LiquidtyScore {
     chance: number;
 }
 
-const DEFAULT_MAX_CACHE_AGE_MS = 10e3;
+const DEFAULT_MAX_CACHE_AGE_MS = 12e3;
 
 // Base class for a standard sampler with on-chain quote functions.
 export abstract class OnChainSourceSampler<

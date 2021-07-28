@@ -34,7 +34,7 @@ interface HopResult {
 const DEFAULT_SAMPLE_GAS = 500e3;
 const GAS_PER_SAMPLE = 25e3;
 const BASE_GAS = 100e3;
-const DEFAULT_MAX_CACHE_AGE_MS = 10e3;
+const DEFAULT_MAX_CACHE_AGE_MS = 16e3;
 
 export class TwoHopSampler {
     protected readonly _sellContract: ERC20BridgeSamplerContract;
