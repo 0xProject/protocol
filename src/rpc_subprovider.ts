@@ -95,8 +95,8 @@ export class RPCSubprovider extends Subprovider {
             end(new JsonRpcError.InternalError(err));
             return;
         } finally {
-            const durationMs = (Date.now() - begin) / ONE_SECOND_MS;
-            ETH_RPC_RESPONSE_TIME.labels(finalPayload.method!).observe(durationMs);
+            const duration = (Date.now() - begin) / ONE_SECOND_MS;
+            ETH_RPC_RESPONSE_TIME.labels(finalPayload.method!).observe(duration);
         }
 
         const text = await response.text();
