@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as https from 'https';
 import JsonRpcError = require('json-rpc-error');
 import fetch, { Headers, Response } from 'node-fetch';
-import { Counter, Summary } from 'prom-client';
+import { Counter, Histogram, linearBuckets } from 'prom-client';
 
 import { ONE_SECOND_MS } from './constants';
 
@@ -14,12 +14,12 @@ const httpAgent = new http.Agent({ keepAlive: true });
 const httpsAgent = new https.Agent({ keepAlive: true });
 const agent = (_parsedURL: any) => (_parsedURL.protocol === 'http:' ? httpAgent : httpsAgent);
 
-const ETH_RPC_RESPONSE_TIME = new Summary({
+const ETH_RPC_RESPONSE_TIME = new Histogram({
     name: 'eth_rpc_response_time',
     help: 'The response time of an RPC request',
     labelNames: ['method'],
     // tslint:disable-next-line:custom-no-magic-numbers
-    percentiles: [0.01, 0.1, 0.5, 0.75, 0.9, 0.95, 0.98, 0.99],
+    buckets: linearBuckets(0, 0.25, 25), // [ 0,  0.25,  0.5,  0.75, ... 6 ]
 });
 
 const ETH_RPC_REQUESTS = new Counter({
