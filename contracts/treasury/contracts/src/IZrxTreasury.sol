@@ -150,6 +150,27 @@ interface IZrxTreasury {
     )
         external;
 
+    /// @dev Casts a vote for the given proposal, by signature.
+    ///      Only callable during the voting period for that proposal.
+    ///      See `getVotingPower` for how voting power is computed.
+    /// @param proposalId The ID of the proposal to vote on.
+    /// @param support Whether to support the proposal or not.
+    /// @param operatedPoolIds The pools operated by `msg.sender`. The
+    ///        ZRX currently delegated to those pools will be accounted
+    ///        for in the voting power.
+    /// @param v the v field of the signature
+    /// @param r the r field of the signature
+    /// @param s the s field of the signature
+    function castVoteBySignature(
+        uint256 proposalId,
+        bool support,
+        bytes32[] memory operatedPoolIds,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
+        external;
+
     /// @dev Executes a proposal that has passed and is
     ///      currently executable.
     /// @param proposalId The ID of the proposal to execute.

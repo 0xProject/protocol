@@ -34,6 +34,15 @@ contract ZrxTreasury is
     using LibRichErrorsV06 for bytes;
     using LibBytesV06 for bytes;
 
+    /// Contract name
+    string public constant name = "Zrx Treasury";
+
+    /// The EIP-712 typehash for the contract's domain
+    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+
+    /// The EIP-712 typehash for the vote struct
+    bytes32 public constant VOTE_TYPEHASH = keccak256("Vote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
+
     // Immutables
     IStaking public immutable override stakingProxy;
     DefaultPoolOperator public immutable override defaultPoolOperator;
@@ -165,43 +174,38 @@ contract ZrxTreasury is
         public
         override
     {
-        if (proposalId >= proposalCount()) {
-            revert("castVote/INVALID_PROPOSAL_ID");
-        }
-        if (hasVoted[proposalId][msg.sender]) {
-            revert("castVote/ALREADY_VOTED");
-        }
+        return _castVote(msg.sender, proposalId, support, operatedPoolIds);
+    }
 
-        Proposal memory proposal = proposals[proposalId];
-        if (
-            proposal.voteEpoch != stakingProxy.currentEpoch() ||
-            _hasVoteEnded(proposal.voteEpoch)
-        ) {
-            revert("castVote/VOTING_IS_CLOSED");
-        }
+    /// @dev Casts a vote for the given proposal, by signature.
+    ///      Only callable during the voting period for that proposal.
+    ///      See `getVotingPower` for how voting power is computed.
+    /// @param proposalId The ID of the proposal to vote on.
+    /// @param support Whether to support the proposal or not.
+    /// @param operatedPoolIds The pools operated by `msg.sender`. The
+    ///        ZRX currently delegated to those pools will be accounted
+    ///        for in the voting power.
+    /// @param v the v field of the signature
+    /// @param r the r field of the signature
+    /// @param s the s field of the signature
+    function castVoteBySignature(
+        uint256 proposalId,
+        bool support,
+        bytes32[] memory operatedPoolIds,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
+        public
+        override
+    {
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this)));
+        bytes32 structHash = keccak256(abi.encode(VOTE_TYPEHASH, proposalId, support, keccak256(abi.encodePacked(operatedPoolIds))));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        address signatory = ecrecover(digest, v, r, s);
+        require(signatory != address(0), "castVoteBySignature/INVALID_SIGNATURE");
 
-        uint256 votingPower = getVotingPower(msg.sender, operatedPoolIds);
-        if (votingPower == 0) {
-            revert("castVote/NO_VOTING_POWER");
-        }
-
-        if (support) {
-            proposals[proposalId].votesFor = proposals[proposalId].votesFor
-                .safeAdd(votingPower);
-            hasVoted[proposalId][msg.sender] = true;
-        } else {
-            proposals[proposalId].votesAgainst = proposals[proposalId].votesAgainst
-                .safeAdd(votingPower);
-            hasVoted[proposalId][msg.sender] = true;
-        }
-
-        emit VoteCast(
-            msg.sender,
-            operatedPoolIds,
-            proposalId,
-            support,
-            votingPower
-        );
+        return _castVote(signatory, proposalId, support, operatedPoolIds);
     }
 
     /// @dev Executes a proposal that has passed and is
@@ -372,5 +376,64 @@ contract ZrxTreasury is
             .currentEpochStartTimeInSeconds()
             .safeAdd(votingPeriod);
         return block.timestamp > voteEndTime;
+    }
+
+    /// @dev Casts a vote for the given proposal. Only callable
+    ///      during the voting period for that proposal. See
+    ///      `getVotingPower` for how voting power is computed.
+    /// @param proposalId The ID of the proposal to vote on.
+    /// @param support Whether to support the proposal or not.
+    /// @param operatedPoolIds The pools operated by `msg.sender`. The
+    ///        ZRX currently delegated to those pools will be accounted
+    ///        for in the voting power.
+    function _castVote(
+        address voter,
+        uint256 proposalId,
+        bool support,
+        bytes32[] memory operatedPoolIds
+    ) internal {
+        if (proposalId >= proposalCount()) {
+            revert("_castVote/INVALID_PROPOSAL_ID");
+        }
+        if (hasVoted[proposalId][voter]) {
+            revert("_castVote/ALREADY_VOTED");
+        }
+
+        Proposal memory proposal = proposals[proposalId];
+        if (
+            proposal.voteEpoch != stakingProxy.currentEpoch() ||
+            _hasVoteEnded(proposal.voteEpoch)
+        ) {
+            revert("_castVote/VOTING_IS_CLOSED");
+        }
+
+        uint256 votingPower = getVotingPower(voter, operatedPoolIds);
+        if (votingPower == 0) {
+            revert("_castVote/NO_VOTING_POWER");
+        }
+
+        if (support) {
+            proposals[proposalId].votesFor = proposals[proposalId].votesFor
+            .safeAdd(votingPower);
+        } else {
+            proposals[proposalId].votesAgainst = proposals[proposalId].votesAgainst
+            .safeAdd(votingPower);
+        }
+        hasVoted[proposalId][voter] = true;
+
+        emit VoteCast(
+            voter,
+            operatedPoolIds,
+            proposalId,
+            support,
+            votingPower
+        );
+    }
+
+    /// @dev Gets the Ethereum chain id
+    function _getChainId() internal pure returns (uint256) {
+        uint256 chainId;
+        assembly { chainId := chainid() }
+        return chainId;
     }
 }
