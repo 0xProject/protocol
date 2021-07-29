@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.23.1 - _July 29, 2021_
+
+    * Fix fill amount rounding error when covnerting fills to orders. (#296)
+
 ## v16.23.0 - _July 16, 2021_
 
     * ACryptoS (#284)
