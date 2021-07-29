@@ -8,6 +8,7 @@ import { MarketOperation } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
 
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
+import { getRate } from './rate_utils';
 import { ERC20BridgeSource, Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
@@ -15,6 +16,7 @@ import { ERC20BridgeSource, Fill } from './types';
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
 const RUST_ROUTER_NUM_SAMPLES = 200;
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
+const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 
 type FillWithOutputFee = Fill & { outputFee: BigNumber };
 
@@ -27,7 +29,7 @@ const toAdjustedOutput = (side: MarketOperation, output: BigNumber, outputFee: B
     return output.minus(outputFee);
 };
 
-function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: ChainId): Path {
+function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: ChainId, opts: PathPenaltyOpts): Path {
     // TODO: handle buys
     const side = MarketOperation.Sell;
     // Track sample id's to integers (required by rust router)
@@ -181,8 +183,24 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: Chai
         const vipSourcesRustRoute = route(vipRustArgs, RUST_ROUTER_NUM_SAMPLES);
         const vipSourcesPath = createFakePathFromRoutes(vipSourcesRustRoute, vipAdjustedParsedFills);
 
+        const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
+        const fqtOverheadInOutputToken = opts.outputAmountPerEth.times(FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.div(1e18));
+        console.log(opts.outputAmountPerEth.toString(), fqtOverheadInOutputToken.toString());
+        // TODO(kimpers): Handle BUYS
+        const outputWithFqtOverhead =
+            side === MarketOperation.Sell
+                ? allSourcesOutput.minus(fqtOverheadInOutputToken)
+                : allSourcesOutput.plus(fqtOverheadInOutputToken);
+        const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
+        console.log(
+            'OUTPUT DIFF:',
+            allSourcesPath
+                .size()
+                .output.minus(outputWithFqtOverhead)
+                .toString(),
+        );
         // NOTE: VIP paths in isolation gave a better rate, use the VIP path instead
-        if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesPath.adjustedRate())) {
+        if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
             console.log('-------------VIP SOURCES WON!!------');
             return vipSourcesPath;
         }
@@ -233,7 +251,7 @@ export async function findOptimalPathAsync(
     // NOTE: only sells are currently supported by the rust router
     if (SHOULD_USE_RUST_ROUTER && side === MarketOperation.Sell) {
         console.log('-----USING RUST ROUTER!-------');
-        return findOptimalRustPath(targetInput, fills, chainId);
+        return findOptimalRustPath(targetInput, fills, chainId, opts);
     }
 
     console.log('-----USING JS ROUTER!-------');

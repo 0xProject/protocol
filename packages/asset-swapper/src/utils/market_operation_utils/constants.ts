@@ -1639,12 +1639,7 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
-        [ChainId.Mainnet]: [
-            ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.SushiSwap,
-            ERC20BridgeSource.UniswapV3,
-            ERC20BridgeSource.MultiHop,
-        ],
+        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
         [ChainId.BSC]: [
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
