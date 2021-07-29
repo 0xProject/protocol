@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as https from 'https';
 import JsonRpcError = require('json-rpc-error');
 import fetch, { Headers, Response } from 'node-fetch';
-import { Counter, Histogram, linearBuckets } from 'prom-client';
+import { Counter, Histogram } from 'prom-client';
 
 import { ONE_SECOND_MS } from './constants';
 
@@ -19,7 +19,7 @@ const ETH_RPC_RESPONSE_TIME = new Histogram({
     help: 'The response time of an RPC request',
     labelNames: ['method'],
     // tslint:disable-next-line:custom-no-magic-numbers
-    buckets: linearBuckets(0, 0.25, 25), // [ 0,  0.25,  0.5,  0.75, ... 6 ]
+    buckets: [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
 });
 
 const ETH_RPC_REQUESTS = new Counter({
