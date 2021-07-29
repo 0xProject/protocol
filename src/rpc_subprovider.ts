@@ -8,7 +8,7 @@ import JsonRpcError = require('json-rpc-error');
 import fetch, { Headers, Response } from 'node-fetch';
 import { Counter, Histogram } from 'prom-client';
 
-import { ONE_SECOND_MS } from './constants';
+import { ONE_SECOND_MS, PROMETHEUS_REQUEST_BUCKETS } from './constants';
 
 const httpAgent = new http.Agent({ keepAlive: true });
 const httpsAgent = new https.Agent({ keepAlive: true });
@@ -18,8 +18,7 @@ const ETH_RPC_RESPONSE_TIME = new Histogram({
     name: 'eth_rpc_response_time',
     help: 'The response time of an RPC request',
     labelNames: ['method'],
-    // tslint:disable-next-line:custom-no-magic-numbers
-    buckets: [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+    buckets: PROMETHEUS_REQUEST_BUCKETS,
 });
 
 const ETH_RPC_REQUESTS = new Counter({

@@ -17,7 +17,7 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import _ = require('lodash');
-import { Counter } from 'prom-client';
+import { Counter, Histogram } from 'prom-client';
 
 import {
     CHAIN_ID,
@@ -33,6 +33,8 @@ import {
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     MARKET_DEPTH_DEFAULT_DISTRIBUTION,
     MARKET_DEPTH_MAX_SAMPLES,
+    ONE_SECOND_MS,
+    PROMETHEUS_REQUEST_BUCKETS,
     SWAP_DOCS_URL,
 } from '../constants';
 import {
@@ -59,6 +61,12 @@ const REGISTRY_ENDPOINT_FETCHED = new Counter({
     name: 'swap_handler_registry_endpoint_fetched',
     help: 'Requests to the swap handler',
     labelNames: ['identifier'],
+});
+
+const HTTP_SWAP_RESPONSE_TIME = new Histogram({
+    name: 'http_swap_response_time',
+    help: 'The response time of a HTTP Swap request',
+    buckets: PROMETHEUS_REQUEST_BUCKETS,
 });
 
 export class SwapHandlers {
@@ -126,6 +134,7 @@ export class SwapHandlers {
     }
 
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
+        const begin = Date.now();
         const params = parseSwapQuoteRequestParams(req, 'quote');
         const quote = await this._getSwapQuoteAsync(params, req);
         if (params.rfqt !== undefined) {
@@ -173,6 +182,8 @@ export class SwapHandlers {
             const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, side, quote);
             response.priceComparisons = priceComparisons?.map((sc) => priceComparisonUtils.renameNative(sc));
         }
+        const duration = (new Date().getTime() - begin) / ONE_SECOND_MS;
+        HTTP_SWAP_RESPONSE_TIME.observe(duration);
         res.status(HttpStatus.OK).send(response);
     }
 
