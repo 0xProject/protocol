@@ -35,7 +35,7 @@ contract ZrxTreasury is
     using LibBytesV06 for bytes;
 
     /// Contract name
-    string public constant name = "Zrx Treasury";
+    string public constant CONTRACT_NAME = "Zrx Treasury";
 
     /// The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
@@ -48,6 +48,7 @@ contract ZrxTreasury is
     DefaultPoolOperator public immutable override defaultPoolOperator;
     bytes32 public immutable override defaultPoolId;
     uint256 public immutable override votingPeriod;
+    bytes32 public immutable domainSeparator;
     uint256 public override proposalThreshold;
     uint256 public override quorumThreshold;
 
@@ -76,6 +77,7 @@ contract ZrxTreasury is
         defaultPoolId = params.defaultPoolId;
         IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(params.defaultPoolId);
         defaultPoolOperator = DefaultPoolOperator(defaultPool.operator);
+        domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(CONTRACT_NAME)), _getChainId(), address(this)));
     }
 
     // solhint-disable
@@ -199,8 +201,9 @@ contract ZrxTreasury is
         public
         override
     {
-        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this)));
-        bytes32 structHash = keccak256(abi.encode(VOTE_TYPEHASH, proposalId, support, keccak256(abi.encodePacked(operatedPoolIds))));
+        bytes32 structHash = keccak256(
+            abi.encode(VOTE_TYPEHASH, proposalId, support, keccak256(abi.encodePacked(operatedPoolIds)))
+        );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
         require(signatory != address(0), "castVoteBySignature/INVALID_SIGNATURE");

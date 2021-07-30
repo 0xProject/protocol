@@ -424,11 +424,11 @@ blockchainTests.resets('Treasury governance', env => {
             const tx = treasury
                 .castVote(INVALID_PROPOSAL_ID, true, [])
                 .awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/INVALID_PROPOSAL_ID');
+            return expect(tx).to.revertWith('_castVote/INVALID_PROPOSAL_ID');
         });
         it('Cannot vote before voting period starts', async () => {
             const tx = treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/VOTING_IS_CLOSED');
+            return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
         it('Cannot vote after voting period ends', async () => {
             await fastForwardToNextEpochAsync();
@@ -436,14 +436,14 @@ blockchainTests.resets('Treasury governance', env => {
             await env.web3Wrapper.increaseTimeAsync(TREASURY_PARAMS.votingPeriod.plus(1).toNumber());
             await env.web3Wrapper.mineBlockAsync();
             const tx = treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/VOTING_IS_CLOSED');
+            return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
         it('Cannot vote twice on same proposal', async () => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
             await treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
             const tx = treasury.castVote(VOTE_PROPOSAL_ID, false, []).awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/ALREADY_VOTED');
+            return expect(tx).to.revertWith('_castVote/ALREADY_VOTED');
         });
         it('Can cast a valid vote', async () => {
             await fastForwardToNextEpochAsync();
