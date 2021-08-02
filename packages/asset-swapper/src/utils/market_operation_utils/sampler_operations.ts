@@ -3,6 +3,7 @@ import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
@@ -47,6 +48,7 @@ import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
 import { SamplerContractOperation } from './sampler_contract_operation';
+import { SamplerNoOperation } from './sampler_no_operation';
 import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,
@@ -1111,33 +1113,31 @@ export class SamplerOperations {
         });
     }
 
+    // tslint:disable-next-line:prefer-function-over-method
     public getAaveV2SellQuotes(
         aaveInfo: AaveV2Info,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<AaveV2FillData> {
-        return new SamplerContractOperation({
+        return new SamplerNoOperation({
             source: ERC20BridgeSource.AaveV2,
             fillData: { ...aaveInfo, takerToken },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromAaveV2,
-            params: [aaveInfo, takerToken, makerToken, takerFillAmounts],
+            callback: () => AaveV2Sampler.sampleSellsFromAaveV2(aaveInfo, takerToken, makerToken, takerFillAmounts),
         });
     }
 
+    // tslint:disable-next-line:prefer-function-over-method
     public getAaveV2BuyQuotes(
         aaveInfo: AaveV2Info,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<AaveV2FillData> {
-        return new SamplerContractOperation({
+        return new SamplerNoOperation({
             source: ERC20BridgeSource.AaveV2,
             fillData: { ...aaveInfo, takerToken },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromAaveV2,
-            params: [aaveInfo, takerToken, makerToken, makerFillAmounts],
+            callback: () => AaveV2Sampler.sampleBuysFromAaveV2(aaveInfo, takerToken, makerToken, makerFillAmounts),
         });
     }
 

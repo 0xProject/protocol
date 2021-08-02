@@ -88,6 +88,6 @@ contract MixinAaveV2 {
             return lendingPool.withdraw(address(buyToken), sellAmount, address(this));
         }
 
-        revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
+        revert("MixinAaveV2/UNSUPPORTED_TOKEN_PAIR");
     }
 }
