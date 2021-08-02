@@ -1,4 +1,4 @@
-import { eip712Utils, generatePseudoRandomSalt } from '@0x/order-utils';
+import { eip712Utils } from '@0x/order-utils';
 import {
     ECSignature,
     EIP712DomainWithDefaultSchema,
@@ -69,6 +69,11 @@ export class VoteFactory {
         return signedVote;
     }
 
+    private _getVoteHashBuffer(vote: ZeroExVote | SignedZeroExVote): Buffer {
+        const typedData = this._createZeroExVoteTypedData(vote);
+        return signTypedDataUtils.generateTypedDataHash(typedData);
+    }
+
     private _createZeroExVoteTypedData(zeroExVote: ZeroExVote): EIP712TypedData {
         // assert.isNumber('domain.chainId', zeroExVote.domain.chainId);
         // assert.isETHAddressHex('domain.verifyingContract', zeroExTransaction.domain.verifyingContract);
@@ -84,12 +89,6 @@ export class VoteFactory {
             this._domain,
         );
         return typedData;
-    }
-
-    private _getVoteHashBuffer(vote: ZeroExVote | SignedZeroExVote): Buffer {
-        const typedData = this._createZeroExVoteTypedData(vote);
-        const transactionHashBuff = signTypedDataUtils.generateTypedDataHash(typedData);
-        return transactionHashBuff;
     }
 }
 
