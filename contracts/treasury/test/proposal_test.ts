@@ -151,4 +151,72 @@ blockchainTests.fork.skip('Treasury proposal mainnet fork tests', env => {
             );
         });
     });
+    describe('Proposal 1', () => {
+        it('works', async () => {
+            const proposal = proposals[1];
+            let executionEpoch: BigNumber;
+            if (proposal.executionEpoch) {
+                executionEpoch = proposal.executionEpoch;
+            } else {
+                const currentEpoch = await staking.currentEpoch().callAsync();
+                executionEpoch = currentEpoch.plus(2);
+            }
+            const pools = await querySubgraphAsync(PROPOSER);
+            const proposeTx = treasury.propose(proposal.actions, executionEpoch, proposal.description, pools);
+
+            const calldata = proposeTx.getABIEncodedTransactionData();
+            logUtils.log('ZrxTreasury.propose calldata:');
+            logUtils.log(calldata);
+
+            const proposalId = await proposeTx.callAsync({ from: PROPOSER });
+            const receipt = await proposeTx.awaitTransactionSuccessAsync({ from: PROPOSER });
+            verifyEventsFromLogs(
+                receipt.logs,
+                [
+                    {
+                        ...proposal,
+                        proposalId,
+                        executionEpoch,
+                        proposer: PROPOSER,
+                        operatedPoolIds: pools,
+                    },
+                ],
+                ZrxTreasuryEvents.ProposalCreated,
+            );
+            await fastForwardToNextEpochAsync();
+            await fastForwardToNextEpochAsync();
+            await treasury
+                .castVote(proposalId, true, VOTER_OPERATED_POOLS)
+                .awaitTransactionSuccessAsync({ from: VOTER });
+            await env.web3Wrapper.increaseTimeAsync(votingPeriod.plus(1).toNumber());
+            await env.web3Wrapper.mineBlockAsync();
+            const executeTx = await treasury.execute(proposalId, proposal.actions).awaitTransactionSuccessAsync();
+            verifyEventsFromLogs(
+                executeTx.logs,
+                [
+                    {
+                        proposalId,
+                    },
+                ],
+                ZrxTreasuryEvents.ProposalExecuted,
+            );
+            const recipient = '0xab66cc8fd10457ebc9d13b9760c835f0a4cbc487';
+            verifyEventsFromLogs(
+                executeTx.logs,
+                [
+                    {
+                        _from: TREASURY_ADDRESS,
+                        _to: recipient,
+                        _value: new BigNumber(330_813).times('1e18'),
+                    },
+                    {
+                        _from: TREASURY_ADDRESS,
+                        _to: recipient,
+                        _value: new BigNumber(420000).times('1e18'),
+                    },
+                ],
+                ERC20TokenEvents.Transfer,
+            );
+        });
+    });
 });
