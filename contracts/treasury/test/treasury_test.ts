@@ -17,7 +17,7 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { parseSignatureHexAsRSV, VoteFactory } from '@0x/contracts-test-utils/lib/src/vote_factory'; // TODO(Cece): why not found??
+import { parseSignatureHexAsRSV, VoteFactory } from '@0x/contracts-test-utils/lib/src/vote_factory'; // TODO(Cece): fix
 import { BigNumber } from '@0x/utils';
 
 import { artifacts } from './artifacts';
