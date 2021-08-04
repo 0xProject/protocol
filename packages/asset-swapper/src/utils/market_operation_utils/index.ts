@@ -327,12 +327,12 @@ export class MarketOperationUtils {
     public async getBatchMarketBuyOrdersAsync(
         batchNativeOrders: SignedNativeOrder[][],
         makerAmounts: BigNumber[],
-        opts?: Partial<GetMarketOrdersOpts>,
+        opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
     ): Promise<Array<OptimizerResult | undefined>> {
         if (batchNativeOrders.length === 0) {
             throw new Error(AggregationError.EmptyOrders);
         }
-        const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
+        const _opts: GetMarketOrdersOpts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
         const quoteSourceFilters = this._buySources.merge(requestFilters);
@@ -410,6 +410,7 @@ export class MarketOperationUtils {
                             excludedSources: _opts.excludedSources,
                             feeSchedule: _opts.feeSchedule,
                             allowFallback: _opts.allowFallback,
+                            gasPrice: _opts.gasPrice,
                         },
                     );
                     return optimizerResult;
@@ -476,6 +477,7 @@ export class MarketOperationUtils {
             outputAmountPerEth,
             inputAmountPerEth,
             exchangeProxyOverhead: opts.exchangeProxyOverhead || (() => ZERO_AMOUNT),
+            gasPrice: opts.gasPrice,
         };
 
         // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
@@ -562,9 +564,9 @@ export class MarketOperationUtils {
         nativeOrders: SignedNativeOrder[],
         amount: BigNumber,
         side: MarketOperation,
-        opts?: Partial<GetMarketOrdersOpts>,
+        opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
     ): Promise<OptimizerResultWithReport> {
-        const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
+        const _opts: GetMarketOrdersOpts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const optimizerOpts: GenerateOptimizedOrdersOpts = {
             bridgeSlippage: _opts.bridgeSlippage,
             maxFallbackSlippage: _opts.maxFallbackSlippage,
@@ -572,6 +574,7 @@ export class MarketOperationUtils {
             feeSchedule: _opts.feeSchedule,
             allowFallback: _opts.allowFallback,
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
+            gasPrice: _opts.gasPrice,
         };
 
         if (nativeOrders.length === 0) {

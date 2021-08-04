@@ -1796,7 +1796,7 @@ export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(20000);
 
 // tslint:enable:custom-no-magic-numbers
 
-export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
+export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice'> = {
     // tslint:disable-next-line: custom-no-magic-numbers
     runLimit: 2 ** 15,
     excludedSources: [],

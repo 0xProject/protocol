@@ -25,12 +25,14 @@ export interface PathPenaltyOpts {
     outputAmountPerEth: BigNumber;
     inputAmountPerEth: BigNumber;
     exchangeProxyOverhead: ExchangeProxyOverhead;
+    gasPrice: BigNumber;
 }
 
 export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
     outputAmountPerEth: ZERO_AMOUNT,
     inputAmountPerEth: ZERO_AMOUNT,
     exchangeProxyOverhead: () => ZERO_AMOUNT,
+    gasPrice: ZERO_AMOUNT,
 };
 
 export class Path {

@@ -184,8 +184,9 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: Chai
         const vipSourcesPath = createFakePathFromRoutes(vipSourcesRustRoute, vipAdjustedParsedFills);
 
         const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
-        const fqtOverheadInOutputToken = opts.outputAmountPerEth.times(FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.div(1e18));
-        console.log(opts.outputAmountPerEth.toString(), fqtOverheadInOutputToken.toString());
+        // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
+        const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
+        const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
         // TODO(kimpers): Handle BUYS
         const outputWithFqtOverhead =
             side === MarketOperation.Sell
@@ -193,13 +194,20 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: Chai
                 : allSourcesOutput.plus(fqtOverheadInOutputToken);
         const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
         console.log(
-            'OUTPUT DIFF:',
-            allSourcesPath
-                .size()
-                .output.minus(outputWithFqtOverhead)
-                .toString(),
+            `FQT OVERHEAD percentage ${allSourcesOutput
+                .minus(outputWithFqtOverhead)
+                .div(allSourcesOutput)
+                .toString()}`,
         );
         // NOTE: VIP paths in isolation gave a better rate, use the VIP path instead
+        // console.log(
+        // 'OUTPUTS all(all, all adjusted, vip)\n',
+        // allSourcesPath.adjustedRate().toString(),
+        // '\n',
+        // allSourcesAdjustedRateWithFqtOverhead.toString(),
+        // '\n',
+        // vipSourcesPath.adjustedRate().toString(),
+        // );
         if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
             console.log('-------------VIP SOURCES WON!!------');
             return vipSourcesPath;

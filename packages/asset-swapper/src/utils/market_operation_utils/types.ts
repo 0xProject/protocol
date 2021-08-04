@@ -455,6 +455,11 @@ export interface GetMarketOrdersOpts {
      * hopping to. E.g DAI->USDC via an adjacent token WETH
      */
     tokenAdjacencyGraph: TokenAdjacencyGraph;
+
+    /**
+     * Gas price to use for quote
+     */
+    gasPrice: BigNumber;
 }
 
 /**
@@ -538,6 +543,7 @@ export interface GenerateOptimizedOrdersOpts {
     exchangeProxyOverhead?: ExchangeProxyOverhead;
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;
+    gasPrice: BigNumber;
 }
 
 export interface ComparisonPrice {

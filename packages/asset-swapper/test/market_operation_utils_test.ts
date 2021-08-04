@@ -79,7 +79,7 @@ async function getMarketSellOrdersAsync(
     utils: MarketOperationUtils,
     nativeOrders: SignedNativeOrder[],
     takerAmount: BigNumber,
-    opts?: Partial<GetMarketOrdersOpts>,
+    opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
     return utils.getOptimizerResultAsync(nativeOrders, takerAmount, MarketOperation.Sell, opts);
 }
@@ -96,7 +96,7 @@ async function getMarketBuyOrdersAsync(
     utils: MarketOperationUtils,
     nativeOrders: SignedNativeOrder[],
     makerAmount: BigNumber,
-    opts?: Partial<GetMarketOrdersOpts>,
+    opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
     return utils.getOptimizerResultAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
 }
@@ -459,7 +459,7 @@ describe('MarketOperationUtils tests', () => {
                 FILL_AMOUNT,
                 _.times(NUM_SAMPLES, i => DEFAULT_RATES[ERC20BridgeSource.Native][i]),
             );
-            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> = {
+            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber } = {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
@@ -468,6 +468,7 @@ describe('MarketOperationUtils tests', () => {
                 allowFallback: false,
                 gasSchedule: {},
                 feeSchedule: {},
+                gasPrice: new BigNumber(30e9),
             };
 
             beforeEach(() => {
@@ -1229,6 +1230,7 @@ describe('MarketOperationUtils tests', () => {
                         excludedSources: [],
                         numSamples: 4,
                         bridgeSlippage: 0,
+                        gasPrice: new BigNumber(30e9),
                     },
                 );
                 const result = ordersAndReport.optimizedOrders;
@@ -1298,7 +1300,8 @@ describe('MarketOperationUtils tests', () => {
                 FILL_AMOUNT,
                 _.times(NUM_SAMPLES, () => DEFAULT_RATES[ERC20BridgeSource.Native][0]),
             );
-            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> = {
+            const GAS_PRICE = new BigNumber(100e9); // 100 gwei
+            const DEFAULT_OPTS: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber } = {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
@@ -1307,6 +1310,7 @@ describe('MarketOperationUtils tests', () => {
                 allowFallback: false,
                 gasSchedule: {},
                 feeSchedule: {},
+                gasPrice: GAS_PRICE,
             };
 
             beforeEach(() => {
@@ -1626,11 +1630,10 @@ describe('MarketOperationUtils tests', () => {
                     getMedianSellRate: createGetMedianSellRate(ETH_TO_TAKER_RATE),
                 });
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
-                const gasPrice = 100e9; // 100 gwei
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
-                        : new BigNumber(1.3e5).times(gasPrice);
+                        : new BigNumber(1.3e5).times(GAS_PRICE);
                 const improvedOrdersResponse = await optimizer.getOptimizerResultAsync(
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
