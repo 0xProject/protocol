@@ -109,10 +109,4 @@ export const constants = {
         ExchangeFunctionName.BatchCancelOrders,
         ExchangeFunctionName.CancelOrdersUpTo,
     ],
-    ZEROEX_VOTE_SCHEMA: {
-        // TODO(Cece): ???
-        proposalId: new BigNumber(1),
-        support: false,
-        operatedPoolIds: [],
-    },
 };
