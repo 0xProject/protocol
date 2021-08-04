@@ -38,7 +38,7 @@ contract ZrxTreasury is
     string public constant CONTRACT_NAME = "Zrx Treasury";
 
     /// The EIP-712 typehash for the contract's domain
-    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
     /// The EIP-712 typehash for the vote struct
     bytes32 public constant VOTE_TYPEHASH = keccak256("Vote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
@@ -394,7 +394,7 @@ contract ZrxTreasury is
         uint256 proposalId,
         bool support,
         bytes32[] memory operatedPoolIds
-    ) internal {
+    ) private {
         if (proposalId >= proposalCount()) {
             revert("_castVote/INVALID_PROPOSAL_ID");
         }
@@ -434,7 +434,7 @@ contract ZrxTreasury is
     }
 
     /// @dev Gets the Ethereum chain id
-    function _getChainId() internal pure returns (uint256) {
+    function _getChainId() private pure returns (uint256) {
         uint256 chainId;
         assembly { chainId := chainid() }
         return chainId;

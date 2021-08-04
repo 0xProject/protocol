@@ -1,13 +1,8 @@
-import { assert } from '@0x/assert';
-import { schemas } from '@0x/json-schemas';
-import { eip712Utils } from '@0x/order-utils';
-import { ECSignature, EIP712DomainWithDefaultSchema, EIP712TypedData, SignatureType } from '@0x/types';
+import { Vote } from '@0x/contracts-treasury/src/votes';
+import { eip712SignHashWithKey } from '@0x/protocol-utils';
+import { EIP712DomainWithDefaultSchema } from '@0x/types';
 import { BigNumber, signTypedDataUtils } from '@0x/utils';
-import * as ethUtil from 'ethereumjs-util';
-import * as _ from 'lodash';
 
-import { constants } from './constants';
-import { signingUtils } from './signing_utils';
 import { SignedZeroExVote, ZeroExVote } from './types';
 
 export class VoteFactory {
@@ -17,13 +12,29 @@ export class VoteFactory {
     public static newZeroExVote(
         proposalId: BigNumber,
         support: boolean,
-        operatedPoolIds: number[],
+        operatedPoolIds: string[],
+        chainId: number,
+        verifyingContract: string,
     ): ZeroExVote {
         return {
             proposalId,
             support,
             operatedPoolIds,
+            chainId,
+            verifyingContract,
         };
+    }
+
+    private static _getVoteHashBuffer(vote: ZeroExVote | SignedZeroExVote): Buffer {
+        const voteObj = new Vote({
+            proposalId: vote.proposalId,
+            support: vote.support,
+            operatedPoolIds: vote.operatedPoolIds,
+            chainId: vote.chainId,
+            verifyingContract: vote.verifyingContract,
+        });
+        const typedData = voteObj.getEIP712TypedData();
+        return signTypedDataUtils.generateTypedDataHash(typedData);
     }
 
     constructor(
@@ -36,44 +47,12 @@ export class VoteFactory {
         this._domain = {name: contractName, chainId, verifyingContract};
     }
 
-    public async newSignedZeroExVoteAsync(
-        vote: ZeroExVote,
-        signatureType: SignatureType = SignatureType.EIP712,
-    ): Promise<SignedZeroExVote> {
-        const voteHashBuffer = this._getVoteHashBuffer(vote);
-        const signature = signingUtils.signMessage(voteHashBuffer, this._delegatorPrivateKey, signatureType);
+    public async newSignedZeroExVoteAsync(vote: ZeroExVote): Promise<SignedZeroExVote> {
+        const voteHashBuffer = VoteFactory._getVoteHashBuffer(vote);
+        const signature = eip712SignHashWithKey(`0x${voteHashBuffer.toString('hex')}`, this._delegatorPrivateKey.toString());
         return {
             ...vote,
-            signature: `0x${signature.toString('hex')}`,
+            ...signature,
         };
     }
-
-    private _getVoteHashBuffer(vote: ZeroExVote | SignedZeroExVote): Buffer {
-        const typedData = this._createZeroExVoteTypedData(vote);
-        return signTypedDataUtils.generateTypedDataHash(typedData);
-    }
-
-    private _createZeroExVoteTypedData(zeroExVote: ZeroExVote): EIP712TypedData {
-        assert.doesConformToSchema('ZeroExVote', zeroExVote, schemas.ZeroExVote); // TODO(need to bump @0x/json-schemas first?)
-        const normalizedVote = _.mapValues(zeroExVote, value => {
-            return !_.isString(value) ? value.toString() : value;
-        });
-        return eip712Utils.createTypedData(
-            // TODO(need to bump @0x/json-schemas first?)
-            constants.ZEROEX_VOTE_SCHEMA.name,
-            { ZeroExVote: constants.ZEROEX_VOTE_SCHEMA.parameters },
-            normalizedVote,
-            this._domain,
-        );
-    }
-}
-
-// TODO(Cece): move to better place
-export function parseSignatureHexAsRSV(signatureHex: string): ECSignature {
-    const { v, r, s } = ethUtil.fromRpcSig(signatureHex);
-    return {
-        v,
-        r: ethUtil.bufferToHex(r),
-        s: ethUtil.bufferToHex(s),
-    };
 }

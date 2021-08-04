@@ -17,7 +17,7 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { parseSignatureHexAsRSV, VoteFactory } from '@0x/contracts-test-utils/lib/src/vote_factory'; // TODO(Cece): fix
+import { VoteFactory } from '@0x/contracts-test-utils/src/vote_factory';
 import { BigNumber } from '@0x/utils';
 
 import { artifacts } from './artifacts';
@@ -470,7 +470,7 @@ blockchainTests.resets('Treasury governance', env => {
     describe('castVoteBySignature()', () => {
         const VOTE_PROPOSAL_ID = new BigNumber(0);
         const DELEGATOR_VOTING_POWER = new BigNumber(420);
-        const voteFactory = new VoteFactory();
+        const voteFactory = new VoteFactory(constants.TESTRPC_PRIVATE_KEYS[0], 'Zrx Treasury', 1, admin);
 
         before(async () => {
             await staking.stake(DELEGATOR_VOTING_POWER).awaitTransactionSuccessAsync({ from: delegator });
@@ -490,20 +490,18 @@ blockchainTests.resets('Treasury governance', env => {
         it('Cannot vote on invalid proposalId', async () => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
-            const vote = voteFactory.newZeroExVote(new BigNumber(1), false, []);
+            const vote = VoteFactory.newZeroExVote(new BigNumber(1), false, [], 1, admin);
             const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
-            const sig = parseSignatureHexAsRSV(signedVote.signature);
             const tx = treasury
-                .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], sig.v,  sig.r,  sig.s)
+                .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/INVALID_PROPOSAL_ID');
         });
         it('Cannot vote before voting period starts', async () => {
-            const vote = voteFactory.newZeroExVote(new BigNumber(1), false, []);
+            const vote = VoteFactory.newZeroExVote(new BigNumber(1), false, [], 1, admin);
             const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
-            const sig = parseSignatureHexAsRSV(signedVote.signature);
             const tx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], sig.v,  sig.r,  sig.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
@@ -513,11 +511,10 @@ blockchainTests.resets('Treasury governance', env => {
             await env.web3Wrapper.increaseTimeAsync(TREASURY_PARAMS.votingPeriod.plus(1).toNumber());
             await env.web3Wrapper.mineBlockAsync();
 
-            const vote = voteFactory.newZeroExVote(new BigNumber(2), false, []);
+            const vote = VoteFactory.newZeroExVote(new BigNumber(2), false, [], 1, admin);
             const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
-            const sig = parseSignatureHexAsRSV(signedVote.signature);
             const tx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], sig.v,  sig.r,  sig.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
@@ -526,11 +523,10 @@ blockchainTests.resets('Treasury governance', env => {
             await fastForwardToNextEpochAsync();
             await treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
 
-            const vote = voteFactory.newZeroExVote(new BigNumber(2), false, []);
+            const vote = VoteFactory.newZeroExVote(new BigNumber(2), false, [], 1, admin);
             const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
-            const sig = parseSignatureHexAsRSV(signedVote.signature);
             const tx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], sig.v,  sig.r,  sig.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/ALREADY_VOTED');
         });
@@ -538,11 +534,10 @@ blockchainTests.resets('Treasury governance', env => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
 
-            const vote = voteFactory.newZeroExVote(new BigNumber(2), false, []);
+            const vote = VoteFactory.newZeroExVote(new BigNumber(2), false, [], 1, admin);
             const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
-            const sig = parseSignatureHexAsRSV(signedVote.signature);
             const tx = await treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], sig.v,  sig.r,  sig.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             verifyEventsFromLogs(
                 tx.logs,

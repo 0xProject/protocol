@@ -165,9 +165,13 @@ export enum ExchangeFunctionName {
 export interface ZeroExVote {
     proposalId: BigNumber;
     support: boolean;
-    operatedPoolIds: number[];
+    operatedPoolIds: string[];
+    chainId: number;
+    verifyingContract: string;
 }
 
 export interface SignedZeroExVote extends ZeroExVote {
-    signature: string;
+    v: number;
+    r: string;
+    s: string;
 }
