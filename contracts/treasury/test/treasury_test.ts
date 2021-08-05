@@ -17,8 +17,9 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { VoteFactory } from '@0x/contracts-test-utils/src/vote_factory';
 import { BigNumber } from '@0x/utils';
+
+import { Vote } from '../src/votes';
 
 import { artifacts } from './artifacts';
 import { DefaultPoolOperatorContract, ZrxTreasuryContract, ZrxTreasuryEvents } from './wrappers';
@@ -470,7 +471,6 @@ blockchainTests.resets('Treasury governance', env => {
     describe('castVoteBySignature()', () => {
         const VOTE_PROPOSAL_ID = new BigNumber(0);
         const DELEGATOR_VOTING_POWER = new BigNumber(420);
-        const voteFactory = new VoteFactory(constants.TESTRPC_PRIVATE_KEYS[0], 'Zrx Treasury', 1, admin);
 
         before(async () => {
             await staking.stake(DELEGATOR_VOTING_POWER).awaitTransactionSuccessAsync({ from: delegator });
@@ -490,16 +490,18 @@ blockchainTests.resets('Treasury governance', env => {
         it('Cannot vote on invalid proposalId', async () => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
-            const vote = VoteFactory.newZeroExVote(new BigNumber(1), false, [], 1, admin);
-            const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
+            const vote = new Vote();
+            const delegatorPrivateKey = ''; // TODO(Cece): how to get private key for delegator
+            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
                 .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/INVALID_PROPOSAL_ID');
         });
         it('Cannot vote before voting period starts', async () => {
-            const vote = VoteFactory.newZeroExVote(new BigNumber(1), false, [], 1, admin);
-            const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
+            const vote = new Vote();
+            const delegatorPrivateKey = ''; // TODO(Cece): how to get private key for delegator
+            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
                 .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
@@ -511,8 +513,9 @@ blockchainTests.resets('Treasury governance', env => {
             await env.web3Wrapper.increaseTimeAsync(TREASURY_PARAMS.votingPeriod.plus(1).toNumber());
             await env.web3Wrapper.mineBlockAsync();
 
-            const vote = VoteFactory.newZeroExVote(new BigNumber(2), false, [], 1, admin);
-            const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
+            const vote = new Vote();
+            const delegatorPrivateKey = ''; // TODO(Cece): how to get private key for delegator
+            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
                 .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
@@ -523,8 +526,9 @@ blockchainTests.resets('Treasury governance', env => {
             await fastForwardToNextEpochAsync();
             await treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
 
-            const vote = VoteFactory.newZeroExVote(new BigNumber(2), false, [], 1, admin);
-            const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
+            const vote = new Vote();
+            const delegatorPrivateKey = ''; // TODO(Cece): how to get private key for delegator
+            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
                 .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
@@ -534,8 +538,9 @@ blockchainTests.resets('Treasury governance', env => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
 
-            const vote = VoteFactory.newZeroExVote(new BigNumber(2), false, [], 1, admin);
-            const signedVote = await voteFactory.newSignedZeroExVoteAsync(vote);
+            const vote = new Vote();
+            const delegatorPrivateKey = ''; // TODO(Cece): how to get private key for delegator
+            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = await treasury
                 .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });

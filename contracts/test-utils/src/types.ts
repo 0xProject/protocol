@@ -170,7 +170,7 @@ export interface ZeroExVote {
     verifyingContract: string;
 }
 
-export interface SignedZeroExVote extends ZeroExVote {
+export interface ZeroExSignedVote extends ZeroExVote {
     v: number;
     r: string;
     s: string;
