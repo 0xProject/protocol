@@ -14,24 +14,22 @@ import { ERC20BridgeSource, Fill } from './types';
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
-const RUST_ROUTER_NUM_SAMPLES = 200;
+const RUST_ROUTER_NUM_SAMPLES = 1000;
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 
 type FillWithOutputFee = Fill & { outputFee: BigNumber };
 
-const toAdjustedOutput = (side: MarketOperation, output: BigNumber, outputFee: BigNumber) => {
-    if (side === MarketOperation.Buy) {
-        throw new Error('Buys not yet implemented in the Rust router');
-    }
+const toAdjustedOutput = (side: MarketOperation, output: BigNumber, outputFee: BigNumber) =>
+    side === MarketOperation.Sell ? output.minus(outputFee) : output.plus(outputFee);
 
-    // TODO: fix for buys
-    return output.minus(outputFee);
-};
-
-function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: ChainId, opts: PathPenaltyOpts): Path {
-    // TODO: handle buys
-    const side = MarketOperation.Sell;
+function findOptimalRustPath(
+    side: MarketOperation,
+    allFills: Fill[][],
+    input: BigNumber,
+    chainId: ChainId,
+    opts: PathPenaltyOpts,
+): Path {
     // Track sample id's to integers (required by rust router)
     const sampleIdLookup: { [key: string]: number } = {};
     let sampleIdCounter = 0;
@@ -133,7 +131,8 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: Chai
 
     const allAdjustedParsedFills = allFills.map(fills => {
         const _adjustedFills: FillWithOutputFee[] = [];
-        const outputFee = fills[0].output.minus(fills[0].adjustedOutput);
+        // NOTE: fee should always be positive, then side determines how output is adjusted for the fee
+        const outputFee = fills[0].output.minus(fills[0].adjustedOutput).abs();
         // Samples are turned into Fills
         // Fills are dependent on their parent and have their parents information "subtracted" from them
         // e.g a samples for [1,10,100] => [5,50,500] look like [1, 9, 91] => [5, 40, 400]
@@ -187,7 +186,6 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: Chai
         // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
         const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
         const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
-        // TODO(kimpers): Handle BUYS
         const outputWithFqtOverhead =
             side === MarketOperation.Sell
                 ? allSourcesOutput.minus(fqtOverheadInOutputToken)
@@ -199,15 +197,7 @@ function findOptimalRustPath(input: BigNumber, allFills: Fill[][], chainId: Chai
                 .div(allSourcesOutput)
                 .toString()}`,
         );
-        // NOTE: VIP paths in isolation gave a better rate, use the VIP path instead
-        // console.log(
-        // 'OUTPUTS all(all, all adjusted, vip)\n',
-        // allSourcesPath.adjustedRate().toString(),
-        // '\n',
-        // allSourcesAdjustedRateWithFqtOverhead.toString(),
-        // '\n',
-        // vipSourcesPath.adjustedRate().toString(),
-        // );
+
         if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
             console.log('-------------VIP SOURCES WON!!------');
             return vipSourcesPath;
@@ -256,10 +246,9 @@ export async function findOptimalPathAsync(
     runLimit: number = 2 ** 8,
     opts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
 ): Promise<Path | undefined> {
-    // NOTE: only sells are currently supported by the rust router
-    if (SHOULD_USE_RUST_ROUTER && side === MarketOperation.Sell) {
+    if (SHOULD_USE_RUST_ROUTER) {
         console.log('-----USING RUST ROUTER!-------');
-        return findOptimalRustPath(targetInput, fills, chainId, opts);
+        return findOptimalRustPath(side, fills, targetInput, chainId, opts);
     }
 
     console.log('-----USING JS ROUTER!-------');
