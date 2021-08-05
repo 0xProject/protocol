@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.6.0",
+        "changes": [
+            {
+                "note": "Add zrxTreasury address",
+                "pr": 301
+            }
+        ]
+    },
+    {
         "version": "6.5.0",
         "changes": [
             {
