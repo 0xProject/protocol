@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.24.0",
+        "changes": [
+            {
+                "note": "Add `Clipper` as a custom liquidity source"
+            }
+        ]
+    },
+    {
         "version": "16.23.1",
         "changes": [
             {
