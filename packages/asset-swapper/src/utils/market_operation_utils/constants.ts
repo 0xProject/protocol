@@ -17,6 +17,7 @@ import {
     FillData,
     GetMarketOrdersOpts,
     KyberSamplerOpts,
+    LidoInfo,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MakerPsmFillData,
@@ -43,6 +44,7 @@ export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const SAMPLER_ADDRESS = '0x5555555555555555555555555555555555555555';
 export const COMPARISON_PRICE_DECIMALS = 10;
 
+// TODO(kimpers): Consolidate this implementation with the one in @0x/token-metadata
 function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue: T): { [key in ChainId]: T } {
     // TODO I don't like this but iterating through enums is weird
     return {
@@ -52,6 +54,8 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Kovan]: defaultValue,
         [ChainId.Ganache]: defaultValue,
         [ChainId.BSC]: defaultValue,
+        [ChainId.Polygon]: defaultValue,
+        [ChainId.PolygonMumbai]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -84,6 +88,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
+            ERC20BridgeSource.Lido,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Smoothy,
@@ -91,6 +96,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -99,6 +106,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.Mooniswap,
         ]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -121,9 +130,33 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.WaultSwap,
+            ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.ACryptos,
+        ]),
+        [ChainId.Polygon]: new SourceFilters([
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.QuickSwap,
+            ERC20BridgeSource.ComethSwap,
+            ERC20BridgeSource.Dfyn,
+            ERC20BridgeSource.MStable,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Dodo,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.WaultSwap,
+            ERC20BridgeSource.Polydex,
+            ERC20BridgeSource.ApeSwap,
+            ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.IronSwap,
         ]),
     },
-
     new SourceFilters([]),
 );
 
@@ -152,6 +185,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
             ERC20BridgeSource.Cream,
+            ERC20BridgeSource.Lido,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Linkswap,
@@ -162,6 +196,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.ShibaSwap,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -170,6 +206,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.Mooniswap,
         ]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -192,6 +230,31 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.WaultSwap,
+            ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.ACryptos,
+        ]),
+        [ChainId.Polygon]: new SourceFilters([
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.QuickSwap,
+            ERC20BridgeSource.ComethSwap,
+            ERC20BridgeSource.Dfyn,
+            ERC20BridgeSource.MStable,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.DodoV2,
+            ERC20BridgeSource.Dodo,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.WaultSwap,
+            ERC20BridgeSource.Polydex,
+            ERC20BridgeSource.ApeSwap,
+            ERC20BridgeSource.FirebirdOneSwap,
+            ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.IronSwap,
         ]),
     },
     new SourceFilters([]),
@@ -207,22 +270,23 @@ export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
  */
 export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
-        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
+        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
         [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
+        [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
     },
     [],
 );
 
 // HACK(mzhu25): Limit and RFQ orders need to be treated as different sources
 //               when computing the exchange proxy gas overhead.
-export const SOURCE_FLAGS: { [key in ERC20BridgeSource]: number } & {
-    RfqOrder: number;
-    LimitOrder: number;
+export const SOURCE_FLAGS: { [key in ERC20BridgeSource]: bigint } & {
+    RfqOrder: bigint;
+    LimitOrder: bigint;
 } = Object.assign(
     {},
     ...['RfqOrder', 'LimitOrder', ...Object.values(ERC20BridgeSource)].map((source, index) => ({
-        [source]: source === ERC20BridgeSource.Native ? 0 : 1 << index,
+        [source]: source === ERC20BridgeSource.Native ? BigInt(0) : BigInt(1) << BigInt(index),
     })),
 );
 
@@ -283,7 +347,7 @@ export const MAINNET_TOKENS = {
     stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
     LINK: '0x514910771af9ca656af840dff83e8264ecf986ca',
     MANA: '0x0f5d2fb29fb7d3cfee444a200298f468908cc942',
-    KNC: '0xdd974d5c2e2928dea5f71b9825b8b646686bd200',
+    KNC: '0xdefa4e8a7bcba345f687a2f1456f5edd9ce97202',
     AAVE: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
     sLINK: '0xbbc455cb4f1b9e4bfc4b73970d360c8f032efee6',
     yUSD: '0x5dbcf33d8c2e976c6b560249878e6f1491bca25c',
@@ -297,6 +361,8 @@ export const MAINNET_TOKENS = {
     crETH: '0xcbc1065255cbc3ab41a6868c22d1f1c573ab89fd',
     ankrETH: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
     vETH: '0x898bad2774eb97cf6b94605677f43b41871410b1',
+    alETH: '0x0100546f2cd4c9d97f798ffc9755e47865ff7ee6',
+    HT: '0x6f259637dcD74C767781E37Bc6133cd6A68aa161',
     // Mirror Protocol
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
@@ -306,15 +372,40 @@ export const MAINNET_TOKENS = {
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
+    FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
 };
 
 export const BSC_TOKENS = {
+    WBNB: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
     BUSD: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
     USDT: '0x55d398326f99059ff775485246999027b3197955',
     USDC: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
     DAI: '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3',
     PAX: '0xb7f8cd00c5a06c0537e2abff0b58033d02e5e094',
     UST: '0x23396cf899ca06c4472205fc903bdb4de249d6fc',
+    VAI: '0x4bd17003473389a42daf6a0a729f6fdb328bbbd7',
+    WEX: '0xa9c41a46a6b3531d28d5c32f6633dd2ff05dfb90',
+    WETH: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
+    BTCB: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
+    renBTC: '0xfce146bf3146100cfe5db4129cf6c82b0ef4ad8c',
+    pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
+};
+
+export const POLYGON_TOKENS = {
+    DAI: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+    USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+    USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+    amDAI: '0x27f8d03b3a2196956ed754badc28d73be8830a6e',
+    amUSDC: '0x1a13f4ca1d028320a707d99520abfefca3998b7f',
+    amUSDT: '0x60d55f02a771d515e077c9c2403a1ef324885cec',
+    WBTC: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
+    WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+    WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+    renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
+    QUICK: '0x831753dd7087cac61ab5644b308642cc1c33dc13',
+    DFYN: '0xc168e40227e4ebd8c1cae80f7a55a4f0e6d66c97',
+    BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
+    WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
 };
 
 export const CURVE_POOLS = {
@@ -359,6 +450,19 @@ export const CURVE_POOLS = {
     BUSD: '0x4807862aa8b2bf68830e4c8dc86d0e9a998e085a',
 };
 
+export const CURVE_V2_POOLS = {
+    tricrypto: '0x80466c64868e1ab14a1ddf27a676c3fcbe638fe5',
+};
+
+export const CURVE_POLYGON_POOLS = {
+    aave: '0x445fe580ef8d70ff569ab36e80c647af338db351',
+    ren: '0xc2d95eef97ec6c17551d45e77b590dc1f9117c67',
+};
+
+export const CURVE_V2_POLYGON_POOLS = {
+    atricrypto: '0x3fcd5de6a9fc8a99995c406c77dda3ed7e406f81',
+};
+
 export const SWERVE_POOLS = {
     y: '0x329239599afb305da0a2ec69c58f8a6697f9f88d',
 };
@@ -381,6 +485,12 @@ export const SMOOTHY_POOLS = {
 export const SADDLE_POOLS = {
     stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',
     bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',
+    alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
+    d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
+};
+
+export const IRONSWAP_POOLS = {
+    is3usd: '0x837503e8a8753ae17fb8c8151b8e6f586defcb57',
 };
 
 export const NERVE_POOLS = {
@@ -399,6 +509,21 @@ export const XSIGMA_POOLS = {
     stable: '0x3333333ACdEdBbC9Ad7bda0876e60714195681c5',
 };
 
+export const FIREBIRDONESWAP_BSC_POOLS = {
+    oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
+};
+
+export const FIREBIRDONESWAP_POLYGON_POOLS = {
+    oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
+};
+
+export const ACRYPTOS_POOLS = {
+    acs4usd: '0xb3f0c9ea1f05e312093fdb031e789a756659b0ac',
+    acs4vai: '0x191409d5a4effe25b0f4240557ba2192d18a191e',
+    acs4ust: '0x99c92765efc472a9709ced86310d64c4573c4b77',
+    acs3btc: '0xbe7caa236544d1b9a0e7f91e94b9f5bfd3b5ca81',
+};
+
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
     {
         [ChainId.Mainnet]: [
@@ -409,14 +534,27 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             MAINNET_TOKENS.WBTC,
         ],
         [ChainId.BSC]: [
-            '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', // WBNB
-            '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
-            '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3', // DAI
-            '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
-            '0x2170ed0880ac9a755fd29b2688956bd959f933f8', // ETH
-            '0x55d398326f99059ff775485246999027b3197955', // BUSD-T
+            BSC_TOKENS.WBNB,
+            BSC_TOKENS.BUSD,
+            BSC_TOKENS.DAI,
+            BSC_TOKENS.USDC,
+            BSC_TOKENS.WETH,
+            BSC_TOKENS.USDT,
+            BSC_TOKENS.WEX,
         ],
-        [ChainId.Ropsten]: [getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken],
+        [ChainId.Ropsten]: [
+            getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
+            '0xad6d458402f60fd3bd25163575031acdce07538d', // DAI
+            '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
+        ],
+        [ChainId.Polygon]: [
+            POLYGON_TOKENS.WMATIC,
+            POLYGON_TOKENS.WETH,
+            POLYGON_TOKENS.USDC,
+            POLYGON_TOKENS.DAI,
+            POLYGON_TOKENS.USDT,
+            POLYGON_TOKENS.WBTC,
+        ],
     },
     [],
 );
@@ -439,6 +577,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.BSC]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC],
         }).build(),
+        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
+        }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
@@ -451,6 +592,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Ropsten]: getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
         [ChainId.Rinkeby]: getContractAddressesForChainOrThrow(ChainId.Rinkeby).etherToken,
         [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
+        [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
     },
     NULL_ADDRESS,
 );
@@ -463,13 +605,15 @@ export const NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID = valueByChainId(
 // Order dependent
 const CURVE_TRI_POOL_MAINNET_TOKENS = [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT];
 const CURVE_TRI_BTC_POOL_TOKEN = [MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.sBTC];
+const CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS = [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT];
+const CURVE_POLYGON_ATRICRYPTO_TOKENS = [POLYGON_TOKENS.amDAI, POLYGON_TOKENS.amUSDC, POLYGON_TOKENS.amUSDT];
 
 const createCurveExchangePool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
     exchangeFunctionSelector: CurveFunctionSelectors.exchange,
     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
     tokens: info.tokens,
-    metaToken: undefined,
+    metaTokens: undefined,
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
@@ -479,27 +623,47 @@ const createCurveExchangeUnderlyingPool = (info: { tokens: string[]; pool: strin
     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
     tokens: info.tokens,
-    metaToken: undefined,
+    metaTokens: undefined,
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
 
-const createCurveMetaTriPool = (info: { token: string; pool: string; gasSchedule: number }) => ({
+const createCurveMetaTriPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-    tokens: [info.token, ...CURVE_TRI_POOL_MAINNET_TOKENS],
-    metaToken: info.token,
+    tokens: [...info.tokens, ...CURVE_TRI_POOL_MAINNET_TOKENS],
+    metaTokens: info.tokens,
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
 
-const createCurveMetaTriBtcPool = (info: { token: string; pool: string; gasSchedule: number }) => ({
+const createCurveMetaTriBtcPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-    tokens: [info.token, ...CURVE_TRI_BTC_POOL_TOKEN],
-    metaToken: info.token,
+    tokens: [...info.tokens, ...CURVE_TRI_BTC_POOL_TOKEN],
+    metaTokens: info.tokens,
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
+const createCurveExchangeV2Pool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange_v2,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_v2,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: info.tokens,
+    metaTokens: undefined,
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
+const createCurveV2MetaTriPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_v2,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying_v2,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: [...CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS, ...info.tokens],
+    metaTokens: info.tokens,
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
@@ -546,52 +710,52 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 176e3,
     }),
     [CURVE_POOLS.GUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.GUSD,
+        tokens: [MAINNET_TOKENS.GUSD],
         pool: CURVE_POOLS.GUSD,
         gasSchedule: 411e3,
     }),
     [CURVE_POOLS.HUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.HUSD,
+        tokens: [MAINNET_TOKENS.HUSD],
         pool: CURVE_POOLS.HUSD,
         gasSchedule: 396e3,
     }),
     [CURVE_POOLS.USDN]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.USDN,
+        tokens: [MAINNET_TOKENS.USDN],
         pool: CURVE_POOLS.USDN,
         gasSchedule: 398e3,
     }),
     [CURVE_POOLS.mUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.mUSD,
+        tokens: [MAINNET_TOKENS.mUSD],
         pool: CURVE_POOLS.mUSD,
         gasSchedule: 385e3,
     }),
     [CURVE_POOLS.dUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.dUSD,
+        tokens: [MAINNET_TOKENS.dUSD],
         pool: CURVE_POOLS.dUSD,
         gasSchedule: 371e3,
     }),
     [CURVE_POOLS.tBTC]: createCurveMetaTriBtcPool({
-        token: MAINNET_TOKENS.tBTC,
+        tokens: [MAINNET_TOKENS.tBTC],
         pool: CURVE_POOLS.tBTC,
         gasSchedule: 482e3,
     }),
     [CURVE_POOLS.pBTC]: createCurveMetaTriBtcPool({
-        token: MAINNET_TOKENS.pBTC,
+        tokens: [MAINNET_TOKENS.pBTC],
         pool: CURVE_POOLS.pBTC,
         gasSchedule: 503e3,
     }),
     [CURVE_POOLS.bBTC]: createCurveMetaTriBtcPool({
-        token: MAINNET_TOKENS.bBTC,
+        tokens: [MAINNET_TOKENS.bBTC],
         pool: CURVE_POOLS.bBTC,
         gasSchedule: 497e3,
     }),
     [CURVE_POOLS.oBTC]: createCurveMetaTriBtcPool({
-        token: MAINNET_TOKENS.oBTC,
+        tokens: [MAINNET_TOKENS.oBTC],
         pool: CURVE_POOLS.oBTC,
         gasSchedule: 488e3,
     }),
     [CURVE_POOLS.UST]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.UST,
+        tokens: [MAINNET_TOKENS.UST],
         pool: CURVE_POOLS.UST,
         gasSchedule: 340e3,
     }),
@@ -621,7 +785,7 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 580e3,
     }),
     [CURVE_POOLS.USDP]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.USDP,
+        tokens: [MAINNET_TOKENS.USDP],
         pool: CURVE_POOLS.USDP,
         gasSchedule: 374e3,
     }),
@@ -636,32 +800,32 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 319e3,
     }),
     [CURVE_POOLS.TUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.TUSD,
+        tokens: [MAINNET_TOKENS.TUSD],
         pool: CURVE_POOLS.TUSD,
         gasSchedule: 404e3,
     }),
     [CURVE_POOLS.STABLEx]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.STABLEx,
+        tokens: [MAINNET_TOKENS.STABLEx],
         pool: CURVE_POOLS.STABLEx,
         gasSchedule: 397e3,
     }),
     [CURVE_POOLS.alUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.alUSD,
+        tokens: [MAINNET_TOKENS.alUSD],
         pool: CURVE_POOLS.alUSD,
         gasSchedule: 387e3,
     }),
     [CURVE_POOLS.FRAX]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.FRAX,
+        tokens: [MAINNET_TOKENS.FRAX],
         pool: CURVE_POOLS.FRAX,
         gasSchedule: 387e3,
     }),
     [CURVE_POOLS.LUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.LUSD,
+        tokens: [MAINNET_TOKENS.LUSD],
         pool: CURVE_POOLS.LUSD,
         gasSchedule: 387e3,
     }),
     [CURVE_POOLS.BUSD]: createCurveMetaTriPool({
-        token: MAINNET_TOKENS.BUSD,
+        tokens: [MAINNET_TOKENS.BUSD],
         pool: CURVE_POOLS.BUSD,
         gasSchedule: 387e3,
     }),
@@ -682,6 +846,40 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.ankrETH],
         pool: CURVE_POOLS.ankreth,
         gasSchedule: 125e3,
+    }),
+};
+
+export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_V2_POOLS.tricrypto]: createCurveExchangeV2Pool({
+        tokens: [MAINNET_TOKENS.USDT, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.WETH],
+        pool: CURVE_V2_POOLS.tricrypto,
+        gasSchedule: 300e3,
+    }),
+};
+
+export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
+    ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
+        tokens: CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS,
+        pool: CURVE_POLYGON_POOLS.aave,
+        gasSchedule: 300e3,
+    }),
+    ['aave_exchange']: createCurveExchangePool({
+        tokens: CURVE_POLYGON_ATRICRYPTO_TOKENS,
+        pool: CURVE_POLYGON_POOLS.aave,
+        gasSchedule: 150e3,
+    }),
+    [CURVE_POLYGON_POOLS.ren]: createCurveExchangeUnderlyingPool({
+        tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.renBTC],
+        pool: CURVE_POLYGON_POOLS.ren,
+        gasSchedule: 350e3,
+    }),
+};
+
+export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_V2_POLYGON_POOLS.atricrypto]: createCurveV2MetaTriPool({
+        tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.WETH],
+        pool: CURVE_V2_POLYGON_POOLS.atricrypto,
+        gasSchedule: 300e3,
     }),
 };
 
@@ -741,7 +939,7 @@ export const XSIGMA_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     }),
 };
 
-// Curve pools like using custom selectors
+// Curve-like sources using custom selectors
 export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [SADDLE_POOLS.stables]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
@@ -749,7 +947,7 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SADDLE_POOLS.stables,
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
-        metaToken: undefined,
+        metaTokens: undefined,
         gasSchedule: 150e3,
     },
     [SADDLE_POOLS.bitcoins]: {
@@ -758,7 +956,37 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SADDLE_POOLS.bitcoins,
         tokens: [MAINNET_TOKENS.tBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
-        metaToken: undefined,
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
+    [SADDLE_POOLS.alETH]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.alETH,
+        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.alETH, MAINNET_TOKENS.sETH],
+        metaTokens: undefined,
+        gasSchedule: 200e3,
+    },
+    [SADDLE_POOLS.d4]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.d4,
+        tokens: [MAINNET_TOKENS.alUSD, MAINNET_TOKENS.FEI, MAINNET_TOKENS.FRAX, MAINNET_TOKENS.LUSD],
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
+};
+
+export const IRONSWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
+    [IRONSWAP_POOLS.is3usd]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: IRONSWAP_POOLS.is3usd,
+        tokens: [POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT, POLYGON_TOKENS.DAI],
+        metaTokens: undefined,
         gasSchedule: 150e3,
     },
 };
@@ -779,7 +1007,7 @@ export const SMOOTHY_MAINNET_INFOS: { [name: string]: CurveInfo } = {
             MAINNET_TOKENS.PAX,
             MAINNET_TOKENS.GUSD,
         ],
-        metaToken: undefined,
+        metaTokens: undefined,
         gasSchedule: 190e3,
     },
 };
@@ -791,7 +1019,7 @@ export const SMOOTHY_BSC_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SMOOTHY_POOLS.syUSD,
         tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.USDC, BSC_TOKENS.DAI, BSC_TOKENS.PAX, BSC_TOKENS.UST],
-        metaToken: undefined,
+        metaTokens: undefined,
         gasSchedule: 90e3,
     },
 };
@@ -803,9 +1031,71 @@ export const NERVE_BSC_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: NERVE_POOLS.threePool,
         tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.USDC],
-        metaToken: undefined,
+        metaTokens: undefined,
         gasSchedule: 140e3,
     },
+};
+
+export const FIREBIRDONESWAP_BSC_INFOS: { [name: string]: CurveInfo } = {
+    [FIREBIRDONESWAP_BSC_POOLS.oneswap]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: FIREBIRDONESWAP_BSC_POOLS.oneswap,
+        tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC],
+        metaTokens: undefined,
+        gasSchedule: 100e3,
+    },
+};
+
+export const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
+    [FIREBIRDONESWAP_POLYGON_POOLS.oneswap]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: FIREBIRDONESWAP_POLYGON_POOLS.oneswap,
+        tokens: [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
+        metaTokens: undefined,
+        gasSchedule: 100e3,
+    },
+};
+
+const ACRYPTOS_ACS4USD_POOL_BSC_TOKENS = [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC];
+
+const createAcryptosMetaUsdPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: [...info.tokens, ...ACRYPTOS_ACS4USD_POOL_BSC_TOKENS],
+    metaTokens: info.tokens,
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
+export const ACRYPTOS_BSC_INFOS: { [name: string]: CurveInfo } = {
+    [ACRYPTOS_POOLS.acs4usd]: createCurveExchangePool({
+        tokens: ACRYPTOS_ACS4USD_POOL_BSC_TOKENS,
+        pool: ACRYPTOS_POOLS.acs4usd,
+        gasSchedule: 145e3,
+    }),
+
+    [ACRYPTOS_POOLS.acs4vai]: createAcryptosMetaUsdPool({
+        tokens: [BSC_TOKENS.VAI],
+        pool: ACRYPTOS_POOLS.acs4vai,
+        gasSchedule: 300e3,
+    }),
+
+    [ACRYPTOS_POOLS.acs4ust]: createAcryptosMetaUsdPool({
+        tokens: [BSC_TOKENS.UST],
+        pool: ACRYPTOS_POOLS.acs4ust,
+        gasSchedule: 300e3,
+    }),
+
+    [ACRYPTOS_POOLS.acs3btc]: createCurveExchangePool({
+        tokens: [BSC_TOKENS.BTCB, BSC_TOKENS.renBTC, BSC_TOKENS.pBTC],
+        pool: ACRYPTOS_POOLS.acs3btc,
+        gasSchedule: 145e3,
+    }),
 };
 
 /**
@@ -853,6 +1143,7 @@ export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityP
                     MAINNET_TOKENS.DAI,
                     MAINNET_TOKENS.BUSD,
                     MAINNET_TOKENS.AAVE,
+                    MAINNET_TOKENS.HT,
                 ],
                 gasCost: (takerToken: string, makerToken: string) =>
                     [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
@@ -883,6 +1174,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Mainnet]: '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f',
         [ChainId.BSC]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Ropsten]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
+        [ChainId.Polygon]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
     },
     NULL_ADDRESS,
 );
@@ -899,11 +1191,46 @@ export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const MSTABLE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+export const SHIBASWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+        [ChainId.Mainnet]: '0x03f7724180aa6b939894b5ca4314783b0b36b329',
     },
     NULL_ADDRESS,
+);
+
+export const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Mainnet]: {
+            mUSD: {
+                poolAddress: '0xe2f2a5c287993345a840db3b0845fbc70f5935a5',
+                tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+            },
+            mBTC: {
+                poolAddress: '0x945facb997494cc2570096c74b5f66a3507330a1',
+                tokens: [MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+            },
+        },
+        [ChainId.Polygon]: {
+            mUSD: {
+                poolAddress: '0xe840b73e5287865eec17d250bfb1536704b43b21',
+                tokens: [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
+            },
+            mBTC: {
+                poolAddress: NULL_ADDRESS,
+                tokens: [] as string[],
+            },
+        },
+    },
+    {
+        mUSD: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+        mBTC: {
+            poolAddress: NULL_ADDRESS,
+            tokens: [] as string[],
+        },
+    },
 );
 
 export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
@@ -915,7 +1242,8 @@ export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x12807818B584a3Fa65D38B6C25B13983fE888D6E',
+        [ChainId.Mainnet]: '0x1c87257f5e8609940bc751a07bb085bb7f8cdbe6',
+        [ChainId.Polygon]: '0x546c79662e028b661dfb4767664d0273184e4dd1',
     },
     NULL_ADDRESS,
 );
@@ -932,7 +1260,7 @@ export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     [] as string[],
 );
 
-export const DODO_CONFIG_BY_CHAIN_ID = valueByChainId(
+export const DODOV1_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: {
             helper: '0x533da777aedce766ceae696bf90f8541a4ba80eb',
@@ -941,6 +1269,10 @@ export const DODO_CONFIG_BY_CHAIN_ID = valueByChainId(
         [ChainId.BSC]: {
             helper: '0x0f859706aee7fcf61d5a8939e8cb9dbb6c1eda33',
             registry: '0xca459456a45e300aa7ef447dbb60f87cccb42828',
+        },
+        [ChainId.Polygon]: {
+            helper: '0xdfaf9584f5d229a9dbe5978523317820a8897c5a',
+            registry: '0x357c5e9cfa8b834edcef7c7aabd8f9db09119d11',
         },
     },
     { helper: NULL_ADDRESS, registry: NULL_ADDRESS },
@@ -951,10 +1283,17 @@ export const DODOV2_FACTORIES_BY_CHAIN_ID = valueByChainId<string[]>(
         [ChainId.Mainnet]: [
             '0x6b4fa0bc61eddc928e0df9c7f01e407bfcd3e5ef', // Private Pool
             '0x72d220ce168c4f361dd4dee5d826a01ad8598f6c', // Vending Machine
+            '0x6fddb76c93299d985f4d3fc7ac468f9a168577a4', // Stability Pool
         ],
         [ChainId.BSC]: [
             '0xafe0a75dffb395eaabd0a7e1bbbd0b11f8609eef', // Private Pool
             '0x790b4a80fb1094589a3c0efc8740aa9b0c1733fb', // Vending Machine
+            '0x0fb9815938ad069bf90e14fe6c596c514bede767', // Stability Pool
+        ],
+        [ChainId.Polygon]: [
+            '0x95e887adf9eaa22cc1c6e3cb7f07adc95b4b25a8', // Private Pool
+            '0x79887f65f83bdf15bcc8736b5e5bcdb48fb8fe13', // Vending Machine
+            '0x43c49f8dd240e1545f147211ec9f917376ac1e87', // Stability Pool
         ],
     },
     [] as string[],
@@ -1053,14 +1392,34 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
 export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+        [ChainId.Polygon]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
     },
     NULL_ADDRESS,
+);
+
+export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
+    {
+        [ChainId.Mainnet]: {
+            stEthToken: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+            wethToken: MAINNET_TOKENS.WETH,
+        },
+    },
+    {
+        stEthToken: NULL_ADDRESS,
+        wethToken: NULL_ADDRESS,
+    },
 );
 
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
-export const BALANCER_V2_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2';
+
+export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',
+    },
+    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
+);
 
 export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
@@ -1103,6 +1462,7 @@ export const BAKERYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const APESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0xc0788a3ad43d79aa53b09c2eacc313a787d1d607',
+        [ChainId.Polygon]: '0xc0788a3ad43d79aa53b09c2eacc313a787d1d607',
     },
     NULL_ADDRESS,
 );
@@ -1128,6 +1488,63 @@ export const JULSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+//
+// Polygon
+//
+export const QUICKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: '0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff',
+    },
+    NULL_ADDRESS,
+);
+
+export const COMETHSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: '0x93bcdc45f7e62f89a8e901dc4a0e2c6c427d9f25',
+    },
+    NULL_ADDRESS,
+);
+
+export const DFYN_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: '0xa102072a4c07f06ec3b4900fdc4c7b80b6c57429',
+    },
+    NULL_ADDRESS,
+);
+
+export const WAULTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0xd48745e39bbed146eec15b79cbf964884f9877c2',
+        [ChainId.Polygon]: '0x3a1d87f206d12415f5b0a33e786967680aab4f6d',
+    },
+    NULL_ADDRESS,
+);
+
+export const POLYDEX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Polygon]: '0xe5c67ba380fb2f70a47b489e94bced486bb8fb74',
+    },
+    NULL_ADDRESS,
+);
+
+export const JETSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0xbe65b8f75b9f20f4c522e0067a3887fada714800',
+        [ChainId.Polygon]: '0x5c6ec38fb0e2609672bdf628b1fd605a523e5923',
+    },
+    NULL_ADDRESS,
+);
+
+const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
+    // TODO: Different base cost if to/from ETH.
+    let gas = 90e3;
+    const path = (fillData as UniswapV2FillData).tokenAddressPath;
+    if (path.length > 2) {
+        gas += (path.length - 2) * 60e3; // +60k for each hop.
+    }
+    return gas;
+};
+
 /**
  * Calculated gross gas cost of the underlying exchange.
  * The cost of switching from one source to another, assuming
@@ -1152,6 +1569,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.CurveV2]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Swerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.SnowSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
@@ -1159,48 +1577,19 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Ellipsis]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Smoothy]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Saddle]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.IronSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.FirebirdOneSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
-    [ERC20BridgeSource.UniswapV2]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.SushiSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.CryptoCom]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.Linkswap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
+    [ERC20BridgeSource.UniswapV2]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.Linkswap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.ShibaSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: () => 100e3,
     [ERC20BridgeSource.Cream]: () => 120e3,
-    [ERC20BridgeSource.MStable]: () => 700e3,
+    [ERC20BridgeSource.MStable]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
         const psmFillData = fillData as MakerPsmFillData;
         return psmFillData.takerToken === psmFillData.gemTokenAddress ? 210e3 : 290e3;
@@ -1242,80 +1631,37 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
+    [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
+        let gas = 100e3;
+        const path = (fillData as UniswapV3FillData).tokenAddressPath;
+        if (path.length > 2) {
+            gas += (path.length - 2) * 32e3; // +32k for each hop.
+        }
+        return gas;
+    },
+    [ERC20BridgeSource.Lido]: () => 226e3,
+
     //
     // BSC
     //
-    [ERC20BridgeSource.PancakeSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.PancakeSwapV2]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.BakerySwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.ApeSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.CafeSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.CheeseSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.JulSwap]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 90e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
-    },
-    [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
-        let gas = 160e3;
-        const path = (fillData as UniswapV3FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 117e3; // +117k for each hop.
-        }
-        return gas;
-    },
+    [ERC20BridgeSource.PancakeSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.PancakeSwapV2]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.BakerySwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.ApeSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.CafeSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+
+    //
+    // Polygon
+    //
+    [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.Polydex]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.JetSwap]: uniswapV2CloneGasSchedule,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

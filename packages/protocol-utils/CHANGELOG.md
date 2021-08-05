@@ -5,6 +5,26 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.7.2 - _June 22, 2021_
+
+    * Dependencies updated
+
+## v1.7.1 - _June 11, 2021_
+
+    * Dependencies updated
+
+## v1.7.0 - _June 2, 2021_
+
+    * Add utils for OtcOrders (#244)
+
+## v1.6.2 - _May 25, 2021_
+
+    * Dependencies updated
+
+## v1.6.1 - _May 21, 2021_
+
+    * Dependencies updated
+
 ## v1.6.0 - _May 5, 2021_
 
     * Add BalancerV2, remove Smoothy, Component and Saddle in BridgeProtocol enum (#206)

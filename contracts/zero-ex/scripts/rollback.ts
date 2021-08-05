@@ -215,9 +215,7 @@ async function deploymentHistoryAsync(deployments: Deployment[], proxyFunctions:
                     logUtils.log(`\t[${update.selector}] ${update.signature || '(function signature not found)'}`);
                     logUtils.log(`\t${update.previousImpl} => ${update.newImpl}`);
                     logUtils.log(
-                        `Cannot find ${
-                            update.previousImpl
-                        } in the selector's rollback history. It itself may have been previously rolled back.`,
+                        `Cannot find ${update.previousImpl} in the selector's rollback history. It itself may have been previously rolled back.`,
                     );
                     return;
                 }
@@ -283,16 +281,19 @@ async function generateRollbackAsync(proxyFunctions: ProxyFunctionEntity[]): Pro
         type: 'autocompleteMultiselect',
         name: 'selected',
         message: 'Select the functions to rollback:',
-        choices: _.flatMap(proxyFunctions.filter(fn => fn.currentImpl !== constants.NULL_ADDRESS), fn => [
-            {
-                title: [
-                    `[${fn.id}]`,
-                    `Implemented @ ${fn.currentImpl}`,
-                    selectorToSignature[fn.id] || '(function signature not found)',
-                ].join('\n\t\t\t\t'),
-                value: fn.id,
-            },
-        ]),
+        choices: _.flatMap(
+            proxyFunctions.filter(fn => fn.currentImpl !== constants.NULL_ADDRESS),
+            fn => [
+                {
+                    title: [
+                        `[${fn.id}]`,
+                        `Implemented @ ${fn.currentImpl}`,
+                        selectorToSignature[fn.id] || '(function signature not found)',
+                    ].join('\n\t\t\t\t'),
+                    value: fn.id,
+                },
+            ],
+        ),
     });
     const rollbackTargets: { [selector: string]: string } = {};
     for (const selector of selected) {

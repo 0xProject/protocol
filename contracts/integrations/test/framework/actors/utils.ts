@@ -8,7 +8,10 @@ import { Actor, Constructor } from './base';
  * Useful for BalanceStore.
  */
 export function actorAddressesByName(actors: Actor[]): ObjectMap<string> {
-    return _.zipObject(actors.map(actor => actor.name), actors.map(actor => actor.address));
+    return _.zipObject(
+        actors.map(actor => actor.name),
+        actors.map(actor => actor.address),
+    );
 }
 
 /**

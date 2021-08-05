@@ -69,7 +69,7 @@ contract MixinUniswapV2 {
             assembly { path := _path }
         }
 
-        require(path.length >= 2, "MixinUniswapV3/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path.length >= 2, "MixinUniswapV2/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
             path[path.length - 1] == buyToken,
             "MixinUniswapV2/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"

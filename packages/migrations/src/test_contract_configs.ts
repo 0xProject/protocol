@@ -335,16 +335,12 @@ async function testContractConfigsAsync(provider: SupportedProvider): Promise<vo
             warnIfMismatch(
                 actualRegistration[0],
                 true,
-                `Function ${timelockRegistration.functionSelector} at address ${
-                    timelockRegistration.destination
-                } not registered in ZeroExGovernor`,
+                `Function ${timelockRegistration.functionSelector} at address ${timelockRegistration.destination} not registered in ZeroExGovernor`,
             );
             warnIfMismatch(
                 actualRegistration[1].toNumber(),
                 timelockRegistration.secondsTimeLocked.toNumber(),
-                `Timelock for function ${timelockRegistration.functionSelector} at address ${
-                    timelockRegistration.destination
-                } in ZeroExGovernor`,
+                `Timelock for function ${timelockRegistration.functionSelector} at address ${timelockRegistration.destination} in ZeroExGovernor`,
             );
         }
 

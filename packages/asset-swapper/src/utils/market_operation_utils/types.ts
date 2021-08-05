@@ -66,6 +66,9 @@ export enum ERC20BridgeSource {
     Saddle = 'Saddle',
     XSigma = 'xSigma',
     UniswapV3 = 'Uniswap_V3',
+    CurveV2 = 'Curve_V2',
+    Lido = 'Lido',
+    ShibaSwap = 'ShibaSwap',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -77,6 +80,16 @@ export enum ERC20BridgeSource {
     CafeSwap = 'CafeSwap',
     CheeseSwap = 'CheeseSwap',
     JulSwap = 'JulSwap',
+    ACryptos = 'ACryptoS',
+    // Polygon only
+    QuickSwap = 'QuickSwap',
+    ComethSwap = 'ComethSwap',
+    Dfyn = 'Dfyn',
+    WaultSwap = 'WaultSwap',
+    Polydex = 'Polydex',
+    FirebirdOneSwap = 'FirebirdOneSwap',
+    JetSwap = 'JetSwap',
+    IronSwap = 'IronSwap',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
@@ -92,6 +105,11 @@ export enum CurveFunctionSelectors {
     get_dx_underlying = '0x0e71d1b9',
     get_dy = '0x5e0d443f',
     get_dx = '0x67df02ca',
+    // Curve V2
+    exchange_v2 = '0x5b41b908',
+    exchange_underlying_v2 = '0x65b2489b',
+    get_dy_v2 = '0x556d6e9f',
+    get_dy_underlying_v2 = '0x85f11d1e',
     // Smoothy
     swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
     get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
@@ -110,7 +128,7 @@ export interface CurveInfo {
     buyQuoteFunctionSelector: CurveFunctionSelectors;
     poolAddress: string;
     tokens: string[];
-    metaToken: string | undefined;
+    metaTokens: string[] | undefined;
     gasSchedule: number;
 }
 
@@ -121,6 +139,14 @@ export interface PsmInfo {
     psmAddress: string;
     ilkIdentifier: string;
     gemTokenAddress: string;
+}
+
+/**
+ * Configuration for a Lido deployment
+ */
+export interface LidoInfo {
+    stEthToken: string;
+    wethToken: string;
 }
 
 /**
@@ -224,6 +250,20 @@ export interface UniswapV3FillData extends FillData {
     pathAmounts: Array<{ uniswapPath: string; inputAmount: BigNumber }>;
 }
 
+export interface KyberDmmFillData extends UniswapV2FillData {
+    poolsPath: string[];
+}
+
+export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
+    // The uniswap-encoded path that can fll the maximum input amount.
+    uniswapPath: string;
+}
+
+export interface LidoFillData extends FillData {
+    stEthTokenAddress: string;
+    takerToken: string;
+}
+
 /**
  * Represents a node on a fill path.
  */
@@ -238,7 +278,7 @@ export interface Fill<TFillData extends FillData = FillData> {
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
     sourcePathId: string;
     // See `SOURCE_FLAGS`.
-    flags: number;
+    flags: bigint;
     // Input fill amount (taker asset amount in a sell, maker asset amount in a buy).
     input: BigNumber;
     // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
@@ -327,7 +367,7 @@ export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
 
 export type FeeEstimate = (fillData: FillData) => number | BigNumber;
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
-export type ExchangeProxyOverhead = (sourceFlags: number) => BigNumber;
+export type ExchangeProxyOverhead = (sourceFlags: bigint) => BigNumber;
 
 /**
  * Options for `getMarketSellOrdersAsync()` and `getMarketBuyOrdersAsync()`.
@@ -429,7 +469,7 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData> ext
 
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
-    sourceFlags: number;
+    sourceFlags: bigint;
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;

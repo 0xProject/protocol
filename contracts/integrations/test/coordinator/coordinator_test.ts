@@ -267,7 +267,11 @@ blockchainTests.resets('Coordinator integration tests', env => {
                 expectedBalances.simulateFills(orders, taker.address, txReceipt, deployment, value);
                 await balanceStore.updateBalancesAsync();
                 balanceStore.assertEquals(expectedBalances);
-                verifyEvents(txReceipt, orders.map(order => expectedFillEvent(order)), ExchangeEvents.Fill);
+                verifyEvents(
+                    txReceipt,
+                    orders.map(order => expectedFillEvent(order)),
+                    ExchangeEvents.Fill,
+                );
             });
             it(`${fnName} should fill the orders if called by approver (eth fee, no refund)`, async () => {
                 await balanceStore.updateBalancesAsync();
@@ -280,7 +284,11 @@ blockchainTests.resets('Coordinator integration tests', env => {
                 expectedBalances.simulateFills(orders, taker.address, txReceipt, deployment, value);
                 await balanceStore.updateBalancesAsync();
                 balanceStore.assertEquals(expectedBalances);
-                verifyEvents(txReceipt, orders.map(order => expectedFillEvent(order)), ExchangeEvents.Fill);
+                verifyEvents(
+                    txReceipt,
+                    orders.map(order => expectedFillEvent(order)),
+                    ExchangeEvents.Fill,
+                );
             });
             it(`${fnName} should fill the orders if called by approver (mixed fees, refund)`, async () => {
                 await balanceStore.updateBalancesAsync();
@@ -293,7 +301,11 @@ blockchainTests.resets('Coordinator integration tests', env => {
                 expectedBalances.simulateFills(orders, taker.address, txReceipt, deployment, value);
                 await balanceStore.updateBalancesAsync();
                 balanceStore.assertEquals(expectedBalances);
-                verifyEvents(txReceipt, orders.map(order => expectedFillEvent(order)), ExchangeEvents.Fill);
+                verifyEvents(
+                    txReceipt,
+                    orders.map(order => expectedFillEvent(order)),
+                    ExchangeEvents.Fill,
+                );
             });
             it(`${fnName} should revert with an invalid approval signature`, async () => {
                 const approvalSignature = hexUtils.concat(
@@ -360,7 +372,11 @@ blockchainTests.resets('Coordinator integration tests', env => {
                 .executeTransaction(transaction, maker.address, transaction.signature, [])
                 .awaitTransactionSuccessAsync({ from: maker.address });
 
-            verifyEvents(txReceipt, orders.map(order => expectedCancelEvent(order)), ExchangeEvents.Cancel);
+            verifyEvents(
+                txReceipt,
+                orders.map(order => expectedCancelEvent(order)),
+                ExchangeEvents.Cancel,
+            );
         });
         it('cancelOrdersUpTo call should be successful without an approval', async () => {
             const data = exchangeDataEncoder.encodeOrdersToExchangeData(ExchangeFunctionName.CancelOrdersUpTo, []);

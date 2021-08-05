@@ -5,6 +5,26 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v2.0.42 - _June 22, 2021_
+
+    * Dependencies updated
+
+## v2.0.41 - _June 11, 2021_
+
+    * Dependencies updated
+
+## v2.0.40 - _June 2, 2021_
+
+    * Dependencies updated
+
+## v2.0.39 - _May 25, 2021_
+
+    * Dependencies updated
+
+## v2.0.38 - _May 21, 2021_
+
+    * Dependencies updated
+
 ## v2.0.37 - _May 5, 2021_
 
     * Patch epoch finalization issue (#221)

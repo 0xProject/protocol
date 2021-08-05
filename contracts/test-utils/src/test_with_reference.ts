@@ -108,9 +108,7 @@ export async function testWithReferenceFuncAsync(
                     return expect.fail(
                         actualError,
                         expectedError,
-                        `${testCaseString}: expected error message '${actualError.message}' to equal '${
-                            expectedError.message
-                        }'`,
+                        `${testCaseString}: expected error message '${actualError.message}' to equal '${expectedError.message}'`,
                     );
                 }
             }

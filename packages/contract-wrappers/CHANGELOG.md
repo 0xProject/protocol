@@ -5,6 +5,27 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.17.2 - _June 22, 2021_
+
+    * Dependencies updated
+
+## v13.17.1 - _June 11, 2021_
+
+    * Dependencies updated
+
+## v13.17.0 - _June 2, 2021_
+
+    * Update wrappers (#237)
+    * Update IZeroExContract wrapper (#244)
+
+## v13.16.3 - _May 25, 2021_
+
+    * Dependencies updated
+
+## v13.16.2 - _May 21, 2021_
+
+    * Dependencies updated
+
 ## v13.16.1 - _May 5, 2021_
 
     * Dependencies updated

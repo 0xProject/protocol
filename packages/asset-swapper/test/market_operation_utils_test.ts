@@ -254,7 +254,11 @@ describe('MarketOperationUtils tests', () => {
             _wethAddress: string,
         ) => {
             return BATCH_SOURCE_FILTERS.getAllowed(sources).map(s =>
-                createSamplesFromRates(s, fillAmounts, rates[s].map(r => new BigNumber(1).div(r))),
+                createSamplesFromRates(
+                    s,
+                    fillAmounts,
+                    rates[s].map(r => new BigNumber(1).div(r)),
+                ),
             );
         };
     }
@@ -395,7 +399,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.Eth2Dai]: { router: randomAddress() },
         [ERC20BridgeSource.MakerPsm]: {},
-        [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [] },
+        [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [], router: randomAddress(), poolsPath: [] },
     };
 
     const DEFAULT_OPS = {
@@ -1276,7 +1280,7 @@ describe('MarketOperationUtils tests', () => {
                 });
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
                 const gasPrice = 100e9; // 100 gwei
-                const exchangeProxyOverhead = (sourceFlags: number) =>
+                const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);
@@ -1659,7 +1663,7 @@ describe('MarketOperationUtils tests', () => {
                 });
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
                 const gasPrice = 100e9; // 100 gwei
-                const exchangeProxyOverhead = (sourceFlags: number) =>
+                const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT
                         : new BigNumber(1.3e5).times(gasPrice);

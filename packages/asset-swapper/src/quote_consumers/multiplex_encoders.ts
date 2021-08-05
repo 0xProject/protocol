@@ -5,7 +5,10 @@ export const multiplexTransformERC20Encoder = AbiEncoder.create([
     {
         name: 'transformations',
         type: 'tuple[]',
-        components: [{ name: 'deploymentNonce', type: 'uint32' }, { name: 'data', type: 'bytes' }],
+        components: [
+            { name: 'deploymentNonce', type: 'uint32' },
+            { name: 'data', type: 'bytes' },
+        ],
     },
     { name: 'ethValue', type: 'uint256' },
 ]);

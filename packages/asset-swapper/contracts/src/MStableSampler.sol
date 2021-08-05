@@ -49,6 +49,7 @@ contract MStableSampler is
         view
         returns (uint256[] memory makerTokenAmounts)
     {
+        _assertValidPair(makerToken, takerToken);
         // Initialize array of maker token amounts.
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -58,7 +59,7 @@ contract MStableSampler is
                 IMStable(router).getSwapOutput
                     {gas: DEFAULT_CALL_GAS}
                     (takerToken, makerToken, takerTokenAmounts[i])
-                returns (bool, string memory, uint256 amount)
+                returns (uint256 amount)
             {
                 makerTokenAmounts[i] = amount;
                 // Break early if there are 0 amounts

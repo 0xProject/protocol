@@ -77,19 +77,24 @@ tests('Exchange signature validation fuzz tests', env => {
     before(async () => {
         chainId = await env.web3Wrapper.getChainIdAsync();
         accounts = await env.getAccountAddressesAsync();
-        privateKeys = _.zipObject(accounts, accounts.map((a, i) => constants.TESTRPC_PRIVATE_KEYS[i]));
+        privateKeys = _.zipObject(
+            accounts,
+            accounts.map((a, i) => constants.TESTRPC_PRIVATE_KEYS[i]),
+        );
         deployment = await DeploymentManager.deployAsync(env, {
             numErc20TokensToDeploy: 0,
             numErc721TokensToDeploy: 0,
             numErc1155TokensToDeploy: 0,
         });
         exchange = deployment.exchange;
-        walletContractAddress = (await TestSignatureValidationWalletContract.deployFrom0xArtifactAsync(
-            artifacts.TestSignatureValidationWallet,
-            env.provider,
-            env.txDefaults,
-            {},
-        )).address;
+        walletContractAddress = (
+            await TestSignatureValidationWalletContract.deployFrom0xArtifactAsync(
+                artifacts.TestSignatureValidationWallet,
+                env.provider,
+                env.txDefaults,
+                {},
+            )
+        ).address;
         // This just has to be a contract address that doesn't implement the
         // wallet spec.
         notWalletContractAddress = exchange.address;
@@ -715,7 +720,7 @@ tests('Exchange signature validation fuzz tests', env => {
             invalidTestTransactionMangledSignature(),
         ];
         const simulationEnvironment = new SimulationEnvironment(deployment, new BlockchainBalanceStore({}, {}), []);
-        const simulation = new class extends Simulation {
+        const simulation = new (class extends Simulation {
             // tslint:disable-next-line: prefer-function-over-method
             protected async *_assertionGenerator(): AsyncIterableIterator<AssertionResult | void> {
                 while (true) {
@@ -723,7 +728,7 @@ tests('Exchange signature validation fuzz tests', env => {
                     yield (await action!.next()).value;
                 }
             }
-        }(simulationEnvironment);
+        })(simulationEnvironment);
         simulation.resets = true;
         return simulation.fuzzAsync();
     });

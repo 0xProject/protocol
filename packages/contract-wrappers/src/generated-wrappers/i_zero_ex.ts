@@ -44,6 +44,8 @@ export type IZeroExEventArgs =
     | IZeroExMetaTransactionExecutedEventArgs
     | IZeroExMigratedEventArgs
     | IZeroExOrderCancelledEventArgs
+    | IZeroExOrderSignerRegisteredEventArgs
+    | IZeroExOtcOrderFilledEventArgs
     | IZeroExOwnershipTransferredEventArgs
     | IZeroExPairCancelledLimitOrdersEventArgs
     | IZeroExPairCancelledRfqOrdersEventArgs
@@ -61,6 +63,8 @@ export enum IZeroExEvents {
     MetaTransactionExecuted = 'MetaTransactionExecuted',
     Migrated = 'Migrated',
     OrderCancelled = 'OrderCancelled',
+    OrderSignerRegistered = 'OrderSignerRegistered',
+    OtcOrderFilled = 'OtcOrderFilled',
     OwnershipTransferred = 'OwnershipTransferred',
     PairCancelledLimitOrders = 'PairCancelledLimitOrders',
     PairCancelledRfqOrders = 'PairCancelledRfqOrders',
@@ -117,6 +121,22 @@ export interface IZeroExMigratedEventArgs extends DecodedLogArgs {
 export interface IZeroExOrderCancelledEventArgs extends DecodedLogArgs {
     orderHash: string;
     maker: string;
+}
+
+export interface IZeroExOrderSignerRegisteredEventArgs extends DecodedLogArgs {
+    maker: string;
+    signer: string;
+    allowed: boolean;
+}
+
+export interface IZeroExOtcOrderFilledEventArgs extends DecodedLogArgs {
+    orderHash: string;
+    maker: string;
+    taker: string;
+    makerToken: string;
+    takerToken: string;
+    takerTokenFilledAmount: BigNumber;
+    makerTokenFilledAmount: BigNumber;
 }
 
 export interface IZeroExOwnershipTransferredEventArgs extends DecodedLogArgs {
@@ -472,6 +492,72 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 name: 'OrderCancelled',
+                outputs: [],
+                type: 'event',
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'signer',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'allowed',
+                        type: 'bool',
+                        indexed: false,
+                    },
+                ],
+                name: 'OrderSignerRegistered',
+                outputs: [],
+                type: 'event',
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'orderHash',
+                        type: 'bytes32',
+                        indexed: false,
+                    },
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'taker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'makerToken',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'takerToken',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'takerTokenFilledAmount',
+                        type: 'uint128',
+                        indexed: false,
+                    },
+                    {
+                        name: 'makerTokenFilledAmount',
+                        type: 'uint128',
+                        indexed: false,
+                    },
+                ],
+                name: 'OtcOrderFilled',
                 outputs: [],
                 type: 'event',
             },
@@ -1038,6 +1124,30 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'maker',
+                        type: 'address',
+                    },
+                    {
+                        name: 'makerTokens',
+                        type: 'address[]',
+                    },
+                    {
+                        name: 'takerTokens',
+                        type: 'address[]',
+                    },
+                    {
+                        name: 'minValidSalts',
+                        type: 'uint256[]',
+                    },
+                ],
+                name: 'batchCancelPairLimitOrdersWithSigner',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'makerTokens',
                         type: 'address[]',
                     },
@@ -1051,6 +1161,30 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 name: 'batchCancelPairRfqOrders',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'maker',
+                        type: 'address',
+                    },
+                    {
+                        name: 'makerTokens',
+                        type: 'address[]',
+                    },
+                    {
+                        name: 'takerTokens',
+                        type: 'address[]',
+                    },
+                    {
+                        name: 'minValidSalts',
+                        type: 'uint256[]',
+                    },
+                ],
+                name: 'batchCancelPairRfqOrdersWithSigner',
                 outputs: [],
                 stateMutability: 'nonpayable',
                 type: 'function',
@@ -1736,6 +1870,30 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'maker',
+                        type: 'address',
+                    },
+                    {
+                        name: 'makerToken',
+                        type: 'address',
+                    },
+                    {
+                        name: 'takerToken',
+                        type: 'address',
+                    },
+                    {
+                        name: 'minValidSalt',
+                        type: 'uint256',
+                    },
+                ],
+                name: 'cancelPairLimitOrdersWithSigner',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'makerToken',
                         type: 'address',
                     },
@@ -1749,6 +1907,30 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 name: 'cancelPairRfqOrders',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'maker',
+                        type: 'address',
+                    },
+                    {
+                        name: 'makerToken',
+                        type: 'address',
+                    },
+                    {
+                        name: 'takerToken',
+                        type: 'address',
+                    },
+                    {
+                        name: 'minValidSalt',
+                        type: 'uint256',
+                    },
+                ],
+                name: 'cancelPairRfqOrdersWithSigner',
                 outputs: [],
                 stateMutability: 'nonpayable',
                 type: 'function',
@@ -2226,6 +2408,168 @@ export class IZeroExContract extends BaseContract {
                                 type: 'address',
                             },
                             {
+                                name: 'expiryAndNonce',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'makerSignature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'takerTokenFillAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'unwrapWeth',
+                        type: 'bool',
+                    },
+                ],
+                name: 'fillOtcOrder',
+                outputs: [
+                    {
+                        name: 'takerTokenFilledAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'makerTokenFilledAmount',
+                        type: 'uint128',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'txOrigin',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiryAndNonce',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'makerSignature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'fillOtcOrderWithEth',
+                outputs: [
+                    {
+                        name: 'takerTokenFilledAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'makerTokenFilledAmount',
+                        type: 'uint128',
+                    },
+                ],
+                stateMutability: 'payable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'txOrigin',
+                                type: 'address',
+                            },
+                            {
                                 name: 'pool',
                                 type: 'bytes32',
                             },
@@ -2267,6 +2611,109 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 name: 'fillRfqOrder',
+                outputs: [
+                    {
+                        name: 'takerTokenFilledAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'makerTokenFilledAmount',
+                        type: 'uint128',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'txOrigin',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiryAndNonce',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'makerSignature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'takerSignature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'unwrapWeth',
+                        type: 'bool',
+                    },
+                ],
+                name: 'fillTakerSignedOtcOrder',
                 outputs: [
                     {
                         name: 'takerTokenFilledAmount',
@@ -2675,6 +3122,118 @@ export class IZeroExContract extends BaseContract {
                 type: 'function',
             },
             {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'txOrigin',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiryAndNonce',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                ],
+                name: 'getOtcOrderHash',
+                outputs: [
+                    {
+                        name: 'orderHash',
+                        type: 'bytes32',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'makerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'takerToken',
+                                type: 'address',
+                            },
+                            {
+                                name: 'makerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'takerAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'txOrigin',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiryAndNonce',
+                                type: 'uint256',
+                            },
+                        ],
+                    },
+                ],
+                name: 'getOtcOrderInfo',
+                outputs: [
+                    {
+                        name: 'orderInfo',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'orderHash',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'status',
+                                type: 'uint8',
+                            },
+                        ],
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
                 inputs: [],
                 name: 'getProtocolFeeMultiplier',
                 outputs: [
@@ -2998,6 +3557,48 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'maker',
+                        type: 'address',
+                    },
+                    {
+                        name: 'signer',
+                        type: 'address',
+                    },
+                ],
+                name: 'isValidOrderSigner',
+                outputs: [
+                    {
+                        name: 'isAllowed',
+                        type: 'bool',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'txOrigin',
+                        type: 'address',
+                    },
+                    {
+                        name: 'nonceBucket',
+                        type: 'uint64',
+                    },
+                ],
+                name: 'lastOtcTxOriginNonce',
+                outputs: [
+                    {
+                        name: 'lastNonce',
+                        type: 'uint128',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'target',
                         type: 'address',
                     },
@@ -3075,6 +3676,22 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'signer',
+                        type: 'address',
+                    },
+                    {
+                        name: 'allowed',
+                        type: 'bool',
+                    },
+                ],
+                name: 'registerAllowedOrderSigner',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'origins',
                         type: 'address[]',
                     },
@@ -3102,6 +3719,31 @@ export class IZeroExContract extends BaseContract {
                 name: 'rollback',
                 outputs: [],
                 stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'encodedPath',
+                        type: 'bytes',
+                    },
+                    {
+                        name: 'minBuyAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'recipient',
+                        type: 'address',
+                    },
+                ],
+                name: 'sellEthForTokenToUniswapV3',
+                outputs: [
+                    {
+                        name: 'buyAmount',
+                        type: 'uint256',
+                    },
+                ],
+                stateMutability: 'payable',
                 type: 'function',
             },
             {
@@ -3206,6 +3848,64 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'encodedPath',
+                        type: 'bytes',
+                    },
+                    {
+                        name: 'sellAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'minBuyAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'recipient',
+                        type: 'address',
+                    },
+                ],
+                name: 'sellTokenForEthToUniswapV3',
+                outputs: [
+                    {
+                        name: 'buyAmount',
+                        type: 'uint256',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'encodedPath',
+                        type: 'bytes',
+                    },
+                    {
+                        name: 'sellAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'minBuyAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'recipient',
+                        type: 'address',
+                    },
+                ],
+                name: 'sellTokenForTokenToUniswapV3',
+                outputs: [
+                    {
+                        name: 'buyAmount',
+                        type: 'uint256',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'quoteSigner',
                         type: 'address',
                     },
@@ -3292,6 +3992,26 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 stateMutability: 'payable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'amount0Delta',
+                        type: 'int256',
+                    },
+                    {
+                        name: 'amount1Delta',
+                        type: 'int256',
+                    },
+                    {
+                        name: 'data',
+                        type: 'bytes',
+                    },
+                ],
+                name: 'uniswapV3SwapCallback',
+                outputs: [],
+                stateMutability: 'nonpayable',
                 type: 'function',
             },
         ] as ContractAbi;
@@ -3635,7 +4355,7 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Cancel multiple limit orders. The caller must be the maker.
+     * Cancel multiple limit orders. The caller must be the maker or a valid order signer.
      * Silently succeeds if the order has already been cancelled.
      * @param orders The limit orders.
      */
@@ -3713,8 +4433,8 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Cancel all limit orders for a given maker and pair with a salt less
-     * than the value provided. The caller must be the maker. Subsequent
+     * Cancel all limit orders for a given maker and pairs with salts less
+     * than the values provided. The caller must be the maker. Subsequent
      * calls to this function with the same caller and pair require the
      * new salt to be >= the old salt.
      * @param makerTokens The maker tokens.
@@ -3785,8 +4505,88 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Cancel all RFQ orders for a given maker and pair with a salt less
-     * than the value provided. The caller must be the maker. Subsequent
+     * Cancel all limit orders for a given maker and pairs with salts less
+     * than the values provided. The caller must be a signer registered to the maker.
+     * Subsequent calls to this function with the same maker and pair require the
+     * new salt to be >= the old salt.
+     * @param maker The maker for which to cancel.
+     * @param makerTokens The maker tokens.
+     * @param takerTokens The taker tokens.
+     * @param minValidSalts The new minimum valid salts.
+     */
+    public batchCancelPairLimitOrdersWithSigner(
+        maker: string,
+        makerTokens: string[],
+        takerTokens: string[],
+        minValidSalts: BigNumber[],
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('maker', maker);
+        assert.isArray('makerTokens', makerTokens);
+        assert.isArray('takerTokens', takerTokens);
+        assert.isArray('minValidSalts', minValidSalts);
+        const functionSignature = 'batchCancelPairLimitOrdersWithSigner(address,address[],address[],uint256[])';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    maker.toLowerCase(),
+                    makerTokens,
+                    takerTokens,
+                    minValidSalts,
+                ]);
+            },
+        };
+    }
+    /**
+     * Cancel all RFQ orders for a given maker and pairs with salts less
+     * than the values provided. The caller must be the maker. Subsequent
      * calls to this function with the same caller and pair require the
      * new salt to be >= the old salt.
      * @param makerTokens The maker tokens.
@@ -3857,7 +4657,87 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Cancel multiple RFQ orders. The caller must be the maker.
+     * Cancel all RFQ orders for a given maker and pairs with salts less
+     * than the values provided. The caller must be a signer registered to the maker.
+     * Subsequent calls to this function with the same maker and pair require the
+     * new salt to be >= the old salt.
+     * @param maker The maker for which to cancel.
+     * @param makerTokens The maker tokens.
+     * @param takerTokens The taker tokens.
+     * @param minValidSalts The new minimum valid salts.
+     */
+    public batchCancelPairRfqOrdersWithSigner(
+        maker: string,
+        makerTokens: string[],
+        takerTokens: string[],
+        minValidSalts: BigNumber[],
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('maker', maker);
+        assert.isArray('makerTokens', makerTokens);
+        assert.isArray('takerTokens', takerTokens);
+        assert.isArray('minValidSalts', minValidSalts);
+        const functionSignature = 'batchCancelPairRfqOrdersWithSigner(address,address[],address[],uint256[])';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    maker.toLowerCase(),
+                    makerTokens,
+                    takerTokens,
+                    minValidSalts,
+                ]);
+            },
+        };
+    }
+    /**
+     * Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.
      * Silently succeeds if the order has already been cancelled.
      * @param orders The RFQ orders.
      */
@@ -4350,7 +5230,7 @@ export class IZeroExContract extends BaseContract {
                 [
                     Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                     BigNumber[],
-                    boolean[]
+                    boolean[],
                 ]
             > {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -4364,7 +5244,7 @@ export class IZeroExContract extends BaseContract {
                     [
                         Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                         BigNumber[],
-                        boolean[]
+                        boolean[],
                     ]
                 >(rawCallResult);
             },
@@ -4447,7 +5327,7 @@ export class IZeroExContract extends BaseContract {
                 [
                     Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                     BigNumber[],
-                    boolean[]
+                    boolean[],
                 ]
             > {
                 BaseContract._assertCallParams(callData, defaultBlock);
@@ -4461,7 +5341,7 @@ export class IZeroExContract extends BaseContract {
                     [
                         Array<{ orderHash: string; status: number; takerTokenFilledAmount: BigNumber }>,
                         BigNumber[],
-                        boolean[]
+                        boolean[],
                     ]
                 >(rawCallResult);
             },
@@ -4471,7 +5351,7 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Cancel a single limit order. The caller must be the maker.
+     * Cancel a single limit order. The caller must be the maker or a valid order signer.
      * Silently succeeds if the order has already been cancelled.
      * @param order The limit order.
      */
@@ -4623,6 +5503,86 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Cancel all limit orders for a given maker and pair with a salt less
+     * than the value provided. The caller must be a signer registered to the maker.
+     * Subsequent calls to this function with the same maker and pair require the
+     * new salt to be >= the old salt.
+     * @param maker The maker for which to cancel.
+     * @param makerToken The maker token.
+     * @param takerToken The taker token.
+     * @param minValidSalt The new minimum valid salt.
+     */
+    public cancelPairLimitOrdersWithSigner(
+        maker: string,
+        makerToken: string,
+        takerToken: string,
+        minValidSalt: BigNumber,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('maker', maker);
+        assert.isString('makerToken', makerToken);
+        assert.isString('takerToken', takerToken);
+        assert.isBigNumber('minValidSalt', minValidSalt);
+        const functionSignature = 'cancelPairLimitOrdersWithSigner(address,address,address,uint256)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    maker.toLowerCase(),
+                    makerToken.toLowerCase(),
+                    takerToken.toLowerCase(),
+                    minValidSalt,
+                ]);
+            },
+        };
+    }
+    /**
      * Cancel all RFQ orders for a given maker and pair with a salt less
      * than the value provided. The caller must be the maker. Subsequent
      * calls to this function with the same caller and pair require the
@@ -4699,7 +5659,87 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Cancel a single RFQ order. The caller must be the maker.
+     * Cancel all RFQ orders for a given maker and pair with a salt less
+     * than the value provided. The caller must be a signer registered to the maker.
+     * Subsequent calls to this function with the same maker and pair require the
+     * new salt to be >= the old salt.
+     * @param maker The maker for which to cancel.
+     * @param makerToken The maker token.
+     * @param takerToken The taker token.
+     * @param minValidSalt The new minimum valid salt.
+     */
+    public cancelPairRfqOrdersWithSigner(
+        maker: string,
+        makerToken: string,
+        takerToken: string,
+        minValidSalt: BigNumber,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('maker', maker);
+        assert.isString('makerToken', makerToken);
+        assert.isString('takerToken', takerToken);
+        assert.isBigNumber('minValidSalt', minValidSalt);
+        const functionSignature = 'cancelPairRfqOrdersWithSigner(address,address,address,uint256)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    maker.toLowerCase(),
+                    makerToken.toLowerCase(),
+                    takerToken.toLowerCase(),
+                    minValidSalt,
+                ]);
+            },
+        };
+    }
+    /**
+     * Cancel a single RFQ order. The caller must be the maker or a valid order signer.
      * Silently succeeds if the order has already been cancelled.
      * @param order The RFQ order.
      */
@@ -5227,6 +6267,176 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
+     * @param order The OTC order.
+     * @param makerSignature The order signature from the maker.
+     * @param takerTokenFillAmount Maximum taker token amount to fill this
+     *     order with.
+     * @param unwrapWeth Whether or not to unwrap bought WETH into ETH
+     *     before transferring it to the taker. Should be set to false
+     */
+    public fillOtcOrder(
+        order: {
+            makerToken: string;
+            takerToken: string;
+            makerAmount: BigNumber;
+            takerAmount: BigNumber;
+            maker: string;
+            taker: string;
+            txOrigin: string;
+            expiryAndNonce: BigNumber;
+        },
+        makerSignature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        takerTokenFillAmount: BigNumber,
+        unwrapWeth: boolean,
+    ): ContractTxFunctionObj<[BigNumber, BigNumber]> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isBigNumber('takerTokenFillAmount', takerTokenFillAmount);
+        assert.isBoolean('unwrapWeth', unwrapWeth);
+        const functionSignature =
+            'fillOtcOrder((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),uint128,bool)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<[BigNumber, BigNumber]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<[BigNumber, BigNumber]>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    order,
+                    makerSignature,
+                    takerTokenFillAmount,
+                    unwrapWeth,
+                ]);
+            },
+        };
+    }
+    /**
+     * Fill an OTC order whose taker token is WETH for up
+     * to `msg.value`.
+     * @param order The OTC order.
+     * @param makerSignature The order signature from the maker.
+     */
+    public fillOtcOrderWithEth(
+        order: {
+            makerToken: string;
+            takerToken: string;
+            makerAmount: BigNumber;
+            takerAmount: BigNumber;
+            maker: string;
+            taker: string;
+            txOrigin: string;
+            expiryAndNonce: BigNumber;
+        },
+        makerSignature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+    ): ContractTxFunctionObj<[BigNumber, BigNumber]> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'fillOtcOrderWithEth((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32))';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<[BigNumber, BigNumber]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<[BigNumber, BigNumber]>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order, makerSignature]);
+            },
+        };
+    }
+    /**
      * Fill an RFQ order for up to `takerTokenFillAmount` taker tokens.
      * The taker will be the caller.
      * @param order The RFQ order.
@@ -5308,6 +6518,97 @@ export class IZeroExContract extends BaseContract {
             },
             getABIEncodedTransactionData(): string {
                 return self._strictEncodeArguments(functionSignature, [order, signature, takerTokenFillAmount]);
+            },
+        };
+    }
+    /**
+     * Fully fill an OTC order. "Meta-transaction" variant,
+     * requires order to be signed by both maker and taker.
+     * @param order The OTC order.
+     * @param makerSignature The order signature from the maker.
+     * @param takerSignature The order signature from the taker.
+     * @param unwrapWeth Whether or not to unwrap bought WETH into ETH
+     *     before transferring it to the taker. Should be set to false        if
+     *     the maker token is not WETH.
+     */
+    public fillTakerSignedOtcOrder(
+        order: {
+            makerToken: string;
+            takerToken: string;
+            makerAmount: BigNumber;
+            takerAmount: BigNumber;
+            maker: string;
+            taker: string;
+            txOrigin: string;
+            expiryAndNonce: BigNumber;
+        },
+        makerSignature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        takerSignature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        unwrapWeth: boolean,
+    ): ContractTxFunctionObj<[BigNumber, BigNumber]> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isBoolean('unwrapWeth', unwrapWeth);
+        const functionSignature =
+            'fillTakerSignedOtcOrder((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),(uint8,uint8,bytes32,bytes32),bool)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<[BigNumber, BigNumber]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<[BigNumber, BigNumber]>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    order,
+                    makerSignature,
+                    takerSignature,
+                    unwrapWeth,
+                ]);
             },
         };
     }
@@ -5759,6 +7060,149 @@ export class IZeroExContract extends BaseContract {
             },
             getABIEncodedTransactionData(): string {
                 return self._strictEncodeArguments(functionSignature, [mtxHash]);
+            },
+        };
+    }
+    /**
+     * Get the canonical hash of an OTC order.
+     * @param order The OTC order.
+     */
+    public getOtcOrderHash(order: {
+        makerToken: string;
+        takerToken: string;
+        makerAmount: BigNumber;
+        takerAmount: BigNumber;
+        maker: string;
+        taker: string;
+        txOrigin: string;
+        expiryAndNonce: BigNumber;
+    }): ContractTxFunctionObj<string> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature = 'getOtcOrderHash((address,address,uint128,uint128,address,address,address,uint256))';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<string>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
+     * Get the order info for an OTC order.
+     * @param order The OTC order.
+     */
+    public getOtcOrderInfo(order: {
+        makerToken: string;
+        takerToken: string;
+        makerAmount: BigNumber;
+        takerAmount: BigNumber;
+        maker: string;
+        taker: string;
+        txOrigin: string;
+        expiryAndNonce: BigNumber;
+    }): ContractTxFunctionObj<{ orderHash: string; status: number }> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature = 'getOtcOrderInfo((address,address,uint128,uint128,address,address,address,uint256))';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<{ orderHash: string; status: number }> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<{ orderHash: string; status: number }>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
             },
         };
     }
@@ -6363,6 +7807,133 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * checks if a given address is registered to sign on behalf of a maker address
+     * @param maker The maker address encoded in an order (can be a contract)
+     * @param signer The address that is providing a signature
+     */
+    public isValidOrderSigner(maker: string, signer: string): ContractTxFunctionObj<boolean> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('maker', maker);
+        assert.isString('signer', signer);
+        const functionSignature = 'isValidOrderSigner(address,address)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<boolean> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<boolean>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [maker.toLowerCase(), signer.toLowerCase()]);
+            },
+        };
+    }
+    /**
+     * Get the last nonce used for a particular
+     * tx.origin address and nonce bucket.
+     * @param txOrigin The address.
+     * @param nonceBucket The nonce bucket index.
+     */
+    public lastOtcTxOriginNonce(txOrigin: string, nonceBucket: BigNumber): ContractTxFunctionObj<BigNumber> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('txOrigin', txOrigin);
+        assert.isBigNumber('nonceBucket', nonceBucket);
+        const functionSignature = 'lastOtcTxOriginNonce(address,uint64)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [txOrigin.toLowerCase(), nonceBucket]);
+            },
+        };
+    }
+    /**
      * Execute a migration function in the context of the ZeroEx contract.
      * The result of the function being called should be the magic bytes
      * 0x2c64c5ef (`keccack('MIGRATE_SUCCESS')`). Only callable by the owner.
@@ -6566,6 +8137,70 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Register a signer who can sign on behalf of msg.sender
+     * This allows one to sign on behalf of a contract that calls this function
+     * @param signer The address from which you plan to generate signatures
+     * @param allowed True to register, false to unregister.
+     */
+    public registerAllowedOrderSigner(signer: string, allowed: boolean): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('signer', signer);
+        assert.isBoolean('allowed', allowed);
+        const functionSignature = 'registerAllowedOrderSigner(address,bool)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [signer.toLowerCase(), allowed]);
+            },
+        };
+    }
+    /**
      * Mark what tx.origin addresses are allowed to fill an order that
      * specifies the message sender as its txOrigin.
      * @param origins An array of origin addresses to update.
@@ -6693,6 +8328,79 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Sell attached ETH directly against uniswap v3.
+     * @param encodedPath Uniswap-encoded path, where the first token is WETH.
+     * @param minBuyAmount Minimum amount of the last token in the path to buy.
+     * @param recipient The recipient of the bought tokens. Can be zero for sender.
+     */
+    public sellEthForTokenToUniswapV3(
+        encodedPath: string,
+        minBuyAmount: BigNumber,
+        recipient: string,
+    ): ContractTxFunctionObj<BigNumber> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('encodedPath', encodedPath);
+        assert.isBigNumber('minBuyAmount', minBuyAmount);
+        assert.isString('recipient', recipient);
+        const functionSignature = 'sellEthForTokenToUniswapV3(bytes,uint256,address)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    encodedPath,
+                    minBuyAmount,
+                    recipient.toLowerCase(),
+                ]);
+            },
+        };
+    }
+    /**
      * Sells `sellAmount` of `inputToken` to the liquidity provider
      * at the given `provider` address.
      * @param inputToken The token being sold.
@@ -6786,7 +8494,7 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
-     * Efficiently sell directly to PancakeSwap/BakerySwap/Sushiswap.
+     * Efficiently sell directly to PancakeSwap (and forks).
      * @param tokens Sell path.
      * @param sellAmount of `tokens[0]` Amount to sell.
      * @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
@@ -6926,6 +8634,160 @@ export class IZeroExContract extends BaseContract {
             },
             getABIEncodedTransactionData(): string {
                 return self._strictEncodeArguments(functionSignature, [tokens, sellAmount, minBuyAmount, isSushi]);
+            },
+        };
+    }
+    /**
+     * Sell a token for ETH directly against uniswap v3.
+     * @param encodedPath Uniswap-encoded path, where the last token is WETH.
+     * @param sellAmount amount of the first token in the path to sell.
+     * @param minBuyAmount Minimum amount of ETH to buy.
+     * @param recipient The recipient of the bought tokens. Can be zero for sender.
+     */
+    public sellTokenForEthToUniswapV3(
+        encodedPath: string,
+        sellAmount: BigNumber,
+        minBuyAmount: BigNumber,
+        recipient: string,
+    ): ContractTxFunctionObj<BigNumber> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('encodedPath', encodedPath);
+        assert.isBigNumber('sellAmount', sellAmount);
+        assert.isBigNumber('minBuyAmount', minBuyAmount);
+        assert.isString('recipient', recipient);
+        const functionSignature = 'sellTokenForEthToUniswapV3(bytes,uint256,uint256,address)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    encodedPath,
+                    sellAmount,
+                    minBuyAmount,
+                    recipient.toLowerCase(),
+                ]);
+            },
+        };
+    }
+    /**
+     * Sell a token for another token directly against uniswap v3.
+     * @param encodedPath Uniswap-encoded path.
+     * @param sellAmount amount of the first token in the path to sell.
+     * @param minBuyAmount Minimum amount of the last token in the path to buy.
+     * @param recipient The recipient of the bought tokens. Can be zero for sender.
+     */
+    public sellTokenForTokenToUniswapV3(
+        encodedPath: string,
+        sellAmount: BigNumber,
+        minBuyAmount: BigNumber,
+        recipient: string,
+    ): ContractTxFunctionObj<BigNumber> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('encodedPath', encodedPath);
+        assert.isBigNumber('sellAmount', sellAmount);
+        assert.isBigNumber('minBuyAmount', minBuyAmount);
+        assert.isString('recipient', recipient);
+        const functionSignature = 'sellTokenForTokenToUniswapV3(bytes,uint256,uint256,address)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    encodedPath,
+                    sellAmount,
+                    minBuyAmount,
+                    recipient.toLowerCase(),
+                ]);
             },
         };
     }
@@ -7260,6 +9122,78 @@ export class IZeroExContract extends BaseContract {
                     minOutputTokenAmount,
                     transformations,
                 ]);
+            },
+        };
+    }
+    /**
+     * The UniswapV3 pool swap callback which pays the funds requested
+     * by the caller/pool to the pool. Can only be called by a valid
+     * UniswapV3 pool.
+     * @param amount0Delta Token0 amount owed.
+     * @param amount1Delta Token1 amount owed.
+     * @param data Arbitrary data forwarded from swap() caller. An ABI-encoded
+     *       struct of: inputToken, outputToken, fee, payer
+     */
+    public uniswapV3SwapCallback(
+        amount0Delta: BigNumber,
+        amount1Delta: BigNumber,
+        data: string,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isBigNumber('amount0Delta', amount0Delta);
+        assert.isBigNumber('amount1Delta', amount1Delta);
+        assert.isString('data', data);
+        const functionSignature = 'uniswapV3SwapCallback(int256,int256,bytes)';
+
+        return {
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [amount0Delta, amount1Delta, data]);
             },
         };
     }

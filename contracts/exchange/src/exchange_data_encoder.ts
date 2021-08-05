@@ -13,7 +13,11 @@ export const exchangeDataEncoder = {
                 .getABIEncodedTransactionData();
         } else if (constants.BATCH_FILL_FN_NAMES.indexOf(fnName) !== -1) {
             data = (exchangeInstance as any)
-                [fnName](orders, orders.map(order => order.takerAssetAmount), orders.map(order => order.signature))
+                [fnName](
+                    orders,
+                    orders.map(order => order.takerAssetAmount),
+                    orders.map(order => order.signature),
+                )
                 .getABIEncodedTransactionData();
         } else if (constants.MARKET_FILL_FN_NAMES.indexOf(fnName) !== -1) {
             const fillAsset = /Buy/.test(fnName) ? 'makerAssetAmount' : 'takerAssetAmount';

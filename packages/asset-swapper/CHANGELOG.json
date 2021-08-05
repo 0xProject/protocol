@@ -1,5 +1,195 @@
 [
     {
+        "version": "16.23.1",
+        "changes": [
+            {
+                "note": "Fix fill amount rounding error when covnerting fills to orders.",
+                "pr": 296
+            }
+        ],
+        "timestamp": 1627572227
+    },
+    {
+        "version": "16.23.0",
+        "changes": [
+            {
+                "note": "ACryptoS",
+                "pr": 284
+            }
+        ],
+        "timestamp": 1626473497
+    },
+    {
+        "version": "16.22.0",
+        "changes": [
+            {
+                "note": "IronSwap",
+                "pr": 281
+            }
+        ],
+        "timestamp": 1626214787
+    },
+    {
+        "version": "16.21.0",
+        "changes": [
+            {
+                "note": "JetSwap",
+                "pr": 280
+            }
+        ],
+        "timestamp": 1625904026
+    },
+    {
+        "version": "16.20.0",
+        "changes": [
+            {
+                "note": "ShibaSwap",
+                "pr": 276
+            }
+        ],
+        "timestamp": 1625607277
+    },
+    {
+        "version": "16.19.1",
+        "changes": [
+            {
+                "note": "Fix LiquidityProvider fallback",
+                "pr": 272
+            }
+        ],
+        "timestamp": 1625544188
+    },
+    {
+        "version": "16.19.0",
+        "changes": [
+            {
+                "note": "Add LiquidityProvider to Polygon sources",
+                "pr": 270
+            }
+        ],
+        "timestamp": 1625190486
+    },
+    {
+        "version": "6.18.3",
+        "changes": [
+            {
+                "note": "Polygon Balance V2"
+            }
+        ],
+        "timestamp": 1624987208
+    },
+    {
+        "timestamp": 1624562704,
+        "version": "6.18.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "6.18.1",
+        "changes": [
+            {
+                "note": "FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY",
+                "pr": 265
+            }
+        ],
+        "timestamp": 1624405040
+    },
+    {
+        "version": "6.18.0",
+        "changes": [
+            {
+                "note": "Add Lido stETH deposit integration",
+                "pr": 260
+            }
+        ],
+        "timestamp": 1624356181
+    },
+    {
+        "version": "6.17.3",
+        "changes": [
+            {
+                "note": "QUICK, TITAN, IRON as intermediate tokens, integrating WaultSwap and Polydex for Polygon, Curve renBTC pool"
+            }
+        ],
+        "timestamp": 1623807529
+    },
+    {
+        "timestamp": 1623382456,
+        "version": "6.17.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1622609597,
+        "version": "6.17.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "6.17.0",
+        "changes": [
+            {
+                "note": "Re-enable liquidity provider and update KNC address",
+                "pr": 253
+            }
+        ],
+        "timestamp": 1622154125
+    },
+    {
+        "version": "6.16.0",
+        "changes": [
+            {
+                "note": "Add support for the Polygon chain",
+                "pr": 240
+            }
+        ],
+        "timestamp": 1621944788
+    },
+    {
+        "version": "6.15.0",
+        "changes": [
+            {
+                "note": "Fix KyberDmm",
+                "pr": 236
+            },
+            {
+                "note": "Re-enable KyberDmm",
+                "pr": 247
+            },
+            {
+                "note": "Add Huobi Token to liquidity provider tokens",
+                "pr": 246
+            },
+            {
+                "note": "Temporarily disable specific LiquidityProvider"
+            }
+        ],
+        "timestamp": 1621600614
+    },
+    {
+        "version": "6.14.0",
+        "changes": [
+            {
+                "note": "Add support for additional sources and intermediate tokens on Ropsten",
+                "pr": 231
+            },
+            {
+                "note": "Add UniswapV3 VIP support",
+                "pr": 237
+            }
+        ],
+        "timestamp": 1620810800
+    },
+    {
         "version": "6.13.0",
         "changes": [
             {

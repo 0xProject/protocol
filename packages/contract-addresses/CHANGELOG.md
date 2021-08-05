@@ -5,6 +5,22 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.4.0 - _June 22, 2021_
+
+    * Deployed Lido FQT
+
+## v6.3.1 - _June 11, 2021_
+
+    * Dependencies updated
+
+## v6.3.0 - _May 25, 2021_
+
+    * Deployed contracts on `Polygon` (#240)
+
+## v6.2.0 - _May 21, 2021_
+
+    * Deployed FQT on mainnet and ropsten for `KyberDMM` (#247)
+
 ## v6.1.0 - _May 5, 2021_
 
     * Deployed FQT on mainnet and ropsten for `Balancer_V2` (#225)

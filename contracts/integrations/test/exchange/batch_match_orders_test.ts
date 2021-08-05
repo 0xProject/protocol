@@ -278,15 +278,21 @@ blockchainTests.resets('matchOrders integration tests', env => {
                 ExchangeRevertErrors.BatchMatchOrdersErrorCodes.InvalidLengthRightSignatures,
             );
             let tx = deployment.exchange
-                .batchMatchOrders(leftOrders, rightOrders, leftOrders.map(order => order.signature), [
-                    rightOrders[0].signature,
-                ])
+                .batchMatchOrders(
+                    leftOrders,
+                    rightOrders,
+                    leftOrders.map(order => order.signature),
+                    [rightOrders[0].signature],
+                )
                 .awaitTransactionSuccessAsync({ from: matcher.address });
             await expect(tx).to.revertWith(expectedError);
             tx = deployment.exchange
-                .batchMatchOrdersWithMaximalFill(leftOrders, rightOrders, leftOrders.map(order => order.signature), [
-                    rightOrders[0].signature,
-                ])
+                .batchMatchOrdersWithMaximalFill(
+                    leftOrders,
+                    rightOrders,
+                    leftOrders.map(order => order.signature),
+                    [rightOrders[0].signature],
+                )
                 .awaitTransactionSuccessAsync({ from: matcher.address });
             return expect(tx).to.revertWith(expectedError);
         });
@@ -475,7 +481,10 @@ blockchainTests.resets('matchOrders integration tests', env => {
                 ],
                 leftOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT, constants.ZERO_AMOUNT],
                 rightOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT],
-                matchIndices: [[0, 0], [1, 0]],
+                matchIndices: [
+                    [0, 0],
+                    [1, 0],
+                ],
                 shouldMaximallyFill: false,
             });
         });
@@ -524,7 +533,10 @@ blockchainTests.resets('matchOrders integration tests', env => {
                 ],
                 leftOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT],
                 rightOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT, constants.ZERO_AMOUNT],
-                matchIndices: [[0, 0], [0, 1]],
+                matchIndices: [
+                    [0, 0],
+                    [0, 1],
+                ],
                 shouldMaximallyFill: false,
             });
         });
@@ -626,7 +638,11 @@ blockchainTests.resets('matchOrders integration tests', env => {
                 ],
                 leftOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT, constants.ZERO_AMOUNT],
                 rightOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT, constants.ZERO_AMOUNT],
-                matchIndices: [[0, 0], [0, 1], [1, 1]],
+                matchIndices: [
+                    [0, 0],
+                    [0, 1],
+                    [1, 1],
+                ],
                 shouldMaximallyFill: false,
             });
         });
@@ -801,7 +817,11 @@ blockchainTests.resets('matchOrders integration tests', env => {
                 ],
                 leftOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT, constants.ZERO_AMOUNT],
                 rightOrdersTakerAssetFilledAmounts: [constants.ZERO_AMOUNT, constants.ZERO_AMOUNT],
-                matchIndices: [[0, 0], [1, 0], [1, 1]],
+                matchIndices: [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                ],
                 shouldMaximallyFill: true,
             });
         });

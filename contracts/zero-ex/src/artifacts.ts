@@ -20,6 +20,7 @@ import * as ILiquidityProviderFeature from '../generated-artifacts/ILiquidityPro
 import * as IMultiplexFeature from '../generated-artifacts/IMultiplexFeature.json';
 import * as INativeOrdersFeature from '../generated-artifacts/INativeOrdersFeature.json';
 import * as InitialMigration from '../generated-artifacts/InitialMigration.json';
+import * as IOtcOrdersFeature from '../generated-artifacts/IOtcOrdersFeature.json';
 import * as IOwnableFeature from '../generated-artifacts/IOwnableFeature.json';
 import * as ISimpleFunctionRegistryFeature from '../generated-artifacts/ISimpleFunctionRegistryFeature.json';
 import * as ITransformERC20Feature from '../generated-artifacts/ITransformERC20Feature.json';
@@ -29,6 +30,7 @@ import * as LogMetadataTransformer from '../generated-artifacts/LogMetadataTrans
 import * as MetaTransactionsFeature from '../generated-artifacts/MetaTransactionsFeature.json';
 import * as MultiplexFeature from '../generated-artifacts/MultiplexFeature.json';
 import * as NativeOrdersFeature from '../generated-artifacts/NativeOrdersFeature.json';
+import * as OtcOrdersFeature from '../generated-artifacts/OtcOrdersFeature.json';
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
 import * as PositiveSlippageFeeTransformer from '../generated-artifacts/PositiveSlippageFeeTransformer.json';
@@ -68,4 +70,6 @@ export const artifacts = {
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     MultiplexFeature: MultiplexFeature as ContractArtifact,
     IMultiplexFeature: IMultiplexFeature as ContractArtifact,
+    OtcOrdersFeature: OtcOrdersFeature as ContractArtifact,
+    IOtcOrdersFeature: IOtcOrdersFeature as ContractArtifact,
 };

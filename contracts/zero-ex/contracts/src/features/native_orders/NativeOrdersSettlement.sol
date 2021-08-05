@@ -404,7 +404,7 @@ abstract contract NativeOrdersSettlement is
                 params.order.takerAmount,
                 params.order.takerTokenFeeAmount
             ));
-            _transferERC20Tokens(
+            _transferERC20TokensFrom(
                 params.order.takerToken,
                 params.taker,
                 params.order.feeRecipient,
@@ -550,7 +550,7 @@ abstract contract NativeOrdersSettlement is
                 settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
 
         // Transfer taker -> maker.
-        _transferERC20Tokens(
+        _transferERC20TokensFrom(
             settleInfo.takerToken,
             settleInfo.taker,
             settleInfo.maker,
@@ -558,7 +558,7 @@ abstract contract NativeOrdersSettlement is
         );
 
         // Transfer maker -> taker.
-        _transferERC20Tokens(
+        _transferERC20TokensFrom(
             settleInfo.makerToken,
             settleInfo.maker,
             settleInfo.taker,

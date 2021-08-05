@@ -251,7 +251,7 @@ contract MetaTransactionsFeature is
 
         // Pay the fee to the sender.
         if (state.mtx.feeAmount > 0) {
-            _transferERC20Tokens(
+            _transferERC20TokensFrom(
                 state.mtx.feeToken,
                 state.mtx.signer,
                 state.sender,

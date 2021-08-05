@@ -18,8 +18,8 @@ jobs:
                   name: yarn
                   command: yarn --frozen-lockfile --ignore-engines install || yarn --frozen-lockfile --ignore-engines install
             - setup_remote_docker
-            - run: yarn build:ci || yarn build:ci || yarn build:ci
-            - run: yarn build:ts || yarn build:ts || yarn build:ts
+            - run: yarn build:ci || yarn build:ci || yarn build:ci || yarn build:ci || yarn build:ci || yarn build:ci
+            - run: yarn build:ts || yarn build:ts || yarn build:ts || yarn build:ts || yarn build:ts || yarn build:ts
             - save_cache:
                   key: repo-{{ .Environment.CIRCLE_SHA1 }}
                   paths:

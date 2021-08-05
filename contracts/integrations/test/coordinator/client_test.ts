@@ -534,9 +534,14 @@ blockchainTests.skip('Coordinator Client', env => {
             const signedOrders = [signedOrder, signedOrderWithDifferentFeeRecipient];
             const takerAssetFillAmounts = [takerTokenFillAmount, takerTokenFillAmount, takerTokenFillAmount];
             await coordinatorClient
-                .batchFillOrdersAsync(signedOrders, takerAssetFillAmounts, signedOrders.map(o => o.signature), {
-                    from: takerAddress,
-                })
+                .batchFillOrdersAsync(
+                    signedOrders,
+                    takerAssetFillAmounts,
+                    signedOrders.map(o => o.signature),
+                    {
+                        from: takerAddress,
+                    },
+                )
                 .then(res => {
                     expect(res).to.be.undefined();
                 })
@@ -570,9 +575,14 @@ blockchainTests.skip('Coordinator Client', env => {
             const signedOrders = [signedOrder, signedOrderWithDifferentCoordinatorOperator];
             const takerAssetFillAmounts = [takerTokenFillAmount, takerTokenFillAmount, takerTokenFillAmount];
             await coordinatorClient
-                .batchFillOrdersAsync(signedOrders, takerAssetFillAmounts, signedOrders.map(o => o.signature), {
-                    from: takerAddress,
-                })
+                .batchFillOrdersAsync(
+                    signedOrders,
+                    takerAssetFillAmounts,
+                    signedOrders.map(o => o.signature),
+                    {
+                        from: takerAddress,
+                    },
+                )
                 .then(res => {
                     expect(res).to.be.undefined();
                 })
@@ -600,9 +610,14 @@ blockchainTests.skip('Coordinator Client', env => {
             const signedOrders = [signedOrder, signedOrderWithDifferentCoordinatorOperator];
             const takerAssetFillAmounts = [takerTokenFillAmount, takerTokenFillAmount, takerTokenFillAmount];
             await coordinatorClient
-                .batchFillOrdersAsync(signedOrders, takerAssetFillAmounts, signedOrders.map(o => o.signature), {
-                    from: takerAddress,
-                })
+                .batchFillOrdersAsync(
+                    signedOrders,
+                    takerAssetFillAmounts,
+                    signedOrders.map(o => o.signature),
+                    {
+                        from: takerAddress,
+                    },
+                )
                 .then(res => {
                     expect(res).to.be.undefined();
                 })

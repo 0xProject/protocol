@@ -106,7 +106,12 @@ blockchainTests.fork.resets('Forwarder mainnet tests', env => {
                 orders[1].takerAssetAmount.dividedToIntegerBy(2),
             );
             const [wethSpentAmount, makerAssetAcquiredAmount] = await forwarder
-                .marketSellOrdersWithEth(orders, orders.map(o => o.signature), [], [])
+                .marketSellOrdersWithEth(
+                    orders,
+                    orders.map(o => o.signature),
+                    [],
+                    [],
+                )
                 .callAsync({
                     from: takerAddress,
                     value: ethSellAmount,
@@ -161,7 +166,13 @@ blockchainTests.fork.resets('Forwarder mainnet tests', env => {
                 orders[1].makerAssetAmount.dividedToIntegerBy(2),
             );
             const [wethSpentAmount, makerAssetAcquiredAmount] = await forwarder
-                .marketBuyOrdersWithEth(orders, makerAssetBuyAmount, orders.map(o => o.signature), [], [])
+                .marketBuyOrdersWithEth(
+                    orders,
+                    makerAssetBuyAmount,
+                    orders.map(o => o.signature),
+                    [],
+                    [],
+                )
                 .callAsync({
                     from: takerAddress,
                     value: ethSellAmount,

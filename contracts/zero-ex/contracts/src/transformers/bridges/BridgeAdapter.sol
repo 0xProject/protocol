@@ -27,10 +27,13 @@ import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCurve.sol";
+import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyber.sol";
+import "./mixins/MixinKyberDmm.sol";
+import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
@@ -49,10 +52,13 @@ contract BridgeAdapter is
     MixinBancor,
     MixinCoFiX,
     MixinCurve,
+    MixinCurveV2,
     MixinCryptoCom,
     MixinDodo,
     MixinDodoV2,
     MixinKyber,
+    MixinKyberDmm,
+    MixinLido,
     MixinMakerPSM,
     MixinMooniswap,
     MixinMStable,
@@ -71,10 +77,12 @@ contract BridgeAdapter is
         MixinBancor(weth)
         MixinCoFiX()
         MixinCurve(weth)
+        MixinCurveV2()
         MixinCryptoCom()
         MixinDodo()
         MixinDodoV2()
         MixinKyber(weth)
+        MixinLido(weth)
         MixinMakerPSM()
         MixinMooniswap(weth)
         MixinMStable()
@@ -100,6 +108,13 @@ contract BridgeAdapter is
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.CURVE) {
             boughtAmount = _tradeCurve(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.CURVEV2) {
+            boughtAmount = _tradeCurveV2(
                 sellToken,
                 buyToken,
                 sellAmount,
@@ -214,6 +229,19 @@ contract BridgeAdapter is
         } else if (protocolId == BridgeProtocols.NERVE) {
             boughtAmount = _tradeNerve(
                 sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.KYBERDMM) {
+            boughtAmount = _tradeKyberDmm(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.LIDO) {
+            boughtAmount = _tradeLido(
+                sellToken,
+                buyToken,
                 sellAmount,
                 order.bridgeData
             );

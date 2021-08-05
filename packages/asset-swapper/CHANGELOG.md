@@ -5,6 +5,82 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.23.1 - _July 29, 2021_
+
+    * Fix fill amount rounding error when covnerting fills to orders. (#296)
+
+## v16.23.0 - _July 16, 2021_
+
+    * ACryptoS (#284)
+
+## v16.22.0 - _July 13, 2021_
+
+    * IronSwap (#281)
+
+## v16.21.0 - _July 10, 2021_
+
+    * JetSwap (#280)
+
+## v16.20.0 - _July 6, 2021_
+
+    * ShibaSwap (#276)
+
+## v16.19.1 - _July 6, 2021_
+
+    * Fix LiquidityProvider fallback (#272)
+
+## v16.19.0 - _July 2, 2021_
+
+    * Add LiquidityProvider to Polygon sources (#270)
+
+## v6.18.3 - _June 29, 2021_
+
+    * Polygon Balance V2
+
+## v6.18.2 - _June 24, 2021_
+
+    * Dependencies updated
+
+## v6.18.1 - _June 22, 2021_
+
+    * FirebirdOneSwap, ApeSwap. New hop tokens: DFYN, BANANA, WEXPOLY (#265)
+
+## v6.18.0 - _June 22, 2021_
+
+    * Add Lido stETH deposit integration (#260)
+
+## v6.17.3 - _June 16, 2021_
+
+    * QUICK, TITAN, IRON as intermediate tokens, integrating WaultSwap and Polydex for Polygon, Curve renBTC pool
+
+## v6.17.2 - _June 11, 2021_
+
+    * Dependencies updated
+
+## v6.17.1 - _June 2, 2021_
+
+    * Dependencies updated
+
+## v6.17.0 - _May 27, 2021_
+
+    * Re-enable liquidity provider and update KNC address (#253)
+
+## v6.16.0 - _May 25, 2021_
+
+    * Add support for the Polygon chain (#240)
+
+## v6.15.0 - _May 21, 2021_
+
+    * Fix KyberDmm (#236)
+    * Re-enable KyberDmm (#247)
+    * Add Huobi Token to liquidity provider tokens (#246)
+    * Temporarily disable specific LiquidityProvider
+
+## v6.14.0 - _May 12, 2021_
+
+    * Add support for additional sources and intermediate tokens on Ropsten (#231)
+    * Add UniswapV3 VIP support (#237)
+
 ## v6.13.0 - _May 11, 2021_
 
     * Add LiquidityProvider to BSC sources (#234)

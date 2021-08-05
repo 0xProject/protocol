@@ -49,7 +49,6 @@
 | Package | Version |
 | ------: | :------ |
 
-
 <!-- For example:
 |             `0x.js` | 2.0.4   |
 | `Exchange Contract` | v2      |

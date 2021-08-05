@@ -57,20 +57,24 @@ export async function deployBootstrapFeaturesAsync(
     return {
         registry:
             features.registry ||
-            (await SimpleFunctionRegistryFeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.registry,
-                provider,
-                txDefaults,
-                artifacts,
-            )).address,
+            (
+                await SimpleFunctionRegistryFeatureContract.deployFrom0xArtifactAsync(
+                    _featureArtifacts.registry,
+                    provider,
+                    txDefaults,
+                    artifacts,
+                )
+            ).address,
         ownable:
             features.ownable ||
-            (await OwnableFeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.ownable,
-                provider,
-                txDefaults,
-                artifacts,
-            )).address,
+            (
+                await OwnableFeatureContract.deployFrom0xArtifactAsync(
+                    _featureArtifacts.ownable,
+                    provider,
+                    txDefaults,
+                    artifacts,
+                )
+            ).address,
     };
 }
 
@@ -169,47 +173,55 @@ export async function deployFullFeaturesAsync(
         ...featureArtifacts,
     };
     if (_config.feeCollectorController === NULL_ADDRESS) {
-        _config.feeCollectorController = (await FeeCollectorControllerContract.deployFrom0xArtifactAsync(
-            _featureArtifacts.feeCollectorController,
-            provider,
-            txDefaults,
-            artifacts,
-            _config.wethAddress,
-            _config.stakingAddress,
-        )).address;
+        _config.feeCollectorController = (
+            await FeeCollectorControllerContract.deployFrom0xArtifactAsync(
+                _featureArtifacts.feeCollectorController,
+                provider,
+                txDefaults,
+                artifacts,
+                _config.wethAddress,
+                _config.stakingAddress,
+            )
+        ).address;
     }
     return {
         ...(await deployBootstrapFeaturesAsync(provider, txDefaults)),
         transformERC20:
             features.transformERC20 ||
-            (await TransformERC20FeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.transformERC20,
-                provider,
-                txDefaults,
-                artifacts,
-            )).address,
+            (
+                await TransformERC20FeatureContract.deployFrom0xArtifactAsync(
+                    _featureArtifacts.transformERC20,
+                    provider,
+                    txDefaults,
+                    artifacts,
+                )
+            ).address,
         metaTransactions:
             features.metaTransactions ||
-            (await MetaTransactionsFeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.metaTransactions,
-                provider,
-                txDefaults,
-                artifacts,
-                _config.zeroExAddress,
-            )).address,
+            (
+                await MetaTransactionsFeatureContract.deployFrom0xArtifactAsync(
+                    _featureArtifacts.metaTransactions,
+                    provider,
+                    txDefaults,
+                    artifacts,
+                    _config.zeroExAddress,
+                )
+            ).address,
         nativeOrders:
             features.nativeOrders ||
-            (await NativeOrdersFeatureContract.deployFrom0xArtifactAsync(
-                _featureArtifacts.nativeOrders,
-                provider,
-                txDefaults,
-                artifacts,
-                _config.zeroExAddress,
-                _config.wethAddress,
-                _config.stakingAddress,
-                _config.feeCollectorController,
-                _config.protocolFeeMultiplier,
-            )).address,
+            (
+                await NativeOrdersFeatureContract.deployFrom0xArtifactAsync(
+                    _featureArtifacts.nativeOrders,
+                    provider,
+                    txDefaults,
+                    artifacts,
+                    _config.zeroExAddress,
+                    _config.wethAddress,
+                    _config.stakingAddress,
+                    _config.feeCollectorController,
+                    _config.protocolFeeMultiplier,
+                )
+            ).address,
     };
 }
 

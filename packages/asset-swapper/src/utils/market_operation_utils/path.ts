@@ -36,7 +36,7 @@ export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
 export class Path {
     public collapsedFills?: ReadonlyArray<CollapsedFill>;
     public orders?: OptimizedMarketOrder[];
-    public sourceFlags: number = 0;
+    public sourceFlags: bigint = BigInt(0);
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
 
@@ -78,6 +78,11 @@ export class Path {
         return this;
     }
 
+    /**
+     * Add a fallback path to the current path
+     * Fallback must contain exclusive fills that are
+     * not present in this path
+     */
     public addFallback(fallback: Path): this {
         // If the last fill is Native and penultimate is not, then the intention was to partial fill
         // In this case we drop it entirely as we can't handle a failure at the end and we don't
@@ -93,9 +98,18 @@ export class Path {
         // an additional protocol fee. I.e [Uniswap,Native,Kyber] becomes [Native,Uniswap,Kyber]
         // In the previous step we dropped any hanging Native partial fills, as to not fully fill
         const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native);
-        this.fills = [...nativeFills.filter(f => f !== lastNativeFillIfExists), ...fallback.fills];
+        const otherFills = this.fills.filter(f => f.source !== ERC20BridgeSource.Native);
+        const otherSourcePathIds = otherFills.map(f => f.sourcePathId);
+        this.fills = [
+            // Append all of the native fills first
+            ...nativeFills.filter(f => f !== lastNativeFillIfExists),
+            // Add the other fills that are not native in the optimal path
+            ...otherFills,
+            // Add the fallbacks to the end that aren't already included
+            ...fallback.fills.filter(f => !otherSourcePathIds.includes(f.sourcePathId)),
+        ];
         // Recompute the source flags
-        this.sourceFlags = this.fills.reduce((flags, fill) => flags | fill.flags, 0);
+        this.sourceFlags = this.fills.reduce((flags, fill) => flags | fill.flags, BigInt(0));
         return this;
     }
 

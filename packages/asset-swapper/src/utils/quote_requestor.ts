@@ -29,6 +29,7 @@ import { RfqMakerBlacklist } from './rfq_maker_blacklist';
 
 const MAKER_TIMEOUT_STREAK_LENGTH = 10;
 const MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES = 10;
+const FILL_RATIO_WARNING_LEVEL = 0.99;
 const rfqMakerBlacklist = new RfqMakerBlacklist(MAKER_TIMEOUT_STREAK_LENGTH, MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES);
 
 interface RfqQuote<T> {
@@ -44,6 +45,7 @@ export interface MetricsProxy {
      * @param maker the maker address
      */
     incrementExpirationToSoonCounter(isLastLook: boolean, maker: string): void;
+
     /**
      * Keeps track of summary statistics for expiration on Firm Quotes.
      * @param isLastLook mark if call is coming from RFQM
@@ -51,6 +53,14 @@ export interface MetricsProxy {
      * @param expirationTimeSeconds the expiration time in seconds
      */
     measureExpirationForValidOrder(isLastLook: boolean, maker: string, expirationTimeSeconds: BigNumber): void;
+
+    /**
+     * Increments a counter that tracks when an order is not fully fillable.
+     * @param isLastLook mark if call is coming from RFQM
+     * @param maker the maker address
+     * @param expirationTimeSeconds the expiration time in seconds
+     */
+    incrementFillRatioWarningCounter(isLastLook: boolean, maker: string): void;
 }
 
 /**
@@ -517,11 +527,7 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${
-                            typedMakerUrl.url
-                        } for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${
-                            options.txOrigin
-                        }`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
                     );
                     return;
                 }
@@ -588,6 +594,24 @@ export class QuoteRequestor {
                 return false;
             } else {
                 this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, order.expiry);
+
+                const takerAmount = new BigNumber(order.takerAmount);
+                const fillRatio = takerAmount.div(assetFillAmount);
+                if (fillRatio.lt(1) && fillRatio.gte(FILL_RATIO_WARNING_LEVEL)) {
+                    this._warningLogger(
+                        {
+                            makerUri: result.makerUri,
+                            fillRatio,
+                            assetFillAmount,
+                            takerToken,
+                            makerToken,
+                            takerAmount: order.takerAmount,
+                            makerAmount: order.makerAmount,
+                        },
+                        'Fill ratio in warning range',
+                    );
+                    this._metrics?.incrementFillRatioWarningCounter(isLastLook, order.maker);
+                }
                 return true;
             }
         });
@@ -641,7 +665,12 @@ export class QuoteRequestor {
                 this._warningLogger(result, 'Invalid RFQ indicative quote received, filtering out');
                 return false;
             }
-            if (!hasExpectedAddresses([[makerToken, order.makerToken], [takerToken, order.takerToken]])) {
+            if (
+                !hasExpectedAddresses([
+                    [makerToken, order.makerToken],
+                    [takerToken, order.takerToken],
+                ])
+            ) {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ order, filtering out');
                 return false;
             }

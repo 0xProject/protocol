@@ -5,6 +5,27 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.26.0 - _June 22, 2021_
+
+    * Add Lido stETH deposit integration (#260)
+
+## v0.25.1 - _June 11, 2021_
+
+    * Dependencies updated
+
+## v0.25.0 - _June 2, 2021_
+
+    * Add OtcOrdersFeature (#244)
+    * Add UniswapV3 VIP feature (#237)
+
+## v0.24.1 - _May 25, 2021_
+
+    * Dependencies updated
+
+## v0.24.0 - _May 21, 2021_
+
+    * Add special selectors to selector collision test (#243)
+
 ## v0.23.0 - _May 5, 2021_
 
     * Added ETH support to `MixinCurve` (#220)

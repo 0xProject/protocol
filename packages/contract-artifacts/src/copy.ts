@@ -39,9 +39,7 @@ for (const dir of contractsDirs) {
 
 if (allArtifactPaths.length < pkgNames.length) {
     throw new Error(
-        `Expected ${pkgNames.length} artifacts, found ${
-            allArtifactPaths.length
-        }. Please ensure artifacts are present in ${contractsPath}/**/generated-artifacts`,
+        `Expected ${pkgNames.length} artifacts, found ${allArtifactPaths.length}. Please ensure artifacts are present in ${contractsPath}/**/generated-artifacts`,
     );
 }
 

@@ -536,7 +536,11 @@ blockchainTests('LibBytes', env => {
             ]));
 
         describe('copies forward within one word and one byte overlap', () =>
-            test([[0, 0, 1, 'one byte'], [10, 0, 11, 'eleven bytes'], [15, 0, 16, 'sixteen bytes']]));
+            test([
+                [0, 0, 1, 'one byte'],
+                [10, 0, 11, 'eleven bytes'],
+                [15, 0, 16, 'sixteen bytes'],
+            ]));
 
         describe('copies backward', () =>
             test([
@@ -603,7 +607,11 @@ blockchainTests('LibBytes', env => {
             ]));
 
         describe('copies forward within one word and one byte overlap', () =>
-            test([[0, 0, 1, 'one byte'], [0, 10, 11, 'eleven bytes'], [0, 15, 16, 'sixteen bytes']]));
+            test([
+                [0, 0, 1, 'one byte'],
+                [0, 10, 11, 'eleven bytes'],
+                [0, 15, 16, 'sixteen bytes'],
+            ]));
     });
 
     describe('slice', () => {
