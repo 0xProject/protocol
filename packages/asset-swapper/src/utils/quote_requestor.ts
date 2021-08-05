@@ -36,6 +36,10 @@ interface RfqQuote<T> {
     makerUri: string;
 }
 
+export interface MetricsProxy {
+    incrementExpirationToSoonCounter(maker: string): void;
+}
+
 /**
  * Request quotes from RFQ-T providers
  */
@@ -188,6 +192,7 @@ export class QuoteRequestor {
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
+        private readonly _metrics?: MetricsProxy,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
     }
@@ -565,6 +570,7 @@ export class QuoteRequestor {
             }
             if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
+                this._metrics?.incrementExpirationToSoonCounter(order.maker);
                 return false;
             } else {
                 return true;
