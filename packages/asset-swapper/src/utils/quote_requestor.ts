@@ -37,7 +37,20 @@ interface RfqQuote<T> {
 }
 
 export interface MetricsProxy {
-    incrementExpirationToSoonCounter(maker: string): void;
+
+    /**
+     * Increments a counter that is tracking valid Firm Quotes that are dropped due to low expiration.
+     * @param isLastLook mark if call is coming from RFQM
+     * @param maker the maker address
+     */
+    incrementExpirationToSoonCounter(isLastLook: boolean, maker: string): void;
+    /**
+     * Keeps track of summary statistics for expiration on Firm Quotes.
+     * @param isLastLook mark if call is coming from RFQM
+     * @param maker the maker address
+     * @param expirationTimeSeconds the expiration time in seconds
+     */
+    measureExpirationForValidOrder(isLastLook: boolean, maker: string, expirationTimeSeconds: BigNumber): void;
 }
 
 /**
@@ -568,11 +581,13 @@ export class QuoteRequestor {
                 );
                 return false;
             }
+            const isLastLook = Boolean(options.isLastLook);
             if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
-                this._metrics?.incrementExpirationToSoonCounter(order.maker);
+                this._metrics?.incrementExpirationToSoonCounter(isLastLook, order.maker);
                 return false;
             } else {
+                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, order.expiry);
                 return true;
             }
         });
