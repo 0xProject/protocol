@@ -33,6 +33,7 @@ export interface ContractAddresses {
     exchangeProxyTransformerDeployer: string;
     exchangeProxyFlashWallet: string;
     exchangeProxyLiquidityProviderSandbox: string;
+    zrxTreasury: string;
     transformers: {
         wethTransformer: string;
         payTakerTransformer: string;
