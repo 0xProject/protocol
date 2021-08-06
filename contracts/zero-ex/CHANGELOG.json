@@ -5,7 +5,8 @@
             {
                 "note": "Add `Clipper` as a custom liquidity source"
             }
-        ]
+        ],
+        "timestamp": 1628225642
     },
     {
         "version": "0.26.0",

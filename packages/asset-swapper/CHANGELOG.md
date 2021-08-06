@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.24.0 - _August 6, 2021_
+
+    * Add `Clipper` as a custom liquidity source (#299)
+    * Added `Curve` `Tricrypto2` and `ESD` v2 (#302)
+
 ## v16.23.1 - _July 29, 2021_
 
     * Fix fill amount rounding error when covnerting fills to orders. (#296)

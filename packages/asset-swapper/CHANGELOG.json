@@ -10,7 +10,8 @@
                 "note": "Added `Curve` `Tricrypto2` and `ESD` v2",
                 "pr": 302
             }
-        ]
+        ],
+        "timestamp": 1628225642
     },
     {
         "version": "16.23.1",

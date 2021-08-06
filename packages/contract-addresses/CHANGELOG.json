@@ -6,7 +6,8 @@
                 "note": "Deployed `Clipper`",
                 "pr": 299
             }
-        ]
+        ],
+        "timestamp": 1628225642
     },
     {
         "version": "6.4.0",
