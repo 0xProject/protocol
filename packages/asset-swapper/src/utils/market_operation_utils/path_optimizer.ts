@@ -114,7 +114,7 @@ function findOptimalRustPath(
             const adjustedOutput = fill.output
                 .dividedBy(fill.input)
                 .times(adjInput)
-                .decimalPlaces(0, BigNumber.ROUND_FLOOR);
+                .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
             adjustedFills.push({
                 ...fill,
                 input: adjInput,
@@ -124,7 +124,7 @@ function findOptimalRustPath(
             });
         }
 
-        const fakePath = Path.create(MarketOperation.Sell, adjustedFills, input);
+        const fakePath = Path.create(side, adjustedFills, input);
 
         return fakePath;
     };
@@ -162,47 +162,48 @@ function findOptimalRustPath(
 
     const before = performance.now();
     const allSourcesRustRoute: number[] = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
+    debugger;
     console.log('Rust perf (real):', performance.now() - before);
 
     const allSourcesPath = createFakePathFromRoutes(allSourcesRustRoute, allAdjustedParsedFills);
 
-    const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
+    // const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
 
-    // HACK(kimpers): The Rust router currently doesn't account for VIP sources correctly
-    // we need to try to route them in isolation and compare with the results all sources
-    if (vipSources.length > 0) {
-        const vipSourcesSet = new Set(vipSources);
-        const vipAdjustedParsedFills = allAdjustedParsedFills.filter(fills => vipSourcesSet.has(fills[0]?.source));
-        const vipPathsIn = toPaths(vipAdjustedParsedFills);
-        const vipRustArgs = {
-            ...rustArgs,
-            pathsIn: vipPathsIn,
-        };
+    //// HACK(kimpers): The Rust router currently doesn't account for VIP sources correctly
+    //// we need to try to route them in isolation and compare with the results all sources
+    // if (vipSources.length > 0) {
+    // const vipSourcesSet = new Set(vipSources);
+    // const vipAdjustedParsedFills = allAdjustedParsedFills.filter(fills => vipSourcesSet.has(fills[0]?.source));
+    // const vipPathsIn = toPaths(vipAdjustedParsedFills);
+    // const vipRustArgs = {
+    // ...rustArgs,
+    // pathsIn: vipPathsIn,
+    // };
 
-        const vipSourcesRustRoute = route(vipRustArgs, RUST_ROUTER_NUM_SAMPLES);
-        const vipSourcesPath = createFakePathFromRoutes(vipSourcesRustRoute, vipAdjustedParsedFills);
+    // const vipSourcesRustRoute = route(vipRustArgs, RUST_ROUTER_NUM_SAMPLES);
+    // const vipSourcesPath = createFakePathFromRoutes(vipSourcesRustRoute, vipAdjustedParsedFills);
 
-        const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
-        // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-        const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
-        const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
-        const outputWithFqtOverhead =
-            side === MarketOperation.Sell
-                ? allSourcesOutput.minus(fqtOverheadInOutputToken)
-                : allSourcesOutput.plus(fqtOverheadInOutputToken);
-        const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
-        console.log(
-            `FQT OVERHEAD percentage ${allSourcesOutput
-                .minus(outputWithFqtOverhead)
-                .div(allSourcesOutput)
-                .toString()}`,
-        );
+    // const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
+    //// NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
+    // const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
+    // const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
+    // const outputWithFqtOverhead =
+    // side === MarketOperation.Sell
+    // ? allSourcesOutput.minus(fqtOverheadInOutputToken)
+    // : allSourcesOutput.plus(fqtOverheadInOutputToken);
+    // const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
+    // console.log(
+    // `FQT OVERHEAD percentage ${allSourcesOutput
+    // .minus(outputWithFqtOverhead)
+    // .div(allSourcesOutput)
+    // .toString()}`,
+    // );
 
-        if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
-            console.log('-------------VIP SOURCES WON!!------');
-            return vipSourcesPath;
-        }
-    }
+    // if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
+    // console.log('-------------VIP SOURCES WON!!------');
+    // return vipSourcesPath;
+    // }
+    // }
 
     return allSourcesPath;
 }
