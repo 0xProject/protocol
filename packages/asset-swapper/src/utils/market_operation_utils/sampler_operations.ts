@@ -1453,8 +1453,14 @@ export class SamplerOperations {
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.Clipper:
-                        const poolAddress = CLIPPER_INFO_BY_CHAIN[this.chainId];
-                        if (poolAddress === NULL_ADDRESS) {
+                        const { poolAddress: clipperPoolAddress, tokens: clipperTokens } = CLIPPER_INFO_BY_CHAIN[
+                            this.chainId
+                        ];
+                        if (
+                            clipperPoolAddress === NULL_ADDRESS ||
+                            !clipperTokens.includes(makerToken) ||
+                            !clipperTokens.includes(takerToken)
+                        ) {
                             return [];
                         }
                         // Clipper requires WETH to be represented as address(0)
@@ -1464,7 +1470,7 @@ export class SamplerOperations {
                             takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
                         // Supports the PLP interface
                         return this.getLiquidityProviderSellQuotes(
-                            poolAddress,
+                            clipperPoolAddress,
                             adjustedMakerToken,
                             adjustedTakerToken,
                             takerFillAmounts,
@@ -1619,9 +1625,9 @@ export class SamplerOperations {
                                 takerToken,
                                 makerToken,
                             ) || []
-                        ).map(balancerPool =>
+                        ).map(poolAddress =>
                             this.getBalancerBuyQuotes(
-                                balancerPool,
+                                poolAddress,
                                 makerToken,
                                 takerToken,
                                 makerFillAmounts,
@@ -1654,9 +1660,9 @@ export class SamplerOperations {
                                 takerToken,
                                 makerToken,
                             ) || []
-                        ).map(creamPool =>
+                        ).map(poolAddress =>
                             this.getBalancerBuyQuotes(
-                                creamPool,
+                                poolAddress,
                                 makerToken,
                                 takerToken,
                                 makerFillAmounts,
@@ -1742,8 +1748,14 @@ export class SamplerOperations {
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Clipper:
-                        const poolAddress = CLIPPER_INFO_BY_CHAIN[this.chainId];
-                        if (poolAddress === NULL_ADDRESS) {
+                        const { poolAddress: clipperPoolAddress, tokens: clipperTokens } = CLIPPER_INFO_BY_CHAIN[
+                            this.chainId
+                        ];
+                        if (
+                            clipperPoolAddress === NULL_ADDRESS ||
+                            !clipperTokens.includes(makerToken) ||
+                            !clipperTokens.includes(takerToken)
+                        ) {
                             return [];
                         }
                         // Clipper requires WETH to be represented as address(0)
@@ -1753,7 +1765,7 @@ export class SamplerOperations {
                             takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
                         // Supports the PLP interface
                         return this.getLiquidityProviderBuyQuotes(
-                            poolAddress,
+                            clipperPoolAddress,
                             adjustedMakerToken,
                             adjustedTakerToken,
                             makerFillAmounts,

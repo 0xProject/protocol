@@ -1426,11 +1426,20 @@ export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     },
 );
 
-export const CLIPPER_INFO_BY_CHAIN = valueByChainId<string>(
+export const CLIPPER_INFO_BY_CHAIN = valueByChainId(
     {
-        [ChainId.Mainnet]: '0xe82906b6b1b04f631d126c974af57a3a7b6a99d9',
+        [ChainId.Mainnet]: {
+            poolAddress: '0xe82906b6b1b04f631d126c974af57a3a7b6a99d9',
+            tokens: [
+                MAINNET_TOKENS.WETH, // technically ETH but our sampler and mixin handle this
+                MAINNET_TOKENS.WBTC,
+                MAINNET_TOKENS.USDC,
+                MAINNET_TOKENS.USDT,
+                MAINNET_TOKENS.DAI,
+            ],
+        },
     },
-    NULL_ADDRESS,
+    { poolAddress: NULL_ADDRESS, tokens: [] },
 );
 
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';

@@ -86,7 +86,7 @@ contract MixinClipper {
         uint256 sellAmount,
         bytes memory auxiliaryData
     )
-        internal
+        private
         returns (uint256 boughtAmount)
     {
         // Clipper requires ETH and doesn't support WETH
@@ -105,7 +105,7 @@ contract MixinClipper {
         uint256 sellAmount,
         bytes memory auxiliaryData
     )
-        internal
+        private
         returns (uint256 boughtAmount)
     {
         // Optimization: We can transfer the tokens into clipper rather than
@@ -130,7 +130,7 @@ contract MixinClipper {
         uint256 sellAmount,
         bytes memory auxiliaryData
     )
-        internal
+        private
         returns (uint256 boughtAmount)
     {
         // Optimization: We can transfer the tokens into clipper rather than
