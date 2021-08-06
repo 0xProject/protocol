@@ -1,5 +1,13 @@
 [
     {
+        "version": "1.8.0",
+        "changes": [
+            {
+                "note": "Add `Clipper`"
+            }
+        ]
+    },
+    {
         "timestamp": 1624356181,
         "version": "1.7.2",
         "changes": [
