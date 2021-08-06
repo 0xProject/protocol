@@ -3,7 +3,12 @@
         "version": "16.24.0",
         "changes": [
             {
-                "note": "Add `Clipper` as a custom liquidity source"
+                "note": "Add `Clipper` as a custom liquidity source",
+                "pr": 299
+            },
+            {
+                "note": "Added `Curve` `Tricrypto2` and `ESD` v2",
+                "pr": 302
             }
         ]
     },
