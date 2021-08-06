@@ -1,5 +1,14 @@
 [
     {
+        "version": "8.1.0",
+        "changes": [
+            {
+                "note": "Add zrxTreasury address",
+                "pr": 301
+            }
+        ]
+    },
+    {
         "timestamp": 1628225642,
         "version": "8.0.12",
         "changes": [
