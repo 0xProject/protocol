@@ -36,7 +36,7 @@
             "wethTransformer": "0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7",
             "payTakerTransformer": "0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e",
             "affiliateFeeTransformer": "0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f",
-            "fillQuoteTransformer": "0x6dfdb2537683ce6101f9090a78197dd58c30bfac",
+            "fillQuoteTransformer": "0xb4fa284689c9784a60d840eb136bb16c5246191f",
             "positiveSlippageFeeTransformer": "0xa9416ce1dbde8d331210c07b5c253d94ee4cc3fd"
         }
     },
