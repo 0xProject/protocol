@@ -26,14 +26,25 @@ import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 
-// Minimal CToken/CEther interfaces
+/// @dev Minimal CToken interface
 interface ICToken {
+    /// @dev deposits specified amount underlying tokens and mints cToken for the sender
+    /// @param mintAmountInUnderlying amount of underlying tokens to deposit to mint cTokens
+    /// @return status code of whether the mint was successful or not
     function mint(uint mintAmountInUnderlying) external returns (uint);
+    /// @dev redeems specified amount of cTokens and returns the underlying token to the sender
+    /// @param redeemTokensInCtokens amount of cTokens to redeem for underlying collateral
+    /// @return status code of whether the redemption was successful or not
     function redeem(uint redeemTokensInCtokens) external returns (uint);
 }
+/// @dev Minimal CEther interface
 interface ICEther {
+    /// @dev deposits the amount of Ether sent as value and return mints cEther for the sender
     function mint() payable external;
-    function redeem(uint redeemTokens) external returns (uint);
+    /// @dev redeems specified amount of cETH and returns the underlying ether to the sender
+    /// @dev redeemTokensInCEther amount of cETH to redeem for underlying ether
+    /// @return status code of whether the redemption was successful or not
+    function redeem(uint redeemTokensInCEther) external returns (uint);
 }
 
 contract MixinCompound {
@@ -80,7 +91,6 @@ contract MixinCompound {
                 ICToken cToken = ICToken(cTokenAddress);
                 require(cToken.mint(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_MINT_CTOKEN");
             }
-            return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
         } else if (address(sellToken) == address(cTokenAddress)) {
             if (address(buyToken) == address(WETH)) {
                 // cETH -> ETH/WETH
@@ -92,9 +102,8 @@ contract MixinCompound {
                 ICToken cToken = ICToken(cTokenAddress);
                 require(cToken.redeem(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_REDEEM_CTOKEN");
             }
-            return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
         }
 
-        revert("MixinCompound/UNSUPPORTED_TOKEN_PAIR");
+        return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
 }

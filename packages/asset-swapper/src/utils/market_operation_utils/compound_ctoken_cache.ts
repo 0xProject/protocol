@@ -4,18 +4,14 @@ import axios from 'axios';
 import { constants } from '../../constants';
 
 export interface CToken {
-    symbol: string;
     tokenAddress: string;
     underlyingAddress: string;
-    underlyingSymbol: string;
 }
 
 interface CTokenApiResponse {
     cToken: Array<{
-        symbol: string;
         token_address: string;
         underlying_address: string;
-        underlying_symbol: string;
     }>;
 }
 
@@ -50,10 +46,8 @@ export class CompoundCTokenCache {
                     : this._wethAddress;
 
                 const tokenData: CToken = {
-                    symbol: cToken.symbol,
                     tokenAddress: cToken.token_address.toLowerCase(),
                     underlyingAddress: underlyingAddressClean,
-                    underlyingSymbol: cToken.underlying_symbol,
                 };
                 memo[underlyingAddressClean] = tokenData;
                 return memo;

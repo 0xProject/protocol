@@ -33,6 +33,7 @@ interface ICToken {
 }
 
 contract CompoundSampler is SamplerUtils {
+    uint256 constant private EXCHANGE_RATE_SCALE = 1e10;
 
     function sampleSellsFromCompound(
         ICToken cToken,
@@ -47,19 +48,19 @@ contract CompoundSampler is SamplerUtils {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
-        uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
+        uint256 exchangeRate = cToken.exchangeRateStored();
         uint256 cTokenDecimals = uint256(cToken.decimals());
 
         if (address(makerToken) == address(cToken)) {
             // mint
             for (uint256 i = 0; i < numSamples; i++) {
-                makerTokenAmounts[i] = (takerTokenAmounts[i] * 10 ** cTokenDecimals) / exchangeRate;
+                makerTokenAmounts[i] = (takerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals) / exchangeRate;
             }
 
         } else if (address(takerToken) == address(cToken)) {
             // redeem
             for (uint256 i = 0; i < numSamples; i++) {
-                makerTokenAmounts[i] = (takerTokenAmounts[i] * exchangeRate) / (10 ** cTokenDecimals);
+                makerTokenAmounts[i] = (takerTokenAmounts[i] * exchangeRate) / (EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals);
             }
         }
     }
@@ -77,18 +78,18 @@ contract CompoundSampler is SamplerUtils {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
-        uint256 exchangeRate = cToken.exchangeRateStored() / 1e10;
+        uint256 exchangeRate = cToken.exchangeRateStored();
         uint256 cTokenDecimals = uint256(cToken.decimals());
 
         if (address(makerToken) == address(cToken)) {
             // mint
             for (uint256 i = 0; i < numSamples; i++) {
-                takerTokenAmounts[i] = makerTokenAmounts[i] * exchangeRate / (10 ** cTokenDecimals);
+                takerTokenAmounts[i] = makerTokenAmounts[i] * exchangeRate / (EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals);
             }
         } else if (address(takerToken) == address(cToken)) {
             // redeem
             for (uint256 i = 0; i < numSamples; i++) {
-                takerTokenAmounts[i] = (makerTokenAmounts[i] * 10 ** cTokenDecimals)/exchangeRate;
+                takerTokenAmounts[i] = (makerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals)/exchangeRate;
             }
         }
     }
