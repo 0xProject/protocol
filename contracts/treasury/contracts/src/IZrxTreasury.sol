@@ -59,6 +59,7 @@ interface IZrxTreasury {
 
     event VoteCast(
         address voter,
+        address msgSender,
         bytes32[] operatedPoolIds,
         uint256 proposalId,
         bool support,

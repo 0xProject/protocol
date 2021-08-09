@@ -207,7 +207,6 @@ contract ZrxTreasury is
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "castVoteBySignature/INVALID_SIGNATURE");
 
         return _castVote(signatory, proposalId, support, operatedPoolIds);
     }
@@ -427,6 +426,7 @@ contract ZrxTreasury is
 
         emit VoteCast(
             voter,
+            msg.sender,
             operatedPoolIds,
             proposalId,
             support,
