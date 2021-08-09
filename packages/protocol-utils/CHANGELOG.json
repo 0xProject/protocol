@@ -5,6 +5,10 @@
             {
                 "note": "Add `AaveV2` deposit/withdrawal liquidity source",
                 "pr": 293
+            },
+            {
+                "note": "Add `Compound` deposit/withdrawal liquidity source",
+                "pr": 294
             }
         ]
     },
