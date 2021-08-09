@@ -5,39 +5,30 @@ import { constants } from '../../constants';
 
 const RESERVES_GQL_QUERY = gql`
     {
-        reserves(where: { isActive: true, isFrozen: false }, orderBy: totalLiquidity, orderDirection: desc) {
+        reserves(
+            first: 300
+            where: { isActive: true, isFrozen: false }
+            orderBy: totalLiquidity
+            orderDirection: desc
+        ) {
             id
-            name
-            isActive
-            isFrozen
             underlyingAsset
-            totalLiquidity
             aToken {
                 id
-                underlyingAssetAddress
             }
             pool {
                 id
                 lendingPool
             }
-            decimals
-            symbol
         }
     }
 `;
 
 export interface AaveReserve {
-    decimals: number;
     id: string;
-    isActive: boolean;
-    isFrozen: boolean;
-    name: string;
-    symbol: string;
-    totalLiquidity: string;
     underlyingAsset: string;
     aToken: {
         id: string;
-        underlyingAssetAddress: string;
     };
     pool: {
         id: string;

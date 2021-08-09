@@ -22,13 +22,14 @@ export class SamplerNoOperation<TFillData extends FillData = FillData> implement
         this._callback = opts.callback;
     }
 
-    public encodeCall = (): string => {
+    // tslint:disable-next-line:prefer-function-over-method
+    public encodeCall(): string {
         return NULL_BYTES;
     }
-    public handleCallResults = (_callResults: string): BigNumber[] => {
+    public handleCallResults(_callResults: string): BigNumber[] {
         return this._callback();
     }
-    public handleRevert = (_callResults: string): BigNumber[] => {
+    public handleRevert(_callResults: string): BigNumber[] {
         logUtils.warn(`SamplerNoOperation: ${this.source} reverted`);
         return [];
     }
