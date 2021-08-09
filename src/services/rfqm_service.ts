@@ -905,6 +905,10 @@ export class RfqmService {
                         nonce,
                         gasEstimate,
                     );
+                    logger.info(
+                        { workerAddress, orderHash, transactionHash: submission.transactionHash },
+                        'successfully re-submit tx with higher gas price',
+                    );
                     submissionsMap[submission.transactionHash!] = submission;
                 }
             }
@@ -968,6 +972,8 @@ export class RfqmService {
         orderHash: string,
         callData: string,
     ): Promise<SubmissionContext> {
+        logger.info({ orderHash, workerAddress }, 'initializing submission context');
+
         // claim this job for the worker, and set status to submitted
         await this._dbUtils.updateRfqmJobAsync(orderHash, false, {
             status: RfqmJobStatus.PendingSubmitted,
@@ -987,6 +993,10 @@ export class RfqmService {
             gasPrice,
             nonce,
             gasEstimate,
+        );
+        logger.info(
+            { workerAddress, orderHash, transactionHash: firstSubmission.transactionHash },
+            'successfully submit tx',
         );
         const submissionsMap = { [firstSubmission.transactionHash!]: firstSubmission };
 
@@ -1115,6 +1125,7 @@ export class RfqmService {
             workerAddress,
             txOptions,
         );
+        logger.info({ orderHash, workerAddress, transactionHash }, 'transaction calldata submitted to exchange proxy');
 
         // save tx submission to DB
         const partialEntity: Partial<RfqmTransactionSubmissionEntity> = {
