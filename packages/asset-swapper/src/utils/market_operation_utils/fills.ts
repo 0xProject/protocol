@@ -132,7 +132,7 @@ function nativeOrdersToFills(
     return fills;
 }
 
-function dexSamplesToFills(
+export function dexSamplesToFills(
     side: MarketOperation,
     samples: DexSample[],
     outputAmountPerEth: BigNumber,

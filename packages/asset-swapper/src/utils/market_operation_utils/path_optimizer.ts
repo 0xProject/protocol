@@ -5,11 +5,12 @@ import { OptimizerCapture, route, SerializedPath } from 'neon-router';
 import { performance } from 'perf_hooks';
 
 import { MarketOperation } from '../../types';
-import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
+import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from '../market_operation_utils/constants';
 
+import { dexSamplesToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { getRate } from './rate_utils';
-import { ERC20BridgeSource, Fill } from './types';
+import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -22,6 +23,160 @@ type FillWithOutputFee = Fill & { outputFee: BigNumber };
 
 const toAdjustedOutput = (side: MarketOperation, output: BigNumber, outputFee: BigNumber) =>
     side === MarketOperation.Sell ? output.minus(outputFee) : output.plus(outputFee);
+
+function calculateOuputFee(
+    sample: DexSample,
+    outputAmountPerEth: BigNumber,
+    inputAmountPerEth: BigNumber,
+    fees: FeeSchedule,
+): BigNumber {
+    const { source, fillData } = sample;
+    const fee = fees[source] === undefined ? 0 : fees[source]!(fillData) || 0;
+    const outputFee = !outputAmountPerEth.isZero()
+        ? outputAmountPerEth.times(fee)
+        : inputAmountPerEth.times(fee).times(sample.output.dividedToIntegerBy(sample.input));
+
+    return outputFee;
+}
+
+export function findOptimalRustPathFromSamples(
+    side: MarketOperation,
+    samples: DexSample[][],
+    input: BigNumber,
+    opts: PathPenaltyOpts,
+    fees: FeeSchedule,
+): Path {
+    const createFillFromSample = (sample: DexSample) =>
+        dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
+    // Track sample id's to integers (required by rust router)
+    const sampleIdLookup: { [key: string]: number } = {};
+    let sampleIdCounter = 0;
+    const sampleToId = (source: ERC20BridgeSource, index: number): number => {
+        const key = `${source}-${index}`;
+        if (sampleIdLookup[key]) {
+            return sampleIdLookup[key];
+        } else {
+            sampleIdLookup[key] = ++sampleIdCounter;
+            return sampleIdLookup[key];
+        }
+    };
+
+    const samplesWithResults = [];
+    const serializedPaths: SerializedPath[] = [];
+    for (const singleSourceSamples of samples) {
+        const singleSourceSamplesWithOutput = singleSourceSamples.filter(sample =>
+            sample.output.isGreaterThan(ZERO_AMOUNT),
+        );
+        if (singleSourceSamplesWithOutput.length === 0) {
+            continue;
+        }
+
+        samplesWithResults.push(singleSourceSamplesWithOutput);
+        // TODO(kimpers): Do we need to handle 0 entries, from eg Kyber?
+        const serializedPath = singleSourceSamplesWithOutput.reduce<SerializedPath>(
+            (memo, sample, sampleIdx) => {
+                memo.ids.push(sampleToId(sample.source, sampleIdx));
+                memo.inputs.push(sample.input.integerValue().toNumber());
+                memo.outputs.push(sample.output.integerValue().toNumber());
+                memo.outputFees.push(
+                    calculateOuputFee(sample, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
+                        .integerValue()
+                        .toNumber(),
+                );
+
+                return memo;
+            },
+            {
+                ids: [],
+                inputs: [],
+                outputs: [],
+                outputFees: [],
+            },
+        );
+
+        serializedPaths.push(serializedPath);
+    }
+
+    const rustArgs: OptimizerCapture = {
+        side,
+        // HACK: There can be off by 1 errors, somewhere...
+        targetInput: input.plus(1).toNumber(),
+        pathsIn: serializedPaths,
+    };
+
+    const before = performance.now();
+    const allSourcesRustRoute: number[] = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
+    console.log('Rust perf (real):', performance.now() - before);
+    const totalNumRoutes = allSourcesRustRoute.length;
+
+    const routesAndSamples = _.zip(allSourcesRustRoute, samplesWithResults);
+
+    const adjustedFills: Fill[] = [];
+    const totalInputs = BigNumber.sum(...allSourcesRustRoute);
+    for (const [routeInput, routeSamples] of routesAndSamples) {
+        if (!routeInput || !routeSamples) {
+            continue;
+        }
+        const rustInput = new BigNumber(routeInput);
+
+        let fill = createFillFromSample(routeSamples[routeSamples.length - 1]);
+        // Descend to approach a closer fill for fillData which may not be consistent
+        // throughout the path (UniswapV3) and for a closer guesstimate at
+        // gas used
+        for (let k = routeSamples.length - 1; k >= 0; k--) {
+            if (k === 0) {
+                fill = createFillFromSample(routeSamples[0]);
+            }
+            if (rustInput.isGreaterThan(routeSamples[k].input)) {
+                // Between here and the previous fill
+                // HACK: Use the midpoint between the two
+                const left = routeSamples[k];
+                const right = routeSamples[k + 1];
+                if (left && right) {
+                    const leftPrice = left.output.dividedBy(left.input);
+                    const rightPrice = right.output.dividedBy(right.input);
+                    const scaledPrice = leftPrice
+                        .minus(rightPrice)
+                        .dividedBy(left.input.minus(right.input))
+                        .times(rustInput.minus(right.input))
+                        .plus(rightPrice);
+                    console.log(
+                        `Left price ${leftPrice.toString()}, right: ${rightPrice.toString()}, scaledPrice: ${scaledPrice.toString()}`,
+                    );
+                    const output = scaledPrice.times(rustInput).decimalPlaces(0);
+                    fill = createFillFromSample({
+                        ...right, // default to the greater (for gas used)
+                        input: rustInput,
+                        output,
+                    });
+                } else {
+                    fill = createFillFromSample(left || right);
+                }
+                break;
+            }
+        }
+
+        //// HACK: Handle the case where the router can under quote the input
+        //// Set the first fill just a tad higher
+        const adjustedInput =
+            totalInputs.lt(input) && adjustedFills.length === 0 ? rustInput.plus(input.minus(totalInputs)) : rustInput;
+        const adjustedOutput = fill.output
+            .dividedBy(fill.input)
+            .times(adjustedInput)
+            .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+        adjustedFills.push({
+            ...fill,
+            input: adjustedInput,
+            output: adjustedOutput,
+            index: 0,
+            parent: undefined,
+        });
+    }
+
+    const pathFromRustInputs = Path.create(side, adjustedFills, input);
+
+    return pathFromRustInputs;
+}
 
 function findOptimalRustPath(
     side: MarketOperation,
@@ -63,12 +218,6 @@ function findOptimalRustPath(
                 continue;
             }
             const rustInput = new BigNumber(_rustRoute[i]);
-            // HACK: Handle the case where the router can under quote the input
-            // Set the first fill just a tad higher
-            const adjInput =
-                totalInputs.lt(input) && adjustedFills.length === 0
-                    ? rustInput.plus(input.minus(totalInputs))
-                    : rustInput;
             // Rust router has chosen this source;
             const sourcePathKey = sourcePathKeys[i];
             const fills = fillsByPathId[sourcePathKey];
@@ -111,6 +260,12 @@ function findOptimalRustPath(
                     break;
                 }
             }
+            // HACK: Handle the case where the router can under quote the input
+            // Set the first fill just a tad higher
+            const adjInput =
+                totalInputs.lt(input) && adjustedFills.length === 0
+                    ? rustInput.plus(input.minus(totalInputs))
+                    : rustInput;
             const adjustedOutput = fill.output
                 .dividedBy(fill.input)
                 .times(adjInput)

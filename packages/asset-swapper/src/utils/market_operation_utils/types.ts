@@ -539,7 +539,7 @@ export interface GenerateOptimizedOrdersOpts {
     bridgeSlippage?: number;
     maxFallbackSlippage?: number;
     excludedSources?: ERC20BridgeSource[];
-    feeSchedule?: FeeSchedule;
+    feeSchedule: FeeSchedule;
     exchangeProxyOverhead?: ExchangeProxyOverhead;
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;

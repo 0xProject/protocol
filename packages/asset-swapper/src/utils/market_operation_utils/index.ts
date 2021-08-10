@@ -40,7 +40,7 @@ import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { Path, PathPenaltyOpts } from './path';
-import { fillsToSortedPaths, findOptimalPathAsync } from './path_optimizer';
+import { fillsToSortedPaths, findOptimalRustPathFromSamples } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -48,8 +48,6 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
-    Fill,
-    FillData,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
@@ -489,14 +487,16 @@ export class MarketOperationUtils {
         const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
 
         // Find the optimal path
-        const optimalPath = await findOptimalPathAsync(
-            side,
-            fills,
-            inputAmount,
-            this._sampler.chainId,
-            opts.runLimit,
-            penaltyOpts,
-        );
+        // const optimalPath = await findOptimalPathAsync(
+        // side,
+        // fills,
+        // inputAmount,
+        // this._sampler.chainId,
+        // opts.runLimit,
+        // penaltyOpts,
+        // );
+        const optimalPath = findOptimalRustPathFromSamples(side, dexQuotes, inputAmount, penaltyOpts, opts.feeSchedule);
+
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
         const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
@@ -534,15 +534,8 @@ export class MarketOperationUtils {
         }
 
         // Generate a fallback path if required
-        await this._addOptionalFallbackAsync(
-            side,
-            inputAmount,
-            optimalPath,
-            fills,
-            opts,
-            penaltyOpts,
-            this._sampler.chainId,
-        );
+        await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, opts, penaltyOpts);
+
         const collapsedPath = optimalPath.collapse(orderOpts);
 
         return {
@@ -740,10 +733,9 @@ export class MarketOperationUtils {
         side: MarketOperation,
         inputAmount: BigNumber,
         optimalPath: Path,
-        fills: Array<Array<Fill<FillData>>>,
+        dexQuotes: DexSample[][],
         opts: GenerateOptimizedOrdersOpts,
         penaltyOpts: PathPenaltyOpts,
-        chainId: ChainId,
     ): Promise<void> {
         const maxFallbackSlippage = opts.maxFallbackSlippage || 0;
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
@@ -755,19 +747,34 @@ export class MarketOperationUtils {
         if (opts.allowFallback && fragileFills.length !== 0) {
             // We create a fallback path that is exclusive of Native liquidity
             // This is the optimal on-chain path for the entire input amount
-            const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
-            const sturdyOptimalPath = await findOptimalPathAsync(
+            // const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
+            // const sturdyOptimalPath = await findOptimalPathAsync(
+            // side,
+            // sturdyFills,
+            // inputAmount,
+            // chainId,
+            // opts.runLimit,
+            // {
+            // ...penaltyOpts,
+            // exchangeProxyOverhead: (sourceFlags: bigint) =>
+            //// tslint:disable-next-line: no-bitwise
+            // penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
+            // },
+            // );
+            const sturdySamples = dexQuotes.filter(
+                samples => samples.length > 0 && !fragileSources.includes(samples[0].source),
+            );
+            const sturdyOptimalPath = findOptimalRustPathFromSamples(
                 side,
-                sturdyFills,
+                sturdySamples,
                 inputAmount,
-                chainId,
-                opts.runLimit,
                 {
                     ...penaltyOpts,
                     exchangeProxyOverhead: (sourceFlags: bigint) =>
                         // tslint:disable-next-line: no-bitwise
                         penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
                 },
+                opts.feeSchedule,
             );
             // Calculate the slippage of on-chain sources compared to the most optimal path
             // if within an acceptable threshold we enable a fallback to prevent reverts
