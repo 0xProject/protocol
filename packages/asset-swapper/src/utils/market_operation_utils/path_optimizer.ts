@@ -39,7 +39,7 @@ function calculateOuputFee(
     return outputFee;
 }
 
-export function findOptimalRustPathFromSamples(
+function createPathFromSamples(
     side: MarketOperation,
     samples: DexSample[][],
     input: BigNumber,
@@ -71,7 +71,6 @@ export function findOptimalRustPathFromSamples(
             continue;
         }
 
-        samplesWithResults.push(singleSourceSamplesWithOutput);
         // TODO(kimpers): Do we need to handle 0 entries, from eg Kyber?
         const serializedPath = singleSourceSamplesWithOutput.reduce<SerializedPath>(
             (memo, sample, sampleIdx) => {
@@ -94,6 +93,7 @@ export function findOptimalRustPathFromSamples(
             },
         );
 
+        samplesWithResults.push(singleSourceSamplesWithOutput);
         serializedPaths.push(serializedPath);
     }
 
@@ -106,8 +106,7 @@ export function findOptimalRustPathFromSamples(
 
     const before = performance.now();
     const allSourcesRustRoute: number[] = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
-    console.log('Rust perf (real):', performance.now() - before);
-    const totalNumRoutes = allSourcesRustRoute.length;
+    console.log('Rust perf (real):', performance.now() - before, 'ms');
 
     const routesAndSamples = _.zip(allSourcesRustRoute, samplesWithResults);
 
@@ -176,6 +175,54 @@ export function findOptimalRustPathFromSamples(
     const pathFromRustInputs = Path.create(side, adjustedFills, input);
 
     return pathFromRustInputs;
+}
+
+export function findOptimalRustPathFromSamples(
+    side: MarketOperation,
+    samples: DexSample[][],
+    input: BigNumber,
+    opts: PathPenaltyOpts,
+    fees: FeeSchedule,
+    chainId: ChainId,
+): Path {
+    const before = performance.now();
+    const logPerformance = () => console.log('Total routing function performance', performance.now() - before, 'ms');
+    const allSourcesPath = createPathFromSamples(side, samples, input, opts, fees);
+
+    const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
+
+    // HACK(kimpers): The Rust router currently doesn't account for VIP sources correctly
+    // we need to try to route them in isolation and compare with the results all sources
+    if (vipSources.length > 0) {
+        const vipSourcesSet = new Set(vipSources);
+        const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
+        const vipSourcesPath = createPathFromSamples(side, vipSourcesSamples, input, opts, fees);
+
+        const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
+        // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
+        const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
+        const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
+        const outputWithFqtOverhead =
+            side === MarketOperation.Sell
+                ? allSourcesOutput.minus(fqtOverheadInOutputToken)
+                : allSourcesOutput.plus(fqtOverheadInOutputToken);
+        const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
+        console.log(
+            `FQT OVERHEAD percentage ${allSourcesOutput
+                .minus(outputWithFqtOverhead)
+                .div(allSourcesOutput)
+                .toString()}`,
+        );
+
+        if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
+            console.log('-------------VIP SOURCES WON!!------');
+            logPerformance();
+            return vipSourcesPath;
+        }
+    }
+
+    logPerformance();
+    return allSourcesPath;
 }
 
 function findOptimalRustPath(

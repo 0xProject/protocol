@@ -495,7 +495,14 @@ export class MarketOperationUtils {
         // opts.runLimit,
         // penaltyOpts,
         // );
-        const optimalPath = findOptimalRustPathFromSamples(side, dexQuotes, inputAmount, penaltyOpts, opts.feeSchedule);
+        const optimalPath = findOptimalRustPathFromSamples(
+            side,
+            dexQuotes,
+            inputAmount,
+            penaltyOpts,
+            opts.feeSchedule,
+            this._sampler.chainId,
+        );
 
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
@@ -775,6 +782,7 @@ export class MarketOperationUtils {
                         penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
                 },
                 opts.feeSchedule,
+                this._sampler.chainId,
             );
             // Calculate the slippage of on-chain sources compared to the most optimal path
             // if within an acceptable threshold we enable a fallback to prevent reverts
