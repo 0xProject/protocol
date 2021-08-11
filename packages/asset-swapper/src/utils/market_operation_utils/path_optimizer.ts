@@ -15,7 +15,7 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
-const RUST_ROUTER_NUM_SAMPLES = 1000;
+const RUST_ROUTER_NUM_SAMPLES = 200;
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 
