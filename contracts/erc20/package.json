@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-erc20",
-    "version": "3.3.15",
+    "version": "3.3.14",
     "engines": {
         "node": ">=6.12"
     },
