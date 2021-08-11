@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
@@ -60,8 +61,6 @@ contract TransformERC20Feature is
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 4, 0);
 
-    constructor() public {}
-
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @param transformerDeployer The trusted deployer for transformers.
@@ -76,7 +75,7 @@ contract TransformERC20Feature is
         _registerFeatureFunction(this.setTransformerDeployer.selector);
         _registerFeatureFunction(this.setQuoteSigner.selector);
         _registerFeatureFunction(this.getQuoteSigner.selector);
-        _registerFeatureFunction(this.transformERC20.selector);
+        _registerFeatureFunction(this.transformERC20Staging.selector);
         _registerFeatureFunction(this._transformERC20.selector);
         if (this.getTransformWallet() == IFlashWallet(address(0))) {
             // Create the transform wallet if it doesn't exist.
@@ -144,6 +143,44 @@ contract TransformERC20Feature is
     {
         wallet = new FlashWallet();
         LibTransformERC20Storage.getStorage().wallet = wallet;
+    }
+
+    /// @dev Wrapper for `transformERC20`. This selector will be temporarily
+    ///      registered to the Exchange Proxy so that we can migrate 0x API
+    ///      with no downtime. Once 0x API has been updated to point to this
+    ///      function, we can safely re-register `transformERC20`, point 
+    ///      0x API back to `transformERC20`, and deregister this function.
+    /// @param inputToken The token being provided by the sender.
+    ///        If `0xeee...`, ETH is implied and should be provided with the call.`
+    /// @param outputToken The token to be acquired by the sender.
+    ///        `0xeee...` implies ETH.
+    /// @param inputTokenAmount The amount of `inputToken` to take from the sender.
+    ///        If set to `uint256(-1)`, the entire spendable balance of the taker
+    ///        will be solt.
+    /// @param minOutputTokenAmount The minimum amount of `outputToken` the sender
+    ///        must receive for the entire transformation to succeed. If set to zero,
+    ///        the minimum output token transfer will not be asserted.
+    /// @param transformations The transformations to execute on the token balance(s)
+    ///        in sequence.
+    /// @return outputTokenAmount The amount of `outputToken` received by the sender.
+    function transformERC20Staging(
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint256 inputTokenAmount,
+        uint256 minOutputTokenAmount,
+        Transformation[] memory transformations
+    )
+        public
+        payable
+        returns (uint256 outputTokenAmount)
+    {
+        return transformERC20(
+            inputToken, 
+            outputToken, 
+            inputTokenAmount, 
+            minOutputTokenAmount, 
+            transformations
+        );
     }
 
     /// @dev Executes a series of transformations to convert an ERC20 `inputToken`
@@ -244,6 +281,12 @@ contract TransformERC20Feature is
                     args.recipient
                 );
             }
+            // Transfer output tokens from wallet to recipient
+            outputTokenAmount = _executeOutputTokenTransfer(
+                args.outputToken, 
+                state.wallet, 
+                args.recipient
+            );
         }
 
         // Compute how much output token has been transferred to the recipient.
@@ -255,8 +298,9 @@ contract TransformERC20Feature is
                 state.recipientOutputTokenBalanceBefore - state.recipientOutputTokenBalanceAfter
             ).rrevert();
         }
-        outputTokenAmount = state.recipientOutputTokenBalanceAfter.safeSub(
-            state.recipientOutputTokenBalanceBefore
+        outputTokenAmount = LibSafeMathV06.min256(
+            outputTokenAmount,
+            state.recipientOutputTokenBalanceAfter.safeSub(state.recipientOutputTokenBalanceBefore)
         );
         // Ensure enough output token has been sent to the taker.
         if (outputTokenAmount < args.minOutputTokenAmount) {
@@ -376,6 +420,54 @@ contract TransformERC20Feature is
                 transformation.data,
                 resultData
             ).rrevert();
+        }
+    }
+
+    function _executeOutputTokenTransfer(
+        IERC20TokenV06 outputToken,
+        IFlashWallet wallet,
+        address payable recipient
+    )
+        private
+        returns (uint256 transferAmount)
+    {
+        transferAmount =
+            LibERC20Transformer.getTokenBalanceOf(outputToken, address(wallet));
+        if (LibERC20Transformer.isTokenETH(outputToken)) {
+            wallet.executeCall(
+                recipient,
+                "",
+                transferAmount
+            );
+        } else {
+            bytes memory resultData = wallet.executeCall(
+                payable(address(outputToken)),
+                abi.encodeWithSelector(
+                    IERC20TokenV06.transfer.selector,
+                    recipient,
+                    transferAmount
+                ),
+                0
+            );
+            if (resultData.length == 0) {
+                // If we get back 0 returndata, this may be a non-standard ERC-20 that
+                // does not return a boolean. Check that it at least contains code.
+                uint256 size;
+                assembly { size := extcodesize(outputToken) }
+                require(size > 0, "invalid token address, contains no code");
+            } else if (resultData.length >= 32) {
+                // If we get back at least 32 bytes, we know the target address
+                // contains code, and we assume it is a token that returned a boolean
+                // success value, which must be true.
+                uint256 result = LibBytesV06.readUint256(resultData, 0);
+                if (result != 1) {
+                    LibRichErrorsV06.rrevert(resultData);
+                }
+            } else {
+                // If 0 < returndatasize < 32, the target is a contract, but not a
+                // valid token.
+                LibRichErrorsV06.rrevert(resultData);
+            }
         }
     }
 }
