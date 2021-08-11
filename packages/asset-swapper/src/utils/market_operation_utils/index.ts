@@ -40,7 +40,7 @@ import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { Path, PathPenaltyOpts } from './path';
-import { fillsToSortedPaths, findOptimalRustPathFromSamples } from './path_optimizer';
+import { fillsToSortedPaths, findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -48,6 +48,7 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    Fill,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
@@ -55,6 +56,8 @@ import {
     OptimizerResultWithReport,
     OrderDomain,
 } from './types';
+
+const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
 
 // tslint:disable:boolean-naming
 
@@ -486,23 +489,22 @@ export class MarketOperationUtils {
         const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, penaltyOpts)[0];
         const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
 
-        // Find the optimal path
-        // const optimalPath = await findOptimalPathAsync(
-        // side,
-        // fills,
-        // inputAmount,
-        // this._sampler.chainId,
-        // opts.runLimit,
-        // penaltyOpts,
-        // );
-        const optimalPath = findOptimalRustPathFromSamples(
-            side,
-            dexQuotes,
-            inputAmount,
-            penaltyOpts,
-            opts.feeSchedule,
-            this._sampler.chainId,
-        );
+        // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
+        let optimalPath: Path | undefined;
+        if (SHOULD_USE_RUST_ROUTER) {
+            console.log('-----USING RUST ROUTER!-------');
+            optimalPath = findOptimalRustPathFromSamples(
+                side,
+                dexQuotes,
+                inputAmount,
+                penaltyOpts,
+                opts.feeSchedule,
+                this._sampler.chainId,
+            );
+        } else {
+            console.log('-----USING JS ROUTER!-------');
+            optimalPath = await findOptimalPathJSAsync(side, fills, inputAmount, opts.runLimit, penaltyOpts);
+        }
 
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
@@ -541,7 +543,7 @@ export class MarketOperationUtils {
         }
 
         // Generate a fallback path if required
-        await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, opts, penaltyOpts);
+        await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
 
         const collapsedPath = optimalPath.collapse(orderOpts);
 
@@ -741,6 +743,7 @@ export class MarketOperationUtils {
         inputAmount: BigNumber,
         optimalPath: Path,
         dexQuotes: DexSample[][],
+        fills: Fill[][],
         opts: GenerateOptimizedOrdersOpts,
         penaltyOpts: PathPenaltyOpts,
     ): Promise<void> {
@@ -754,36 +757,38 @@ export class MarketOperationUtils {
         if (opts.allowFallback && fragileFills.length !== 0) {
             // We create a fallback path that is exclusive of Native liquidity
             // This is the optimal on-chain path for the entire input amount
-            // const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
-            // const sturdyOptimalPath = await findOptimalPathAsync(
-            // side,
-            // sturdyFills,
-            // inputAmount,
-            // chainId,
-            // opts.runLimit,
-            // {
-            // ...penaltyOpts,
-            // exchangeProxyOverhead: (sourceFlags: bigint) =>
-            //// tslint:disable-next-line: no-bitwise
-            // penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
-            // },
-            // );
-            const sturdySamples = dexQuotes.filter(
-                samples => samples.length > 0 && !fragileSources.includes(samples[0].source),
-            );
-            const sturdyOptimalPath = findOptimalRustPathFromSamples(
-                side,
-                sturdySamples,
-                inputAmount,
-                {
-                    ...penaltyOpts,
-                    exchangeProxyOverhead: (sourceFlags: bigint) =>
-                        // tslint:disable-next-line: no-bitwise
-                        penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
-                },
-                opts.feeSchedule,
-                this._sampler.chainId,
-            );
+            const sturdyPenaltyOpts = {
+                ...penaltyOpts,
+                exchangeProxyOverhead: (sourceFlags: bigint) =>
+                    // tslint:disable-next-line: no-bitwise
+                    penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
+            };
+
+            let sturdyOptimalPath: Path | undefined;
+            if (SHOULD_USE_RUST_ROUTER) {
+                console.log('-----USING RUST ROUTER!-------');
+                const sturdySamples = dexQuotes.filter(
+                    samples => samples.length > 0 && !fragileSources.includes(samples[0].source),
+                );
+                sturdyOptimalPath = findOptimalRustPathFromSamples(
+                    side,
+                    sturdySamples,
+                    inputAmount,
+                    sturdyPenaltyOpts,
+                    opts.feeSchedule,
+                    this._sampler.chainId,
+                );
+            } else {
+                console.log('-----USING JS ROUTER!-------');
+                const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
+                sturdyOptimalPath = await findOptimalPathJSAsync(
+                    side,
+                    sturdyFills,
+                    inputAmount,
+                    opts.runLimit,
+                    sturdyPenaltyOpts,
+                );
+            }
             // Calculate the slippage of on-chain sources compared to the most optimal path
             // if within an acceptable threshold we enable a fallback to prevent reverts
             if (
