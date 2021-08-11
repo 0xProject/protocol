@@ -103,6 +103,7 @@ export * from '../test/generated-wrappers/mixin_zero_ex_bridge';
 export * from '../test/generated-wrappers/mooniswap_liquidity_provider';
 export * from '../test/generated-wrappers/multiplex_feature';
 export * from '../test/generated-wrappers/multiplex_liquidity_provider';
+export * from '../test/generated-wrappers/multiplex_otc';
 export * from '../test/generated-wrappers/multiplex_rfq';
 export * from '../test/generated-wrappers/multiplex_transform_erc20';
 export * from '../test/generated-wrappers/multiplex_uniswap_v2';

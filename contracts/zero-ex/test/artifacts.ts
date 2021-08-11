@@ -105,6 +105,7 @@ import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridg
 import * as MooniswapLiquidityProvider from '../test/generated-artifacts/MooniswapLiquidityProvider.json';
 import * as MultiplexFeature from '../test/generated-artifacts/MultiplexFeature.json';
 import * as MultiplexLiquidityProvider from '../test/generated-artifacts/MultiplexLiquidityProvider.json';
+import * as MultiplexOtc from '../test/generated-artifacts/MultiplexOtc.json';
 import * as MultiplexRfq from '../test/generated-artifacts/MultiplexRfq.json';
 import * as MultiplexTransformERC20 from '../test/generated-artifacts/MultiplexTransformERC20.json';
 import * as MultiplexUniswapV2 from '../test/generated-artifacts/MultiplexUniswapV2.json';
@@ -227,6 +228,7 @@ export const artifacts = {
     LibSignature: LibSignature as ContractArtifact,
     MultiplexFeature: MultiplexFeature as ContractArtifact,
     MultiplexLiquidityProvider: MultiplexLiquidityProvider as ContractArtifact,
+    MultiplexOtc: MultiplexOtc as ContractArtifact,
     MultiplexRfq: MultiplexRfq as ContractArtifact,
     MultiplexTransformERC20: MultiplexTransformERC20 as ContractArtifact,
     MultiplexUniswapV2: MultiplexUniswapV2 as ContractArtifact,

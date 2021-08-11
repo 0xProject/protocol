@@ -136,6 +136,7 @@
         "test/generated-artifacts/MooniswapLiquidityProvider.json",
         "test/generated-artifacts/MultiplexFeature.json",
         "test/generated-artifacts/MultiplexLiquidityProvider.json",
+        "test/generated-artifacts/MultiplexOtc.json",
         "test/generated-artifacts/MultiplexRfq.json",
         "test/generated-artifacts/MultiplexTransformERC20.json",
         "test/generated-artifacts/MultiplexUniswapV2.json",

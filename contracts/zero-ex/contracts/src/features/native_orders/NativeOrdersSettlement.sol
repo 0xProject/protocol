@@ -295,9 +295,7 @@ abstract contract NativeOrdersSettlement is
         );
     }
 
-    /// @dev Fill an RFQ order. Internal variant. ETH protocol fees can be
-    ///      attached to this call. Any unspent ETH will be refunded to
-    ///      `msg.sender` (not `sender`).
+    /// @dev Fill an RFQ order. Internal variant.
     /// @param order The RFQ order.
     /// @param signature The order signature.
     /// @param takerTokenFillAmount Maximum taker token to fill this order with.
