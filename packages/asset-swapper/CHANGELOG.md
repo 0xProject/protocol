@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.24.1 - _August 11, 2021_
+
+    * Dependencies updated
+
 ## v16.24.0 - _August 6, 2021_
 
     * Add `Clipper` as a custom liquidity source (#299)

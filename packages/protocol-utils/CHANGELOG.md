@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.8.1 - _August 11, 2021_
+
+    * Dependencies updated
+
 ## v1.8.0 - _August 6, 2021_
 
     * Add `Clipper`
