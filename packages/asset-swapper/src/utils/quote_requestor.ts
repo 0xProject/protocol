@@ -38,7 +38,6 @@ interface RfqQuote<T> {
 }
 
 export interface MetricsProxy {
-
     /**
      * Increments a counter that is tracking valid Firm Quotes that are dropped due to low expiration.
      * @param isLastLook mark if call is coming from RFQM
