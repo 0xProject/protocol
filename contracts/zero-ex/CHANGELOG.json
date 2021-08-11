@@ -1,5 +1,26 @@
 [
     {
+        "version": "0.28.0",
+        "changes": [
+            {
+                "note": "Transfer output tokens in TransformERC20Feature",
+                "pr": 279
+            },
+            {
+                "note": "Add support for takerToken=0xeee... in OtcOrdersFeature",
+                "pr": 287
+            },
+            {
+                "note": "Add support for OTC orders in MultiplexFeature",
+                "pr": 287
+            },
+            {
+                "note": "Multiplex v2: Refactor into multiple files, add ETH support, and other miscellanea",
+                "pr": 263
+            }
+        ]
+    },
+    {
         "timestamp": 1628665757,
         "version": "0.27.1",
         "changes": [
