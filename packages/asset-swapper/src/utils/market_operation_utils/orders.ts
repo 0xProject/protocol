@@ -3,7 +3,7 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
-import { MAX_UINT256, ZERO_AMOUNT } from './constants';
+import { MAX_UINT256, NULL_BYTES, ZERO_AMOUNT } from './constants';
 import {
     AggregationError,
     BalancerFillData,
@@ -180,6 +180,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'IronSwap');
         case ERC20BridgeSource.ACryptos:
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'ACryptoS');
+        case ERC20BridgeSource.Clipper:
+            return encodeBridgeSourceId(BridgeProtocol.Clipper, 'Clipper');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -317,6 +319,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Lido:
             const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
             bridgeData = encoder.encode([lidoFillData.stEthTokenAddress]);
+            break;
+        case ERC20BridgeSource.Clipper:
+            const clipperFillData = (order as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
+            bridgeData = encoder.encode([clipperFillData.poolAddress, NULL_BYTES]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -475,6 +481,10 @@ export const BRIDGE_ENCODERS: {
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.Clipper]: AbiEncoder.create([
+        { name: 'provider', type: 'address' },
+        { name: 'data', type: 'bytes' },
+    ]),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

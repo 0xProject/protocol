@@ -98,6 +98,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
+            ERC20BridgeSource.Clipper,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -198,6 +199,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
+            ERC20BridgeSource.Clipper,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -373,6 +375,8 @@ export const MAINNET_TOKENS = {
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
     FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
+    DSU: '0x605d26fbd5be761089281d5cec2ce86eea667109',
+    ESS: '0x24ae124c4cc33d6791f8e8b63520ed7107ac8b3e',
 };
 
 export const BSC_TOKENS = {
@@ -448,10 +452,12 @@ export const CURVE_POOLS = {
     FRAX: '0xd632f22692fac7611d2aa1c0d552930d43caed3b',
     LUSD: '0xed279fdd11ca84beef15af5d39bb4d4bee23f0ca',
     BUSD: '0x4807862aa8b2bf68830e4c8dc86d0e9a998e085a',
+    DSU3CRV: '0x6ec80df362d7042c50d4469bcfbc174c9dd9109a',
 };
 
 export const CURVE_V2_POOLS = {
     tricrypto: '0x80466c64868e1ab14a1ddf27a676c3fcbe638fe5',
+    tricrypto2: '0xd51a44d3fae010294c616388b506acda1bfaae46',
 };
 
 export const CURVE_POLYGON_POOLS = {
@@ -847,12 +853,22 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_POOLS.ankreth,
         gasSchedule: 125e3,
     }),
+    [CURVE_POOLS.DSU3CRV]: createCurveMetaTriPool({
+        tokens: [MAINNET_TOKENS.DSU],
+        pool: CURVE_POOLS.DSU3CRV,
+        gasSchedule: 387e3,
+    }),
 };
 
 export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_POOLS.tricrypto]: createCurveExchangeV2Pool({
         tokens: [MAINNET_TOKENS.USDT, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.WETH],
         pool: CURVE_V2_POOLS.tricrypto,
+        gasSchedule: 300e3,
+    }),
+    [CURVE_V2_POOLS.tricrypto2]: createCurveExchangeV2Pool({
+        tokens: [MAINNET_TOKENS.USDT, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.WETH],
+        pool: CURVE_V2_POOLS.tricrypto2,
         gasSchedule: 300e3,
     }),
 };
@@ -1410,6 +1426,22 @@ export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     },
 );
 
+export const CLIPPER_INFO_BY_CHAIN = valueByChainId(
+    {
+        [ChainId.Mainnet]: {
+            poolAddress: '0xe82906b6b1b04f631d126c974af57a3a7b6a99d9',
+            tokens: [
+                MAINNET_TOKENS.WETH, // technically ETH but our sampler and mixin handle this
+                MAINNET_TOKENS.WBTC,
+                MAINNET_TOKENS.USDC,
+                MAINNET_TOKENS.USDT,
+                MAINNET_TOKENS.DAI,
+            ],
+        },
+    },
+    { poolAddress: NULL_ADDRESS, tokens: [] },
+);
+
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
@@ -1640,6 +1672,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Lido]: () => 226e3,
+    [ERC20BridgeSource.Clipper]: () => 170e3,
 
     //
     // BSC

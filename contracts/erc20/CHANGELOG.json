@@ -1,5 +1,24 @@
 [
     {
+        "version": "3.3.15",
+        "changes": [
+            {
+                "note": "Add ethers as a dependency",
+                "pr": 305
+            }
+        ],
+        "timestamp": 1628665757
+    },
+    {
+        "timestamp": 1628225642,
+        "version": "3.3.14",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1624356181,
         "version": "3.3.13",
         "changes": [

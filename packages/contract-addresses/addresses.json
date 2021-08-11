@@ -32,11 +32,12 @@
         "exchangeProxyTransformerDeployer": "0x39dce47a67ad34344eab877eae3ef1fa2a1d50bb",
         "exchangeProxyFlashWallet": "0x22f9dcf4647084d6c31b2765f6910cd85c178c18",
         "exchangeProxyLiquidityProviderSandbox": "0x407b4128e9ecad8769b2332312a9f655cb9f5f3a",
+        "zrxTreasury": "0x0bb1810061c2f5b2088054ee184e6c79e1591101",
         "transformers": {
             "wethTransformer": "0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7",
             "payTakerTransformer": "0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e",
             "affiliateFeeTransformer": "0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f",
-            "fillQuoteTransformer": "0x6dfdb2537683ce6101f9090a78197dd58c30bfac",
+            "fillQuoteTransformer": "0xb4fa284689c9784a60d840eb136bb16c5246191f",
             "positiveSlippageFeeTransformer": "0xa9416ce1dbde8d331210c07b5c253d94ee4cc3fd"
         }
     },
@@ -73,6 +74,7 @@
         "exchangeProxyTransformerDeployer": "0x1c9a27658dd303a31205a3b245e8993b92d4d502",
         "exchangeProxyFlashWallet": "0x22f9dcf4647084d6c31b2765f6910cd85c178c18",
         "exchangeProxyLiquidityProviderSandbox": "0x53a3a41047ae6f6a593df847e3bb287ecd3ac825",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
             "wethTransformer": "0x05ad19aa3826e0609a19568ffbd1dfe86c6c7184",
             "payTakerTransformer": "0x6d0ebf2bcd9cc93ec553b60ad201943dcca4e291",
@@ -114,6 +116,7 @@
         "exchangeProxyTransformerDeployer": "0x1c9a27658dd303a31205a3b245e8993b92d4d502",
         "exchangeProxyFlashWallet": "0x22f9dcf4647084d6c31b2765f6910cd85c178c18",
         "exchangeProxyLiquidityProviderSandbox": "0x2e2090562076197f94f8d1beac0963b6d4c118b6",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
             "wethTransformer": "0x8d822fe2b42f60531203e288f5f357fa79474437",
             "payTakerTransformer": "0x150652244723102faeaefa4c79597d097ffa26c6",
@@ -155,6 +158,7 @@
         "exchangeProxyTransformerDeployer": "0x1b62de2dbb5e7aa519e9c442721ecef75702807f",
         "exchangeProxyFlashWallet": "0x22f9dcf4647084d6c31b2765f6910cd85c178c18",
         "exchangeProxyLiquidityProviderSandbox": "0x4022e3982f326455f0905de3dbc4449999baf2dc",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
             "wethTransformer": "0x9ce35b5ee9e710535e3988e3f8731d9ca9dba17d",
             "payTakerTransformer": "0x5a53e7b02a83aa9f60ccf4e424f0442c255bc977",
@@ -196,6 +200,7 @@
         "exchangeProxyTransformerDeployer": "0x8224aa8fe5c9f07d5a59c735386ff6cc6aaeb568",
         "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
         "exchangeProxyLiquidityProviderSandbox": "0xde7b2747624a647600fdb349184d0448ab954929",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
             "wethTransformer": "0xac3d95668c092e895cd83a9cbafe9c7d9906471f",
             "payTakerTransformer": "0x4f5e8ca2cadecd4a467ae441e4b03de4278a4574",
@@ -237,6 +242,7 @@
         "exchangeProxyTransformerDeployer": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
         "exchangeProxyFlashWallet": "0xb9682a8e7920b431f1d412b8510f0077410c8faa",
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
             "wethTransformer": "0xc6b0d3c45a6b5092808196cb00df5c357d55e1d5",
             "payTakerTransformer": "0x7209185959d7227fb77274e1e88151d7c4c368d3",
@@ -278,6 +284,7 @@
         "exchangeProxyTransformerDeployer": "0xe6d9207df11c55bce2f7a189ae95e3222d5484d3",
         "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
         "exchangeProxyLiquidityProviderSandbox": "0x4dd97080adf36103bd3db822f9d3c0e44890fd69",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
             "wethTransformer": "0xe309d011cc6f189a3e8dcba85922715a019fed38",
             "payTakerTransformer": "0x5ba7b9be86cda01cfbf56e0fb97184783be9dda1",
@@ -319,6 +326,7 @@
         "exchangeProxyTransformerDeployer": "0xa8220408bcb5b327875fd82145d379a83dfd7d61",
         "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
         "exchangeProxyLiquidityProviderSandbox": "0xe6f76f5090f8d64015113841a0c9bc5d14755d6f",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
             "wethTransformer": "0x44a65ee6b33f70eda7b854abe8d81e925984c932",
             "payTakerTransformer": "0x2f4868ed9cae9a4cdba063818dce19f411be4e75",

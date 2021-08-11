@@ -1,5 +1,25 @@
 [
     {
+        "version": "6.6.0",
+        "changes": [
+            {
+                "note": "Add zrxTreasury address",
+                "pr": 301
+            }
+        ],
+        "timestamp": 1628665757
+    },
+    {
+        "version": "6.5.0",
+        "changes": [
+            {
+                "note": "Deployed `Clipper`",
+                "pr": 299
+            }
+        ],
+        "timestamp": 1628225642
+    },
+    {
         "version": "6.4.0",
         "changes": [
             {

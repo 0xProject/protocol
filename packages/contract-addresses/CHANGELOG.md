@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.6.0 - _August 11, 2021_
+
+    * Add zrxTreasury address (#301)
+
+## v6.5.0 - _August 6, 2021_
+
+    * Deployed `Clipper` (#299)
+
 ## v6.4.0 - _June 22, 2021_
 
     * Deployed Lido FQT
