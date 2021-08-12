@@ -70,7 +70,7 @@ blockchainTests.resets('Full migration', env => {
         TransformERC20: {
             contractType: ITransformERC20FeatureContract,
             fns: [
-                'transformERC20',
+                // 'transformERC20', TODO
                 '_transformERC20',
                 'createTransformWallet',
                 'getTransformWallet',

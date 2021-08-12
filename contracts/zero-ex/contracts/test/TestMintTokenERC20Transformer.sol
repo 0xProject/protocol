@@ -71,15 +71,22 @@ contract TestMintTokenERC20Transformer is
             data.inputToken.transfer(address(0), data.burnAmount);
         }
         // Mint output tokens.
-        if (LibERC20Transformer.isTokenETH(IERC20TokenV06(address(data.outputToken)))) {
-            context.recipient.transfer(data.mintAmount);
-        } else {
-            data.outputToken.mint(
-                context.recipient,
-                data.mintAmount
-            );
-            // Burn fees from output.
-            data.outputToken.burn(context.recipient, data.feeAmount);
+        if (!LibERC20Transformer.isTokenETH(IERC20TokenV06(address(data.outputToken)))) {
+            if (data.feeAmount > data.mintAmount) {
+                data.outputToken.burn(
+                    context.recipient, 
+                    data.feeAmount - data.mintAmount
+                );
+            } else {
+                data.outputToken.mint(
+                    address(this),
+                    data.mintAmount
+                );
+                data.outputToken.burn(
+                    context.recipient, 
+                    data.feeAmount
+                );
+            }
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }

@@ -283,7 +283,7 @@ blockchainTests.resets('TransformERC20 feature', env => {
                 const inputTokenAmount = getRandomPortion(startingInputTokenBalance);
                 const minOutputTokenAmount = getRandomInteger(1, '1e18');
                 const outputTokenMintAmount = minOutputTokenAmount;
-                const callValue = outputTokenMintAmount.times(2);
+                const callValue = outputTokenMintAmount;
                 const transformation = createMintTokenTransformation({
                     outputTokenMintAmount,
                     inputTokenBurnAmunt: inputTokenAmount,

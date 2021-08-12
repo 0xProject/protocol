@@ -762,6 +762,11 @@ blockchainTests.resets('MultiplexFeature', env => {
                             from: flashWalletAddress,
                             to: constants.NULL_ADDRESS,
                         },
+                        {
+                            token: zrx.address,
+                            from: flashWalletAddress,
+                            to: taker,
+                        },
                     ],
                     TestMintableERC20TokenEvents.Transfer,
                 );
@@ -1121,6 +1126,11 @@ blockchainTests.resets('MultiplexFeature', env => {
                             from: flashWalletAddress,
                             to: constants.NULL_ADDRESS,
                         },
+                        {
+                            token: zrx.address,
+                            from: flashWalletAddress,
+                            to: taker,
+                        },
                     ],
                     TestMintableERC20TokenEvents.Transfer,
                 );
@@ -1363,6 +1373,11 @@ blockchainTests.resets('MultiplexFeature', env => {
                             token: dai.address,
                             from: flashWalletAddress,
                             to: constants.NULL_ADDRESS,
+                        },
+                        {
+                            token: weth.address,
+                            from: flashWalletAddress,
+                            to: zeroEx.address,
                         },
                     ],
                     TestMintableERC20TokenEvents.Transfer,
