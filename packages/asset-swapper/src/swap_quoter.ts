@@ -367,13 +367,14 @@ export class SwapQuoter {
         // pass the QuoteRequestor on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = new QuoteRequestor(
-                rfqtOptions ? rfqtOptions.makerAssetOfferings || {} : {},
+                rfqtOptions?.makerAssetOfferings || {},
                 {},
                 this._quoteRequestorHttpClient,
-                rfqtOptions ? rfqtOptions.altRfqCreds : undefined,
-                rfqtOptions ? rfqtOptions.warningLogger : undefined,
-                rfqtOptions ? rfqtOptions.infoLogger : undefined,
+                rfqtOptions?.altRfqCreds,
+                rfqtOptions?.warningLogger,
+                rfqtOptions?.infoLogger,
                 this.expiryBufferMs,
+                rfqtOptions?.metricsProxy,
             );
         }
 

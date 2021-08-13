@@ -37,6 +37,31 @@ interface RfqQuote<T> {
     makerUri: string;
 }
 
+export interface MetricsProxy {
+    /**
+     * Increments a counter that is tracking valid Firm Quotes that are dropped due to low expiration.
+     * @param isLastLook mark if call is coming from RFQM
+     * @param maker the maker address
+     */
+    incrementExpirationToSoonCounter(isLastLook: boolean, maker: string): void;
+
+    /**
+     * Keeps track of summary statistics for expiration on Firm Quotes.
+     * @param isLastLook mark if call is coming from RFQM
+     * @param maker the maker address
+     * @param expirationTimeSeconds the expiration time in seconds
+     */
+    measureExpirationForValidOrder(isLastLook: boolean, maker: string, expirationTimeSeconds: BigNumber): void;
+
+    /**
+     * Increments a counter that tracks when an order is not fully fillable.
+     * @param isLastLook mark if call is coming from RFQM
+     * @param maker the maker address
+     * @param expirationTimeSeconds the expiration time in seconds
+     */
+    incrementFillRatioWarningCounter(isLastLook: boolean, maker: string): void;
+}
+
 /**
  * Request quotes from RFQ-T providers
  */
@@ -189,6 +214,7 @@ export class QuoteRequestor {
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
         private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
+        private readonly _metrics?: MetricsProxy,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
     }
@@ -560,10 +586,14 @@ export class QuoteRequestor {
                 );
                 return false;
             }
+            const isLastLook = Boolean(options.isLastLook);
             if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
+                this._metrics?.incrementExpirationToSoonCounter(isLastLook, order.maker);
                 return false;
             } else {
+                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, order.expiry);
+
                 const takerAmount = new BigNumber(order.takerAmount);
                 const fillRatio = takerAmount.div(assetFillAmount);
                 if (fillRatio.lt(1) && fillRatio.gte(FILL_RATIO_WARNING_LEVEL)) {
@@ -579,6 +609,7 @@ export class QuoteRequestor {
                         },
                         'Fill ratio in warning range',
                     );
+                    this._metrics?.incrementFillRatioWarningCounter(isLastLook, order.maker);
                 }
                 return true;
             }
