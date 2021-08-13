@@ -18,6 +18,7 @@ import {
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
+import * as ethUtil from 'ethereumjs-util';
 
 import { Vote } from '../src/votes';
 
@@ -513,6 +514,22 @@ blockchainTests.resets('Treasury governance', env => {
                 .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
+        });
+        it('Can recover the address from signature correctly', async () => {
+            const vote = new Vote({
+                proposalId: VOTE_PROPOSAL_ID,
+                verifyingContract: admin,
+            });
+            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
+            const publicKey = ethUtil.ecrecover(
+                ethUtil.toBuffer(vote.getEIP712Hash()),
+                signedVote.v,
+                ethUtil.toBuffer(signedVote.r),
+                ethUtil.toBuffer(signedVote.s),
+            );
+            const address = ethUtil.publicToAddress(publicKey);
+
+            expect(ethUtil.bufferToHex(address)).to.be.equal(delegator);
         });
         it('Can cast a valid vote by signature', async () => {
             await fastForwardToNextEpochAsync();

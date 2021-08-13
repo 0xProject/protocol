@@ -11,6 +11,7 @@ const VOTE_DEFAULT_VALUES = {
     support: false,
     operatedPoolIds: [] as string[],
     chainId: 1,
+    version: '1.0.0',
     verifyingContract: NULL_ADDRESS,
 };
 
@@ -33,6 +34,7 @@ export class Vote {
     public static readonly DOMAIN_STRUCT_ABI = [
         { type: 'string', name: 'name' },
         { type: 'uint256', name: 'chainId' },
+        { type: 'string', name: 'version' },
         { type: 'address', name: 'verifyingContract' },
     ];
     public static readonly DOMAIN_TYPE_HASH = getTypeHash(
@@ -43,6 +45,7 @@ export class Vote {
     public support: boolean;
     public operatedPoolIds: string[];
     public chainId: number;
+    public version: string;
     public verifyingContract: string;
 
     constructor(fields: Partial<VoteFields> = {}) {
@@ -51,6 +54,7 @@ export class Vote {
         this.support = _fields.support;
         this.operatedPoolIds = _fields.operatedPoolIds;
         this.chainId = _fields.chainId;
+        this.version = _fields.version;
         this.verifyingContract = _fields.verifyingContract;
     }
 
@@ -62,6 +66,9 @@ export class Vote {
                     hexUtils.toHex(Buffer.from(Vote.CONTRACT_NAME)),
                 ),
                 hexUtils.leftPad(this.chainId),
+                hexUtils.hash(
+                    hexUtils.toHex(Buffer.from(this.version)),
+                ),
                 hexUtils.leftPad(this.verifyingContract),
             ),
         );
