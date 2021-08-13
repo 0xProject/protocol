@@ -78,7 +78,7 @@ contract MetaTransactionsFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MetaTransactions";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 2, 0);
     /// @dev EIP712 typehash of the `MetaTransactionData` struct.
     bytes32 public immutable MTX_EIP712_TYPEHASH = keccak256(
         "MetaTransactionData("
@@ -415,7 +415,9 @@ contract MetaTransactionsFeature is
                     outputToken: args.outputToken,
                     inputTokenAmount: args.inputTokenAmount,
                     minOutputTokenAmount: args.minOutputTokenAmount,
-                    transformations: args.transformations
+                    transformations: args.transformations,
+                    useSelfBalance: false,
+                    recipient: state.mtx.signer
               })
             ),
             state.mtx.value
@@ -498,7 +500,9 @@ contract MetaTransactionsFeature is
                 order,
                 signature,
                 takerTokenFillAmount,
-                state.mtx.signer // taker is mtx signer
+                state.mtx.signer, // taker is mtx signer
+                false,
+                state.mtx.signer
             ),
             state.mtx.value
         );

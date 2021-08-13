@@ -243,6 +243,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         inputTokenAmount,
                         minOutputTokenAmount,
                         transformations: [transformation],
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 verifyEventsFromLogs(
@@ -281,7 +283,7 @@ blockchainTests.resets('TransformERC20 feature', env => {
                 const inputTokenAmount = getRandomPortion(startingInputTokenBalance);
                 const minOutputTokenAmount = getRandomInteger(1, '1e18');
                 const outputTokenMintAmount = minOutputTokenAmount;
-                const callValue = outputTokenMintAmount.times(2);
+                const callValue = outputTokenMintAmount;
                 const transformation = createMintTokenTransformation({
                     outputTokenMintAmount,
                     inputTokenBurnAmunt: inputTokenAmount,
@@ -296,6 +298,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         inputTokenAmount,
                         minOutputTokenAmount,
                         transformations: [transformation],
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 verifyEventsFromLogs(
@@ -352,6 +356,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         inputTokenAmount,
                         minOutputTokenAmount,
                         transformations: [transformation],
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 verifyEventsFromLogs(
@@ -406,6 +412,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                                 inputTokenBurnAmunt: inputTokenAmount,
                             }),
                         ],
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 const expectedError = new ZeroExRevertErrors.TransformERC20.IncompleteTransformERC20Error(
@@ -438,6 +446,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                                 inputTokenBurnAmunt: inputTokenAmount,
                             }),
                         ],
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 const expectedError = new ZeroExRevertErrors.TransformERC20.NegativeTransformERC20OutputError(
@@ -475,6 +485,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         inputTokenAmount,
                         minOutputTokenAmount,
                         transformations,
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 verifyEventsFromLogs(
@@ -520,6 +532,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         inputTokenAmount,
                         minOutputTokenAmount,
                         transformations,
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 return expect(tx).to.revertWith(
@@ -549,6 +563,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         inputTokenAmount: MAX_UINT256,
                         minOutputTokenAmount,
                         transformations: [transformation],
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: callValue });
                 verifyEventsFromLogs(
@@ -584,6 +600,8 @@ blockchainTests.resets('TransformERC20 feature', env => {
                         inputTokenAmount: MAX_UINT256,
                         minOutputTokenAmount,
                         transformations: [transformation],
+                        useSelfBalance: false,
+                        recipient: taker,
                     })
                     .awaitTransactionSuccessAsync({ value: ethAttchedAmount });
                 verifyEventsFromLogs(

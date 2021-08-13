@@ -354,6 +354,8 @@ blockchainTests.resets('MetaTransactions feature', env => {
                     inputTokenAmount: args.inputTokenAmount,
                     minOutputTokenAmount: args.minOutputTokenAmount,
                     transformations: args.transformations,
+                    useSelfBalance: false,
+                    recipient: mtx.signer,
                 })
                 .getABIEncodedTransactionData();
             return expect(tx).to.revertWith(

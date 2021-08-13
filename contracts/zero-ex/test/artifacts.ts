@@ -104,6 +104,12 @@ import * as MixinUniswapV3 from '../test/generated-artifacts/MixinUniswapV3.json
 import * as MixinZeroExBridge from '../test/generated-artifacts/MixinZeroExBridge.json';
 import * as MooniswapLiquidityProvider from '../test/generated-artifacts/MooniswapLiquidityProvider.json';
 import * as MultiplexFeature from '../test/generated-artifacts/MultiplexFeature.json';
+import * as MultiplexLiquidityProvider from '../test/generated-artifacts/MultiplexLiquidityProvider.json';
+import * as MultiplexOtc from '../test/generated-artifacts/MultiplexOtc.json';
+import * as MultiplexRfq from '../test/generated-artifacts/MultiplexRfq.json';
+import * as MultiplexTransformERC20 from '../test/generated-artifacts/MultiplexTransformERC20.json';
+import * as MultiplexUniswapV2 from '../test/generated-artifacts/MultiplexUniswapV2.json';
+import * as MultiplexUniswapV3 from '../test/generated-artifacts/MultiplexUniswapV3.json';
 import * as NativeOrdersCancellation from '../test/generated-artifacts/NativeOrdersCancellation.json';
 import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFeature.json';
 import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.json';
@@ -151,6 +157,8 @@ import * as TestTransformerBase from '../test/generated-artifacts/TestTransforme
 import * as TestTransformERC20 from '../test/generated-artifacts/TestTransformERC20.json';
 import * as TestTransformerDeployerTransformer from '../test/generated-artifacts/TestTransformerDeployerTransformer.json';
 import * as TestTransformerHost from '../test/generated-artifacts/TestTransformerHost.json';
+import * as TestUniswapV2Factory from '../test/generated-artifacts/TestUniswapV2Factory.json';
+import * as TestUniswapV2Pool from '../test/generated-artifacts/TestUniswapV2Pool.json';
 import * as TestUniswapV3Factory from '../test/generated-artifacts/TestUniswapV3Factory.json';
 import * as TestUniswapV3Feature from '../test/generated-artifacts/TestUniswapV3Feature.json';
 import * as TestUniswapV3Pool from '../test/generated-artifacts/TestUniswapV3Pool.json';
@@ -192,7 +200,6 @@ export const artifacts = {
     BootstrapFeature: BootstrapFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
-    MultiplexFeature: MultiplexFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OtcOrdersFeature: OtcOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
@@ -219,6 +226,13 @@ export const artifacts = {
     IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
+    MultiplexFeature: MultiplexFeature as ContractArtifact,
+    MultiplexLiquidityProvider: MultiplexLiquidityProvider as ContractArtifact,
+    MultiplexOtc: MultiplexOtc as ContractArtifact,
+    MultiplexRfq: MultiplexRfq as ContractArtifact,
+    MultiplexTransformERC20: MultiplexTransformERC20 as ContractArtifact,
+    MultiplexUniswapV2: MultiplexUniswapV2 as ContractArtifact,
+    MultiplexUniswapV3: MultiplexUniswapV3 as ContractArtifact,
     NativeOrdersCancellation: NativeOrdersCancellation as ContractArtifact,
     NativeOrdersInfo: NativeOrdersInfo as ContractArtifact,
     NativeOrdersProtocolFees: NativeOrdersProtocolFees as ContractArtifact,
@@ -320,6 +334,8 @@ export const artifacts = {
     TestTransformerBase: TestTransformerBase as ContractArtifact,
     TestTransformerDeployerTransformer: TestTransformerDeployerTransformer as ContractArtifact,
     TestTransformerHost: TestTransformerHost as ContractArtifact,
+    TestUniswapV2Factory: TestUniswapV2Factory as ContractArtifact,
+    TestUniswapV2Pool: TestUniswapV2Pool as ContractArtifact,
     TestUniswapV3Factory: TestUniswapV3Factory as ContractArtifact,
     TestUniswapV3Feature: TestUniswapV3Feature as ContractArtifact,
     TestUniswapV3Pool: TestUniswapV3Pool as ContractArtifact,

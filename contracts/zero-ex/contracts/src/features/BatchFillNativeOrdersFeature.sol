@@ -48,7 +48,7 @@ contract BatchFillNativeOrdersFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "BatchFill";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
 
     constructor(address zeroExAddress)
         public
@@ -170,6 +170,8 @@ contract BatchFillNativeOrdersFeature is
                         orders[i],
                         signatures[i],
                         takerTokenFillAmounts[i],
+                        msg.sender,
+                        false,
                         msg.sender
                     )
                 returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)

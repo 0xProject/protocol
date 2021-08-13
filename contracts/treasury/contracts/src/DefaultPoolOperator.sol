@@ -21,13 +21,10 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "./IStaking.sol";
 
 
 contract DefaultPoolOperator {
-    using LibERC20TokenV06 for IERC20TokenV06;
-
     // Immutables
     IStaking public immutable stakingProxy;
     IERC20TokenV06 public immutable weth;
@@ -57,7 +54,7 @@ contract DefaultPoolOperator {
     function returnStakingRewards()
         external
     {
-        uint256 wethBalance = weth.compatBalanceOf(address(this));
-        weth.compatTransfer(address(stakingProxy), wethBalance);
+        uint256 wethBalance = weth.balanceOf(address(this));
+        weth.transfer(address(stakingProxy), wethBalance);
     }
 }

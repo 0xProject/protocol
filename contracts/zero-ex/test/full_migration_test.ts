@@ -70,7 +70,7 @@ blockchainTests.resets('Full migration', env => {
         TransformERC20: {
             contractType: ITransformERC20FeatureContract,
             fns: [
-                'transformERC20',
+                // 'transformERC20', TODO
                 '_transformERC20',
                 'createTransformWallet',
                 'getTransformWallet',
@@ -147,6 +147,9 @@ blockchainTests.resets('Full migration', env => {
         }
         if (item.type === 'byte') {
             return hexUtils.random(1);
+        }
+        if (item.type === 'bool') {
+            return Math.random() > 0.5;
         }
         if (/^bytes$/.test(item.type)) {
             return hexUtils.random(_.random(0, 128));

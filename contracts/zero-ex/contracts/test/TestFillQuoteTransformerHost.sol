@@ -33,7 +33,7 @@ contract TestFillQuoteTransformerHost is
         TestMintableERC20Token inputToken,
         uint256 inputTokenAmount,
         address payable sender,
-        address payable taker,
+        address payable recipient,
         bytes calldata data
     )
         external
@@ -47,7 +47,7 @@ contract TestFillQuoteTransformerHost is
             transformer,
             IERC20Transformer.TransformContext({
                 sender: sender,
-                taker: taker,
+                recipient: recipient,
                 data: data
             })
         );
