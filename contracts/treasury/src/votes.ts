@@ -23,7 +23,7 @@ export class Vote {
     public static readonly MESSAGE_STRUCT_NAME = 'Vote';
     public static readonly MESSAGE_STRUCT_ABI = [
         { type: 'uint256', name: 'proposalId' },
-        { type: 'boolean', name: 'support' },
+        { type: 'bool', name: 'support' },
         { type: 'bytes32[]', name: 'operatedPoolIds' },
     ];
     public static readonly MESSAGE_TYPE_HASH = getTypeHash(
@@ -80,7 +80,9 @@ export class Vote {
                 hexUtils.leftPad(Vote.MESSAGE_TYPE_HASH),
                 hexUtils.leftPad(this.proposalId),
                 hexUtils.leftPad(this.support ? 1 : 0),
-                hexUtils.hash(hexUtils.toHex(Buffer.from(hexUtils.concat(...this.operatedPoolIds)))),
+                hexUtils.hash(
+                    hexUtils.toHex(Buffer.from(hexUtils.concat(...this.operatedPoolIds))),
+                ),
                 hexUtils.leftPad(this.chainId),
                 hexUtils.leftPad(this.verifyingContract),
             ),

@@ -37,6 +37,9 @@ contract ZrxTreasury is
     /// Contract name
     string public constant CONTRACT_NAME = "Zrx Treasury";
 
+    /// Contract version
+    string public constant CONTRACT_VERSION = "1.0.0";
+
     /// The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,string version,address verifyingContract)");
 
@@ -77,7 +80,15 @@ contract ZrxTreasury is
         defaultPoolId = params.defaultPoolId;
         IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(params.defaultPoolId);
         defaultPoolOperator = DefaultPoolOperator(defaultPool.operator);
-        domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(CONTRACT_NAME)), _getChainId(), address(this)));
+        domainSeparator = keccak256(
+            abi.encode(
+                DOMAIN_TYPEHASH,
+                keccak256(bytes(CONTRACT_NAME)),
+                _getChainId(),
+                keccak256(bytes(CONTRACT_VERSION)),
+                address(this)
+            )
+        );
     }
 
     // solhint-disable
@@ -206,6 +217,28 @@ contract ZrxTreasury is
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
+
+//        emit DebugTreasury(
+//            // raw
+//            CONTRACT_NAME,
+//            CONTRACT_VERSION,
+//            _getChainId(),
+//            address(this),
+//            proposalId,
+//            support,
+//            operatedPoolIds,
+//            // non-raw
+//            DOMAIN_TYPEHASH,
+//            keccak256(bytes(CONTRACT_NAME)),
+//            keccak256(bytes(CONTRACT_VERSION)),
+//            VOTE_TYPEHASH,
+//            abi.encodePacked(operatedPoolIds),
+//            keccak256(abi.encodePacked(operatedPoolIds)),
+//            // results
+//            domainSeparator,
+//            structHash,
+//            digest
+//        );
 
         return _castVote(signatory, proposalId, support, operatedPoolIds);
     }

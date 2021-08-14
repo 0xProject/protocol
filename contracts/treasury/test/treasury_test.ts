@@ -537,12 +537,39 @@ blockchainTests.resets('Treasury governance', env => {
 
             const vote = new Vote({
                 proposalId: VOTE_PROPOSAL_ID,
-                verifyingContract: admin,
+                verifyingContract: treasury.address,
+                chainId: 1337,
+                support: false,
             });
             const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = await treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v, signedVote.r, signedVote.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signedVote.v, signedVote.r, signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
+
+            // verifyEventsFromLogs(
+            //     tx.logs,
+            //     [
+            //         {
+            //             contractName: Vote.CONTRACT_NAME,
+            //             version: vote.version,
+            //             chainId: new BigNumber(vote.chainId),
+            //             verifyingContract: vote.verifyingContract,
+            //             proposalId: vote.proposalId,
+            //             support: vote.support,
+            //             operatedPoolIds: vote.operatedPoolIds,
+            //             domainTypeHash: hexUtils.leftPad(Vote.DOMAIN_TYPE_HASH),
+            //             hashedContractName: hexUtils.hash(hexUtils.toHex(Buffer.from(Vote.CONTRACT_NAME))),
+            //             hashedContractVersion: hexUtils.hash(hexUtils.toHex(Buffer.from(vote.version))),
+            //             voteTypeHash: hexUtils.leftPad(Vote.MESSAGE_TYPE_HASH),
+            //             concatPoolIds: hexUtils.concat(...vote.operatedPoolIds),
+            //             hashedOperatedPoolIds: hexUtils.hash(hexUtils.toHex(Buffer.from(hexUtils.concat(...vote.operatedPoolIds)))),
+            //             domainSeparator: vote.getDomainHash(),
+            //             structHash: vote.getStructHash(),
+            //             digest: vote.getEIP712Hash(),
+            //         },
+            //     ],
+            //     ZrxTreasuryEvents.DebugTreasury,
+            // );
 
             verifyEventsFromLogs(
                 tx.logs,
@@ -568,6 +595,7 @@ blockchainTests.resets('Treasury governance', env => {
             const secondVote = new Vote({
                 proposalId: VOTE_PROPOSAL_ID,
                 verifyingContract: admin,
+                support: false,
             });
             const signedVote = secondVote.getSignatureWithKey(delegatorPrivateKey);
             const secondVoteTx = treasury

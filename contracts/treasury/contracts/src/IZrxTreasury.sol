@@ -66,6 +66,28 @@ interface IZrxTreasury {
         uint256 votingPower
     );
 
+//    event DebugTreasury(
+//        // raw
+//        string contractName,
+//        string version,
+//        uint256 chainId,
+//        address verifyingContract,
+//        uint256 proposalId,
+//        bool support,
+//        bytes32[] operatedPoolIds,
+//        // non-raw
+//        bytes32 domainTypeHash,
+//        bytes32 hashedContractName,
+//        bytes32 hashedContractVersion,
+//        bytes32 voteTypeHash,
+//        bytes concatPoolIds,
+//        bytes32 hashedOperatedPoolIds,
+//        // results
+//        bytes32 domainSeparator,
+//        bytes32 structHash,
+//        bytes32 digest
+//    );
+
     event ProposalExecuted(uint256 proposalId);
 
     function stakingProxy()
