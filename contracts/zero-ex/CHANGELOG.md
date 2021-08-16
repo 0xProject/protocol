@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.28.0 - _August 16, 2021_
+
+    * Transfer output tokens in TransformERC20Feature (#279)
+    * Add support for takerToken=0xeee... in OtcOrdersFeature (#287)
+    * Add support for OTC orders in MultiplexFeature (#287)
+    * Multiplex v2: Refactor into multiple files, add ETH support, and other miscellanea (#263)
+
 ## v0.27.1 - _August 11, 2021_
 
     * Dependencies updated

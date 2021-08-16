@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.25.0 - _August 16, 2021_
+
+    * Fix: fallback fills which have not been used, unique id by source-index
+
 ## v16.24.1 - _August 11, 2021_
 
     * Dependencies updated

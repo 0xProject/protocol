@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.3.16 - _August 16, 2021_
+
+    * Dependencies updated
+
 ## v3.3.15 - _August 11, 2021_
 
     * Add ethers as a dependency (#305)
