@@ -68,19 +68,19 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.24.0":
-  version "16.24.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.24.0.tgz#f27e151e35c95f546bc9d9161c2451bfbc219164"
+"@0x/asset-swapper@^16.25.0":
+  version "16.25.0"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.25.0.tgz#b0257401d10f4aa0bd0c8c64f33f385cccf4bec3"
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
-    "@0x/contract-addresses" "^6.5.0"
-    "@0x/contract-wrappers" "^13.17.3"
-    "@0x/contracts-erc20" "^3.3.14"
-    "@0x/contracts-zero-ex" "^0.27.0"
+    "@0x/contract-addresses" "^6.6.0"
+    "@0x/contract-wrappers" "^13.17.4"
+    "@0x/contracts-erc20" "^3.3.16"
+    "@0x/contracts-zero-ex" "^0.28.0"
     "@0x/dev-utils" "^4.2.7"
     "@0x/json-schemas" "^6.1.3"
-    "@0x/protocol-utils" "^1.8.0"
+    "@0x/protocol-utils" "^1.8.2"
     "@0x/quote-server" "^6.0.2"
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
@@ -151,13 +151,9 @@
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.3.0.tgz#41a8e6691eaf6c4a25b62a69f7d9de7661f80e9f"
 
-"@0x/contract-addresses@^6.4.0":
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.4.0.tgz#5d093f4b34e8e58416387c83c3c2ca22dc7e2191"
-
-"@0x/contract-addresses@^6.5.0":
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.5.0.tgz#d01d728fd5985951577b373cea74a4b6cf2e1d3a"
+"@0x/contract-addresses@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.6.0.tgz#8525697a02a765e998211fb45814b4247ce7d820"
 
 "@0x/contract-wrappers@^13.13.0":
   version "13.13.0"
@@ -173,27 +169,13 @@
     ethereum-types "^3.4.0"
     ethers "~4.0.4"
 
-"@0x/contract-wrappers@^13.17.2":
-  version "13.17.2"
-  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.17.2.tgz#cca4a7627a7a78c73a1674f242792e6b987ce128"
+"@0x/contract-wrappers@^13.17.4":
+  version "13.17.4"
+  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.17.4.tgz#79c4964705e0a6d6eef8312901d897c13a7977e9"
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
-    "@0x/contract-addresses" "^6.4.0"
-    "@0x/json-schemas" "^6.1.3"
-    "@0x/types" "^3.3.3"
-    "@0x/utils" "^6.4.3"
-    "@0x/web3-wrapper" "^7.5.3"
-    ethereum-types "^3.5.0"
-    ethers "~4.0.4"
-
-"@0x/contract-wrappers@^13.17.3":
-  version "13.17.3"
-  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.17.3.tgz#dc8f157e27e756652017487a009cc87a9b5bdb92"
-  dependencies:
-    "@0x/assert" "^3.0.27"
-    "@0x/base-contract" "^6.4.0"
-    "@0x/contract-addresses" "^6.5.0"
+    "@0x/contract-addresses" "^6.6.0"
     "@0x/json-schemas" "^6.1.3"
     "@0x/types" "^3.3.3"
     "@0x/utils" "^6.4.3"
@@ -215,16 +197,16 @@
     ethereum-types "^3.5.0"
     ethers "~4.0.4"
 
-"@0x/contracts-asset-proxy@^3.7.16":
-  version "3.7.16"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-asset-proxy/-/contracts-asset-proxy-3.7.16.tgz#9d720b099a3ce02a966445a764a0b086eb2e8669"
+"@0x/contracts-asset-proxy@^3.7.19":
+  version "3.7.19"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-asset-proxy/-/contracts-asset-proxy-3.7.19.tgz#ee621a233f4d77b439c74c5b8d70db2e1ed001c4"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/contracts-erc1155" "^2.1.34"
-    "@0x/contracts-erc20" "^3.3.13"
-    "@0x/contracts-erc721" "^3.1.34"
-    "@0x/contracts-exchange-libs" "^4.3.34"
-    "@0x/order-utils" "^10.4.26"
+    "@0x/contracts-erc1155" "^2.1.37"
+    "@0x/contracts-erc20" "^3.3.16"
+    "@0x/contracts-erc721" "^3.1.37"
+    "@0x/contracts-exchange-libs" "^4.3.37"
+    "@0x/order-utils" "^10.4.28"
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
     "@0x/utils" "^6.4.3"
@@ -232,16 +214,16 @@
     ethereum-types "^3.5.0"
     lodash "^4.17.11"
 
-"@0x/contracts-coordinator@^3.1.35":
-  version "3.1.35"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-coordinator/-/contracts-coordinator-3.1.35.tgz#9fc001e617e0293f08d25adcda5ad7ae7d9bd4b2"
+"@0x/contracts-coordinator@^3.1.38":
+  version "3.1.38"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-coordinator/-/contracts-coordinator-3.1.38.tgz#88988c104bc8e987675c441a305073f1376f257b"
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
-    "@0x/contract-addresses" "^6.4.0"
-    "@0x/contracts-exchange" "^3.2.35"
-    "@0x/contracts-test-utils" "^5.4.5"
-    "@0x/contracts-utils" "^4.7.13"
+    "@0x/contract-addresses" "^6.6.0"
+    "@0x/contracts-exchange" "^3.2.38"
+    "@0x/contracts-test-utils" "^5.4.8"
+    "@0x/contracts-utils" "^4.7.16"
     "@0x/json-schemas" "^6.1.3"
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
@@ -249,113 +231,108 @@
     ethereum-types "^3.5.0"
     http-status-codes "^1.3.2"
 
-"@0x/contracts-dev-utils@^1.3.33":
-  version "1.3.33"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-dev-utils/-/contracts-dev-utils-1.3.33.tgz#9ae59d1ab48914b5e4991f198585888c868e521c"
+"@0x/contracts-dev-utils@^1.3.36":
+  version "1.3.36"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-dev-utils/-/contracts-dev-utils-1.3.36.tgz#f29304a0d7375001165ef6e66695d14b6a153fd7"
   dependencies:
     "@0x/base-contract" "^6.4.0"
     "@types/node" "12.12.54"
 
-"@0x/contracts-erc1155@^2.1.34":
-  version "2.1.34"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-erc1155/-/contracts-erc1155-2.1.34.tgz#e8daf46a829bc8cbfb0a8d2129754d79a172f5b2"
+"@0x/contracts-erc1155@^2.1.37":
+  version "2.1.37"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-erc1155/-/contracts-erc1155-2.1.37.tgz#98dc158ffd00f80771e4232ed2a5246ab4ab73c1"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/contracts-test-utils" "^5.4.5"
+    "@0x/contracts-test-utils" "^5.4.8"
     "@0x/utils" "^6.4.3"
     "@0x/web3-wrapper" "^7.5.3"
     lodash "^4.17.11"
 
-"@0x/contracts-erc20@^3.3.13":
-  version "3.3.13"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.13.tgz#401658c221481830f4d63ff82a64bb268920d0a9"
+"@0x/contracts-erc20@^3.3.16":
+  version "3.3.16"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.16.tgz#49076432e2f847eb1da63632c245f8fc48dec239"
+  dependencies:
+    "@0x/base-contract" "^6.4.0"
+    ethers "~4.0.4"
+
+"@0x/contracts-erc721@^3.1.37":
+  version "3.1.37"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-erc721/-/contracts-erc721-3.1.37.tgz#d7d356737e3d2752cf49be385237fbf7d0c5745c"
   dependencies:
     "@0x/base-contract" "^6.4.0"
 
-"@0x/contracts-erc20@^3.3.14":
-  version "3.3.14"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.14.tgz#158799221cd41e71dabc61e0d3e7563c254042ae"
-  dependencies:
-    "@0x/base-contract" "^6.4.0"
-
-"@0x/contracts-erc721@^3.1.34":
-  version "3.1.34"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-erc721/-/contracts-erc721-3.1.34.tgz#2c3ccaf68a0a6b48c824fe04211bf1ce408f5bf7"
-  dependencies:
-    "@0x/base-contract" "^6.4.0"
-
-"@0x/contracts-exchange-forwarder@^4.2.35":
-  version "4.2.35"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-exchange-forwarder/-/contracts-exchange-forwarder-4.2.35.tgz#e471730771c76efd61f4b6441efb990a622fb934"
+"@0x/contracts-exchange-forwarder@^4.2.38":
+  version "4.2.38"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-exchange-forwarder/-/contracts-exchange-forwarder-4.2.38.tgz#ba7ae06012ca526043c7c477851cff72405e80b1"
   dependencies:
     "@0x/base-contract" "^6.4.0"
     "@0x/typescript-typings" "^5.2.0"
     ethereum-types "^3.5.0"
 
-"@0x/contracts-exchange-libs@^4.3.34":
-  version "4.3.34"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-exchange-libs/-/contracts-exchange-libs-4.3.34.tgz#3ceb9afcaf73a281f30c15509624d4573efb6582"
+"@0x/contracts-exchange-libs@^4.3.37":
+  version "4.3.37"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-exchange-libs/-/contracts-exchange-libs-4.3.37.tgz#9413f76c77f8ec5231f21896a0e9f47cebe38680"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/contracts-test-utils" "^5.4.5"
-    "@0x/contracts-utils" "^4.7.13"
-    "@0x/order-utils" "^10.4.26"
+    "@0x/contracts-test-utils" "^5.4.8"
+    "@0x/contracts-utils" "^4.7.16"
+    "@0x/order-utils" "^10.4.28"
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
     "@0x/utils" "^6.4.3"
     ethereum-types "^3.5.0"
 
-"@0x/contracts-exchange@^3.2.35":
-  version "3.2.35"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-exchange/-/contracts-exchange-3.2.35.tgz#98383fd9396e4df82a80ef299f38f07ec59b9481"
+"@0x/contracts-exchange@^3.2.38":
+  version "3.2.38"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-exchange/-/contracts-exchange-3.2.38.tgz#51b12882283c816eebdb53f1c77805956112dfee"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/contracts-dev-utils" "^1.3.33"
-    "@0x/contracts-erc1155" "^2.1.34"
-    "@0x/contracts-erc20" "^3.3.13"
-    "@0x/contracts-erc721" "^3.1.34"
-    "@0x/order-utils" "^10.4.26"
+    "@0x/contracts-dev-utils" "^1.3.36"
+    "@0x/contracts-erc1155" "^2.1.37"
+    "@0x/contracts-erc20" "^3.3.16"
+    "@0x/contracts-erc721" "^3.1.37"
+    "@0x/order-utils" "^10.4.28"
     "@0x/utils" "^6.4.3"
     lodash "^4.17.11"
 
-"@0x/contracts-extensions@^6.2.29":
-  version "6.2.29"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-extensions/-/contracts-extensions-6.2.29.tgz#61311ddc42fef28b1b14619c477ec9dbbce516b6"
+"@0x/contracts-extensions@^6.2.32":
+  version "6.2.32"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-extensions/-/contracts-extensions-6.2.32.tgz#2a2e3cad5a5b69f2aa0e6b62513b2b1acfe421f0"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/contracts-test-utils" "^5.4.5"
+    "@0x/contracts-test-utils" "^5.4.8"
     "@0x/typescript-typings" "^5.2.0"
     ethereum-types "^3.5.0"
 
-"@0x/contracts-multisig@^4.1.35":
-  version "4.1.35"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-multisig/-/contracts-multisig-4.1.35.tgz#dff6654577be0d60b7b8ab7708ccfa3a4c44d5a5"
+"@0x/contracts-multisig@^4.1.38":
+  version "4.1.38"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-multisig/-/contracts-multisig-4.1.38.tgz#e4357b45fe3d4c56bff144fb267d0bb95b8eb46b"
   dependencies:
     "@0x/base-contract" "^6.4.0"
     "@0x/typescript-typings" "^5.2.0"
     ethereum-types "^3.5.0"
 
-"@0x/contracts-staking@^2.0.42":
-  version "2.0.42"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-staking/-/contracts-staking-2.0.42.tgz#8e754ebdede13cc1ca35de8d31c114d9e1cb037d"
+"@0x/contracts-staking@^2.0.45":
+  version "2.0.45"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-staking/-/contracts-staking-2.0.45.tgz#48a495d7ab1240cb4859e7a2ae6c1c78511bb6ed"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/contracts-test-utils" "^5.4.5"
+    "@0x/contracts-test-utils" "^5.4.8"
     "@0x/typescript-typings" "^5.2.0"
     "@0x/utils" "^6.4.3"
     ethereum-types "^3.5.0"
     ethereumjs-util "^7.0.10"
 
-"@0x/contracts-test-utils@^5.4.5":
-  version "5.4.5"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-test-utils/-/contracts-test-utils-5.4.5.tgz#cc4c8604d5485d4a06110bab8fda0f464c6a1bed"
+"@0x/contracts-test-utils@^5.4.8":
+  version "5.4.8"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-test-utils/-/contracts-test-utils-5.4.8.tgz#00a1e748e2e8c815790d5a8fad33bb0de63220c6"
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
-    "@0x/contract-addresses" "^6.4.0"
+    "@0x/contract-addresses" "^6.6.0"
     "@0x/dev-utils" "^4.2.7"
     "@0x/json-schemas" "^6.1.3"
-    "@0x/order-utils" "^10.4.26"
+    "@0x/order-utils" "^10.4.28"
     "@0x/sol-coverage" "^4.0.37"
     "@0x/sol-profiler" "^4.1.27"
     "@0x/sol-trace" "^3.0.37"
@@ -383,9 +360,9 @@
     make-promises-safe "^1.1.0"
     mocha "^6.2.0"
 
-"@0x/contracts-utils@^4.7.13":
-  version "4.7.13"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-utils/-/contracts-utils-4.7.13.tgz#e4129f36c5397334c8a682c345de63edad8ca0d6"
+"@0x/contracts-utils@^4.7.16":
+  version "4.7.16"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-utils/-/contracts-utils-4.7.16.tgz#aa28336599ba06697c52b58a1cb71d564d735106"
   dependencies:
     "@0x/base-contract" "^6.4.0"
     "@0x/typescript-typings" "^5.2.0"
@@ -393,26 +370,12 @@
     bn.js "^4.11.8"
     ethereum-types "^3.5.0"
 
-"@0x/contracts-zero-ex@^0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.26.0.tgz#9d9113dd43ed210c2f57637fa8093be95d4daec4"
+"@0x/contracts-zero-ex@^0.28.0":
+  version "0.28.0"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.28.0.tgz#b511dc181b5bcf1bf344323bf2f8289a7969ba97"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/protocol-utils" "^1.7.2"
-    "@0x/subproviders" "^6.5.3"
-    "@0x/types" "^3.3.3"
-    "@0x/typescript-typings" "^5.2.0"
-    "@0x/utils" "^6.4.3"
-    "@0x/web3-wrapper" "^7.5.3"
-    ethereum-types "^3.5.0"
-    ethereumjs-util "^7.0.10"
-
-"@0x/contracts-zero-ex@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.27.0.tgz#9ea0240c8db65176e3edb68c096432129de623bf"
-  dependencies:
-    "@0x/base-contract" "^6.4.0"
-    "@0x/protocol-utils" "^1.8.0"
+    "@0x/protocol-utils" "^1.8.2"
     "@0x/subproviders" "^6.5.3"
     "@0x/types" "^3.3.3"
     "@0x/typescript-typings" "^5.2.0"
@@ -510,25 +473,25 @@
     ws "^7.3.1"
     zen-observable "^0.8.15"
 
-"@0x/migrations@^8.0.11":
-  version "8.0.11"
-  resolved "https://registry.yarnpkg.com/@0x/migrations/-/migrations-8.0.11.tgz#78da35d56acfad2099377959a573962d6178162f"
+"@0x/migrations@^8.1.1":
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/@0x/migrations/-/migrations-8.1.1.tgz#ed4861f45842ebe7b4aabc067386795b87b0dfef"
   dependencies:
     "@0x/base-contract" "^6.4.0"
-    "@0x/contract-addresses" "^6.4.0"
-    "@0x/contracts-asset-proxy" "^3.7.16"
-    "@0x/contracts-coordinator" "^3.1.35"
-    "@0x/contracts-dev-utils" "^1.3.33"
-    "@0x/contracts-erc1155" "^2.1.34"
-    "@0x/contracts-erc20" "^3.3.13"
-    "@0x/contracts-erc721" "^3.1.34"
-    "@0x/contracts-exchange" "^3.2.35"
-    "@0x/contracts-exchange-forwarder" "^4.2.35"
-    "@0x/contracts-extensions" "^6.2.29"
-    "@0x/contracts-multisig" "^4.1.35"
-    "@0x/contracts-staking" "^2.0.42"
-    "@0x/contracts-utils" "^4.7.13"
-    "@0x/contracts-zero-ex" "^0.26.0"
+    "@0x/contract-addresses" "^6.6.0"
+    "@0x/contracts-asset-proxy" "^3.7.19"
+    "@0x/contracts-coordinator" "^3.1.38"
+    "@0x/contracts-dev-utils" "^1.3.36"
+    "@0x/contracts-erc1155" "^2.1.37"
+    "@0x/contracts-erc20" "^3.3.16"
+    "@0x/contracts-erc721" "^3.1.37"
+    "@0x/contracts-exchange" "^3.2.38"
+    "@0x/contracts-exchange-forwarder" "^4.2.38"
+    "@0x/contracts-extensions" "^6.2.32"
+    "@0x/contracts-multisig" "^4.1.38"
+    "@0x/contracts-staking" "^2.0.45"
+    "@0x/contracts-utils" "^4.7.16"
+    "@0x/contracts-zero-ex" "^0.28.0"
     "@0x/sol-compiler" "^4.7.3"
     "@0x/subproviders" "^6.5.3"
     "@0x/typescript-typings" "^5.2.0"
@@ -556,27 +519,13 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/order-utils@^10.4.26":
-  version "10.4.26"
-  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.26.tgz#d02eb041ed8d392242c639cd671a2561a2a84154"
+"@0x/order-utils@^10.4.28":
+  version "10.4.28"
+  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.28.tgz#c7b2f7d87a7f9834f9aa6186fbac68f32a05a81d"
   dependencies:
     "@0x/assert" "^3.0.27"
-    "@0x/contract-addresses" "^6.4.0"
-    "@0x/contract-wrappers" "^13.17.2"
-    "@0x/json-schemas" "^6.1.3"
-    "@0x/utils" "^6.4.3"
-    "@0x/web3-wrapper" "^7.5.3"
-    ethereumjs-util "^7.0.10"
-    ethers "~4.0.4"
-    lodash "^4.17.11"
-
-"@0x/order-utils@^10.4.27":
-  version "10.4.27"
-  resolved "https://registry.yarnpkg.com/@0x/order-utils/-/order-utils-10.4.27.tgz#4762eebc0e5dd4bdfd64113abed32634d5098cf6"
-  dependencies:
-    "@0x/assert" "^3.0.27"
-    "@0x/contract-addresses" "^6.5.0"
-    "@0x/contract-wrappers" "^13.17.3"
+    "@0x/contract-addresses" "^6.6.0"
+    "@0x/contract-wrappers" "^13.17.4"
     "@0x/json-schemas" "^6.1.3"
     "@0x/utils" "^6.4.3"
     "@0x/web3-wrapper" "^7.5.3"
@@ -600,29 +549,13 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/protocol-utils@^1.7.2":
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.7.2.tgz#165968ed14c3c94a40982f743131e2f754e207f3"
+"@0x/protocol-utils@^1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.8.2.tgz#c457d93a53fd06f6a38283021e450386c8195b0b"
   dependencies:
     "@0x/assert" "^3.0.27"
-    "@0x/contract-addresses" "^6.4.0"
-    "@0x/contract-wrappers" "^13.17.2"
-    "@0x/json-schemas" "^6.1.3"
-    "@0x/subproviders" "^6.5.3"
-    "@0x/utils" "^6.4.3"
-    "@0x/web3-wrapper" "^7.5.3"
-    chai "^4.0.1"
-    ethereumjs-util "^7.0.10"
-    ethers "~4.0.4"
-    lodash "^4.17.11"
-
-"@0x/protocol-utils@^1.8.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.8.0.tgz#0dd2b30cba29e30f084f2c3d152943d1f7ceab6f"
-  dependencies:
-    "@0x/assert" "^3.0.27"
-    "@0x/contract-addresses" "^6.5.0"
-    "@0x/contract-wrappers" "^13.17.3"
+    "@0x/contract-addresses" "^6.6.0"
+    "@0x/contract-wrappers" "^13.17.4"
     "@0x/json-schemas" "^6.1.3"
     "@0x/subproviders" "^6.5.3"
     "@0x/utils" "^6.4.3"
