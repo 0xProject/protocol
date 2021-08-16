@@ -99,14 +99,18 @@ export class Path {
         // In the previous step we dropped any hanging Native partial fills, as to not fully fill
         const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native);
         const otherFills = this.fills.filter(f => f.source !== ERC20BridgeSource.Native);
-        const otherSourcePathIds = otherFills.map(f => f.sourcePathId);
+
+        // Map to the unique source id and the index to represent a unique fill
+        const fillToFillId = (fill: Fill) => `${fill.sourcePathId}${fill.index}`;
+        const otherFillIds = otherFills.map(f => fillToFillId(f));
+
         this.fills = [
             // Append all of the native fills first
             ...nativeFills.filter(f => f !== lastNativeFillIfExists),
             // Add the other fills that are not native in the optimal path
             ...otherFills,
-            // Add the fallbacks to the end that aren't already included
-            ...fallback.fills.filter(f => !otherSourcePathIds.includes(f.sourcePathId)),
+            // Add the fills to the end that aren't already included
+            ...fallback.fills.filter(f => !otherFillIds.includes(fillToFillId(f))),
         ];
         // Recompute the source flags
         this.sourceFlags = this.fills.reduce((flags, fill) => flags | fill.flags, BigInt(0));
