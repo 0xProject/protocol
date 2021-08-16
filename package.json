@@ -92,6 +92,9 @@
             ]
         ]
     },
+    "resolutions": {
+        "@0x/contracts-zero-ex": "^0.27.0"
+    },
     "devDependencies": {
         "@0x/contracts-erc20": "^3.3.16",
         "@0x/contracts-test-utils": "^5.4.8",
@@ -141,7 +144,7 @@
         "@0x/asset-swapper": "^16.25.0",
         "@0x/contract-addresses": "^6.6.0",
         "@0x/contract-wrappers": "^13.17.4",
-        "@0x/contracts-zero-ex": "^0.28.0",
+        "@0x/contracts-zero-ex": "^0.27.0",
         "@0x/json-schemas": "^6.2.0",
         "@0x/mesh-graphql-client": "^11.2.0",
         "@0x/order-utils": "^10.4.28",
