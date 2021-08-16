@@ -7,6 +7,7 @@ import { ERC20BridgeSource, Fill } from '../src/utils/market_operation_utils/typ
 
 const createFill = (
     source: ERC20BridgeSource,
+    index: number = 0,
     input: BigNumber = new BigNumber(100),
     output: BigNumber = new BigNumber(100),
 ): Fill =>
@@ -18,6 +19,7 @@ const createFill = (
         adjustedOutput: output,
         flags: BigInt(0),
         sourcePathId: source,
+        index,
     } as Fill);
 
 describe('Path', () => {
@@ -82,5 +84,27 @@ describe('Path', () => {
         path.addFallback(fallback);
         const sources = path.fills.map(f => f.source);
         expect(sources).to.deep.eq([ERC20BridgeSource.Uniswap, ERC20BridgeSource.LiquidityProvider]);
+    });
+    it('Removes partial Native orders and replaces with unused fills', () => {
+        const targetInput = new BigNumber(100);
+        const path = Path.create(
+            MarketOperation.Sell,
+            [
+                createFill(ERC20BridgeSource.Uniswap, 0, new BigNumber(50)),
+                createFill(ERC20BridgeSource.Native, 0, new BigNumber(50)),
+            ],
+            targetInput,
+        );
+        const fallback = Path.create(
+            MarketOperation.Sell,
+            [
+                createFill(ERC20BridgeSource.Uniswap, 0, new BigNumber(50)),
+                createFill(ERC20BridgeSource.Uniswap, 1, new BigNumber(50)),
+            ],
+            targetInput,
+        );
+        path.addFallback(fallback);
+        const sources = path.fills.map(f => f.source);
+        expect(sources).to.deep.eq([ERC20BridgeSource.Uniswap, ERC20BridgeSource.Uniswap]);
     });
 });
