@@ -1,3 +1,4 @@
+// tslint:disable: custom-no-magic-numbers
 import { tokenUtils } from '@0x/dev-utils';
 import { ETH_TOKEN_ADDRESS, FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
 import { TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '@0x/quote-server';
@@ -63,6 +64,26 @@ describe('QuoteRequestor', async () => {
             },
         ],
     };
+
+    it('correctly gets expiration context for expired orders', () => {
+        const nowSeconds = new BigNumber(Math.floor(new Date().getTime() / 1000));
+        const inTenSeconds = nowSeconds.minus(10);
+        const expiryBufferMs = 120000;
+
+        const {isExpirationTooSoon, secondsRemaining} = QuoteRequestor.getExpirationContext(inTenSeconds, expiryBufferMs);
+        expect(isExpirationTooSoon).to.eql(true);
+        expect(secondsRemaining.toString()).to.eql('0');
+    });
+
+    it('correctly gets expiration context for unexpired orders', () => {
+        const nowSeconds = new BigNumber(Math.floor(new Date().getTime() / 1000));
+        const inTenSeconds = nowSeconds.plus(180);
+        const expiryBufferMs = 120000;
+
+        const {isExpirationTooSoon, secondsRemaining} = QuoteRequestor.getExpirationContext(inTenSeconds, expiryBufferMs);
+        expect(isExpirationTooSoon).to.eql(false);
+        expect(secondsRemaining.gt(0)).to.eq(true);
+    });
 
     describe('requestRfqmFirmQuotesAsync for firm quotes', async () => {
         it('should return successful RFQM requests', async () => {
