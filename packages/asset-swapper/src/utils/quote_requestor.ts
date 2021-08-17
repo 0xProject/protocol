@@ -361,10 +361,12 @@ export class QuoteRequestor {
         return true;
     }
 
-    private _isExpirationTooSoon(expirationTimeSeconds: BigNumber): boolean {
+    private _isExpirationTooSoon(expirationTimeSeconds: BigNumber): {isExpirationTooSoon: boolean; secondsRemaining: BigNumber} {
         const expirationTimeMs = expirationTimeSeconds.times(constants.ONE_SECOND_MS);
         const currentTimeMs = new BigNumber(Date.now());
-        return expirationTimeMs.isLessThan(currentTimeMs.plus(this._expiryBufferMs));
+        const isExpirationTooSoon = expirationTimeMs.isLessThan(currentTimeMs.plus(this._expiryBufferMs));
+        const secondsRemaining = BigNumber.max(expirationTimeMs.minus(currentTimeMs), 0);
+        return {isExpirationTooSoon, secondsRemaining};
     }
 
     private async _getQuotesAsync<ResponseT>(
@@ -587,12 +589,13 @@ export class QuoteRequestor {
                 return false;
             }
             const isLastLook = Boolean(options.isLastLook);
-            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
+            const {secondsRemaining, isExpirationTooSoon} = this._isExpirationTooSoon(new BigNumber(order.expiry));
+            if (isExpirationTooSoon) {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
                 this._metrics?.incrementExpirationToSoonCounter(isLastLook, order.maker);
                 return false;
             } else {
-                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, order.expiry);
+                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, secondsRemaining);
 
                 const takerAmount = new BigNumber(order.takerAmount);
                 const fillRatio = takerAmount.div(assetFillAmount);
