@@ -155,14 +155,16 @@ function createPathFromSamples(
         //// Set the first fill just a tad higher
         const adjustedInput =
             totalInputs.lt(input) && adjustedFills.length === 0 ? rustInput.plus(input.minus(totalInputs)) : rustInput;
-        const adjustedOutput = fill.output
-            .dividedBy(fill.input)
-            .times(adjustedInput)
-            .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+        const scaleOutput = (output: BigNumber) =>
+            output
+                .dividedBy(fill.input)
+                .times(adjustedInput)
+                .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
         adjustedFills.push({
             ...fill,
             input: adjustedInput,
-            output: adjustedOutput,
+            output: scaleOutput(fill.output),
+            adjustedOutput: scaleOutput(fill.adjustedOutput),
             index: 0,
             parent: undefined,
         });
