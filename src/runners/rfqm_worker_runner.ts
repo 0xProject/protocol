@@ -4,7 +4,7 @@
 import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import { SQS } from 'aws-sdk';
 import * as express from 'express';
-import { Counter } from 'prom-client';
+import { Counter, Summary } from 'prom-client';
 
 import {
     ENABLE_PROMETHEUS_METRICS,
@@ -26,16 +26,25 @@ import { buildRfqmServiceAsync } from './http_rfqm_service_runner';
 const RFQM_JOB_DEQUEUED = new Counter({
     name: 'rfqm_job_dequeued',
     help: 'An Rfqm Job was pulled from the queue',
+    labelNames: ['address'],
 });
 
 const RFQM_JOB_COMPLETED = new Counter({
     name: 'rfqm_job_completed',
     help: 'An Rfqm Job completed with no errors',
+    labelNames: ['address'],
+});
+
+const RFQM_JOB_PROCESSING_TIME = new Summary({
+    name: 'rfqm_job_processing_time',
+    help: 'The time it takes to process an RFQM job',
+    labelNames: ['address'],
 });
 
 const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
     name: 'rfqm_job_completed_with_error',
     help: 'An Rfqm Job completed with an error',
+    labelNames: ['address'],
 });
 
 process.on('uncaughtException', (err) => {
@@ -89,21 +98,24 @@ export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress
         sqsClient,
         beforeHandle: async () => rfqmService.workerBeforeLogicAsync(workerAddress),
         handleMessage: async (message) => {
-            RFQM_JOB_DEQUEUED.inc();
+            RFQM_JOB_DEQUEUED.labels(workerAddress).inc();
             const { orderHash } = JSON.parse(message.Body!);
             logger.info({ workerAddress, orderHash }, 'about to process job');
-            return rfqmService.processRfqmJobAsync(orderHash, workerAddress);
+            const stopTimer = RFQM_JOB_PROCESSING_TIME.labels(workerAddress).startTimer();
+            const outcome = await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
+            stopTimer();
+            return outcome;
         },
         afterHandle: async (message, error) => {
             const orderHash = message.Body!;
             if (error !== undefined) {
-                RFQM_JOB_COMPLETED_WITH_ERROR.inc();
+                RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress).inc();
                 logger.warn({ workerAddress, orderHash, error }, 'job completed with error');
                 return;
             }
 
             logger.info({ workerAddress, orderHash }, 'job completed without errors');
-            RFQM_JOB_COMPLETED.inc();
+            RFQM_JOB_COMPLETED.labels(workerAddress).inc();
         },
     });
 

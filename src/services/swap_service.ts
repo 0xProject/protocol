@@ -70,6 +70,7 @@ import {
 } from '../types';
 import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
 import { marketDepthUtils } from '../utils/market_depth_utils';
+import { METRICS_PROXY } from '../utils/metrics_service';
 import { paginationUtils } from '../utils/pagination_utils';
 import { createResultCache } from '../utils/result_cache';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
@@ -157,6 +158,7 @@ export class SwapService {
                 warningLogger: logger.warn.bind(logger),
                 infoLogger: logger.info.bind(logger),
                 axiosInstanceOpts: axiosOpts,
+                metricsProxy: METRICS_PROXY,
             },
             contractAddresses,
         };

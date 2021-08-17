@@ -44,6 +44,7 @@ import { createRfqmRouter } from '../routers/rfqm_router';
 import { RfqmService } from '../services/rfqm_service';
 import { HttpServiceConfig } from '../types';
 import { ConfigManager } from '../utils/config_manager';
+import { METRICS_PROXY } from '../utils/metrics_service';
 import { providerUtils } from '../utils/provider_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
@@ -116,6 +117,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         logger.warn.bind(logger),
         logger.info.bind(logger),
         SWAP_QUOTER_OPTS.expiryBufferMs,
+        METRICS_PROXY,
     );
 
     const protocolFeeUtils = ProtocolFeeUtils.getInstance(
