@@ -70,7 +70,10 @@ describe('QuoteRequestor', async () => {
         const inTenSeconds = nowSeconds.minus(10);
         const expiryBufferMs = 120000;
 
-        const {isExpirationTooSoon, secondsRemaining} = QuoteRequestor.getExpirationContext(inTenSeconds, expiryBufferMs);
+        const { isExpirationTooSoon, secondsRemaining } = QuoteRequestor.getExpirationContext(
+            inTenSeconds,
+            expiryBufferMs,
+        );
         expect(isExpirationTooSoon).to.eql(true);
         expect(secondsRemaining.toString()).to.eql('0');
     });
@@ -80,7 +83,10 @@ describe('QuoteRequestor', async () => {
         const inTenSeconds = nowSeconds.plus(180);
         const expiryBufferMs = 120000;
 
-        const {isExpirationTooSoon, secondsRemaining} = QuoteRequestor.getExpirationContext(inTenSeconds, expiryBufferMs);
+        const { isExpirationTooSoon, secondsRemaining } = QuoteRequestor.getExpirationContext(
+            inTenSeconds,
+            expiryBufferMs,
+        );
         expect(isExpirationTooSoon).to.eql(false);
         expect(secondsRemaining.gt(0)).to.eq(true);
     });
