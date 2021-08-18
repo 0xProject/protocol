@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.26.0",
+        "changes": [
+            {
+                "note": "feat: Enable partial Native fills to be consumed, previously for v3 they were dropped"
+            }
+        ]
+    },
+    {
         "version": "16.25.0",
         "changes": [
             {
