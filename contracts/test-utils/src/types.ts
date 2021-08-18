@@ -10,33 +10,6 @@ export interface ERC20BalancesByOwner {
     };
 }
 
-export interface ERC721TokenIdsByOwner {
-    [ownerAddress: string]: {
-        [tokenAddress: string]: BigNumber[];
-    };
-}
-
-export interface ERC1155FungibleHoldingsByOwner {
-    [ownerAddress: string]: {
-        [tokenAddress: string]: {
-            [tokenId: string]: BigNumber;
-        };
-    };
-}
-
-export interface ERC1155NonFungibleHoldingsByOwner {
-    [ownerAddress: string]: {
-        [tokenAddress: string]: {
-            [tokenId: string]: BigNumber[];
-        };
-    };
-}
-
-export interface ERC1155HoldingsByOwner {
-    fungible: ERC1155FungibleHoldingsByOwner;
-    nonFungible: ERC1155NonFungibleHoldingsByOwner;
-}
-
 export interface EthBalancesByOwner {
     [owner: string]: BigNumber;
 }
@@ -142,21 +115,8 @@ export interface MatchOrder {
     rightSignature: string;
 }
 
-export interface ERC1155Holdings {
-    [owner: string]: {
-        [contract: string]: {
-            fungible: {
-                [tokenId: string]: BigNumber;
-            };
-            nonFungible: BigNumber[];
-        };
-    };
-}
-
 export interface TokenBalances {
     erc20: ERC20BalancesByOwner;
-    erc721: ERC721TokenIdsByOwner;
-    erc1155: ERC1155Holdings;
     eth: EthBalancesByOwner;
 }
 

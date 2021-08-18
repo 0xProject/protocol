@@ -17,6 +17,8 @@ import * as LibBytesRichErrors from '../generated-artifacts/LibBytesRichErrors.j
 import * as LibEIP1271 from '../generated-artifacts/LibEIP1271.json';
 import * as LibEIP712 from '../generated-artifacts/LibEIP712.json';
 import * as LibFractions from '../generated-artifacts/LibFractions.json';
+import * as LibMath from '../generated-artifacts/LibMath.json';
+import * as LibMathRichErrors from '../generated-artifacts/LibMathRichErrors.json';
 import * as LibOwnableRichErrors from '../generated-artifacts/LibOwnableRichErrors.json';
 import * as LibReentrancyGuardRichErrors from '../generated-artifacts/LibReentrancyGuardRichErrors.json';
 import * as LibRichErrors from '../generated-artifacts/LibRichErrors.json';
@@ -41,6 +43,8 @@ export const artifacts = {
     LibOwnableRichErrors: LibOwnableRichErrors as ContractArtifact,
     LibReentrancyGuardRichErrors: LibReentrancyGuardRichErrors as ContractArtifact,
     LibRichErrors: LibRichErrors as ContractArtifact,
+    LibMath: LibMath as ContractArtifact,
+    LibMathRichErrors: LibMathRichErrors as ContractArtifact,
     LibSafeMath: LibSafeMath as ContractArtifact,
     LibSafeMathRichErrors: LibSafeMathRichErrors as ContractArtifact,
     Ownable: Ownable as ContractArtifact,
