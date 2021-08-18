@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.28.2",
+        "changes": [
+            {
+                "note": "Add ethers as an explicit dependency",
+                "pr": 310
+            }
+        ]
+    },
+    {
         "timestamp": 1629353596,
         "version": "0.28.1",
         "changes": [
