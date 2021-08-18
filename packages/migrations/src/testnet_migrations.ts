@@ -1,18 +1,5 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import {
-    artifacts as assetProxyArtifacts,
-    ChaiBridgeContract,
-    DydxBridgeContract,
-    ERC20BridgeProxyContract,
-    Eth2DaiBridgeContract,
-    KyberBridgeContract,
-    UniswapBridgeContract,
-} from '@0x/contracts-asset-proxy';
-import { artifacts as coordinatorArtifacts, CoordinatorContract } from '@0x/contracts-coordinator';
-import { artifacts as devUtilsArtifacts, DevUtilsContract } from '@0x/contracts-dev-utils';
-import { artifacts as exchangeArtifacts, ExchangeContract } from '@0x/contracts-exchange';
-import { artifacts as forwarderArtifacts, ForwarderContract } from '@0x/contracts-exchange-forwarder';
-import {
     artifacts as multisigArtifacts,
     ZeroExGovernorContract,
     ZeroExGovernorSubmissionEventArgs,
@@ -69,62 +56,12 @@ export async function runMigrationsAsync(supportedProvider: SupportedProvider, t
         stakingArtifacts,
     );
 
-    const exchange = await ExchangeContract.deployFrom0xArtifactAsync(
-        exchangeArtifacts.Exchange,
-        provider,
-        txDefaults,
-        exchangeArtifacts,
-        chainId,
-    );
-
     const stakingProxy = await StakingProxyContract.deployFrom0xArtifactAsync(
         stakingArtifacts.StakingProxy,
         provider,
         txDefaults,
         stakingArtifacts,
         stakingLogic.address,
-    );
-
-    const erc20BridgeProxy = await ERC20BridgeProxyContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.ERC20BridgeProxy,
-        provider,
-        txDefaults,
-        assetProxyArtifacts,
-    );
-
-    await UniswapBridgeContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.UniswapBridge,
-        provider,
-        txDefaults,
-        assetProxyArtifacts,
-    );
-
-    await Eth2DaiBridgeContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.Eth2DaiBridge,
-        provider,
-        txDefaults,
-        assetProxyArtifacts,
-    );
-
-    await KyberBridgeContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.KyberBridge,
-        provider,
-        txDefaults,
-        assetProxyArtifacts,
-    );
-
-    const chaiBridge = await ChaiBridgeContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.ChaiBridge,
-        provider,
-        txDefaults,
-        assetProxyArtifacts,
-    );
-
-    const dydxBridge = await DydxBridgeContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.DydxBridge,
-        provider,
-        txDefaults,
-        assetProxyArtifacts,
     );
 
     const authorizableInterface = new IAuthorizableContract(constants.NULL_ADDRESS, provider, txDefaults);
@@ -145,24 +82,6 @@ export async function runMigrationsAsync(supportedProvider: SupportedProvider, t
         configs.zeroExGovernor.secondsTimeLocked,
     );
 
-    logUtils.log('Configuring Exchange...');
-    await exchange.setProtocolFeeCollectorAddress(stakingProxy.address).awaitTransactionSuccessAsync();
-    await exchange.setProtocolFeeMultiplier(new BigNumber(150000)).awaitTransactionSuccessAsync();
-    await exchange.registerAssetProxy(deployedAddresses.erc20Proxy).awaitTransactionSuccessAsync();
-    await exchange.registerAssetProxy(deployedAddresses.erc721Proxy).awaitTransactionSuccessAsync();
-    await exchange.registerAssetProxy(deployedAddresses.erc1155Proxy).awaitTransactionSuccessAsync();
-    await exchange.registerAssetProxy(deployedAddresses.multiAssetProxy).awaitTransactionSuccessAsync();
-    await exchange.registerAssetProxy(deployedAddresses.staticCallProxy).awaitTransactionSuccessAsync();
-    await exchange.registerAssetProxy(erc20BridgeProxy.address).awaitTransactionSuccessAsync();
-    await exchange.transferOwnership(governor.address).awaitTransactionSuccessAsync();
-    logUtils.log('Exchange configured!');
-
-    logUtils.log('Configuring ERC20BridgeProxy...');
-    await erc20BridgeProxy.addAuthorizedAddress(exchange.address).awaitTransactionSuccessAsync();
-    await erc20BridgeProxy.addAuthorizedAddress(deployedAddresses.multiAssetProxy).awaitTransactionSuccessAsync();
-    await erc20BridgeProxy.transferOwnership(governor.address).awaitTransactionSuccessAsync();
-    logUtils.log('ERC20BridgeProxy configured!');
-
     logUtils.log('Configuring ZrxVault...');
     await zrxVault.addAuthorizedAddress(txDefaults.from).awaitTransactionSuccessAsync();
     await zrxVault.setStakingProxy(stakingProxy.address).awaitTransactionSuccessAsync();
@@ -173,8 +92,6 @@ export async function runMigrationsAsync(supportedProvider: SupportedProvider, t
 
     logUtils.log('Configuring StakingProxy...');
     await stakingProxy.addAuthorizedAddress(txDefaults.from).awaitTransactionSuccessAsync();
-    const staking = new StakingContract(stakingProxy.address, provider, txDefaults);
-    await staking.addExchangeAddress(exchange.address).awaitTransactionSuccessAsync();
     await stakingProxy.removeAuthorizedAddress(txDefaults.from).awaitTransactionSuccessAsync();
     await stakingProxy.addAuthorizedAddress(governor.address).awaitTransactionSuccessAsync();
     await stakingProxy.transferOwnership(governor.address).awaitTransactionSuccessAsync();
@@ -213,27 +130,7 @@ export async function runMigrationsAsync(supportedProvider: SupportedProvider, t
         // AssetProxy configs
         {
             destination: deployedAddresses.erc20Proxy,
-            data: authorizableInterface.addAuthorizedAddress(exchange.address).getABIEncodedTransactionData(),
-        },
-        {
-            destination: deployedAddresses.erc20Proxy,
             data: authorizableInterface.addAuthorizedAddress(zrxVault.address).getABIEncodedTransactionData(),
-        },
-        {
-            destination: deployedAddresses.erc721Proxy,
-            data: authorizableInterface.addAuthorizedAddress(exchange.address).getABIEncodedTransactionData(),
-        },
-        {
-            destination: deployedAddresses.erc1155Proxy,
-            data: authorizableInterface.addAuthorizedAddress(exchange.address).getABIEncodedTransactionData(),
-        },
-        {
-            destination: deployedAddresses.multiAssetProxy,
-            data: authorizableInterface.addAuthorizedAddress(exchange.address).getABIEncodedTransactionData(),
-        },
-        {
-            destination: deployedAddresses.multiAssetProxy,
-            data: exchange.registerAssetProxy(erc20BridgeProxy.address).getABIEncodedTransactionData(),
         },
     ];
 
@@ -244,36 +141,6 @@ export async function runMigrationsAsync(supportedProvider: SupportedProvider, t
         functionCalls.map(() => constants.ZERO_AMOUNT),
     ]);
     await submitAndExecuteTransactionAsync(governor, governor.address, batchTransactionData);
-
-    await DevUtilsContract.deployWithLibrariesFrom0xArtifactAsync(
-        devUtilsArtifacts.DevUtils,
-        devUtilsArtifacts,
-        provider,
-        txDefaults,
-        devUtilsArtifacts,
-        exchange.address,
-        chaiBridge.address,
-        dydxBridge.address,
-    );
-
-    await CoordinatorContract.deployFrom0xArtifactAsync(
-        coordinatorArtifacts.Coordinator,
-        provider,
-        txDefaults,
-        coordinatorArtifacts,
-        exchange.address,
-        chainId,
-    );
-
-    await ForwarderContract.deployFrom0xArtifactAsync(
-        forwarderArtifacts.Forwarder,
-        provider,
-        txDefaults,
-        forwarderArtifacts,
-        exchange.address,
-        deployedAddresses.exchangeV2,
-        deployedAddresses.etherToken,
-    );
 }
 
 (async () => {

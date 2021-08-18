@@ -90,6 +90,7 @@
         "@ledgerhq/hw-app-eth": "^4.3.0",
         "@types/web3-provider-engine": "^14.0.0",
         "ethereum-types": "^3.5.0",
+        "ethereumjs-util": "^7.1.0",
         "ethers": "~4.0.4",
         "lodash": "^4.17.11"
     },
