@@ -264,39 +264,6 @@ describe('DexSampler tests', () => {
             ]);
         });
 
-        it('getEth2DaiSellQuotes()', async () => {
-            const expectedTakerToken = randomAddress();
-            const expectedMakerToken = randomAddress();
-            const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
-            const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
-            const sampler = new MockSamplerContract({
-                sampleSellsFromEth2Dai: (_router, takerToken, makerToken, fillAmounts) => {
-                    expect(takerToken).to.eq(expectedTakerToken);
-                    expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
-                    return expectedMakerFillAmounts;
-                },
-            });
-            const dexOrderSampler = new DexOrderSampler(
-                chainId,
-                sampler,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                async () => undefined,
-            );
-            const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getEth2DaiSellQuotes(
-                    randomAddress(),
-                    expectedMakerToken,
-                    expectedTakerToken,
-                    expectedTakerFillAmounts,
-                ),
-            );
-            expect(fillableAmounts).to.deep.eq(expectedMakerFillAmounts);
-        });
-
         it('getUniswapSellQuotes()', async () => {
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
@@ -361,39 +328,6 @@ describe('DexSampler tests', () => {
             expect(fillableAmounts).to.deep.eq(expectedMakerFillAmounts);
         });
 
-        it('getEth2DaiBuyQuotes()', async () => {
-            const expectedTakerToken = randomAddress();
-            const expectedMakerToken = randomAddress();
-            const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
-            const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
-            const sampler = new MockSamplerContract({
-                sampleBuysFromEth2Dai: (_router, takerToken, makerToken, fillAmounts) => {
-                    expect(takerToken).to.eq(expectedTakerToken);
-                    expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
-                    return expectedTakerFillAmounts;
-                },
-            });
-            const dexOrderSampler = new DexOrderSampler(
-                chainId,
-                sampler,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                async () => undefined,
-            );
-            const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getEth2DaiBuyQuotes(
-                    randomAddress(),
-                    expectedMakerToken,
-                    expectedTakerToken,
-                    expectedMakerFillAmounts,
-                ),
-            );
-            expect(fillableAmounts).to.deep.eq(expectedTakerFillAmounts);
-        });
-
         it('getUniswapBuyQuotes()', async () => {
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
@@ -434,17 +368,15 @@ describe('DexSampler tests', () => {
         it('getSellQuotes()', async () => {
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
-            const sources = [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
+            const sources = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
             const ratesBySource: RatesBySource = {
                 [ERC20BridgeSource.Kyber]: getRandomFloat(0, 100),
-                [ERC20BridgeSource.Eth2Dai]: getRandomFloat(0, 100),
                 [ERC20BridgeSource.Uniswap]: getRandomFloat(0, 100),
                 [ERC20BridgeSource.UniswapV2]: getRandomFloat(0, 100),
             };
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 3);
             let uniswapRouter: string;
             let uniswapV2Router: string;
-            let eth2DaiRouter: string;
             const sampler = new MockSamplerContract({
                 sampleSellsFromUniswap: (router, takerToken, makerToken, fillAmounts) => {
                     uniswapRouter = router;
@@ -452,13 +384,6 @@ describe('DexSampler tests', () => {
                     expect(makerToken).to.eq(expectedMakerToken);
                     expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue());
-                },
-                sampleSellsFromEth2Dai: (router, takerToken, makerToken, fillAmounts) => {
-                    eth2DaiRouter = router;
-                    expect(takerToken).to.eq(expectedTakerToken);
-                    expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
-                    return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Eth2Dai]).integerValue());
                 },
                 sampleSellsFromUniswapV2: (router, path, fillAmounts) => {
                     uniswapV2Router = router;
@@ -502,9 +427,6 @@ describe('DexSampler tests', () => {
                                 tokenAddressPath: [expectedTakerToken, expectedMakerToken],
                             };
                         }
-                        if (s === ERC20BridgeSource.Eth2Dai) {
-                            return { router: eth2DaiRouter };
-                        }
                         // TODO jacob pass through
                         if (s === ERC20BridgeSource.Uniswap) {
                             return { router: uniswapRouter };
@@ -532,16 +454,14 @@ describe('DexSampler tests', () => {
         it('getBuyQuotes()', async () => {
             const expectedTakerToken = randomAddress();
             const expectedMakerToken = randomAddress();
-            const sources = [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
+            const sources = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
             const ratesBySource: RatesBySource = {
-                [ERC20BridgeSource.Eth2Dai]: getRandomFloat(0, 100),
                 [ERC20BridgeSource.Uniswap]: getRandomFloat(0, 100),
                 [ERC20BridgeSource.UniswapV2]: getRandomFloat(0, 100),
             };
             const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 3);
             let uniswapRouter: string;
             let uniswapV2Router: string;
-            let eth2DaiRouter: string;
             const sampler = new MockSamplerContract({
                 sampleBuysFromUniswap: (router, takerToken, makerToken, fillAmounts) => {
                     uniswapRouter = router;
@@ -549,13 +469,6 @@ describe('DexSampler tests', () => {
                     expect(makerToken).to.eq(expectedMakerToken);
                     expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
                     return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue());
-                },
-                sampleBuysFromEth2Dai: (router, takerToken, makerToken, fillAmounts) => {
-                    eth2DaiRouter = router;
-                    expect(takerToken).to.eq(expectedTakerToken);
-                    expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
-                    return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Eth2Dai]).integerValue());
                 },
                 sampleBuysFromUniswapV2: (router, path, fillAmounts) => {
                     uniswapV2Router = router;
@@ -593,9 +506,6 @@ describe('DexSampler tests', () => {
                                 router: uniswapV2Router,
                                 tokenAddressPath: [expectedTakerToken, expectedMakerToken],
                             };
-                        }
-                        if (s === ERC20BridgeSource.Eth2Dai) {
-                            return { router: eth2DaiRouter };
                         }
                         if (s === ERC20BridgeSource.Uniswap) {
                             return { router: uniswapRouter };

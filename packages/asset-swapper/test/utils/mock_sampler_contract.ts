@@ -72,10 +72,8 @@ interface Handlers {
     getLimitOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     sampleSellsFromKyberNetwork: SampleSellsKyberHandler;
     sampleSellsFromLiquidityProvider: SampleSellsLPHandler;
-    sampleSellsFromEth2Dai: SampleSellsEth2DaiHandler;
     sampleSellsFromUniswap: SampleSellsUniswapHandler;
     sampleSellsFromUniswapV2: SampleUniswapV2Handler;
-    sampleBuysFromEth2Dai: SampleBuysEth2DaiHandler;
     sampleBuysFromUniswap: SampleBuysUniswapHandler;
     sampleBuysFromUniswapV2: SampleUniswapV2Handler;
     sampleBuysFromLiquidityProvider: SampleSellsLPHandler;
@@ -141,22 +139,6 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         );
     }
 
-    public sampleSellsFromEth2Dai(
-        router: string,
-        takerToken: string,
-        makerToken: string,
-        takerAssetAmounts: BigNumber[],
-    ): ContractTxFunctionObj<BigNumber[]> {
-        return this._wrapCall(
-            super.sampleSellsFromEth2Dai,
-            this._handlers.sampleSellsFromEth2Dai,
-            router,
-            takerToken,
-            makerToken,
-            takerAssetAmounts,
-        );
-    }
-
     public sampleSellsFromUniswap(
         router: string,
         takerToken: string,
@@ -200,22 +182,6 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
             takerToken,
             makerToken,
             takerAssetAmounts,
-        );
-    }
-
-    public sampleBuysFromEth2Dai(
-        router: string,
-        takerToken: string,
-        makerToken: string,
-        makerAssetAmounts: BigNumber[],
-    ): ContractTxFunctionObj<BigNumber[]> {
-        return this._wrapCall(
-            super.sampleBuysFromEth2Dai,
-            this._handlers.sampleBuysFromEth2Dai,
-            router,
-            takerToken,
-            makerToken,
-            makerAssetAmounts,
         );
     }
 
