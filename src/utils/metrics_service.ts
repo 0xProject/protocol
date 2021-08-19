@@ -27,7 +27,7 @@ export const METRICS_PROXY: MetricsProxy = {
 
     measureExpirationForValidOrder: (isLastLook: boolean, maker: string, expirationTimeSeconds: BigNumber) => {
         EXPIRATION_FOR_VALID_ORDER_SECONDS.labels(maker, isLastLook.toString()).observe(
-            expirationTimeSeconds.toNumber(),
+            new BigNumber(expirationTimeSeconds).toNumber(),
         );
     },
 
