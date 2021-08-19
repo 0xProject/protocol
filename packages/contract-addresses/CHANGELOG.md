@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.6.1 - _August 19, 2021_
+
+    * Dependencies updated
+
 ## v6.6.0 - _August 11, 2021_
 
     * Add zrxTreasury address (#301)

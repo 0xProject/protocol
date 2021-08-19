@@ -5,6 +5,12 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.26.0 - _August 19, 2021_
+
+    * feat: Enable partial Native fills to be consumed, previously for v3 they were dropped (#309)
+    * feat: Modify Intermediate tokens to be a union (#309)
+    * feat: Retire Eth2Dai/Oasis (#309)
+
 ## v16.25.0 - _August 16, 2021_
 
     * Fix: fallback fills which have not been used, unique id by source-index
