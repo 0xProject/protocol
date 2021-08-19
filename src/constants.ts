@@ -105,7 +105,7 @@ export const LONG_POLLING_WAIT_TIME_SECONDS = 20;
 export const SINGLE_MESSAGE = 1;
 
 // General cache control
-export const DEFAULT_CACHE_AGE_SECONDS = 10;
+export const DEFAULT_CACHE_AGE_SECONDS = 13;
 
 // Prometheus shared metrics
 export const PROMETHEUS_REQUEST_BUCKETS = linearBuckets(0, 0.25, 25); // [ 0,  0.25,  0.5,  0.75, ... 5 ]

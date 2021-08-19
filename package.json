@@ -93,7 +93,9 @@
         ]
     },
     "resolutions": {
-        "@0x/contracts-zero-ex": "^0.27.0"
+        "@0x/contracts-zero-ex": "^0.27.0",
+        "@0x/utils": "^6.4.3",
+        "@0x/protocol-utils": "^1.8.3"
     },
     "devDependencies": {
         "@0x/contracts-erc20": "^3.3.16",
@@ -141,14 +143,14 @@
     "dependencies": {
         "@0x/api-utils": "^0.0.1",
         "@0x/assert": "^3.0.28",
-        "@0x/asset-swapper": "^16.25.0",
+        "@0x/asset-swapper": "^16.26.0",
         "@0x/contract-addresses": "^6.6.0",
         "@0x/contract-wrappers": "^13.17.4",
         "@0x/contracts-zero-ex": "^0.27.0",
         "@0x/json-schemas": "^6.2.0",
         "@0x/mesh-graphql-client": "^11.2.0",
         "@0x/order-utils": "^10.4.28",
-        "@0x/protocol-utils": "^1.8.2",
+        "@0x/protocol-utils": "^1.8.3",
         "@0x/quote-server": "^6.0.6",
         "@0x/subproviders": "^6.5.4",
         "@0x/token-metadata": "^0.1.4",
