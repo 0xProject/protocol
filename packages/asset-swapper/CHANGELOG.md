@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.26.1 - _August 19, 2021_
+
+    * Dependencies updated
+
 ## v16.26.0 - _August 19, 2021_
 
     * feat: Enable partial Native fills to be consumed, previously for v3 they were dropped (#309)

@@ -6,7 +6,8 @@
                 "note": "Add ethers as an explicit dependency",
                 "pr": 310
             }
-        ]
+        ],
+        "timestamp": 1629414734
     },
     {
         "timestamp": 1629353596,
