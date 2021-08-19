@@ -20,7 +20,6 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "../src/ERC20BridgeSampler.sol";
-import "../src/interfaces/IEth2Dai.sol";
 import "../src/interfaces/IKyberNetwork.sol";
 import "../src/interfaces/IUniswapV2Router01.sol";
 
@@ -379,54 +378,6 @@ contract TestERC20BridgeSamplerKyberNetwork is
 }
 
 
-contract TestERC20BridgeSamplerEth2Dai is
-    IEth2Dai,
-    FailTrigger
-{
-    bytes32 constant private SALT = 0xb713b61bb9bb2958a0f5d1534b21e94fc68c4c0c034b0902ed844f2f6cd1b4f7;
-
-    // Deterministic `IEth2Dai.getBuyAmount()`.
-    function getBuyAmount(
-        address buyToken,
-        address payToken,
-        uint256 payAmount
-    )
-        override
-        external
-        view
-        returns (uint256 buyAmount)
-    {
-        _revertIfShouldFail();
-        return LibDeterministicQuotes.getDeterministicSellQuote(
-            SALT,
-            payToken,
-            buyToken,
-            payAmount
-        );
-    }
-
-    // Deterministic `IEth2Dai.getPayAmount()`.
-    function getPayAmount(
-        address payToken,
-        address buyToken,
-        uint256 buyAmount
-    )
-        override
-        external
-        view
-        returns (uint256 payAmount)
-    {
-        _revertIfShouldFail();
-        return LibDeterministicQuotes.getDeterministicBuyQuote(
-            SALT,
-            payToken,
-            buyToken,
-            buyAmount
-        );
-    }
-}
-
-
 contract TestERC20BridgeSamplerUniswapExchangeFactory is
     IUniswapExchangeFactory
 {
@@ -461,7 +412,6 @@ contract TestERC20BridgeSampler is
 {
     TestERC20BridgeSamplerUniswapExchangeFactory public uniswap;
     TestERC20BridgeSamplerUniswapV2Router01 public uniswapV2Router;
-    TestERC20BridgeSamplerEth2Dai public eth2Dai;
     TestERC20BridgeSamplerKyberNetwork public kyber;
 
     uint8 private constant MAX_ORDER_STATUS = uint8(IExchange.OrderStatus.CANCELLED) + 1;
@@ -469,7 +419,6 @@ contract TestERC20BridgeSampler is
     constructor() public ERC20BridgeSampler() {
         uniswap = new TestERC20BridgeSamplerUniswapExchangeFactory();
         uniswapV2Router = new TestERC20BridgeSamplerUniswapV2Router01();
-        eth2Dai = new TestERC20BridgeSamplerEth2Dai();
         kyber = new TestERC20BridgeSamplerKyberNetwork();
     }
 

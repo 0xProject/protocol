@@ -35,7 +35,6 @@ import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
     NULL_BYTES,
-    OASIS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
@@ -391,36 +390,6 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromLiquidityProvider,
             params: [providerAddress, takerToken, makerToken, makerFillAmounts],
-        });
-    }
-
-    public getEth2DaiSellQuotes(
-        router: string,
-        makerToken: string,
-        takerToken: string,
-        takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<GenericRouterFillData> {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Eth2Dai,
-            fillData: { router },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromEth2Dai,
-            params: [router, takerToken, makerToken, takerFillAmounts],
-        });
-    }
-
-    public getEth2DaiBuyQuotes(
-        router: string,
-        makerToken: string,
-        takerToken: string,
-        makerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<GenericRouterFillData> {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Eth2Dai,
-            fillData: { router },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromEth2Dai,
-            params: [router, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1200,14 +1169,7 @@ export class SamplerOperations {
                 }
                 switch (source) {
                     case ERC20BridgeSource.Eth2Dai:
-                        return isValidAddress(OASIS_ROUTER_BY_CHAIN_ID[this.chainId])
-                            ? this.getEth2DaiSellQuotes(
-                                  OASIS_ROUTER_BY_CHAIN_ID[this.chainId],
-                                  makerToken,
-                                  takerToken,
-                                  takerFillAmounts,
-                              )
-                            : [];
+                        return [];
                     case ERC20BridgeSource.Uniswap:
                         return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
                             ? this.getUniswapSellQuotes(
@@ -1500,14 +1462,7 @@ export class SamplerOperations {
             _sources.map((source): SourceQuoteOperation | SourceQuoteOperation[] => {
                 switch (source) {
                     case ERC20BridgeSource.Eth2Dai:
-                        return isValidAddress(OASIS_ROUTER_BY_CHAIN_ID[this.chainId])
-                            ? this.getEth2DaiBuyQuotes(
-                                  OASIS_ROUTER_BY_CHAIN_ID[this.chainId],
-                                  makerToken,
-                                  takerToken,
-                                  makerFillAmounts,
-                              )
-                            : [];
+                        return [];
                     case ERC20BridgeSource.Uniswap:
                         return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
                             ? this.getUniswapBuyQuotes(

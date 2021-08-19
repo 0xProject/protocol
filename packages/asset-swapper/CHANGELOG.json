@@ -9,6 +9,10 @@
             {
                 "note": "feat: Modify Intermediate tokens to be a union",
                 "pr": 309
+            },
+            {
+                "note": "feat: Retire Eth2Dai/Oasis",
+                "pr": 309
             }
         ]
     },
