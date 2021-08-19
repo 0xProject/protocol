@@ -22,7 +22,7 @@ export function getIntermediateTokens(
     takerToken: string,
     tokenAdjacencyGraph: TokenAdjacencyGraph,
 ): string[] {
-    const intermediateTokens = _.intersection(
+    const intermediateTokens = _.union(
         _.get(tokenAdjacencyGraph, takerToken, tokenAdjacencyGraph.default),
         _.get(tokenAdjacencyGraph, makerToken, tokenAdjacencyGraph.default),
     );
