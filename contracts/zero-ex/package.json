@@ -90,7 +90,8 @@
         "@0x/utils": "^6.4.3",
         "@0x/web3-wrapper": "^7.5.3",
         "ethereum-types": "^3.5.0",
-        "ethereumjs-util": "^7.0.10"
+        "ethereumjs-util": "^7.0.10",
+        "ethers": "~4.0.4"
     },
     "publishConfig": {
         "access": "public"
