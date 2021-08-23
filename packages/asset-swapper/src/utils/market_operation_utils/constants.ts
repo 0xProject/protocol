@@ -377,6 +377,8 @@ export const MAINNET_TOKENS = {
     FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
     DSU: '0x605d26fbd5be761089281d5cec2ce86eea667109',
     ESS: '0x24ae124c4cc33d6791f8e8b63520ed7107ac8b3e',
+    cvxCRV: '0x62b9c7356a2dc64a1969e19c23e4f579f9810aa7',
+    CRV: '0xd533a949740bb3306d119cc777fa900ba034cd52',
 };
 
 export const BSC_TOKENS = {
@@ -565,18 +567,21 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
     [],
 );
 
+// Note be careful here as a UNION is performed when finding intermediary tokens
+// attaching to a default intermediary token (stables or ETH etc) can have a large impact
 export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdjacencyGraph>(
     {
         [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet],
         })
-            // Mirror Protocol
             .tap(builder => {
+                // Mirror Protocol
                 builder
                     .add(MAINNET_TOKENS.MIR, MAINNET_TOKENS.UST)
-                    .add(MAINNET_TOKENS.UST, [MAINNET_TOKENS.MIR, ...Object.values(MIRROR_WRAPPED_TOKENS)])
-                    .add(MAINNET_TOKENS.USDT, MAINNET_TOKENS.UST);
+                    .add(MAINNET_TOKENS.UST, [MAINNET_TOKENS.MIR, ...Object.values(MIRROR_WRAPPED_TOKENS)]);
                 Object.values(MIRROR_WRAPPED_TOKENS).forEach(t => builder.add(t, MAINNET_TOKENS.UST));
+                // Convex and Curve
+                builder.add(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV).add(MAINNET_TOKENS.CRV, MAINNET_TOKENS.cvxCRV);
             })
             // Build
             .build(),
@@ -1266,11 +1271,7 @@ export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
-        [ChainId.Mainnet]: [
-            '0x71CD6666064C3A1354a3B4dca5fA1E2D3ee7D303',
-            '0xc4a8b7e29e3c8ec560cd4945c1cf3461a85a148d',
-            '0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643',
-        ],
+        [ChainId.Mainnet]: ['0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643'],
         [ChainId.BSC]: ['0xd41b24bba51fac0e4827b6f94c0d6ddeb183cd64'],
     },
     [] as string[],

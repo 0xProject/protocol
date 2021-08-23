@@ -25,6 +25,8 @@ import * as LibBytesV06 from '../test/generated-artifacts/LibBytesV06.json';
 import * as LibEIP1271 from '../test/generated-artifacts/LibEIP1271.json';
 import * as LibEIP712 from '../test/generated-artifacts/LibEIP712.json';
 import * as LibFractions from '../test/generated-artifacts/LibFractions.json';
+import * as LibMath from '../test/generated-artifacts/LibMath.json';
+import * as LibMathRichErrors from '../test/generated-artifacts/LibMathRichErrors.json';
 import * as LibMathRichErrorsV06 from '../test/generated-artifacts/LibMathRichErrorsV06.json';
 import * as LibMathV06 from '../test/generated-artifacts/LibMathV06.json';
 import * as LibOwnableRichErrors from '../test/generated-artifacts/LibOwnableRichErrors.json';
@@ -47,6 +49,7 @@ import * as TestLibAddress from '../test/generated-artifacts/TestLibAddress.json
 import * as TestLibAddressArray from '../test/generated-artifacts/TestLibAddressArray.json';
 import * as TestLibBytes from '../test/generated-artifacts/TestLibBytes.json';
 import * as TestLibEIP712 from '../test/generated-artifacts/TestLibEIP712.json';
+import * as TestLibMath from '../test/generated-artifacts/TestLibMath.json';
 import * as TestLibRichErrors from '../test/generated-artifacts/TestLibRichErrors.json';
 import * as TestLibSafeMath from '../test/generated-artifacts/TestLibSafeMath.json';
 import * as TestLogDecoding from '../test/generated-artifacts/TestLogDecoding.json';
@@ -68,6 +71,8 @@ export const artifacts = {
     LibEIP1271: LibEIP1271 as ContractArtifact,
     LibEIP712: LibEIP712 as ContractArtifact,
     LibFractions: LibFractions as ContractArtifact,
+    LibMath: LibMath as ContractArtifact,
+    LibMathRichErrors: LibMathRichErrors as ContractArtifact,
     LibOwnableRichErrors: LibOwnableRichErrors as ContractArtifact,
     LibReentrancyGuardRichErrors: LibReentrancyGuardRichErrors as ContractArtifact,
     LibRichErrors: LibRichErrors as ContractArtifact,
@@ -98,6 +103,7 @@ export const artifacts = {
     TestLibAddressArray: TestLibAddressArray as ContractArtifact,
     TestLibBytes: TestLibBytes as ContractArtifact,
     TestLibEIP712: TestLibEIP712 as ContractArtifact,
+    TestLibMath: TestLibMath as ContractArtifact,
     TestLibRichErrors: TestLibRichErrors as ContractArtifact,
     TestLibSafeMath: TestLibSafeMath as ContractArtifact,
     TestLogDecoding: TestLogDecoding as ContractArtifact,

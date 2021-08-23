@@ -1,24 +1,6 @@
-import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import {
-    artifacts as assetProxyArtifacts,
-    ERC1155ProxyContract,
-    ERC20BridgeProxyContract,
-    ERC20ProxyContract,
-    ERC721ProxyContract,
-    MultiAssetProxyContract,
-    StaticCallProxyContract,
-} from '@0x/contracts-asset-proxy';
-import {
-    artifacts as coordinatorArtifacts,
-    CoordinatorContract,
-    CoordinatorRegistryContract,
-} from '@0x/contracts-coordinator';
-import { artifacts as devUtilsArtifacts, DevUtilsContract } from '@0x/contracts-dev-utils';
-import { artifacts as erc1155Artifacts, ERC1155MintableContract } from '@0x/contracts-erc1155';
+import { ChainId, ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { artifacts as assetProxyArtifacts, ERC20ProxyContract } from '@0x/contracts-asset-proxy';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract, WETH9Contract } from '@0x/contracts-erc20';
-import { artifacts as erc721Artifacts, DummyERC721TokenContract } from '@0x/contracts-erc721';
-import { artifacts as exchangeArtifacts, ExchangeContract } from '@0x/contracts-exchange';
-import { artifacts as forwarderArtifacts, ForwarderContract } from '@0x/contracts-exchange-forwarder';
 import {
     artifacts as stakingArtifacts,
     StakingProxyContract,
@@ -37,20 +19,15 @@ import {
 } from '@0x/contracts-zero-ex';
 import { Web3ProviderEngine } from '@0x/subproviders';
 import { BigNumber, providerUtils } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { SupportedProvider, TxData } from 'ethereum-types';
+import { bufferToHex, rlphash } from 'ethereumjs-util';
 
 import { constants } from './utils/constants';
-import { erc20TokenInfo, erc721TokenInfo } from './utils/token_info';
+import { erc20TokenInfo } from './utils/token_info';
 
 const allArtifacts = {
     ...assetProxyArtifacts,
-    ...coordinatorArtifacts,
-    ...devUtilsArtifacts,
-    ...erc1155Artifacts,
-    ...erc20Artifacts,
-    ...erc721Artifacts,
-    ...exchangeArtifacts,
-    ...forwarderArtifacts,
     ...stakingArtifacts,
     ...exchangeProxyArtifacts,
     ...assetProxyArtifacts,
@@ -58,6 +35,49 @@ const allArtifacts = {
 
 const { NULL_ADDRESS } = constants;
 
+// tslint:disable:custom-no-magic-numbers
+
+function getDeploymentNonce(deployer: string, address: string): number {
+    for (let i = 0; i < 10000; i++) {
+        const candidate = bufferToHex(rlphash([deployer, i]).slice(12));
+        if (candidate.toLowerCase() === address.toLowerCase()) {
+            return i;
+        }
+    }
+    throw new Error(`Exhausted all attempts to find ${address} deployed by ${deployer}`);
+}
+
+async function deployAtAddressAsync<T>(
+    cb: () => Promise<T>,
+    provider: SupportedProvider,
+    txDefaults: TxData,
+    wantedAddress: string,
+): Promise<T> {
+    await untilWantedAddressAsync(wantedAddress, provider, txDefaults);
+    return cb();
+}
+
+/**
+ * Increases addresses nonce until the deployment of a contract would occur at the wanted address.
+ */
+async function untilWantedAddressAsync(
+    wantedAddress: string,
+    provider: SupportedProvider,
+    txDefaults: TxData,
+    offset: number = 0,
+): Promise<void> {
+    const web3Wrapper = new Web3Wrapper(provider);
+    const from = txDefaults.from;
+    const currentNonce = await web3Wrapper.getAccountNonceAsync(from);
+    const wantedNonce = getDeploymentNonce(from, wantedAddress);
+
+    if (currentNonce > wantedNonce) {
+        throw new Error(`Current nonce is ${currentNonce} but wanted nonce is ${wantedNonce}`);
+    }
+    for (let i = 0; i < wantedNonce - currentNonce + offset; i++) {
+        await web3Wrapper.sendTransactionAsync({ from, to: from, value: new BigNumber(0) });
+    }
+}
 /**
  * Creates and deploys all the contracts that are required for the latest
  * version of the 0x protocol.
@@ -70,49 +90,45 @@ export async function runMigrationsAsync(
     txDefaults: TxData,
 ): Promise<ContractAddresses> {
     const provider = providerUtils.standardizeOrThrow(supportedProvider);
-    const chainId = new BigNumber(await providerUtils.getChainIdAsync(provider));
+    const expectedAddresses = getContractAddressesForChainOrThrow(ChainId.Ganache);
 
-    // Proxies
-    const erc20Proxy = await ERC20ProxyContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.ERC20Proxy,
+    const erc20Proxy = await deployAtAddressAsync(
+        () =>
+            ERC20ProxyContract.deployFrom0xArtifactAsync(
+                assetProxyArtifacts.ERC20Proxy,
+                provider,
+                txDefaults,
+                allArtifacts,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
-    );
-    const erc721Proxy = await ERC721ProxyContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.ERC721Proxy,
-        provider,
-        txDefaults,
-        allArtifacts,
+        expectedAddresses.erc20Proxy,
     );
 
     // ZRX
-    const zrxToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
-        erc20Artifacts.DummyERC20Token,
+    const zrxToken = await deployAtAddressAsync(
+        () =>
+            DummyERC20TokenContract.deployFrom0xArtifactAsync(
+                erc20Artifacts.DummyERC20Token,
+                provider,
+                txDefaults,
+                allArtifacts,
+                '0x Protocol Token',
+                'ZRX',
+                new BigNumber(18),
+                new BigNumber(1000000000000000000000000000),
+            ),
         provider,
         txDefaults,
-        allArtifacts,
-        '0x Protocol Token',
-        'ZRX',
-        new BigNumber(18),
-        new BigNumber(1000000000000000000000000000),
+        expectedAddresses.zrxToken,
     );
 
     // Ether token
-    const etherToken = await WETH9Contract.deployFrom0xArtifactAsync(
-        erc20Artifacts.WETH9,
+    const etherToken = await deployAtAddressAsync(
+        () => WETH9Contract.deployFrom0xArtifactAsync(erc20Artifacts.WETH9, provider, txDefaults, allArtifacts),
         provider,
         txDefaults,
-        allArtifacts,
-    );
-
-    // Exchange
-    const exchange = await ExchangeContract.deployFrom0xArtifactAsync(
-        exchangeArtifacts.Exchange,
-        provider,
-        txDefaults,
-        allArtifacts,
-        chainId,
+        expectedAddresses.etherToken,
     );
 
     // Dummy ERC20 tokens
@@ -131,178 +147,62 @@ export async function runMigrationsAsync(
         );
     }
 
-    // ERC721
-    // tslint:disable-next-line:no-unused-variable
-    const cryptoKittieToken = await DummyERC721TokenContract.deployFrom0xArtifactAsync(
-        erc721Artifacts.DummyERC721Token,
-        provider,
-        txDefaults,
-        allArtifacts,
-        erc721TokenInfo[0].name,
-        erc721TokenInfo[0].symbol,
-    );
-
-    // 1155 Asset Proxy
-    const erc1155Proxy = await ERC1155ProxyContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.ERC1155Proxy,
-        provider,
-        txDefaults,
-        allArtifacts,
-    );
-
-    const staticCallProxy = await StaticCallProxyContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.StaticCallProxy,
-        provider,
-        txDefaults,
-        allArtifacts,
-    );
-
-    const multiAssetProxy = await MultiAssetProxyContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.MultiAssetProxy,
-        provider,
-        txDefaults,
-        allArtifacts,
-    );
-
-    await erc20Proxy.addAuthorizedAddress(exchange.address).awaitTransactionSuccessAsync(txDefaults);
-    await erc721Proxy.addAuthorizedAddress(exchange.address).awaitTransactionSuccessAsync(txDefaults);
-    await erc1155Proxy.addAuthorizedAddress(exchange.address).awaitTransactionSuccessAsync(txDefaults);
-    await multiAssetProxy.addAuthorizedAddress(exchange.address).awaitTransactionSuccessAsync(txDefaults);
-
-    // MultiAssetProxy
-    await erc20Proxy.addAuthorizedAddress(multiAssetProxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await erc721Proxy.addAuthorizedAddress(multiAssetProxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await erc1155Proxy.addAuthorizedAddress(multiAssetProxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await multiAssetProxy.registerAssetProxy(erc20Proxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await multiAssetProxy.registerAssetProxy(erc721Proxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await multiAssetProxy.registerAssetProxy(erc1155Proxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await multiAssetProxy.registerAssetProxy(staticCallProxy.address).awaitTransactionSuccessAsync(txDefaults);
-
-    // Register the Asset Proxies to the Exchange
-    await exchange.registerAssetProxy(erc20Proxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await exchange.registerAssetProxy(erc721Proxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await exchange.registerAssetProxy(erc1155Proxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await exchange.registerAssetProxy(multiAssetProxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await exchange.registerAssetProxy(staticCallProxy.address).awaitTransactionSuccessAsync(txDefaults);
-
-    // CoordinatorRegistry
-    const coordinatorRegistry = await CoordinatorRegistryContract.deployFrom0xArtifactAsync(
-        coordinatorArtifacts.CoordinatorRegistry,
-        provider,
-        txDefaults,
-        allArtifacts,
-    );
-
-    // Coordinator
-    const coordinator = await CoordinatorContract.deployFrom0xArtifactAsync(
-        coordinatorArtifacts.Coordinator,
-        provider,
-        txDefaults,
-        allArtifacts,
-        exchange.address,
-        chainId,
-    );
-
-    // Dev Utils
-    const devUtils = await DevUtilsContract.deployWithLibrariesFrom0xArtifactAsync(
-        devUtilsArtifacts.DevUtils,
-        devUtilsArtifacts,
-        provider,
-        txDefaults,
-        allArtifacts,
-        exchange.address,
-        NULL_ADDRESS,
-        NULL_ADDRESS,
-    );
-
-    // tslint:disable-next-line:no-unused-variable
-    const erc1155DummyToken = await ERC1155MintableContract.deployFrom0xArtifactAsync(
-        erc1155Artifacts.ERC1155Mintable,
-        provider,
-        txDefaults,
-        allArtifacts,
-    );
-
-    const erc20BridgeProxy = await ERC20BridgeProxyContract.deployFrom0xArtifactAsync(
-        assetProxyArtifacts.ERC20BridgeProxy,
-        provider,
-        txDefaults,
-        allArtifacts,
-    );
-    await exchange.registerAssetProxy(erc20BridgeProxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await erc20BridgeProxy.addAuthorizedAddress(exchange.address).awaitTransactionSuccessAsync(txDefaults);
-    await erc20BridgeProxy.addAuthorizedAddress(multiAssetProxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await multiAssetProxy.registerAssetProxy(erc20BridgeProxy.address).awaitTransactionSuccessAsync(txDefaults);
-
     const zrxProxy = erc20Proxy.address;
-    const zrxVault = await ZrxVaultContract.deployFrom0xArtifactAsync(
-        stakingArtifacts.ZrxVault,
+    const zrxVault = await deployAtAddressAsync(
+        () =>
+            ZrxVaultContract.deployFrom0xArtifactAsync(
+                stakingArtifacts.ZrxVault,
+                provider,
+                txDefaults,
+                allArtifacts,
+                zrxProxy,
+                zrxToken.address,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
-        zrxProxy,
-        zrxToken.address,
+        expectedAddresses.zrxVault,
     );
 
     // Note we use TestStakingContract as the deployed bytecode of a StakingContract
     // has the tokens hardcoded
-    const stakingLogic = await TestStakingContract.deployFrom0xArtifactAsync(
-        stakingArtifacts.TestStaking,
+    const stakingLogic = await deployAtAddressAsync(
+        () =>
+            TestStakingContract.deployFrom0xArtifactAsync(
+                stakingArtifacts.TestStaking,
+                provider,
+                txDefaults,
+                allArtifacts,
+                etherToken.address,
+                zrxVault.address,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
-        etherToken.address,
-        zrxVault.address,
+        expectedAddresses.staking,
     );
 
-    const stakingProxy = await StakingProxyContract.deployFrom0xArtifactAsync(
-        stakingArtifacts.StakingProxy,
+    const stakingProxy = await deployAtAddressAsync(
+        () =>
+            StakingProxyContract.deployFrom0xArtifactAsync(
+                stakingArtifacts.StakingProxy,
+                provider,
+                txDefaults,
+                allArtifacts,
+                stakingLogic.address,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
-        stakingLogic.address,
+        expectedAddresses.stakingProxy,
     );
 
     await erc20Proxy.addAuthorizedAddress(zrxVault.address).awaitTransactionSuccessAsync(txDefaults);
 
     // Reference the Proxy as the StakingContract for setup
-    const stakingDel = await new TestStakingContract(stakingProxy.address, provider, txDefaults);
+    await new TestStakingContract(stakingProxy.address, provider, txDefaults);
     await stakingProxy.addAuthorizedAddress(txDefaults.from).awaitTransactionSuccessAsync(txDefaults);
-    await stakingDel.addExchangeAddress(exchange.address).awaitTransactionSuccessAsync(txDefaults);
-    await exchange.setProtocolFeeCollectorAddress(stakingProxy.address).awaitTransactionSuccessAsync(txDefaults);
-    await exchange.setProtocolFeeMultiplier(new BigNumber(70000)).awaitTransactionSuccessAsync(txDefaults);
 
     await zrxVault.addAuthorizedAddress(txDefaults.from).awaitTransactionSuccessAsync(txDefaults);
     await zrxVault.setStakingProxy(stakingProxy.address).awaitTransactionSuccessAsync(txDefaults);
     await stakingLogic.addAuthorizedAddress(txDefaults.from).awaitTransactionSuccessAsync(txDefaults);
-    await stakingLogic.addExchangeAddress(exchange.address).awaitTransactionSuccessAsync(txDefaults);
-
-    // Forwarder
-    // Deployed after Exchange and Staking is configured as it queries
-    // in the constructor
-    const { exchangeV2: exchangeV2Address } = getContractAddressesForChainOrThrow(chainId.toNumber());
-    const forwarder = await ForwarderContract.deployFrom0xArtifactAsync(
-        forwarderArtifacts.Forwarder,
-        provider,
-        txDefaults,
-        allArtifacts,
-        exchange.address,
-        exchangeV2Address || NULL_ADDRESS,
-        etherToken.address,
-    );
-
-    // JAM
-    // tslint:disable-next-line:no-unused-variable
-    const jamToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
-        erc20Artifacts.DummyERC20Token,
-        provider,
-        txDefaults,
-        allArtifacts,
-        'JAM Token',
-        'JAM',
-        new BigNumber(18),
-        new BigNumber(1000000000000000000000000000),
-    );
 
     // Exchange Proxy //////////////////////////////////////////////////////////
 
@@ -314,60 +214,93 @@ export async function runMigrationsAsync(
         etherToken.address,
     );
 
+    // HACK: Full migration first deploys a Migrator
+    await untilWantedAddressAsync(expectedAddresses.exchangeProxy, provider, txDefaults, -1);
+
     const exchangeProxy = await fullMigrateExchangeProxyAsync(txDefaults.from, provider, txDefaults);
     const exchangeProxyFlashWalletAddress = await exchangeProxy.getTransformWallet().callAsync();
 
     // Deploy transformers.
-    const wethTransformer = await WethTransformerContract.deployFrom0xArtifactAsync(
-        exchangeProxyArtifacts.WethTransformer,
+    const wethTransformer = await deployAtAddressAsync(
+        () =>
+            WethTransformerContract.deployFrom0xArtifactAsync(
+                exchangeProxyArtifacts.WethTransformer,
+                provider,
+                txDefaults,
+                allArtifacts,
+                etherToken.address,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
-        etherToken.address,
+        expectedAddresses.transformers.wethTransformer,
     );
-    const payTakerTransformer = await PayTakerTransformerContract.deployFrom0xArtifactAsync(
-        exchangeProxyArtifacts.PayTakerTransformer,
+    const payTakerTransformer = await deployAtAddressAsync(
+        () =>
+            PayTakerTransformerContract.deployFrom0xArtifactAsync(
+                exchangeProxyArtifacts.PayTakerTransformer,
+                provider,
+                txDefaults,
+                allArtifacts,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
+        expectedAddresses.transformers.payTakerTransformer,
     );
-    const affiliateFeeTransformer = await AffiliateFeeTransformerContract.deployFrom0xArtifactAsync(
-        exchangeProxyArtifacts.AffiliateFeeTransformer,
+    const affiliateFeeTransformer = await deployAtAddressAsync(
+        () =>
+            AffiliateFeeTransformerContract.deployFrom0xArtifactAsync(
+                exchangeProxyArtifacts.AffiliateFeeTransformer,
+                provider,
+                txDefaults,
+                allArtifacts,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
+        expectedAddresses.transformers.affiliateFeeTransformer,
     );
-    const fillQuoteTransformer = await FillQuoteTransformerContract.deployFrom0xArtifactAsync(
-        exchangeProxyArtifacts.FillQuoteTransformer,
+    const fillQuoteTransformer = await deployAtAddressAsync(
+        () =>
+            FillQuoteTransformerContract.deployFrom0xArtifactAsync(
+                exchangeProxyArtifacts.FillQuoteTransformer,
+                provider,
+                txDefaults,
+                allArtifacts,
+                bridgeAdapter.address,
+                exchangeProxy.address,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
-        bridgeAdapter.address,
-        exchangeProxy.address,
+        expectedAddresses.transformers.fillQuoteTransformer,
     );
-    const positiveSlippageFeeTransformer = await PositiveSlippageFeeTransformerContract.deployFrom0xArtifactAsync(
-        exchangeProxyArtifacts.PositiveSlippageFeeTransformer,
+    const positiveSlippageFeeTransformer = await deployAtAddressAsync(
+        () =>
+            PositiveSlippageFeeTransformerContract.deployFrom0xArtifactAsync(
+                exchangeProxyArtifacts.PositiveSlippageFeeTransformer,
+                provider,
+                txDefaults,
+                allArtifacts,
+            ),
         provider,
         txDefaults,
-        allArtifacts,
+        expectedAddresses.transformers.positiveSlippageFeeTransformer,
     );
     const contractAddresses = {
         erc20Proxy: erc20Proxy.address,
-        erc721Proxy: erc721Proxy.address,
-        erc1155Proxy: erc1155Proxy.address,
+        erc721Proxy: NULL_ADDRESS,
+        erc1155Proxy: NULL_ADDRESS,
         zrxToken: zrxToken.address,
         etherToken: etherToken.address,
-        exchange: exchange.address,
+        exchange: NULL_ADDRESS,
         assetProxyOwner: NULL_ADDRESS,
-        erc20BridgeProxy: erc20BridgeProxy.address,
+        erc20BridgeProxy: NULL_ADDRESS,
         zeroExGovernor: NULL_ADDRESS,
-        forwarder: forwarder.address,
-        coordinatorRegistry: coordinatorRegistry.address,
-        coordinator: coordinator.address,
-        multiAssetProxy: multiAssetProxy.address,
-        staticCallProxy: staticCallProxy.address,
-        devUtils: devUtils.address,
-        exchangeV2: exchangeV2Address || NULL_ADDRESS,
+        forwarder: NULL_ADDRESS,
+        coordinatorRegistry: NULL_ADDRESS,
+        coordinator: NULL_ADDRESS,
+        multiAssetProxy: NULL_ADDRESS,
+        staticCallProxy: NULL_ADDRESS,
+        devUtils: NULL_ADDRESS,
+        exchangeV2: NULL_ADDRESS,
         zrxVault: zrxVault.address,
         staking: stakingLogic.address,
         stakingProxy: stakingProxy.address,
