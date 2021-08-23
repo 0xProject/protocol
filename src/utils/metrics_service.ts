@@ -12,6 +12,10 @@ const EXPIRATION_FOR_VALID_ORDER_SECONDS = new Histogram({
     name: 'rfq_expiration_for_valid_order',
     help: 'Order expiration in seconds for ',
     labelNames: ['maker', 'isLastLook'],
+    // Buckets go from 30 seconds all the way to 5 minutes
+
+    // tslint:disable-next-line:custom-no-magic-numbers
+    buckets: [0, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300],
 });
 
 const ORDER_FILL_RATIO_WARNING_RANGE = new Counter({
@@ -25,7 +29,7 @@ export const METRICS_PROXY: MetricsProxy = {
         ORDER_EXPIRED_TOO_SOON.labels(maker, isLastLook.toString()).inc();
     },
 
-    measureExpirationForValidOrder: (isLastLook: boolean, maker: string, expirationTimeSeconds: BigNumber) => {
+    measureExpirationForValidOrder: (isLastLook: boolean, maker: string, expirationTimeSeconds: BigNumber | number) => {
         EXPIRATION_FOR_VALID_ORDER_SECONDS.labels(maker, isLastLook.toString()).observe(
             new BigNumber(expirationTimeSeconds).toNumber(),
         );
