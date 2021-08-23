@@ -1,4 +1,3 @@
-// tslint:disable: custom-no-magic-numbers
 import { tokenUtils } from '@0x/dev-utils';
 import { ETH_TOKEN_ADDRESS, FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
 import { TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '@0x/quote-server';
