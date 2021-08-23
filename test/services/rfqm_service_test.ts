@@ -19,7 +19,7 @@ import { anything, instance, mock, when } from 'ts-mockito';
 
 import { ETH_DECIMALS, ONE_MINUTE_MS } from '../../src/constants';
 import { RfqmJobEntity, RfqmTransactionSubmissionEntity } from '../../src/entities';
-import { RfqmJobStatus } from '../../src/entities/RfqmJobEntity';
+import { RfqmJobStatus, RfqmOrderTypes } from '../../src/entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../../src/entities/RfqmTransactionSubmissionEntity';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
@@ -91,6 +91,76 @@ const buildRfqmServiceForUnitTest = (
 };
 
 describe('RfqmService', () => {
+    it('should validate jobs and mark them as expired', () => {
+        const in_five_minutes = Math.floor(Date.now() / ONE_SECOND_MS + 360).toString();
+        const one_minute_ago = Math.floor(Date.now() / ONE_SECOND_MS - 60).toString();
+        const partialOrder = {
+            chainId: '1',
+            maker: '',
+            makerAmount: '',
+            taker: '',
+            takerAmount: '',
+            makerToken: '',
+            pool: '',
+            salt: '',
+            takerToken: '',
+            txOrigin: '',
+            verifyingContract: '',
+        };
+        const partialJob = {
+            chainId: 1,
+            affiliateAddress: '',
+            createdAt: new Date(),
+            expiry: new BigNumber(in_five_minutes),
+            integratorId: '',
+            isCompleted: false,
+            lastLookResult: null,
+            metadata: null,
+            status: RfqmJobStatus.PendingEnqueued,
+            updatedAt: new Date(),
+            workerAddress: '',
+            orderHash: '',
+            metaTransactionHash: '',
+            calldata: '0x000',
+            makerUri: 'http://foo.bar',
+        };
+
+        // First test, order not expired
+        let response = RfqmService.validateJob({
+            ...partialJob,
+            fee: {
+                type: 'fixed',
+                amount: '0',
+                token: '',
+            },
+            order: {
+                type: RfqmOrderTypes.V4Rfq,
+                order: {
+                    ...partialOrder,
+                    expiry: in_five_minutes,
+                },
+            },
+        });
+        expect(response).to.eql(null);
+
+        response = RfqmService.validateJob({
+            ...partialJob,
+            fee: {
+                type: 'fixed',
+                amount: '0',
+                token: '',
+            },
+            order: {
+                type: RfqmOrderTypes.V4Rfq,
+                order: {
+                    ...partialOrder,
+                    expiry: one_minute_ago,
+                },
+            },
+        });
+        expect(response).to.eql(RfqmJobStatus.FailedExpired);
+    });
+
     describe('fetchIndicativeQuoteAsync', () => {
         describe('sells', async () => {
             it('should fetch indicative quote', async () => {

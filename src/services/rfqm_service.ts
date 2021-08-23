@@ -25,7 +25,7 @@ import {
     RFQM_TX_GAS_ESTIMATE,
 } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
-import { RfqmJobStatus } from '../entities/RfqmJobEntity';
+import { RfqmJobStatus, RfqmOrderTypes } from '../entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../entities/RfqmTransactionSubmissionEntity';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
@@ -223,6 +223,39 @@ export class RfqmService {
         return currentBlock - receiptBlockNumber >= BLOCK_FINALITY_THRESHOLD;
     }
 
+    // Returns a failure status for invalid jobs and null if the job is valid.
+    public static validateJob(job: RfqmJobEntity): RfqmJobStatus | null {
+        const { calldata, makerUri, order, fee } = job;
+        if (calldata === undefined) {
+            return RfqmJobStatus.FailedValidationNoCallData;
+        }
+
+        if (makerUri === undefined) {
+            return RfqmJobStatus.FailedValidationNoMakerUri;
+        }
+
+        if (order === null) {
+            return RfqmJobStatus.FailedValidationNoOrder;
+        }
+
+        if (fee === null) {
+            return RfqmJobStatus.FailedValidationNoFee;
+        }
+
+        if (order.type === RfqmOrderTypes.V4Rfq) {
+            // Orders can expire if any of the following happen:
+            // 1) workers are backed up
+            // 2) an RFQM order broke during submission and the order is stuck in the queue for a long time.
+            const v4Order = order.order;
+            const expiryTimeMs = new BigNumber(v4Order.expiry).times(ONE_SECOND_MS);
+            if (expiryTimeMs.isNaN() || expiryTimeMs.lte(new Date().getTime())) {
+                return RfqmJobStatus.FailedExpired;
+            }
+        }
+
+        return null;
+    }
+
     private static _getSellAmountGivenBuyAmountAndQuote(
         buyAmount: BigNumber,
         quotedTakerAmount: BigNumber,
@@ -241,28 +274,6 @@ export class RfqmService {
         // Solving for y given the following proportion:
         // y / sellAmount =  quotedMakerAmount / quotedTakerAmount
         return quotedMakerAmount.div(quotedTakerAmount).times(sellAmount).decimalPlaces(0);
-    }
-
-    // Returns a failure status for invalide jobs and null if the job is valid.
-    private static _validateJob(job: RfqmJobEntity): RfqmJobStatus | null {
-        const { calldata, makerUri, order, fee } = job;
-        if (calldata === undefined) {
-            return RfqmJobStatus.FailedValidationNoCallData;
-        }
-
-        if (makerUri === undefined) {
-            return RfqmJobStatus.FailedValidationNoMakerUri;
-        }
-
-        if (order === null) {
-            return RfqmJobStatus.FailedValidationNoOrder;
-        }
-
-        if (fee === null) {
-            return RfqmJobStatus.FailedValidationNoFee;
-        }
-
-        return null;
     }
 
     /**
@@ -763,11 +774,16 @@ export class RfqmService {
         }
 
         // Basic validation
-        const errorStatus = RfqmService._validateJob(job);
+        const errorStatus = RfqmService.validateJob(job);
         if (errorStatus !== null) {
             await this._dbUtils.updateRfqmJobAsync(orderHash, true, {
                 status: errorStatus,
             });
+
+            if (errorStatus === RfqmJobStatus.FailedExpired) {
+                logger.error(`Job "${orderHash}" expired and cannot be processed. Marking job as complete`);
+                RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
+            }
             return;
         }
         const { calldata, makerUri, order, fee } = job;
