@@ -180,7 +180,7 @@ export class QuoteRequestor {
 
     public static getDurationUntilExpirationMs(expirationTimeSeconds: BigNumber): BigNumber {
         const expirationTimeMs = expirationTimeSeconds.times(constants.ONE_SECOND_MS);
-        const currentTimeMs = new BigNumber(Date.now());        
+        const currentTimeMs = new BigNumber(Date.now());
         return BigNumber.max(expirationTimeMs.minus(currentTimeMs), 0);
     }
 
