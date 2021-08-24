@@ -56,6 +56,7 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.BSC]: defaultValue,
         [ChainId.Polygon]: defaultValue,
         [ChainId.PolygonMumbai]: defaultValue,
+        [ChainId.Avalanche]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -156,6 +157,12 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
+        ]),
+        [ChainId.Avalanche]: new SourceFilters([
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Pangolin,
+            ERC20BridgeSource.TraderJoe,
+            ERC20BridgeSource.SushiSwap,
         ]),
     },
     new SourceFilters([]),
@@ -258,6 +265,12 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
         ]),
+        [ChainId.Avalanche]: new SourceFilters([
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Pangolin,
+            ERC20BridgeSource.TraderJoe,
+            ERC20BridgeSource.SushiSwap,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -276,6 +289,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
+        [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
     },
     [],
 );
@@ -594,6 +608,14 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
         }).build(),
+        [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
+            default: [
+                '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7', // wAVAX
+                '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab', // WETH
+                '0xc7198437980c041c805a1edcba50c1ce5db95118', // USDT
+                '0xd586e7f844cea2f87f50152665bcbc2c279d8d70', // DAI
+            ],
+        }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
@@ -607,6 +629,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Rinkeby]: getContractAddressesForChainOrThrow(ChainId.Rinkeby).etherToken,
         [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
         [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
+        [ChainId.Avalanche]: '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
     },
     NULL_ADDRESS,
 );
@@ -1219,6 +1242,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.BSC]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Ropsten]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Polygon]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
+        [ChainId.Avalanche]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
     },
     NULL_ADDRESS,
 );
@@ -1591,6 +1615,20 @@ export const JETSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const PANGOLIN_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0xe54ca86531e17ef3616d22ca28b0d458b6c89106',
+    },
+    NULL_ADDRESS,
+);
+
+export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x60ae616a2155ee3d9a68541ba4544862310933d4',
+    },
+    NULL_ADDRESS,
+);
+
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     // TODO: Different base cost if to/from ETH.
     let gas = 90e3;
@@ -1719,6 +1757,12 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Polydex]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.JetSwap]: uniswapV2CloneGasSchedule,
+
+    //
+    // Avalanche
+    //
+    [ERC20BridgeSource.Pangolin]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

@@ -182,6 +182,10 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'ACryptoS');
         case ERC20BridgeSource.Clipper:
             return encodeBridgeSourceId(BridgeProtocol.Clipper, 'Clipper');
+        case ERC20BridgeSource.Pangolin:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Pangolin');
+        case ERC20BridgeSource.TraderJoe:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'TraderJoe');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -256,6 +260,8 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Polydex:
         case ERC20BridgeSource.ShibaSwap:
         case ERC20BridgeSource.JetSwap:
+        case ERC20BridgeSource.Pangolin:
+        case ERC20BridgeSource.TraderJoe:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -448,6 +454,8 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
     [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
     [ERC20BridgeSource.ShibaSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.Pangolin]: routerAddressPathEncoder,
+    [ERC20BridgeSource.TraderJoe]: routerAddressPathEncoder,
     // BSC
     [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.PancakeSwapV2]: routerAddressPathEncoder,
