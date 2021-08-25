@@ -31,9 +31,6 @@ contract FundRecoveryFeature is
     string public constant override FEATURE_NAME = "FundRecoveryFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
-    
-    /// @dev Construct this contract.
-    constructor() public {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
@@ -46,9 +43,8 @@ contract FundRecoveryFeature is
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
-    // solhint-enable state-visibility
-    /// @dev recovers WETH from the 0x Exchange Proxy contract
-    /// @param erc20 ERC20 Token Address.
+    /// @dev Recovers ERC20 tokens or ETH from the 0x Exchange Proxy contract
+    /// @param erc20 ERC20 Token Address. (You can also pass in `0xeeeee...` to indicate ETH)
     /// @param amountOut Amount of tokens to withdraw.
     /// @param recipientWallet Recipient wallet address.
     function transferTrappedTokensTo(
