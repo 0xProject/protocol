@@ -218,29 +218,6 @@ contract ZrxTreasury is
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
 
-        // TODO(Cece): remove debug code
-//        emit DebugTreasury(
-////            // raw
-////            CONTRACT_NAME,
-////            CONTRACT_VERSION,
-////            _getChainId(),
-////            address(this),
-////            proposalId,
-////            support,
-////            operatedPoolIds,
-////            // non-raw
-////            DOMAIN_TYPEHASH,
-////            keccak256(bytes(CONTRACT_NAME)),
-////            keccak256(bytes(CONTRACT_VERSION)),
-////            VOTE_TYPEHASH,
-////            abi.encodePacked(operatedPoolIds),
-////            keccak256(abi.encodePacked(operatedPoolIds)),
-//            // results
-//            domainSeparator,
-//            structHash,
-//            digest
-//        );
-
         return _castVote(signatory, proposalId, support, operatedPoolIds);
     }
 

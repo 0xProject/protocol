@@ -76,15 +76,14 @@ export class Vote {
     }
 
     public getStructHash(): string {
-        return hash(
+        return hexUtils.hash(
             hexUtils.concat(
                 hexUtils.leftPad(Vote.MESSAGE_TYPE_HASH),
                 hexUtils.leftPad(this.proposalId),
                 hexUtils.leftPad(this.support ? 1 : 0),
-                // hexUtils.hash(
-                //     hexUtils.toHex(Buffer.from(hexUtils.concat(...this.operatedPoolIds))),
-                // ),
-                hash(ethUtil.toBuffer(hexUtils.concat(...this.operatedPoolIds))),
+                hexUtils.hash(
+                    ethUtil.toBuffer(hexUtils.concat(...this.operatedPoolIds)),
+                ),
             ),
         );
     }
@@ -107,43 +106,4 @@ export class Vote {
             ...signature,
         };
     }
-}
-
-// TODO(Cece): remove debug code
-// the code below are all temp, waiting for https://github.com/0xProject/tools/pull/42 to be merged
-export function hash(n: Numberish | Buffer): string {
-    return ethUtil.bufferToHex(ethUtil.keccak256(ethUtil.toBuffer(toHex(n))));
-}
-
-function invert(n: Numberish, _size: number = 32): string {
-    const buf = ethUtil.setLengthLeft(ethUtil.toBuffer(hexUtils.toHex(n)), _size);
-    // tslint:disable-next-line: no-bitwise
-    return ethUtil.bufferToHex(Buffer.from(buf.map(b => ~b)));
-}
-
-function toHex(n: Numberish | Buffer, _size: number = 32): string {
-    if (Buffer.isBuffer(n)) {
-        return `0x${n.toString('hex')}`;
-    }
-    if (typeof n === 'string' && isHex(n)) {
-        // Already a hex.
-        return n;
-    }
-    let _n = new BigNumber(n);
-    if (_n.isNegative()) {
-        // Perform two's-complement.
-        // prettier-ignore
-        _n = new BigNumber(
-            invert(
-                toHex(_n.abs()),
-                _size,
-            ).substr(2),
-            16,
-        ).plus(1).mod(new BigNumber(2).pow(32 * 8));
-    }
-    return `0x${_n.toString(16)}`;
-}
-
-function isHex(s: string): boolean {
-    return /^0x[0-9a-f]*$/i.test(s);
 }
