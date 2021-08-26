@@ -546,32 +546,6 @@ blockchainTests.resets('Treasury governance', env => {
                 .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signedVote.v, signedVote.r, signedVote.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
 
-            // TODO(Cece): remove debug code
-            // verifyEventsFromLogs(
-            //     tx.logs,
-            //     [
-            //         {
-            //             // contractName: Vote.CONTRACT_NAME,
-            //             // version: vote.version,
-            //             // chainId: new BigNumber(vote.chainId),
-            //             // verifyingContract: vote.verifyingContract,
-            //             // proposalId: vote.proposalId,
-            //             // support: vote.support,
-            //             // operatedPoolIds: vote.operatedPoolIds,
-            //             // domainTypeHash: hexUtils.leftPad(Vote.DOMAIN_TYPE_HASH),
-            //             // hashedContractName: hexUtils.hash(hexUtils.toHex(Buffer.from(Vote.CONTRACT_NAME))),
-            //             // hashedContractVersion: hexUtils.hash(hexUtils.toHex(Buffer.from(vote.version))),
-            //             // voteTypeHash: hexUtils.leftPad(Vote.MESSAGE_TYPE_HASH),
-            //             // concatPoolIds: hexUtils.concat(...vote.operatedPoolIds),
-            //             // hashedOperatedPoolIds: hash(ethUtil.toBuffer(hexUtils.concat(...vote.operatedPoolIds))),
-            //             domainSeparator: vote.getDomainHash(),
-            //             structHash: vote.getStructHash(),
-            //             digest: vote.getEIP712Hash(),
-            //         },
-            //     ],
-            //     ZrxTreasuryEvents.DebugTreasury,
-            // );
-
             verifyEventsFromLogs(
                 tx.logs,
                 [
