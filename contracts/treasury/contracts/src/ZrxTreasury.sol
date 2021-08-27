@@ -127,7 +127,7 @@ contract ZrxTreasury is
     ///        be executed if it passes. Must be at least two epochs
     ///        from the current epoch.
     /// @param description A text description for the proposal.
-    /// @param operatedPoolIds The pools operated by `msg.sender`. The
+    /// @param operatedPoolIds The pools operated by the signer. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     /// @return proposalId The ID of the newly created proposal.
@@ -195,7 +195,7 @@ contract ZrxTreasury is
     ///      See `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
-    /// @param operatedPoolIds The pools operated by `msg.sender`. The
+    /// @param operatedPoolIds The pools operated by voter. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     /// @param v the v field of the signature
@@ -394,17 +394,14 @@ contract ZrxTreasury is
     /// @dev Casts a vote for the given proposal. Only callable
     ///      during the voting period for that proposal. See
     ///      `getVotingPower` for how voting power is computed.
-    /// @param proposalId The ID of the proposal to vote on.
-    /// @param support Whether to support the proposal or not.
-    /// @param operatedPoolIds The pools operated by `msg.sender`. The
-    ///        ZRX currently delegated to those pools will be accounted
-    ///        for in the voting power.
     function _castVote(
         address voter,
         uint256 proposalId,
         bool support,
         bytes32[] memory operatedPoolIds
-    ) private {
+    )
+        private
+    {
         if (proposalId >= proposalCount()) {
             revert("_castVote/INVALID_PROPOSAL_ID");
         }
@@ -427,10 +424,10 @@ contract ZrxTreasury is
 
         if (support) {
             proposals[proposalId].votesFor = proposals[proposalId].votesFor
-            .safeAdd(votingPower);
+                .safeAdd(votingPower);
         } else {
             proposals[proposalId].votesAgainst = proposals[proposalId].votesAgainst
-            .safeAdd(votingPower);
+                .safeAdd(votingPower);
         }
         hasVoted[proposalId][voter] = true;
 

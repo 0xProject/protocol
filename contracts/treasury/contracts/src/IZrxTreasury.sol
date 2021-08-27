@@ -179,7 +179,7 @@ interface IZrxTreasury {
     ///      See `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
-    /// @param operatedPoolIds The pools operated by `msg.sender`. The
+    /// @param operatedPoolIds The pools operated by the signer. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     /// @param v the v field of the signature
