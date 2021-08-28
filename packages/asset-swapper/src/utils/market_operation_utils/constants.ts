@@ -474,7 +474,7 @@ export const CURVE_POLYGON_POOLS = {
 
 export const CURVE_V2_POLYGON_POOLS = {
     atricrypto: '0x3fcd5de6a9fc8a99995c406c77dda3ed7e406f81',
-    atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8'
+    atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
 };
 
 export const SWERVE_POOLS = {
