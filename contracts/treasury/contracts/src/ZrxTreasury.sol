@@ -35,23 +35,24 @@ contract ZrxTreasury is
     using LibBytesV06 for bytes;
 
     /// Contract name
-    string public constant CONTRACT_NAME = "Zrx Treasury";
+    string constant CONTRACT_NAME = "Zrx Treasury";
 
     /// Contract version
-    string public constant CONTRACT_VERSION = "1.0.0";
+    string constant CONTRACT_VERSION = "1.0.0";
 
     /// The EIP-712 typehash for the contract's domain
-    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,string version,address verifyingContract)");
+    bytes32 constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
     /// The EIP-712 typehash for the vote struct
-    bytes32 public constant VOTE_TYPEHASH = keccak256("Vote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
+    bytes32 constant VOTE_TYPEHASH = keccak256("Vote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
 
     // Immutables
     IStaking public immutable override stakingProxy;
     DefaultPoolOperator public immutable override defaultPoolOperator;
     bytes32 public immutable override defaultPoolId;
     uint256 public immutable override votingPeriod;
-    bytes32 public immutable domainSeparator;
+    bytes32 immutable domainSeparator;
+
     uint256 public override proposalThreshold;
     uint256 public override quorumThreshold;
 
@@ -172,8 +173,9 @@ contract ZrxTreasury is
     }
 
     /// @dev Casts a vote for the given proposal. Only callable
-    ///      during the voting period for that proposal. See
-    ///      `getVotingPower` for how voting power is computed.
+    ///      during the voting period for that proposal.
+    ///      One address can only vote once.
+    ///      See `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
     /// @param operatedPoolIds The pools operated by `msg.sender`. The
@@ -192,6 +194,7 @@ contract ZrxTreasury is
 
     /// @dev Casts a vote for the given proposal, by signature.
     ///      Only callable during the voting period for that proposal.
+    ///      One address/voter can only vote once.
     ///      See `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
@@ -433,7 +436,6 @@ contract ZrxTreasury is
 
         emit VoteCast(
             voter,
-            msg.sender,
             operatedPoolIds,
             proposalId,
             support,

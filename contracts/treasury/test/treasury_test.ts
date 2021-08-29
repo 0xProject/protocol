@@ -464,7 +464,6 @@ blockchainTests.resets('Treasury governance', env => {
                 [
                     {
                         voter: delegator,
-                        msgSender: delegator,
                         operatedPoolIds: [],
                         proposalId: VOTE_PROPOSAL_ID,
                         support: true,
@@ -551,7 +550,6 @@ blockchainTests.resets('Treasury governance', env => {
                 [
                     {
                         voter: delegator,
-                        msgSender: relayer,
                         operatedPoolIds: [],
                         proposalId: VOTE_PROPOSAL_ID,
                         support: vote.support,

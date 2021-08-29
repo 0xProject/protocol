@@ -161,17 +161,3 @@ export enum ExchangeFunctionName {
     SetProtocolFeeCollectorAddress = 'setProtocolFeeCollectorAddress',
     DetachProtocolFeeCollector = 'detachProtocolFeeCollector',
 }
-
-export interface ZeroExVote {
-    proposalId: BigNumber;
-    support: boolean;
-    operatedPoolIds: string[];
-    chainId: number;
-    verifyingContract: string;
-}
-
-export interface ZeroExSignedVote extends ZeroExVote {
-    v: number;
-    r: string;
-    s: string;
-}

@@ -59,35 +59,11 @@ interface IZrxTreasury {
 
     event VoteCast(
         address voter,
-        address msgSender,
         bytes32[] operatedPoolIds,
         uint256 proposalId,
         bool support,
         uint256 votingPower
     );
-
-    // TODO(Cece): remove debug code
-//    event DebugTreasury(
-//        // raw
-////        string contractName,
-////        string version,
-////        uint256 chainId,
-////        address verifyingContract,
-////        uint256 proposalId,
-////        bool support,
-////        bytes32[] operatedPoolIds,
-////        // non-raw
-////        bytes32 domainTypeHash,
-////        bytes32 hashedContractName,
-////        bytes32 hashedContractVersion,
-////        bytes32 voteTypeHash,
-////        bytes concatPoolIds,
-////        bytes32 hashedOperatedPoolIds,
-//        // results
-//        bytes32 domainSeparator,
-//        bytes32 structHash,
-//        bytes32 digest
-//    );
 
     event ProposalExecuted(uint256 proposalId);
 
@@ -160,8 +136,9 @@ interface IZrxTreasury {
         returns (uint256 proposalId);
 
     /// @dev Casts a vote for the given proposal. Only callable
-    ///      during the voting period for that proposal. See
-    ///      `getVotingPower` for how voting power is computed.
+    ///      during the voting period for that proposal.
+    ///      One address can only vote once.
+    ///      See `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
     /// @param operatedPoolIds The pools operated by `msg.sender`. The
@@ -176,6 +153,7 @@ interface IZrxTreasury {
 
     /// @dev Casts a vote for the given proposal, by signature.
     ///      Only callable during the voting period for that proposal.
+    ///      One address/voter can only vote once.
     ///      See `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.

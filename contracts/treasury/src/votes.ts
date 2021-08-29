@@ -1,10 +1,10 @@
-import { ZeroExSignedVote } from '@0x/contracts-test-utils/src/types';
 import {
+    EIP712_DOMAIN_PARAMETERS,
     eip712SignHashWithKey,
-    getTypeHash,
+    getTypeHash, Signature,
     ZERO,
 } from '@0x/protocol-utils';
-import { BigNumber, hexUtils, NULL_ADDRESS, Numberish } from '@0x/utils';
+import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as ethUtil from 'ethereumjs-util';
 
 const VOTE_DEFAULT_VALUES = {
@@ -32,14 +32,8 @@ export class Vote {
     );
 
     public static readonly DOMAIN_STRUCT_NAME = 'EIP712Domain';
-    public static readonly DOMAIN_STRUCT_ABI = [
-        { type: 'string', name: 'name' },
-        { type: 'uint256', name: 'chainId' },
-        { type: 'string', name: 'version' },
-        { type: 'address', name: 'verifyingContract' },
-    ];
     public static readonly DOMAIN_TYPE_HASH = getTypeHash(
-        Vote.DOMAIN_STRUCT_NAME, Vote.DOMAIN_STRUCT_ABI,
+        Vote.DOMAIN_STRUCT_NAME, EIP712_DOMAIN_PARAMETERS,
     );
 
     public proposalId: BigNumber;
@@ -82,7 +76,7 @@ export class Vote {
                 hexUtils.leftPad(this.proposalId),
                 hexUtils.leftPad(this.support ? 1 : 0),
                 hexUtils.hash(
-                    ethUtil.toBuffer(hexUtils.concat(...this.operatedPoolIds)),
+                    ethUtil.toBuffer(hexUtils.concat(...this.operatedPoolIds.map(id => hexUtils.leftPad(id)))),
                 ),
             ),
         );
@@ -99,11 +93,7 @@ export class Vote {
         );
     }
 
-    public getSignatureWithKey(privateKey: string): ZeroExSignedVote {
-        const signature = eip712SignHashWithKey(this.getEIP712Hash(), privateKey);
-        return {
-            ...this,
-            ...signature,
-        };
+    public getSignatureWithKey(privateKey: string): Signature {
+        return eip712SignHashWithKey(this.getEIP712Hash(), privateKey);
     }
 }
