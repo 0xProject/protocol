@@ -20,11 +20,6 @@ export const DEFAULT_VALIDATION_GAS_LIMIT = 10e6;
 export const HEX_BASE = 16;
 export const PROTOCOL_FEE = 70e3;
 
-// The number of orders to post to Mesh at one time
-export const MESH_ORDERS_BATCH_SIZE = 200;
-// 5242880 appears to be the max HTTP content length with Mesh
-export const MESH_ORDERS_BATCH_HTTP_BYTE_LENGTH = 2500000;
-
 // Swap Quoter
 export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 60; // Ignore orders that expire in 60 seconds
 const GAS_LIMIT_BUFFER_PERCENTAGE = 0.1; // Add 10% to the estimated gas limit
@@ -57,6 +52,7 @@ export const SWAP_PATH = '/swap/v1';
 export const META_TRANSACTION_PATH = '/meta_transaction/v1';
 export const METRICS_PATH = '/metrics';
 export const RFQM_PATH = '/rfqm/v1';
+export const ORDERBOOK_PATH = '/orderbook/v1';
 export const API_KEY_HEADER = '0x-api-key';
 export const HEALTHCHECK_PATH = '/healthz';
 

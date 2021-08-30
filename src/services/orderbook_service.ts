@@ -1,4 +1,5 @@
-import { AcceptedOrderResult, OrderEventEndState, OrderWithMetadataV4 } from '@0x/mesh-graphql-client';
+import { LimitOrder } from '@0x/asset-swapper';
+import { LimitOrderFields } from '@0x/protocol-utils';
 import * as _ from 'lodash';
 import { Connection, In, MoreThanOrEqual } from 'typeorm';
 
@@ -11,15 +12,14 @@ import { ONE_SECOND_MS } from '../constants';
 import { PersistentSignedOrderV4Entity, SignedOrderV4Entity } from '../entities';
 import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
 import { alertOnExpiredOrders } from '../logger';
-import { OrderbookResponse, PaginatedCollection, SignedLimitOrder, SRAOrder } from '../types';
-import { MeshClient } from '../utils/mesh_client';
-import { meshUtils } from '../utils/mesh_utils';
+import { OrderbookResponse, OrderEventEndState, PaginatedCollection, SignedLimitOrder, SRAOrder } from '../types';
 import { orderUtils } from '../utils/order_utils';
+import { OrderWatcherInterface } from '../utils/order_watcher';
 import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService {
-    private readonly _meshClient?: MeshClient;
     private readonly _connection: Connection;
+    private readonly _orderWatcher: OrderWatcherInterface;
     public static isAllowedPersistentOrders(apiKey: string): boolean {
         return SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS.includes(apiKey);
     }
@@ -92,7 +92,10 @@ export class OrderBookService {
         const filters = [];
 
         // Pre-filters; exists in the entity verbatim
-        const orderFilter = _.pickBy(orderFieldFilters, _.identity.bind(_));
+        const columnNames = this._connection.getMetadata(SignedOrderV4Entity).columns.map((x) => x.propertyName);
+        const orderFilter = _.pickBy(orderFieldFilters, (v, k) => {
+            return columnNames.includes(k);
+        });
 
         // Post-filters; filters that don't exist verbatim
         if (additionalFilters.trader) {
@@ -195,23 +198,26 @@ export class OrderBookService {
         const paginatedApiOrders = paginationUtils.paginate(fresh, page, perPage);
         return paginatedApiOrders;
     }
-    constructor(connection: Connection, meshClient?: MeshClient) {
-        this._meshClient = meshClient;
+    constructor(connection: Connection, orderWatcher: OrderWatcherInterface) {
         this._connection = connection;
+        this._orderWatcher = orderWatcher;
     }
-    public async addOrderAsync(signedOrder: SignedLimitOrder, pinned: boolean): Promise<void> {
-        return this.addOrdersAsync([signedOrder], pinned);
+    public async addOrderAsync(signedOrder: SignedLimitOrder): Promise<void> {
+        await this._orderWatcher.postOrdersAsync([signedOrder]);
     }
-    public async addOrdersAsync(signedOrders: SignedLimitOrder[], pinned: boolean): Promise<void> {
-        // Order Watcher Service will handle persistence
-        await this._addOrdersAsync(signedOrders, pinned);
-        return;
+    public async addOrdersAsync(signedOrders: SignedLimitOrder[]): Promise<void> {
+        await this._orderWatcher.postOrdersAsync(signedOrders);
     }
-    public async addPersistentOrdersAsync(signedOrders: SignedLimitOrder[], pinned: boolean): Promise<void> {
-        const accepted = await this._addOrdersAsync(signedOrders, pinned);
-        const persistentOrders = accepted.map((orderInfo) => {
-            const apiOrder = meshUtils.orderInfoToSRAOrder({ ...orderInfo, endState: OrderEventEndState.Added });
-            return orderUtils.serializePersistentOrder(apiOrder);
+    public async addPersistentOrdersAsync(signedOrders: SignedLimitOrder[]): Promise<void> {
+        await this._orderWatcher.postOrdersAsync(signedOrders);
+
+        // Figure out which orders were accepted by looking for them in the database.
+        const hashes = signedOrders.map((o) => {
+            const limitOrder = new LimitOrder(o as LimitOrderFields);
+            return limitOrder.getHash();
+        });
+        const addedOrders = await this._connection.manager.find(SignedOrderV4Entity, {
+            where: { hash: In(hashes) },
         });
         // MAX SQL variable size is 999. This limit is imposed via Sqlite.
         // The SELECT query is not entirely effecient and pulls in all attributes
@@ -220,31 +226,6 @@ export class OrderBookService {
         // signedOrders model
         await this._connection
             .getRepository(PersistentSignedOrderV4Entity)
-            .save(persistentOrders, { chunk: DB_ORDERS_UPDATE_CHUNK_SIZE });
-    }
-    private async _addOrdersAsync(
-        signedOrders: SignedLimitOrder[],
-        pinned: boolean,
-    ): Promise<AcceptedOrderResult<OrderWithMetadataV4>[]> {
-        // Avoid making a request with no orders to save mesh roundtrip time and
-        // error handling as an empty array of orders fails initial validation
-        // on Mesh >=v11.2.
-        if (signedOrders.length === 0) {
-            return [];
-        }
-        if (this._meshClient) {
-            const { rejected, accepted } = await this._meshClient.addOrdersV4Async(signedOrders, pinned);
-            if (rejected.length !== 0) {
-                const validationErrors = rejected.map((r, i) => ({
-                    field: `signedOrder[${i}]`,
-                    code: meshUtils.rejectedCodeToSRACode(r.code),
-                    reason: `${r.code}: ${r.message}`,
-                }));
-                throw new ValidationError(validationErrors);
-            }
-            // Order Watcher Service will handle persistence
-            return accepted;
-        }
-        throw new Error('Could not add order to mesh.');
+            .save(addedOrders, { chunk: DB_ORDERS_UPDATE_CHUNK_SIZE });
     }
 }

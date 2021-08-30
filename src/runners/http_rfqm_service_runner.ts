@@ -66,9 +66,6 @@ if (require.main === module) {
         // Build dependencies
         const config: HttpServiceConfig = {
             ...defaultHttpServiceWithRateLimiterConfig,
-            // Mesh is not required for Rfqm Service
-            meshWebsocketUri: undefined,
-            meshHttpUri: undefined,
         };
         const connection = await getDBConnectionAsync();
         const rfqmService = await buildRfqmServiceAsync(connection, false);

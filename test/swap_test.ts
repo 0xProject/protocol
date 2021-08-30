@@ -1,6 +1,5 @@
 // tslint:disable:max-file-line-count
-
-import { BUY_SOURCE_FILTER_BY_CHAIN_ID, ERC20BridgeSource } from '@0x/asset-swapper';
+import { BUY_SOURCE_FILTER_BY_CHAIN_ID, ERC20BridgeSource, LimitOrderFields } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
@@ -22,7 +21,7 @@ import { AFFILIATE_FEE_TRANSFORMER_GAS, GAS_LIMIT_BUFFER_MULTIPLIER, SWAP_PATH }
 import { getDBConnectionAsync } from '../src/db_connection';
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
 import { logger } from '../src/logger';
-import { GetSwapQuoteResponse } from '../src/types';
+import { GetSwapQuoteResponse, SignedLimitOrder } from '../src/types';
 
 import {
     CHAIN_ID,
@@ -42,8 +41,9 @@ import {
 } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync } from './utils/http_utils';
-import { MeshClientMock } from './utils/mesh_client_mock';
 import { liquiditySources0xOnly } from './utils/mocks';
+import { MockOrderWatcher } from './utils/mock_order_watcher';
+import { getRandomSignedLimitOrderAsync } from './utils/orders';
 
 const SUITE_NAME = 'Swap API';
 const EXCLUDED_SOURCES = BUY_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources.filter(
@@ -69,17 +69,15 @@ describe(SUITE_NAME, () => {
     let blockchainLifecycle: BlockchainLifecycle;
     let provider: Web3ProviderEngine;
 
-    const meshClientMock = new MeshClientMock();
-
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-        await meshClientMock.setupMockAsync();
         const connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        await connection.runMigrations();
         provider = getProvider();
         const web3Wrapper = new Web3Wrapper(provider);
         blockchainLifecycle = new BlockchainLifecycle(web3Wrapper);
 
+        const mockOrderWatcher = new MockOrderWatcher(connection);
         accounts = await web3Wrapper.getAvailableAddressesAsync();
         [, makerAdddress, takerAddress] = accounts;
 
@@ -106,7 +104,7 @@ describe(SUITE_NAME, () => {
             .approve(CONTRACT_ADDRESSES.exchangeProxy, MAX_INT)
             .awaitTransactionSuccessAsync({ from: makerAdddress });
 
-        await meshClientMock.addPartialOrdersAsync(provider, [
+        const limitOrders: Partial<LimitOrderFields>[] = [
             {
                 makerToken: ZRX_TOKEN_ADDRESS,
                 takerToken: WETH_TOKEN_ADDRESS,
@@ -137,7 +135,11 @@ describe(SUITE_NAME, () => {
                 takerAmount: ONE_THOUSAND_IN_BASE,
                 maker: makerAdddress,
             },
-        ]);
+        ];
+        const signPartialOrder = (order: Partial<LimitOrderFields>) => getRandomSignedLimitOrderAsync(provider, order);
+        const signedOrders: SignedLimitOrder[] = await Promise.all(limitOrders.map(signPartialOrder));
+        await mockOrderWatcher.postOrdersAsync(signedOrders);
+
         // start the 0x-api app
         dependencies = await getDefaultAppDependenciesAsync(provider, {
             ...config.defaultHttpServiceConfig,
@@ -159,7 +161,6 @@ describe(SUITE_NAME, () => {
                 resolve();
             });
         });
-        meshClientMock.teardownMock();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 

@@ -27,27 +27,26 @@ Everything can be run monolithically via `yarn start` and `docker-compose` up as
 
 ## Services
 
-The API contains different services that serve a collection of HTTP or websocket endpoints and keep your database in sync with [0x Mesh](https://github.com/0xProject/0x-mesh) and Ethereum state.
+The API contains different services that serve a collection of HTTP or websocket endpoints and keep your order states in sync with the Ethereum state.
 
 ### HTTP Services
 
 These are services that handle HTTP requests and responses.
 
-| Name                                                | Path                | Run Command                                | Requires [0x Mesh](https://github.com/0xProject/0x-mesh)? | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
-| --------------------------------------------------- | ------------------- | ------------------------------------------ | --------------------------------------------------------- | ------------------------------------ | ----------------------------- |
-| All HTTP Services                                   | `/*`                | `yarn start:service:http`                  | Yes                                                       | Yes                                  | Yes                           |
-| [Swap](https://0x.org/docs/api#swap)                | `/swap`             | `yarn start:service:swap_http`             | Yes                                                       | Yes                                  | Yes                           |
-| [Standard Relayer API](https://0x.org/docs/api#sra) | `/sra`              | `yarn start:service:sra_http`              | Yes                                                       | No                                   | Yes                           |
-| Meta Transaction Service                            | `/meta_transaction` | `yarn start:service:meta_transaction_http` | No                                                        | Yes                                  | Yes                           |
+| Name                                                | Path                | Run Command                                | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
+| --------------------------------------------------- | ------------------- | ------------------------------------------ | ------------------------------------ | ----------------------------- |
+| All HTTP Services                                   | `/*`                | `yarn start:service:http`                  | Yes                                  | Yes                           |
+| [Swap](https://0x.org/docs/api#swap)                | `/swap`             | `yarn start:service:swap_http`             | Yes                                  | Yes                           |
+| [Standard Relayer API](https://0x.org/docs/api#sra) | `/sra`              | `yarn start:service:sra_http`              | No                                   | Yes                           |
+| Meta Transaction Service                            | `/meta_transaction` | `yarn start:service:meta_transaction_http` | Yes                                  | Yes                           |
 
 ### Data Services
 
-These are services that make sure the data being served is present and up-to-date by keeping the database in sync with [0x Mesh](https://github.com/0xProject/0x-mesh) and Ethereum. The endpoints above run without these services, but would be providing degraded or non-functional service. There is nothing stateful about 0x API -- all the data comes from [0x Mesh](https://github.com/0xProject/0x-mesh) or the Ethereum blockchain.
+The transaction watcher ensures that the data being served is present and up-to-date by keeping the database in sync with Ethereum. The endpoints above run without it, but would be providing degraded or non-functional service.
 
-| Name                                                          | Run Command                              | Requires [0x Mesh](https://github.com/0xProject/0x-mesh)? | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
-| ------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------- | ------------------------------------ | ----------------------------- |
-| Order Watcher (keep database in sync with Mesh)               | `yarn start:service:order_watcher`       | Yes                                                       | No                                   | Yes                           |  | Yes |
-| Transaction Watcher (monitor and broadcast meta transactions) | `yarn start:service:transaction_watcher` | No                                                        | Yes                                  | Yes                           |
+| Name                                                          | Run Command                              | Requires Ethereum JSON RPC Provider? | Requires Relational Database? |
+| ------------------------------------------------------------- | ---------------------------------------- | ------------------------------------ | ----------------------------- |
+| Transaction Watcher (monitor and broadcast meta transactions) | `yarn start:service:transaction_watcher` | Yes                                  | Yes                           |
 
 ## Getting started
 
@@ -65,32 +64,27 @@ To get a local development version of `0x-api` running:
 
 2. Create an `.env` file and copy the content from the `.env_example` file. Defaults are defined in `config.ts`/`config.js`. The bash environment takes precedence over the `.env` file. If you run `source .env`, changes to the `.env` file will have no effect until you unset the colliding variables.
 
-| Environment Variable                   | Default                                                         | Description                                                                                                                                                                                               |
-| -------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CHAIN_ID`                             | Required. No default.                                           | The chain id you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, `3` -> Ropsten, `1337` -> Ganache). Defaults to `42` in the API, but required for `docker-compose up`.                    |
-| `ETHEREUM_RPC_URL`                     | Required. No default.                                           | The URL used to issue JSON RPC requests. Use `http://ganache:8545` to use the local ganache instance.                                                                                                     |
-| `MESH_WEBSOCKET_URI`                   | Required. Default for dev: `ws://localhost:60557`               | The URL pointing to the 0x Mesh node. A default node is spun up in `docker-compose up`                                                                                                                    |
-| `MESH_HTTP_URI`                        | Optional. No default                                            | The URL pointing to the Mesh node's HTTP JSON-RPC endpoint. Used for syncing the orderbook. If not provided, will fallback to websocket connection. A default Mesh node is spun up in `docker-compose up` |
-| `LIQUIDITY_POOL_REGISTRY_ADDRESS`      | Optional. No default                                            | The Ethereum address of a Liquidity Provider registry. If unspecified, no Liquidity Provider is used.                                                                                                     |
-| `POSTGRES_URI`                         | Required. Default for dev: `postgresql://api:api@localhost/api` | A URI of a running postgres instance. By default, the API will create all necessary tables. A default instance is spun up in `docker-compose up`                                                          |
-| `POSTGRES_READ_REPLICA_URIS`           | Optional. No default                                            | A comma separated list of URIs of running postgres read replica instances.                                                                                                                                |
-| `FEE_RECIPIENT_ADDRESS`                | `0x0000000000000000000000000000000000000000`                    | The Ethereum address which should be specified as the fee recipient in orders your API accepts.                                                                                                           |
-| `MAKER_FEE_ASSET_DATA`                 | `0x`                                                            | The maker fee token asset data for created 0x orders.                                                                                                                                                     |
-| `TAKER_FEE_ASSET_DATA`                 | `0x`                                                            | The taker fee token asset data for created 0x orders.                                                                                                                                                     |
-| `MAKER_FEE_UNIT_AMOUNT`                | `0`                                                             | The flat maker fee amount you'd like to receive for filled orders hosted by you.                                                                                                                          |
-| `TAKER_FEE_UNIT_AMOUNT`                | `0`                                                             | The flat taker fee amount you'd like to receive for filled orders hosted by you.                                                                                                                          |
-| `WHITELIST_ALL_TOKENS`                 | `false`                                                         | A boolean determining whether all tokens should be allowed to be posted.                                                                                                                                  |
-| `MESH_IGNORED_ADDRESSES`               | `[]`                                                            | A comma seperated list of addresses to ignore. These addresses are ignored at the ingress (Mesh) layer and are never persisted                                                                            |
-| `SWAP_IGNORED_ADDRESSES`               | `[]`                                                            | A comma seperated list of addresses to ignore. These addresses are persisted but not used in any `/swap/*` endpoints                                                                                      |
-| `PINNED_POOL_IDS`                      | `[]`                                                            | A comma seperated list of pool IDs whose MMers orders will be pinned to the Mesh node. This makes them immune to spam attacks.                                                                            |
-| `PINNED_MM_ADDRESSES`                  | `[]`                                                            | A comma seperated list of MMer addresses whose orders will be pinned to the Mesh node. This makes them immune to spam attacks.                                                                            |
-| `META_TXN_SUBMIT_WHITELISTED_API_KEYS` | `[]`                                                            | A comma seperated list of whitelisted 0x API keys that can use the meta-txn /submit endpoint.                                                                                                             |
-| `META_TXN_RELAY_PRIVATE_KEYS`          | `[]`                                                            | A comma seperated list of meta-txn relay sender private keys managed by the TransactionWatcherSignerService.                                                                                              |
-| `META_TXN_SIGNING_ENABLED`             | `true`                                                          | A boolean determining whether the meta-txn signs and submits transactions .                                                                                                                               |
-| `META_TXN_MAX_GAS_PRICE_GWEI`          | `50`                                                            | The maximum gas price (in gwei) the meta-txn service will submit a transaction at. If the gas price of the network exceeds this value then the meta-txn service will be disabled.                         |
-| `META_TXN_RELAY_EXPECTED_MINED_SEC`    | Default: `120`                                                  | The expected time for a meta-txn to be included in a block.                                                                                                                                               |
-| `ENABLE_PROMETHEUS_METRICS`            | Default: `false`                                                | A boolean determining whether to enable prometheus monitoring.                                                                                                                                            |
-| `PROMETHEUS_PORT`                      | Default: `8080`                                                 | The port from which prometheus metrics should be served.                                                                                                                                                  |
+| Environment Variable                   | Default                                                         | Description                                                                                                                                                                            |
+| -------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CHAIN_ID`                             | Required. No default.                                           | The chain id you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, `3` -> Ropsten, `1337` -> Ganache). Defaults to `42` in the API, but required for `docker-compose up`. |
+| `ETHEREUM_RPC_URL`                     | Required. No default.                                           | The URL used to issue JSON RPC requests. Use `http://ganache:8545` to use the local ganache instance.                                                                                  |
+| `LIQUIDITY_POOL_REGISTRY_ADDRESS`      | Optional. No default                                            | The Ethereum address of a Liquidity Provider registry. If unspecified, no Liquidity Provider is used.                                                                                  |
+| `POSTGRES_URI`                         | Required. Default for dev: `postgresql://api:api@localhost/api` | A URI of a running postgres instance. By default, the API will create all necessary tables. A default instance is spun up in `docker-compose up`                                       |
+| `POSTGRES_READ_REPLICA_URIS`           | Optional. No default                                            | A comma separated list of URIs of running postgres read replica instances.                                                                                                             |
+| `FEE_RECIPIENT_ADDRESS`                | `0x0000000000000000000000000000000000000000`                    | The Ethereum address which should be specified as the fee recipient in orders your API accepts.                                                                                        |
+| `MAKER_FEE_ASSET_DATA`                 | `0x`                                                            | The maker fee token asset data for created 0x orders.                                                                                                                                  |
+| `TAKER_FEE_ASSET_DATA`                 | `0x`                                                            | The taker fee token asset data for created 0x orders.                                                                                                                                  |
+| `MAKER_FEE_UNIT_AMOUNT`                | `0`                                                             | The flat maker fee amount you'd like to receive for filled orders hosted by you.                                                                                                       |
+| `TAKER_FEE_UNIT_AMOUNT`                | `0`                                                             | The flat taker fee amount you'd like to receive for filled orders hosted by you.                                                                                                       |
+| `WHITELIST_ALL_TOKENS`                 | `false`                                                         | A boolean determining whether all tokens should be allowed to be posted.                                                                                                               |
+| `SWAP_IGNORED_ADDRESSES`               | `[]`                                                            | A comma separated list of addresses to ignore. These addresses are persisted but not used in any `/swap/*` endpoints                                                                   |
+| `META_TXN_SUBMIT_WHITELISTED_API_KEYS` | `[]`                                                            | A comma separated list of whitelisted 0x API keys that can use the meta-txn /submit endpoint.                                                                                          |
+| `META_TXN_RELAY_PRIVATE_KEYS`          | `[]`                                                            | A comma separated list of meta-txn relay sender private keys managed by the TransactionWatcherSignerService.                                                                           |
+| `META_TXN_SIGNING_ENABLED`             | `true`                                                          | A boolean determining whether the meta-txn signs and submits transactions .                                                                                                            |
+| `META_TXN_MAX_GAS_PRICE_GWEI`          | `50`                                                            | The maximum gas price (in gwei) the meta-txn service will submit a transaction at. If the gas price of the network exceeds this value then the meta-txn service will be disabled.      |
+| `META_TXN_RELAY_EXPECTED_MINED_SEC`    | Default: `120`                                                  | The expected time for a meta-txn to be included in a block.                                                                                                                            |
+| `ENABLE_PROMETHEUS_METRICS`            | Default: `false`                                                | A boolean determining whether to enable prometheus monitoring.                                                                                                                         |
+| `PROMETHEUS_PORT`                      | Default: `8080`                                                 | The port from which prometheus metrics should be served.                                                                                                                               |
 
 3. Install the dependencies:
 
@@ -104,7 +98,7 @@ To get a local development version of `0x-api` running:
     yarn build
     ```
 
-5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file. If you switch `CHAIN_ID` after a prior run, you will have to `rm -rf 0x_mesh postgres` to delete the volumes containing stale data.
+5. Run `docker-compose up` to run the other dependencies required for the API. This uses the local `docker-compose.yml` file.
 
 6. Run the database migrations:
 
@@ -126,7 +120,7 @@ yarn db:migrate
 
 #### Developing on Ganache
 
-Ganache is supported, but will not contain the same 0x Mesh liquidity that kovan or mainnet have for example. To use ganache, use the `.env` file below:
+To use ganache, use the `.env` file below:
 
 ```
 CHAIN_ID=1337

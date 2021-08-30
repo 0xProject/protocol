@@ -12,15 +12,15 @@ import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { Web3Wrapper } from '@0x/dev-utils';
 import * as express from 'express';
 import { Server } from 'http';
+import { Kafka } from 'kafkajs';
 import { Connection } from 'typeorm';
 
-import { CHAIN_ID, RFQT_TX_ORIGIN_BLACKLIST } from './config';
+import { CHAIN_ID, ORDER_WATCHER_KAFKA_TOPIC, RFQT_TX_ORIGIN_BLACKLIST } from './config';
 import { RFQ_DYNAMIC_BLACKLIST_TTL, RFQ_FIRM_QUOTE_CACHE_EXPIRY, SRA_PATH } from './constants';
 import { getDBConnectionAsync } from './db_connection';
 import { MakerBalanceChainCacheEntity } from './entities/MakerBalanceChainCacheEntity';
 import { logger } from './logger';
 import { runHttpServiceAsync } from './runners/http_service_runner';
-import { runOrderWatcherServiceAsync } from './runners/order_watcher_service_runner';
 import { MetaTransactionService } from './services/meta_transaction_service';
 import { OrderBookService } from './services/orderbook_service';
 import { PostgresRfqtFirmQuoteValidator } from './services/postgres_rfqt_firm_quote_validator';
@@ -34,7 +34,7 @@ import {
     WebsocketSRAOpts,
 } from './types';
 import { AssetSwapperOrderbook } from './utils/asset_swapper_orderbook';
-import { MeshClient } from './utils/mesh_client';
+import { OrderWatcher } from './utils/order_watcher';
 import {
     AvailableRateLimiter,
     DatabaseKeysUsedForRateLimiter,
@@ -48,7 +48,7 @@ import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
 export interface AppDependencies {
     contractAddresses: ContractAddresses;
     connection: Connection;
-    meshClient?: MeshClient;
+    kafkaClient?: Kafka;
     orderBookService: OrderBookService;
     swapService?: SwapService;
     metaTransactionService?: MetaTransactionService;
@@ -113,7 +113,7 @@ export async function getContractAddressesForNetworkOrThrowAsync(
 
 /**
  * Instantiates dependencies required to run the app. Uses default settings based on config
- * @param config should contain a URI for mesh to listen to, and the ethereum RPC URL
+ * @param config should the ethereum RPC URL
  */
 export async function getDefaultAppDependenciesAsync(
     provider: SupportedProvider,
@@ -122,14 +122,14 @@ export async function getDefaultAppDependenciesAsync(
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
     const connection = await getDBConnectionAsync();
 
-    let meshClient: MeshClient | undefined;
-    if (config.meshWebsocketUri !== undefined && config.meshHttpUri !== undefined) {
-        meshClient = new MeshClient(config.meshWebsocketUri, config.meshHttpUri);
-        // HACK(kimpers): Need to wait for Mesh initialization to finish before we can subscribe to event updates
-        // When the stats request has resolved Mesh is ready to receive subscriptions
-        await meshClient.getStatsAsync();
+    let kafkaClient: Kafka | undefined;
+    if (config.kafkaBrokers !== undefined) {
+        kafkaClient = new Kafka({
+            clientId: 'sra-client',
+            brokers: config.kafkaBrokers,
+        });
     } else {
-        logger.warn(`Skipping Mesh client creation because no URI provided`);
+        logger.warn(`skipping kafka client creation because no kafkaBrokers were passed in`);
     }
 
     let rateLimiter: MetaTransactionRateLimiter | undefined;
@@ -137,7 +137,7 @@ export async function getDefaultAppDependenciesAsync(
         rateLimiter = createMetaTransactionRateLimiterFromConfig(connection, config);
     }
 
-    const orderBookService = new OrderBookService(connection, meshClient);
+    const orderBookService = new OrderBookService(connection, new OrderWatcher());
 
     const rfqtFirmQuoteValidator = new PostgresRfqtFirmQuoteValidator(
         connection.getRepository(MakerBalanceChainCacheEntity),
@@ -169,12 +169,12 @@ export async function getDefaultAppDependenciesAsync(
         logger.error(err.stack);
     }
 
-    const websocketOpts = { path: SRA_PATH };
+    const websocketOpts = { path: SRA_PATH, kafkaTopic: ORDER_WATCHER_KAFKA_TOPIC };
 
     return {
         contractAddresses,
         connection,
-        meshClient,
+        kafkaClient,
         orderBookService,
         swapService,
         metaTransactionService,
@@ -187,9 +187,7 @@ export async function getDefaultAppDependenciesAsync(
 /**
  * starts the app with dependencies injected. This entry-point is used when running a single instance 0x API
  * deployment and in tests. It is not used in production deployments where scaling is required.
- * @param dependencies  all values are optional and will be filled with reasonable defaults, with one
- *                      exception. if a `meshClient` is not provided, the API will start without a
- *                      connection to mesh.
+ * @param dependencies  all values are optional and will be filled with reasonable defaults.
  * @return the app object
  */
 export async function getAppAsync(
@@ -197,21 +195,11 @@ export async function getAppAsync(
     config: HttpServiceConfig,
 ): Promise<{ app: Express.Application; server: Server }> {
     const app = express();
-    const { server, wsService } = await runHttpServiceAsync(dependencies, config, app);
-    if (dependencies.meshClient !== undefined) {
-        try {
-            await runOrderWatcherServiceAsync(dependencies.connection, dependencies.meshClient);
-        } catch (e) {
-            logger.error(`Error attempting to start Order Watcher service, [${JSON.stringify(e)}]`);
-        }
-    } else {
-        logger.warn('No mesh client provided, API running without Order Watcher');
-    }
-    // Register a shutdown event listener.
-    // TODO: More teardown logic should be added here. For example, the mesh rpc
-    // client should be destroyed and services should be torn down.
+    const { server } = await runHttpServiceAsync(dependencies, config, app);
+
     server.on('close', async () => {
-        await wsService.destroyAsync();
+        // Register a shutdown event listener.
+        // TODO: More teardown logic should be added here. For example individual services should be torn down.
     });
 
     return { app, server };

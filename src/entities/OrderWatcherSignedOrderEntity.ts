@@ -1,13 +1,10 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-import { OrderEventEndState } from '../types';
-
-// Adds a field `orderState` to SignedOrderEntity
-// Persists after cancellation, expiration, etc
-// We save these to support account history for Matcha front-end
-@Entity({ name: 'persistent_signed_orders_v4' })
-@Index(['makerToken', 'takerToken'], { unique: false })
-export class PersistentSignedOrderV4Entity {
+// This should only be used in tests to set the state of `signed_orders_v4`.
+// In production, we only care about valid orders, so use
+// `ValidSignedOrderV4Entity` instead.
+@Entity({ name: 'signed_orders_v4' })
+export class OrderWatcherSignedOrderEntity {
     @PrimaryColumn({ name: 'hash', type: 'varchar' })
     public hash?: string;
 
@@ -60,9 +57,6 @@ export class PersistentSignedOrderV4Entity {
     @Column({ name: 'remaining_fillable_taker_amount', type: 'varchar' })
     public remainingFillableTakerAmount?: string;
 
-    @Column({ name: 'state', type: 'enum', enum: OrderEventEndState, default: OrderEventEndState.Added })
-    public orderState?: OrderEventEndState;
-
     @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
     public createdAt?: string;
 
@@ -84,7 +78,6 @@ export class PersistentSignedOrderV4Entity {
             feeRecipient?: string;
             signature?: string;
             remainingFillableTakerAmount?: string;
-            orderState?: OrderEventEndState;
         } = {},
     ) {
         this.hash = opts.hash;
@@ -104,6 +97,5 @@ export class PersistentSignedOrderV4Entity {
         this.signature = opts.signature;
         this.remainingFillableTakerAmount = opts.remainingFillableTakerAmount;
         this.signature = opts.signature;
-        this.orderState = opts.orderState || OrderEventEndState.Added;
     }
 }

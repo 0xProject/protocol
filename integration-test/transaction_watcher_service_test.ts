@@ -15,7 +15,6 @@ import {
 } from '../src/app';
 import {
     CHAIN_ID,
-    defaultHttpServiceConfig,
     defaultHttpServiceWithRateLimiterConfig,
     ETHEREUM_RPC_URL,
     META_TXN_MAX_GAS_PRICE_GWEI,
@@ -34,7 +33,7 @@ import { SwapService } from '../src/services/swap_service';
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
 import { ChainId, TransactionStates, TransactionWatcherSignerServiceConfig } from '../src/types';
 import { AssetSwapperOrderbook } from '../src/utils/asset_swapper_orderbook';
-import { MeshClient } from '../src/utils/mesh_client';
+import { OrderWatcher } from '../src/utils/order_watcher';
 import { utils } from '../src/utils/utils';
 
 import { TestMetaTxnUser } from './utils/test_signer';
@@ -89,7 +88,8 @@ describe('Transaction Watcher Service integration test', () => {
         transactionEntityRepository = connection.getRepository(TransactionEntity);
         txWatcher = new TransactionWatcherSignerService(connection, txWatcherConfig);
         await txWatcher.syncTransactionStatusAsync();
-        const orderBookService = new OrderBookService(connection);
+        const orderWatcher = new OrderWatcher();
+        const orderBookService = new OrderBookService(connection, orderWatcher);
         const websocketOpts = { path: SRA_PATH };
         const rfqFirmQuoteValidator = new PostgresRfqtFirmQuoteValidator(
             connection.getRepository(MakerBalanceChainCacheEntity),
@@ -107,10 +107,6 @@ describe('Transaction Watcher Service integration test', () => {
             swapService,
             contractAddresses,
         );
-        const meshClient = new MeshClient(
-            defaultHttpServiceConfig.meshWebsocketUri!,
-            defaultHttpServiceConfig.meshHttpUri,
-        );
         metaTxnUser = new TestMetaTxnUser();
         ({ app } = await getAppAsync(
             {
@@ -120,7 +116,6 @@ describe('Transaction Watcher Service integration test', () => {
                 connection,
                 provider,
                 swapService,
-                meshClient,
                 websocketOpts,
             },
             {

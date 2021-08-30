@@ -9,11 +9,12 @@ import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
 import { defaultHttpServiceWithRateLimiterConfig } from '../config';
-import { DEFAULT_CACHE_AGE_SECONDS, SRA_PATH } from '../constants';
+import { DEFAULT_CACHE_AGE_SECONDS, ORDERBOOK_PATH, SRA_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
+import { createOrderBookRouter } from '../routers/orderbook_router';
 import { createSRARouter } from '../routers/sra_router';
 import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig } from '../types';
@@ -53,14 +54,18 @@ async function runHttpServiceAsync(
     app.get('/', rootHandler);
     // SRA http service
     app.use(SRA_PATH, createSRARouter(dependencies.orderBookService));
+
+    // OrderBook http service
+    app.use(ORDERBOOK_PATH, createOrderBookRouter(dependencies.orderBookService));
+
     app.use(errorHandler);
 
     // websocket service
-    if (dependencies.meshClient) {
-        // tslint:disable-next-line:no-unused-expression
-        new WebsocketService(server, dependencies.meshClient, dependencies.websocketOpts);
+    if (dependencies.kafkaClient) {
+        const wsService = new WebsocketService(server, dependencies.kafkaClient, dependencies.websocketOpts);
+        wsService.startAsync().catch((error) => logger.error(error.stack));
     } else {
-        logger.error(`Could not establish mesh connection, exiting`);
+        logger.error('Could not establish kafka connection, exiting');
         process.exit(1);
     }
 

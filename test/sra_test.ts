@@ -3,6 +3,8 @@ import { LimitOrder } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
 import { BigNumber } from '@0x/utils';
+import axios from 'axios';
+import AxiosMockAdapter from 'axios-mock-adapter';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
@@ -14,7 +16,7 @@ delete require.cache[require.resolve('../src/app')];
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE, NULL_ADDRESS, ONE_SECOND_MS, SRA_PATH } from '../src/constants';
-import { SignedOrderV4Entity } from '../src/entities';
+import { OrderWatcherSignedOrderEntity } from '../src/entities';
 import { SignedLimitOrder, SRAOrder } from '../src/types';
 import { orderUtils } from '../src/utils/order_utils';
 
@@ -28,7 +30,7 @@ import {
 } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync, httpPostAsync } from './utils/http_utils';
-import { getRandomSignedLimitOrderAsync, MeshClientMock } from './utils/mesh_client_mock';
+import { getRandomSignedLimitOrderAsync } from './utils/orders';
 
 const SUITE_NAME = 'Standard Relayer API (SRA) integration tests';
 
@@ -54,8 +56,6 @@ describe(SUITE_NAME, () => {
     let blockchainLifecycle: BlockchainLifecycle;
     let provider: Web3ProviderEngine;
 
-    const meshClientMock = new MeshClientMock();
-
     async function addNewOrderAsync(
         params: Partial<SignedLimitOrder> & { maker: string },
         remainingFillableAmount?: BigNumber,
@@ -69,13 +69,12 @@ describe(SUITE_NAME, () => {
             },
         };
         const orderEntity = orderUtils.serializeOrder(apiOrder);
-        await dependencies.connection.getRepository(SignedOrderV4Entity).save(orderEntity);
+        await dependencies.connection.getRepository(OrderWatcherSignedOrderEntity).save(orderEntity);
         return apiOrder;
     }
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-        await meshClientMock.setupMockAsync();
 
         provider = getProvider();
         // start the 0x-api app
@@ -103,18 +102,22 @@ describe(SUITE_NAME, () => {
                 resolve();
             });
         });
-        meshClientMock.teardownMock();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
     beforeEach(async () => {
-        meshClientMock.mockMeshClient._resetClient();
-        await dependencies.connection.synchronize(true);
+        await dependencies.connection.runMigrations();
         await blockchainLifecycle.startAsync();
     });
 
     afterEach(async () => {
         await blockchainLifecycle.revertAsync();
+        await dependencies.connection
+            .createQueryBuilder()
+            .delete()
+            .from(OrderWatcherSignedOrderEntity)
+            .where('true')
+            .execute();
     });
 
     describe('/fee_recipients', () => {
@@ -152,8 +155,6 @@ describe(SUITE_NAME, () => {
                 total: 1,
                 records: [JSON.parse(JSON.stringify(apiOrder))],
             });
-
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
         });
         it('should return orders filtered by query params', async () => {
             const apiOrder = await addNewOrderAsync({ maker: makerAddress });
@@ -170,8 +171,6 @@ describe(SUITE_NAME, () => {
                 total: 1,
                 records: [JSON.parse(JSON.stringify(apiOrder))],
             });
-
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
         });
         it('should filter by order parameters AND trader', async () => {
             const matchingOrders = await Promise.all([
@@ -188,8 +187,8 @@ describe(SUITE_NAME, () => {
                 }),
             ]);
 
-            // Should not match trader
-            const nonMatchingOrder = await addNewOrderAsync({
+            // Add anotther order that should not appear in the response.
+            await addNewOrderAsync({
                 makerToken: ZRX_TOKEN_ADDRESS,
                 takerToken: WETH_TOKEN_ADDRESS,
                 maker: otherAddress,
@@ -207,18 +206,14 @@ describe(SUITE_NAME, () => {
             expect(response.status).to.eq(HttpStatus.OK);
             expect(body.total).to.eq(2);
             expect(sortByHash(cleanRecords)).to.deep.eq(sortByHash(JSON.parse(JSON.stringify(matchingOrders))));
-            const orders = [...matchingOrders, nonMatchingOrder];
-            await dependencies.connection.manager.remove(orders.map((apiOrder) => orderUtils.serializeOrder(apiOrder)));
         });
         it('should return empty response when filtered by query params', async () => {
-            const apiOrder = await addNewOrderAsync({ maker: makerAddress });
+            await addNewOrderAsync({ maker: makerAddress });
             const response = await httpGetAsync({ app, route: `${SRA_PATH}/orders?maker=${NULL_ADDRESS}` });
 
             expect(response.type).to.eq(`application/json`);
             expect(response.status).to.eq(HttpStatus.OK);
             expect(response.body).to.deep.eq(EMPTY_PAGINATED_RESPONSE);
-
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
         });
         it('should normalize addresses to lowercase', async () => {
             const apiOrder = await addNewOrderAsync({ maker: makerAddress });
@@ -237,8 +232,6 @@ describe(SUITE_NAME, () => {
                 total: 1,
                 records: [JSON.parse(JSON.stringify(apiOrder))],
             });
-
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
         });
     });
     describe('GET /order', () => {
@@ -250,12 +243,10 @@ describe(SUITE_NAME, () => {
             expect(response.type).to.eq(`application/json`);
             expect(response.status).to.eq(HttpStatus.OK);
             expect(response.body).to.deep.eq(JSON.parse(JSON.stringify(apiOrder)));
-
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
         });
         it('should return 404 if order is not found', async () => {
             const apiOrder = await addNewOrderAsync({ maker: makerAddress });
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
+            await dependencies.connection.manager.delete(OrderWatcherSignedOrderEntity, apiOrder.metaData.orderHash);
             const response = await httpGetAsync({ app, route: `${SRA_PATH}/order/${apiOrder.metaData.orderHash}` });
             expect(response.status).to.deep.eq(HttpStatus.NOT_FOUND);
         });
@@ -288,7 +279,6 @@ describe(SUITE_NAME, () => {
                 },
             };
             expect(response.body).to.deep.eq(expectedResponse);
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
         });
         it('should return empty response if no matching orders', async () => {
             const apiOrder = await addNewOrderAsync({ maker: makerAddress });
@@ -306,7 +296,6 @@ describe(SUITE_NAME, () => {
                 bids: EMPTY_PAGINATED_RESPONSE,
                 asks: EMPTY_PAGINATED_RESPONSE,
             });
-            await dependencies.connection.manager.remove(orderUtils.serializeOrder(apiOrder));
         });
         it('should return validation error if query params are missing', async () => {
             const response = await httpGetAsync({ app, route: `${SRA_PATH}/orderbook?quoteToken=WETH` });
@@ -396,6 +385,9 @@ describe(SUITE_NAME, () => {
     });
     describe('POST /orders', () => {
         it('should return HTTP OK on success', async () => {
+            const mockAxios = new AxiosMockAdapter(axios);
+            mockAxios.onPost(`${config.ORDER_WATCHER_URL}/orders`).reply(HttpStatus.OK);
+
             const order = await getRandomSignedLimitOrderAsync(provider, {
                 maker: makerAddress,
                 makerToken: ZRX_TOKEN_ADDRESS,
@@ -406,7 +398,6 @@ describe(SUITE_NAME, () => {
                 chainId: CHAIN_ID,
                 expiry: TOMORROW,
             });
-            const orderHash = new LimitOrder(order).getHash();
 
             const response = await httpPostAsync({
                 app,
@@ -416,10 +407,11 @@ describe(SUITE_NAME, () => {
                 },
             });
             expect(response.status).to.eq(HttpStatus.OK);
-            const meshOrders = await meshClientMock.mockMeshClient.getOrdersAsync();
-            expect(meshOrders.ordersInfos.find((info) => info.hash === orderHash)).to.not.be.undefined();
         });
-        it('should respond before mesh order confirmation when ?skipConfirmation=true', async () => {
+        it('should respond before order watcher confirmation when ?skipConfirmation=true', async () => {
+            const mockAxios = new AxiosMockAdapter(axios);
+            mockAxios.onPost(`${config.ORDER_WATCHER_URL}/orders`).reply(HttpStatus.BAD_REQUEST);
+
             const order = await getRandomSignedLimitOrderAsync(provider, {
                 maker: makerAddress,
                 makerToken: ZRX_TOKEN_ADDRESS,
@@ -429,9 +421,6 @@ describe(SUITE_NAME, () => {
                 takerAmount: ONE_THOUSAND_IN_BASE.multipliedBy(3),
                 chainId: CHAIN_ID,
                 expiry: TOMORROW,
-            });
-            meshClientMock.mockManager?.mock('addOrdersV4Async').callsFake((orders) => {
-                return { rejected: orders, accepted: [] };
             });
             const response = await httpPostAsync({
                 app,
@@ -443,6 +432,9 @@ describe(SUITE_NAME, () => {
             expect(response.status).to.eq(HttpStatus.OK);
         });
         it('should not skip confirmation normally', async () => {
+            const mockAxios = new AxiosMockAdapter(axios);
+            mockAxios.onPost().reply(HttpStatus.BAD_REQUEST);
+
             const order = await getRandomSignedLimitOrderAsync(provider, {
                 maker: makerAddress,
                 makerToken: ZRX_TOKEN_ADDRESS,
@@ -453,9 +445,6 @@ describe(SUITE_NAME, () => {
                 chainId: CHAIN_ID,
                 expiry: TOMORROW,
             });
-            meshClientMock.mockManager?.mock('addOrdersV4Async').callsFake((orders) => {
-                return { rejected: orders, accepted: [] };
-            });
             const response = await httpPostAsync({
                 app,
                 route: `${SRA_PATH}/order`,
@@ -463,7 +452,7 @@ describe(SUITE_NAME, () => {
                     ...order,
                 },
             });
-            expect(response.status).to.eq(HttpStatus.BAD_REQUEST);
+            expect(response.status).to.eq(HttpStatus.INTERNAL_SERVER_ERROR);
         });
     });
 });

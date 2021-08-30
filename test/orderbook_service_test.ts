@@ -1,6 +1,5 @@
 import { constants, expect } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
-import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import * as Mocha from 'mocha';
@@ -9,18 +8,17 @@ import { Connection } from 'typeorm';
 // Helps with printing test case results
 const { color, symbols } = Mocha.reporters.Base;
 
-import * as config from '../src/config';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
-import { PersistentSignedOrderV4Entity, SignedOrderV4Entity } from '../src/entities';
+import { OrderWatcherSignedOrderEntity, PersistentSignedOrderV4Entity } from '../src/entities';
 import { OrderBookService } from '../src/services/orderbook_service';
-import { PaginatedCollection, SRAOrder, SRAOrderMetaData } from '../src/types';
-import { MeshClient } from '../src/utils/mesh_client';
+import { OrderEventEndState, PaginatedCollection, SRAOrder, SRAOrderMetaData } from '../src/types';
 import { orderUtils } from '../src/utils/order_utils';
 
 import { CHAIN_ID, getProvider } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
-import { getRandomLimitOrder, MeshClientMock } from './utils/mesh_client_mock';
+import { MockOrderWatcher } from './utils/mock_order_watcher';
+import { getRandomLimitOrder } from './utils/orders';
 
 const SUITE_NAME = 'OrderbookService';
 
@@ -34,7 +32,7 @@ const EMPTY_PAGINATED_RESPONSE = {
 const TOMORROW = new BigNumber(Date.now() + 24 * 3600); // tslint:disable-line:custom-no-magic-numbers
 
 async function saveSignedOrdersAsync(connection: Connection, orders: SRAOrder[]): Promise<void> {
-    await connection.getRepository(SignedOrderV4Entity).save(orders.map(orderUtils.serializeOrder));
+    await connection.getRepository(OrderWatcherSignedOrderEntity).save(orders.map(orderUtils.serializeOrder));
 }
 
 async function savePersistentOrdersAsync(connection: Connection, orders: SRAOrder[]): Promise<void> {
@@ -43,7 +41,7 @@ async function savePersistentOrdersAsync(connection: Connection, orders: SRAOrde
 
 async function deleteSignedOrdersAsync(connection: Connection, orderHashes: string[]): Promise<void> {
     try {
-        await connection.manager.delete(SignedOrderV4Entity, orderHashes);
+        await connection.manager.delete(OrderWatcherSignedOrderEntity, orderHashes);
     } catch (e) {
         return;
     }
@@ -88,20 +86,16 @@ describe(SUITE_NAME, () => {
     let blockchainLifecycle: BlockchainLifecycle;
     let provider: Web3ProviderEngine;
 
-    let meshClient: MeshClient;
     let orderBookService: OrderBookService;
     let privateKey: string;
 
     let connection: Connection;
-    const meshClientMock = new MeshClientMock();
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
         connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
-        await meshClientMock.setupMockAsync();
-        meshClient = new MeshClient(config.MESH_WEBSOCKET_URI, config.MESH_HTTP_URI);
-        orderBookService = new OrderBookService(connection, meshClient);
+        await connection.runMigrations();
+        orderBookService = new OrderBookService(connection, new MockOrderWatcher(connection));
         provider = getProvider();
         const web3Wrapper = new Web3Wrapper(provider);
         blockchainLifecycle = new BlockchainLifecycle(web3Wrapper);
@@ -114,7 +108,6 @@ describe(SUITE_NAME, () => {
         await blockchainLifecycle.startAsync();
     });
     after(async () => {
-        meshClientMock.teardownMock();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
@@ -240,8 +233,7 @@ describe(SUITE_NAME, () => {
     });
     describe('addOrdersAsync, addPersistentOrdersAsync', () => {
         before(async () => {
-            await meshClientMock.resetStateAsync();
-            await connection.synchronize(true);
+            // await connection.runMigrations();
         });
         beforeEach(async () => {
             await blockchainLifecycle.startAsync();
@@ -249,26 +241,21 @@ describe(SUITE_NAME, () => {
         afterEach(async () => {
             await blockchainLifecycle.revertAsync();
         });
-        it('should post orders to Mesh', async () => {
+        it('should post orders to order watcher', async () => {
             const apiOrder = await newSRAOrderAsync(privateKey, {});
-            await orderBookService.addOrdersAsync([apiOrder.order], false);
-
-            const meshOrders = await meshClientMock.mockMeshClient.getOrdersAsync();
-            expect(meshOrders.ordersInfos.find((i) => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
+            await orderBookService.addOrdersAsync([apiOrder.order]);
 
             // should not save to persistent orders table
             const result = await connection.manager.find(PersistentSignedOrderV4Entity, {
                 hash: apiOrder.metaData.orderHash,
             });
             expect(result).to.deep.equal([]);
+
             await deleteSignedOrdersAsync(connection, [apiOrder.metaData.orderHash]);
         });
-        it('should post persistent orders', async () => {
+        it('should find persistent orders after posting them', async () => {
             const apiOrder = await newSRAOrderAsync(privateKey, {});
-            await orderBookService.addPersistentOrdersAsync([apiOrder.order], false);
-
-            const meshOrders = await meshClientMock.mockMeshClient.getOrdersAsync();
-            expect(meshOrders.ordersInfos.find((i) => i.hash === apiOrder.metaData.orderHash)).to.not.be.undefined();
+            await orderBookService.addPersistentOrdersAsync([apiOrder.order]);
 
             const result = await connection.manager.find(PersistentSignedOrderV4Entity, {
                 hash: apiOrder.metaData.orderHash,
@@ -276,8 +263,8 @@ describe(SUITE_NAME, () => {
             const expected = orderUtils.serializePersistentOrder(apiOrder);
             expected.createdAt = result[0].createdAt; // createdAt is saved in the PersistentOrders table directly
             expect(result).to.deep.equal([expected]);
+
             await deletePersistentOrdersAsync(connection, [apiOrder.metaData.orderHash]);
-            await deleteSignedOrdersAsync(connection, [apiOrder.metaData.orderHash]);
         });
     });
 });

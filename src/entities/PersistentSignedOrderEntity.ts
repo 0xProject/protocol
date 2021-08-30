@@ -1,5 +1,6 @@
-import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+
+import { OrderEventEndState } from '../types';
 
 // Adds a field `orderState` to SignedOrderEntity
 // Persists after cancellation, expiration, etc

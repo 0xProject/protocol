@@ -10,7 +10,6 @@ import { InvalidAPIKeyError, NotFoundError, ValidationError, ValidationErrorCode
 import { schemas } from '../schemas';
 import { OrderBookService } from '../services/orderbook_service';
 import { OrderConfigResponse, SignedLimitOrder } from '../types';
-import { orderUtils } from '../utils/order_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
@@ -52,7 +51,7 @@ export class SRAHandlers {
         const orderFieldFilters = new SignedOrderV4Entity(req.query);
         const additionalFilters = {
             trader: req.query.trader ? req.query.trader.toString() : undefined,
-            isUnfillable: req.query.unfillable ? req.query.unfillable === 'true' : false,
+            isUnfillable: req.query.unfillable === 'true',
         };
         const { page, perPage } = paginationUtils.parsePaginationConfig(req);
         const paginatedOrders = await this._orderBook.getOrdersAsync(
@@ -83,9 +82,7 @@ export class SRAHandlers {
         if (shouldSkipConfirmation) {
             res.status(HttpStatus.OK).send();
         }
-        const pinResult = await orderUtils.splitOrdersByPinningAsync([signedOrder]);
-        const isPinned = pinResult.pin.length === 1;
-        await this._orderBook.addOrderAsync(signedOrder, isPinned);
+        await this._orderBook.addOrderAsync(signedOrder);
         if (!shouldSkipConfirmation) {
             res.status(HttpStatus.OK).send();
         }
@@ -104,11 +101,7 @@ export class SRAHandlers {
         if (shouldSkipConfirmation) {
             res.status(HttpStatus.OK).send();
         }
-        const pinResult = await orderUtils.splitOrdersByPinningAsync(signedOrders);
-        await Promise.all([
-            this._orderBook.addOrdersAsync(pinResult.pin, true),
-            this._orderBook.addOrdersAsync(pinResult.doNotPin, false),
-        ]);
+        await this._orderBook.addOrdersAsync(signedOrders);
         if (!shouldSkipConfirmation) {
             res.status(HttpStatus.OK).send();
         }
@@ -130,7 +123,7 @@ export class SRAHandlers {
         if (shouldSkipConfirmation) {
             res.status(HttpStatus.OK).send();
         }
-        await this._orderBook.addPersistentOrdersAsync([signedOrder], false);
+        await this._orderBook.addPersistentOrdersAsync([signedOrder]);
         if (!shouldSkipConfirmation) {
             res.status(HttpStatus.OK).send();
         }
@@ -157,7 +150,7 @@ function unmarshallOrder(signedOrderRaw: any): SignedLimitOrder {
         feeRecipient: NULL_ADDRESS,
         pool: '0x0000000000000000000000000000000000000000000000000000000000000000',
         ...signedOrderRaw,
-        sender: NULL_ADDRESS, // NOTE: Mesh currently only supports orders with sender 0x000...
+        sender: NULL_ADDRESS, // NOTE: the exchange proxy contract only supports orders with sender 0x000...
         takerTokenFeeAmount: signedOrderRaw.takerTokenFeeAmount
             ? new BigNumber(signedOrderRaw.takerTokenFeeAmount)
             : ZERO,

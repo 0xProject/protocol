@@ -36,9 +36,6 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
         const config: HttpServiceConfig = {
             ...defaultHttpServiceWithRateLimiterConfig,
-            // Mesh is not required for Swap Service
-            meshWebsocketUri: undefined,
-            meshHttpUri: undefined,
         };
         const dependencies = await getDefaultAppDependenciesAsync(provider, config);
         await runHttpServiceAsync(dependencies, config);

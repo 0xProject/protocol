@@ -1,62 +1,62 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { PrimaryColumn, ViewColumn, ViewEntity } from 'typeorm';
 
-@Entity({ name: 'signed_orders_v4' })
-@Index(['makerToken', 'takerToken'], { unique: false })
-export class SignedOrderV4Entity {
-    @PrimaryColumn({ name: 'hash', type: 'varchar' })
+@ViewEntity({
+    name: 'valid_signed_orders_v4',
+    materialized: true,
+    synchronize: false,
+})
+class ValidSignedOrderV4Entity {
+    @PrimaryColumn({ name: 'hash' })
     public hash?: string;
 
-    @Index()
-    @Column({ name: 'maker_token', type: 'varchar' })
+    @ViewColumn({ name: 'maker_token' })
     public makerToken?: string;
 
-    @Index()
-    @Column({ name: 'taker_token', type: 'varchar' })
+    @ViewColumn({ name: 'taker_token' })
     public takerToken?: string;
 
-    @Column({ name: 'maker_amount', type: 'varchar' })
+    @ViewColumn({ name: 'maker_amount' })
     public makerAmount?: string;
 
-    @Column({ name: 'taker_amount', type: 'varchar' })
+    @ViewColumn({ name: 'taker_amount' })
     public takerAmount?: string;
 
-    @Index()
-    @Column({ name: 'maker', type: 'varchar' })
+    @ViewColumn()
     public maker?: string;
 
-    @Column({ name: 'taker', type: 'varchar' })
+    @ViewColumn()
     public taker?: string;
 
-    @Column({ name: 'pool', type: 'varchar' })
+    @ViewColumn()
     public pool?: string;
 
-    @Column({ name: 'expiry', type: 'varchar' })
+    @ViewColumn()
     public expiry?: string;
 
-    @Column({ name: 'salt', type: 'varchar' })
+    @ViewColumn()
     public salt?: string;
 
-    @Column({ name: 'verifying_contract', type: 'varchar' })
+    @ViewColumn({ name: 'verifying_contract' })
     public verifyingContract?: string;
 
-    @Column({ name: 'taker_token_fee_amount', type: 'varchar' })
+    @ViewColumn({ name: 'taker_token_fee_amount' })
     public takerTokenFeeAmount?: string;
 
-    @Column({ name: 'sender', type: 'varchar' })
+    @ViewColumn()
     public sender?: string;
 
-    @Index()
-    @Column({ name: 'fee_recipient', type: 'varchar' })
+    @ViewColumn({ name: 'fee_recipient' })
     public feeRecipient?: string;
 
-    @Column({ name: 'signature', type: 'varchar' })
+    @ViewColumn()
     public signature?: string;
 
-    @Column({ name: 'remaining_fillable_taker_amount', type: 'varchar' })
+    @ViewColumn({ name: 'remaining_fillable_taker_amount' })
     public remainingFillableTakerAmount?: string;
 
-    @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
+    @ViewColumn({ name: 'created_at' })
     public createdAt?: string;
+
     constructor(
         opts: {
             hash?: string;
@@ -77,22 +77,8 @@ export class SignedOrderV4Entity {
             remainingFillableTakerAmount?: string;
         } = {},
     ) {
-        this.hash = opts.hash;
-        this.makerToken = opts.makerToken;
-        this.takerToken = opts.takerToken;
-        this.makerAmount = opts.makerAmount;
-        this.takerAmount = opts.takerAmount;
-        this.maker = opts.maker;
-        this.taker = opts.taker;
-        this.pool = opts.pool;
-        this.expiry = opts.expiry;
-        this.salt = opts.salt;
-        this.verifyingContract = opts.verifyingContract;
-        this.takerTokenFeeAmount = opts.takerTokenFeeAmount;
-        this.sender = opts.sender;
-        this.feeRecipient = opts.feeRecipient;
-        this.signature = opts.signature;
-        this.remainingFillableTakerAmount = opts.remainingFillableTakerAmount;
-        this.signature = opts.signature;
+        Object.assign(this, opts);
     }
 }
+
+export { ValidSignedOrderV4Entity as SignedOrderV4Entity };

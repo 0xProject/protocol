@@ -77,9 +77,6 @@ lib
 # sqlite DB
 db/database.sqlite
 
-# mesh docker volume 
-0x_mesh
-
 # postgres docker volume
 postgres
 
@@ -90,7 +87,5 @@ TODOs.org
 .DS_Store
 
 TODO.txt
-
-0x_mesh_test/
 
 scripts

@@ -1,21 +1,14 @@
 import { assert } from '@0x/assert';
-import { OrderEventEndState } from '@0x/mesh-graphql-client';
 import { Signature, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
-import {
-    CHAIN_ID,
-    FEE_RECIPIENT_ADDRESS,
-    PINNED_MM_ADDRESSES,
-    SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
-    TAKER_FEE_UNIT_AMOUNT,
-} from '../config';
+import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, SRA_ORDER_EXPIRATION_BUFFER_SECONDS, TAKER_FEE_UNIT_AMOUNT } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { PersistentSignedOrderV4Entity, SignedOrderV4Entity } from '../entities';
 import {
     OrderConfigRequestPayload,
     OrderConfigResponse,
-    PinResult,
+    OrderEventEndState,
     SignedLimitOrder,
     SRAOrder,
     SRAOrderMetaData,
@@ -203,22 +196,5 @@ export const orderUtils = {
             takerTokenFeeAmount: TAKER_FEE_UNIT_AMOUNT,
         };
         return orderConfigResponse;
-    },
-    // splitOrdersByPinning splits the orders into those we wish to pin in our Mesh node and
-    // those we wish not to pin. We wish to pin the orders of MMers with a lot of ZRX at stake and
-    // who have a track record of acting benevolently.
-    async splitOrdersByPinningAsync(signedOrders: SignedLimitOrder[]): Promise<PinResult> {
-        const pinResult: PinResult = {
-            pin: [],
-            doNotPin: [],
-        };
-        signedOrders.forEach((signedOrder) => {
-            if (PINNED_MM_ADDRESSES.includes(signedOrder.maker)) {
-                pinResult.pin.push(signedOrder);
-            } else {
-                pinResult.doNotPin.push(signedOrder);
-            }
-        });
-        return pinResult;
     },
 };

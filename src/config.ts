@@ -148,46 +148,31 @@ export const WHITELISTED_TOKENS: string[] | '*' = _.isEmpty(process.env.WHITELIS
     ? TokenMetadatasForChains.map((tm) => tm.tokenAddresses[CHAIN_ID])
     : assertEnvVarType('WHITELIST_ALL_TOKENS', process.env.WHITELIST_ALL_TOKENS, EnvVarType.WhitelistAllTokens);
 
-// Ignored addresses. These are ignored at the ingress (Mesh) level and are never stored.
-export const MESH_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.MESH_IGNORED_ADDRESSES)
-    ? []
-    : assertEnvVarType('MESH_IGNORED_ADDRESSES', process.env.MESH_IGNORED_ADDRESSES, EnvVarType.AddressList);
-
 // Ignored addresses only for Swap endpoints (still present in database and SRA).
 export const SWAP_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.SWAP_IGNORED_ADDRESSES)
     ? []
     : assertEnvVarType('SWAP_IGNORED_ADDRESSES', process.env.SWAP_IGNORED_ADDRESSES, EnvVarType.AddressList);
-
-// MMer addresses whose orders should be pinned to the Mesh node
-export const PINNED_POOL_IDS: string[] = _.isEmpty(process.env.PINNED_POOL_IDS)
-    ? []
-    : assertEnvVarType('PINNED_POOL_IDS', process.env.PINNED_POOL_IDS, EnvVarType.StringList);
-
-// MMer addresses whose orders should be pinned to the Mesh node
-export const PINNED_MM_ADDRESSES: string[] = _.isEmpty(process.env.PINNED_MM_ADDRESSES)
-    ? []
-    : assertEnvVarType('PINNED_MM_ADDRESSES', process.env.PINNED_MM_ADDRESSES, EnvVarType.AddressList);
 
 export const DB_ORDERS_UPDATE_CHUNK_SIZE = 300;
 
 // Ethereum RPC Url list
 export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.UrlList);
 
-// Mesh Endpoint
-export const MESH_WEBSOCKET_URI = _.isEmpty(process.env.MESH_WEBSOCKET_URI)
-    ? undefined
-    : assertEnvVarType('MESH_WEBSOCKET_URI', process.env.MESH_WEBSOCKET_URI, EnvVarType.Url);
-export const MESH_HTTP_URI = _.isEmpty(process.env.MESH_HTTP_URI)
-    ? undefined
-    : assertEnvVarType('assertEnvVarType', process.env.MESH_HTTP_URI, EnvVarType.Url);
+export const ORDER_WATCHER_URL = _.isEmpty(process.env.ORDER_WATCHER_URL)
+    ? 'http://127.0.0.1:8080'
+    : assertEnvVarType('ORDER_WATCHER_URL', process.env.ORDER_WATCHER_URL, EnvVarType.Url);
 
-export const MESH_GET_ORDERS_DEFAULT_PAGE_SIZE = _.isEmpty(process.env.MESH_GET_ORDERS_DEFAULT_PAGE_SIZE)
-    ? 200
-    : assertEnvVarType(
-          'MESH_GET_ORDERS_DEFAULT_PAGE_SIZE',
-          process.env.MESH_GET_ORDERS_DEFAULT_PAGE_SIZE,
-          EnvVarType.Integer,
-      );
+export const ORDER_WATCHER_KAFKA_TOPIC = _.isEmpty(process.env.ORDER_WATCHER_KAFKA_TOPIC)
+    ? 'order_watcher_events'
+    : assertEnvVarType('ORDER_WATCHER_KAFKA_TOPIC', process.env.ORDER_WATCHER_KAFKA_TOPIC, EnvVarType.NonEmptyString);
+
+export const KAFKA_BROKERS = _.isEmpty(process.env.KAFKA_BROKERS)
+    ? undefined
+    : assertEnvVarType('KAFKA_BROKERS', process.env.KAFKA_BROKERS, EnvVarType.StringList);
+
+export const KAFKA_CONSUMER_GROUP_ID = _.isEmpty(process.env.KAFKA_CONSUMER_GROUP_ID)
+    ? undefined
+    : assertEnvVarType('KAFKA_CONSUMER_GROUP_ID', process.env.KAFKA_CONSUMER_GROUP_ID, EnvVarType.NonEmptyString);
 
 // The fee recipient for orders
 export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
@@ -592,8 +577,8 @@ export const defaultHttpServiceConfig: HttpServiceConfig = {
     enablePrometheusMetrics: ENABLE_PROMETHEUS_METRICS,
     prometheusPort: PROMETHEUS_PORT,
     prometheusPath: METRICS_PATH,
-    meshWebsocketUri: MESH_WEBSOCKET_URI,
-    meshHttpUri: MESH_HTTP_URI,
+    kafkaBrokers: KAFKA_BROKERS,
+    kafkaConsumerGroupId: KAFKA_CONSUMER_GROUP_ID,
 };
 
 export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {

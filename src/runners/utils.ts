@@ -6,9 +6,6 @@ import { AppDependencies } from '../app';
  */
 export function destroyCallback(dependencies: AppDependencies): () => Promise<void> {
     return async () => {
-        if (dependencies.meshClient) {
-            await dependencies.meshClient.destroyAsync();
-        }
         if (dependencies.connection) {
             await dependencies.connection.close();
         }
