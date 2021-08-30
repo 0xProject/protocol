@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.26.2",
+        "changes": [
+            {
+                "note": "chore: Curve new pools (CVX-CRX, MIM, atricrypto3)"
+            }
+        ]
+    },
+    {
         "timestamp": 1629414734,
         "version": "16.26.1",
         "changes": [
