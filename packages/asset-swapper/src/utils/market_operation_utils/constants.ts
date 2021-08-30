@@ -379,6 +379,8 @@ export const MAINNET_TOKENS = {
     ESS: '0x24ae124c4cc33d6791f8e8b63520ed7107ac8b3e',
     cvxCRV: '0x62b9c7356a2dc64a1969e19c23e4f579f9810aa7',
     CRV: '0xd533a949740bb3306d119cc777fa900ba034cd52',
+    MIM: '0x99d8a9c45b2eca8864373a26d1459e3dff1e17f3',
+    EURT: '0xc581b735a1688071a1746c968e0798d642ede491',
 };
 
 export const BSC_TOKENS = {
@@ -455,6 +457,9 @@ export const CURVE_POOLS = {
     LUSD: '0xed279fdd11ca84beef15af5d39bb4d4bee23f0ca',
     BUSD: '0x4807862aa8b2bf68830e4c8dc86d0e9a998e085a',
     DSU3CRV: '0x6ec80df362d7042c50d4469bcfbc174c9dd9109a',
+    cvxcrv: '0x9d0464996170c6b9e75eed71c68b99ddedf279e8',
+    mim: '0x5a6a4d54456819380173272a5e8e9b9904bdf41b',
+    eurt: '0xfd5db7463a3ab53fd211b4af195c5bccc1a03890',
 };
 
 export const CURVE_V2_POOLS = {
@@ -469,6 +474,7 @@ export const CURVE_POLYGON_POOLS = {
 
 export const CURVE_V2_POLYGON_POOLS = {
     atricrypto: '0x3fcd5de6a9fc8a99995c406c77dda3ed7e406f81',
+    atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
 };
 
 export const SWERVE_POOLS = {
@@ -775,6 +781,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_POOLS.eurs,
         gasSchedule: 320e3,
     }),
+    [CURVE_POOLS.eurt]: createCurveExchangePool({
+        tokens: [MAINNET_TOKENS.EURT, MAINNET_TOKENS.sEUR],
+        pool: CURVE_POOLS.eurt,
+        gasSchedule: 320e3,
+    }),
     [CURVE_POOLS.aave]: createCurveExchangeUnderlyingPool({
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
         pool: CURVE_POOLS.aave,
@@ -863,6 +874,16 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_POOLS.DSU3CRV,
         gasSchedule: 387e3,
     }),
+    [CURVE_POOLS.mim]: createCurveMetaTriPool({
+        tokens: [MAINNET_TOKENS.MIM],
+        pool: CURVE_POOLS.mim,
+        gasSchedule: 300e3,
+    }),
+    [CURVE_POOLS.cvxcrv]: createCurveExchangePool({
+        tokens: [MAINNET_TOKENS.CRV, MAINNET_TOKENS.cvxCRV],
+        pool: CURVE_POOLS.cvxcrv,
+        gasSchedule: 105e3,
+    }),
 };
 
 export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
@@ -900,6 +921,11 @@ export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_POLYGON_POOLS.atricrypto]: createCurveV2MetaTriPool({
         tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.WETH],
         pool: CURVE_V2_POLYGON_POOLS.atricrypto,
+        gasSchedule: 300e3,
+    }),
+    [CURVE_V2_POLYGON_POOLS.atricrypto3]: createCurveV2MetaTriPool({
+        tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.WETH],
+        pool: CURVE_V2_POLYGON_POOLS.atricrypto3,
         gasSchedule: 300e3,
     }),
 };
