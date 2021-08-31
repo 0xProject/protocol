@@ -135,7 +135,6 @@ import * as TestFillQuoteTransformerHost from '../test/generated-artifacts/TestF
 import * as TestFixinProtocolFees from '../test/generated-artifacts/TestFixinProtocolFees.json';
 import * as TestFixinTokenSpender from '../test/generated-artifacts/TestFixinTokenSpender.json';
 import * as TestFullMigration from '../test/generated-artifacts/TestFullMigration.json';
-import * as TestFundRecoveryFeature from '../test/generated-artifacts/TestFundRecoveryFeature.json';
 import * as TestInitialMigration from '../test/generated-artifacts/TestInitialMigration.json';
 import * as TestLibNativeOrder from '../test/generated-artifacts/TestLibNativeOrder.json';
 import * as TestLibSignature from '../test/generated-artifacts/TestLibSignature.json';
@@ -315,7 +314,6 @@ export const artifacts = {
     TestFixinProtocolFees: TestFixinProtocolFees as ContractArtifact,
     TestFixinTokenSpender: TestFixinTokenSpender as ContractArtifact,
     TestFullMigration: TestFullMigration as ContractArtifact,
-    TestFundRecoveryFeature: TestFundRecoveryFeature as ContractArtifact,
     TestInitialMigration: TestInitialMigration as ContractArtifact,
     TestLibNativeOrder: TestLibNativeOrder as ContractArtifact,
     TestLibSignature: TestLibSignature as ContractArtifact,
