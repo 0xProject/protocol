@@ -3,7 +3,7 @@ import { blockchainTests, constants, expect, randomAddress } from '@0x/contracts
 import { BigNumber, OwnableRevertErrors } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
-import { IOwnableFeatureContract, IZeroExContract} from '../../src/wrappers';
+import { IOwnableFeatureContract, IZeroExContract } from '../../src/wrappers';
 import { artifacts } from '../artifacts';
 import { FundRecoveryFeatureContract } from '../generated-wrappers/fund_recovery_feature';
 import { abis } from '../utils/abis';
