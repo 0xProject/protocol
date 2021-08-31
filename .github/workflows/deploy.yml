@@ -16,9 +16,13 @@ jobs:
               with:
                 repo_token: ${{ github.token }}
             - name: trim and save branch name
-              run: echo ${{ steps.comment-branch.outputs.head_ref }} | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
+              env:
+                BRANCH: ${{ steps.comment-branch.outputs.head_ref }}
+              run: echo "$BRANCH" | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             - name: save branch sha
-              run: echo ${{ steps.comment-branch.outputs.head_sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
+              env:
+                BRANCH_SHA: ${{ steps.comment-branch.outputs.head_sha }}
+              run: echo "$BRANCH_SHA" | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             # Different deploy scenarios
             # Ethereum: folder_chain=''
             - name: deploy from master to production (Ethereum)
