@@ -9,7 +9,7 @@ import { FundRecoveryFeatureContract } from '../generated-wrappers/fund_recovery
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
 
-blockchainTests.only('FundRecovery', async env => {
+blockchainTests('FundRecovery', async env => {
     let owner: string;
     let zeroEx: IZeroExContract;
     let token: DummyERC20TokenContract;
@@ -82,7 +82,6 @@ blockchainTests.only('FundRecovery', async env => {
                     value: amountOut,
                 }),
             );
-            const bal = await env.web3Wrapper.getBalanceInWeiAsync(recipientAddress);
             await zeroEx
                 .transferTrappedTokensTo(ETH_TOKEN_ADDRESS, amountOut.minus(1), recipientAddress)
                 .awaitTransactionSuccessAsync({ from: owner });
