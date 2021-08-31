@@ -11,7 +11,6 @@ import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
 import * as BridgeProtocols from '../test/generated-artifacts/BridgeProtocols.json';
 import * as CurveLiquidityProvider from '../test/generated-artifacts/CurveLiquidityProvider.json';
-import * as EpFundRecoveryFeature from '../test/generated-artifacts/EpFundRecoveryFeature.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../test/generated-artifacts/FillQuoteTransformer.json';
@@ -22,14 +21,15 @@ import * as FixinReentrancyGuard from '../test/generated-artifacts/FixinReentran
 import * as FixinTokenSpender from '../test/generated-artifacts/FixinTokenSpender.json';
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
+import * as FundRecoveryFeature from '../test/generated-artifacts/FundRecoveryFeature.json';
 import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
-import * as IEpFundRecoveryFeature from '../test/generated-artifacts/IEpFundRecoveryFeature.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
 import * as IERC20Transformer from '../test/generated-artifacts/IERC20Transformer.json';
 import * as IFeature from '../test/generated-artifacts/IFeature.json';
 import * as IFlashWallet from '../test/generated-artifacts/IFlashWallet.json';
+import * as IFundRecoveryFeature from '../test/generated-artifacts/IFundRecoveryFeature.json';
 import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvider.json';
 import * as ILiquidityProviderFeature from '../test/generated-artifacts/ILiquidityProviderFeature.json';
 import * as ILiquidityProviderSandbox from '../test/generated-artifacts/ILiquidityProviderSandbox.json';
@@ -135,6 +135,7 @@ import * as TestFillQuoteTransformerHost from '../test/generated-artifacts/TestF
 import * as TestFixinProtocolFees from '../test/generated-artifacts/TestFixinProtocolFees.json';
 import * as TestFixinTokenSpender from '../test/generated-artifacts/TestFixinTokenSpender.json';
 import * as TestFullMigration from '../test/generated-artifacts/TestFullMigration.json';
+import * as TestFundRecoveryFeature from '../test/generated-artifacts/TestFundRecoveryFeature.json';
 import * as TestInitialMigration from '../test/generated-artifacts/TestInitialMigration.json';
 import * as TestLibNativeOrder from '../test/generated-artifacts/TestLibNativeOrder.json';
 import * as TestLibSignature from '../test/generated-artifacts/TestLibSignature.json';
@@ -200,7 +201,7 @@ export const artifacts = {
     TransformerDeployer: TransformerDeployer as ContractArtifact,
     BatchFillNativeOrdersFeature: BatchFillNativeOrdersFeature as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
-    EpFundRecoveryFeature: EpFundRecoveryFeature as ContractArtifact,
+    FundRecoveryFeature: FundRecoveryFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
@@ -213,8 +214,8 @@ export const artifacts = {
     UniswapV3Feature: UniswapV3Feature as ContractArtifact,
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
-    IEpFundRecoveryFeature: IEpFundRecoveryFeature as ContractArtifact,
     IFeature: IFeature as ContractArtifact,
+    IFundRecoveryFeature: IFundRecoveryFeature as ContractArtifact,
     ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,
     IMetaTransactionsFeature: IMetaTransactionsFeature as ContractArtifact,
     IMultiplexFeature: IMultiplexFeature as ContractArtifact,
@@ -314,6 +315,7 @@ export const artifacts = {
     TestFixinProtocolFees: TestFixinProtocolFees as ContractArtifact,
     TestFixinTokenSpender: TestFixinTokenSpender as ContractArtifact,
     TestFullMigration: TestFullMigration as ContractArtifact,
+    TestFundRecoveryFeature: TestFundRecoveryFeature as ContractArtifact,
     TestInitialMigration: TestInitialMigration as ContractArtifact,
     TestLibNativeOrder: TestLibNativeOrder as ContractArtifact,
     TestLibSignature: TestLibSignature as ContractArtifact,
