@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.26.2 - _August 31, 2021_
+
+    * chore: Curve new pools (CVX-CRX, MIM, atricrypto3)
+
 ## v16.26.1 - _August 19, 2021_
 
     * Dependencies updated
