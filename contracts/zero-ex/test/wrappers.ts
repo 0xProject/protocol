@@ -133,7 +133,6 @@ export * from '../test/generated-wrappers/test_fill_quote_transformer_host';
 export * from '../test/generated-wrappers/test_fixin_protocol_fees';
 export * from '../test/generated-wrappers/test_fixin_token_spender';
 export * from '../test/generated-wrappers/test_full_migration';
-export * from '../test/generated-wrappers/test_fund_recovery_feature';
 export * from '../test/generated-wrappers/test_initial_migration';
 export * from '../test/generated-wrappers/test_lib_native_order';
 export * from '../test/generated-wrappers/test_lib_signature';
