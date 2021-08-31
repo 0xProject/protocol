@@ -29,7 +29,6 @@ contract EpFundRecoveryFeature is
     IFeature,
     IEpFundRecoveryFeature,
     FixinCommon,
-    ITransformERC20Feature,
     FixinTokenSpender
 {
     /// @dev Name of this feature.
@@ -37,14 +36,12 @@ contract EpFundRecoveryFeature is
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
     /// @dev Deployed exchange proxy address.
-    bytes32 private immutable 0X_EP_ADDRESS;
+    address private immutable ZEROEX_EP_ADDRESS;
     
     /// @dev Construct this contract.
-    /// @param erc20 Any ERC-20 contract address.
-    /// @param amountOut Amount in wei to withdraw
-    /// @param designatedWallet Designated wallet to send recovered funds to.
+    /// @param exchangeProxy Exchange Proxy contract address
     constructor(address exchangeProxy) public {
-        0X_EP_ADDRESS = exchangeProxy; 
+        ZEROEX_EP_ADDRESS = exchangeProxy; 
     }
 
     // solhint-enable state-visibility
@@ -52,21 +49,21 @@ contract EpFundRecoveryFeature is
     function recoverToDesignatedWallet(
         IERC20TokenV06 erc20,
         uint256 amountOut,
-        address designatedWallet
+        address payable designatedWallet
     )
-        public
+        external
+        override
     {
         if(amountOut == uint256(-1)) {
-            amountOut = erc20.balanceOf(this);
+            amountOut = erc20.balanceOf(ZEROEX_EP_ADDRESS);
         }
         if(LibERC20Transformer.isTokenETH(erc20))
         {
-            designatedWallet.transfer(amountOut);
+            payable(designatedWallet).transfer(amountOut);
         }
         else{
-            erc20.transferFrom(0X_EP_ADDRESS,designatedWallet,amountOut);
+            erc20.transferFrom(ZEROEX_EP_ADDRESS,designatedWallet,amountOut);
         }
-
     }
 
     /// @dev Initialize and register this feature.
