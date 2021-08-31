@@ -430,6 +430,13 @@ export const POLYGON_TOKENS = {
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
 };
 
+export const AVALANCHE_TOKENS = {
+    WAVAX: '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
+    WETH: '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab',
+    USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
+    DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+};
+
 export const CURVE_POOLS = {
     compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead
@@ -583,6 +590,12 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             POLYGON_TOKENS.USDT,
             POLYGON_TOKENS.WBTC,
         ],
+        [ChainId.Avalanche]: [
+            AVALANCHE_TOKENS.WAVAX,
+            AVALANCHE_TOKENS.WETH,
+            AVALANCHE_TOKENS.DAI,
+            AVALANCHE_TOKENS.USDT,
+        ],
     },
     [],
 );
@@ -609,12 +622,7 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
         }).build(),
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
-            default: [
-                '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7', // wAVAX
-                '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab', // WETH
-                '0xc7198437980c041c805a1edcba50c1ce5db95118', // USDT
-                '0xd586e7f844cea2f87f50152665bcbc2c279d8d70', // DAI
-            ],
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
         }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
@@ -629,7 +637,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Rinkeby]: getContractAddressesForChainOrThrow(ChainId.Rinkeby).etherToken,
         [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
         [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
-        [ChainId.Avalanche]: '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
+        [ChainId.Avalanche]: getContractAddressesForChainOrThrow(ChainId.Avalanche).etherToken,
     },
     NULL_ADDRESS,
 );

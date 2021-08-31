@@ -157,7 +157,6 @@ export class DexOrderSampler extends SamplerOperations {
             .callAsync({ overrides }, block);
         // Return the parsed results.
         let rawCallResultsIdx = 0;
-        console.log({ rawCallResults });
         return callDatas.map((callData, i) => {
             // tslint:disable-next-line:boolean-naming
             const { data, success } =
