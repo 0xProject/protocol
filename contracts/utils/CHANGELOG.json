@@ -1,10 +1,10 @@
 [
     {
-        "timestamp": 1630459879,
-        "version": "4.7.18",
-        "changes": [
+        "version": "4.8.0",
+        "changes":[
             {
-                "note": "Dependencies updated"
+                "note" : "Added FundRecoveryFeature to the 0x EP",
+                "pr" : 306
             }
         ]
     },
