@@ -1033,8 +1033,8 @@ export class RfqmService {
         submissionsMap: SubmissionsMap,
         expectedTakerTokenFillAmount: BigNumber,
     ): Promise<SubmissionsMapStatus> {
-        let isTxMined: boolean = false;
-        let isTxConfirmed: boolean = false;
+        let isTxMined = false;
+        let isTxConfirmed = false;
         let jobStatus: RfqmJobStatus | null = null;
 
         // check if any tx has been mined
@@ -1128,22 +1128,22 @@ export class RfqmService {
         gasEstimate: number,
     ): Promise<RfqmTransactionSubmissionEntity> {
         const txOptions = {
-            nonce,
+            from: workerAddress,
             gas: gasEstimate,
             gasPrice,
+            nonce,
             value: 0,
         };
 
-        // submit tx to chain
-        // TODO: get transaction hash prior to submission and save to DB first
-        const transactionHash = await this._blockchainUtils.submitCallDataToExchangeProxyAsync(
-            callData,
-            workerAddress,
+        const transactionRequest = this._blockchainUtils.transformTxDataToTransactionRequest(
             txOptions,
+            CHAIN_ID,
+            callData,
         );
-        logger.info({ orderHash, workerAddress, transactionHash }, 'transaction calldata submitted to exchange proxy');
+        const { signedTransaction, transactionHash } = await this._blockchainUtils.signTransactionAsync(
+            transactionRequest,
+        );
 
-        // save tx submission to DB
         const partialEntity: Partial<RfqmTransactionSubmissionEntity> = {
             transactionHash,
             orderHash,
@@ -1152,10 +1152,43 @@ export class RfqmService {
             to: this._blockchainUtils.getExchangeProxyAddress(),
             gasPrice,
             nonce,
-            status: RfqmTransactionSubmissionStatus.Submitted,
+            status: RfqmTransactionSubmissionStatus.Presubmit,
         };
 
-        return this._dbUtils.writeRfqmTransactionSubmissionToDbAsync(partialEntity);
+        await this._dbUtils.writeRfqmTransactionSubmissionToDbAsync(partialEntity);
+
+        const transactionHashFromSubmit = await this._blockchainUtils.submitSignedTransactionAsync(signedTransaction);
+
+        if (transactionHash !== transactionHashFromSubmit) {
+            // This should never ever happen
+            logger.error(
+                { transactionHashFromSubmit, transactionHash },
+                'Mismatch between transaction hash calculated before submit and after submit',
+            );
+        }
+
+        logger.info(
+            { orderHash, workerAddress, transactionHash: transactionHashFromSubmit },
+            'transaction calldata submitted to exchange proxy',
+        );
+
+        await this._dbUtils.updateRfqmTransactionSubmissionsAsync([
+            {
+                transactionHash: transactionHashFromSubmit,
+                status: RfqmTransactionSubmissionStatus.Submitted,
+            },
+        ]);
+
+        const updatedEntity = await this._dbUtils.findRfqmTransactionSubmissionByTransactionHashAsync(
+            transactionHashFromSubmit,
+        );
+
+        if (updatedEntity === undefined) {
+            // This should never happen -- we just saved it
+            throw new Error(`Could not find updated entity with transaction hash ${transactionHashFromSubmit}`);
+        }
+
+        return updatedEntity;
     }
 
     private async _enqueueJobAsync(orderHash: string): Promise<void> {

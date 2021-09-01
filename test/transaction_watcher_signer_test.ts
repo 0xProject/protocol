@@ -1,11 +1,6 @@
 import { expect } from '@0x/contracts-test-utils';
-// tslint:disable-next-line:no-implicit-dependencies
-import * as ethers from 'ethers'; // HACK to make ethers quiet
 
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
-
-// HACK to make ethers quiet
-ethers.errors.setLogLevel('error');
 
 // tslint:disable:custom-no-magic-numbers
 

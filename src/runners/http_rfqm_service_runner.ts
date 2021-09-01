@@ -6,6 +6,7 @@ import { ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
 import { SupportedProvider } from '@0x/dev-utils';
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import Axios, { AxiosRequestConfig } from 'axios';
+import { providers, Wallet } from 'ethers';
 import * as express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
@@ -19,6 +20,7 @@ import { getContractAddressesForNetworkOrThrowAsync } from '../app';
 import {
     CHAIN_ID,
     defaultHttpServiceWithRateLimiterConfig,
+    ETHEREUM_RPC_URL,
     ETH_GAS_STATION_API_URL,
     META_TX_WORKER_MNEMONIC,
     META_TX_WORKER_REGISTRY,
@@ -80,6 +82,10 @@ if (require.main === module) {
 export async function buildRfqmServiceAsync(connection: Connection, asWorker: boolean): Promise<RfqmService> {
     let provider: SupportedProvider;
 
+    // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
+    const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL, CHAIN_ID);
+    let ethersWallet: Wallet | undefined;
+
     const rpcProvider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
     if (asWorker) {
         if (META_TX_WORKER_MNEMONIC === undefined) {
@@ -92,8 +98,13 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
             META_TX_WORKER_MNEMONIC,
             RFQM_WORKER_INDEX,
         );
+
+        // TODO (rhinodavid): Remove once migration to ethers.js is complete
         const privateWalletSubprovider = new PrivateKeyWalletSubprovider(workerPrivateKey);
         provider = RfqBlockchainUtils.createPrivateKeyProvider(rpcProvider, privateWalletSubprovider);
+
+        ethersWallet = Wallet.fromMnemonic(META_TX_WORKER_MNEMONIC, `m/44'/60'/0'/0/${RFQM_WORKER_INDEX!}`);
+        ethersWallet = ethersWallet.connect(ethersProvider);
     } else {
         provider = rpcProvider;
     }
@@ -125,7 +136,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         throw new Error('META_TX_WORKER_REGISTRY must be set!');
     }
 
-    const rfqBlockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy);
+    const rfqBlockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy, ethersWallet);
 
     const dbUtils = new RfqmDbUtils(connection);
 

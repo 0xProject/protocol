@@ -175,8 +175,8 @@ export class RfqmDbUtils {
 
     public async updateRfqmTransactionSubmissionsAsync(
         entities: Partial<RfqmTransactionSubmissionEntity>[],
-    ): Promise<void> {
-        await this._connection.getRepository(RfqmTransactionSubmissionEntity).save(entities);
+    ): Promise<RfqmTransactionSubmissionEntity[]> {
+        return this._connection.getRepository(RfqmTransactionSubmissionEntity).save(entities);
     }
 
     public async findUnresolvedJobsAsync(workerAddress: string): Promise<RfqmJobEntity[]> {

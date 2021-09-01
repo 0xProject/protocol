@@ -79,6 +79,7 @@ const NONCE = 1;
 const GAS_ESTIMATE = 165000;
 const WORKER_ADDRESS = '0xaWorkerAddress';
 const FIRST_TRANSACTION_HASH = '0xfirstTxHash';
+const FIRST_SIGNED_TRANSACTION = '0xfirstSignedTransaction';
 const TX_STATUS: TransactionReceiptStatus = 1;
 const GAS_PRICE = new BigNumber(100);
 // it's over 9K
@@ -202,6 +203,13 @@ describe(SUITE_NAME, () => {
         when(rfqBlockchainUtilsMock.getNonceAsync(anything())).thenResolve(NONCE);
         when(rfqBlockchainUtilsMock.estimateGasForExchangeProxyCallAsync(anything(), anything())).thenResolve(
             GAS_ESTIMATE,
+        );
+        when(rfqBlockchainUtilsMock.signTransactionAsync(anything())).thenResolve({
+            signedTransaction: FIRST_SIGNED_TRANSACTION,
+            transactionHash: FIRST_TRANSACTION_HASH,
+        });
+        when(rfqBlockchainUtilsMock.submitSignedTransactionAsync(FIRST_SIGNED_TRANSACTION)).thenResolve(
+            FIRST_TRANSACTION_HASH,
         );
         when(rfqBlockchainUtilsMock.submitCallDataToExchangeProxyAsync(anything(), anything(), anything())).thenResolve(
             FIRST_TRANSACTION_HASH,

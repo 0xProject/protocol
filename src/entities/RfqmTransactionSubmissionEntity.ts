@@ -5,6 +5,7 @@ import { BigIntTransformer, BigNumberTransformer } from './transformers';
 
 export enum RfqmTransactionSubmissionStatus {
     DroppedAndReplaced = 'dropped_and_replaced',
+    Presubmit = 'presubmit', // Transaction created but not yet broadcast
     RevertedConfirmed = 'reverted_confirmed',
     RevertedUnconfirmed = 'reverted_unconfirmed',
     Submitted = 'submitted',
