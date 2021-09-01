@@ -1,4 +1,3 @@
-import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { blockchainTests, constants, expect, randomAddress } from '@0x/contracts-test-utils';
 import { BigNumber, OwnableRevertErrors } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -8,26 +7,23 @@ import { artifacts } from '../artifacts';
 import { FundRecoveryFeatureContract } from '../generated-wrappers/fund_recovery_feature';
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
+import {TestMintableERC20TokenContract} from '../wrappers';
 
 blockchainTests('FundRecovery', async env => {
     let owner: string;
     let zeroEx: IZeroExContract;
-    let token: DummyERC20TokenContract;
+    let token: TestMintableERC20TokenContract;
     before(async () => {
         const INITIAL_ERC20_BALANCE = Web3Wrapper.toBaseUnitAmount(new BigNumber(10000), 18);
         [owner] = await env.getAccountAddressesAsync();
         zeroEx = await fullMigrateAsync(owner, env.provider, env.txDefaults, {});
-        token = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
-            erc20Artifacts.DummyERC20Token,
+        token = await TestMintableERC20TokenContract.deployFrom0xArtifactAsync(
+            artifacts.TestMintableERC20Token,
             env.provider,
             env.txDefaults,
-            erc20Artifacts,
-            constants.DUMMY_TOKEN_NAME,
-            constants.DUMMY_TOKEN_SYMBOL,
-            constants.DUMMY_TOKEN_DECIMALS,
-            constants.DUMMY_TOKEN_TOTAL_SUPPLY,
+            {},
         );
-        await token.setBalance(zeroEx.address, INITIAL_ERC20_BALANCE).awaitTransactionSuccessAsync();
+        await token.mint(zeroEx.address, INITIAL_ERC20_BALANCE).awaitTransactionSuccessAsync();
         const featureImpl = await FundRecoveryFeatureContract.deployFrom0xArtifactAsync(
             artifacts.FundRecoveryFeature,
             env.provider,
