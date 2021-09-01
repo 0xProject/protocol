@@ -3,11 +3,16 @@
         "version": "16.27.0",
         "changes": [
             {
-                "note": "chore: Curve new pools (CVX-CRX, MIM, atricrypto3)"
-            },
-            {
                 "note": "Avalanche deployment",
                 "pr": 312
+            }
+        ]
+    },
+    {
+        "version": "16.26.2",
+        "changes": [
+            {
+                "note": "chore: Curve new pools (CVX-CRX, MIM, atricrypto3)"
             }
         ],
         "timestamp": 1630393585
