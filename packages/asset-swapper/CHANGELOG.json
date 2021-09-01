@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.27.0",
+        "changes": [
+            {
+                "note": "Avalanche deployment",
+                "pr": 312
+            }
+        ]
+    },
+    {
         "version": "16.26.2",
         "changes": [
             {
