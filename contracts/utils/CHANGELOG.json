@@ -1,10 +1,24 @@
 [
     {
         "version": "4.8.0",
-        "changes":[
+        "changes": [
             {
+<<<<<<< HEAD
                 "note" : "Added FundRecoveryFeature to the 0x EP",
                 "pr" : 306
+=======
+                "note": "Added FundRecoveryFeature to the 0x EP",
+                "pr": 306
+            }
+        ]
+    },
+    {
+        "timestamp": 1630459879,
+        "version": "4.7.18",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+>>>>>>> 154f30848 ( fixed json)
             }
         ]
     },
