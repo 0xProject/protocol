@@ -7,7 +7,7 @@ import { artifacts } from '../artifacts';
 import { FundRecoveryFeatureContract } from '../generated-wrappers/fund_recovery_feature';
 import { abis } from '../utils/abis';
 import { fullMigrateAsync } from '../utils/migration';
-import {TestMintableERC20TokenContract} from '../wrappers';
+import { TestMintableERC20TokenContract } from '../wrappers';
 
 blockchainTests('FundRecovery', async env => {
     let owner: string;
