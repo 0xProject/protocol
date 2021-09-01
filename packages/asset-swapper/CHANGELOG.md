@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.27.0 - _September 1, 2021_
+
+    * Avalanche deployment (#312)
+
 ## v16.26.2 - _August 31, 2021_
 
     * chore: Curve new pools (CVX-CRX, MIM, atricrypto3)
