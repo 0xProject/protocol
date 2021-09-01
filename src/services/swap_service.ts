@@ -19,6 +19,7 @@ import {
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
 import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
+import { ChainId } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
 import { getTokenMetadataIfExists, TokenMetadatasForChains } from '@0x/token-metadata';
@@ -60,7 +61,6 @@ import {
     AffiliateFee,
     BucketedPriceDepth,
     CalaculateMarketDepthParams,
-    ChainId,
     GetSwapQuoteParams,
     GetSwapQuoteResponse,
     Price,

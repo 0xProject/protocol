@@ -8,7 +8,7 @@ import {
     ERC20BridgeSamplerContract,
     SupportedProvider,
 } from '@0x/asset-swapper';
-import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { Web3Wrapper } from '@0x/dev-utils';
 import * as express from 'express';
 import { Server } from 'http';
@@ -27,7 +27,6 @@ import { PostgresRfqtFirmQuoteValidator } from './services/postgres_rfqt_firm_qu
 import { SwapService } from './services/swap_service';
 import { TransactionWatcherSignerService } from './services/transaction_watcher_signer_service';
 import {
-    ChainId,
     HttpServiceConfig,
     MetaTransactionDailyLimiterConfig,
     MetaTransactionRollingLimiterConfig,

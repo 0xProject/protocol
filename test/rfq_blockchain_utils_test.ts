@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
 import { artifacts as zeroExArtifacts, fullMigrateAsync, IZeroExContract } from '@0x/contracts-zero-ex';
@@ -8,7 +9,6 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import 'mocha';
 
 import { PROTOCOL_FEE_MULTIPLIER } from '../src/config';
-import { ChainId } from '../src/types';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
 import {

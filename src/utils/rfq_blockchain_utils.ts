@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
@@ -9,7 +10,6 @@ import { CallData, LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } fr
 
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { logger } from '../logger';
-import { ChainId } from '../types';
 
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { serviceUtils } from './service_utils';

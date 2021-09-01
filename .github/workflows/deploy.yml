@@ -14,14 +14,14 @@ jobs:
               if: github.event.issue.pull_request
               uses: xt0rted/pull-request-comment-branch@v1
               with:
-                repo_token: ${{ github.token }}
+                  repo_token: ${{ github.token }}
             - name: trim and save branch name
               env:
-                BRANCH: ${{ steps.comment-branch.outputs.head_ref }}
+                  BRANCH: ${{ steps.comment-branch.outputs.head_ref }}
               run: echo "$BRANCH" | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             - name: save branch sha
               env:
-                BRANCH_SHA: ${{ steps.comment-branch.outputs.head_sha }}
+                  BRANCH_SHA: ${{ steps.comment-branch.outputs.head_sha }}
               run: echo "$BRANCH_SHA" | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
             # Different deploy scenarios
             # Ethereum: folder_chain=''
@@ -45,6 +45,10 @@ jobs:
             - name: deploy from branch to production (Polygon)
               if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production polygon' || github.event.comment.body == 'deploy polygon production')
               run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
+            # Avalanche: folder_chain=avalanche
+            - name: deploy from branch to production (Avalanche)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production avalanche' || github.event.comment.body == 'deploy avalanche production')
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=avalanche" >> $GITHUB_ENV;
             # Make the changes to 0x-main-infra
             - name: Checkout 0x-main-infra
               uses: actions/checkout@v2
@@ -60,6 +64,9 @@ jobs:
             - name: Update API configs (Polygon)
               if: env.chain == 'polygon'
               run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/polygon/*.yml
+            - name: Update API configs (Avalanche)
+              if: env.chain == 'avalanche'
+              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/avalanche/*.yml
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v3.5.0
               with:

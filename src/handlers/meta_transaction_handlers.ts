@@ -1,6 +1,7 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
 import { assert } from '@0x/assert';
 import { ERC20BridgeSource, Signature, SwapQuoterError } from '@0x/asset-swapper';
+import { ChainId } from '@0x/contract-addresses';
 import { getTokenMetadataIfExists, isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -28,7 +29,6 @@ import { logger } from '../logger';
 import { schemas } from '../schemas';
 import { MetaTransactionService } from '../services/meta_transaction_service';
 import {
-    ChainId,
     ExchangeProxyMetaTransactionWithoutDomain,
     GetMetaTransactionPriceResponse,
     GetMetaTransactionStatusResponse,

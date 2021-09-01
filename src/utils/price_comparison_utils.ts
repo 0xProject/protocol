@@ -6,6 +6,7 @@ import {
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
+import { ChainId } from '@0x/contract-addresses';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -15,7 +16,7 @@ import * as _ from 'lodash';
 import { CHAIN_ID } from '../config';
 import { GAS_LIMIT_BUFFER_MULTIPLIER, TX_BASE_GAS, ZERO } from '../constants';
 import { logger } from '../logger';
-import { ChainId, SourceComparison } from '../types';
+import { SourceComparison } from '../types';
 
 // NOTE: Our internal Uniswap gas usage may be lower than the Uniswap UI usage
 // Therefore we need to adjust the gas estimates to be representative of using the Uniswap UI.

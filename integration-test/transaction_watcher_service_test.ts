@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
 import { Web3ProviderEngine } from '@0x/dev-utils';
 import { RPCSubprovider, SupportedProvider } from '@0x/subproviders';
@@ -31,7 +32,7 @@ import { OrderBookService } from '../src/services/orderbook_service';
 import { PostgresRfqtFirmQuoteValidator } from '../src/services/postgres_rfqt_firm_quote_validator';
 import { SwapService } from '../src/services/swap_service';
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
-import { ChainId, TransactionStates, TransactionWatcherSignerServiceConfig } from '../src/types';
+import { TransactionStates, TransactionWatcherSignerServiceConfig } from '../src/types';
 import { AssetSwapperOrderbook } from '../src/utils/asset_swapper_orderbook';
 import { OrderWatcher } from '../src/utils/order_watcher';
 import { utils } from '../src/utils/utils';
