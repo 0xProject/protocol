@@ -834,6 +834,30 @@ describe('QuoteRequestor', async () => {
                 quoteRequestorHttpClient,
             );
         });
+        it('should be able to handle and filter RFQ offerings', () => {
+            const tests: [string[] | undefined, string[]][] = [
+                [["https://top.maker"], []],
+                [undefined, ["https://foo.bar/", "https://lorem.ipsum/"]],
+                [["https://lorem.ipsum/"], ["https://lorem.ipsum/"]],
+            ];
+            for (const test of tests) {
+                const [apiKeyWhitelist, results] = test;
+                const response = QuoteRequestor.getTypedMakerUrls({
+                    apiKeyWhitelist,
+                    altRfqAssetOfferings: {}
+                }, {
+                    "https://foo.bar/": [
+                        ['0xA6cD4cb8c62aCDe44739E3Ed0F1d13E0e31f2d94', '0xF45107c0200a04A8aB9C600cc52A3C89AE5D0489'],
+                    ],
+                    "https://lorem.ipsum/": [
+                        ['0xA6cD4cb8c62aCDe44739E3Ed0F1d13E0e31f2d94', '0xF45107c0200a04A8aB9C600cc52A3C89AE5D0489'],
+                    ],
+                });
+                const typedUrls = response.map(typed => typed.url);
+                expect(typedUrls).to.eql(results);
+            }
+        });
+
         it('should return successful alt indicative quotes', async () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
             const txOrigin = '0xf209925defc99488e3afff1174e48b4fa628302a';
