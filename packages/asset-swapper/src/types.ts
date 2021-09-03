@@ -244,7 +244,7 @@ export interface RfqRequestOpts {
     takerAddress: string;
     txOrigin: string;
     apiKey: string;
-    apiKeyWhitelist?: string[],
+    apiKeyWhitelist?: string[];
     intentOnFilling: boolean;
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;

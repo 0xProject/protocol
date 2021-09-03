@@ -371,7 +371,7 @@ export class QuoteRequestor {
      * Gets both standard RFQ makers and "alternative" RFQ makers and combines them together
      * in a single configuration map. If an integration key whitelist is present, it will be used
      * to filter a specific makers.
-     * 
+     *
      * @param options the RfqmRequestOptions passed in
      * @param assetOfferings the RFQM or RFQT maker offerings
      * @returns a list of TypedMakerUrl instances
@@ -399,8 +399,7 @@ export class QuoteRequestor {
         // they only match the whitelist.
         if (options.apiKeyWhitelist !== undefined) {
             const whitelist = new Set(options.apiKeyWhitelist.map(key => key.toLowerCase()));
-            typedMakerUrls = typedMakerUrls
-                .filter(makerUrl => whitelist.has(makerUrl.url.toLowerCase()));
+            typedMakerUrls = typedMakerUrls.filter(makerUrl => whitelist.has(makerUrl.url.toLowerCase()));
         }
         return typedMakerUrls;
     }
@@ -437,7 +436,6 @@ export class QuoteRequestor {
                     throw new Error(`Unexpected quote type ${quoteType}`);
             }
         })();
-
 
         const timeoutMs =
             options.makerEndpointMaxResponseTimeMs ||
