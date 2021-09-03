@@ -367,6 +367,44 @@ export class QuoteRequestor {
         return expirationTimeMs.isLessThan(currentTimeMs.plus(this._expiryBufferMs));
     }
 
+    /**
+     * Gets both standard RFQ makers and "alternative" RFQ makers and combines them together
+     * in a single configuration map. If an integration key whitelist is present, it will be used
+     * to filter a specific makers.
+     * 
+     * @param options the RfqmRequestOptions passed in
+     * @param assetOfferings the RFQM or RFQT maker offerings
+     * @returns a list of TypedMakerUrl instances
+     */
+    public static getTypedMakerUrls(
+        options: Pick<RfqmRequestOptions, 'apiKeyWhitelist' | 'altRfqAssetOfferings'>,
+        assetOfferings: RfqMakerAssetOfferings,
+    ): TypedMakerUrl[] {
+        const standardUrls = Object.keys(assetOfferings).map(
+            (mm: string): TypedMakerUrl => {
+                return { pairType: RfqPairType.Standard, url: mm };
+            },
+        );
+        const altUrls = options.altRfqAssetOfferings
+            ? Object.keys(options.altRfqAssetOfferings).map(
+                  (mm: string): TypedMakerUrl => {
+                      return { pairType: RfqPairType.Alt, url: mm };
+                  },
+              )
+            : [];
+
+        let typedMakerUrls = standardUrls.concat(altUrls);
+
+        // If there is a whitelist, filter out maker URLs so that only
+        // they only match the whitelist.
+        if (options.apiKeyWhitelist !== undefined) {
+            const whitelist = new Set(options.apiKeyWhitelist.map(key => key.toLowerCase()));
+            typedMakerUrls = typedMakerUrls
+                .filter(makerUrl => whitelist.has(makerUrl.url.toLowerCase()));
+        }
+        return typedMakerUrls;
+    }
+
     private async _getQuotesAsync<ResponseT>(
         makerToken: string,
         takerToken: string,
@@ -400,20 +438,6 @@ export class QuoteRequestor {
             }
         })();
 
-        const standardUrls = Object.keys(assetOfferings).map(
-            (mm: string): TypedMakerUrl => {
-                return { pairType: RfqPairType.Standard, url: mm };
-            },
-        );
-        const altUrls = options.altRfqAssetOfferings
-            ? Object.keys(options.altRfqAssetOfferings).map(
-                  (mm: string): TypedMakerUrl => {
-                      return { pairType: RfqPairType.Alt, url: mm };
-                  },
-              )
-            : [];
-
-        const typedMakerUrls = standardUrls.concat(altUrls);
 
         const timeoutMs =
             options.makerEndpointMaxResponseTimeMs ||
@@ -426,6 +450,7 @@ export class QuoteRequestor {
             cancelTokenSource.cancel('timeout via cancel token');
         }, timeoutMs + bufferMs);
 
+        const typedMakerUrls = QuoteRequestor.getTypedMakerUrls(options, assetOfferings);
         const quotePromises = typedMakerUrls.map(async typedMakerUrl => {
             // filter out requests to skip
             const isBlacklisted = rfqMakerBlacklist.isMakerBlacklisted(typedMakerUrl.url);
