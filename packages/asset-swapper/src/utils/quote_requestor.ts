@@ -395,8 +395,7 @@ export class QuoteRequestor {
 
         let typedMakerUrls = standardUrls.concat(altUrls);
 
-        // If there is a whitelist, filter out maker URLs so that only
-        // they only match the whitelist.
+        // If there is a whitelist, only allow approved maker URLs 
         if (options.apiKeyWhitelist !== undefined) {
             const whitelist = new Set(options.apiKeyWhitelist.map(key => key.toLowerCase()));
             typedMakerUrls = typedMakerUrls.filter(makerUrl => whitelist.has(makerUrl.url.toLowerCase()));
