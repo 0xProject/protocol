@@ -77,7 +77,7 @@
         "@0x/subproviders": "^6.5.3",
         "@0x/types": "^3.3.3",
         "@0x/typescript-typings": "^5.2.0",
-        "@0x/utils": "^6.4.4",
+        "@0x/utils": "^6.4.3",
         "@0x/web3-wrapper": "^7.5.3",
         "ethereum-types": "^3.5.0",
         "ethereumjs-util": "^7.0.10"

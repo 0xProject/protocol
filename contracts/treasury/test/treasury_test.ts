@@ -17,10 +17,9 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
+import { Vote } from '@0x/protocol-utils/lib/src/votes';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as ethUtil from 'ethereumjs-util';
-
-import { Vote } from '../src/votes';
 
 import { artifacts } from './artifacts';
 import { DefaultPoolOperatorContract, ZrxTreasuryContract, ZrxTreasuryEvents } from './wrappers';

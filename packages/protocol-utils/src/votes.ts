@@ -1,11 +1,9 @@
-import {
-    EIP712_DOMAIN_PARAMETERS,
-    eip712SignHashWithKey,
-    getTypeHash, Signature,
-    ZERO,
-} from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as ethUtil from 'ethereumjs-util';
+
+import { ZERO } from './constants';
+import { EIP712_DOMAIN_PARAMETERS, getTypeHash } from './eip712_utils';
+import { eip712SignHashWithKey, Signature } from './signature_utils';
 
 const VOTE_DEFAULT_VALUES = {
     proposalId: ZERO,
