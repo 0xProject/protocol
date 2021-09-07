@@ -835,14 +835,14 @@ describe('QuoteRequestor', async () => {
             );
         });
         it('should be able to handle and filter RFQ offerings', () => {
-            const tests: [string[] | undefined, string[]][] = [
+            const tests: Array<[string[] | undefined, string[]]> = [
                 [['https://top.maker'], []],
                 [undefined, ['https://foo.bar/', 'https://lorem.ipsum/']],
                 [['https://lorem.ipsum/'], ['https://lorem.ipsum/']],
             ];
             for (const test of tests) {
                 const [apiKeyWhitelist, results] = test;
-                const response = QuoteRequestor.getTypedMakerUrls(
+                const response = QuoteRequestor.getTypedMakerUrlsAndWhitelist(
                     {
                         apiKeyWhitelist,
                         altRfqAssetOfferings: {},
