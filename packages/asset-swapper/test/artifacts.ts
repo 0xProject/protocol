@@ -15,12 +15,10 @@ import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
 import * as DummyLiquidityProvider from '../test/generated-artifacts/DummyLiquidityProvider.json';
 import * as ERC20BridgeSampler from '../test/generated-artifacts/ERC20BridgeSampler.json';
-import * as Eth2DaiSampler from '../test/generated-artifacts/Eth2DaiSampler.json';
 import * as FakeTaker from '../test/generated-artifacts/FakeTaker.json';
 import * as IBalancer from '../test/generated-artifacts/IBalancer.json';
 import * as IBancor from '../test/generated-artifacts/IBancor.json';
 import * as ICurve from '../test/generated-artifacts/ICurve.json';
-import * as IEth2Dai from '../test/generated-artifacts/IEth2Dai.json';
 import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
@@ -58,7 +56,6 @@ export const artifacts = {
     DODOSampler: DODOSampler as ContractArtifact,
     DODOV2Sampler: DODOV2Sampler as ContractArtifact,
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
-    Eth2DaiSampler: Eth2DaiSampler as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,
     KyberDmmSampler: KyberDmmSampler as ContractArtifact,
     KyberSampler: KyberSampler as ContractArtifact,
@@ -80,7 +77,6 @@ export const artifacts = {
     IBalancer: IBalancer as ContractArtifact,
     IBancor: IBancor as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
-    IEth2Dai: IEth2Dai as ContractArtifact,
     IKyberNetwork: IKyberNetwork as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
     IMooniswap: IMooniswap as ContractArtifact,

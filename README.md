@@ -2,7 +2,7 @@
 
 ---
 
-[0x][website-url] is an open protocol that facilitates trustless, low friction exchange of Ethereum-based assets. For more information on how it works, check out the [0x protocol specification](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md).
+[0x][website-url] is an open protocol that facilitates trustless, low friction exchange of Ethereum-based assets. For more information on how it works, check out the [0x protocol specification](https://protocol.0x.org/).
 
 This repository is a monorepo including the 0x protocol smart contracts and numerous developer tools. Each public sub-package is independently published to NPM.
 
@@ -15,40 +15,31 @@ This repository is a monorepo including the 0x protocol smart contracts and nume
 
 ## Packages
 
-Visit our [developer portal](https://0x.org/docs/tools/order-utils) for a comprehensive list of core & community maintained packages. All packages maintained with this monorepo are listed below.
+Visit our [developer portal](https://0x.org/docs/) for a comprehensive list of core & community maintained packages. All packages maintained with this monorepo are listed below.
 
 ### Solidity Packages
 
 These packages are all under development. See [/contracts/README.md](/contracts/README.md) for a list of deployed packages.
 
-| Package                                                             | Version                                                                                                                                     | Description                                                                                                                                                                                                                                           |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`@0x/contracts-asset-proxy`](/contracts/asset-proxy)               | [![npm](https://img.shields.io/npm/v/@0x/contracts-asset-proxy.svg)](https://www.npmjs.com/package/@0x/contracts-asset-proxy)               | [`AssetProxy`](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md#assetproxy) contracts used within the protocol                                                                                               |
-| [`@0x/contracts-erc20`](/contracts/erc20)                           | [![npm](https://img.shields.io/npm/v/@0x/contracts-erc20.svg)](https://www.npmjs.com/package/@0x/contracts-erc20)                           | Implementations of various ERC20 tokens                                                                                                                                                                                                               |
-| [`@0x/contracts-erc721`](/contracts/erc721)                         | [![npm](https://img.shields.io/npm/v/@0x/contracts-erc721.svg)](https://www.npmjs.com/package/@0x/contracts-erc721)                         | Implementations of various ERC721 tokens                                                                                                                                                                                                              |
-| [`@0x/contracts-erc1155`](/contracts/erc1155)                       | [![npm](https://img.shields.io/npm/v/@0x/contracts-erc1155.svg)](https://www.npmjs.com/package/@0x/contracts-erc1155)                       | Implementations of various ERC1155 tokens                                                                                                                                                                                                             |
-| [`@0x/contracts-exchange`](/contracts/exchange)                     | [![npm](https://img.shields.io/npm/v/@0x/contracts-exchange.svg)](https://www.npmjs.com/package/@0x/contracts-exchange)                     | The [`Exchange`](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md#exchange) contract used for settling trades within the protocol                                                                            |
-| [`@0x/contracts-exchange-forwarder`](/contracts/exchange-forwarder) | [![npm](https://img.shields.io/npm/v/@0x/contracts-exchange-forwarder.svg)](https://www.npmjs.com/package/@0x/contracts-exchange-forwarder) | A [`Forwarder`](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/forwarder-specification.md) contract used to simplify UX for interacting with the protocol                                                                      |
-| [`@0x/contracts-exchange-libs`](/contracts/exchange-libs)           | [![npm](https://img.shields.io/npm/v/@0x/contracts-exchange-libs.svg)](https://www.npmjs.com/package/@0x/contracts-exchange-libs)           | Protocol specific libraries used within the [`Exchange`](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md#exchange) contract                                                                                 |
-| [`@0x/contracts-extensions`](/contracts/extensions)                 | [![npm](https://img.shields.io/npm/v/@0x/contracts-extensions.svg)](https://www.npmjs.com/package/@0x/contracts-extensions)                 | Contracts that interact with and extend the functionality of the core protocol                                                                                                                                                                        |
-| [`@0x/contracts-multisig`](/contracts/multisig)                     | [![npm](https://img.shields.io/npm/v/@0x/contracts-multisig.svg)](https://www.npmjs.com/package/@0x/contracts-multisig)                     | Various implementations of multisignature wallets, including the [`AssetProxyOwner`](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md#assetproxyowner) contract that has permissions to upgrade the protocol |
-| [`@0x/contracts-test-utils`](/contracts/test-utils)                 | [![npm](https://img.shields.io/npm/v/@0x/contracts-test-utils.svg)](https://www.npmjs.com/package/@0x/contracts-test-utils)                 | TypeScript/Javascript shared utilities used for testing contracts                                                                                                                                                                                     |
-| [`@0x/contracts-utils`](/contracts/utils)                           | [![npm](https://img.shields.io/npm/v/@0x/contracts-utils.svg)](https://www.npmjs.com/package/@0x/contracts-utils)                           | Generic libraries and utilities used throughout all of the contracts                                                                                                                                                                                  |
-| [`@0x/contracts-coordinator`](/contracts/coordinator)               | [![npm](https://img.shields.io/npm/v/@0x/contracts-coordinator.svg)](https://www.npmjs.com/package/@0x/contracts-coordinator)               | A contract that allows users to execute 0x transactions with permission from a Coordinator                                                                                                                                                            |
-| [`@0x/contracts-dev-utils`](/contracts/dev-utils)                   | [![npm](https://img.shields.io/npm/v/@0x/contracts-dev-utils.svg)](https://www.npmjs.com/package/@0x/contracts-dev-utils)                   | A contract contains utility functions for developers (such as validating many orders using a single eth_call)                                                                                                                                         |
-| [`@0x/contracts-staking`](/contracts/staking)                       | [![npm](https://img.shields.io/npm/v/@0x/contracts-staking.svg)](https://www.npmjs.com/package/@0x/contracts-staking)                       | Implements the stake-based liquidity incentives defined by [`ZEIP-31`](https://github.com/0xProject/ZEIPs/issues/31)                                                                                                                                  |
+| Package                                             | Version                                                                                                                     | Description                                                          |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| [`@0x/contracts-zero-ex`](/contracts/zero-ex)       | [![npm](https://img.shields.io/npm/v/@0x/contracts-zero-ex.svg)](https://www.npmjs.com/package/@0x/contracts-zero-ex)       | The contracts used for settling trades within the protocol           |
+| [`@0x/contracts-erc20`](/contracts/erc20)           | [![npm](https://img.shields.io/npm/v/@0x/contracts-erc20.svg)](https://www.npmjs.com/package/@0x/contracts-erc20)           | Implementations of various ERC20 tokens                              |
+| [`@0x/contracts-test-utils`](/contracts/test-utils) | [![npm](https://img.shields.io/npm/v/@0x/contracts-test-utils.svg)](https://www.npmjs.com/package/@0x/contracts-test-utils) | TypeScript/Javascript shared utilities used for testing contracts    |
+| [`@0x/contracts-utils`](/contracts/utils)           | [![npm](https://img.shields.io/npm/v/@0x/contracts-utils.svg)](https://www.npmjs.com/package/@0x/contracts-utils)           | Generic libraries and utilities used throughout all of the contracts |
 
 ### TypeScript/Javascript Packages
 
 #### 0x-specific packages
 
 | Package                                                  | Version                                                                                                                 | Description                                                                                    |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [`@0x/asset-swapper`](/packages/asset-swapper)           | [![npm](https://img.shields.io/npm/v/@0x/asset-swapper.svg)](https://www.npmjs.com/package/@0x/asset-swapper)           | Package used to find and create aggregated swaps                                               |
+| [`@0x/protocol-utils`](/packages/protocol-utils)         | [![npm](https://img.shields.io/npm/v/@0x/protocol-utils.svg)](https://www.npmjs.com/package/@0x/protocol-utils)         | A set of utilities for generating, parsing, signing and validating 0x orders                   |
 | [`@0x/contract-addresses`](/packages/contract-addresses) | [![npm](https://img.shields.io/npm/v/@0x/contract-addresses.svg)](https://www.npmjs.com/package/@0x/contract-addresses) | A tiny utility library for getting known deployed contract addresses for a particular network. |
 | [`@0x/contract-wrappers`](/packages/contract-wrappers)   | [![npm](https://img.shields.io/npm/v/@0x/contract-wrappers.svg)](https://www.npmjs.com/package/@0x/contract-wrappers)   | JS/TS wrappers for interacting with the 0x smart contracts                                     |
-| [`@0x/order-utils`](/packages/order-utils)               | [![npm](https://img.shields.io/npm/v/@0x/order-utils.svg)](https://www.npmjs.com/package/@0x/order-utils)               | A set of utilities for generating, parsing, signing and validating 0x orders                   |
 | [`@0x/migrations`](/packages/migrations)                 | [![npm](https://img.shields.io/npm/v/@0x/migrations.svg)](https://www.npmjs.com/package/@0x/migrations)                 | Migration tool for deploying 0x smart contracts on private testnets                            |
-| [`@0x/contract-artifacts`](/packages/contract-artifacts) | [![npm](https://img.shields.io/npm/v/@0x/contract-artifacts.svg)](https://www.npmjs.com/package/@0x/contract-artifacts) | 0x smart contract compilation artifacts                                                        |     |
+| [`@0x/contract-artifacts`](/packages/contract-artifacts) | [![npm](https://img.shields.io/npm/v/@0x/contract-artifacts.svg)](https://www.npmjs.com/package/@0x/contract-artifacts) | 0x smart contract compilation artifacts                                                        |  |
 
 ## Usage
 
@@ -92,7 +83,7 @@ yarn build
 To build a specific package:
 
 ```bash
-PKG=@0x/contract-wrappers yarn build
+PKG=@0x/asset-swapper yarn build
 ```
 
 To build all contracts packages:
@@ -115,7 +106,7 @@ To watch a specific package and all it's dependent packages:
 PKG=[NPM_PACKAGE_NAME] yarn watch
 
 e.g
-PKG=@0x/contract-wrappers yarn watch
+PKG=@0x/asset-swapper yarn watch
 ```
 
 ### Clean
@@ -129,7 +120,7 @@ yarn clean
 Clean a specific package
 
 ```bash
-PKG=0x.js yarn clean
+PKG=@0x/asset-swapper yarn clean
 ```
 
 ### Rebuild
@@ -143,7 +134,7 @@ yarn rebuild
 To re-build (clean & build) a specific package & it's deps:
 
 ```bash
-PKG=@0x/contract-wrappers yarn rebuild
+PKG=@0x/asset-swapper yarn rebuild
 ```
 
 ### Lint
@@ -157,7 +148,7 @@ yarn lint
 Lint a specific package:
 
 ```bash
-PKG=@0x/contract-wrappers yarn lint
+PKG=@0x/asset-swapper yarn lint
 ```
 
 ### Run Tests
@@ -171,7 +162,7 @@ yarn test
 Run a specific package's test:
 
 ```bash
-PKG=@0x/contract-wrappers yarn test
+PKG=@0x/asset-swapper yarn test
 ```
 
 Run all contracts packages tests:

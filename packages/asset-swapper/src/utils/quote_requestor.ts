@@ -25,6 +25,7 @@ import {
 } from '../types';
 
 import { returnQuoteFromAltMMAsync } from './alt_mm_implementation_utils';
+import { ONE_SECOND_MS } from './market_operation_utils/constants';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
 
 const MAKER_TIMEOUT_STREAK_LENGTH = 10;
@@ -213,6 +214,12 @@ export class QuoteRequestor {
         return typedMakerUrls;
     }
 
+    public static getDurationUntilExpirationMs(expirationTimeSeconds: BigNumber): BigNumber {
+        const expirationTimeMs = expirationTimeSeconds.times(constants.ONE_SECOND_MS);
+        const currentTimeMs = new BigNumber(Date.now());
+        return BigNumber.max(expirationTimeMs.minus(currentTimeMs), 0);
+    }
+
     private static _makerSupportsPair(
         typedMakerUrl: TypedMakerUrl,
         makerToken: string,
@@ -395,12 +402,6 @@ export class QuoteRequestor {
             return false;
         }
         return true;
-    }
-
-    private _isExpirationTooSoon(expirationTimeSeconds: BigNumber): boolean {
-        const expirationTimeMs = expirationTimeSeconds.times(constants.ONE_SECOND_MS);
-        const currentTimeMs = new BigNumber(Date.now());
-        return expirationTimeMs.isLessThan(currentTimeMs.plus(this._expiryBufferMs));
     }
 
     private async _getQuotesAsync<ResponseT>(
@@ -609,12 +610,15 @@ export class QuoteRequestor {
                 return false;
             }
             const isLastLook = Boolean(options.isLastLook);
-            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
+            const msRemainingUntilExpiration = QuoteRequestor.getDurationUntilExpirationMs(new BigNumber(order.expiry));
+            const isExpirationTooSoon = msRemainingUntilExpiration.lt(this._expiryBufferMs);
+            if (isExpirationTooSoon) {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
                 this._metrics?.incrementExpirationToSoonCounter(isLastLook, order.maker);
                 return false;
             } else {
-                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, order.expiry);
+                const secondsRemaining = msRemainingUntilExpiration.div(ONE_SECOND_MS);
+                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, secondsRemaining);
 
                 const takerAmount = new BigNumber(order.takerAmount);
                 const fillRatio = takerAmount.div(assetFillAmount);
@@ -695,7 +699,9 @@ export class QuoteRequestor {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ order, filtering out');
                 return false;
             }
-            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
+            const msRemainingUntilExpiration = QuoteRequestor.getDurationUntilExpirationMs(new BigNumber(order.expiry));
+            const isExpirationTooSoon = msRemainingUntilExpiration.lt(this._expiryBufferMs);
+            if (isExpirationTooSoon) {
                 this._warningLogger(order, 'Expiry too soon in RFQ indicative quote, filtering out');
                 return false;
             } else {

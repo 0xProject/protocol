@@ -53,26 +53,6 @@ describe('Path', () => {
         ]);
     });
 
-    it('Removes partial Native orders', () => {
-        const targetInput = new BigNumber(100);
-        const path = Path.create(
-            MarketOperation.Sell,
-            [
-                createFill(ERC20BridgeSource.Uniswap),
-                createFill(ERC20BridgeSource.LiquidityProvider),
-                createFill(ERC20BridgeSource.Native),
-            ],
-            targetInput,
-        );
-        const fallback = Path.create(MarketOperation.Sell, [createFill(ERC20BridgeSource.Kyber)], targetInput);
-        path.addFallback(fallback);
-        const sources = path.fills.map(f => f.source);
-        expect(sources).to.deep.eq([
-            ERC20BridgeSource.Uniswap,
-            ERC20BridgeSource.LiquidityProvider,
-            ERC20BridgeSource.Kyber,
-        ]);
-    });
     it('Handles duplicates', () => {
         const targetInput = new BigNumber(100);
         const path = Path.create(
@@ -85,7 +65,7 @@ describe('Path', () => {
         const sources = path.fills.map(f => f.source);
         expect(sources).to.deep.eq([ERC20BridgeSource.Uniswap, ERC20BridgeSource.LiquidityProvider]);
     });
-    it('Removes partial Native orders and replaces with unused fills', () => {
+    it('Moves Native orders to the front and appends with unused fills', () => {
         const targetInput = new BigNumber(100);
         const path = Path.create(
             MarketOperation.Sell,
@@ -105,6 +85,6 @@ describe('Path', () => {
         );
         path.addFallback(fallback);
         const sources = path.fills.map(f => f.source);
-        expect(sources).to.deep.eq([ERC20BridgeSource.Uniswap, ERC20BridgeSource.Uniswap]);
+        expect(sources).to.deep.eq([ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap, ERC20BridgeSource.Uniswap]);
     });
 });

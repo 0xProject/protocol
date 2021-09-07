@@ -1,5 +1,24 @@
 [
     {
+        "version": "6.7.0",
+        "changes": [
+            {
+                "note": "Avalanche deployment",
+                "pr": 312
+            }
+        ],
+        "timestamp": 1630459879
+    },
+    {
+        "timestamp": 1629353596,
+        "version": "6.6.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "version": "6.6.0",
         "changes": [
             {

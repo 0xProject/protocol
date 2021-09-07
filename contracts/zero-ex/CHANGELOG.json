@@ -1,5 +1,33 @@
 [
     {
+        "timestamp": 1630459879,
+        "version": "0.28.3",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "0.28.2",
+        "changes": [
+            {
+                "note": "Add ethers as an explicit dependency",
+                "pr": 310
+            }
+        ],
+        "timestamp": 1629414734
+    },
+    {
+        "timestamp": 1629353596,
+        "version": "0.28.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "version": "0.28.0",
         "changes": [
             {

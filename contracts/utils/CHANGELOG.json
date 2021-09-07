@@ -1,5 +1,32 @@
 [
     {
+        "version": "4.8.0",
+        "changes": [
+            {
+                "note": "Added FundRecoveryFeature to the 0x EP",
+                "pr": 306
+            }
+        ]
+    },
+    {
+        "timestamp": 1630459879,
+        "version": "4.7.18",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1629353596,
+        "version": "4.7.17",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1629079369,
         "version": "4.7.16",
         "changes": [

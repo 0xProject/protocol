@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.7.0 - _September 1, 2021_
+
+    * Avalanche deployment (#312)
+
+## v6.6.1 - _August 19, 2021_
+
+    * Dependencies updated
+
 ## v6.6.0 - _August 11, 2021_
 
     * Add zrxTreasury address (#301)

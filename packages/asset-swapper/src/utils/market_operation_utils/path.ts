@@ -84,19 +84,11 @@ export class Path {
      * not present in this path
      */
     public addFallback(fallback: Path): this {
-        // If the last fill is Native and penultimate is not, then the intention was to partial fill
-        // In this case we drop it entirely as we can't handle a failure at the end and we don't
-        // want to fully fill when it gets prepended to the front below
-        const [last, penultimateIfExists] = this.fills.slice().reverse();
-        const lastNativeFillIfExists =
-            last.source === ERC20BridgeSource.Native &&
-            penultimateIfExists &&
-            penultimateIfExists.source !== ERC20BridgeSource.Native
-                ? last
-                : undefined;
-        // By prepending native paths to the front they cannot split on-chain sources and incur
-        // an additional protocol fee. I.e [Uniswap,Native,Kyber] becomes [Native,Uniswap,Kyber]
-        // In the previous step we dropped any hanging Native partial fills, as to not fully fill
+        // We pre-pend the sources which have a higher probability of failure
+        // This allows us to continue on to the remaining fills
+        // If the "flakey" sources like Native were at the end, we may have a failure
+        // as the last fill and then either revert, or go back to a source we previously
+        // filled against
         const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native);
         const otherFills = this.fills.filter(f => f.source !== ERC20BridgeSource.Native);
 
@@ -106,7 +98,7 @@ export class Path {
 
         this.fills = [
             // Append all of the native fills first
-            ...nativeFills.filter(f => f !== lastNativeFillIfExists),
+            ...nativeFills,
             // Add the other fills that are not native in the optimal path
             ...otherFills,
             // Add the fills to the end that aren't already included
