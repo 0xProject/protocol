@@ -51,7 +51,7 @@
         "verdaccio": "docker run --rm -i -p 4873:4873 0xorg/verdaccio"
     },
     "config": {
-        "contractsPackages": "@0x/contracts-erc20  @0x/contracts-test-utils @0x/contracts-utils @0x/contracts-zero-ex @0x/contracts-treasury",
+        "contractsPackages": "@0x/contracts-erc20 @0x/contracts-test-utils @0x/contracts-utils @0x/contracts-zero-ex @0x/contracts-treasury",
         "nonContractPackages": "@0x/migrations @0x/contract-wrappers @0x/contract-addresses @0x/contract-artifacts @0x/contract-wrappers-test @0x/asset-swapper",
         "ignoreTestsForPackages": "",
         "mnemonic": "concert load couple harbor equip island argue ramp clarify fence smart topic",
