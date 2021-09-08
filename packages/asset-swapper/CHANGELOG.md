@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.27.1 - _September 8, 2021_
+
+    * Fix ApproximateBuys sampler to terminate if the buy amount is not met (#319)
+
 ## v16.27.0 - _September 1, 2021_
 
     * Avalanche deployment (#312)
