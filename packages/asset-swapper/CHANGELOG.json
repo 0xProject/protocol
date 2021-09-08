@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.27.1",
+        "changes": [
+            {
+                "note": "Fix ApproximateBuys sampler to terminate if the buy amount is not met",
+                "pr": 319
+            }
+        ]
+    },
+    {
         "version": "16.27.0",
         "changes": [
             {
