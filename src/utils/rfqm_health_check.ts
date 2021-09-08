@@ -1,5 +1,6 @@
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
+import { Counter } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import { ETH_DECIMALS } from '../constants';
@@ -19,6 +20,12 @@ const MS_IN_MINUTE = 60000;
 const BALANCE_DEGRADED_THRESHOLD_WEI = new BigNumber(BALANCE_DEGRADED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 const BALANCE_FAILED_THRESHOLD_WEI = new BigNumber(BALANCE_FAILED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 
+const RFQM_HEALTH_CHECK_ISSUE_COUNTER = new Counter({
+    name: 'rfqm_health_check_issue',
+    labelNames: ['status' /* :HealthCheckStatus, except for Operational */, 'label' /* :HealthCheckLabel */],
+    help: 'RFQM health system has detected a problem with the system',
+});
+
 export enum HealthCheckStatus {
     Operational = 'operational',
     Maintenance = 'maintenance',
@@ -26,9 +33,17 @@ export enum HealthCheckStatus {
     Failed = 'failed',
 }
 
+type HealthCheckLabel =
+    | 'registry balance'
+    | 'RFQM_MAINTENANCE_MODE config `true`'
+    | 'queue size'
+    | 'worker balance'
+    | 'worker heartbeat';
+
 interface HealthCheckIssue {
     status: HealthCheckStatus;
     description: string;
+    label: HealthCheckLabel;
 }
 
 /**
@@ -77,6 +92,11 @@ export async function computeHealthCheckAsync(
     const workersIssues = [...queueIssues, ...heartbeatIssues];
     const workersStatus = getWorstStatus(workersIssues.map((issue) => issue.status));
 
+    // Prometheus counters
+    [...httpIssues, ...workersIssues].forEach((issue) =>
+        RFQM_HEALTH_CHECK_ISSUE_COUNTER.labels(issue.status, issue.label).inc(),
+    );
+
     return {
         status: getWorstStatus([httpStatus, workersStatus]),
         pairs,
@@ -120,11 +140,25 @@ function transformPairs(offerings: RfqMakerAssetOfferings): { [pair: string]: He
  * Creates issues related to the server/API not specific to the worker farm.
  */
 export function getHttpIssues(isMaintainenceMode: boolean, registryBalance: BigNumber): HealthCheckIssue[] {
-    const issues = [];
+    const issues: HealthCheckIssue[] = [];
     if (isMaintainenceMode) {
         issues.push({
             status: HealthCheckStatus.Maintenance,
             description: 'RFQM is set to maintainence mode via the 0x API configuration',
+            label: 'RFQM_MAINTENANCE_MODE config `true`',
+        });
+    }
+
+    if (
+        registryBalance.isLessThan(BALANCE_DEGRADED_THRESHOLD_WEI) &&
+        registryBalance.isGreaterThanOrEqualTo(BALANCE_FAILED_THRESHOLD_WEI)
+    ) {
+        issues.push({
+            status: HealthCheckStatus.Degraded,
+            description: `Registry balance is ${registryBalance
+                .shiftedBy(ETH_DECIMALS * -1)
+                .toFixed(2)} (threshold is ${BALANCE_DEGRADED_THRESHOLD})`,
+            label: 'registry balance',
         });
     }
 
@@ -134,6 +168,7 @@ export function getHttpIssues(isMaintainenceMode: boolean, registryBalance: BigN
             description: `Registry balance is ${registryBalance
                 .shiftedBy(ETH_DECIMALS * -1)
                 .toFixed(2)} (threshold is ${BALANCE_FAILED_THRESHOLD})`,
+            label: 'registry balance',
         });
     }
     return issues;
@@ -152,11 +187,13 @@ export async function checkSqsQueueAsync(producer: Producer): Promise<HealthChec
         results.push({
             status: HealthCheckStatus.Failed,
             description: `SQS queue contains ${messagesInQueue} messages (threshold is ${SQS_QUEUE_SIZE_FAILED_THRESHOLD})`,
+            label: 'queue size',
         });
     } else if (messagesInQueue > SQS_QUEUE_SIZE_DEGRADED_THRESHOLD) {
         results.push({
             status: HealthCheckStatus.Degraded,
             description: `SQS queue contains ${messagesInQueue} messages (threshold is ${SQS_QUEUE_SIZE_DEGRADED_THRESHOLD})`,
+            label: 'queue size',
         });
     }
     return results;
@@ -216,7 +253,13 @@ export async function checkWorkerHeartbeatsAsync(
 ): Promise<HealthCheckIssue[]> {
     const results: HealthCheckIssue[] = [];
     if (!heartbeats.length) {
-        return [{ status: HealthCheckStatus.Failed, description: 'No worker heartbeats were found' }];
+        return [
+            {
+                status: HealthCheckStatus.Failed,
+                description: 'No worker heartbeats were found',
+                label: 'worker heartbeat',
+            },
+        ];
     }
 
     // Heartbeat Age
@@ -227,6 +270,7 @@ export async function checkWorkerHeartbeatsAsync(
         results.push({
             status: HealthCheckStatus.Failed,
             description: `No worker has published a heartbeat in the last ${RECENT_HEARTBEAT_AGE_THRESHOLD} minutes`,
+            label: 'worker heartbeat',
         });
     }
     // TODO (rhinodavid): Think about how this will work when we downscale and a worker isn't producing new
@@ -237,6 +281,7 @@ export async function checkWorkerHeartbeatsAsync(
             results.push({
                 status: HealthCheckStatus.Degraded,
                 description: `Worker ${index} (${address}) last heartbeat was ${heartbeatAgeMinutes} ago`,
+                label: 'worker heartbeat',
             });
         }
     });
@@ -249,6 +294,7 @@ export async function checkWorkerHeartbeatsAsync(
         results.push({
             status: HealthCheckStatus.Failed,
             description: `No worker has a balance greater than the failed threshold (${BALANCE_FAILED_THRESHOLD})`,
+            label: 'worker heartbeat',
         });
     }
 
@@ -259,6 +305,7 @@ export async function checkWorkerHeartbeatsAsync(
                 description: `Worker ${index} (${address}) has a low balance: ${balance
                     .shiftedBy(ETH_DECIMALS * -1)
                     .toFixed(3)}`, // tslint:disable-line: custom-no-magic-numbers
+                label: 'worker balance',
             });
         }
     });
