@@ -7,6 +7,12 @@
             },
             "type": "array"
         },
+        "whitelistIntegratorUrls": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
         "integratorId": {
             "type": "string"
         },

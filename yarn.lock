@@ -37,16 +37,16 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.27.0":
-  version "16.27.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.27.0.tgz#d1ba80e0e8cb00da797791cac7afddf849e949c0"
-  integrity sha512-UBvPapzrpyYlIt7z8IdKX46l5GF9UPJXwxq2AG2swzF4sfpZqhMd70Hcxfx2/Nd/VQFg0OVXQRLd3Zq4c6TwIA==
+"@0x/asset-swapper@^16.27.1":
+  version "16.27.1"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.27.1.tgz#47f9f94d75d8fd3a1cb4ac9c755a1bd01a87ee05"
+  integrity sha512-yRfGLUBjt3ue11yQCKMJN1SHleeYCmprbgXlnHuBV5HbJUDo5hDyANayir4hXv9R+6AP3SkmQsLapGsF9ol4Cg==
   dependencies:
     "@0x/assert" "^3.0.27"
     "@0x/base-contract" "^6.4.0"
     "@0x/contract-addresses" "^6.7.0"
     "@0x/contract-wrappers" "^13.17.6"
-    "@0x/contracts-erc20" "^3.3.18"
+    "@0x/contracts-erc20" "^3.3.19"
     "@0x/contracts-zero-ex" "^0.27.0"
     "@0x/dev-utils" "^4.2.7"
     "@0x/json-schemas" "^6.1.3"
@@ -172,6 +172,14 @@
   version "3.3.18"
   resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.18.tgz#9f6d0522795f3d5bb105e02499fc8095e4bf2aa0"
   integrity sha512-otYeB1KAyAjKZ6gKkoyNjQR3PA8QRgX0ZwkhxIPfCbP+JV7s7WCb+gYW+Y15dBkkS3KbDFy7TD4hJ59wJ7LWsQ==
+  dependencies:
+    "@0x/base-contract" "^6.4.0"
+    ethers "~4.0.4"
+
+"@0x/contracts-erc20@^3.3.19":
+  version "3.3.19"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.19.tgz#4b1095da3c41aab1af42efa4850cc3821af28e5f"
+  integrity sha512-j6cj7mzTS5X9d0s/IuJtd9oXLJGTWBCM8wMrVT+QPtf10Pdu+CVTA62uIcUHez7dZ0NS0ehvExjWaq7fBsZQQg==
   dependencies:
     "@0x/base-contract" "^6.4.0"
     ethers "~4.0.4"

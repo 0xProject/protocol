@@ -67,6 +67,7 @@ enum EnvVarType {
 export interface Integrator {
     apiKeys: string[];
     integratorId: string;
+    whitelistIntegratorUrls?: string[];
     label: string;
     plp: boolean;
     rfqm: boolean;
@@ -589,27 +590,51 @@ export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {
     metaTxnRateLimiters: META_TXN_RATE_LIMITER_CONFIG,
 };
 
+export const getWhitelistedIntegratorUrlsForIntegratorId = (
+    (integratorsMap: Map<string, Integrator>) =>
+    (integratorId: string): string[] | undefined => {
+        const integrator = integratorsMap.get(integratorId);
+        return integrator?.whitelistIntegratorUrls;
+    }
+)(transformIntegratorsAcl(INTEGRATORS_ACL, 'integratorId'));
+
 /**
  * Gets the integrator ID for a given API key. If the API key is not in the configuration, returns `undefined`.
- * `integratorsMap` is closed in so it only needs to be evaluated once. Much efficiency!
  */
 export const getIntegratorIdForApiKey = (
     (integratorsMap: Map<string, Integrator>) =>
     (apiKey: string): string | undefined => {
         const integrator = integratorsMap.get(apiKey);
-        return integrator ? integrator.integratorId : undefined;
+        return integrator?.integratorId;
     }
-)(transformIntegratorsAcl(INTEGRATORS_ACL));
+)(transformIntegratorsAcl(INTEGRATORS_ACL, 'apiKeys'));
 
 /**
  * Utility function to transform INTEGRATORS_ACL into a map of apiKey => integrator. The result can
  * be used to optimize the lookup of the integrator when a request comes in with an api key. Lookup complexity
  * becomes O(1) with the map instead of O(# integrators * # api keys) with the array.
+ *
+ * @param integrators the integrators map from the environment variable
+ * @param keyBy either apiKeys (creates map keyed by every API key) or 'integratorId' (integratorId => Integrator)
  */
-function transformIntegratorsAcl(integrators: IntegratorsAcl): Map<string, Integrator> {
+function transformIntegratorsAcl(
+    integrators: IntegratorsAcl,
+    keyBy: 'apiKeys' | 'integratorId',
+): Map<string, Integrator> {
     const result = new Map<string, Integrator>();
     integrators.forEach((integrator) => {
-        integrator.apiKeys.forEach((apiKey) => {
+        let mapKeys: string[];
+        switch (keyBy) {
+            case 'apiKeys':
+                mapKeys = integrator.apiKeys;
+                break;
+            case 'integratorId':
+                mapKeys = [integrator.integratorId];
+                break;
+            default:
+                throw new Error(`Parameter "${keyBy}" is misconfigured`);
+        }
+        mapKeys.forEach((apiKey) => {
             result.set(apiKey, integrator);
         });
     });

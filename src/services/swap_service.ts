@@ -37,6 +37,7 @@ import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_MULTIPLEX,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
+    getWhitelistedIntegratorUrlsForIntegratorId,
     RFQT_REQUEST_MAX_RESPONSE_MS,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
@@ -215,6 +216,10 @@ export class SwapService {
         // address present, or (c) it's an indicative quote.
         const shouldEnableRfqt =
             integratorId !== undefined && (isETHSell || takerAddress !== undefined || (rfqt && rfqt.isIndicative));
+
+        // Check if integrator ID specifically whitelists a set of maker URIs. If whitelist is "undefined" then it
+        // means all integrators will be enabled.
+        const apiKeyWhitelist: string[] | undefined = getWhitelistedIntegratorUrlsForIntegratorId(integratorId!);
         if (shouldEnableRfqt) {
             // tslint:disable-next-line:custom-no-magic-numbers
             const altRfqAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
@@ -223,6 +228,7 @@ export class SwapService {
                 ...rfqt,
                 intentOnFilling: rfqt && rfqt.intentOnFilling ? true : false,
                 apiKey: integratorId!, // Send the integrator ID to market makers instead of the raw API key
+                apiKeyWhitelist,
                 makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
                 // Note 0xAPI maps takerAddress query parameter to txOrigin as takerAddress is always Exchange Proxy or a VIP
                 takerAddress: NULL_ADDRESS,
