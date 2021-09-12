@@ -35,16 +35,16 @@ contract ZrxTreasury is
     using LibBytesV06 for bytes;
 
     /// Contract name
-    string constant CONTRACT_NAME = "Zrx Treasury";
+    string private constant CONTRACT_NAME = "Zrx Treasury";
 
     /// Contract version
-    string constant CONTRACT_VERSION = "1.0.0";
+    string private constant CONTRACT_VERSION = "1.0.0";
 
     /// The EIP-712 typehash for the contract's domain
-    bytes32 constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    bytes32 private constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
     /// The EIP-712 typehash for the vote struct
-    bytes32 constant VOTE_TYPEHASH = keccak256("Vote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
+    bytes32 private constant VOTE_TYPEHASH = keccak256("TreasuryVote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
 
     // Immutables
     IStaking public immutable override stakingProxy;

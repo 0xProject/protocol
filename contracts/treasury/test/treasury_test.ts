@@ -17,7 +17,7 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { Vote } from '@0x/protocol-utils/lib/src/votes';
+import { TreasuryVote } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as ethUtil from 'ethereumjs-util';
 
@@ -476,24 +476,24 @@ blockchainTests.resets('Treasury governance', env => {
         it('Cannot vote by signature on invalid proposalId', async () => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
-            const vote = new Vote({
+            const vote = new TreasuryVote({
                 proposalId: INVALID_PROPOSAL_ID,
                 verifyingContract: admin,
             });
-            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
-                .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
+                .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/INVALID_PROPOSAL_ID');
         });
         it('Cannot vote by signature before voting period starts', async () => {
-            const vote = new Vote({
+            const vote = new TreasuryVote({
                 proposalId: VOTE_PROPOSAL_ID,
                 verifyingContract: admin,
             });
-            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
@@ -503,27 +503,27 @@ blockchainTests.resets('Treasury governance', env => {
             await env.web3Wrapper.increaseTimeAsync(TREASURY_PARAMS.votingPeriod.plus(1).toNumber());
             await env.web3Wrapper.mineBlockAsync();
 
-            const vote = new Vote({
+            const vote = new TreasuryVote({
                 proposalId: VOTE_PROPOSAL_ID,
                 verifyingContract: admin,
             });
-            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signedVote.v,  signedVote.r,  signedVote.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
         it('Can recover the address from signature correctly', async () => {
-            const vote = new Vote({
+            const vote = new TreasuryVote({
                 proposalId: VOTE_PROPOSAL_ID,
                 verifyingContract: admin,
             });
-            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const publicKey = ethUtil.ecrecover(
                 ethUtil.toBuffer(vote.getEIP712Hash()),
-                signedVote.v,
-                ethUtil.toBuffer(signedVote.r),
-                ethUtil.toBuffer(signedVote.s),
+                signature.v,
+                ethUtil.toBuffer(signature.r),
+                ethUtil.toBuffer(signature.s),
             );
             const address = ethUtil.publicToAddress(publicKey);
 
@@ -533,15 +533,15 @@ blockchainTests.resets('Treasury governance', env => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
 
-            const vote = new Vote({
+            const vote = new TreasuryVote({
                 proposalId: VOTE_PROPOSAL_ID,
                 verifyingContract: treasury.address,
                 chainId: 1337,
                 support: false,
             });
-            const signedVote = vote.getSignatureWithKey(delegatorPrivateKey);
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = await treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signedVote.v, signedVote.r, signedVote.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v,  signature.r,  signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
 
             verifyEventsFromLogs(
@@ -564,15 +564,15 @@ blockchainTests.resets('Treasury governance', env => {
             await treasury.castVote(VOTE_PROPOSAL_ID, true, [])
                 .awaitTransactionSuccessAsync({ from: delegator });
 
-            const secondVote = new Vote({
+            const secondVote = new TreasuryVote({
                 proposalId: VOTE_PROPOSAL_ID,
                 verifyingContract: treasury.address,
                 chainId: 1337,
                 support: false,
             });
-            const signedVote = secondVote.getSignatureWithKey(delegatorPrivateKey);
+            const signature = secondVote.getSignatureWithKey(delegatorPrivateKey);
             const secondVoteTx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signedVote.v, signedVote.r, signedVote.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v,  signature.r,  signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(secondVoteTx).to.revertWith('_castVote/ALREADY_VOTED');
         });

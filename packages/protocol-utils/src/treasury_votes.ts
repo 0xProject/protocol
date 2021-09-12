@@ -14,24 +14,24 @@ const VOTE_DEFAULT_VALUES = {
     verifyingContract: NULL_ADDRESS,
 };
 
-export type VoteFields = typeof VOTE_DEFAULT_VALUES;
+export type TreasuryVoteFields = typeof VOTE_DEFAULT_VALUES;
 
-export class Vote {
+export class TreasuryVote {
     public static readonly CONTRACT_NAME = 'Zrx Treasury';
 
-    public static readonly MESSAGE_STRUCT_NAME = 'Vote';
+    public static readonly MESSAGE_STRUCT_NAME = 'TreasuryVote';
     public static readonly MESSAGE_STRUCT_ABI = [
         { type: 'uint256', name: 'proposalId' },
         { type: 'bool', name: 'support' },
         { type: 'bytes32[]', name: 'operatedPoolIds' },
     ];
     public static readonly MESSAGE_TYPE_HASH = getTypeHash(
-        Vote.MESSAGE_STRUCT_NAME, Vote.MESSAGE_STRUCT_ABI,
+        TreasuryVote.MESSAGE_STRUCT_NAME, TreasuryVote.MESSAGE_STRUCT_ABI,
     );
 
     public static readonly DOMAIN_STRUCT_NAME = 'EIP712Domain';
     public static readonly DOMAIN_TYPE_HASH = getTypeHash(
-        Vote.DOMAIN_STRUCT_NAME, EIP712_DOMAIN_PARAMETERS,
+        TreasuryVote.DOMAIN_STRUCT_NAME, EIP712_DOMAIN_PARAMETERS,
     );
 
     public proposalId: BigNumber;
@@ -41,7 +41,7 @@ export class Vote {
     public version: string;
     public verifyingContract: string;
 
-    constructor(fields: Partial<VoteFields> = {}) {
+    constructor(fields: Partial<TreasuryVoteFields> = {}) {
         const _fields = { ...VOTE_DEFAULT_VALUES, ...fields };
         this.proposalId = _fields.proposalId;
         this.support = _fields.support;
@@ -54,9 +54,9 @@ export class Vote {
     public getDomainHash(): string {
         return hexUtils.hash(
             hexUtils.concat(
-                hexUtils.leftPad(Vote.DOMAIN_TYPE_HASH),
+                hexUtils.leftPad(TreasuryVote.DOMAIN_TYPE_HASH),
                 hexUtils.hash(
-                    hexUtils.toHex(Buffer.from(Vote.CONTRACT_NAME)),
+                    hexUtils.toHex(Buffer.from(TreasuryVote.CONTRACT_NAME)),
                 ),
                 hexUtils.leftPad(this.chainId),
                 hexUtils.hash(
@@ -70,7 +70,7 @@ export class Vote {
     public getStructHash(): string {
         return hexUtils.hash(
             hexUtils.concat(
-                hexUtils.leftPad(Vote.MESSAGE_TYPE_HASH),
+                hexUtils.leftPad(TreasuryVote.MESSAGE_TYPE_HASH),
                 hexUtils.leftPad(this.proposalId),
                 hexUtils.leftPad(this.support ? 1 : 0),
                 hexUtils.hash(
