@@ -418,7 +418,7 @@ export class SwapQuoter {
         return isOpenOrder && !willOrderExpire && isFeeTypeAllowed;
     }; // tslint:disable-line:semicolon
 
-    private _isIntegrationKeyWhitelisted(apiKey: string | undefined): boolean {
+    private _isIntegratorIdWhitelisted(integratorId: string | undefined): boolean {
         if (!apiKey) {
             return false;
         }
