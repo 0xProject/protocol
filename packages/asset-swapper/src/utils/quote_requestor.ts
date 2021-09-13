@@ -61,6 +61,20 @@ export interface MetricsProxy {
      * @param expirationTimeSeconds the expiration time in seconds
      */
     incrementFillRatioWarningCounter(isLastLook: boolean, maker: string): void;
+
+
+    logRfqMakerInteraction(interaction: {
+        isLastLook: boolean,
+        integrator: {
+            integratorId: string;
+            label: string;
+        };
+        url: string;
+        quoteType: 'firm' | 'indicative'; 
+        statusCode: number;
+        latencyMs: number;
+        included: boolean;
+    }): void;
 }
 
 /**
@@ -472,18 +486,28 @@ export class QuoteRequestor {
                 try {
                     if (typedMakerUrl.pairType === RfqPairType.Standard) {
                         const response = await this._quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
-                            headers: { '0x-api-key': options.apiKey },
+                            headers: { '0x-api-key': options.integrator.integratorId },
                             params: requestParams,
                             timeout: timeoutMs,
                             cancelToken: cancelTokenSource.token,
                         });
                         const latencyMs = Date.now() - timeBeforeAwait;
+                        const {isLastLook, integrator} = options;
+                        this._metrics?.logRfqMakerInteraction({
+                            isLastLook: isLastLook || false,
+                            url: typedMakerUrl.url,
+                            quoteType,
+                            statusCode: response.status,
+                            latencyMs,
+                            included: true,
+                            integrator,
+                        });
                         this._infoLogger({
                             rfqtMakerInteraction: {
                                 ...partialLogEntry,
                                 response: {
                                     included: true,
-                                    apiKey: options.apiKey,
+                                    apiKey: options.integrator.integratorId,
                                     takerAddress: requestParams.takerAddress,
                                     txOrigin: requestParams.txOrigin,
                                     statusCode: response.status,
@@ -501,7 +525,7 @@ export class QuoteRequestor {
                             typedMakerUrl.url,
                             this._altRfqCreds.altRfqApiKey,
                             this._altRfqCreds.altRfqProfile,
-                            options.apiKey,
+                            options.integrator.integratorId,
                             quoteType === 'firm' ? AltQuoteModel.Firm : AltQuoteModel.Indicative,
                             makerToken,
                             takerToken,
@@ -519,7 +543,7 @@ export class QuoteRequestor {
                                 ...partialLogEntry,
                                 response: {
                                     included: true,
-                                    apiKey: options.apiKey,
+                                    apiKey: options.integrator.integratorId,
                                     takerAddress: requestParams.takerAddress,
                                     txOrigin: requestParams.txOrigin,
                                     statusCode: quote.status,
@@ -538,7 +562,7 @@ export class QuoteRequestor {
                             ...partialLogEntry,
                             response: {
                                 included: false,
-                                apiKey: options.apiKey,
+                                apiKey: options.integrator.integratorId,
                                 takerAddress: requestParams.takerAddress,
                                 txOrigin: requestParams.txOrigin,
                                 statusCode: err.response ? err.response.status : undefined,
@@ -549,7 +573,7 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.integrator.integratorId} (${options.integrator.label}) for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
                     );
                     return;
                 }

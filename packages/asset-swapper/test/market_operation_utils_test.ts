@@ -16,7 +16,7 @@ import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, RfqRequestOpts, SignedNativeOrder } from '../src';
-import { NativeOrderWithFillableAmounts } from '../src/types';
+import { Integrator, NativeOrderWithFillableAmounts } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
@@ -62,6 +62,10 @@ const SELL_SOURCES = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
 const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = { default: [] };
 
 const SIGNATURE = { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign };
+const FOO_INTEGRATOR: Integrator = {
+    integratorId: 'foo',
+    label: 'foo',
+};
 
 /**
  * gets the orders required for a market sell operation by (potentially) merging native orders with
@@ -745,7 +749,7 @@ describe('MarketOperationUtils tests', () => {
                         feeSchedule,
                         rfqt: {
                             isIndicative: false,
-                            apiKey: 'foo',
+                            integrator: FOO_INTEGRATOR,
                             takerAddress: randomAddress(),
                             txOrigin: randomAddress(),
                             intentOnFilling: true,
@@ -790,7 +794,7 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         rfqt: {
                             isIndicative: false,
-                            apiKey: 'foo',
+                            integrator: FOO_INTEGRATOR,
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
                             txOrigin: randomAddress(),
@@ -837,7 +841,7 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         rfqt: {
                             isIndicative: true,
-                            apiKey: 'foo',
+                            integrator: FOO_INTEGRATOR,
                             takerAddress: randomAddress(),
                             txOrigin: randomAddress(),
                             intentOnFilling: true,
@@ -896,7 +900,10 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         rfqt: {
                             isIndicative: false,
-                            apiKey: 'foo',
+                            integrator: {
+                                integratorId: 'foo',
+                                label: 'foo',
+                            },
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
                             txOrigin: randomAddress(),
@@ -954,7 +961,7 @@ describe('MarketOperationUtils tests', () => {
                         ...DEFAULT_OPTS,
                         rfqt: {
                             isIndicative: false,
-                            apiKey: 'foo',
+                            integrator: FOO_INTEGRATOR,
                             takerAddress: randomAddress(),
                             txOrigin: randomAddress(),
                             intentOnFilling: true,

@@ -50,7 +50,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     samplerGasLimit: 500e6,
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     rfqt: {
-        takerApiKeyWhitelist: [],
+        integratorsWhitelist: [],
         makerAssetOfferings: {},
         txOriginBlacklist: new Set(),
     },

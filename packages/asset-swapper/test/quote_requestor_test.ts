@@ -240,7 +240,10 @@ describe('QuoteRequestor', async () => {
                         MarketOperation.Sell,
                         undefined,
                         {
-                            apiKey,
+                            integrator: {
+                                integratorId: apiKey,
+                                label: 'foo',
+                            },
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
@@ -435,7 +438,10 @@ describe('QuoteRequestor', async () => {
                         MarketOperation.Sell,
                         undefined,
                         {
-                            apiKey,
+                            integrator: {
+                                integratorId: apiKey,
+                                label: 'foo',
+                            },
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
@@ -551,7 +557,10 @@ describe('QuoteRequestor', async () => {
                         MarketOperation.Sell,
                         undefined,
                         {
-                            apiKey,
+                            integrator: {
+                                integratorId: apiKey,
+                                label: 'foo',
+                            },
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
@@ -675,7 +684,10 @@ describe('QuoteRequestor', async () => {
                         MarketOperation.Sell,
                         undefined,
                         {
-                            apiKey,
+                            integrator: {
+                                integratorId: apiKey,
+                                label: 'foo',
+                            },
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
@@ -762,7 +774,10 @@ describe('QuoteRequestor', async () => {
                         MarketOperation.Sell,
                         undefined,
                         {
-                            apiKey,
+                            integrator: {
+                                integratorId: apiKey,
+                                label: 'foo',
+                            },
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
@@ -823,7 +838,10 @@ describe('QuoteRequestor', async () => {
                         MarketOperation.Buy,
                         undefined,
                         {
-                            apiKey,
+                            integrator: {
+                                integratorId: apiKey,
+                                label: 'foo',
+                            },
                             takerAddress,
                             txOrigin: takerAddress,
                             intentOnFilling: true,
@@ -1088,7 +1106,10 @@ describe('QuoteRequestor', async () => {
                             altScenario.requestedOperation,
                             undefined,
                             {
-                                apiKey,
+                                integrator: {
+                                    integratorId: apiKey,
+                                    label: 'foo',
+                                },
                                 takerAddress,
                                 txOrigin,
                                 intentOnFilling: true,
