@@ -5,6 +5,7 @@ import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
 import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
+    AaveV2FillData,
     AggregationError,
     BalancerFillData,
     BalancerV2FillData,
@@ -194,6 +195,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SpookySwap');
         case ERC20BridgeSource.MorpheusSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MorpheusSwap');
+        case ERC20BridgeSource.AaveV2:
+            return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'AaveV2');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -339,6 +342,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
             bridgeData = encoder.encode([lidoFillData.stEthTokenAddress]);
             break;
+        case ERC20BridgeSource.AaveV2:
+            const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
+            bridgeData = encoder.encode([aaveFillData.lendingPool, aaveFillData.aToken]);
+            break;
+
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -504,6 +512,7 @@ export const BRIDGE_ENCODERS: {
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

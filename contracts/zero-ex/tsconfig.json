@@ -112,6 +112,7 @@
         "test/generated-artifacts/LiquidityProviderSandbox.json",
         "test/generated-artifacts/LogMetadataTransformer.json",
         "test/generated-artifacts/MetaTransactionsFeature.json",
+        "test/generated-artifacts/MixinAaveV2.json",
         "test/generated-artifacts/MixinBalancer.json",
         "test/generated-artifacts/MixinBalancerV2.json",
         "test/generated-artifacts/MixinBancor.json",
