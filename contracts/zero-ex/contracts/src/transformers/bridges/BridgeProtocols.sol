@@ -50,4 +50,5 @@ library BridgeProtocols {
     uint128 internal constant CURVEV2     = 20;
     uint128 internal constant LIDO        = 21;
     uint128 internal constant CLIPPER     = 22;
+    uint128 internal constant AAVEV2      = 23;
 }

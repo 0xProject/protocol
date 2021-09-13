@@ -132,6 +132,7 @@ export enum BridgeProtocol {
     CurveV2,
     Lido,
     Clipper,
+    AaveV2,
 }
 // tslint:enable: enum-naming
 

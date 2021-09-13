@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./IBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
+import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBancor.sol";
@@ -48,6 +49,7 @@ import "./mixins/MixinZeroExBridge.sol";
 
 contract BridgeAdapter is
     IBridgeAdapter,
+    MixinAaveV2,
     MixinBalancer,
     MixinBalancerV2,
     MixinBancor,
@@ -74,6 +76,7 @@ contract BridgeAdapter is
 {
     constructor(IEtherTokenV06 weth)
         public
+        MixinAaveV2()
         MixinBalancer()
         MixinBalancerV2()
         MixinBancor(weth)
@@ -250,6 +253,13 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.CLIPPER) {
             boughtAmount = _tradeClipper(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.AAVEV2) {
+            boughtAmount = _tradeAaveV2(
                 sellToken,
                 buyToken,
                 sellAmount,

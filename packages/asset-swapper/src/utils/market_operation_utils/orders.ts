@@ -5,6 +5,7 @@ import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
 import { MAX_UINT256, NULL_BYTES, ZERO_AMOUNT } from './constants';
 import {
+    AaveV2FillData,
     AggregationError,
     BalancerFillData,
     BalancerV2FillData,
@@ -182,6 +183,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'ACryptoS');
         case ERC20BridgeSource.Clipper:
             return encodeBridgeSourceId(BridgeProtocol.Clipper, 'Clipper');
+        case ERC20BridgeSource.AaveV2:
+            return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'AaveV2');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -324,6 +327,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const clipperFillData = (order as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
             bridgeData = encoder.encode([clipperFillData.poolAddress, NULL_BYTES]);
             break;
+        case ERC20BridgeSource.AaveV2:
+            const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
+            bridgeData = encoder.encode([aaveFillData.lendingPool, aaveFillData.aToken]);
+            break;
+
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -485,6 +493,7 @@ export const BRIDGE_ENCODERS: {
         { name: 'provider', type: 'address' },
         { name: 'data', type: 'bytes' },
     ]),
+    [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
