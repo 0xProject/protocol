@@ -449,7 +449,7 @@ export class SwapQuoter {
         }
 
         // If an integrator ID was provided, but the ID is not whitelisted, raise a warning and disable RFQ
-        if (!this._isIntegrationKeyWhitelisted(integrator.integratorId)) {
+        if (!this._isIntegratorIdWhitelisted(integrator.integratorId)) {
             if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
                 this._rfqtOptions.warningLogger(
                     {
