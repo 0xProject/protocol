@@ -448,7 +448,7 @@ export class SwapQuoter {
             throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQ" is set');
         }
 
-        // If an API key was provided, but the key is not whitelisted, raise a warning and disable RFQ
+        // If an integrator ID was provided, but the ID is not whitelisted, raise a warning and disable RFQ
         if (!this._isIntegrationKeyWhitelisted(integrator.integratorId)) {
             if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
                 this._rfqtOptions.warningLogger(
