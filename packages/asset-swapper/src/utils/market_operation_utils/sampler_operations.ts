@@ -19,12 +19,14 @@ import {
     isValidAddress,
     uniswapV2LikeRouterAddress,
 } from './bridge_source_utils';
+import { CompoundCTokenCache } from './compound_ctoken_cache';
 import {
     AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID,
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
     BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN,
     BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
+    COMPOUND_API_URL_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
@@ -58,6 +60,7 @@ import {
     BalancerV2PoolInfo,
     BancorFillData,
     BatchedOperation,
+    CompoundFillData,
     CurveFillData,
     CurveInfo,
     DexSample,
@@ -106,6 +109,7 @@ export class SamplerOperations {
     public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
     public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
     public readonly aaveReservesCache: AaveV2ReservesCache | undefined;
+    public readonly compoundCTokenCache: CompoundCTokenCache | undefined;
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
@@ -142,6 +146,14 @@ export class SamplerOperations {
         const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
         if (aaveSubgraphUrl) {
             this.aaveReservesCache = new AaveV2ReservesCache(aaveSubgraphUrl);
+        }
+
+        const compoundApiUrl = COMPOUND_API_URL_BY_CHAIN_ID[chainId];
+        if (compoundApiUrl) {
+            this.compoundCTokenCache = new CompoundCTokenCache(
+                compoundApiUrl,
+                NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
+            );
         }
         // Initialize the Bancor service, fetching paths in the background
         bancorServiceFn()
@@ -1139,6 +1151,36 @@ export class SamplerOperations {
         });
     }
 
+    public getCompoundSellQuotes(
+        cToken: string,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<CompoundFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Compound,
+            fillData: { cToken, takerToken, makerToken },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromCompound,
+            params: [cToken, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+
+    public getCompoundBuyQuotes(
+        cToken: string,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<CompoundFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Compound,
+            fillData: { cToken, takerToken, makerToken },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromCompound,
+            params: [cToken, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1505,6 +1547,22 @@ export class SamplerOperations {
                         };
                         return this.getAaveV2SellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
+                    case ERC20BridgeSource.Compound: {
+                        if (!this.compoundCTokenCache) {
+                            return [];
+                        }
+
+                        const cToken = this.compoundCTokenCache.get(takerToken, makerToken);
+                        if (!cToken) {
+                            return [];
+                        }
+                        return this.getCompoundSellQuotes(
+                            cToken.tokenAddress,
+                            makerToken,
+                            takerToken,
+                            takerFillAmounts,
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -1788,6 +1846,17 @@ export class SamplerOperations {
                             underlyingToken: reserve.underlyingAsset,
                         };
                         return this.getAaveV2BuyQuotes(info, makerToken, takerToken, makerFillAmounts);
+                    }
+                    case ERC20BridgeSource.Compound: {
+                        if (!this.compoundCTokenCache) {
+                            return [];
+                        }
+
+                        const cToken = this.compoundCTokenCache.get(takerToken, makerToken);
+                        if (!cToken) {
+                            return [];
+                        }
+                        return this.getCompoundBuyQuotes(cToken.tokenAddress, makerToken, takerToken, makerFillAmounts);
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);

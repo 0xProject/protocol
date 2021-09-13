@@ -11,6 +11,7 @@ import {
     BalancerV2FillData,
     BancorFillData,
     CollapsedFill,
+    CompoundFillData,
     CurveFillData,
     DexSample,
     DODOFillData,
@@ -197,6 +198,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MorpheusSwap');
         case ERC20BridgeSource.AaveV2:
             return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'AaveV2');
+        case ERC20BridgeSource.Compound:
+            return encodeBridgeSourceId(BridgeProtocol.Compound, 'Compound');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -345,6 +348,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.AaveV2:
             const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
             bridgeData = encoder.encode([aaveFillData.lendingPool, aaveFillData.aToken]);
+            break;
+        case ERC20BridgeSource.Compound:
+            const compoundFillData = (order as OptimizedMarketBridgeOrder<CompoundFillData>).fillData;
+            bridgeData = encoder.encode([compoundFillData.cToken]);
             break;
 
         default:
@@ -513,6 +520,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
+    [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

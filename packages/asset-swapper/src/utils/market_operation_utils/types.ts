@@ -69,6 +69,7 @@ export enum ERC20BridgeSource {
     Lido = 'Lido',
     ShibaSwap = 'ShibaSwap',
     AaveV2 = 'Aave_V2',
+    Compound = 'Compound',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -291,6 +292,12 @@ export interface AaveV2FillData extends FillData {
     aToken: string;
     underlyingToken: string;
     takerToken: string;
+}
+
+export interface CompoundFillData extends FillData {
+    cToken: string;
+    takerToken: string;
+    makerToken: string;
 }
 
 /**
