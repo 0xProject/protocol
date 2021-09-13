@@ -14,6 +14,7 @@ import { constants } from '../constants';
 import {
     AltQuoteModel,
     AltRfqMakerAssetOfferings,
+    Integrator,
     LogFunction,
     MarketOperation,
     RfqMakerAssetOfferings,
@@ -62,16 +63,22 @@ export interface MetricsProxy {
      */
     incrementFillRatioWarningCounter(isLastLook: boolean, maker: string): void;
 
-
+    /**
+     * Logs the outcome of an interaction with a market maker
+     * @param interaction.isLastLook true if the request is RFQM 
+     * @param interaction.integrator the integrator that is requesting the RFQ quote
+     * @param interaction.url the URL of the market maker
+     * @param interaction.quoteType indicative or firm quote
+     * @param interaction.statusCode the statusCode returned by a market maker
+     * @param interaction.latencyMs the latency of the HTTP request (in ms)
+     * @param interaction.included if a firm quote that was returned got included in the order salad
+     */
     logRfqMakerInteraction(interaction: {
         isLastLook: boolean,
-        integrator: {
-            integratorId: string;
-            label: string;
-        };
+        integrator: Integrator;
         url: string;
-        quoteType: 'firm' | 'indicative'; 
-        statusCode: number;
+        quoteType: 'firm' | 'indicative' 
+        statusCode: number | undefined;
         latencyMs: number;
         included: boolean;
     }): void;

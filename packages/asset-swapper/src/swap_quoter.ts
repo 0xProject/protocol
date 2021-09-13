@@ -419,10 +419,10 @@ export class SwapQuoter {
     }; // tslint:disable-line:semicolon
 
     private _isIntegratorIdWhitelisted(integratorId: string | undefined): boolean {
-        if (!apiKey) {
+        if (!integratorId) {
             return false;
         }
-        return this._integratorIdsSet.has(apiKey);
+        return this._integratorIdsSet.has(integratorId);
     }
 
     private _isTxOriginBlacklisted(txOrigin: string | undefined): boolean {
@@ -477,7 +477,7 @@ export class SwapQuoter {
         // Otherwise check other RFQ options
         if (
             intentOnFilling && // The requestor is asking for a firm quote
-            this._isIntegrationKeyWhitelisted(integrator.integratorId) && // A valid API key was provided
+            this._isIntegratorIdWhitelisted(integrator.integratorId) && // A valid API key was provided
             sourceFilters.isAllowed(ERC20BridgeSource.Native) // Native liquidity is not excluded
         ) {
             if (!txOrigin || txOrigin === constants.NULL_ADDRESS) {
