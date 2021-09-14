@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.27.2 - _September 14, 2021_
+
+    * Dependencies updated
+
 ## v16.27.1 - _September 8, 2021_
 
     * Fix ApproximateBuys sampler to terminate if the buy amount is not met (#319)
