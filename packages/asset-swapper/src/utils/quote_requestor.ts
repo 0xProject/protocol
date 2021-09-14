@@ -64,16 +64,19 @@ export interface MetricsProxy {
     incrementFillRatioWarningCounter(isLastLook: boolean, maker: string): void;
 
     /**
-     * Logs the outcome of an interaction with a market maker
+     * Logs the outcome of a network (HTTP) interaction with a market maker.
+     * 
      * @param interaction.isLastLook true if the request is RFQM 
      * @param interaction.integrator the integrator that is requesting the RFQ quote
      * @param interaction.url the URL of the market maker
      * @param interaction.quoteType indicative or firm quote
      * @param interaction.statusCode the statusCode returned by a market maker
      * @param interaction.latencyMs the latency of the HTTP request (in ms)
-     * @param interaction.included if a firm quote that was returned got included in the order salad
+     * @param interaction.included if a firm quote that was returned got included in the next step of processing.
+     *                             NOTE: this does not mean that the request returned a valid fillable order. It just
+     *                             means that the network response was successful.
      */
-    logRfqMakerInteraction(interaction: {
+    logRfqMakerNetworkInteraction(interaction: {
         isLastLook: boolean,
         integrator: Integrator;
         url: string;
@@ -479,7 +482,7 @@ export class QuoteRequestor {
             const {isLastLook, integrator} = options;
             const {sellTokenAddress, buyTokenAddress} = requestParams;
             if (isBlacklisted) {
-                this._metrics?.logRfqMakerInteraction({
+                this._metrics?.logRfqMakerNetworkInteraction({
                     isLastLook: false,
                     url: typedMakerUrl.url,
                     quoteType,
@@ -514,7 +517,7 @@ export class QuoteRequestor {
                             cancelToken: cancelTokenSource.token,
                         });
                         const latencyMs = Date.now() - timeBeforeAwait;
-                        this._metrics?.logRfqMakerInteraction({
+                        this._metrics?.logRfqMakerNetworkInteraction({
                             isLastLook: isLastLook || false,
                             url: typedMakerUrl.url,
                             quoteType,
@@ -561,7 +564,7 @@ export class QuoteRequestor {
                         );
 
                         const latencyMs = Date.now() - timeBeforeAwait;
-                        this._metrics?.logRfqMakerInteraction({
+                        this._metrics?.logRfqMakerNetworkInteraction({
                             isLastLook: isLastLook || false,
                             url: typedMakerUrl.url,
                             quoteType,
@@ -591,7 +594,7 @@ export class QuoteRequestor {
                 } catch (err) {
                     // log error if any
                     const latencyMs = Date.now() - timeBeforeAwait;
-                    this._metrics?.logRfqMakerInteraction({
+                    this._metrics?.logRfqMakerNetworkInteraction({
                         isLastLook: isLastLook || false,
                         url: typedMakerUrl.url,
                         quoteType,
