@@ -65,8 +65,8 @@ export interface MetricsProxy {
 
     /**
      * Logs the outcome of a network (HTTP) interaction with a market maker.
-     * 
-     * @param interaction.isLastLook true if the request is RFQM 
+     *
+     * @param interaction.isLastLook true if the request is RFQM
      * @param interaction.integrator the integrator that is requesting the RFQ quote
      * @param interaction.url the URL of the market maker
      * @param interaction.quoteType indicative or firm quote
@@ -77,10 +77,10 @@ export interface MetricsProxy {
      *                             means that the network response was successful.
      */
     logRfqMakerNetworkInteraction(interaction: {
-        isLastLook: boolean,
+        isLastLook: boolean;
         integrator: Integrator;
         url: string;
-        quoteType: 'firm' | 'indicative' 
+        quoteType: 'firm' | 'indicative';
         statusCode: number | undefined;
         latencyMs: number;
         included: boolean;
@@ -479,8 +479,8 @@ export class QuoteRequestor {
             // filter out requests to skip
             const isBlacklisted = rfqMakerBlacklist.isMakerBlacklisted(typedMakerUrl.url);
             const partialLogEntry = { url: typedMakerUrl.url, quoteType, requestParams, isBlacklisted };
-            const {isLastLook, integrator} = options;
-            const {sellTokenAddress, buyTokenAddress} = requestParams;
+            const { isLastLook, integrator } = options;
+            const { sellTokenAddress, buyTokenAddress } = requestParams;
             if (isBlacklisted) {
                 this._metrics?.logRfqMakerNetworkInteraction({
                     isLastLook: false,
@@ -621,7 +621,7 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for integrator ${options.integrator.integratorId} (${options.integrator.label}) for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for integrator ${options.integrator.integratorId} (${options.integrator.label}) for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
                     );
                     return;
                 }

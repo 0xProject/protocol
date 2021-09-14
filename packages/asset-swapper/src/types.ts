@@ -243,7 +243,7 @@ export interface RfqmRequestOptions extends RfqRequestOpts {
 export interface RfqRequestOpts {
     takerAddress: string;
     txOrigin: string;
-    integrator: Integrator
+    integrator: Integrator;
     apiKeyWhitelist?: string[];
     intentOnFilling: boolean;
     isIndicative?: boolean;
@@ -300,7 +300,7 @@ export interface Integrator {
 }
 
 export interface SwapQuoterRfqOpts {
-    integratorsWhitelist: Integrator[]
+    integratorsWhitelist: Integrator[];
     makerAssetOfferings: RfqMakerAssetOfferings;
     txOriginBlacklist: Set<string>;
     altRfqCreds?: {
