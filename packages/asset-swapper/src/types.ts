@@ -244,7 +244,6 @@ export interface RfqRequestOpts {
     takerAddress: string;
     txOrigin: string;
     integrator: Integrator;
-    apiKeyWhitelist?: string[];
     intentOnFilling: boolean;
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
@@ -297,6 +296,7 @@ export interface RfqFirmQuoteValidator {
 export interface Integrator {
     integratorId: string;
     label: string;
+    whitelistIntegratorUrls?: string[];
 }
 
 export interface SwapQuoterRfqOpts {
