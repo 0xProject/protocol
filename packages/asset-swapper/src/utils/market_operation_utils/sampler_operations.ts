@@ -2,6 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
+import { RpcSamplerClient } from '../../rpc_sampler_client';
 
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
@@ -44,6 +45,7 @@ import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
 import { SamplerContractOperation } from './sampler_contract_operation';
+import { Address, RpcLiquidityRequest } from './sampler_types';
 import { SourceFilters } from './source_filters';
 import {
     BalancerFillData,
@@ -56,6 +58,7 @@ import {
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    FillData,
     GenericRouterFillData,
     HopInfo,
     KyberDmmFillData,
@@ -109,6 +112,7 @@ export class SamplerOperations {
 
     constructor(
         public readonly chainId: ChainId,
+        protected readonly rpcSamplerClient: RpcSamplerClient,
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
         poolsCaches?: { [key in SourcesWithPoolsCache]: PoolsCache },
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
@@ -132,6 +136,92 @@ export class SamplerOperations {
             .catch(/* do nothing */);
     }
 
+    public async getTokenDecimalsAsync(tokens: Address[]): Promise<number[]> {
+        return (await this.rpcSamplerClient.getTokensAsync(tokens)).map(t => t.decimals);
+    }
+
+    public async getSellQuotesAsync(
+        sources: ERC20BridgeSource[],
+        makerToken: string,
+        takerToken: string,
+        takerAmount: BigNumber,
+    ): Promise<Array<Array<DexSample<FillData>>>> {
+        const rpcLiquidityRequests: RpcLiquidityRequest[] = sources.map(source => {
+            return {
+                tokenPath: [makerToken, takerToken],
+                inputAmount: takerAmount.toString(),
+                source,
+                demand: true,
+            };
+        });
+        const rpcLiquidityResponse = await this.rpcSamplerClient.getSellLiquidityAsync(rpcLiquidityRequests);
+        const dexQuotes: Array<Array<DexSample<FillData>>> = rpcLiquidityResponse.map((response, i) => {
+            const dexSample: Array<DexSample<FillData>> = response.liquidityCurve.map((point, j) => {
+                const fillData: DexSample = {
+                    source: response.source,
+                    fillData: point.encodedFillData,
+                    input: point.sellAmount,
+                    output: point.buyAmount,
+                };
+                return fillData;
+            });
+            return dexSample;
+        });
+        return dexQuotes;
+    }
+
+    public async getBuyQuotesAsync(
+        sources: ERC20BridgeSource[],
+        makerToken: string,
+        takerToken: string,
+        takerAmount: BigNumber,
+    ): Promise<Array<Array<DexSample<FillData>>>> {
+        const rpcLiquidityRequests: RpcLiquidityRequest[] = sources.map(source => {
+            return {
+                tokenPath: [makerToken, takerToken],
+                inputAmount: takerAmount.toString(),
+                source,
+                demand: true,
+            };
+        });
+        const rpcLiquidityResponse = await this.rpcSamplerClient.getBuyLiquidityAsync(rpcLiquidityRequests);
+        const dexQuotes: Array<Array<DexSample<FillData>>> = rpcLiquidityResponse.map((response, i) => {
+            const dexSample: Array<DexSample<FillData>> = response.liquidityCurve.map((point, j) => {
+                const fillData: DexSample = {
+                    source: sources[i],
+                    fillData: point.encodedFillData,
+                    input: point.sellAmount,
+                    output: point.buyAmount,
+                };
+                return fillData;
+            });
+            return dexSample;
+        });
+        return dexQuotes;
+    }
+
+    public async getMedianSellRateAsync(
+        sources: ERC20BridgeSource[],
+        makerToken: string,
+        takerToken: string,
+        takerFillAmount: BigNumber,
+    ): Promise<BigNumber> {
+        const samples = await this.getSellQuotesAsync(sources, makerToken, takerToken, takerFillAmount);
+        if (samples.length === 0) {
+            return ZERO_AMOUNT;
+        }
+        const flatSortedSamples = samples
+            .reduce((acc, v) => acc.concat(...v))
+            .filter(v => !v.output.isZero())
+            .sort((a, b) => a.output.comparedTo(b.output));
+        if (flatSortedSamples.length === 0) {
+            return ZERO_AMOUNT;
+        }
+        const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
+        return medianSample.output.div(takerFillAmount);
+    }
+
+    // Legacy
     public getTokenDecimals(tokens: string[]): BatchedOperation<BigNumber[]> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Native,

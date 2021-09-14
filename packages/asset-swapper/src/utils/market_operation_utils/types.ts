@@ -12,6 +12,7 @@ import { QuoteRequestor } from '../../utils/quote_requestor';
 import { PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { CollapsedPath } from './path';
+import { LiquiditySource } from './sampler_types';
 import { SourceFilters } from './source_filters';
 
 /**

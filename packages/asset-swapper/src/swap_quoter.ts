@@ -10,6 +10,7 @@ import * as _ from 'lodash';
 
 import { artifacts } from './artifacts';
 import { constants, INVALID_SIGNATURE, KEEP_ALIVE_TTL } from './constants';
+import { RpcSamplerClient } from './rpc_sampler_client';
 import {
     AssetSwapperContractAddresses,
     MarketBuySwapQuote,
@@ -143,6 +144,7 @@ export class SwapQuoter {
         this._marketOperationUtils = new MarketOperationUtils(
             new DexOrderSampler(
                 this.chainId,
+                new RpcSamplerClient(),
                 samplerContract,
                 samplerOverrides,
                 undefined, // pools caches for balancer and cream

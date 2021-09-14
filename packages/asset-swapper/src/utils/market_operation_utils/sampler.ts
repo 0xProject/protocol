@@ -1,5 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
+import { RpcSamplerClient } from '../../rpc_sampler_client';
 
 import { SamplerOverrides } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
@@ -34,6 +35,7 @@ type BatchedOperationResult<T> = T extends BatchedOperation<infer TResult> ? TRe
 export class DexOrderSampler extends SamplerOperations {
     constructor(
         public readonly chainId: ChainId,
+        rpcSamplerClient: RpcSamplerClient,
         _samplerContract: ERC20BridgeSamplerContract,
         private readonly _samplerOverrides?: SamplerOverrides,
         poolsCaches?: { [key in ERC20BridgeSource]: PoolsCache },
@@ -41,7 +43,7 @@ export class DexOrderSampler extends SamplerOperations {
         liquidityProviderRegistry?: LiquidityProviderRegistry,
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
-        super(chainId, _samplerContract, poolsCaches, tokenAdjacencyGraph, liquidityProviderRegistry, bancorServiceFn);
+        super(chainId, rpcSamplerClient, _samplerContract, poolsCaches, tokenAdjacencyGraph, liquidityProviderRegistry, bancorServiceFn);
     }
 
     /* Type overloads for `executeAsync()`. Could skip this if we would upgrade TS. */

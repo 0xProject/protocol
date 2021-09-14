@@ -10,6 +10,7 @@ import {
 import { FillQuoteTransformerOrderType, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
+import { RpcSamplerClient } from '../src/rpc_sampler_client';
 
 import { SignedOrder } from '../src/types';
 import { DexOrderSampler, getSampleAmounts } from '../src/utils/market_operation_utils/sampler';
@@ -105,6 +106,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -129,6 +131,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -157,6 +160,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -191,6 +195,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -235,6 +240,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -279,6 +285,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -311,6 +318,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -343,6 +351,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -400,6 +409,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -485,6 +495,7 @@ describe('DexSampler tests', () => {
             });
             const dexOrderSampler = new DexOrderSampler(
                 chainId,
+                new RpcSamplerClient(),
                 sampler,
                 undefined,
                 undefined,
@@ -547,6 +558,7 @@ describe('DexSampler tests', () => {
                 });
                 const dexOrderSampler = new DexOrderSampler(
                     chainId,
+                    new RpcSamplerClient(),
                     sampler,
                     undefined,
                     undefined,
