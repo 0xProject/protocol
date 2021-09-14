@@ -81,6 +81,8 @@ export interface MetricsProxy {
         statusCode: number | undefined;
         latencyMs: number;
         included: boolean;
+        sellTokenAddress: string;
+        buyTokenAddress: string;
     }): void;
 }
 
@@ -474,7 +476,20 @@ export class QuoteRequestor {
             // filter out requests to skip
             const isBlacklisted = rfqMakerBlacklist.isMakerBlacklisted(typedMakerUrl.url);
             const partialLogEntry = { url: typedMakerUrl.url, quoteType, requestParams, isBlacklisted };
+            const {isLastLook, integrator} = options;
+            const {sellTokenAddress, buyTokenAddress} = requestParams;
             if (isBlacklisted) {
+                this._metrics?.logRfqMakerInteraction({
+                    isLastLook: false,
+                    url: typedMakerUrl.url,
+                    quoteType,
+                    statusCode: undefined,
+                    sellTokenAddress,
+                    buyTokenAddress,
+                    latencyMs: 0,
+                    included: false,
+                    integrator,
+                });
                 this._infoLogger({ rfqtMakerInteraction: { ...partialLogEntry } });
                 return;
             } else if (
@@ -499,12 +514,13 @@ export class QuoteRequestor {
                             cancelToken: cancelTokenSource.token,
                         });
                         const latencyMs = Date.now() - timeBeforeAwait;
-                        const {isLastLook, integrator} = options;
                         this._metrics?.logRfqMakerInteraction({
                             isLastLook: isLastLook || false,
                             url: typedMakerUrl.url,
                             quoteType,
                             statusCode: response.status,
+                            sellTokenAddress,
+                            buyTokenAddress,
                             latencyMs,
                             included: true,
                             integrator,
@@ -545,6 +561,17 @@ export class QuoteRequestor {
                         );
 
                         const latencyMs = Date.now() - timeBeforeAwait;
+                        this._metrics?.logRfqMakerInteraction({
+                            isLastLook: isLastLook || false,
+                            url: typedMakerUrl.url,
+                            quoteType,
+                            statusCode: quote.status,
+                            sellTokenAddress,
+                            buyTokenAddress,
+                            latencyMs,
+                            included: true,
+                            integrator,
+                        });
                         this._infoLogger({
                             rfqtMakerInteraction: {
                                 ...partialLogEntry,
@@ -564,6 +591,17 @@ export class QuoteRequestor {
                 } catch (err) {
                     // log error if any
                     const latencyMs = Date.now() - timeBeforeAwait;
+                    this._metrics?.logRfqMakerInteraction({
+                        isLastLook: isLastLook || false,
+                        url: typedMakerUrl.url,
+                        quoteType,
+                        statusCode: err.response?.status,
+                        sellTokenAddress,
+                        buyTokenAddress,
+                        latencyMs,
+                        included: false,
+                        integrator,
+                    });
                     this._infoLogger({
                         rfqtMakerInteraction: {
                             ...partialLogEntry,
@@ -580,7 +618,7 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.integrator.integratorId} (${options.integrator.label}) for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for integrator ${options.integrator.integratorId} (${options.integrator.label}) for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`
                     );
                     return;
                 }
