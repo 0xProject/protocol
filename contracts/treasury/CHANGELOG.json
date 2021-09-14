@@ -1,5 +1,13 @@
 [
     {
+        "version": "1.4.0",
+        "changes": [
+            {
+                "note": "Support cast vote by signature in Treasury"
+            }
+        ]
+    },
+    {
         "timestamp": 1631120757,
         "version": "1.3.5",
         "changes": [
