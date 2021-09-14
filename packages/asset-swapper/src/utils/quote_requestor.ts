@@ -511,7 +511,10 @@ export class QuoteRequestor {
                 try {
                     if (typedMakerUrl.pairType === RfqPairType.Standard) {
                         const response = await this._quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
-                            headers: { '0x-api-key': options.integrator.integratorId },
+                            headers: {
+                                '0x-api-key': options.integrator.integratorId,
+                                '0x-integrator-id': options.integrator.integratorId,
+                            },
                             params: requestParams,
                             timeout: timeoutMs,
                             cancelToken: cancelTokenSource.token,
