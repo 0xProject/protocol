@@ -214,7 +214,7 @@ export class QuoteRequestor {
      * @returns a list of TypedMakerUrl instances
      */
     public static getTypedMakerUrlsAndWhitelist(
-        options: Pick<RfqmRequestOptions, 'apiKeyWhitelist' | 'altRfqAssetOfferings'>,
+        options: Pick<RfqmRequestOptions, 'integrator' | 'altRfqAssetOfferings'>,
         assetOfferings: RfqMakerAssetOfferings,
     ): TypedMakerUrl[] {
         const standardUrls = Object.keys(assetOfferings).map(
@@ -233,8 +233,8 @@ export class QuoteRequestor {
         let typedMakerUrls = standardUrls.concat(altUrls);
 
         // If there is a whitelist, only allow approved maker URLs
-        if (options.apiKeyWhitelist !== undefined) {
-            const whitelist = new Set(options.apiKeyWhitelist.map(key => key.toLowerCase()));
+        if (options.integrator.whitelistIntegratorUrls !== undefined) {
+            const whitelist = new Set(options.integrator.whitelistIntegratorUrls.map(key => key.toLowerCase()));
             typedMakerUrls = typedMakerUrls.filter(makerUrl => whitelist.has(makerUrl.url.toLowerCase()));
         }
         return typedMakerUrls;

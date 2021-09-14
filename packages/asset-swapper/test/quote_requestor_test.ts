@@ -862,7 +862,11 @@ describe('QuoteRequestor', async () => {
                 const [apiKeyWhitelist, results] = test;
                 const response = QuoteRequestor.getTypedMakerUrlsAndWhitelist(
                     {
-                        apiKeyWhitelist,
+                        integrator: {
+                            integratorId: 'foo',
+                            label: 'bar',
+                            whitelistIntegratorUrls: apiKeyWhitelist,
+                        },
                         altRfqAssetOfferings: {},
                     },
                     {
