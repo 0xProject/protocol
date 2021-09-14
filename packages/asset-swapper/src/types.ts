@@ -243,7 +243,7 @@ export interface RfqmRequestOptions extends RfqRequestOpts {
 export interface RfqRequestOpts {
     takerAddress: string;
     txOrigin: string;
-    apiKey: string;
+    integrator: Integrator;
     apiKeyWhitelist?: string[];
     intentOnFilling: boolean;
     isIndicative?: boolean;
@@ -294,8 +294,13 @@ export interface RfqFirmQuoteValidator {
     getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
 }
 
+export interface Integrator {
+    integratorId: string;
+    label: string;
+}
+
 export interface SwapQuoterRfqOpts {
-    takerApiKeyWhitelist: string[];
+    integratorsWhitelist: Integrator[];
     makerAssetOfferings: RfqMakerAssetOfferings;
     txOriginBlacklist: Set<string>;
     altRfqCreds?: {

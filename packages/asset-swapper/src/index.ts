@@ -88,6 +88,7 @@ export {
     ExchangeProxyContractOpts,
     ExchangeProxyRefundReceiver,
     GetExtensionContractTypeOpts,
+    Integrator,
     LogFunction,
     MarketBuySwapQuote,
     MarketOperation,

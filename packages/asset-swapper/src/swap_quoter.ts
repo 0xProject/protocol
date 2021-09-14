@@ -75,6 +75,7 @@ export class SwapQuoter {
     private readonly _marketOperationUtils: MarketOperationUtils;
     private readonly _rfqtOptions?: SwapQuoterRfqOpts;
     private readonly _quoteRequestorHttpClient: AxiosInstance;
+    private readonly _integratorIdsSet: Set<string>;
 
     /**
      * Instantiates a new SwapQuoter instance
@@ -164,6 +165,9 @@ export class SwapQuoter {
             httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
             ...(rfqt ? rfqt.axiosInstanceOpts : {}),
         });
+
+        const integratorIds = this._rfqtOptions?.integratorsWhitelist.map(integrator => integrator.integratorId) || [];
+        this._integratorIdsSet = new Set(integratorIds);
     }
 
     public async getBatchMarketBuySwapQuoteAsync(
@@ -414,12 +418,11 @@ export class SwapQuoter {
         return isOpenOrder && !willOrderExpire && isFeeTypeAllowed;
     }; // tslint:disable-line:semicolon
 
-    private _isApiKeyWhitelisted(apiKey: string | undefined): boolean {
-        if (!apiKey) {
+    private _isIntegratorIdWhitelisted(integratorId: string | undefined): boolean {
+        if (!integratorId) {
             return false;
         }
-        const whitelistedApiKeys = this._rfqtOptions ? this._rfqtOptions.takerApiKeyWhitelist : [];
-        return whitelistedApiKeys.includes(apiKey);
+        return this._integratorIdsSet.has(integratorId);
     }
 
     private _isTxOriginBlacklisted(txOrigin: string | undefined): boolean {
@@ -438,19 +441,19 @@ export class SwapQuoter {
             return rfqt;
         }
         // tslint:disable-next-line: boolean-naming
-        const { apiKey, nativeExclusivelyRFQ, intentOnFilling, txOrigin } = rfqt;
+        const { integrator, nativeExclusivelyRFQ, intentOnFilling, txOrigin } = rfqt;
         // If RFQ-T is enabled and `nativeExclusivelyRFQ` is set, then `ERC20BridgeSource.Native` should
         // never be excluded.
         if (nativeExclusivelyRFQ === true && !sourceFilters.isAllowed(ERC20BridgeSource.Native)) {
             throw new Error('Native liquidity cannot be excluded if "rfqt.nativeExclusivelyRFQ" is set');
         }
 
-        // If an API key was provided, but the key is not whitelisted, raise a warning and disable RFQ
-        if (!this._isApiKeyWhitelisted(apiKey)) {
+        // If an integrator ID was provided, but the ID is not whitelisted, raise a warning and disable RFQ
+        if (!this._isIntegratorIdWhitelisted(integrator.integratorId)) {
             if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
                 this._rfqtOptions.warningLogger(
                     {
-                        apiKey,
+                        ...integrator,
                     },
                     'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
                 );
@@ -474,7 +477,7 @@ export class SwapQuoter {
         // Otherwise check other RFQ options
         if (
             intentOnFilling && // The requestor is asking for a firm quote
-            this._isApiKeyWhitelisted(apiKey) && // A valid API key was provided
+            this._isIntegratorIdWhitelisted(integrator.integratorId) && // A valid API key was provided
             sourceFilters.isAllowed(ERC20BridgeSource.Native) // Native liquidity is not excluded
         ) {
             if (!txOrigin || txOrigin === constants.NULL_ADDRESS) {
