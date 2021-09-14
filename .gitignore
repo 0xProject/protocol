@@ -75,8 +75,9 @@ generated_docs/
 
 TODO.md
 
-# VSCode file
+# IDE file
 .vscode
+.idea
 
 # generated contract artifacts/
 contracts/broker/generated-artifacts/

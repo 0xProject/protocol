@@ -17,8 +17,9 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
+import { TreasuryVote } from '@0x/protocol-utils';
+import { BigNumber, hexUtils } from '@0x/utils';
+import * as ethUtil from 'ethereumjs-util';
 
 import { artifacts } from './artifacts';
 import { DefaultPoolOperatorContract, ZrxTreasuryContract, ZrxTreasuryEvents } from './wrappers';
@@ -55,6 +56,8 @@ blockchainTests.resets('Treasury governance', env => {
     let nonDefaultPoolId: string;
     let poolOperator: string;
     let delegator: string;
+    let relayer: string;
+    let delegatorPrivateKey: string;
     let actions: ProposedAction[];
 
     async function deployStakingAsync(): Promise<void> {
@@ -105,7 +108,10 @@ blockchainTests.resets('Treasury governance', env => {
     }
 
     before(async () => {
-        [admin, poolOperator, delegator] = await env.getAccountAddressesAsync();
+        const accounts = await env.getAccountAddressesAsync();
+        [admin, poolOperator, delegator, relayer] = accounts;
+        delegatorPrivateKey = hexUtils.toHex(constants.TESTRPC_PRIVATE_KEYS[accounts.indexOf(delegator)]);
+
         zrx = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
             erc20Artifacts.DummyERC20Token,
             env.provider,
@@ -399,7 +405,7 @@ blockchainTests.resets('Treasury governance', env => {
             expect(await treasury.proposalCount().callAsync()).to.bignumber.equal(1);
         });
     });
-    describe('castVote()', () => {
+    describe('castVote() and castVoteBySignature()', () => {
         const VOTE_PROPOSAL_ID = new BigNumber(0);
         const DELEGATOR_VOTING_POWER = new BigNumber(420);
 
@@ -418,17 +424,18 @@ blockchainTests.resets('Treasury governance', env => {
                 .propose(actions, currentEpoch.plus(2), PROPOSAL_DESCRIPTION, [])
                 .awaitTransactionSuccessAsync({ from: delegator });
         });
+        // castVote()
         it('Cannot vote on invalid proposalId', async () => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
             const tx = treasury
                 .castVote(INVALID_PROPOSAL_ID, true, [])
                 .awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/INVALID_PROPOSAL_ID');
+            return expect(tx).to.revertWith('_castVote/INVALID_PROPOSAL_ID');
         });
         it('Cannot vote before voting period starts', async () => {
             const tx = treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/VOTING_IS_CLOSED');
+            return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
         it('Cannot vote after voting period ends', async () => {
             await fastForwardToNextEpochAsync();
@@ -436,14 +443,14 @@ blockchainTests.resets('Treasury governance', env => {
             await env.web3Wrapper.increaseTimeAsync(TREASURY_PARAMS.votingPeriod.plus(1).toNumber());
             await env.web3Wrapper.mineBlockAsync();
             const tx = treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/VOTING_IS_CLOSED');
+            return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
         it('Cannot vote twice on same proposal', async () => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
             await treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
             const tx = treasury.castVote(VOTE_PROPOSAL_ID, false, []).awaitTransactionSuccessAsync({ from: delegator });
-            return expect(tx).to.revertWith('castVote/ALREADY_VOTED');
+            return expect(tx).to.revertWith('_castVote/ALREADY_VOTED');
         });
         it('Can cast a valid vote', async () => {
             await fastForwardToNextEpochAsync();
@@ -465,6 +472,110 @@ blockchainTests.resets('Treasury governance', env => {
                 ZrxTreasuryEvents.VoteCast,
             );
         });
+        // castVoteBySignature()
+        it('Cannot vote by signature on invalid proposalId', async () => {
+            await fastForwardToNextEpochAsync();
+            await fastForwardToNextEpochAsync();
+            const vote = new TreasuryVote({
+                proposalId: INVALID_PROPOSAL_ID,
+                verifyingContract: admin,
+            });
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
+            const tx = treasury
+                .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
+                .awaitTransactionSuccessAsync({ from: relayer });
+            return expect(tx).to.revertWith('_castVote/INVALID_PROPOSAL_ID');
+        });
+        it('Cannot vote by signature before voting period starts', async () => {
+            const vote = new TreasuryVote({
+                proposalId: VOTE_PROPOSAL_ID,
+                verifyingContract: admin,
+            });
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
+            const tx = treasury
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
+                .awaitTransactionSuccessAsync({ from: relayer });
+            return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
+        });
+        it('Cannot vote by signature after voting period ends', async () => {
+            await fastForwardToNextEpochAsync();
+            await fastForwardToNextEpochAsync();
+            await env.web3Wrapper.increaseTimeAsync(TREASURY_PARAMS.votingPeriod.plus(1).toNumber());
+            await env.web3Wrapper.mineBlockAsync();
+
+            const vote = new TreasuryVote({
+                proposalId: VOTE_PROPOSAL_ID,
+                verifyingContract: admin,
+            });
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
+            const tx = treasury
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
+                .awaitTransactionSuccessAsync({ from: relayer });
+            return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
+        });
+        it('Can recover the address from signature correctly', async () => {
+            const vote = new TreasuryVote({
+                proposalId: VOTE_PROPOSAL_ID,
+                verifyingContract: admin,
+            });
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
+            const publicKey = ethUtil.ecrecover(
+                ethUtil.toBuffer(vote.getEIP712Hash()),
+                signature.v,
+                ethUtil.toBuffer(signature.r),
+                ethUtil.toBuffer(signature.s),
+            );
+            const address = ethUtil.publicToAddress(publicKey);
+
+            expect(ethUtil.bufferToHex(address)).to.be.equal(delegator);
+        });
+        it('Can cast a valid vote by signature', async () => {
+            await fastForwardToNextEpochAsync();
+            await fastForwardToNextEpochAsync();
+
+            const vote = new TreasuryVote({
+                proposalId: VOTE_PROPOSAL_ID,
+                verifyingContract: treasury.address,
+                chainId: 1337,
+                support: false,
+            });
+            const signature = vote.getSignatureWithKey(delegatorPrivateKey);
+            const tx = await treasury
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v,  signature.r,  signature.s)
+                .awaitTransactionSuccessAsync({ from: relayer });
+
+            verifyEventsFromLogs(
+                tx.logs,
+                [
+                    {
+                        voter: delegator,
+                        operatedPoolIds: [],
+                        proposalId: VOTE_PROPOSAL_ID,
+                        support: vote.support,
+                        votingPower: DELEGATOR_VOTING_POWER,
+                    },
+                ],
+                ZrxTreasuryEvents.VoteCast,
+            );
+        });
+        it('Cannot vote by signature twice on same proposal', async () => {
+            await fastForwardToNextEpochAsync();
+            await fastForwardToNextEpochAsync();
+            await treasury.castVote(VOTE_PROPOSAL_ID, true, [])
+                .awaitTransactionSuccessAsync({ from: delegator });
+
+            const secondVote = new TreasuryVote({
+                proposalId: VOTE_PROPOSAL_ID,
+                verifyingContract: treasury.address,
+                chainId: 1337,
+                support: false,
+            });
+            const signature = secondVote.getSignatureWithKey(delegatorPrivateKey);
+            const secondVoteTx = treasury
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v,  signature.r,  signature.s)
+                .awaitTransactionSuccessAsync({ from: relayer });
+            return expect(secondVoteTx).to.revertWith('_castVote/ALREADY_VOTED');
+        });
     });
     describe('execute()', () => {
         let passedProposalId: BigNumber;
@@ -473,7 +584,7 @@ blockchainTests.resets('Treasury governance', env => {
         let ongoingVoteProposalId: BigNumber;
 
         before(async () => {
-            // OPerator has enough ZRX to create and pass a proposal
+            // Operator has enough ZRX to create and pass a proposal
             await staking.stake(TREASURY_PARAMS.quorumThreshold).awaitTransactionSuccessAsync({ from: poolOperator });
             await staking
                 .moveStake(
@@ -549,7 +660,7 @@ blockchainTests.resets('Treasury governance', env => {
         });
         it('Cannot execute before or after the execution epoch', async () => {
             const tooEarly = treasury.execute(passedProposalId, actions).awaitTransactionSuccessAsync();
-            expect(tooEarly).to.revertWith('_assertProposalExecutable/CANNOT_EXECUTE_THIS_EPOCH');
+            await expect(tooEarly).to.revertWith('_assertProposalExecutable/CANNOT_EXECUTE_THIS_EPOCH');
             await fastForwardToNextEpochAsync();
             // Proposal 0 is executable here
             await fastForwardToNextEpochAsync();
