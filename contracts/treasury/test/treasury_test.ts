@@ -482,7 +482,7 @@ blockchainTests.resets('Treasury governance', env => {
             });
             const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
-                .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
+                .castVoteBySignature(INVALID_PROPOSAL_ID, true, [], signature.v, signature.r, signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/INVALID_PROPOSAL_ID');
         });
@@ -493,7 +493,7 @@ blockchainTests.resets('Treasury governance', env => {
             });
             const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v, signature.r, signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
@@ -509,7 +509,7 @@ blockchainTests.resets('Treasury governance', env => {
             });
             const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v,  signature.r,  signature.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, true, [], signature.v, signature.r, signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(tx).to.revertWith('_castVote/VOTING_IS_CLOSED');
         });
@@ -541,7 +541,7 @@ blockchainTests.resets('Treasury governance', env => {
             });
             const signature = vote.getSignatureWithKey(delegatorPrivateKey);
             const tx = await treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v,  signature.r,  signature.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v, signature.r, signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
 
             verifyEventsFromLogs(
@@ -561,8 +561,7 @@ blockchainTests.resets('Treasury governance', env => {
         it('Cannot vote by signature twice on same proposal', async () => {
             await fastForwardToNextEpochAsync();
             await fastForwardToNextEpochAsync();
-            await treasury.castVote(VOTE_PROPOSAL_ID, true, [])
-                .awaitTransactionSuccessAsync({ from: delegator });
+            await treasury.castVote(VOTE_PROPOSAL_ID, true, []).awaitTransactionSuccessAsync({ from: delegator });
 
             const secondVote = new TreasuryVote({
                 proposalId: VOTE_PROPOSAL_ID,
@@ -572,7 +571,7 @@ blockchainTests.resets('Treasury governance', env => {
             });
             const signature = secondVote.getSignatureWithKey(delegatorPrivateKey);
             const secondVoteTx = treasury
-                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v,  signature.r,  signature.s)
+                .castVoteBySignature(VOTE_PROPOSAL_ID, false, [], signature.v, signature.r, signature.s)
                 .awaitTransactionSuccessAsync({ from: relayer });
             return expect(secondVoteTx).to.revertWith('_castVote/ALREADY_VOTED');
         });
