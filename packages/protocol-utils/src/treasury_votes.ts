@@ -26,13 +26,12 @@ export class TreasuryVote {
         { type: 'bytes32[]', name: 'operatedPoolIds' },
     ];
     public static readonly MESSAGE_TYPE_HASH = getTypeHash(
-        TreasuryVote.MESSAGE_STRUCT_NAME, TreasuryVote.MESSAGE_STRUCT_ABI,
+        TreasuryVote.MESSAGE_STRUCT_NAME,
+        TreasuryVote.MESSAGE_STRUCT_ABI,
     );
 
     public static readonly DOMAIN_STRUCT_NAME = 'EIP712Domain';
-    public static readonly DOMAIN_TYPE_HASH = getTypeHash(
-        TreasuryVote.DOMAIN_STRUCT_NAME, EIP712_DOMAIN_PARAMETERS,
-    );
+    public static readonly DOMAIN_TYPE_HASH = getTypeHash(TreasuryVote.DOMAIN_STRUCT_NAME, EIP712_DOMAIN_PARAMETERS);
 
     public proposalId: BigNumber;
     public support: boolean;
@@ -55,13 +54,9 @@ export class TreasuryVote {
         return hexUtils.hash(
             hexUtils.concat(
                 hexUtils.leftPad(TreasuryVote.DOMAIN_TYPE_HASH),
-                hexUtils.hash(
-                    hexUtils.toHex(Buffer.from(TreasuryVote.CONTRACT_NAME)),
-                ),
+                hexUtils.hash(hexUtils.toHex(Buffer.from(TreasuryVote.CONTRACT_NAME))),
                 hexUtils.leftPad(this.chainId),
-                hexUtils.hash(
-                    hexUtils.toHex(Buffer.from(this.version)),
-                ),
+                hexUtils.hash(hexUtils.toHex(Buffer.from(this.version))),
                 hexUtils.leftPad(this.verifyingContract),
             ),
         );
@@ -81,14 +76,7 @@ export class TreasuryVote {
     }
 
     public getEIP712Hash(): string {
-        return hexUtils.hash(
-            hexUtils.toHex(
-                hexUtils.concat(
-                    '0x1901',
-                    this.getDomainHash(),
-                    this.getStructHash()),
-            ),
-        );
+        return hexUtils.hash(hexUtils.toHex(hexUtils.concat('0x1901', this.getDomainHash(), this.getStructHash())));
     }
 
     public getSignatureWithKey(privateKey: string): Signature {
