@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.8.1 - _September 15, 2021_
+
+    * Dependencies updated
+
 ## v4.8.0 - _September 8, 2021_
 
     * Added FundRecoveryFeature to the 0x EP (#306)

@@ -1,5 +1,14 @@
 [
     {
+        "timestamp": 1631710679,
+        "version": "0.28.5",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1631120757,
         "version": "0.28.4",
         "changes": [
