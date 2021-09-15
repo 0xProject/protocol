@@ -174,6 +174,14 @@ describe(SUITE_NAME, () => {
         const configManagerMock = mock(ConfigManager);
         when(configManagerMock.getRfqmApiKeyWhitelist()).thenReturn(new Set([API_KEY]));
         when(configManagerMock.getIntegratorIdForApiKey(API_KEY)).thenReturn(INTEGRATOR_ID);
+        when(configManagerMock.getIntegratorByIdOrThrow(INTEGRATOR_ID)).thenReturn({
+            integratorId: INTEGRATOR_ID,
+            apiKeys: [API_KEY],
+            label: 'Test',
+            rfqm: true,
+            plp: false,
+            rfqt: false,
+        });
         const configManager = instance(configManagerMock);
 
         // Create Axios client

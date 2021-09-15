@@ -1,6 +1,7 @@
+import { Integrator } from '@0x/asset-swapper';
 import { MetricsProxy } from '@0x/asset-swapper/lib/src/utils/quote_requestor';
 import { BigNumber } from '@0x/utils';
-import { Counter, Histogram } from 'prom-client';
+import { Counter, Histogram, Summary } from 'prom-client';
 
 const ORDER_EXPIRED_TOO_SOON = new Counter({
     name: 'rfq_order_expired_too_soon',
@@ -24,6 +25,36 @@ const ORDER_FILL_RATIO_WARNING_RANGE = new Counter({
     labelNames: ['maker', 'isLastLook'],
 });
 
+const RFQ_MAKER_NETWORK_INTERACTION_COUNTER = new Counter({
+    name: 'rfq_maker_network_interaction_counter',
+    help: 'Provides stats around market maker network interactions',
+    labelNames: [
+        'isLastLook',
+        'integratorLabel',
+        'url',
+        'quoteType',
+        'included',
+        'statusCode',
+        'sellTokenAddress',
+        'buyTokenAddress',
+    ],
+});
+
+const RFQ_MAKER_NETWORK_INTERACTION_SUMMARY = new Summary({
+    name: 'rfq_maker_network_interaction_summary',
+    help: 'Provides stats around market maker network interactions',
+    labelNames: [
+        'isLastLook',
+        'integratorLabel',
+        'url',
+        'quoteType',
+        'included',
+        'statusCode',
+        'sellTokenAddress',
+        'buyTokenAddress',
+    ],
+});
+
 export const METRICS_PROXY: MetricsProxy = {
     incrementExpirationToSoonCounter: (isLastLook: boolean, maker: string) => {
         ORDER_EXPIRED_TOO_SOON.labels(maker, isLastLook.toString()).inc();
@@ -37,5 +68,41 @@ export const METRICS_PROXY: MetricsProxy = {
 
     incrementFillRatioWarningCounter: (isLastLook: boolean, maker: string) => {
         ORDER_FILL_RATIO_WARNING_RANGE.labels(maker, isLastLook.toString()).inc();
+    },
+
+    logRfqMakerNetworkInteraction: (interaction: {
+        isLastLook: boolean;
+        integrator: Integrator;
+        url: string;
+        quoteType: 'firm' | 'indicative';
+        statusCode: number | undefined;
+        latencyMs: number;
+        included: boolean;
+        sellTokenAddress: string;
+        buyTokenAddress: string;
+    }) => {
+        const {
+            isLastLook,
+            integrator,
+            url,
+            quoteType,
+            included: isIncluded,
+            statusCode,
+            sellTokenAddress,
+            buyTokenAddress,
+            latencyMs,
+        } = interaction;
+        const payload = [
+            isLastLook.toString(),
+            integrator.label,
+            url,
+            quoteType,
+            isIncluded.toString(),
+            `${statusCode || 'N/A'}`,
+            sellTokenAddress,
+            buyTokenAddress,
+        ];
+        RFQ_MAKER_NETWORK_INTERACTION_COUNTER.labels(...payload).inc();
+        RFQ_MAKER_NETWORK_INTERACTION_SUMMARY.labels(...payload).observe(latencyMs);
     },
 };

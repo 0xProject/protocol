@@ -229,6 +229,7 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGI
     ? []
     : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
 
+export const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
 export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
 export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
 export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
@@ -545,7 +546,7 @@ export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
 })();
 
 let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
-    takerApiKeyWhitelist: RFQT_API_KEY_WHITELIST,
+    integratorsWhitelist: RFQT_INTEGRATORS,
     makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
     txOriginBlacklist: RFQT_TX_ORIGIN_BLACKLIST,
 };
@@ -590,11 +591,14 @@ export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {
     metaTxnRateLimiters: META_TXN_RATE_LIMITER_CONFIG,
 };
 
-export const getWhitelistedIntegratorUrlsForIntegratorId = (
+export const getIntegratorByIdOrThrow = (
     (integratorsMap: Map<string, Integrator>) =>
-    (integratorId: string): string[] | undefined => {
+    (integratorId: string): Integrator => {
         const integrator = integratorsMap.get(integratorId);
-        return integrator?.whitelistIntegratorUrls;
+        if (!integrator) {
+            throw new Error(`Integrator ${integratorId} does not exist.`);
+        }
+        return integrator;
     }
 )(transformIntegratorsAcl(INTEGRATORS_ACL, 'integratorId'));
 

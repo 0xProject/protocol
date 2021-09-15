@@ -1,5 +1,5 @@
 // tslint:disable: prefer-function-over-method
-import { getIntegratorIdForApiKey, RFQM_API_KEY_WHITELIST } from '../config';
+import { getIntegratorByIdOrThrow, getIntegratorIdForApiKey, Integrator, RFQM_API_KEY_WHITELIST } from '../config';
 
 /**
  * ConfigManager is a simple wrapper around configs.
@@ -9,6 +9,10 @@ import { getIntegratorIdForApiKey, RFQM_API_KEY_WHITELIST } from '../config';
 export class ConfigManager {
     public getRfqmApiKeyWhitelist(): Set<string> {
         return RFQM_API_KEY_WHITELIST;
+    }
+
+    public getIntegratorByIdOrThrow(integratorId: string): Integrator {
+        return getIntegratorByIdOrThrow(integratorId);
     }
 
     public getIntegratorIdForApiKey(apiKey: string): string | undefined {

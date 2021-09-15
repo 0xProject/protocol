@@ -21,6 +21,7 @@ import { Counter, Histogram } from 'prom-client';
 
 import {
     CHAIN_ID,
+    getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
     MATCHA_INTEGRATOR_ID,
     NATIVE_WRAPPED_TOKEN_SYMBOL,
@@ -142,8 +143,8 @@ export class SwapHandlers {
                 firmQuoteServed: {
                     taker: params.takerAddress,
                     // TODO (MKR-123): remove once the log consumers have been updated
-                    apiKey: params.integratorId,
-                    integratorId: params.integratorId,
+                    apiKey: params.integrator?.integratorId,
+                    integratorId: params.integrator?.integratorId,
                     rawApiKey: params.apiKey,
                     buyToken: params.buyToken,
                     sellToken: params.sellToken,
@@ -162,7 +163,7 @@ export class SwapHandlers {
                         sellTokenAddress: quote.sellTokenAddress,
                         buyAmount: params.buyAmount,
                         sellAmount: params.sellAmount,
-                        apiKey: params.integratorId, // TODO (rhinodavid): update to align apiKey/integratorId
+                        apiKey: params.integrator?.integratorId, // TODO (rhinodavid): update to align apiKey/integratorId
                     },
                     req.log,
                 );
@@ -195,8 +196,8 @@ export class SwapHandlers {
             indicativeQuoteServed: {
                 taker: params.takerAddress,
                 // TODO (MKR-123): remove once the log source is updated
-                apiKey: params.integratorId,
-                integratorId: params.integratorId,
+                apiKey: params.integrator?.integratorId,
+                integratorId: params.integrator?.integratorId,
                 rawApiKey: params.apiKey,
                 buyToken: params.buyToken,
                 sellToken: params.sellToken,
@@ -476,6 +477,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     })();
 
     const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
+    const integrator = integratorId ? getIntegratorByIdOrThrow(integratorId) : undefined;
 
     return {
         takerAddress: takerAddress as string,
@@ -491,7 +493,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         rfqt,
         skipValidation,
         apiKey,
-        integratorId,
+        integrator,
         affiliateFee,
         includePriceComparisons,
         shouldSellEntireBalance,

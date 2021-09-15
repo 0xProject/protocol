@@ -3,8 +3,8 @@ import 'mocha';
 
 import {
     getApiKeyWhitelistFromIntegratorsAcl,
+    getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
-    getWhitelistedIntegratorUrlsForIntegratorId,
     RFQT_INTEGRATOR_IDS,
 } from '../src/config';
 
@@ -20,13 +20,18 @@ describe('Config', () => {
         });
 
         it('correctly parses whitelist', () => {
-            expect(getWhitelistedIntegratorUrlsForIntegratorId('test-integrator-id-2')).to.eql(undefined);
+            try {
+                getIntegratorByIdOrThrow('test-integrator-id-2');
+                expect.fail(`"test-integrator-id-2" should not exist`);
+            } catch (e) {
+                expect(e.toString()).to.equal('AssertionError: "test-integrator-id-2" should not exist');
+            }
         });
 
         it('allows us to fetch Integrator by Integrator key', () => {
-            const whitelists = getWhitelistedIntegratorUrlsForIntegratorId('test-integrator-id-1')!;
-            expect(whitelists.length).to.eql(1);
-            expect(whitelists[0]).to.eql('http://foo.bar');
+            const { whitelistIntegratorUrls } = getIntegratorByIdOrThrow('test-integrator-id-1');
+            expect(whitelistIntegratorUrls!.length).to.eql(1);
+            expect(whitelistIntegratorUrls![0]).to.eql('http://foo.bar');
         });
 
         it('returns `undefined` for non-existent api keys', () => {

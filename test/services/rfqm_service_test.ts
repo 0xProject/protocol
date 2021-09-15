@@ -17,6 +17,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
+import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS } from '../../src/constants';
 import { RfqmJobEntity, RfqmTransactionSubmissionEntity } from '../../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes } from '../../src/entities/RfqmJobEntity';
@@ -32,6 +33,14 @@ const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38
 const MOCK_GAS_PRICE = new BigNumber(100);
 const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 500;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
+const MOCK_INTEGRATOR: Integrator = {
+    apiKeys: ['an-integrator-id'],
+    integratorId: 'an-integrator-id',
+    label: 'Test',
+    plp: false,
+    rfqm: true,
+    rfqt: true,
+};
 
 const buildRfqmServiceForUnitTest = (
     overrides: {
@@ -170,7 +179,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -219,7 +228,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -273,7 +282,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -320,7 +329,7 @@ describe('RfqmService', () => {
 
                 // Expect
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -366,7 +375,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -419,7 +428,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -474,7 +483,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -524,7 +533,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -585,7 +594,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchIndicativeQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
                     buyTokenDecimals: 18,
@@ -675,7 +684,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
@@ -753,7 +762,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
@@ -832,7 +841,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
@@ -911,7 +920,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
@@ -990,7 +999,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,
@@ -1084,7 +1093,7 @@ describe('RfqmService', () => {
 
                 // When
                 const res = await service.fetchFirmQuoteAsync({
-                    integratorId: 'an-integrator-id',
+                    integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
                     sellToken: contractAddresses.etherToken,

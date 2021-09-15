@@ -14,6 +14,7 @@ import { ChainId } from '@0x/contract-addresses';
 import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
+import { Integrator } from './config';
 import { MetaTransactionRateLimiter } from './utils/rate-limiters';
 import { MetaTransactionRateLimitConfig } from './utils/rate-limiters/types';
 
@@ -283,7 +284,7 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     isETHBuy: boolean;
     isMetaTransaction: boolean;
     // The ID of the integrator associated with the provided API key, if there is one.
-    integratorId?: string;
+    integrator?: Integrator;
 }
 
 // GET /swap/price

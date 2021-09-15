@@ -11,7 +11,7 @@ import { Producer } from 'sqs-producer';
 
 import {
     CHAIN_ID,
-    getWhitelistedIntegratorUrlsForIntegratorId,
+    Integrator,
     META_TX_WORKER_REGISTRY,
     RFQM_MAINTENANCE_MODE,
     RFQM_MAKER_ASSET_OFFERINGS,
@@ -51,7 +51,7 @@ export enum RfqmTypes {
 }
 
 export interface FetchIndicativeQuoteParams {
-    integratorId: string;
+    integrator: Integrator;
     buyAmount?: BigNumber;
     buyToken: string;
     buyTokenDecimals: number;
@@ -73,7 +73,7 @@ export interface FetchIndicativeQuoteResponse {
 }
 
 export interface FetchFirmQuoteParams {
-    integratorId: string;
+    integrator: Integrator;
     buyAmount?: BigNumber;
     buyToken: string;
     buyTokenDecimals: number;
@@ -95,7 +95,7 @@ export interface BaseRfqmQuoteResponse {
 }
 
 export interface MetaTransactionSubmitRfqmSignedQuoteParams {
-    integratorId: string;
+    integrator: Integrator;
     metaTransaction: MetaTransaction;
     signature: Signature;
     type: RfqmTypes.MetaTransaction;
@@ -318,7 +318,7 @@ export class RfqmService {
             buyToken: makerToken,
             sellTokenDecimals: takerTokenDecimals,
             buyTokenDecimals: makerTokenDecimals,
-            integratorId,
+            integrator,
         } = params;
 
         // Quote Requestor specific params
@@ -334,7 +334,7 @@ export class RfqmService {
         const opts: RfqmRequestOptions = {
             ...RFQM_DEFAULT_OPTS,
             txOrigin: this._registryAddress,
-            apiKey: integratorId, // Send the integrator ID instead of the api key to the market makers
+            integrator,
             intentOnFilling: false,
             isIndicative: true,
             isLastLook: true,
@@ -400,7 +400,7 @@ export class RfqmService {
             buyToken: makerToken,
             sellTokenDecimals: takerTokenDecimals,
             buyTokenDecimals: makerTokenDecimals,
-            integratorId,
+            integrator,
             takerAddress,
             affiliateAddress,
         } = params;
@@ -420,17 +420,12 @@ export class RfqmService {
             type: 'fixed',
         };
 
-        // Check if integrator ID specifically whitelists a set of maker URIs. If whitelist is "undefined" then it
-        // means all integrators will be enabled.
-        const apiKeyWhitelist: string[] | undefined = getWhitelistedIntegratorUrlsForIntegratorId(integratorId!);
-
         // Fetch quotes
         const opts: RfqmRequestOptions = {
             ...RFQM_DEFAULT_OPTS,
             takerAddress,
             txOrigin: this._registryAddress,
-            apiKey: integratorId, // Send the integrator id instead of the API key to the market makers
-            apiKeyWhitelist,
+            integrator,
             intentOnFilling: true,
             isIndicative: false,
             isLastLook: true,
@@ -526,7 +521,7 @@ export class RfqmService {
                 affiliateAddress,
             }),
         );
-        RFQM_QUOTE_INSERTED.labels(integratorId, integratorId, makerUri).inc();
+        RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
 
         // Prepare response
         return {

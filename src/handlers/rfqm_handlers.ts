@@ -14,7 +14,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import { Counter } from 'prom-client';
 
-import { CHAIN_ID, NATIVE_WRAPPED_TOKEN_SYMBOL } from '../config';
+import { CHAIN_ID, Integrator, NATIVE_WRAPPED_TOKEN_SYMBOL } from '../config';
 import { schemas } from '../schemas';
 import {
     FetchFirmQuoteParams,
@@ -178,7 +178,7 @@ export class RfqmHandlers {
 
     public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = this._parseSubmitSignedQuoteParams(req);
-        RFQM_SIGNED_QUOTE_SUBMITTED.labels(params.integratorId, params.integratorId).inc();
+        RFQM_SIGNED_QUOTE_SUBMITTED.labels(params.integrator.integratorId, params.integrator.integratorId).inc();
 
         if (params.type === RfqmTypes.MetaTransaction) {
             try {
@@ -228,7 +228,7 @@ export class RfqmHandlers {
      * Examines the API key provided in the request, ensures it is valid for RFQM, and fetches the associated
      * integrator ID.
      */
-    private _validateApiKey(apiKey: string | undefined): { apiKey: string; integratorId: string } {
+    private _validateApiKey(apiKey: string | undefined): { apiKey: string; integrator: Integrator } {
         if (apiKey === undefined) {
             throw new InvalidAPIKeyError('Must access with an API key');
         }
@@ -240,14 +240,14 @@ export class RfqmHandlers {
             // With a valid configuration this should never happen
             throw new InvalidAPIKeyError('API key has no associated Integrator ID');
         }
-
-        return { apiKey, integratorId };
+        const integrator = this._configManager.getIntegratorByIdOrThrow(integratorId);
+        return { apiKey, integrator };
     }
 
     private _parseFetchIndicativeQuoteParams(req: express.Request): FetchIndicativeQuoteParams {
         // HACK - reusing the validation for Swap Quote as the interface here is a subset
         schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
-        const { integratorId } = this._validateApiKey(req.header('0x-api-key'));
+        const { integrator } = this._validateApiKey(req.header('0x-api-key'));
 
         // Parse string params
         const { takerAddress, affiliateAddress } = req.query;
@@ -273,7 +273,7 @@ export class RfqmHandlers {
             buyAmount,
             buyToken,
             buyTokenDecimals,
-            integratorId,
+            integrator,
             sellAmount,
             sellToken,
             sellTokenDecimals,
@@ -284,7 +284,7 @@ export class RfqmHandlers {
 
     private _parseSubmitSignedQuoteParams(req: express.Request): SubmitRfqmSignedQuoteParams {
         const type = req.body.type as RfqmTypes;
-        const { integratorId } = this._validateApiKey(req.header('0x-api-key'));
+        const { integrator } = this._validateApiKey(req.header('0x-api-key'));
 
         if (type === RfqmTypes.MetaTransaction) {
             const metaTransaction = new MetaTransaction(
@@ -296,7 +296,7 @@ export class RfqmHandlers {
                 type,
                 metaTransaction,
                 signature,
-                integratorId,
+                integrator,
             };
         } else {
             throw new ValidationError([
