@@ -46,7 +46,7 @@
         "test:generate_docs:circleci": "for i in ${npm_package_config_packagesWithDocPages}; do yarn generate_doc --package $i || break -1; done;",
         "bundlewatch": "bundlewatch",
         "lint": "wsrun --fast-exit --parallel --exclude-missing -p $PKG -c lint",
-        "upgrade_org_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x|ethereum-types'",
+        "upgrade_org_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x/|ethereum-types'",
         "upgrade_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js",
         "verdaccio": "docker run --rm -i -p 4873:4873 0xorg/verdaccio"
     },
