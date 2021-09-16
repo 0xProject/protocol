@@ -4,13 +4,13 @@ import * as _ from 'lodash';
 import { OptimizerCapture, route, SerializedPath } from 'neon-router';
 import { performance } from 'perf_hooks';
 
-import { MarketOperation } from '../../types';
+import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from '../market_operation_utils/constants';
 
-import { dexSamplesToFills } from './fills';
+import { dexSamplesToFills, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { getRate } from './rate_utils';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
+import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -20,30 +20,68 @@ const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
 
+const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
+
+function nativeOrderToNormalizedAmounts(
+    side: MarketOperation,
+    nativeOrder: NativeOrderWithFillableAmounts,
+): { input: BigNumber; output: BigNumber } {
+    const { fillableTakerAmount, fillableTakerFeeAmount, fillableMakerAmount } = nativeOrder;
+    const makerAmount = fillableMakerAmount;
+    const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
+    const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
+    const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
+
+    return { input, output };
+}
+
 function calculateOuputFee(
-    sample: DexSample,
+    side: MarketOperation,
+    sampleOrNativeOrder: DexSample | NativeOrderWithFillableAmounts,
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
     fees: FeeSchedule,
 ): BigNumber {
-    const { source, fillData } = sample;
-    const fee = fees[source] === undefined ? 0 : fees[source]!(fillData) || 0;
-    const outputFee = !outputAmountPerEth.isZero()
-        ? outputAmountPerEth.times(fee)
-        : inputAmountPerEth.times(fee).times(sample.output.dividedToIntegerBy(sample.input));
+    if (isDexSample(sampleOrNativeOrder)) {
+        const { source, fillData } = sampleOrNativeOrder;
+        const fee = fees[source] === undefined ? 0 : fees[source]!(fillData) || 0;
+        const outputFee = !outputAmountPerEth.isZero()
+            ? outputAmountPerEth.times(fee)
+            : inputAmountPerEth
+                  .times(fee)
+                  .times(sampleOrNativeOrder.output.dividedToIntegerBy(sampleOrNativeOrder.input));
 
-    return outputFee;
+        return outputFee;
+    } else {
+        const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
+        const fee =
+            fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(sampleOrNativeOrder);
+        const outputFee = !outputAmountPerEth.isZero()
+            ? outputAmountPerEth.times(fee)
+            : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
+        return outputFee;
+    }
 }
 
 function createPathFromSamples(
     side: MarketOperation,
     samples: DexSample[][],
+    nativeOrders: NativeOrderWithFillableAmounts[],
     input: BigNumber,
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
 ): Path {
-    const createFillFromSample = (sample: DexSample) =>
-        dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
+    const createFill = (sampleOrOrder: DexSample | NativeOrderWithFillableAmounts) =>
+        isDexSample(sampleOrOrder)
+            ? dexSamplesToFills(side, [sampleOrOrder], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0]
+            : nativeOrdersToFills(
+                  side,
+                  [sampleOrOrder],
+                  input,
+                  opts.outputAmountPerEth,
+                  opts.inputAmountPerEth,
+                  fees,
+              )[0];
     // Track sample id's to integers (required by rust router)
     const sampleIdLookup: { [key: string]: number } = {};
     let sampleIdCounter = 0;
@@ -57,7 +95,7 @@ function createPathFromSamples(
         }
     };
 
-    const samplesWithResults = [];
+    const samplesAndNativeOrdersWithResults: Array<DexSample[] | NativeOrderWithFillableAmounts[]> = [];
     const serializedPaths: SerializedPath[] = [];
     for (const singleSourceSamples of samples) {
         const singleSourceSamplesWithOutput = singleSourceSamples.filter(sample =>
@@ -74,7 +112,7 @@ function createPathFromSamples(
                 memo.inputs.push(sample.input.integerValue().toNumber());
                 memo.outputs.push(sample.output.integerValue().toNumber());
                 memo.outputFees.push(
-                    calculateOuputFee(sample, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
+                    calculateOuputFee(side, sample, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
                         .integerValue()
                         .toNumber(),
                 );
@@ -89,7 +127,28 @@ function createPathFromSamples(
             },
         );
 
-        samplesWithResults.push(singleSourceSamplesWithOutput);
+        samplesAndNativeOrdersWithResults.push(singleSourceSamplesWithOutput);
+        serializedPaths.push(serializedPath);
+    }
+
+    for (const [idx, nativeOrder] of nativeOrders.entries()) {
+        // TODO(kimpers): add 2 fake orders below and above order with 0 output to fulfill minimum 3 inputs requirement?
+        const { input: normalizedOrderInput, output: normalizedOrderOutput } = nativeOrderToNormalizedAmounts(
+            side,
+            nativeOrder,
+        );
+        const serializedPath: SerializedPath = {
+            ids: [sampleToId(ERC20BridgeSource.Native, idx)],
+            inputs: [normalizedOrderInput.integerValue().toNumber()],
+            outputs: [normalizedOrderOutput.integerValue().toNumber()],
+            outputFees: [
+                calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
+                    .integerValue()
+                    .toNumber(),
+            ],
+        };
+
+        samplesAndNativeOrdersWithResults.push([nativeOrder]);
         serializedPaths.push(serializedPath);
     }
 
@@ -104,23 +163,31 @@ function createPathFromSamples(
     const allSourcesRustRoute: number[] = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
     console.log('Rust perf (real):', performance.now() - before, 'ms');
 
-    const routesAndSamples = _.zip(allSourcesRustRoute, samplesWithResults);
+    const routesAndSamples = _.zip(allSourcesRustRoute, samplesAndNativeOrdersWithResults);
 
     const adjustedFills: Fill[] = [];
     const totalInputs = BigNumber.sum(...allSourcesRustRoute);
-    for (const [routeInput, routeSamples] of routesAndSamples) {
-        if (!routeInput || !routeSamples) {
+    for (const [routeInput, routeSamplesAndNativeOrders] of routesAndSamples) {
+        if (!routeInput || !routeSamplesAndNativeOrders) {
             continue;
         }
-        const rustInput = new BigNumber(routeInput);
 
-        let fill = createFillFromSample(routeSamples[routeSamples.length - 1]);
+        const current = routeSamplesAndNativeOrders[routeSamplesAndNativeOrders.length - 1];
+        let fill = createFill(current);
+        if (!isDexSample(current)) {
+            // NOTE: Limit/RFQ orders we are done here. No need to scale output
+            break;
+        }
+
+        const rustInput = new BigNumber(routeInput);
+        // NOTE: For DexSamples only
+        const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
         // Descend to approach a closer fill for fillData which may not be consistent
         // throughout the path (UniswapV3) and for a closer guesstimate at
         // gas used
         for (let k = routeSamples.length - 1; k >= 0; k--) {
             if (k === 0) {
-                fill = createFillFromSample(routeSamples[0]);
+                fill = createFill(routeSamples[0]);
             }
             if (rustInput.isGreaterThan(routeSamples[k].input)) {
                 // Between here and the previous fill
@@ -139,18 +206,19 @@ function createPathFromSamples(
                         `Left price ${leftPrice.toString()}, right: ${rightPrice.toString()}, scaledPrice: ${scaledPrice.toString()}`,
                     );
                     const output = scaledPrice.times(rustInput).decimalPlaces(0);
-                    fill = createFillFromSample({
+                    fill = createFill({
                         ...right, // default to the greater (for gas used)
                         input: rustInput,
                         output,
                     });
                 } else {
-                    fill = createFillFromSample(left || right);
+                    fill = createFill(left || right);
                 }
                 break;
             }
         }
 
+        // TODO: can't scale native orders!?
         //// HACK: Handle the case where the router can under quote the input
         //// Set the first fill just a tad higher
         const adjustedInput =
@@ -178,6 +246,7 @@ function createPathFromSamples(
 export function findOptimalRustPathFromSamples(
     side: MarketOperation,
     samples: DexSample[][],
+    nativeOrders: NativeOrderWithFillableAmounts[],
     input: BigNumber,
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
@@ -185,7 +254,7 @@ export function findOptimalRustPathFromSamples(
 ): Path {
     const before = performance.now();
     const logPerformance = () => console.log('Total routing function performance', performance.now() - before, 'ms');
-    const allSourcesPath = createPathFromSamples(side, samples, input, opts, fees);
+    const allSourcesPath = createPathFromSamples(side, samples, nativeOrders, input, opts, fees);
 
     const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
 
@@ -194,7 +263,7 @@ export function findOptimalRustPathFromSamples(
     if (vipSources.length > 0) {
         const vipSourcesSet = new Set(vipSources);
         const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
-        const vipSourcesPath = createPathFromSamples(side, vipSourcesSamples, input, opts, fees);
+        const vipSourcesPath = createPathFromSamples(side, vipSourcesSamples, [], input, opts, fees);
 
         const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
         // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset

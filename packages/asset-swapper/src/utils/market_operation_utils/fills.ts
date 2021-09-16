@@ -71,7 +71,7 @@ function hasLiquidity(fills: Fill[]): boolean {
     return true;
 }
 
-function nativeOrdersToFills(
+export function nativeOrdersToFills(
     side: MarketOperation,
     orders: NativeOrderWithFillableAmounts[],
     targetInput: BigNumber = POSITIVE_INF,
