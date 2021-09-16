@@ -137,7 +137,8 @@ export class SamplerOperations {
     }
 
     public async getTokenDecimalsAsync(tokens: Address[]): Promise<number[]> {
-        return (await this.rpcSamplerClient.getTokensAsync(tokens)).map(t => t.decimals);
+        return [];
+        // return (await this.rpcSamplerClient.getTokensAsync(tokens)).map(t => t.decimals);
     }
 
     public async getSellQuotesAsync(
@@ -155,19 +156,20 @@ export class SamplerOperations {
             };
         });
         const rpcLiquidityResponse = await this.rpcSamplerClient.getSellLiquidityAsync(rpcLiquidityRequests);
-        const dexQuotes: Array<Array<DexSample<FillData>>> = rpcLiquidityResponse.map((response, i) => {
-            const dexSample: Array<DexSample<FillData>> = response.liquidityCurve.map((point, j) => {
-                const fillData: DexSample = {
-                    source: response.source,
-                    fillData: point.encodedFillData,
-                    input: point.sellAmount,
-                    output: point.buyAmount,
-                };
-                return fillData;
-            });
-            return dexSample;
-        });
-        return dexQuotes;
+        // const dexQuotes: Array<Array<DexSample<FillData>>> = rpcLiquidityResponse.map((response, i) => {
+        //     const dexSample: Array<DexSample<FillData>> = response.liquidityCurve.map((point, j) => {
+        //         const fillData: DexSample = {
+        //             source: response.source,
+        //             fillData: point.encodedFillData,
+        //             input: point.sellAmount,
+        //             output: point.buyAmount,
+        //         };
+        //         return fillData;
+        //     });
+        //     return dexSample;
+        // });
+        return [];
+        // return dexQuotes;
     }
 
     public async getBuyQuotesAsync(
@@ -176,28 +178,29 @@ export class SamplerOperations {
         takerToken: string,
         takerAmount: BigNumber,
     ): Promise<Array<Array<DexSample<FillData>>>> {
-        const rpcLiquidityRequests: RpcLiquidityRequest[] = sources.map(source => {
-            return {
-                tokenPath: [makerToken, takerToken],
-                inputAmount: takerAmount.toString(),
-                source,
-                demand: true,
-            };
-        });
-        const rpcLiquidityResponse = await this.rpcSamplerClient.getBuyLiquidityAsync(rpcLiquidityRequests);
-        const dexQuotes: Array<Array<DexSample<FillData>>> = rpcLiquidityResponse.map((response, i) => {
-            const dexSample: Array<DexSample<FillData>> = response.liquidityCurve.map((point, j) => {
-                const fillData: DexSample = {
-                    source: sources[i],
-                    fillData: point.encodedFillData,
-                    input: point.sellAmount,
-                    output: point.buyAmount,
-                };
-                return fillData;
-            });
-            return dexSample;
-        });
-        return dexQuotes;
+        return [];
+        // const rpcLiquidityRequests: RpcLiquidityRequest[] = sources.map(source => {
+        //     return {
+        //         tokenPath: [makerToken, takerToken],
+        //         inputAmount: takerAmount.toString(),
+        //         source,
+        //         demand: true,
+        //     };
+        // });
+        // const rpcLiquidityResponse = await this.rpcSamplerClient.getBuyLiquidityAsync(rpcLiquidityRequests);
+        // const dexQuotes: Array<Array<DexSample<FillData>>> = rpcLiquidityResponse.map((response, i) => {
+        //     const dexSample: Array<DexSample<FillData>> = response.liquidityCurve.map((point, j) => {
+        //         const fillData: DexSample = {
+        //             source: sources[i],
+        //             fillData: point.encodedFillData,
+        //             input: point.sellAmount,
+        //             output: point.buyAmount,
+        //         };
+        //         return fillData;
+        //     });
+        //     return dexSample;
+        // });
+        // return dexQuotes;
     }
 
     public async getMedianSellRateAsync(
@@ -206,19 +209,20 @@ export class SamplerOperations {
         takerToken: string,
         takerFillAmount: BigNumber,
     ): Promise<BigNumber> {
-        const samples = await this.getSellQuotesAsync(sources, makerToken, takerToken, takerFillAmount);
-        if (samples.length === 0) {
-            return ZERO_AMOUNT;
-        }
-        const flatSortedSamples = samples
-            .reduce((acc, v) => acc.concat(...v))
-            .filter(v => !v.output.isZero())
-            .sort((a, b) => a.output.comparedTo(b.output));
-        if (flatSortedSamples.length === 0) {
-            return ZERO_AMOUNT;
-        }
-        const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
-        return medianSample.output.div(takerFillAmount);
+        return new BigNumber(0);
+        // const samples = await this.getSellQuotesAsync(sources, makerToken, takerToken, takerFillAmount);
+        // if (samples.length === 0) {
+        //     return ZERO_AMOUNT;
+        // }
+        // const flatSortedSamples = samples
+        //     .reduce((acc, v) => acc.concat(...v))
+        //     .filter(v => !v.output.isZero())
+        //     .sort((a, b) => a.output.comparedTo(b.output));
+        // if (flatSortedSamples.length === 0) {
+        //     return ZERO_AMOUNT;
+        // }
+        // const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
+        // return medianSample.output.div(takerFillAmount);
     }
 
     // Legacy

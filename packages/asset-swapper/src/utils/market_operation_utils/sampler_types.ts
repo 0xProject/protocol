@@ -20,7 +20,7 @@ export interface LiquidityCurvePoint {
 
 export interface LiquidityResponse {
     source: ERC20BridgeSource; //LiquiditySource;
-    liquidityCurve: LiquidityCurvePoint[];
+    liquidityCurve: LiquidityCurvePoint[][];
 }
 
 export interface Market {
