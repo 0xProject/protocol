@@ -7,7 +7,7 @@ export type Address = Bytes;
 
 export type LiquiditySource = ERC20BridgeSource;
 
-export declare type RPCSamplerCallback = (err: Error | null, results: LiquidityResponse[]) => void;
+export declare type RPCSamplerCallback = (err: Error | null, liquidityResponses: LiquidityResponse[]) => void;
 
 export interface RpcLiquidityRequest {
     tokenPath: Address[];
@@ -17,9 +17,10 @@ export interface RpcLiquidityRequest {
 }
 
 export interface LiquidityCurvePoint {
-    sellAmount: BigNumber; // TODO (Romain) was bigint
-    buyAmount: BigNumber; // TODO (Romain) was bigint
+    sellAmount: bigint;
+    buyAmount: bigint;
     encodedFillData: Bytes;
+    gasCost: number;
 }
 
 export interface LiquidityResponse {
@@ -31,5 +32,5 @@ export interface TokenResponse {
     address: Address;
     symbol: string;
     decimals: number;
-    gasCost: 0;
+    gasCost: number;
 }

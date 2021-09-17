@@ -133,43 +133,42 @@ export class MarketOperationUtils {
         // Used to determine whether the tx origin is an EOA or a contract
         // const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
 
+        const sellQuotes = this._sampler.getCachedSellQuotesAsync(quoteSourceFilters.sources, makerToken, takerToken, takerAmount);
+
         // Call the sampler contract.
-        const samplerPromise = this._sampler.executeAsync(
-            // this._sampler.getTokenDecimals([makerToken, takerToken]),
-            // // Get native order fillable amounts.
-            // this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
-            // // Get ETH -> maker token price.
-            // this._sampler.getMedianSellRate(
-            //     feeSourceFilters.sources,
-            //     makerToken,
-            //     this._nativeFeeToken,
-            //     this._nativeFeeTokenAmount,
-            // ),
-            // // Get ETH -> taker token price.
-            // this._sampler.getMedianSellRate(
-            //     feeSourceFilters.sources,
-            //     takerToken,
-            //     this._nativeFeeToken,
-            //     this._nativeFeeTokenAmount,
-            // ),
-            // Get sell quotes for taker -> maker.
-            this._sampler.getSellQuotesAsync(quoteSourceFilters.sources, makerToken, takerToken, takerAmount, (err, dexQuotes) => {
-                return dexQuotes;
-            }),            
-            // this._sampler.getTwoHopSellQuotes(
-            //     quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
-            //     makerToken,
-            //     takerToken,
-            //     takerAmount,
-            // ),
-            // this._sampler.isAddressContract(txOrigin),
-        );
+        // const samplerPromise = this._sampler.executeAsync(
+        //     // this._sampler.getTokenDecimals([makerToken, takerToken]),
+        //     // // Get native order fillable amounts.
+        //     // this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+        //     // // Get ETH -> maker token price.
+        //     // this._sampler.getMedianSellRate(
+        //     //     feeSourceFilters.sources,
+        //     //     makerToken,
+        //     //     this._nativeFeeToken,
+        //     //     this._nativeFeeTokenAmount,
+        //     // ),
+        //     // // Get ETH -> taker token price.
+        //     // this._sampler.getMedianSellRate(
+        //     //     feeSourceFilters.sources,
+        //     //     takerToken,
+        //     //     this._nativeFeeToken,
+        //     //     this._nativeFeeTokenAmount,
+        //     // ),
+        //     // Get sell quotes for taker -> maker.
+        //     this._sampler.getCachedSellQuotesAsync(quoteSourceFilters.sources, makerToken, takerToken, takerAmount),
+        //     // this._sampler.getTwoHopSellQuotes(
+        //     //     quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
+        //     //     makerToken,
+        //     //     takerToken,
+        //     //     takerAmount,
+        //     // ),
+        //     // this._sampler.isAddressContract(txOrigin),
+        // );
 
         // Refresh the cached pools asynchronously if required
-        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
+        // void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
 
         const [
-            [
                 // tokenDecimals,
                 // orderFillableTakerAmounts,
                 // outputAmountPerEth,
@@ -177,8 +176,7 @@ export class MarketOperationUtils {
                 dexQuotes,
                 // rawTwoHopQuotes,
                 // isTxOriginContract,
-            ],
-        ] = await Promise.all([samplerPromise]);
+        ] = await Promise.all([sellQuotes]);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         // const twoHopQuotes = rawTwoHopQuotes.filter(

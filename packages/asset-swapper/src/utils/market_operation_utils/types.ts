@@ -176,6 +176,7 @@ export interface DexSample<TFillData extends FillData = FillData> {
     fillData: TFillData;
     input: BigNumber;
     output: BigNumber;
+    // gasCost: BigNumber;
 }
 export interface CurveFillData extends FillData {
     fromTokenIdx: number;

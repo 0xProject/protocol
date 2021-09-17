@@ -144,14 +144,14 @@ export class SamplerOperations {
         // return (await this.rpcSamplerClient.getTokensAsync(tokens)).map(t => t.decimals);
     }
 
-    public async getSellQuotesAsync(
+    public async getCachedSellQuotesAsync(
         sources: ERC20BridgeSource[],
         makerToken: string,
         takerToken: string,
         takerAmount: BigNumber,
-        callback: JSONRPCQuoteCallback,
-    // ): Promise<Array<Array<DexSample<FillData>>>> {
-    ): Promise<void> {
+        // callback: JSONRPCQuoteCallback,
+    ): Promise<Array<Array<DexSample<FillData>>>> {
+    // ): Promise<void> {
         const rpcLiquidityRequests: RpcLiquidityRequest[] = sources.map(source => {
             return {
                 tokenPath: [makerToken, takerToken],
@@ -160,21 +160,21 @@ export class SamplerOperations {
                 demand: true,
             };
         });
-        await this.rpcSamplerClient.getSellLiquidityAsync(rpcLiquidityRequests, (err, rpcSamplerCallback: any) => {
-            const dexQuotes: Array<Array<DexSample<FillData>>> = rpcSamplerCallback.result.map((liquidityResponse: LiquidityResponse) => {
-                const dexSample: Array<DexSample<FillData>> = liquidityResponse.liquidityCurves.map((point, j) => {
-                    const fillData: DexSample = {
-                        source: liquidityResponse.source,
-                        fillData: point[j].encodedFillData,
-                        input: point[j].sellAmount,
-                        output: point[j].buyAmount,
-                    };
-                    return fillData;
-                });
-                return dexSample;
+        const liquidityResponses: LiquidityResponse[] = await this.rpcSamplerClient.getSellLiquidityWrapperAsync(rpcLiquidityRequests);
+        const dexQuotes: Array<Array<DexSample<FillData>>> = liquidityResponses.map((liquidityResponse: LiquidityResponse) => {
+            const dexSample: Array<DexSample<FillData>> = liquidityResponse.liquidityCurves.map((point, j) => {
+                const fillData: DexSample = {
+                    source: liquidityResponse.source,
+                    fillData: point[j].encodedFillData,
+                    input: new BigNumber(point[j].sellAmount.toString()), // TODO Romain: prob a better way
+                    output: new BigNumber(point[j].buyAmount.toString()),
+                    // gasCost: new BigNumber(point[j].gasCost.toString()),
+                };
+                return fillData;
             });
-            callback(err, dexQuotes);
+            return dexSample;
         });
+        return dexQuotes;
     }
 
     public async getBuyQuotesAsync(
