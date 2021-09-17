@@ -2,8 +2,8 @@ import { ChainId } from '@0x/contract-addresses';
 import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
-import { RpcSamplerClient } from '../../rpc_sampler_client';
 
+import { RpcSamplerClient } from '../../rpc_sampler_client';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
@@ -45,7 +45,7 @@ import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
 import { SamplerContractOperation } from './sampler_contract_operation';
-import { Address, RpcLiquidityRequest } from './sampler_types';
+import { Address, LiquidityResponse, RpcLiquidityRequest } from './sampler_types';
 import { SourceFilters } from './source_filters';
 import {
     BalancerFillData,
@@ -98,6 +98,8 @@ export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSour
  * Composable operations that can be batched in a single transaction,
  * for use with `DexOrderSampler.executeAsync()`.
  */
+
+export declare type JSONRPCQuoteCallback = (err: Error | null, dexQuotes: Array<Array<DexSample<FillData>>>) => void;
 export class SamplerOperations {
     public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
     public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
@@ -134,6 +136,7 @@ export class SamplerOperations {
         bancorServiceFn()
             .then(service => (this._bancorService = service))
             .catch(/* do nothing */);
+        this.rpcSamplerClient = new RpcSamplerClient();
     }
 
     public async getTokenDecimalsAsync(tokens: Address[]): Promise<number[]> {
@@ -146,7 +149,9 @@ export class SamplerOperations {
         makerToken: string,
         takerToken: string,
         takerAmount: BigNumber,
-    ): Promise<Array<Array<DexSample<FillData>>>> {
+        callback: JSONRPCQuoteCallback,
+    // ): Promise<Array<Array<DexSample<FillData>>>> {
+    ): Promise<void> {
         const rpcLiquidityRequests: RpcLiquidityRequest[] = sources.map(source => {
             return {
                 tokenPath: [makerToken, takerToken],
@@ -155,21 +160,21 @@ export class SamplerOperations {
                 demand: true,
             };
         });
-        const rpcLiquidityResponse = await this.rpcSamplerClient.getSellLiquidityAsync(rpcLiquidityRequests);
-        // const dexQuotes: Array<Array<DexSample<FillData>>> = rpcLiquidityResponse.map((response, i) => {
-        //     const dexSample: Array<DexSample<FillData>> = response.liquidityCurve.map((point, j) => {
-        //         const fillData: DexSample = {
-        //             source: response.source,
-        //             fillData: point.encodedFillData,
-        //             input: point.sellAmount,
-        //             output: point.buyAmount,
-        //         };
-        //         return fillData;
-        //     });
-        //     return dexSample;
-        // });
-        return [];
-        // return dexQuotes;
+        await this.rpcSamplerClient.getSellLiquidityAsync(rpcLiquidityRequests, (err, rpcSamplerCallback: any) => {
+            const dexQuotes: Array<Array<DexSample<FillData>>> = rpcSamplerCallback.result.map((liquidityResponse: LiquidityResponse) => {
+                const dexSample: Array<DexSample<FillData>> = liquidityResponse.liquidityCurves.map((point, j) => {
+                    const fillData: DexSample = {
+                        source: liquidityResponse.source,
+                        fillData: point[j].encodedFillData,
+                        input: point[j].sellAmount,
+                        output: point[j].buyAmount,
+                    };
+                    return fillData;
+                });
+                return dexSample;
+            });
+            callback(err, dexQuotes);
+        });
     }
 
     public async getBuyQuotesAsync(

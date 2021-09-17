@@ -1,58 +1,32 @@
-import { Client } from 'jayson';
+import { Client as RPCClient } from 'jayson';
 
 import {
-    Address,
     LiquidityResponse,
     RpcLiquidityRequest,
-    TokenResponse,
+    RPCSamplerCallback,
 } from './utils/market_operation_utils/sampler_types';
 
-export interface SamplerServiceInterface {
-    getSellLiquidityAsync(reqs: RpcLiquidityRequest[]): Promise<LiquidityResponse[]>;
-    // getBuyLiquidityAsync(reqs: RpcLiquidityRequest[]): Promise<LiquidityResponse[]>;
-    // getTokensAsync(tokenAddresses: Address[]): Promise<TokenResponse[]>;
-    // getPrices(tokenPaths: Address[][]): Promise<bigint[]>;
-}
+const RPC_SAMPLER_SERVICE_URL = '';
+const RPC_SAMPLER_SERVICE_PORT = 7002;
+export class RpcSamplerClient {
+    private readonly _rpcUrl: string;
+    private readonly _rpcClient: RPCClient;
 
-export class RpcSamplerClient implements SamplerServiceInterface {
-    // tslint:disable:prefer-function-over-method
-    public async getSellLiquidityAsync(reqs: RpcLiquidityRequest[]): Promise<LiquidityResponse[]> {
+    /**
+     * @param rpcUrl URL to the Sampler Service to which JSON RPC requests should be sent
+     */
+    constructor() {
+        this._rpcUrl = RPC_SAMPLER_SERVICE_URL;
+        this._rpcClient = RPCClient.http({ port: RPC_SAMPLER_SERVICE_PORT });
+    }
+
+    public async getSellLiquidityAsync(reqs: RpcLiquidityRequest[], rpcSamplerCallback: RPCSamplerCallback): Promise<void> {
         try {
-            const client = Client.http({ port: 7002});
-            const response = client.request(`get_sell_liquidity`, [reqs], (callback: any) => {
-                console.log(callback);
+            this._rpcClient.request(`get_sell_liquidity`, [reqs], (err: any, liquidityResponses: LiquidityResponse[]) => {
+                return rpcSamplerCallback(err, liquidityResponses);
             });
-            return [];
         } catch (err) {
             throw new Error(`error with sampler service: ${err}`);
         }
     }
-
-    // tslint:disable:prefer-function-over-method
-    // public async getBuyLiquidityAsync(reqs: RpcLiquidityRequest[]): Promise<LiquidityResponse[]> {
-    //     try {
-    //         return await axios.post(`${SAMPLER_SERVICE_URL}/get_buy_liquidity`, reqs, {
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             timeout: 1000,
-    //         });
-    //     } catch (err) {
-    //         throw new Error(`error with sampler service: ${err}`);
-    //     }
-    // }
-
-    // // tslint:disable:prefer-function-over-method
-    // public async getTokensAsync(tokenAddresses: Address[]): Promise<TokenResponse[]> {
-    //     try {
-    //         return await axios.post(`${SAMPLER_SERVICE_URL}/get_tokens`, tokenAddresses, {
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             timeout: 1000,
-    //         });
-    //     } catch (err) {
-    //         throw new Error(`error with sampler service: ${err}`);
-    //     }
-    // }
 }

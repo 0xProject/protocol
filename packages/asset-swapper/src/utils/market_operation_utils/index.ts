@@ -153,7 +153,9 @@ export class MarketOperationUtils {
             //     this._nativeFeeTokenAmount,
             // ),
             // Get sell quotes for taker -> maker.
-            this._sampler.getSellQuotesAsync(quoteSourceFilters.sources, makerToken, takerToken, takerAmount),
+            this._sampler.getSellQuotesAsync(quoteSourceFilters.sources, makerToken, takerToken, takerAmount, (err, dexQuotes) => {
+                return dexQuotes;
+            }),            
             // this._sampler.getTwoHopSellQuotes(
             //     quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
             //     makerToken,
