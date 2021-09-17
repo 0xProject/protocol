@@ -154,8 +154,7 @@ function createPathFromSamples(
 
     const rustArgs: OptimizerCapture = {
         side,
-        // HACK: There can be off by 1 errors, somewhere...
-        targetInput: input.plus(1).toNumber(),
+        targetInput: input.toNumber(),
         pathsIn: serializedPaths,
     };
 
