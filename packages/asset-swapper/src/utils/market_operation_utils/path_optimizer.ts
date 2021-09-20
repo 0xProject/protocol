@@ -161,15 +161,21 @@ function createPathFromSamples(
             normalizedOrderOutput.integerValue().toNumber(),
         ];
 
+        // NOTE: same fee no matter if full or partial fill
+        const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
+            .integerValue()
+            .toNumber();
+        const outputFees = [fee, fee, fee];
+
+        // NOTE: ids can be the same for all fake samples
+        const id = sampleToId(ERC20BridgeSource.Native, idx);
+        const ids = [id, id, id];
+
         const serializedPath: SerializedPath = {
-            ids: [sampleToId(ERC20BridgeSource.Native, idx)],
+            ids,
             inputs,
             outputs,
-            outputFees: [
-                calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
-                    .integerValue()
-                    .toNumber(),
-            ],
+            outputFees,
         };
 
         samplesAndNativeOrdersWithResults.push([nativeOrder]);
@@ -182,9 +188,12 @@ function createPathFromSamples(
         pathsIn: serializedPaths,
     };
 
-    const before = performance.now();
-    const allSourcesRustRoute: number[] = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
-    console.log('Rust perf (real):', performance.now() - before, 'ms');
+    let allSourcesRustRoute: number[] = [];
+    if (rustArgs.pathsIn.length > 0) {
+        const before = performance.now();
+        allSourcesRustRoute = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
+        console.log('Rust perf (real):', performance.now() - before, 'ms');
+    }
 
     const routesAndSamples = _.zip(allSourcesRustRoute, samplesAndNativeOrdersWithResults);
 
@@ -198,8 +207,9 @@ function createPathFromSamples(
         const current = routeSamplesAndNativeOrders[routeSamplesAndNativeOrders.length - 1];
         let fill = createFill(current);
         if (!isDexSample(current)) {
-            // NOTE: Limit/RFQ orders we are done here. No need to scale output
-            break;
+            // NOTE: For Limit/RFQ orders we are done here. No need to scale output
+            adjustedFills.push(fill);
+            continue;
         }
 
         const rustInput = new BigNumber(routeInput);
@@ -286,28 +296,31 @@ export function findOptimalRustPathFromSamples(
     if (vipSources.length > 0) {
         const vipSourcesSet = new Set(vipSources);
         const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
-        const vipSourcesPath = createPathFromSamples(side, vipSourcesSamples, [], input, opts, fees);
 
-        const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
-        // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-        const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
-        const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
-        const outputWithFqtOverhead =
-            side === MarketOperation.Sell
-                ? allSourcesOutput.minus(fqtOverheadInOutputToken)
-                : allSourcesOutput.plus(fqtOverheadInOutputToken);
-        const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
-        console.log(
-            `FQT OVERHEAD percentage ${allSourcesOutput
-                .minus(outputWithFqtOverhead)
-                .div(allSourcesOutput)
-                .toString()}`,
-        );
+        if (vipSourcesSamples.length > 0) {
+            const vipSourcesPath = createPathFromSamples(side, vipSourcesSamples, [], input, opts, fees);
 
-        if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
-            console.log('-------------VIP SOURCES WON!!------');
-            logPerformance();
-            return vipSourcesPath;
+            const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
+            // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
+            const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
+            const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
+            const outputWithFqtOverhead =
+                side === MarketOperation.Sell
+                    ? allSourcesOutput.minus(fqtOverheadInOutputToken)
+                    : allSourcesOutput.plus(fqtOverheadInOutputToken);
+            const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
+            console.log(
+                `FQT OVERHEAD percentage ${allSourcesOutput
+                    .minus(outputWithFqtOverhead)
+                    .div(allSourcesOutput)
+                    .toString()}`,
+            );
+
+            if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
+                console.log('-------------VIP SOURCES WON!!------');
+                logPerformance();
+                return vipSourcesPath;
+            }
         }
     }
 

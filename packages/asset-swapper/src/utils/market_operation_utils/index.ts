@@ -496,7 +496,7 @@ export class MarketOperationUtils {
             optimalPath = findOptimalRustPathFromSamples(
                 side,
                 dexQuotes,
-                nativeOrders,
+                [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
                 inputAmount,
                 penaltyOpts,
                 opts.feeSchedule,
