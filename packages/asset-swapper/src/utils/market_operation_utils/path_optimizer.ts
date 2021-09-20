@@ -132,15 +132,39 @@ function createPathFromSamples(
     }
 
     for (const [idx, nativeOrder] of nativeOrders.entries()) {
-        // TODO(kimpers): add 2 fake orders below and above order with 0 output to fulfill minimum 3 inputs requirement?
         const { input: normalizedOrderInput, output: normalizedOrderOutput } = nativeOrderToNormalizedAmounts(
             side,
             nativeOrder,
         );
+        // NOTE: skip dummy order created in swap_quoter
+        // TODO: remove dummy order and this logic once we don't need the JS router
+        if (normalizedOrderInput.isLessThanOrEqualTo(0) && normalizedOrderOutput.isLessThanOrEqualTo(0)) {
+            continue;
+        }
+
+        // TODO(kimpers): Does this need more exact rounding?
+        // HACK: the router requires at minimum 3 samples as a basis for interpolation
+        const inputs = [
+            0,
+            normalizedOrderInput
+                .dividedBy(2)
+                .integerValue()
+                .toNumber(),
+            normalizedOrderInput.integerValue().toNumber(),
+        ];
+        const outputs = [
+            0,
+            normalizedOrderOutput
+                .dividedBy(2)
+                .integerValue()
+                .toNumber(),
+            normalizedOrderOutput.integerValue().toNumber(),
+        ];
+
         const serializedPath: SerializedPath = {
             ids: [sampleToId(ERC20BridgeSource.Native, idx)],
-            inputs: [normalizedOrderInput.integerValue().toNumber()],
-            outputs: [normalizedOrderOutput.integerValue().toNumber()],
+            inputs,
+            outputs,
             outputFees: [
                 calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
                     .integerValue()
