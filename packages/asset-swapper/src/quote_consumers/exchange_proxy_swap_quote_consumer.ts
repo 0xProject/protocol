@@ -95,6 +95,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     };
 
     private readonly _exchangeProxy: IZeroExContract;
+    private readonly _transformERC20Feature: TransformERC20FeatureContract;
 
     constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> = {}) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
@@ -102,6 +103,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         this.chainId = chainId;
         this.contractAddresses = contractAddresses;
         this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
+        this._transformERC20Feature = new TransformERC20FeatureContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
         this.transformerNonces = {
             wethTransformer: findTransformerNonce(
                 contractAddresses.transformers.wethTransformer,
@@ -493,7 +495,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 amounts: [],
             }),
         });
-        const calldataHexString = new TransformERC20FeatureContract(this._exchangeProxy.address, FAKE_PROVIDER)
+        const calldataHexString = this._transformERC20Feature
             .transformERC20Staging(
                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
