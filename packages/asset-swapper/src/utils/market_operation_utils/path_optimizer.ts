@@ -1,7 +1,7 @@
 import { ChainId } from '@0x/contract-addresses';
+import { OptimizerCapture, route, SerializedPath } from '@0x/neon-router';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
-import { OptimizerCapture, route, SerializedPath } from 'neon-router';
 import { performance } from 'perf_hooks';
 
 import { DEFAULT_INFO_LOGGER } from '../../constants';
