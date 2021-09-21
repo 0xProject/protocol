@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import { OptimizerCapture, route, SerializedPath } from 'neon-router';
 import { performance } from 'perf_hooks';
 
+import { DEFAULT_INFO_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from '../market_operation_utils/constants';
 
@@ -142,7 +143,6 @@ function createPathFromSamples(
             continue;
         }
 
-        // TODO(kimpers): Does this need more exact rounding?
         // HACK: the router requires at minimum 3 samples as a basis for interpolation
         const inputs = [
             0,
@@ -160,13 +160,11 @@ function createPathFromSamples(
                 .toNumber(),
             normalizedOrderOutput.integerValue().toNumber(),
         ];
-
         // NOTE: same fee no matter if full or partial fill
         const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
             .integerValue()
             .toNumber();
         const outputFees = [fee, fee, fee];
-
         // NOTE: ids can be the same for all fake samples
         const id = sampleToId(ERC20BridgeSource.Native, idx);
         const ids = [id, id, id];
@@ -192,7 +190,10 @@ function createPathFromSamples(
     if (rustArgs.pathsIn.length > 0) {
         const before = performance.now();
         allSourcesRustRoute = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
-        console.log('Rust perf (real):', performance.now() - before, 'ms');
+        DEFAULT_INFO_LOGGER(
+            { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
+            'Rust router real routing performance',
+        );
     }
 
     const routesAndSamples = _.zip(allSourcesRustRoute, samplesAndNativeOrdersWithResults);
@@ -212,8 +213,8 @@ function createPathFromSamples(
             continue;
         }
 
-        const rustInput = new BigNumber(routeInput);
         // NOTE: For DexSamples only
+        const rustInput = new BigNumber(routeInput);
         const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
         // Descend to approach a closer fill for fillData which may not be consistent
         // throughout the path (UniswapV3) and for a closer guesstimate at
@@ -235,9 +236,6 @@ function createPathFromSamples(
                         .dividedBy(left.input.minus(right.input))
                         .times(rustInput.minus(right.input))
                         .plus(rightPrice);
-                    console.log(
-                        `Left price ${leftPrice.toString()}, right: ${rightPrice.toString()}, scaledPrice: ${scaledPrice.toString()}`,
-                    );
                     const output = scaledPrice.times(rustInput).decimalPlaces(0);
                     fill = createFill({
                         ...right, // default to the greater (for gas used)
@@ -251,9 +249,8 @@ function createPathFromSamples(
             }
         }
 
-        // TODO: can't scale native orders!?
-        //// HACK: Handle the case where the router can under quote the input
-        //// Set the first fill just a tad higher
+        // HACK: Handle the case where the router can under quote the input
+        // Set the first fill just a tad higher
         const adjustedInput =
             totalInputs.lt(input) && adjustedFills.length === 0 ? rustInput.plus(input.minus(totalInputs)) : rustInput;
         const scaleOutput = (output: BigNumber) =>
@@ -286,7 +283,12 @@ export function findOptimalRustPathFromSamples(
     chainId: ChainId,
 ): Path {
     const before = performance.now();
-    const logPerformance = () => console.log('Total routing function performance', performance.now() - before, 'ms');
+    const logPerformance = () =>
+        DEFAULT_INFO_LOGGER(
+            { router: 'neon-router', performanceMs: performance.now() - before, type: 'total' },
+            'Rust router total routing performance',
+        );
+
     const allSourcesPath = createPathFromSamples(side, samples, nativeOrders, input, opts, fees);
 
     const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
@@ -309,15 +311,8 @@ export function findOptimalRustPathFromSamples(
                     ? allSourcesOutput.minus(fqtOverheadInOutputToken)
                     : allSourcesOutput.plus(fqtOverheadInOutputToken);
             const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
-            console.log(
-                `FQT OVERHEAD percentage ${allSourcesOutput
-                    .minus(outputWithFqtOverhead)
-                    .div(allSourcesOutput)
-                    .toString()}`,
-            );
 
             if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
-                console.log('-------------VIP SOURCES WON!!------');
                 logPerformance();
                 return vipSourcesPath;
             }

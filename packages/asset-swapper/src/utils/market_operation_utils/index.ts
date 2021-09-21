@@ -1,4 +1,3 @@
-import { ChainId } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
@@ -492,7 +491,6 @@ export class MarketOperationUtils {
         // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
         let optimalPath: Path | undefined;
         if (SHOULD_USE_RUST_ROUTER) {
-            console.log('-----USING RUST ROUTER!-------');
             optimalPath = findOptimalRustPathFromSamples(
                 side,
                 dexQuotes,
@@ -503,7 +501,6 @@ export class MarketOperationUtils {
                 this._sampler.chainId,
             );
         } else {
-            console.log('-----USING JS ROUTER!-------');
             optimalPath = await findOptimalPathJSAsync(side, fills, inputAmount, opts.runLimit, penaltyOpts);
         }
 
@@ -514,16 +511,6 @@ export class MarketOperationUtils {
             opts.feeSchedule,
             opts.exchangeProxyOverhead,
         );
-        // TODO(kimpers): REMOVE THIS
-        console.log(`
-            ---------------------------------\n
-            Rust Router adjusted rate: ${optimalPathRate.toString()}
-            TwoHop adjusted rate: ${bestTwoHopRate.toString()}
-            Diff ${optimalPathRate.minus(bestTwoHopRate).toString()}
-            Rust   output: ${optimalPathRate.times(inputAmount)}
-            TwoHop output: ${bestTwoHopRate.times(inputAmount)}
-            ---------------------------`);
-
         if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
             const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
             return {
@@ -545,7 +532,6 @@ export class MarketOperationUtils {
 
         // Generate a fallback path if required
         await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
-
         const collapsedPath = optimalPath.collapse(orderOpts);
 
         return {
@@ -767,7 +753,6 @@ export class MarketOperationUtils {
 
             let sturdyOptimalPath: Path | undefined;
             if (SHOULD_USE_RUST_ROUTER) {
-                console.log('-----USING RUST ROUTER!-------');
                 const sturdySamples = dexQuotes.filter(
                     samples => samples.length > 0 && !fragileSources.includes(samples[0].source),
                 );
@@ -781,7 +766,6 @@ export class MarketOperationUtils {
                     this._sampler.chainId,
                 );
             } else {
-                console.log('-----USING JS ROUTER!-------');
                 const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
                 sturdyOptimalPath = await findOptimalPathJSAsync(
                     side,
