@@ -13,7 +13,7 @@ const RECENT_HEARTBEAT_AGE_THRESHOLD = 5; // (minutes) Heartbeats older than thi
 
 const BALANCE_FAILED_THRESHOLD = 0.04; // (eth) If NO worker has a balance higher than this, a FAILED issue gets created.
 // tslint:disable-next-line: custom-no-magic-numbers
-const BALANCE_DEGRADED_THRESHOLD = BALANCE_FAILED_THRESHOLD * 4; // (eth) If a worker's balance is lower than this, a DEGRADED issue gets created.
+const BALANCE_DEGRADED_THRESHOLD = 0.1; // (eth) If < 2 workers have a balance lower than this, a DEGRADED issue gets created.
 
 const MS_IN_MINUTE = 60000;
 
@@ -298,16 +298,15 @@ export async function checkWorkerHeartbeatsAsync(
         });
     }
 
-    heartbeats.forEach(({ address, balance, index }) => {
-        if (balance.isLessThan(BALANCE_DEGRADED_THRESHOLD_WEI)) {
-            results.push({
-                status: HealthCheckStatus.Degraded,
-                description: `Worker ${index} (${address}) has a low balance: ${balance
-                    .shiftedBy(ETH_DECIMALS * -1)
-                    .toFixed(3)}`, // tslint:disable-line: custom-no-magic-numbers
-                label: 'worker balance',
-            });
-        }
-    });
+    const heartbeatsAboveDegradedBalanceThreshold = heartbeats.filter(({ balance }) =>
+        balance.isGreaterThan(BALANCE_DEGRADED_THRESHOLD_WEI),
+    );
+    if (heartbeatsAboveDegradedBalanceThreshold.length < 2) {
+        results.push({
+            status: HealthCheckStatus.Degraded,
+            description: `Less than two workers have a balance above the degraded threshold (${BALANCE_DEGRADED_THRESHOLD})`,
+            label: 'worker heartbeat',
+        });
+    }
     return results;
 }

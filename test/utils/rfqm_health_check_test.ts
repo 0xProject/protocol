@@ -141,7 +141,9 @@ describe('RFQm Health Check', () => {
                 const degradedIssues = issues.filter(({ status }) => status === HealthCheckStatus.Degraded);
 
                 expect(degradedIssues).to.have.length(1);
-                expect(degradedIssues[0].description).to.contain('0x00');
+                expect(degradedIssues[0].description).to.contain(
+                    'Less than two workers have a balance above the degraded threshold',
+                );
             });
         });
     });
