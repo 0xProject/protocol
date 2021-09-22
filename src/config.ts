@@ -29,6 +29,7 @@ import {
     HEALTHCHECK_PATH,
     METRICS_PATH,
     NULL_ADDRESS,
+    ORDERBOOK_PATH,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     TX_BASE_GAS,
 } from './constants';
@@ -175,6 +176,15 @@ export const KAFKA_BROKERS = _.isEmpty(process.env.KAFKA_BROKERS)
 export const KAFKA_CONSUMER_GROUP_ID = _.isEmpty(process.env.KAFKA_CONSUMER_GROUP_ID)
     ? undefined
     : assertEnvVarType('KAFKA_CONSUMER_GROUP_ID', process.env.KAFKA_CONSUMER_GROUP_ID, EnvVarType.NonEmptyString);
+
+// The path for the Websocket order-watcher updates
+export const WEBSOCKET_ORDER_UPDATES_PATH = _.isEmpty(process.env.WEBSOCKET_ORDER_UPDATES_PATH)
+    ? ORDERBOOK_PATH
+    : assertEnvVarType(
+          'WEBSOCKET_ORDER_UPDATES_PATH',
+          process.env.WEBSOCKET_ORDER_UPDATES_PATH,
+          EnvVarType.NonEmptyString,
+      );
 
 // The fee recipient for orders
 export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
