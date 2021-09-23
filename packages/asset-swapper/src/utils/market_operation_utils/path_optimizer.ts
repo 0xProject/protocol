@@ -72,17 +72,8 @@ function createPathFromSamples(
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
 ): Path {
-    const createFill = (sampleOrOrder: DexSample | NativeOrderWithFillableAmounts) =>
-        isDexSample(sampleOrOrder)
-            ? dexSamplesToFills(side, [sampleOrOrder], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0]
-            : nativeOrdersToFills(
-                  side,
-                  [sampleOrOrder],
-                  input,
-                  opts.outputAmountPerEth,
-                  opts.inputAmountPerEth,
-                  fees,
-              )[0];
+    const createFill = (sample: DexSample) =>
+        dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
     // Track sample id's to integers (required by rust router)
     const sampleIdLookup: { [key: string]: number } = {};
     let sampleIdCounter = 0;
@@ -199,22 +190,34 @@ function createPathFromSamples(
     const routesAndSamples = _.zip(allSourcesRustRoute, samplesAndNativeOrdersWithResults);
 
     const adjustedFills: Fill[] = [];
-    const totalInputs = BigNumber.sum(...allSourcesRustRoute);
+    const totalRoutedAmount = BigNumber.sum(...allSourcesRustRoute);
+
+    const scale = input.dividedBy(totalRoutedAmount);
     for (const [routeInput, routeSamplesAndNativeOrders] of routesAndSamples) {
         if (!routeInput || !routeSamplesAndNativeOrders) {
             continue;
         }
+        // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precisions loss for number/f64
+        // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
+        const rustInput = new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL);
 
         const current = routeSamplesAndNativeOrders[routeSamplesAndNativeOrders.length - 1];
-        let fill = createFill(current);
         if (!isDexSample(current)) {
+            const nativeFill = nativeOrdersToFills(
+                side,
+                [current],
+                rustInput,
+                opts.outputAmountPerEth,
+                opts.inputAmountPerEth,
+                fees,
+            )[0];
             // NOTE: For Limit/RFQ orders we are done here. No need to scale output
-            adjustedFills.push(fill);
+            adjustedFills.push(nativeFill);
             continue;
         }
 
         // NOTE: For DexSamples only
-        const rustInput = new BigNumber(routeInput);
+        let fill = createFill(current);
         const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
         // Descend to approach a closer fill for fillData which may not be consistent
         // throughout the path (UniswapV3) and for a closer guesstimate at
@@ -236,7 +239,9 @@ function createPathFromSamples(
                         .dividedBy(left.input.minus(right.input))
                         .times(rustInput.minus(right.input))
                         .plus(rightPrice);
-                    const output = scaledPrice.times(rustInput).decimalPlaces(0);
+                    const output = scaledPrice
+                        .times(rustInput)
+                        .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
                     fill = createFill({
                         ...right, // default to the greater (for gas used)
                         input: rustInput,
@@ -252,7 +257,9 @@ function createPathFromSamples(
         // HACK: Handle the case where the router can under quote the input
         // Set the first fill just a tad higher
         const adjustedInput =
-            totalInputs.lt(input) && adjustedFills.length === 0 ? rustInput.plus(input.minus(totalInputs)) : rustInput;
+            totalRoutedAmount.lt(input) && adjustedFills.length === 0
+                ? rustInput.plus(input.minus(totalRoutedAmount))
+                : rustInput;
         const scaleOutput = (output: BigNumber) =>
             output
                 .dividedBy(fill.input)
