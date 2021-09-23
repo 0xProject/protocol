@@ -15,6 +15,7 @@ import { createMetaTransactionRouter } from '../routers/meta_transaction_router'
 import { createOrderBookRouter } from '../routers/orderbook_router';
 import { createSRARouter } from '../routers/sra_router';
 import { createSwapRouter } from '../routers/swap_router';
+import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
@@ -93,6 +94,14 @@ export async function runHttpServiceAsync(
     }
 
     app.use(errorHandler);
+
+    // optional websocket service
+    if (dependencies.kafkaClient) {
+        const wsService = new WebsocketService(server, dependencies.kafkaClient, dependencies.websocketOpts);
+        wsService.startAsync().catch((error) => logger.error(error.stack));
+    } else {
+        logger.warn('Could not establish kafka connection, websocket service will not start');
+    }
 
     server.listen(config.httpPort);
     return {
