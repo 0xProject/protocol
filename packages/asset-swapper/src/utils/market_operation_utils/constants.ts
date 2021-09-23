@@ -382,6 +382,7 @@ const MIRROR_WRAPPED_TOKENS = {
 // Mainnet tokens
 // Not an exhaustive list, just enough so we don't repeat ourselves
 export const MAINNET_TOKENS = {
+    ETH: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     // Stable Coins
     DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -1393,20 +1394,32 @@ export const KYBER_CONFIG_BY_CHAIN_ID = valueByChainId<KyberSamplerOpts>(
 export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityProviderRegistry>(
     {
         [ChainId.Mainnet]: {
-            ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
+            // ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
+            //     tokens: [
+            //         MAINNET_TOKENS.WETH,
+            //         MAINNET_TOKENS.USDC,
+            //         MAINNET_TOKENS.USDT,
+            //         MAINNET_TOKENS.WBTC,
+            //         MAINNET_TOKENS.PAX,
+            //         MAINNET_TOKENS.LINK,
+            //         MAINNET_TOKENS.KNC,
+            //         MAINNET_TOKENS.MANA,
+            //         MAINNET_TOKENS.DAI,
+            //         MAINNET_TOKENS.BUSD,
+            //         MAINNET_TOKENS.AAVE,
+            //         MAINNET_TOKENS.HT,
+            //     ],
+            //     gasCost: (takerToken: string, makerToken: string) =>
+            //         [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
+            // },
+            ['0xe82906b6b1b04f631d126c974af57a3a7b6a99d9']: {
                 tokens: [
-                    MAINNET_TOKENS.WETH,
+                    // MAINNET_TOKENS.WETH, // technically ETH but our sampler and mixin handle this
+                    MAINNET_TOKENS.ETH,
+                    MAINNET_TOKENS.WBTC,
                     MAINNET_TOKENS.USDC,
                     MAINNET_TOKENS.USDT,
-                    MAINNET_TOKENS.WBTC,
-                    MAINNET_TOKENS.PAX,
-                    MAINNET_TOKENS.LINK,
-                    MAINNET_TOKENS.KNC,
-                    MAINNET_TOKENS.MANA,
                     MAINNET_TOKENS.DAI,
-                    MAINNET_TOKENS.BUSD,
-                    MAINNET_TOKENS.AAVE,
-                    MAINNET_TOKENS.HT,
                 ],
                 gasCost: (takerToken: string, makerToken: string) =>
                     [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
