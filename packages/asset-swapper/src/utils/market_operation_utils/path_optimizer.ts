@@ -6,7 +6,7 @@ import { performance } from 'perf_hooks';
 
 import { DEFAULT_INFO_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
-import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from '../market_operation_utils/constants';
+import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
 
 import { dexSamplesToFills, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
@@ -89,9 +89,20 @@ function findRoutesAndCreateOptimalPath(
     const samplesAndNativeOrdersWithResults: Array<DexSample[] | NativeOrderWithFillableAmounts[]> = [];
     const serializedPaths: SerializedPath[] = [];
     for (const singleSourceSamples of samples) {
-        const singleSourceSamplesWithOutput = singleSourceSamples.filter(sample =>
-            sample.output.isGreaterThan(ZERO_AMOUNT),
-        );
+        if (singleSourceSamples.length === 0) {
+            continue;
+        }
+
+        const singleSourceSamplesWithOutput = [...singleSourceSamples];
+        for (let i = singleSourceSamples.length - 1; i >= 0; i--) {
+            if (singleSourceSamples[i].output.isZero()) {
+                // Remove trailing 0 output samples
+                singleSourceSamplesWithOutput.pop();
+            } else {
+                break;
+            }
+        }
+
         if (singleSourceSamplesWithOutput.length < MIN_NUM_SAMPLE_INPUTS) {
             continue;
         }
