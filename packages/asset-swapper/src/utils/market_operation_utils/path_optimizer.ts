@@ -8,7 +8,7 @@ import { DEFAULT_INFO_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
 
-import { dexSamplesToFills, nativeOrdersToFills } from './fills';
+import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { getRate } from './rate_utils';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './types';
@@ -44,21 +44,26 @@ function calculateOuputFee(
     fees: FeeSchedule,
 ): BigNumber {
     if (isDexSample(sampleOrNativeOrder)) {
-        const { source, fillData } = sampleOrNativeOrder;
+        const { input, output, source, fillData } = sampleOrNativeOrder;
         const fee = fees[source]?.(fillData) || 0;
-        const outputFee = !outputAmountPerEth.isZero()
-            ? outputAmountPerEth.times(fee)
-            : inputAmountPerEth
-                  .times(fee)
-                  .times(sampleOrNativeOrder.output.dividedToIntegerBy(sampleOrNativeOrder.input));
-
+        const outputFee = ethToOutputAmount({
+            input,
+            output,
+            inputAmountPerEth,
+            outputAmountPerEth,
+            ethAmount: fee,
+        });
         return outputFee;
     } else {
         const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
         const fee = fees[ERC20BridgeSource.Native]?.(sampleOrNativeOrder) || 0;
-        const outputFee = !outputAmountPerEth.isZero()
-            ? outputAmountPerEth.times(fee)
-            : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
+        const outputFee = ethToOutputAmount({
+            input,
+            output,
+            inputAmountPerEth,
+            outputAmountPerEth,
+            ethAmount: fee,
+        });
         return outputFee;
     }
 }

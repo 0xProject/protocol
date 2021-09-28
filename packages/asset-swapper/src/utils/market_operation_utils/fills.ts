@@ -71,6 +71,24 @@ function hasLiquidity(fills: Fill[]): boolean {
     return true;
 }
 
+export function ethToOutputAmount({
+    input,
+    output,
+    ethAmount,
+    inputAmountPerEth,
+    outputAmountPerEth,
+}: {
+    input: BigNumber;
+    output: BigNumber;
+    inputAmountPerEth: BigNumber;
+    outputAmountPerEth: BigNumber;
+    ethAmount: BigNumber | number;
+}): BigNumber {
+    return !outputAmountPerEth.isZero()
+        ? outputAmountPerEth.times(ethAmount)
+        : inputAmountPerEth.times(ethAmount).times(output.dividedToIntegerBy(input));
+}
+
 export function nativeOrdersToFills(
     side: MarketOperation,
     orders: NativeOrderWithFillableAmounts[],
@@ -89,9 +107,13 @@ export function nativeOrdersToFills(
         const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
         const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
         const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o);
-        const outputPenalty = !outputAmountPerEth.isZero()
-            ? outputAmountPerEth.times(fee)
-            : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
+        const outputPenalty = ethToOutputAmount({
+            input,
+            output,
+            inputAmountPerEth,
+            outputAmountPerEth,
+            ethAmount: fee,
+        });
         // targetInput can be less than the order size
         // whilst the penalty is constant, it affects the adjusted output
         // only up until the target has been exhausted.
@@ -156,9 +178,13 @@ export function dexSamplesToFills(
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
             // Only the first fill in a DEX path incurs a penalty.
-            penalty = !outputAmountPerEth.isZero()
-                ? outputAmountPerEth.times(fee)
-                : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
+            penalty = ethToOutputAmount({
+                input,
+                output,
+                inputAmountPerEth,
+                outputAmountPerEth,
+                ethAmount: fee,
+            });
         }
         const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
 
