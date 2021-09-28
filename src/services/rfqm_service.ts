@@ -1,4 +1,5 @@
 // tslint:disable:max-file-line-count
+import { TooManyRequestsError } from '@0x/api-utils';
 import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
@@ -191,6 +192,10 @@ const RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION = new Counter({
 const RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON = new Counter({
     name: 'rfqm_signed_quote_expiry_too_soon',
     help: 'A signed quote was not queued because it would expire too soon',
+});
+const RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS = new Counter({
+    name: 'rfqm_signed_quote_taker_and_takertoken_trade_exists',
+    help: 'A trade was submitted when the system already had a pending trade for the same taker and takertoken',
 });
 const RFQM_JOB_FAILED_ETHCALL_VALIDATION = new Counter({
     name: 'rfqm_job_failed_ethcall_validation',
@@ -699,6 +704,26 @@ export class RfqmService {
             ]);
         }
 
+        // verify that there is not a pending transaction for this taker and taker token
+        const pendingJobs = await this._dbUtils.findJobsWithStatusesAsync([
+            RfqmJobStatus.PendingEnqueued,
+            RfqmJobStatus.PendingProcessing,
+            RfqmJobStatus.PendingLastLookAccepted,
+            RfqmJobStatus.PendingSubmitted,
+        ]);
+
+        if (
+            pendingJobs.some(
+                (job) =>
+                    job.order?.order.taker.toLowerCase() === quote.order?.order.taker.toLowerCase() &&
+                    job.order?.order.takerToken.toLowerCase() === quote.order?.order.takerToken.toLowerCase() &&
+                    // Other logic handles the case where the same order is submitted twice
+                    job.metaTransactionHash !== quote.metaTransactionHash,
+            )
+        ) {
+            RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.inc();
+            throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
+        }
         // validate that the firm quote is fillable using the origin registry address (this address is assumed to hold ETH)
         try {
             await this._blockchainUtils.validateMetaTransactionOrThrowAsync(

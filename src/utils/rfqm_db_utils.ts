@@ -1,10 +1,17 @@
 import { BigNumber } from '@0x/asset-swapper';
 import { RfqOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
+import { In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
-import { RfqmJobConstructorOpts, RfqmOrderTypes, StoredFee, StoredOrder } from '../entities/RfqmJobEntity';
+import {
+    RfqmJobConstructorOpts,
+    RfqmJobStatus,
+    RfqmOrderTypes,
+    StoredFee,
+    StoredOrder,
+} from '../entities/RfqmJobEntity';
 import { RfqmQuoteConstructorOpts } from '../entities/RfqmQuoteEntity';
 import { RfqmWorkerHeartbeatEntity } from '../entities/RfqmWorkerHeartbeatEntity';
 
@@ -185,5 +192,14 @@ export class RfqmDbUtils {
             .createQueryBuilder()
             .where('worker_address = :workerAddress AND is_completed = FALSE', { workerAddress })
             .getMany();
+    }
+
+    /**
+     * Queries the `rfqm_jobs` table for all jobs with the specified statuses
+     */
+    public async findJobsWithStatusesAsync(statuses: RfqmJobStatus[]): Promise<RfqmJobEntity[]> {
+        return this._connection.getRepository(RfqmJobEntity).find({
+            status: In(statuses),
+        });
     }
 }

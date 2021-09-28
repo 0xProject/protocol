@@ -2,6 +2,7 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
+import { TooManyRequestsError } from '@0x/api-utils';
 import {
     FillQuoteTransformerOrderType,
     ProtocolFeeUtils,
@@ -22,7 +23,7 @@ import { ETH_DECIMALS, ONE_MINUTE_MS } from '../../src/constants';
 import { RfqmJobEntity, RfqmTransactionSubmissionEntity } from '../../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes } from '../../src/entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../../src/entities/RfqmTransactionSubmissionEntity';
-import { RfqmService } from '../../src/services/rfqm_service';
+import { MetaTransactionSubmitRfqmSignedQuoteResponse, RfqmService, RfqmTypes } from '../../src/services/rfqm_service';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -168,6 +169,180 @@ describe('RfqmService', () => {
             },
         });
         expect(response).to.eql(RfqmJobStatus.FailedExpired);
+    });
+
+    describe('submitMetaTransactionSignedQuoteAsync', () => {
+        it('should fail if there is already a pending trade for the taker and taker token', async () => {
+            const existingOrder = {
+                chainId: '1',
+                expiry: NEVER_EXPIRES.toString(),
+                maker: '',
+                makerAmount: '',
+                makerToken: '',
+                pool: '',
+                salt: '',
+                taker: '0xtaker',
+                takerAmount: '',
+                takerToken: '0xtakertoken',
+                txOrigin: '',
+                verifyingContract: '',
+            };
+            const existingJob: RfqmJobEntity = {
+                affiliateAddress: '',
+                calldata: '0x000',
+                chainId: 1,
+                createdAt: new Date(),
+                expiry: NEVER_EXPIRES,
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                isCompleted: false,
+                lastLookResult: null,
+                makerUri: 'http://foo.bar',
+                metadata: null,
+                metaTransactionHash: '',
+                order: {
+                    order: existingOrder,
+                    type: RfqmOrderTypes.V4Rfq,
+                },
+                orderHash: '',
+                status: RfqmJobStatus.PendingEnqueued,
+                updatedAt: new Date(),
+                workerAddress: '',
+            };
+
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findJobsWithStatusesAsync(anything())).thenResolve([existingJob]);
+            when(dbUtilsMock.findQuoteByMetaTransactionHashAsync('0xmetatransactionhash')).thenResolve({
+                affiliateAddress: '',
+                chainId: 1,
+                createdAt: new Date(),
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                makerUri: 'http://foo.bar',
+                metaTransactionHash: '0xmetatransactionhash',
+                order: {
+                    order: existingOrder,
+                    type: RfqmOrderTypes.V4Rfq,
+                },
+                orderHash: '',
+            });
+            const metatransactionMock = mock(MetaTransaction);
+            when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
+            when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
+            const dbUtils = instance(dbUtilsMock);
+
+            const service = buildRfqmServiceForUnitTest({
+                dbUtils,
+            });
+
+            expect(
+                service.submitMetaTransactionSignedQuoteAsync({
+                    integrator: MOCK_INTEGRATOR,
+                    metaTransaction: instance(metatransactionMock),
+                    signature: {
+                        r: '',
+                        s: '',
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                    },
+                    type: RfqmTypes.MetaTransaction,
+                }),
+            ).to.be.rejectedWith(TooManyRequestsError, 'a pending trade for this taker and takertoken already exists'); // tslint:disable-line no-unused-expression
+        });
+
+        it('should allow two trades by the same taker with different taker tokens', async () => {
+            const existingOrder = {
+                chainId: '1',
+                expiry: NEVER_EXPIRES.toString(),
+                maker: '',
+                makerAmount: '',
+                makerToken: '',
+                pool: '',
+                salt: '',
+                taker: '0xtaker',
+                takerAmount: '',
+                takerToken: '0xtakertoken1',
+                txOrigin: '',
+                verifyingContract: '',
+            };
+            const existingJob: RfqmJobEntity = {
+                affiliateAddress: '',
+                calldata: '0x000',
+                chainId: 1,
+                createdAt: new Date(),
+                expiry: NEVER_EXPIRES,
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                isCompleted: false,
+                lastLookResult: null,
+                makerUri: 'http://foo.bar',
+                metadata: null,
+                metaTransactionHash: '',
+                order: {
+                    order: existingOrder,
+                    type: RfqmOrderTypes.V4Rfq,
+                },
+                orderHash: '',
+                status: RfqmJobStatus.PendingEnqueued,
+                updatedAt: new Date(),
+                workerAddress: '',
+            };
+
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findJobsWithStatusesAsync(anything())).thenResolve([existingJob]);
+            when(dbUtilsMock.findQuoteByMetaTransactionHashAsync('0xmetatransactionhash')).thenResolve({
+                affiliateAddress: '',
+                chainId: 1,
+                createdAt: new Date(),
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                makerUri: 'http://foo.bar',
+                metaTransactionHash: '0xmetatransactionhash',
+                order: {
+                    order: { ...existingOrder, takerToken: '0xtakertoken2' },
+                    type: RfqmOrderTypes.V4Rfq,
+                },
+                orderHash: '',
+            });
+            const metatransactionMock = mock(MetaTransaction);
+            when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
+            when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
+            const dbUtils = instance(dbUtilsMock);
+
+            const service = buildRfqmServiceForUnitTest({
+                dbUtils,
+            });
+
+            expect(
+                service.submitMetaTransactionSignedQuoteAsync({
+                    integrator: MOCK_INTEGRATOR,
+                    metaTransaction: instance(metatransactionMock),
+                    signature: {
+                        r: '',
+                        s: '',
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                    },
+                    type: RfqmTypes.MetaTransaction,
+                }),
+            ).to.eventually.satisfy((t: MetaTransactionSubmitRfqmSignedQuoteResponse) => t.type === 'metatransaction'); // tslint:disable-line no-unused-expression
+        });
     });
 
     describe('fetchIndicativeQuoteAsync', () => {
