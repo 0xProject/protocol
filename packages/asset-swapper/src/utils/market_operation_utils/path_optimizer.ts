@@ -45,7 +45,7 @@ function calculateOuputFee(
 ): BigNumber {
     if (isDexSample(sampleOrNativeOrder)) {
         const { source, fillData } = sampleOrNativeOrder;
-        const fee = fees[source] === undefined ? 0 : fees[source]!(fillData) || 0;
+        const fee = fees[source]?.(fillData) || 0;
         const outputFee = !outputAmountPerEth.isZero()
             ? outputAmountPerEth.times(fee)
             : inputAmountPerEth
@@ -55,8 +55,7 @@ function calculateOuputFee(
         return outputFee;
     } else {
         const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
-        const fee =
-            fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(sampleOrNativeOrder);
+        const fee = fees[ERC20BridgeSource.Native]?.(sampleOrNativeOrder) || 0;
         const outputFee = !outputAmountPerEth.isZero()
             ? outputAmountPerEth.times(fee)
             : inputAmountPerEth.times(fee).times(output.dividedToIntegerBy(input));
@@ -64,7 +63,7 @@ function calculateOuputFee(
     }
 }
 
-function createPathFromSamples(
+function findRoutesAndCreateOptimalPath(
     side: MarketOperation,
     samples: DexSample[][],
     nativeOrders: NativeOrderWithFillableAmounts[],
@@ -130,7 +129,7 @@ function createPathFromSamples(
         );
         // NOTE: skip dummy order created in swap_quoter
         // TODO: remove dummy order and this logic once we don't need the JS router
-        if (normalizedOrderInput.isLessThanOrEqualTo(0) && normalizedOrderOutput.isLessThanOrEqualTo(0)) {
+        if (normalizedOrderInput.isLessThanOrEqualTo(0) || normalizedOrderOutput.isLessThanOrEqualTo(0)) {
             continue;
         }
 
@@ -199,7 +198,10 @@ function createPathFromSamples(
         }
         // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precisions loss for number/f64
         // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
-        const rustInput = new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL);
+        const rustInput = BigNumber.min(
+            new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL),
+            input,
+        );
 
         const current = routeSamplesAndNativeOrders[routeSamplesAndNativeOrders.length - 1];
         if (!isDexSample(current)) {
@@ -296,7 +298,7 @@ export function findOptimalRustPathFromSamples(
             'Rust router total routing performance',
         );
 
-    const allSourcesPath = createPathFromSamples(side, samples, nativeOrders, input, opts, fees);
+    const allSourcesPath = findRoutesAndCreateOptimalPath(side, samples, nativeOrders, input, opts, fees);
 
     const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
 
@@ -307,7 +309,7 @@ export function findOptimalRustPathFromSamples(
         const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
 
         if (vipSourcesSamples.length > 0) {
-            const vipSourcesPath = createPathFromSamples(side, vipSourcesSamples, [], input, opts, fees);
+            const vipSourcesPath = findRoutesAndCreateOptimalPath(side, vipSourcesSamples, [], input, opts, fees);
 
             const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
             // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset

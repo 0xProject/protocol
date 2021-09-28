@@ -113,7 +113,7 @@ export class Path {
 
     public collapse(opts: CreateOrderFromPathOpts): CollapsedPath {
         const [makerToken, takerToken] = getMakerTakerTokens(opts);
-        const collapsedFills = this.collapsedFills === undefined ? this.collapseFills() : this.collapsedFills;
+        const collapsedFills = this.collapsedFills === undefined ? this._collapseFills() : this.collapsedFills;
         this.orders = [];
         for (let i = 0; i < collapsedFills.length; ) {
             if (collapsedFills[i].source === ERC20BridgeSource.Native) {
@@ -242,7 +242,7 @@ export class Path {
         return true;
     }
 
-    public collapseFills(): ReadonlyArray<CollapsedFill> {
+    private _collapseFills(): ReadonlyArray<CollapsedFill> {
         this.collapsedFills = [];
         for (const fill of this.fills) {
             const source = fill.source;
