@@ -69,7 +69,6 @@ export enum ERC20BridgeSource {
     CurveV2 = 'Curve_V2',
     Lido = 'Lido',
     ShibaSwap = 'ShibaSwap',
-    Clipper = 'Clipper',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',

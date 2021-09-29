@@ -115,7 +115,6 @@
         "test/generated-artifacts/MixinBalancer.json",
         "test/generated-artifacts/MixinBalancerV2.json",
         "test/generated-artifacts/MixinBancor.json",
-        "test/generated-artifacts/MixinClipper.json",
         "test/generated-artifacts/MixinCoFiX.json",
         "test/generated-artifacts/MixinCryptoCom.json",
         "test/generated-artifacts/MixinCurve.json",

@@ -20,7 +20,6 @@ import {
 import {
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
-    CLIPPER_INFO_BY_CHAIN,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
@@ -1416,32 +1415,6 @@ export class SamplerOperations {
 
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
-                    case ERC20BridgeSource.Clipper:
-                        const { poolAddress: clipperPoolAddress, tokens: clipperTokens } = CLIPPER_INFO_BY_CHAIN[
-                            this.chainId
-                        ];
-                        if (
-                            clipperPoolAddress === NULL_ADDRESS ||
-                            !clipperTokens.includes(makerToken) ||
-                            !clipperTokens.includes(takerToken)
-                        ) {
-                            return [];
-                        }
-                        // Clipper requires WETH to be represented as address(0)
-                        const adjustedMakerToken =
-                            makerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : makerToken;
-                        const adjustedTakerToken =
-                            takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
-                        // Supports the PLP interface
-                        return this.getLiquidityProviderSellQuotes(
-                            clipperPoolAddress,
-                            adjustedMakerToken,
-                            adjustedTakerToken,
-                            takerFillAmounts,
-                            // tslint:disable-next-line: custom-no-magic-numbers
-                            0, // Not used for Clipper
-                            ERC20BridgeSource.Clipper,
-                        );
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -1706,32 +1679,6 @@ export class SamplerOperations {
 
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
                     }
-                    case ERC20BridgeSource.Clipper:
-                        const { poolAddress: clipperPoolAddress, tokens: clipperTokens } = CLIPPER_INFO_BY_CHAIN[
-                            this.chainId
-                        ];
-                        if (
-                            clipperPoolAddress === NULL_ADDRESS ||
-                            !clipperTokens.includes(makerToken) ||
-                            !clipperTokens.includes(takerToken)
-                        ) {
-                            return [];
-                        }
-                        // Clipper requires WETH to be represented as address(0)
-                        const adjustedMakerToken =
-                            makerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : makerToken;
-                        const adjustedTakerToken =
-                            takerToken === NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId] ? NULL_ADDRESS : takerToken;
-                        // Supports the PLP interface
-                        return this.getLiquidityProviderBuyQuotes(
-                            clipperPoolAddress,
-                            adjustedMakerToken,
-                            adjustedTakerToken,
-                            makerFillAmounts,
-                            // tslint:disable-next-line: custom-no-magic-numbers
-                            0, // Not used for Clipper
-                            ERC20BridgeSource.Clipper,
-                        );
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);
                 }
