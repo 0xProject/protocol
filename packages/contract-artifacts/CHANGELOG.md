@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.16.0 - _September 29, 2021_
+
+    * Update IZeroEx and ITransformERC20 artifacts (#282)
+
 ## v3.15.1 - _September 15, 2021_
 
     * Dependencies updated

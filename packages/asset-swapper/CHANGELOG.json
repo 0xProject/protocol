@@ -6,7 +6,8 @@
                 "note": "Update ExchangeProxySwapQuoteConsumer for Multiplex V2 and friends",
                 "pr": 282
             }
-        ]
+        ],
+        "timestamp": 1632957537
     },
     {
         "version": "16.27.5",
