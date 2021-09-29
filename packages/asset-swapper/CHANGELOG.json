@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.28.0",
+        "changes": [
+            {
+                "note": "Update ExchangeProxySwapQuoteConsumer for Multiplex V2 and friends",
+                "pr": 282
+            }
+        ]
+    },
+    {
         "version": "16.27.5",
         "changes": [
             {

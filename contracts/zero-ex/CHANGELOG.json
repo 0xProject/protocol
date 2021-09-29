@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.29.0",
+        "changes": [
+            {
+                "note": "Export TransformERC20FeatureContract",
+                "pr": 282
+            }
+        ]
+    },
+    {
         "timestamp": 1631710679,
         "version": "0.28.5",
         "changes": [

@@ -186,7 +186,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         );
     }
 
-    const transformERC20Encoder = AbiEncoder.createMethod('transformERC20', [
+    const transformERC20Encoder = AbiEncoder.createMethod('transformERC20Staging', [
         { type: 'address', name: 'inputToken' },
         { type: 'address', name: 'outputToken' },
         { type: 'uint256', name: 'inputTokenAmount' },
@@ -261,7 +261,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
-            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, MAKER_TOKEN, ETH_TOKEN_ADDRESS]);
+            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, ETH_TOKEN_ADDRESS]);
         });
 
         it('can produce a buy quote', async () => {
@@ -292,7 +292,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
-            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, MAKER_TOKEN, ETH_TOKEN_ADDRESS]);
+            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, ETH_TOKEN_ADDRESS]);
         });
 
         it('ERC20 -> ERC20 does not have a WETH transformer', async () => {
@@ -437,12 +437,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(secondHopFillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[2].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
-            expect(payTakerTransformerData.tokens).to.deep.eq([
-                TAKER_TOKEN,
-                MAKER_TOKEN,
-                ETH_TOKEN_ADDRESS,
-                INTERMEDIATE_TOKEN,
-            ]);
+            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, INTERMEDIATE_TOKEN, ETH_TOKEN_ADDRESS]);
         });
         // it.skip('Uses the `LiquidityProviderFeature` if given a single LiquidityProvider order', async () => {
         //     const quote = {
@@ -504,7 +499,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
-            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, MAKER_TOKEN, ETH_TOKEN_ADDRESS]);
+            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, ETH_TOKEN_ADDRESS]);
         });
     });
 });

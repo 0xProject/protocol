@@ -1,5 +1,14 @@
 [
     {
+        "version": "13.18.0",
+        "changes": [
+            {
+                "note": "Update IZeroEx and ITransformERC20 wrappers",
+                "pr": 282
+            }
+        ]
+    },
+    {
         "timestamp": 1631710679,
         "version": "13.17.7",
         "changes": [
