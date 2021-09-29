@@ -236,7 +236,7 @@ function findRoutesAndCreateOptimalPath(
         }
         // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precisions loss for number/f64
         // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
-        const rustInput = BigNumber.min(
+        const rustInputAdjusted = BigNumber.min(
             new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL),
             input,
         );
@@ -246,7 +246,7 @@ function findRoutesAndCreateOptimalPath(
             const nativeFill = nativeOrdersToFills(
                 side,
                 [current],
-                rustInput,
+                rustInputAdjusted,
                 opts.outputAmountPerEth,
                 opts.inputAmountPerEth,
                 fees,
@@ -268,21 +268,22 @@ function findRoutesAndCreateOptimalPath(
             if (k === 0) {
                 fill = createFill(routeSamples[0]);
             }
-            if (rustInput.isGreaterThan(routeSamples[k].input)) {
+            if (rustInputAdjusted.isGreaterThan(routeSamples[k].input)) {
                 // Between here and the previous fill
                 // HACK: Use the midpoint between the two
                 const left = routeSamples[k];
                 const right = routeSamples[k + 1];
                 if (left && right) {
                     // Approximate how much output we get for the input with the surrounding samples
-                    const interpolatedOutput = interpolateOutputFromSamples(left, right, rustInput).decimalPlaces(
-                        0,
-                        side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL,
-                    );
+                    const interpolatedOutput = interpolateOutputFromSamples(
+                        left,
+                        right,
+                        rustInputAdjusted,
+                    ).decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
 
                     fill = createFill({
                         ...right, // default to the greater (for gas used)
-                        input: rustInput,
+                        input: rustInputAdjusted,
                         output: interpolatedOutput,
                     });
                 } else {
@@ -293,20 +294,14 @@ function findRoutesAndCreateOptimalPath(
             }
         }
 
-        // HACK: Handle the case where the router can under quote the input
-        // Set the first fill just a tad higher
-        const adjustedInput =
-            totalRoutedAmount.lt(input) && adjustedFills.length === 0
-                ? rustInput.plus(input.minus(totalRoutedAmount))
-                : rustInput;
         const scaleOutput = (output: BigNumber) =>
             output
                 .dividedBy(fill.input)
-                .times(adjustedInput)
+                .times(rustInputAdjusted)
                 .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
         adjustedFills.push({
             ...fill,
-            input: adjustedInput,
+            input: rustInputAdjusted,
             output: scaleOutput(fill.output),
             adjustedOutput: scaleOutput(fill.adjustedOutput),
             index: 0,
