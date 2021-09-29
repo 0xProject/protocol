@@ -1,3 +1,4 @@
+import { assert } from '@0x/assert';
 import { ChainId } from '@0x/contract-addresses';
 import { OptimizerCapture, route, SerializedPath } from '@0x/neon-router';
 import { BigNumber } from '@0x/utils';
@@ -90,7 +91,7 @@ function findRoutesAndCreateOptimalPath(
     input: BigNumber,
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
-): Path {
+): Path | undefined {
     const createFill = (sample: DexSample) =>
         dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
     // Track sample id's to integers (required by rust router)
@@ -201,21 +202,27 @@ function findRoutesAndCreateOptimalPath(
         serializedPaths.push(serializedPath);
     }
 
+    if (serializedPaths.length === 0) {
+        return undefined;
+    }
+
     const rustArgs: OptimizerCapture = {
         side,
         targetInput: input.toNumber(),
         pathsIn: serializedPaths,
     };
 
-    let allSourcesRustRoute: number[] = [];
-    if (rustArgs.pathsIn.length > 0) {
-        const before = performance.now();
-        allSourcesRustRoute = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
-        DEFAULT_INFO_LOGGER(
-            { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
-            'Rust router real routing performance',
-        );
-    }
+    const before = performance.now();
+    const allSourcesRustRoute = route(rustArgs, RUST_ROUTER_NUM_SAMPLES);
+    DEFAULT_INFO_LOGGER(
+        { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
+        'Rust router real routing performance',
+    );
+
+    assert.assert(
+        rustArgs.pathsIn.length === allSourcesRustRoute.length,
+        'different number of sources in the Router output than the input',
+    );
 
     const routesAndSamples = _.zip(allSourcesRustRoute, samplesAndNativeOrdersWithResults);
 
@@ -255,6 +262,8 @@ function findRoutesAndCreateOptimalPath(
         // Descend to approach a closer fill for fillData which may not be consistent
         // throughout the path (UniswapV3) and for a closer guesstimate at
         // gas used
+
+        assert.assert(routeSamples.length >= 1, 'Found no sample to use for source');
         for (let k = routeSamples.length - 1; k >= 0; k--) {
             if (k === 0) {
                 fill = createFill(routeSamples[0]);
@@ -277,6 +286,7 @@ function findRoutesAndCreateOptimalPath(
                         output: interpolatedOutput,
                     });
                 } else {
+                    assert.assert(Boolean(left || right), 'No valid sample to use');
                     fill = createFill(left || right);
                 }
                 break;
@@ -317,7 +327,7 @@ export function findOptimalRustPathFromSamples(
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
     chainId: ChainId,
-): Path {
+): Path | undefined {
     const before = performance.now();
     const logPerformance = () =>
         DEFAULT_INFO_LOGGER(
@@ -326,6 +336,9 @@ export function findOptimalRustPathFromSamples(
         );
 
     const allSourcesPath = findRoutesAndCreateOptimalPath(side, samples, nativeOrders, input, opts, fees);
+    if (!allSourcesPath) {
+        return undefined;
+    }
 
     const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
 
@@ -348,7 +361,7 @@ export function findOptimalRustPathFromSamples(
                     : allSourcesOutput.plus(fqtOverheadInOutputToken);
             const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
 
-            if (vipSourcesPath.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
+            if (vipSourcesPath?.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
                 logPerformance();
                 return vipSourcesPath;
             }
