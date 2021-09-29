@@ -68,6 +68,21 @@ function calculateOuputFee(
     }
 }
 
+// Use linear interpolation to figure to approximate the output
+// at a certain input somewhere between the two samples
+// See https://en.wikipedia.org/wiki/Linear_interpolation
+const interpolateOutputFromSamples = (
+    left: { input: BigNumber; output: BigNumber },
+    right: { input: BigNumber; output: BigNumber },
+    targetInput: BigNumber,
+): BigNumber =>
+    left.output.plus(
+        right.output
+            .minus(left.output)
+            .dividedBy(right.input.minus(left.input))
+            .times(targetInput.minus(left.input)),
+    );
+
 function findRoutesAndCreateOptimalPath(
     side: MarketOperation,
     samples: DexSample[][],
@@ -250,20 +265,16 @@ function findRoutesAndCreateOptimalPath(
                 const left = routeSamples[k];
                 const right = routeSamples[k + 1];
                 if (left && right) {
-                    const leftPrice = left.output.dividedBy(left.input);
-                    const rightPrice = right.output.dividedBy(right.input);
-                    const scaledPrice = leftPrice
-                        .minus(rightPrice)
-                        .dividedBy(left.input.minus(right.input))
-                        .times(rustInput.minus(right.input))
-                        .plus(rightPrice);
-                    const output = scaledPrice
-                        .times(rustInput)
-                        .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+                    // Approximate how much output we get for the input with the surrounding samples
+                    const interpolatedOutput = interpolateOutputFromSamples(left, right, rustInput).decimalPlaces(
+                        0,
+                        side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL,
+                    );
+
                     fill = createFill({
                         ...right, // default to the greater (for gas used)
                         input: rustInput,
-                        output,
+                        output: interpolatedOutput,
                     });
                 } else {
                     fill = createFill(left || right);
