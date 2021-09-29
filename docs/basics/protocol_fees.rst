@@ -9,7 +9,9 @@ To learn more about protocol fees and liquidity incentives, see the `Official Sp
 
 .. note::
 
-    As of September 29, 2021 protocol fees for Exchange V4 have been removed.
+    As of September 29, 2021 protocol fees for Exchange V4 have been removed. There is currently no protocol fee for any type of order in Exchange V4.
+
+.. note::
 
     `RFQ Orders <./orders.html#rfq-orders>`_ are introduced in Exchange V4, and there is currently no protocol fee for filling this type of order.
     The existing fee mechanics work well for limit orders, where arb bots pay to compete for liquidity; however, it does not translate well to RFQ where makers are matched with a specific taker.
