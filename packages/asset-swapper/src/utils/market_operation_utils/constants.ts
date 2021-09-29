@@ -278,7 +278,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
 /**
  *  0x Protocol Fee Multiplier
  */
-export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
+export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
 /**
  * Sources to poll for ETH fee price estimates.

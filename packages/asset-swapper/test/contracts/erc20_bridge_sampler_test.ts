@@ -18,7 +18,9 @@ import { DummyLiquidityProviderContract, TestERC20BridgeSamplerContract } from '
 // tslint:disable: custom-no-magic-numbers
 
 const { NULL_ADDRESS } = constants;
-blockchainTests('erc20-bridge-sampler', env => {
+// HACK(dorothy-zbornak): Disabled because these tests are flakey and all this logic is moving to
+// the sampler service anyway.
+blockchainTests.skip('erc20-bridge-sampler', env => {
     let testContract: TestERC20BridgeSamplerContract;
     const RATE_DENOMINATOR = constants.ONE_ETHER;
     const MIN_RATE = new BigNumber('0.01');

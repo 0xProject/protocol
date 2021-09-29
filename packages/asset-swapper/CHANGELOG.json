@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.27.5",
+        "changes": [
+            {
+                "note": "Remove protocol fees by setting `PROTOCOL_FEE_MULTIPLIER` to 0",
+                "pr": 333
+            }
+        ]
+    },
+    {
         "timestamp": 1631710679,
         "version": "16.27.4",
         "changes": [
