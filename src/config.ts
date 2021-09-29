@@ -390,7 +390,7 @@ export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
 export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 
-export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
+export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
 export const RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER = 1.2;
 
