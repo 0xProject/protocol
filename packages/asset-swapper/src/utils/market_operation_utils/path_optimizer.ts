@@ -69,7 +69,7 @@ function calculateOuputFee(
     }
 }
 
-// Use linear interpolation to figure to approximate the output
+// Use linear interpolation to approximate the output
 // at a certain input somewhere between the two samples
 // See https://en.wikipedia.org/wiki/Linear_interpolation
 const interpolateOutputFromSamples = (
