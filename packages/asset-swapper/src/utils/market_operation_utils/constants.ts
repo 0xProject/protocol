@@ -57,6 +57,7 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Polygon]: defaultValue,
         [ChainId.PolygonMumbai]: defaultValue,
         [ChainId.Avalanche]: defaultValue,
+        [ChainId.Fantom]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -162,6 +163,9 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Pangolin,
             ERC20BridgeSource.TraderJoe,
+            ERC20BridgeSource.SushiSwap,
+        ]),
+        [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
         ]),
     },
@@ -271,6 +275,9 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.TraderJoe,
             ERC20BridgeSource.SushiSwap,
         ]),
+        [ChainId.Fantom]: new SourceFilters([
+            ERC20BridgeSource.SushiSwap,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -290,6 +297,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
+        [ChainId.Fantom]: [ERC20BridgeSource.SushiSwap],
     },
     [],
 );
@@ -435,6 +443,13 @@ export const AVALANCHE_TOKENS = {
     WETH: '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab',
     USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
     DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+};
+
+export const FANTOM_TOKENS = {
+    WFTM: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+    WETH: '0x74b23882a30290451A17c44f4F05243b6b58C76d',
+    USDC: '0x04068DA6C83AFCFA0e13ba15A6696662335D5B75',
+    DAI: '0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e',
 };
 
 export const CURVE_POOLS = {
@@ -596,6 +611,12 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.DAI,
             AVALANCHE_TOKENS.USDT,
         ],
+        [ChainId.Fantom]: [
+            FANTOM_TOKENS.WFTM,
+            FANTOM_TOKENS.WETH,
+            FANTOM_TOKENS.DAI,
+            FANTOM_TOKENS.USDC,
+        ],
     },
     [],
 );
@@ -624,6 +645,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
         }).build(),
+        [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
+        }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
@@ -638,6 +662,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
         [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
         [ChainId.Avalanche]: getContractAddressesForChainOrThrow(ChainId.Avalanche).etherToken,
+        [ChainId.Fantom]: getContractAddressesForChainOrThrow(ChainId.Fantom).etherToken,
     },
     NULL_ADDRESS,
 );
@@ -1251,6 +1276,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Ropsten]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Polygon]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Avalanche]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
+        [ChainId.Fantom]: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506',
     },
     NULL_ADDRESS,
 );
