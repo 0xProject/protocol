@@ -34,7 +34,6 @@ import {
     ALT_RFQ_MM_API_KEY,
     ALT_RFQ_MM_ENDPOINT,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-    ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_MULTIPLEX,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -239,6 +238,7 @@ export class SwapService {
         const shouldGenerateQuoteReport = rfqt && rfqt.intentOnFilling;
 
         let swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts>;
+        // tslint:disable-next-line:prefer-conditional-expression
         if (
             isMetaTransaction ||
             shouldSellEntireBalance ||
@@ -246,8 +246,6 @@ export class SwapService {
             affiliateFee.feeType === AffiliateFeeType.PercentageFee
         ) {
             swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP;
-        } else if (isETHBuy || isETHSell) {
-            swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_MULTIPLEX;
         } else {
             swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_OPTS;
         }

@@ -444,41 +444,14 @@ const EXCLUDED_FEE_SOURCES = (() => {
 })();
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
-const EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX = (sourceFlags: bigint) => {
-    if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags) && CHAIN_ID === ChainId.Mainnet) {
-        // Uniswap and forks VIP
-        return TX_BASE_GAS;
-    } else if (
-        [
-            SOURCE_FLAGS.SushiSwap,
-            SOURCE_FLAGS.PancakeSwap,
-            SOURCE_FLAGS.PancakeSwap_V2,
-            SOURCE_FLAGS.BakerySwap,
-            SOURCE_FLAGS.ApeSwap,
-            SOURCE_FLAGS.CafeSwap,
-            SOURCE_FLAGS.CheeseSwap,
-            SOURCE_FLAGS.JulSwap,
-        ].includes(sourceFlags) &&
-        CHAIN_ID === ChainId.BSC
-    ) {
-        // PancakeSwap and forks VIP
-        return TX_BASE_GAS;
-    } else if (SOURCE_FLAGS.Uniswap_V3 === sourceFlags) {
-        // Uniswap V3 VIP
-        return TX_BASE_GAS.plus(5e3);
-    } else if (SOURCE_FLAGS.Curve === sourceFlags) {
-        // Curve pseudo-VIP
-        return TX_BASE_GAS.plus(40e3);
-    } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
-        return TX_BASE_GAS.plus(10e3);
-    } else {
-        return FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
-    }
-};
 const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
-    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider | SOURCE_FLAGS.RfqOrder;
+    SOURCE_FLAGS.Uniswap_V2 |
+    SOURCE_FLAGS.SushiSwap |
+    SOURCE_FLAGS.LiquidityProvider |
+    SOURCE_FLAGS.RfqOrder |
+    SOURCE_FLAGS.Uniswap_V3;
 const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS =
-    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider;
+    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider | SOURCE_FLAGS.Uniswap_V3;
 const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
         // Uniswap and forks VIP
@@ -533,11 +506,6 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED,
     runLimit: 2 ** 8,
     shouldGenerateQuoteReport: true,
-};
-
-export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_MULTIPLEX: Partial<SwapQuoteRequestOpts> = {
-    ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-    exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_NO_MULTIPLEX,
 };
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP: Partial<SwapQuoteRequestOpts> = {
