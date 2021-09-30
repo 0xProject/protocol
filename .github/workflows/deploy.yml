@@ -42,6 +42,9 @@ jobs:
               if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production bsc' || github.event.comment.body == 'deploy bsc production')
               run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=bsc" >> $GITHUB_ENV;
             # Polygon: folder_chain=polygon
+            - name: deploy from branch to staging (Polygon)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy staging polygon' || github.event.comment.body == 'deploy polygon staging')
+              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
             - name: deploy from branch to production (Polygon)
               if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production polygon' || github.event.comment.body == 'deploy polygon production')
               run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
