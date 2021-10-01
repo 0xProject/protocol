@@ -166,6 +166,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
         ]),
         [ChainId.Fantom]: new SourceFilters([
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.SushiSwap,
         ]),
     },
@@ -276,6 +278,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
         ]),
         [ChainId.Fantom]: new SourceFilters([
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.SushiSwap,
         ]),
     },
@@ -450,6 +454,9 @@ export const FANTOM_TOKENS = {
     WETH: '0x74b23882a30290451A17c44f4F05243b6b58C76d',
     USDC: '0x04068DA6C83AFCFA0e13ba15A6696662335D5B75',
     DAI: '0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e',
+    fUSDT: '0x049d68029688eabf473097a2fc38ef61633a3c7a',
+    WBTC: '0x321162Cd933E2Be498Cd2267a90534A804051b11',
+    renBTC: '0xDBf31dF14B66535aF65AaC99C32e9eA844e14501',
 };
 
 export const CURVE_POOLS = {
@@ -511,6 +518,16 @@ export const CURVE_POLYGON_POOLS = {
 export const CURVE_V2_POLYGON_POOLS = {
     atricrypto: '0x3fcd5de6a9fc8a99995c406c77dda3ed7e406f81',
     atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
+};
+
+export const CURVE_FANTOM_POOLS = {
+    fUSDT: '0x92D5ebF3593a92888C25C0AbEF126583d4b5312E',
+    twoPool: '0x27E611FD27b276ACbd5Ffd632E5eAEBEC9761E40',
+    ren: '0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604',
+};
+
+export const CURVE_V2_FANTOM_POOLS = {
+    tricrypto: '0x3a1659Ddcf2339Be3aeA159cA010979FB49155FF',
 };
 
 export const SWERVE_POOLS = {
@@ -979,6 +996,33 @@ export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_POLYGON_POOLS.atricrypto3]: createCurveV2MetaTriPool({
         tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.WETH],
         pool: CURVE_V2_POLYGON_POOLS.atricrypto3,
+        gasSchedule: 300e3,
+    }),
+};
+
+// TODO: modify gasSchedule
+export const CURVE_FANTOM_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_FANTOM_POOLS.ren]: createCurveExchangePool({
+        tokens: [FANTOM_TOKENS.renBTC, FANTOM_TOKENS.WBTC],
+        pool: CURVE_FANTOM_POOLS.ren,
+        gasSchedule: 171e3,
+    }),
+    [CURVE_FANTOM_POOLS.twoPool]: createCurveExchangeUnderlyingPool({
+        tokens: [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
+        pool: CURVE_FANTOM_POOLS.twoPool,
+        gasSchedule: 587e3,
+    }),
+    [CURVE_FANTOM_POOLS.fUSDT]: createCurveExchangePool({
+        tokens: [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC, FANTOM_TOKENS.fUSDT],
+        pool: CURVE_FANTOM_POOLS.fUSDT,
+        gasSchedule: 176e3,
+    }),
+}
+
+export const CURVE_V2_FANTOM_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_V2_FANTOM_POOLS.tricrypto]: createCurveExchangeV2Pool({
+        tokens: [FANTOM_TOKENS.fUSDT, FANTOM_TOKENS.WBTC, FANTOM_TOKENS.WETH],
+        pool: CURVE_V2_FANTOM_POOLS.tricrypto,
         gasSchedule: 300e3,
     }),
 };
