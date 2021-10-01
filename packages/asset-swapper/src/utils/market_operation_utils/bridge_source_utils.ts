@@ -13,8 +13,10 @@ import {
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_MAINNET_INFOS,
     CURVE_POLYGON_INFOS,
+    CURVE_FANTOM_INFOS,
     CURVE_V2_MAINNET_INFOS,
     CURVE_V2_POLYGON_INFOS,
+    CURVE_V2_FANTOM_INFOS,
     DFYN_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
     FIREBIRDONESWAP_BSC_INFOS,
@@ -133,6 +135,15 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                             [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
+        case ChainId.Fantom:
+            return Object.values(CURVE_FANTOM_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
         default:
             return [];
     }
@@ -152,6 +163,15 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
             );
         case ChainId.Polygon:
             return Object.values(CURVE_V2_POLYGON_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Fantom:
+            return Object.values(CURVE_V2_FANTOM_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
