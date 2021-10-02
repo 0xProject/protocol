@@ -154,6 +154,12 @@ contract BalancerSampler {
                     )
                 returns (uint256 amount)
             {
+                // Handles this revert scenario:
+                // https://github.com/balancer-labs/balancer-core/blob/master/contracts/BPool.sol#L443
+                if (amount > _bmul(poolState.takerTokenBalance, MAX_IN_RATIO)) {
+                    break;
+                }
+
                 takerTokenAmounts[i] = amount;
                 // Break early if there are 0 amounts
                 if (takerTokenAmounts[i] == 0) {
