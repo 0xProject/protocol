@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.28.1",
+        "changes": [
+            {
+                "note": "Check MAX_IN_RATIO in sampleBuysFromBalancer",
+                "pr": 338
+            }
+        ]
+    },
+    {
         "version": "16.28.0",
         "changes": [
             {
