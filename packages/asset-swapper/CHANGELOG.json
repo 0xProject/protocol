@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.29.1",
+        "changes": [
+            {
+                "note": "Remove `Clipper` as a custom liquidity source",
+                "pr": 335
+            }
+        ]
+    },
+    {
         "version": "16.29.0",
         "changes": [
             {
