@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.29.0",
+        "changes": [
+            {
+                "note": "Initial integration of neon-router (behind feature flag)",
+                "pr": 295
+            }
+        ]
+    },
+    {
         "version": "16.28.0",
         "changes": [
             {
