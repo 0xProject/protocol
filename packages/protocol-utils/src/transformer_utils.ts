@@ -131,6 +131,7 @@ export enum BridgeProtocol {
     KyberDmm,
     CurveV2,
     Lido,
+    Clipper, // Not used: Clipper is now using PLP interface
 }
 // tslint:enable: enum-naming
 
