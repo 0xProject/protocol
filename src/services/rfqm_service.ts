@@ -563,7 +563,12 @@ export class RfqmService {
         RFQM_JOB_REPAIR.labels(workerAddress).inc(unresolvedJobs.length);
         for (const job of unresolvedJobs) {
             logger.info({ workerAddress, orderHash: job.orderHash }, `Unresolved job found, attempting to re-process`);
-            await this.processRfqmJobAsync(job.orderHash, workerAddress);
+            try {
+                await this.processRfqmJobAsync(job.orderHash, workerAddress);
+            } catch (error) {
+                logger.error({ error, orderHash: job.orderHash, workerAddress }, 'Error reprocessing rfqm job');
+                throw error;
+            }
         }
 
         const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(workerAddress, balance, gasPrice);
@@ -810,6 +815,7 @@ export class RfqmService {
                 logger.error(`Job "${orderHash}" expired and cannot be processed. Marking job as complete`);
                 RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
             }
+            timerStopFn();
             return;
         }
         const { calldata, makerUri, order, fee } = job;
@@ -834,6 +840,7 @@ export class RfqmService {
                 await this._dbUtils.updateRfqmJobAsync(orderHash, true, {
                     status: RfqmJobStatus.FailedEthCallFailed,
                 });
+                timerStopFn();
                 return;
             }
 
@@ -847,7 +854,12 @@ export class RfqmService {
             const shouldProceed = await this._quoteServerClient.confirmLastLookAsync(makerUri!, submitRequest);
             logger.info({ makerUri, shouldProceed, orderHash }, 'Got last look response from market maker');
 
-            if (!shouldProceed) {
+            if (shouldProceed) {
+                await this._dbUtils.updateRfqmJobAsync(orderHash, false, {
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    lastLookResult: shouldProceed,
+                });
+            } else {
                 RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri!).inc();
                 // Terminate with an error transition
                 await this._dbUtils.updateRfqmJobAsync(orderHash, true, {
@@ -856,11 +868,6 @@ export class RfqmService {
                     lastLookResult: shouldProceed,
                 });
                 return;
-            } else {
-                await this._dbUtils.updateRfqmJobAsync(orderHash, false, {
-                    status: RfqmJobStatus.PendingLastLookAccepted,
-                    lastLookResult: shouldProceed,
-                });
             }
         } else {
             // log if last look completed and was previously accepted
@@ -873,6 +880,7 @@ export class RfqmService {
             submissionsMap = await this.completeSubmissionLifecycleAsync(orderHash, workerAddress, calldata!);
         } catch (err) {
             logger.warn({ error: err, orderHash, workerAddress }, `encountered an error in transaction submission`);
+            timerStopFn();
             throw new Error(`encountered an error in transaction submission`);
         }
 
@@ -939,6 +947,7 @@ export class RfqmService {
                     );
                     gasPrice = newGasPrice;
 
+                    // TODO(rhinodavid): make sure a throw here gets handled
                     const submission = await this._submitTransactionAsync(
                         orderHash,
                         workerAddress,
