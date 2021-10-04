@@ -1637,6 +1637,23 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
+    {
+        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
+        [ChainId.BSC]: [
+            ERC20BridgeSource.PancakeSwap,
+            ERC20BridgeSource.PancakeSwapV2,
+            ERC20BridgeSource.BakerySwap,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.ApeSwap,
+            ERC20BridgeSource.CafeSwap,
+            ERC20BridgeSource.CheeseSwap,
+            ERC20BridgeSource.JulSwap,
+        ],
+    },
+    [],
+);
+
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     // TODO: Different base cost if to/from ETH.
     let gas = 90e3;
@@ -1779,7 +1796,7 @@ export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(20000);
 
 // tslint:enable:custom-no-magic-numbers
 
-export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
+export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice'> = {
     // tslint:disable-next-line: custom-no-magic-numbers
     runLimit: 2 ** 15,
     excludedSources: [],
