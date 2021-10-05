@@ -6,10 +6,12 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as DefaultPoolOperator from '../test/generated-artifacts/DefaultPoolOperator.json';
+import * as ISablier from '../test/generated-artifacts/ISablier.json';
 import * as IStaking from '../test/generated-artifacts/IStaking.json';
 import * as IZrxTreasury from '../test/generated-artifacts/IZrxTreasury.json';
 import * as ZrxTreasury from '../test/generated-artifacts/ZrxTreasury.json';
 export const artifacts = {
+    ISablier: ISablier as ContractArtifact,
     DefaultPoolOperator: DefaultPoolOperator as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
     IZrxTreasury: IZrxTreasury as ContractArtifact,

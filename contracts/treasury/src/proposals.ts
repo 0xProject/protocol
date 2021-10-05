@@ -3,6 +3,8 @@ import { ERC20TokenContract } from '@0x/contracts-erc20';
 import { Web3ProviderEngine } from '@0x/subproviders';
 import { BigNumber } from '@0x/utils';
 
+import { ISablierContract } from './wrappers';
+
 interface ProposedAction {
     target: string;
     data: string;
@@ -17,8 +19,14 @@ interface Proposal {
 
 const { zrxToken } = getContractAddressesForChainOrThrow(1);
 const zrx = new ERC20TokenContract(zrxToken, new Web3ProviderEngine());
-const maticToken = '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0';
-const matic = new ERC20TokenContract(maticToken, new Web3ProviderEngine());
+const maticToken = new ERC20TokenContract('0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0', new Web3ProviderEngine());
+const sablier = new ISablierContract('0xcd18eaa163733da39c232722cbc4e8940b1d8888', new Web3ProviderEngine());
+
+const ONE_YEAR_IN_SECONDS = new BigNumber('31536000');
+const PROPOSAL_2_ZRX_AMOUNT = new BigNumber('485392999999999970448000');
+const PROPOSAL_2_MATIC_AMOUNT = new BigNumber('378035999999999992944000');
+const PROPOSAL_2_STREAM_START_TIME = new BigNumber('1635188400');
+const PROPOSAL_2_RECIPIENT = '0x976378445d31d81b15576811450a7b9797206807';
 
 export const proposals: Proposal[] = [
     {
@@ -44,8 +52,8 @@ export const proposals: Proposal[] = [
                 value: new BigNumber(0),
             },
             {
-                target: maticToken,
-                data: matic
+                target: maticToken.address,
+                data: maticToken
                     .transfer('0xab66cc8fd10457ebc9d13b9760c835f0a4cbc487', new BigNumber('420000e18'))
                     .getABIEncodedTransactionData(),
                 value: new BigNumber(0),
@@ -53,5 +61,47 @@ export const proposals: Proposal[] = [
         ],
         description:
             '# Z-2 0x/Polygon Grant Budget for 0xEVE\n\n## Summary\n\nWe propose to transfer 10% of the new Treasury allocation from the recently announced 0x/Polygon initiative to the 0x Ecosystem Value Experiment (0xEVE). The purpose is not so much to increase the budget as it is to enable access to the MATIC that was allocated to the Treasury after 0xEVE was established and to expand the original goals to include use cases on the Polygon Network. A snapshot vote was held to gauge community sentiment with 100% in favor https://snapshot.org/#/0xgov.eth/proposal/QmdcZAAcmNgM3R6CVY586G4sSoPwm6T3CS39DCQ4gPDPB4.\n\n## Background\n\nA proposal to establish the 0x Ecosystem Value Experiment (0xEVE) was passed in early June with a budget of 400K ZRX, which was then transferred to the 0xEVE multisig to fund operations. Shortly afterwards, 0xLabs and 0xPolygon allocated 3.3M ZRX and 4.2M MATIC to the 0xDAO Treasury with the shared goal of bringing 1M new users to the Polygon Network via 0x-powered applications.<br/><br/>\nSince that time, 0xEVE has established a grant program and published a framework for projects seeking support from the 0xDAO. However, because 0xEVE has no access to these new funds, it will be extremely difficult given the current market conditions (and the commensurate devaluation of our operating budget in USD terms) for us to incorporate this new goal into the grant program in any meaningful way, particularly because we are not able to spend any of the MATIC in the Treasury.\n\n## Request for Approval\n\nIn keeping with the original structure of the budget where ~10% of the Treasury was allocated to 0xEVE to fund opportunities such as grants, we propose that 10% of the new funding (ZRX and MATIC) be allocated to 0xEVE to fund activities associated with this new initiative. A separate multisig has been set up to manage and track these expenditures.<br/><br/>\nCompensation will remain as authorized in the original budget, and the new funding will be allocated 100% to grants and other operational activities specific to Polygon. In accordance with the grant program framework, this will enable 0xEVE to fast track grants under $50k using its own budget, while larger grants will require an onchain community vote and will be awarded from Treasury funds.<br/><br/>\nAdditionally, as 0x protocol deploys to additional chains, for any future allocations from similar joint initiatives, we recommend that they be structured the same way (90/10 split between the Treasury and 0xEVE) so that 0xEVE can actively participate in evaluating, distributing, and managing grants and other associated efforts designed to accelerate adoption and ecosystem value capture on those networks.<br/><br/>\nAs stipulated in Z-1, 0xEVE is a limited-duration experiment (26 weeks) and any funds not used will be returned to the Treasury when the experiment concludes.\n\n## Action Required\n\nTransfer 330,813 ZRX and 420,000 MATIC to 0xEVE gnosis safe multisig 0xAB66CC8FD10457ebC9D13B9760C835F0a4CbC487',
+    },
+    {
+        actions: [
+            {
+                target: zrxToken,
+                data: zrx.approve(sablier.address, PROPOSAL_2_ZRX_AMOUNT).getABIEncodedTransactionData(),
+                value: new BigNumber(0),
+            },
+            {
+                target: maticToken.address,
+                data: maticToken.approve(sablier.address, PROPOSAL_2_MATIC_AMOUNT).getABIEncodedTransactionData(),
+                value: new BigNumber(0),
+            },
+            {
+                target: sablier.address,
+                data: sablier
+                    .createStream(
+                        PROPOSAL_2_RECIPIENT,
+                        PROPOSAL_2_ZRX_AMOUNT,
+                        zrxToken,
+                        PROPOSAL_2_STREAM_START_TIME,
+                        PROPOSAL_2_STREAM_START_TIME.plus(ONE_YEAR_IN_SECONDS),
+                    )
+                    .getABIEncodedTransactionData(),
+                value: new BigNumber(0),
+            },
+            {
+                target: sablier.address,
+                data: sablier
+                    .createStream(
+                        PROPOSAL_2_RECIPIENT,
+                        PROPOSAL_2_MATIC_AMOUNT,
+                        maticToken.address,
+                        PROPOSAL_2_STREAM_START_TIME,
+                        PROPOSAL_2_STREAM_START_TIME.plus(ONE_YEAR_IN_SECONDS),
+                    )
+                    .getABIEncodedTransactionData(),
+                value: new BigNumber(0),
+            },
+        ],
+        description:
+            '# Z-3 Trader.xyz Grant\n\n## Summary\n\nThis proposal seeks authorization of a $950k grant from the treasury to trader.xyz. The community has discussed the merits of the proposal in the governance forum and signaled strong support for moving forward in a snapshot poll:\n\n1. https://gov.0x.org/t/grant-proposal-trader-xyz/1005/\n2. https://snapshot.org/#/0xgov.eth/proposal/Qmcf2C3KmQ1W1XBGownLWsA8yX9hpzY6peLUGKNJnPzN9y\n\n## Grant Details\n\n### What category best describes your grant request?\n\n1. 0x orderbook\n2. 0x protocol feature development\n\n### Grant amount requested\n\n**Amount**: $950k split 50/50 between $ZRX and $MATIC (note: an upfront payment of $50k in $ZRX and $MATIC is being made from the 0xEVE grant budget)\n\n**Price reference**:\n1. [https://www.tradingview.com/symbols/ZRXUSD/technicals/](https://www.tradingview.com/symbols/ZRXUSD/technicals/) ($ZRX 30-day EMA as of 10/4/2021 = 0.97859)\n2. [https://www.tradingview.com/symbols/MATICUSD/technicals/](https://www.tradingview.com/symbols/MATICUSD/technicals/) ($MATIC 30-day EMA as of 10/4/2021 = 1.2564959)\n\n**Payment details**: $950k streamed from Sablier over 365 days (485,393 ZRX + 378,036 MATIC)\n\n**Receiving address**: 0x976378445D31D81b15576811450A7b9797206807 (Gnosis Safe)\n\n### Team background\n\nCore team is comprised of two former 0x core team members (Patryk Adas - former Matcha lead designer, and John Johnson - former Matcha lead engineer)\n\n### Project background\n\nTrader.xyz is a dapp that provides a user-focused trading experience with the goal of becoming the flagship, 0x-powered application for discovering and trading NFTs\n\n### Description of work to be funded\n\nSee detailed explanation at https://gov.0x.org/t/grant-proposal-trader-xyz/1005\n\n### Budget breakdown\n\nSee detailed explanation at https://gov.0x.org/t/grant-proposal-trader-xyz/1005\n\n### Benefit to 0x ecosystem\n\n1. Become the gold standard for exchanging NFTs with 0x protocol\n2. Enable 0xDAO to build organic development capabilities\n3. Improve protocol documentation and developer resources\n4. Add OSS API protocol features\n\n### Risk/Reward factors\n\nRisks include competition, mindshare, flywheel of liquidity, etc. We believe our product and team have the potential to mitigate these risks and bring to market several features and capabilities that will be market-leading.\n\n### Additional info\n\nOur team has a track record of delivering high quality projects, and in order for us to continue our work, we need capital and support. We prefer not to go the venture capital route and instead work directly with the 0xDAO for the best synergies and to align value with 0x. We proved out an initial brand, design, and engineering concept via OTC orders, and it is already the highest quality OTC swap on the market. We would like to work with 0xDAO directly to make sure 0x has a foothold in the NFT market as it continues to evolve and develop. We want to do what Matcha did for DEX ERC20 trading.\n\n## Action Required\n\nStream 485,393 ZRX and 378,036 MATIC to Gnosis Safe 0x976378445D31D81b15576811450A7b9797206807 over 365 days',
     },
 ];
