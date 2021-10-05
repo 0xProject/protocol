@@ -256,7 +256,7 @@ export interface RfqRequestOpts {
 /**
  * gasPrice: gas price to determine protocolFee amount, default to ethGasStation fast amount
  */
-export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
+export interface SwapQuoteRequestOpts extends Omit<GetMarketOrdersOpts, 'gasPrice'> {
     gasPrice?: BigNumber;
     rfqt?: RfqRequestOpts;
 }

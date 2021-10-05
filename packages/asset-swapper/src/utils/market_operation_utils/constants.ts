@@ -99,7 +99,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
-            ERC20BridgeSource.Clipper,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -206,7 +205,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
-            ERC20BridgeSource.Clipper,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -1482,22 +1480,6 @@ export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     },
 );
 
-export const CLIPPER_INFO_BY_CHAIN = valueByChainId(
-    {
-        [ChainId.Mainnet]: {
-            poolAddress: '0xe82906b6b1b04f631d126c974af57a3a7b6a99d9',
-            tokens: [
-                MAINNET_TOKENS.WETH, // technically ETH but our sampler and mixin handle this
-                MAINNET_TOKENS.WBTC,
-                MAINNET_TOKENS.USDC,
-                MAINNET_TOKENS.USDT,
-                MAINNET_TOKENS.DAI,
-            ],
-        },
-    },
-    { poolAddress: NULL_ADDRESS, tokens: [] },
-);
-
 export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
@@ -1637,6 +1619,23 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
+    {
+        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
+        [ChainId.BSC]: [
+            ERC20BridgeSource.PancakeSwap,
+            ERC20BridgeSource.PancakeSwapV2,
+            ERC20BridgeSource.BakerySwap,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.ApeSwap,
+            ERC20BridgeSource.CafeSwap,
+            ERC20BridgeSource.CheeseSwap,
+            ERC20BridgeSource.JulSwap,
+        ],
+    },
+    [],
+);
+
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     // TODO: Different base cost if to/from ETH.
     let gas = 90e3;
@@ -1742,7 +1741,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Lido]: () => 226e3,
-    [ERC20BridgeSource.Clipper]: () => 170e3,
 
     //
     // BSC
@@ -1779,7 +1777,7 @@ export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(20000);
 
 // tslint:enable:custom-no-magic-numbers
 
-export const DEFAULT_GET_MARKET_ORDERS_OPTS: GetMarketOrdersOpts = {
+export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice'> = {
     // tslint:disable-next-line: custom-no-magic-numbers
     runLimit: 2 ** 15,
     excludedSources: [],

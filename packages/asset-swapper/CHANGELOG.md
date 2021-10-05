@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.29.1 - _October 4, 2021_
+
+    * Remove `Clipper` as a custom liquidity source (#335)
+
+## v16.29.0 - _October 4, 2021_
+
+    * Initial integration of neon-router (behind feature flag) (#295)
+
 ## v16.28.0 - _September 29, 2021_
 
     * Update ExchangeProxySwapQuoteConsumer for Multiplex V2 and friends (#282)
