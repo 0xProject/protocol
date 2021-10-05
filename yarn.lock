@@ -61,10 +61,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.28.0":
-  version "16.28.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.28.0.tgz#e8ba6df2eeefe73cf4def73cb06b3d2898156910"
-  integrity sha512-Y41T90vftnFVlFoVtBTtxGBon5vN/G6NvZw66Vawdezvepzk3aLQe1O6FSQbGJvdzlP9tTCVtFBftkS0SR5y9g==
+"@0x/asset-swapper@^16.29.0":
+  version "16.29.0"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.29.0.tgz#d54d75405f7812c8273893a43152adb4b2574c0b"
+  integrity sha512-eoWjDxu8Rc4yr0xKN27ELyQMuWsQ1fOsootBSBa6IJJp0vCUDuTFU9XRB6OzkJWRGcyMBEnyxkfvkRUpYKV6uQ==
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/base-contract" "^6.4.2"
@@ -74,6 +74,7 @@
     "@0x/contracts-zero-ex" "^0.29.0"
     "@0x/dev-utils" "^4.2.9"
     "@0x/json-schemas" "^6.3.0"
+    "@0x/neon-router" "^0.1.3"
     "@0x/protocol-utils" "^1.9.1"
     "@0x/quote-server" "^6.0.6"
     "@0x/types" "^3.3.4"
@@ -563,6 +564,13 @@
     lodash "^4.17.11"
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
+
+"@0x/neon-router@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.1.3.tgz#70da4c17ca4b59dfe8b5e539673e364a70e62ebd"
+  integrity sha512-EfdrG829NalYjAK5/nMTD6YyJQgUzgssL2Hvyphu1ugWxWlZ3QMM9qpZsKt82hUiyZT/64I4JJ3hkerMhTaHeg==
+  dependencies:
+    "@mapbox/node-pre-gyp" "^1.0.5"
 
 "@0x/order-utils@^10.2.4", "@0x/order-utils@^10.4.28":
   version "10.4.28"
@@ -1692,7 +1700,7 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-4.72.0.tgz#43df23af013ad1135407e5cf33ca6e4c4c7708d5"
   integrity sha512-o+TYF8vBcyySRsb2kqBDv/KMeme8a2nwWoG+lAWzbDmWfb2/MrVWYCVYDYvjXdSoI/Cujqy1i0gIDrkdxa9chA==
 
-"@mapbox/node-pre-gyp@^1.0.4":
+"@mapbox/node-pre-gyp@^1.0.4", "@mapbox/node-pre-gyp@^1.0.5":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.5.tgz#2a0b32fcb416fb3f2250fd24cb2a81421a4f5950"
   integrity sha512-4srsKPXWlIxp5Vbqz5uLfBN+du2fJChBoYn/f2h991WLdk7jUvcSk/McVLSv/X+xQIPI8eGD5GjrnygdyHnhPA==
