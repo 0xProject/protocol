@@ -6,8 +6,7 @@
                 "note": "Check MAX_IN_RATIO in sampleBuysFromBalancer",
                 "pr": 338
             }
-        ],
-        "timestamp": 1633401845
+        ]
     },
     {
         "version": "16.29.1",
