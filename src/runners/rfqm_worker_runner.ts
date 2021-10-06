@@ -1,7 +1,7 @@
 /**
  * Runs the RFQM MetaTransaction Consumer
  */
-import { createMetricsRouter, MetricsService } from '@0x/api-utils';
+import { createMetricsRouter, MetricsService, pino } from '@0x/api-utils';
 import { SQS } from 'aws-sdk';
 import * as express from 'express';
 import { Counter, Summary } from 'prom-client';
@@ -47,15 +47,22 @@ const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
     labelNames: ['address'],
 });
 
-process.on('uncaughtException', (err) => {
-    logger.error(err);
-    process.exit(1);
-});
+process.on(
+    'uncaughtException',
+    // see https://github.com/pinojs/pino/blob/master/docs/help.md#exit-logging
+    pino.final(logger, (error, finalLogger) => {
+        finalLogger.error({ error, workerIndex: RFQM_WORKER_INDEX }, 'RFQM worker exiting due to uncaught exception');
+        process.exit(1);
+    }),
+);
 
-process.on('unhandledRejection', (err) => {
-    if (err) {
-        logger.error(err);
-    }
+process.on('unhandledRejection', (reason, promise) => {
+    const finalLogger = pino.final(logger);
+    finalLogger.error(
+        { reason, promise, workerIndex: RFQM_WORKER_INDEX },
+        'RFQM worker exiting due to unhandled rejection',
+    );
+    process.exit(1);
 });
 
 if (require.main === module) {
