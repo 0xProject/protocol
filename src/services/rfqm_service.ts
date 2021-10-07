@@ -671,12 +671,19 @@ export class RfqmService {
     public async runHealthCheckAsync(): Promise<HealthCheckResult> {
         const heartbeats = await this._dbUtils.findRfqmWorkerHeartbeatsAsync();
         const registryBalance = await this._blockchainUtils.getAccountBalanceAsync(this._registryAddress);
+        let gasPrice: BigNumber | undefined;
+        try {
+            gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        } catch (error) {
+            logger.warn({ error }, 'Failed to get gas price for health check');
+        }
         return computeHealthCheckAsync(
             RFQM_MAINTENANCE_MODE,
             registryBalance,
             RFQM_MAKER_ASSET_OFFERINGS,
             this._sqsProducer,
             heartbeats,
+            gasPrice,
         );
     }
 

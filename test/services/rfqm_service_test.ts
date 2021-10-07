@@ -1290,7 +1290,10 @@ describe('RfqmService', () => {
 
     describe('runHealthCheckAsync', () => {
         it('returns active pairs', async () => {
-            const service = buildRfqmServiceForUnitTest();
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findRfqmWorkerHeartbeatsAsync()).thenResolve([]);
+            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
             const result = await service.runHealthCheckAsync();
 
             expect(result.pairs).to.have.key(
