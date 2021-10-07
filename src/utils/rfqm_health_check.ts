@@ -21,7 +21,7 @@ const BALANCE_DEGRADED_THRESHOLD_WEI = new BigNumber(BALANCE_DEGRADED_THRESHOLD)
 const BALANCE_FAILED_THRESHOLD_WEI = new BigNumber(BALANCE_FAILED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 
 const RFQM_HEALTH_CHECK_ISSUE_GAUGE = new Gauge({
-    name: 'rfqm_health_check_issue',
+    name: 'rfqm_health_check_issue_gauge',
     labelNames: ['label' /* :HealthCheckLabel */],
     help: 'Gauge indicating the current status for each label. Value corresponds to the `statusSeverity`',
 });
@@ -99,9 +99,20 @@ export async function computeHealthCheckAsync(
     const workersStatus = getWorstStatus(workersIssues.map((issue) => issue.status));
 
     // Prometheus counters
-    [...httpIssues, ...workersIssues].forEach((issue) =>
-        RFQM_HEALTH_CHECK_ISSUE_GAUGE.labels(issue.label).set(statusSeverity(issue.status)),
+    const severityByLabel: Record<HealthCheckLabel, number> = {
+        'registry balance': statusSeverity(HealthCheckStatus.Operational),
+        'RFQM_MAINTENANCE_MODE config `true`': statusSeverity(HealthCheckStatus.Operational),
+        'queue size': statusSeverity(HealthCheckStatus.Operational),
+        'worker balance': statusSeverity(HealthCheckStatus.Operational),
+        'worker heartbeat': statusSeverity(HealthCheckStatus.Operational),
+    };
+    [...httpIssues, ...workersIssues].forEach(
+        (issue) =>
+            (severityByLabel[issue.label] = Math.max(severityByLabel[issue.label], statusSeverity(issue.status))),
     );
+    Object.entries(severityByLabel).forEach(([label, severity]) => {
+        RFQM_HEALTH_CHECK_ISSUE_GAUGE.labels(label).set(severity);
+    });
 
     if (gasPrice) {
         // Note that this gauge is an estimation of the total number of trades, since two workers could have
