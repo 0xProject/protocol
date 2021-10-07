@@ -1,6 +1,6 @@
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
-import { Counter, Gauge } from 'prom-client';
+import { Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import { ETH_DECIMALS, RFQM_TX_GAS_ESTIMATE } from '../constants';
@@ -20,10 +20,10 @@ const MS_IN_MINUTE = 60000;
 const BALANCE_DEGRADED_THRESHOLD_WEI = new BigNumber(BALANCE_DEGRADED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 const BALANCE_FAILED_THRESHOLD_WEI = new BigNumber(BALANCE_FAILED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 
-const RFQM_HEALTH_CHECK_ISSUE_COUNTER = new Counter({
+const RFQM_HEALTH_CHECK_ISSUE_GAUGE = new Gauge({
     name: 'rfqm_health_check_issue',
-    labelNames: ['status' /* :HealthCheckStatus, except for Operational */, 'label' /* :HealthCheckLabel */],
-    help: 'RFQM health system has detected a problem with the system',
+    labelNames: ['label' /* :HealthCheckLabel */],
+    help: 'Gauge indicating the current status for each label. Value corresponds to the `statusSeverity`',
 });
 
 const RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE = new Gauge({
@@ -100,7 +100,7 @@ export async function computeHealthCheckAsync(
 
     // Prometheus counters
     [...httpIssues, ...workersIssues].forEach((issue) =>
-        RFQM_HEALTH_CHECK_ISSUE_COUNTER.labels(issue.status, issue.label).inc(),
+        RFQM_HEALTH_CHECK_ISSUE_GAUGE.labels(issue.label).set(statusSeverity(issue.status)),
     );
 
     if (gasPrice) {
